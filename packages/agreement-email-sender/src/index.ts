@@ -2,6 +2,8 @@
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
+  EmailManagerPEC,
+  EmailManagerSES,
   ReadModelRepository,
   buildHTMLTemplateService,
   decodeKafkaMessage,
@@ -17,27 +19,36 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { readModelServiceBuilder } from "./services/readModelService.js";
-import {
-  sendAgreementActivationEmail,
-  senderAgreementSubmissionEmail,
-} from "./services/agreementEmailSenderService.js";
-
 import { config } from "./config/config.js";
-
-const sesEmailManager = initSesMailManager(config);
-const pecEmailManager = initPecEmailManager({
-  smtpAddress: config.smtpAddress,
-  smtpPort: config.smtpPort,
-  smtpSecure: config.smtpSecure,
-  smtpUsername: config.smtpUsername,
-  smtpPassword: config.smtpPassword,
-});
+import { agreementEmailSenderServiceBuilder } from "./services/agreementEmailSenderService.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const templateService = buildHTMLTemplateService();
+const interopFeBaseUrl = config.interopFeBaseUrl;
+const sesEmailManager: EmailManagerSES = initSesMailManager(config);
+const sesEmailsenderData = {
+  label: config.senderLabel,
+  mail: config.senderMail,
+};
+
+const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
+const pecEmailsenderData = {
+  label: config.pecSenderLabel,
+  mail: config.pecSenderMail,
+};
+
+const agreementEmailSenderService = agreementEmailSenderServiceBuilder(
+  pecEmailManager,
+  pecEmailsenderData,
+  sesEmailManager,
+  sesEmailsenderData,
+  readModelService,
+  templateService,
+  interopFeBaseUrl
+);
 
 export async function processMessage({
   message,
@@ -61,17 +72,16 @@ export async function processMessage({
       { event_version: 2, type: "AgreementActivated" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await sendAgreementActivationEmail({
-            agreementV2: agreement,
-            readModelService,
-            emailManager: pecEmailManager,
-            sender: {
-              label: config.pecSenderLabel,
-              mail: config.pecSenderMail,
-            },
-            templateService,
-            logger: loggerInstance,
-          });
+          await Promise.all([
+            agreementEmailSenderService.sendAgreementActivationCertifiedEmail(
+              agreement,
+              loggerInstance
+            ),
+            agreementEmailSenderService.sendAgreementActivationSimpleEmail(
+              agreement,
+              loggerInstance
+            ),
+          ]);
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
@@ -81,15 +91,23 @@ export async function processMessage({
       { event_version: 2, type: "AgreementSubmitted" },
       async ({ data: { agreement } }) => {
         if (agreement) {
-          await senderAgreementSubmissionEmail({
-            agreementV2: agreement,
-            readModelService,
-            emailManager: sesEmailManager,
-            feBaseUrl: config.interopFeBaseUrl,
-            sender: { label: config.senderLabel, mail: config.senderMail },
-            templateService,
-            logger: loggerInstance,
-          });
+          await agreementEmailSenderService.sendAgreementSubmissionSimpleEmail(
+            agreement,
+            loggerInstance
+          );
+        } else {
+          throw missingKafkaMessageDataError("agreement", decodedMessage.type);
+        }
+      }
+    )
+    .with(
+      { event_version: 2, type: "AgreementRejected" },
+      async ({ data: { agreement } }) => {
+        if (agreement) {
+          await agreementEmailSenderService.sendAgreementRejectSimpleEmail(
+            agreement,
+            loggerInstance
+          );
         } else {
           throw missingKafkaMessageDataError("agreement", decodedMessage.type);
         }
@@ -111,11 +129,12 @@ export async function processMessage({
           "AgreementSuspendedByProducer",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByPlatform",
-          "AgreementRejected",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform"
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementArchivedByRevokedDelegation",
+          "AgreementDeletedByRevokedDelegation"
         ),
       },
       handleMessageToSkip

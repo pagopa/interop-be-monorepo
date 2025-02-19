@@ -1,6 +1,6 @@
 FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
 
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 WORKDIR /app
 COPY package.json /app/
@@ -37,7 +37,21 @@ RUN pnpm build && \
 
 FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
 
+# Install dependencies for Puppeteer
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        chromium \
+        ca-certificates 
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+RUN groupadd -r app && useradd -rm -g app -G audio,video app
+
 COPY --from=build /out /app
+
+RUN chown -R app:app /app
+RUN chmod -R 700 /app
+USER app
 
 WORKDIR /app/packages/delegation-process
 EXPOSE 3000

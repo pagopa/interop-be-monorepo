@@ -13,20 +13,22 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { Logger } from "pagopa-interop-commons";
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
   updatePurposeDataInPlatformStatesEntry,
-  updatePurposeDataInTokenEntries,
+  updatePurposeDataInTokenGenStatesEntries,
   writePlatformPurposeEntry,
-  updateTokenEntriesWithPurposeAndPlatformStatesData,
+  updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData,
   getLastSuspendedOrActivatedPurposeVersion,
 } from "./utils.js";
 
 export async function handleMessageV2(
   message: PurposeEventEnvelopeV2,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
 ): Promise<void> {
   await match(message)
     .with(
@@ -47,6 +49,9 @@ export async function handleMessageV2(
         if (existingPurposeEntry) {
           if (existingPurposeEntry.version > msg.version) {
             // Stops processing if the message is older than the purpose entry
+            logger.info(
+              `Skipping processing of entry ${existingPurposeEntry.PK}. Reason: a more recent entry already exists`
+            );
             return Promise.resolve();
           } else {
             // platform-states
@@ -56,6 +61,7 @@ export async function handleMessageV2(
               purposeState,
               purposeVersionId: purposeVersion.id,
               version: msg.version,
+              logger,
             });
           }
         } else {
@@ -69,15 +75,16 @@ export async function handleMessageV2(
             version: msg.version,
             updatedAt: new Date().toISOString(),
           };
-          await writePlatformPurposeEntry(dynamoDBClient, purposeEntry);
+          await writePlatformPurposeEntry(dynamoDBClient, purposeEntry, logger);
         }
 
         // token-generation-states
-        await updateTokenEntriesWithPurposeAndPlatformStatesData(
+        await updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData(
           dynamoDBClient,
           purpose,
           purposeState,
-          purposeVersion.id
+          purposeVersion.id,
+          logger
         );
       }
     )
@@ -104,6 +111,13 @@ export async function handleMessageV2(
           existingPurposeEntry.version > msg.version
         ) {
           // Stops processing if the message is older than the purpose entry or if it doesn't exist
+          logger.info(
+            `Skipping processing of entry ${primaryKey}. Reason: ${
+              !existingPurposeEntry
+                ? "entry not found in platform-states"
+                : "a more recent entry already exists"
+            }`
+          );
           return Promise.resolve();
         } else {
           // platform-states
@@ -113,36 +127,43 @@ export async function handleMessageV2(
             purposeState,
             purposeVersionId,
             version: msg.version,
+            logger,
           });
 
           // token-generation-states
-          await updatePurposeDataInTokenEntries({
+          await updatePurposeDataInTokenGenStatesEntries({
             dynamoDBClient,
             purposeId: purpose.id,
             purposeState,
             purposeVersionId,
+            logger,
           });
         }
       }
     )
-    .with({ type: "PurposeArchived" }, async (msg) => {
-      const { purpose, primaryKey } = await getPurposeData({
-        dynamoDBClient,
-        purposeV2: msg.data.purpose,
-        msgType: msg.type,
-      });
+    .with(
+      { type: "PurposeArchived" },
+      { type: "PurposeVersionArchivedByRevokedDelegation" },
+      async (msg) => {
+        const { purpose, primaryKey } = await getPurposeData({
+          dynamoDBClient,
+          purposeV2: msg.data.purpose,
+          msgType: msg.type,
+        });
 
-      // platform-states
-      await deletePlatformPurposeEntry(dynamoDBClient, primaryKey);
+        // platform-states
+        await deletePlatformPurposeEntry(dynamoDBClient, primaryKey, logger);
 
-      // token-generation-states
-      await updatePurposeDataInTokenEntries({
-        dynamoDBClient,
-        purposeId: purpose.id,
-        purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
-        purposeVersionId: unsafeBrandId(msg.data.versionId),
-      });
-    })
+        // token-generation-states
+        await updatePurposeDataInTokenGenStatesEntries({
+          dynamoDBClient,
+          purposeId: purpose.id,
+          purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
+          purposeVersionId: unsafeBrandId(msg.data.versionId),
+          logger,
+        });
+      }
+    )
     .with(
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
@@ -154,6 +175,7 @@ export async function handleMessageV2(
       { type: "PurposeWaitingForApproval" },
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeCloned" },
+      { type: "PurposeDeletedByRevokedDelegation" },
       () => Promise.resolve()
     )
     .exhaustive();

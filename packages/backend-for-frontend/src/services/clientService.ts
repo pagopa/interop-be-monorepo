@@ -396,7 +396,7 @@ export async function getSelfcareUserById(
       },
     });
   } catch (error) {
-    return {};
+    return {} as selfcareV2ClientApi.UserResponse;
   }
 }
 

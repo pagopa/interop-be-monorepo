@@ -237,12 +237,12 @@ const initCustomConsumer = async ({
   config,
   topics,
   consumerRunConfig,
-  batchConfig,
+  batchConsumerConfig,
 }: {
   config: KafkaConsumerConfig;
   topics: string[];
   consumerRunConfig: (consumer: Consumer) => ConsumerRunConfig;
-  batchConfig?: { minBytes: number; maxWaitTimeInMs: number };
+  batchConsumerConfig?: KafkaBatchConsumerConfig;
 }): Promise<Consumer> => {
   genericLogger.debug(
     `Consumer connecting to topics ${JSON.stringify(topics)}`
@@ -261,8 +261,10 @@ const initCustomConsumer = async ({
         return Promise.resolve(false);
       },
     },
-    ...batchConfig,
-    maxBytes: batchConfig ? batchConfig.minBytes * 1.25 : undefined, // TODO double-check
+    maxWaitTimeInMs: batchConsumerConfig?.maxWaitKafkaBatchMillis,
+    minBytes: batchConsumerConfig?.minBytes,
+    maxBytes: batchConsumerConfig?.maxBytes,
+    sessionTimeout: batchConsumerConfig?.sessionTimeoutMillis,
   });
 
   if (config.resetConsumerOffsets) {
@@ -346,7 +348,7 @@ export const initProducer = async (
     };
   } catch (e) {
     genericLogger.error(
-      `Generic error occurs during consumer initialization: ${e}`
+      `Generic error occurs during producer initialization: ${e}`
     );
     processExit();
     return undefined as never;
@@ -385,7 +387,8 @@ export const runConsumer = async (
 };
 
 export const runBatchConsumer = async (
-  config: KafkaBatchConsumerConfig,
+  baseConsumerConfig: KafkaConsumerConfig,
+  batchConsumerConfig: KafkaBatchConsumerConfig,
   topics: string[],
   consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>
 ): Promise<void> => {
@@ -405,14 +408,10 @@ export const runBatchConsumer = async (
       },
     });
     await initCustomConsumer({
-      config,
+      config: baseConsumerConfig,
       topics,
       consumerRunConfig,
-      batchConfig: {
-        minBytes:
-          config.averageKafkaMessageSizeInBytes * config.messagesToReadPerBatch,
-        maxWaitTimeInMs: config.maxWaitKafkaBatchMillis,
-      },
+      batchConsumerConfig,
     });
   } catch (e) {
     genericLogger.error(

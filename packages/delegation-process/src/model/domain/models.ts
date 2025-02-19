@@ -1,30 +1,15 @@
-import {
-  DelegationId,
-  DelegationKind,
-  DelegationState,
-  EService,
-  EServiceId,
-  Tenant,
-  TenantId,
-  UserId,
-} from "pagopa-interop-models";
-
-export type GetDelegationsFilters = {
-  eserviceId?: EServiceId;
-  delegatorId?: TenantId;
-  delegateId?: TenantId;
-  delegationKind?: DelegationKind;
-  states?: DelegationState[];
-};
+import { DelegationId, EService, Tenant, UserId } from "pagopa-interop-models";
 
 export type DelegationActivationPDFPayload = {
+  delegationKindText: string;
+  delegationActionText: string;
   todayDate: string;
   todayTime: string;
   delegationId: DelegationId;
   delegatorName: Tenant["name"];
-  delegatorCode: Tenant["externalId"]["value"];
+  delegatorIpaCode: Tenant["externalId"]["value"] | undefined;
   delegateName: Tenant["name"];
-  delegateCode: Tenant["externalId"]["value"];
+  delegateIpaCode: Tenant["externalId"]["value"] | undefined;
   eserviceId: EService["id"];
   eserviceName: EService["name"];
   submitterId: UserId;
@@ -36,13 +21,15 @@ export type DelegationActivationPDFPayload = {
 };
 
 export type DelegationRevocationPDFPayload = {
+  delegationKindText: string;
+  delegationActionText: string;
   todayDate: string;
   todayTime: string;
   delegationId: DelegationId;
   delegatorName: Tenant["name"];
-  delegatorCode: Tenant["externalId"]["value"];
+  delegatorIpaCode: Tenant["externalId"]["value"] | undefined;
   delegateName: Tenant["name"];
-  delegateCode: Tenant["externalId"]["value"];
+  delegateIpaCode: Tenant["externalId"]["value"] | undefined;
   eserviceId: EService["id"];
   eserviceName: EService["name"];
   submitterId: UserId;

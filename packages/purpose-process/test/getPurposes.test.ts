@@ -1,11 +1,15 @@
 import {
   EService,
+  EServiceId,
   Purpose,
   TenantId,
+  delegationKind,
+  delegationState,
   generateId,
   purposeVersionState,
   tenantKind,
   toReadModelEService,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -13,10 +17,15 @@ import {
   getMockPurpose,
   writeInReadmodel,
   getMockValidRiskAnalysisForm,
+  getMockDelegation,
+  getMockTenant,
 } from "pagopa-interop-commons-test/index.js";
 import { genericLogger } from "pagopa-interop-commons";
 import {
+  addOneDelegation,
+  addOneEService,
   addOnePurpose,
+  addOneTenant,
   eservices,
   getMockEService,
   purposeService,
@@ -27,20 +36,24 @@ describe("getPurposes", async () => {
   const producerId1: TenantId = generateId();
   const producerId2: TenantId = generateId();
   const consumerId1: TenantId = generateId();
+  const delegateId: TenantId = generateId();
 
   const mockEService1ByTenant1: EService = {
     ...getMockEService(),
     producerId: producerId1,
+    name: "eService 1",
   };
 
   const mockEService2ByTenant1: EService = {
     ...getMockEService(),
     producerId: producerId1,
+    name: "eService 2",
   };
 
   const mockEService3ByTenant2: EService = {
     ...getMockEService(),
     producerId: producerId2,
+    name: "eService 3",
   };
 
   const mockEService4 = getMockEService();
@@ -512,5 +525,327 @@ describe("getPurposes", async () => {
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
+  });
+
+  describe("Producer Delegation active for provided producerIds filter", async () => {
+    it("should get the purposes if they exist (parameters: producersIds with only delegateId)", async () => {
+      const organizationId = generateId<TenantId>();
+      const delegate = getMockTenant(delegateId);
+      await addOneTenant(delegate);
+
+      const delegation = getMockDelegation({
+        delegateId,
+        state: delegationState.active,
+        eserviceId: mockPurpose2.eserviceId,
+        kind: delegationKind.delegatedProducer,
+      });
+      await addOneDelegation(delegation);
+
+      const revokedDelegation = getMockDelegation({
+        delegateId,
+        state: delegationState.revoked,
+        eserviceId: mockPurpose3.eserviceId,
+        kind: delegationKind.delegatedProducer,
+      });
+      await addOneDelegation(revokedDelegation);
+
+      const results = await purposeService.getPurposes(
+        organizationId, // irrelevant to check retrieved purposes
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [delegateId],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+
+      expect(results.totalCount).toBe(2);
+      expect(results.results).toEqual([mockPurpose1, mockPurpose2]);
+    });
+    it("should get the purposes if they exist (parameters: producersIds that contains delegateId and generic producerId)", async () => {
+      const delegate = getMockTenant(delegateId);
+      await addOneTenant(delegate);
+
+      const delegation = getMockDelegation({
+        delegateId,
+        state: delegationState.active,
+        eserviceId: mockPurpose2.eserviceId,
+        kind: delegationKind.delegatedProducer,
+      });
+      await addOneDelegation(delegation);
+
+      const revokedDelegation = getMockDelegation({
+        delegateId,
+        state: delegationState.revoked,
+        eserviceId: mockPurpose3.eserviceId,
+        kind: delegationKind.delegatedProducer,
+      });
+      await addOneDelegation(revokedDelegation);
+
+      const results = await purposeService.getPurposes(
+        generateId<TenantId>(),
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [delegateId, producerId2],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+
+      expect(results.totalCount).toBe(4);
+      expect(results.results).toEqual([
+        mockPurpose1,
+        mockPurpose2,
+        mockPurpose4,
+        mockPurpose6,
+      ]);
+    });
+  });
+
+  describe("Producer Delegation active getPurposes return also risk analysis data", async () => {
+    it("should get the purposes and also risk analysis if requester is a delegate", async () => {
+      const riskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
+      const producerId = generateId<TenantId>();
+      await addOneTenant(getMockTenant(producerId));
+
+      const eservice = {
+        ...getMockEService(),
+        id: unsafeBrandId<EServiceId>("6A7A8CC9-02B0-4AC3-862D-9CDFB102A181"),
+        producerId,
+      };
+      await addOneEService(eservice);
+
+      const mockPurpose10 = {
+        ...getMockPurpose(),
+        title: "purpose 10",
+        riskAnalysisForm,
+        eserviceId: eservice.id,
+        versions: [getMockPurposeVersion(purposeVersionState.active)],
+      };
+      await addOnePurpose(mockPurpose10);
+      const mockPurpose11 = {
+        ...getMockPurpose(),
+        title: "purpose 11",
+        riskAnalysisForm,
+        eserviceId: eservice.id,
+        versions: [getMockPurposeVersion(purposeVersionState.active)],
+      };
+      await addOnePurpose(mockPurpose11);
+
+      const delegate = getMockTenant(delegateId);
+      await addOneTenant(delegate);
+
+      const delegation = getMockDelegation({
+        delegatorId: producerId,
+        delegateId,
+        state: delegationState.active,
+        eserviceId: eservice.id,
+        kind: delegationKind.delegatedProducer,
+      });
+      await addOneDelegation(delegation);
+
+      const results = await purposeService.getPurposes(
+        delegateId,
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [producerId],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+
+      expect(results.totalCount).toBe(2);
+      expect(results.results).toEqual([mockPurpose10, mockPurpose11]);
+    });
+  });
+
+  describe("Consumer Delegation active for provided consumetsIds filter", async () => {
+    it("should get the purposes if they exist (parameters: consumersIds with only delegateId)", async () => {
+      const organizationId = generateId<TenantId>();
+      const delegate = getMockTenant(delegateId);
+      await addOneTenant(delegate);
+
+      const delegation = getMockDelegation({
+        delegateId,
+        delegatorId: mockPurpose2.consumerId,
+        state: delegationState.active,
+        eserviceId: mockPurpose2.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(delegation);
+
+      const revokedDelegation = getMockDelegation({
+        delegateId,
+        delegatorId: mockPurpose2.consumerId,
+        state: delegationState.revoked,
+        eserviceId: mockPurpose3.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(revokedDelegation);
+
+      const mockPurposeA: Purpose = {
+        ...getMockPurpose(),
+        title: "purpose - test",
+        consumerId: consumerId1,
+        eserviceId: mockEService1ByTenant1.id,
+        delegationId: delegation.id,
+        versions: [getMockPurposeVersion(purposeVersionState.draft)],
+      };
+      await addOnePurpose(mockPurposeA);
+
+      const mockPurposeB: Purpose = {
+        ...getMockPurpose(),
+        title: "purpose - test",
+        consumerId: consumerId1,
+        delegationId: revokedDelegation.id,
+        eserviceId: mockEService1ByTenant1.id,
+        versions: [getMockPurposeVersion(purposeVersionState.draft)],
+      };
+      await addOnePurpose(mockPurposeB);
+
+      const mockPurposeC: Purpose = {
+        ...getMockPurpose(),
+        title: "purpose - test",
+        consumerId: delegate.id,
+        eserviceId: mockEService2ByTenant1.id,
+        versions: [getMockPurposeVersion(purposeVersionState.draft)],
+      };
+      await addOnePurpose(mockPurposeC);
+
+      const results = await purposeService.getPurposes(
+        organizationId, // irrelevant to check retrieved purposes
+        {
+          eservicesIds: [],
+          consumersIds: [delegateId],
+          producersIds: [],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+
+      expect(results.totalCount).toBe(2);
+      expect(results.results).toEqual([mockPurposeA, mockPurposeC]);
+    });
+    it("should get the purposes if they exist (parameters: consumersIds that contains delegateId and generic consumerId)", async () => {
+      const delegate = getMockTenant(delegateId);
+      await addOneTenant(delegate);
+
+      const delegation = getMockDelegation({
+        delegateId,
+        delegatorId: mockPurpose2.consumerId,
+        state: delegationState.active,
+        eserviceId: mockPurpose2.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(delegation);
+
+      const revokedDelegation = getMockDelegation({
+        delegateId,
+        delegatorId: mockPurpose2.consumerId,
+        state: delegationState.revoked,
+        eserviceId: mockPurpose3.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(revokedDelegation);
+
+      const mockPurposeA: Purpose = {
+        ...getMockPurpose(),
+        title: "purpose - test",
+        consumerId: generateId<TenantId>(),
+        eserviceId: mockEService1ByTenant1.id,
+        delegationId: delegation.id,
+        versions: [getMockPurposeVersion(purposeVersionState.draft)],
+      };
+      await addOnePurpose(mockPurposeA);
+
+      const mockPurposeB: Purpose = {
+        ...getMockPurpose(),
+        title: "purpose - test",
+        consumerId: generateId<TenantId>(),
+        delegationId: revokedDelegation.id,
+        eserviceId: mockEService1ByTenant1.id,
+        versions: [getMockPurposeVersion(purposeVersionState.draft)],
+      };
+      await addOnePurpose(mockPurposeB);
+
+      const results = await purposeService.getPurposes(
+        generateId<TenantId>(),
+        {
+          eservicesIds: [],
+          consumersIds: [delegateId, consumerId1],
+          producersIds: [],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+
+      expect(results.totalCount).toBe(4);
+      expect(results.results).toEqual([
+        mockPurposeA,
+        mockPurpose1,
+        mockPurpose5,
+        mockPurpose6,
+      ]);
+    });
+    it("should get the purposes if they exist (parameters: consumersIds that contains delegatorId)", async () => {
+      const delegator = getMockTenant();
+      await addOneTenant(delegator);
+
+      const delegation = getMockDelegation({
+        delegatorId: delegator.id,
+        state: delegationState.active,
+        eserviceId: mockPurpose2.eserviceId,
+        kind: delegationKind.delegatedConsumer,
+      });
+      await addOneDelegation(delegation);
+
+      const mockPurposeA: Purpose = {
+        ...getMockPurpose(),
+        title: "purpose - test",
+        consumerId: delegator.id,
+        eserviceId: mockEService1ByTenant1.id,
+        delegationId: delegation.id,
+        versions: [getMockPurposeVersion(purposeVersionState.draft)],
+      };
+      await addOnePurpose(mockPurposeA);
+
+      const mockPurposeB: Purpose = {
+        ...getMockPurpose(),
+        title: "purpose - test",
+        consumerId: delegator.id,
+        eserviceId: mockEService2ByTenant1.id,
+        versions: [getMockPurposeVersion(purposeVersionState.draft)],
+      };
+      await addOnePurpose(mockPurposeB);
+
+      const results = await purposeService.getPurposes(
+        generateId<TenantId>(),
+        {
+          eservicesIds: [],
+          consumersIds: [delegator.id],
+          producersIds: [],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+
+      expect(results.totalCount).toBe(2);
+      expect(results.results).toEqual([mockPurposeA, mockPurposeB]);
+    });
   });
 });

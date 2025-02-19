@@ -19,6 +19,14 @@ export const getDelegationsErrorMapper = (
 ): number =>
   match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getConsumerDelegatorsErrorMapper = getDelegationsErrorMapper;
+export const getConsumerDelegatorsWithAgreementsErrorMapper =
+  getConsumerDelegatorsErrorMapper;
+export const getConsumerEservicesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getDelegationByIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -37,12 +45,35 @@ export const createProducerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "tenantIsNotIPAError",
+      "originNotCompliant",
       "tenantNotAllowedToDelegation",
       "differentEserviceProducer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("delegationAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createConsumerDelegationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceNotFound",
+      "tenantNotFound",
+      "invalidDelegatorAndDelegateIds",
+      "eserviceNotConsumerDelegable",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "originNotCompliant",
+      "tenantNotAllowedToDelegation",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "delegationAlreadyExists",
+      "delegationRelatedAgreementExists",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeDelegationErrorMapper = (

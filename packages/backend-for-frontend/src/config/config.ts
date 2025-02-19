@@ -8,6 +8,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
+import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -84,6 +85,7 @@ export const AuthorizationProcessServerConfig = z
     SAML_CALLBACK_ERROR_URL: z.string().url(),
     SUPPORT_LANDING_TOKEN_DURATION_SECONDS: z.coerce.number().default(300),
     SUPPORT_TOKEN_DURATION_SECONDS: z.coerce.number().default(3600),
+    SAML_PUBLIC_KEY: z.string(),
   })
   .transform((c) => ({
     authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
@@ -94,6 +96,7 @@ export const AuthorizationProcessServerConfig = z
     samlCallbackErrorUrl: c.SAML_CALLBACK_ERROR_URL,
     supportLandingJwtDuration: c.SUPPORT_LANDING_TOKEN_DURATION_SECONDS,
     supportJwtDuration: c.SUPPORT_TOKEN_DURATION_SECONDS,
+    samlPublicKey: c.SAML_PUBLIC_KEY,
   }));
 export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
@@ -190,6 +193,15 @@ export const InterfaceVersion = z
     backendForFrontendInterfaceVersion:
       c.BACKEND_FOR_FRONTEND_INTERFACE_VERSION,
   }));
+
+export const SelfcareProcessConfig = z
+  .object({
+    INTEROP_SELFCARE_PRODUCT_NAME: z.string(),
+  })
+  .transform((c) => ({
+    selfcareProductName: c.INTEROP_SELFCARE_PRODUCT_NAME,
+  }));
+export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -207,7 +219,9 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
   .and(ImportFileConfig)
-  .and(InterfaceVersion);
+  .and(InterfaceVersion)
+  .and(SelfcareProcessConfig)
+  .and(ClientAssertionValidationConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

@@ -47,6 +47,7 @@ message TenantFeatureV2 {
   oneof sealed_value {
     CertifierV2 certifier = 1;
     DelegatedProducerV2 delegatedProducer = 2;
+    DelegatedConsumerV2 delegatedConsumer = 3;
   }
 }
 
@@ -58,11 +59,16 @@ message DelegatedProducerV2 {
   int64 availabilityTimestamp = 1;
 }
 
+message DelegatedConsumerV2 {
+  int64 availabilityTimestamp = 1;
+}
+
 message TenantVerifierV2 {
   string id = 1;
   int64 verificationDate = 2;
   optional int64 expirationDate = 3;
   optional int64 extensionDate = 4;
+  optional string delegationId = 5;
 }
 
 message TenantRevokerV2 {
@@ -71,6 +77,7 @@ message TenantRevokerV2 {
   optional int64 expirationDate = 3;
   optional int64 extensionDate = 4;
   int64 revocationDate = 5;
+  optional string delegationId = 6;
 }
 
 message ExternalIdV2 {
@@ -88,6 +95,7 @@ message TenantDeclaredAttributeV2 {
   string id = 1;
   int64 assignmentTimestamp = 2;
   optional int64 revocationTimestamp = 3;
+  optional string delegationId = 4;
 }
 
 message TenantVerifiedAttributeV2 {

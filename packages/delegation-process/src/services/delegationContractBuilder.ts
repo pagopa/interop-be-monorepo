@@ -12,10 +12,13 @@ import {
   Delegation,
   DelegationContractDocument,
   DelegationContractId,
+  delegationKind,
   EService,
   generateId,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { DelegationProcessConfig } from "../config/config.js";
 import {
   DelegationActivationPDFPayload,
@@ -24,8 +27,21 @@ import {
 import { assertStampExists } from "./validators.js";
 
 const CONTENT_TYPE_PDF = "application/pdf";
-const DELEGATION_ACTIVATION_CONTRACT_PRETTY_NAME = "Delega";
-const DELEGATION_REVOCATION_CONTRACT_PRETTY_NAME = "Revoca della delega";
+
+const createDelegationContractPrettyName = (
+  eServiceName: string,
+  documentType: "activation" | "revocation"
+): string => {
+  const prettyName = `${
+    documentType === "activation" ? "Delega" : "Revoca_Delega"
+  }_${eServiceName}`;
+  return prettyName.length > 45 ? prettyName.slice(0, 45) : prettyName;
+};
+
+const getIpaCode = (tenant: Tenant): string | undefined =>
+  tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+    ? tenant.externalId.value
+    : undefined;
 
 const createDelegationDocumentName = (
   documentCreatedAt: Date,
@@ -38,6 +54,22 @@ const createDelegationDocumentName = (
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
+function getDelegationText(delegation: Delegation): string {
+  return match(delegation.kind)
+    .with(delegationKind.delegatedProducer, () => "all’erogazione")
+    .with(delegationKind.delegatedConsumer, () => "alla fruizione")
+    .exhaustive();
+}
+
+function getDelegationActionText(delegation: Delegation): string {
+  return match(delegation.kind)
+    .with(delegationKind.delegatedProducer, () => "ad erogare l’")
+    .with(
+      delegationKind.delegatedConsumer,
+      () => "a gestire la fruizione dell’"
+    )
+    .exhaustive();
+}
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = {
   createActivationContract: async ({
@@ -65,6 +97,7 @@ export const contractBuilder = {
       "resources/templates",
       "delegationApprovedTemplate.html"
     );
+
     const documentCreatedAt = new Date();
     const todayDate = dateAtRomeZone(documentCreatedAt);
     const todayTime = timeAtRomeZone(documentCreatedAt);
@@ -82,13 +115,15 @@ export const contractBuilder = {
     const activationDate = dateAtRomeZone(delegation.stamps.activation.when);
     const activationTime = timeAtRomeZone(delegation.stamps.activation.when);
     const activationContractPayload: DelegationActivationPDFPayload = {
+      delegationKindText: getDelegationText(delegation),
+      delegationActionText: getDelegationActionText(delegation),
       todayDate,
       todayTime,
       delegationId: delegation.id,
       delegatorName: delegator.name,
-      delegatorCode: delegator.externalId.value,
+      delegatorIpaCode: getIpaCode(delegator),
       delegateName: delegate.name,
-      delegateCode: delegate.externalId.value,
+      delegateIpaCode: getIpaCode(delegate),
       eserviceId: eservice.id,
       eserviceName: eservice.name,
       submitterId: delegation.stamps.submission.who,
@@ -117,7 +152,10 @@ export const contractBuilder = {
     return {
       id: documentId,
       name: documentName,
-      prettyName: DELEGATION_ACTIVATION_CONTRACT_PRETTY_NAME,
+      prettyName: createDelegationContractPrettyName(
+        eservice.name,
+        "activation"
+      ),
       contentType: CONTENT_TYPE_PDF,
       path: documentPath,
       createdAt: documentCreatedAt,
@@ -163,13 +201,15 @@ export const contractBuilder = {
     const revocationTime = timeAtRomeZone(delegation.stamps.revocation.when);
 
     const revocationContractPayload: DelegationRevocationPDFPayload = {
+      delegationKindText: getDelegationText(delegation),
+      delegationActionText: getDelegationActionText(delegation),
       todayDate,
       todayTime,
       delegationId: delegation.id,
       delegatorName: delegator.name,
-      delegatorCode: delegator.externalId.value,
+      delegatorIpaCode: getIpaCode(delegator),
       delegateName: delegate.name,
-      delegateCode: delegate.externalId.value,
+      delegateIpaCode: getIpaCode(delegate),
       eserviceId: eservice.id,
       eserviceName: eservice.name,
       submitterId: delegation.stamps.submission.who,
@@ -196,7 +236,10 @@ export const contractBuilder = {
     return {
       id: documentId,
       name: documentName,
-      prettyName: DELEGATION_REVOCATION_CONTRACT_PRETTY_NAME,
+      prettyName: createDelegationContractPrettyName(
+        eservice.name,
+        "revocation"
+      ),
       contentType: CONTENT_TYPE_PDF,
       path: documentPath,
       createdAt: documentCreatedAt,

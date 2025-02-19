@@ -4,10 +4,15 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
-import { AttributeId, CorrelationId, TenantId } from "pagopa-interop-models";
+import {
+  AgreementId,
+  AttributeId,
+  CorrelationId,
+  TenantId,
+} from "pagopa-interop-models";
 import {
   AttributeProcessClient,
-  SelfcareV2Client,
+  SelfcareV2InstitutionClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -40,7 +45,7 @@ async function getRegistryAttributesMap(
 export function tenantServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeRegistryProcessClient: AttributeProcessClient,
-  selfcareV2Client: SelfcareV2Client
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   async function getLogoUrl(
     selfcareId: tenantApi.Tenant["selfcareId"],
@@ -50,14 +55,17 @@ export function tenantServiceBuilder(
       return undefined;
     }
 
-    const institution = await selfcareV2Client.institution.getInstitution({
-      params: {
-        id: selfcareId,
-      },
-      headers: {
-        "X-Correlation-Id": correlationId,
-      },
-    });
+    const institution =
+      await selfcareV2InstitutionClient.institution.retrieveInstitutionByIdUsingGET(
+        {
+          params: {
+            id: selfcareId,
+          },
+          headers: {
+            "X-Correlation-Id": correlationId,
+          },
+        }
+      );
 
     return institution.logo;
   }
@@ -107,6 +115,7 @@ export function tenantServiceBuilder(
     },
     async getTenants(
       name: string | undefined,
+      features: tenantApi.TenantFeatureType[] | undefined,
       limit: number,
       { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.Tenants> {
@@ -115,6 +124,7 @@ export function tenantServiceBuilder(
       const pagedResults = await tenantProcessClient.tenant.getTenants({
         queries: {
           name,
+          features,
           limit,
           offset,
         },
@@ -383,13 +393,14 @@ export function tenantServiceBuilder(
     async revokeVerifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
+      agreementId: AgreementId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(
         `Revoking verified attribute ${attributeId} for tenant ${tenantId}`
       );
       await tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
-        undefined,
+        { agreementId },
         {
           params: { tenantId, attributeId },
           headers,
@@ -418,23 +429,14 @@ export function tenantServiceBuilder(
         headers,
       });
     },
-    async assignTenantDelegatedProducerFeature(
+    async updateTenantDelegatedFeatures(
       tenantId: TenantId,
+      delegatedFeatures: bffApi.TenantDelegatedFeaturesFlagsUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Assigning delegated producer feature to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.assignTenantDelegatedProducerFeature(
-        undefined,
-        { headers }
-      );
-    },
-    async removeTenantDelegatedProducerFeature(
-      tenantId: TenantId,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
-      logger.info(`Removing delegated producer feature to tenant ${tenantId}`);
-      await tenantProcessClient.tenant.removeTenantDelegatedProducerFeature(
-        undefined,
+      await tenantProcessClient.tenant.updateTenantDelegatedFeatures(
+        delegatedFeatures,
         { headers }
       );
     },
@@ -486,6 +488,7 @@ export function getDeclaredTenantAttribute(
     description: registryAttribute.description,
     assignmentTimestamp: attribute.declared.assignmentTimestamp,
     revocationTimestamp: attribute.declared.revocationTimestamp,
+    delegationId: attribute.declared.delegationId,
   };
 }
 

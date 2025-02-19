@@ -3,6 +3,7 @@ import {
   AgreementDocumentId,
   AgreementId,
   AttributeId,
+  DelegationId,
   DescriptorId,
   EServiceId,
   TenantId,
@@ -39,6 +40,7 @@ export type AgreementDocument = z.infer<typeof AgreementDocument>;
 
 export const AgreementStamp = z.object({
   who: UserId,
+  delegationId: DelegationId.optional(),
   when: z.coerce.date(),
 });
 export type AgreementStamp = z.infer<typeof AgreementStamp>;
@@ -77,42 +79,3 @@ export const Agreement = z.object({
   suspendedAt: z.coerce.date().optional(),
 });
 export type Agreement = z.infer<typeof Agreement>;
-
-export type AgreementContractPDFPayload = {
-  todayDate: string;
-  todayTime: string;
-  agreementId: AgreementId;
-  submitterId: UserId;
-  submissionDate: string;
-  submissionTime: string;
-  activatorId: UserId;
-  activationDate: string;
-  activationTime: string;
-  eserviceId: EServiceId;
-  eserviceName: string;
-  descriptorId: DescriptorId;
-  descriptorVersion: string;
-  producerName: string;
-  producerIpaCode: string | undefined;
-  consumerName: string;
-  consumerIpaCode: string | undefined;
-  certifiedAttributes: Array<{
-    assignmentDate: string;
-    assignmentTime: string;
-    attributeName: string;
-    attributeId: string;
-  }>;
-  declaredAttributes: Array<{
-    assignmentDate: string;
-    assignmentTime: string;
-    attributeName: string;
-    attributeId: string;
-  }>;
-  verifiedAttributes: Array<{
-    assignmentDate: string;
-    assignmentTime: string;
-    attributeName: string;
-    attributeId: string;
-    expirationDate: string | undefined;
-  }>;
-};

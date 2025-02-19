@@ -16,7 +16,7 @@ import {
   ClientId,
   DescriptorId,
   EServiceId,
-  GSIPKKid,
+  GSIPKClientIdKid,
   ItemState,
   makeGSIPKClientIdPurposeId,
   makeGSIPKConsumerIdEServiceId,
@@ -25,8 +25,7 @@ import {
   makeTokenGenerationStatesClientKidPurposePK,
   PurposeId,
   TenantId,
-  TokenGenerationStatesClientEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
@@ -53,6 +52,7 @@ import {
   PagoPAInteropBeClients,
   AgreementProcessClient,
 } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
@@ -74,7 +74,12 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       const { data: jwt, errors: clientAssertionErrors } =
-        verifyClientAssertion(clientAssertion, clientId);
+        verifyClientAssertion(
+          clientAssertion,
+          clientId,
+          config.clientAssertionAudience,
+          ctx.logger
+        );
 
       if (parametersErrors || clientAssertionErrors) {
         return handleValidationResults({
@@ -220,9 +225,7 @@ async function retrieveKeyAndEservice(
   ctx: WithLogger<BffAppContext>
 ): Promise<
   | SuccessfulValidation<{
-      key:
-        | TokenGenerationStatesClientEntry
-        | TokenGenerationStatesClientPurposeEntry;
+      key: TokenGenerationStatesGenericClient;
       eservice?: catalogApi.EService;
       descriptor?: catalogApi.EServiceDescriptor;
     }>
@@ -272,7 +275,7 @@ async function retrieveKeyAndEservice(
             kid: jwt.header.kid,
           }),
           clientKind: authorizationApi.ClientKind.enum.API,
-          GSIPK_kid: unsafeBrandId<GSIPKKid>(jwt.header.kid),
+          GSIPK_clientId_kid: unsafeBrandId<GSIPKClientIdKid>(jwt.header.kid),
           publicKey: encodedPem,
           GSIPK_clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
           consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
@@ -334,7 +337,7 @@ async function retrieveKeyAndEservice(
         }),
         clientKind: authorizationApi.ClientKind.enum.CONSUMER,
         GSIPK_clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
-        GSIPK_kid: unsafeBrandId<GSIPKKid>(jwt.header.kid),
+        GSIPK_clientId_kid: unsafeBrandId<GSIPKClientIdKid>(jwt.header.kid),
         publicKey: encodedPem,
         GSIPK_purposeId: purposeId,
         consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),

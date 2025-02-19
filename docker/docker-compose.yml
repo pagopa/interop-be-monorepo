@@ -179,6 +179,7 @@ services:
         mc mb minio/interop-datalake-bucket || true;
         mc mb minio/interop-application-import-export-local || true;
         mc mb minio/interop-data-lake-interfaces-exports-local-es1 || true;
+        mc mb --with-lock minio/interop-generated-jwt-audit || true;
         mc cp --recursive data/ minio/;
       "
     volumes:

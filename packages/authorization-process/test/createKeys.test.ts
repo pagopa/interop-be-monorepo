@@ -80,10 +80,10 @@ describe("createKeys", () => {
 
   function mockSelfcareV2ClientCall(
     value: Awaited<
-      ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
+      ReturnType<typeof selfcareV2Client.getInstitutionUsersByProductUsingGET>
     >
   ): void {
-    selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+    selfcareV2Client.getInstitutionUsersByProductUsingGET = vi.fn(
       async () => value
     );
   }

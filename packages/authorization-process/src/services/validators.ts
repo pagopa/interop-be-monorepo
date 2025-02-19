@@ -1,8 +1,11 @@
-import { userRoles } from "pagopa-interop-commons";
+import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
   CorrelationId,
+  Delegation,
+  delegationKind,
+  delegationState,
   EService,
   ProducerKeychain,
   ProducerKeychainId,
@@ -40,12 +43,11 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   correlationId: CorrelationId;
 }): Promise<void> => {
   const users =
-    await selfcareV2InstitutionClient.getInstitutionProductUsersUsingGET({
+    await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
       params: { institutionId: selfcareId },
       queries: {
-        userIdForAuth: requesterUserId,
         userId: userIdToCheck,
-        productRoles: [userRoles.SECURITY_ROLE, userRoles.ADMIN_ROLE],
+        productRoles: [userRoles.ADMIN_ROLE, userRoles.SECURITY_ROLE].join(","),
       },
       headers: {
         "X-Correlation-Id": correlationId,
@@ -71,6 +73,26 @@ export const assertOrganizationIsPurposeConsumer = (
 ): void => {
   if (organizationId !== purpose.consumerId) {
     throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
+  }
+};
+
+export const assertRequesterIsDelegateConsumer = (
+  authData: AuthData,
+  purpose: Purpose,
+  delegation: Delegation
+): void => {
+  if (
+    delegation.delegateId !== authData.organizationId ||
+    delegation.delegatorId !== purpose.consumerId ||
+    delegation.eserviceId !== purpose.eserviceId ||
+    delegation.kind !== delegationKind.delegatedConsumer ||
+    delegation.state !== delegationState.active
+  ) {
+    throw organizationNotAllowedOnPurpose(
+      authData.organizationId,
+      purpose.id,
+      delegation.id
+    );
   }
 };
 
