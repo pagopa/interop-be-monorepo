@@ -20,7 +20,7 @@ import {
   DelegationSQL,
   DelegationStampSQL,
   DelegationContractDocumentSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const aggregateDelegation = ({
   delegationSQL,
