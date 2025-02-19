@@ -10,23 +10,20 @@ import { splitProducerJWKKeyIntoObjectsSQL } from "../src/authorization/producer
 
 describe("Producer JWK key splitter", () => {
   it("should convert a producer JWK key into producer JWK key SQL objects", () => {
-    const key = crypto.generateKeyPairSync("rsa", {
+    const publicKey = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     }).publicKey;
 
     const base64Key = Buffer.from(
-      key.export({ type: "pkcs1", format: "pem" })
+      publicKey.export({ type: "pkcs1", format: "pem" })
     ).toString("base64url");
 
-    const mockProducerKeychain = getMockProducerKeychain();
-    const mockKey = {
+    const producerKeychain = getMockProducerKeychain();
+    const key = {
       ...getMockKey(),
       encodedPem: base64Key,
     };
-    const producerJWKKey = keyToProducerJWKKey(
-      mockKey,
-      mockProducerKeychain.id
-    );
+    const producerJWKKey = keyToProducerJWKKey(key, producerKeychain.id);
 
     const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
       producerJWKKey,
@@ -34,7 +31,7 @@ describe("Producer JWK key splitter", () => {
     );
     const expectedProducerJWKKeySQL: ProducerJWKKeySQL = {
       ...producerJWKKey,
-      producerKeychainId: mockProducerKeychain.id,
+      producerKeychainId: producerKeychain.id,
       metadataVersion: 1,
     };
     expect(producerJWKKeySQL).toEqual(expectedProducerJWKKeySQL);
