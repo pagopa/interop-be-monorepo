@@ -6,7 +6,7 @@ import {
   getMockEService,
   getMockEServiceAttribute,
   getMockValidRiskAnalysis,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
 import { Descriptor, EService, tenantKind } from "pagopa-interop-models";
 import { diff } from "json-diff";
