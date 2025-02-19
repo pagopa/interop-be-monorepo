@@ -41,7 +41,6 @@ import {
   purposeInReadmodel,
   tenantInReadmodel,
 } from "pagopa-interop-readmodel-models";
-import { Pool } from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**
@@ -205,18 +204,18 @@ export async function setupTestContainersVitest(
   }
 
   if (readModelSQLDbConfig) {
-    const pool = new Pool({
-      host: readModelDbConfig?.readModelDbHost,
-      port: readModelDbConfig?.readModelDbPort,
-      database: readModelDbConfig?.readModelDbName,
-      user: readModelDbConfig?.readModelDbUsername,
-      password: readModelDbConfig?.readModelDbPassword,
-    });
-    readModelDB = drizzle({ client: pool });
+    // const pool = new Pool({
+    //   host: readModelDbConfig?.readModelDbHost,
+    //   port: readModelDbConfig?.readModelDbPort,
+    //   database: readModelDbConfig?.readModelDbName,
+    //   user: readModelDbConfig?.readModelDbUsername,
+    //   password: readModelDbConfig?.readModelDbPassword,
+    // });
+    // readModelDB = drizzle({ client: pool });
 
-    // readModelDB = drizzle(
-    //   `postgresql://${readModelSQLDbConfig.readModelSQLDbUsername}:${readModelSQLDbConfig.readModelSQLDbPassword}@${readModelSQLDbConfig.readModelSQLDbHost}:${readModelSQLDbConfig.readModelSQLDbPort}/${readModelSQLDbConfig.readModelSQLDbName}`
-    // );
+    readModelDB = drizzle(
+      `postgresql://${readModelSQLDbConfig.readModelSQLDbUsername}:${readModelSQLDbConfig.readModelSQLDbPassword}@${readModelSQLDbConfig.readModelSQLDbHost}:${readModelSQLDbConfig.readModelSQLDbPort}/${readModelSQLDbConfig.readModelSQLDbName}`
+    );
   }
 
   return {
@@ -255,17 +254,17 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE delegation.events RESTART IDENTITY"
       );
 
-      readModelDB?.delete(eserviceInReadmodel);
-      readModelDB?.delete(agreementInReadmodel);
-      readModelDB?.delete(attributeInReadmodel);
-      readModelDB?.delete(purposeInReadmodel);
-      readModelDB?.delete(tenantInReadmodel);
-      readModelDB?.delete(clientInReadmodel);
-      readModelDB?.delete(producerKeychainInReadmodel);
-      readModelDB?.delete(clientJwkKeyInReadmodel);
-      readModelDB?.delete(producerJwkKeyInReadmodel);
-      readModelDB?.delete(delegationInReadmodel);
-      readModelDB?.delete(eserviceTemplateInReadmodel);
+      await readModelDB?.delete(eserviceInReadmodel);
+      await readModelDB?.delete(agreementInReadmodel);
+      await readModelDB?.delete(attributeInReadmodel);
+      await readModelDB?.delete(purposeInReadmodel);
+      await readModelDB?.delete(tenantInReadmodel);
+      await readModelDB?.delete(clientInReadmodel);
+      await readModelDB?.delete(producerKeychainInReadmodel);
+      await readModelDB?.delete(clientJwkKeyInReadmodel);
+      await readModelDB?.delete(producerJwkKeyInReadmodel);
+      await readModelDB?.delete(delegationInReadmodel);
+      await readModelDB?.delete(eserviceTemplateInReadmodel);
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
