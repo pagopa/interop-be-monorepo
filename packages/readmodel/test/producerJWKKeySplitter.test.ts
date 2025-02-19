@@ -9,7 +9,7 @@ import { ProducerJWKKeySQL } from "pagopa-interop-readmodel-models";
 import { splitProducerJWKKeyIntoObjectsSQL } from "../src/authorization/producerJWKKeySplitters.js";
 
 describe("Producer JWK key splitter", () => {
-  it("should convert a producer JWK key into producer JWK key SQL objects", () => {
+  it("should convert a producer JWK key into a producer JWK key SQL object", () => {
     const publicKey = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     }).publicKey;
