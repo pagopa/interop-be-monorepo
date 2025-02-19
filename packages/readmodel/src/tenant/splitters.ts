@@ -25,7 +25,7 @@ import {
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const splitTenantIntoObjectsSQL = (
   {
