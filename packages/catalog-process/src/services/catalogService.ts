@@ -2360,7 +2360,7 @@ export function catalogServiceBuilder(
           ctx.logger
         );
         const { eService, event } = await innerUploadDocument(
-          { data: createdEService, metadata: { version: index + 1 } },
+          { data: lastEService, metadata: { version: index + 1 } },
           createdEService.descriptors[0].id,
           {
             documentId: clonedDocumentId,
