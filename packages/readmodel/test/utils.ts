@@ -1,6 +1,19 @@
 import { RiskAnalysis, riskAnalysisAnswerKind } from "pagopa-interop-models";
-import { EServiceRiskAnalysisAnswerSQL } from "../src/types.js";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { afterEach, inject } from "vitest";
+import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
 
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
+
+afterEach(cleanup);
 export const generateRiskAnalysisAnswersSQL = (
   eserviceId: string,
   riskAnalyses: RiskAnalysis[]
