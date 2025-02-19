@@ -41,6 +41,7 @@ import {
   purposeInReadmodel,
   tenantInReadmodel,
 } from "pagopa-interop-readmodel-models";
+import { Pool } from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**
@@ -204,20 +205,16 @@ export async function setupTestContainersVitest(
   }
 
   if (readModelSQLDbConfig) {
-    // const pool = new Pool({
-    //   host: readModelDbConfig?.readModelDbHost,
-    //   port: readModelDbConfig?.readModelDbPort,
-    //   database: readModelDbConfig?.readModelDbName,
-    //   user: readModelDbConfig?.readModelDbUsername,
-    //   password: readModelDbConfig?.readModelDbPassword,
-    // });
-    // readModelDB = drizzle({ client: pool });
-
-    readModelDB = drizzle(
-      `postgresql://${readModelSQLDbConfig.readModelSQLDbUsername}:${readModelSQLDbConfig.readModelSQLDbPassword}@${readModelSQLDbConfig.readModelSQLDbHost}:${readModelSQLDbConfig.readModelSQLDbPort}/${readModelSQLDbConfig.readModelSQLDbName}`
-    );
+    const pool = new Pool({
+      host: readModelSQLDbConfig?.readModelSQLDbHost,
+      port: readModelSQLDbConfig?.readModelSQLDbPort,
+      database: readModelSQLDbConfig?.readModelSQLDbName,
+      user: readModelSQLDbConfig?.readModelSQLDbUsername,
+      password: readModelSQLDbConfig?.readModelSQLDbPassword,
+      ssl: readModelSQLDbConfig?.readModelSQLDbUseSSL,
+    });
+    readModelDB = drizzle({ client: pool });
   }
-
   return {
     readModelRepository,
     postgresDB,
