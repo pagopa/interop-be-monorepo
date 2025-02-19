@@ -16,6 +16,10 @@ import {
   delegationState,
   delegationKind,
   AttributeId,
+  toReadModelAgreement,
+  toReadModelAttribute,
+  toReadModelEService,
+  AgreementId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -26,6 +30,7 @@ import {
   getMockEService,
   getMockTenant,
   getMockDelegation,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -46,6 +51,9 @@ import {
   addOneAttribute,
   addOneEService,
   addOneDelegation,
+  agreements,
+  attributes,
+  eservices,
 } from "./utils.js";
 
 describe("verifyVerifiedAttribute", async () => {
@@ -398,14 +406,9 @@ describe("verifyVerifiedAttribute", async () => {
       ],
     };
 
-    const tenantAttributeSeedWithExpirationDateInThePast: tenantApi.VerifiedTenantAttributeSeed =
-      {
-        id: tenantAttributeSeed.id,
-        expirationDate: yesterday.toISOString(),
-      };
-
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(requesterTenant);
+    await addOneAgreement(agreementEservice1);
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     await writeInReadmodel(toReadModelEService(eService1), eservices);
     await writeInReadmodel(
@@ -417,7 +420,9 @@ describe("verifyVerifiedAttribute", async () => {
       tenantService.verifyVerifiedAttribute(
         {
           tenantId: targetTenant.id,
-          tenantAttributeSeed: tenantAttributeSeedWithExpirationDateInThePast,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
+          expirationDate: yesterday.toISOString(),
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         },
