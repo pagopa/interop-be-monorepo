@@ -1,20 +1,18 @@
 import { constants } from "http2";
 import {
-  ExpressContext,
   fromAppContext,
   initFileManager,
   initRedisRateLimiter,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
-  ZodiosContext,
+  zodiosCtx,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { Problem, tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
-import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { ZodiosRouter } from "@zodios/express";
+import express from "express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { tokenServiceBuilder } from "../services/tokenService.js";
@@ -49,10 +47,9 @@ const tokenService = tokenServiceBuilder({
   fileManager,
 });
 
-const authorizationServerRouter = (
-  ctx: ZodiosContext
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const authorizationServerRouter = ctx.router(
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function authorizationServerRouter(): express.Router {
+  const authorizationServerRouter = zodiosCtx.router(
     authorizationServerApi.authApi.api,
     {
       validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -134,7 +131,8 @@ const authorizationServerRouter = (
       }
     }
   );
-  return authorizationServerRouter;
-};
+
+  return authorizationServerRouter as unknown as express.Router;
+}
 
 export default authorizationServerRouter;

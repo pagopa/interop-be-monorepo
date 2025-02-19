@@ -41,11 +41,11 @@ RUN pnpm build && \
   packages/authorization-server/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
+FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final
 
 COPY --from=build /out /app
 
 WORKDIR /app/packages/authorization-server
-EXPOSE 3300
+EXPOSE 3900
 
 CMD [ "node", "." ]
