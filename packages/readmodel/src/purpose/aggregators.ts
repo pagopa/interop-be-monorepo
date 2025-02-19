@@ -18,14 +18,14 @@ import {
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
-  PurposeRiskAnalysisAnswerSQL,
-  PurposeRiskAnalysisFormSQL,
   PurposeSQL,
-  PurposeVersionDocumentSQL,
+  PurposeRiskAnalysisFormSQL,
+  PurposeRiskAnalysisAnswerSQL,
   PurposeVersionSQL,
-} from "../types.js";
+  PurposeVersionDocumentSQL,
+} from "pagopa-interop-readmodel-models";
+import { match } from "ts-pattern";
 
 // TODO: ...rest
 export const purposeSQLToPurpose = ({
