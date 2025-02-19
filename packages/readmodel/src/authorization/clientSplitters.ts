@@ -4,7 +4,7 @@ import {
   ClientPurposeSQL,
   ClientSQL,
   ClientUserSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const splitClientIntoObjectsSQL = (
   {

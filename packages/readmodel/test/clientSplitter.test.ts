@@ -1,13 +1,13 @@
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import { Client, generateId, PurposeId, UserId } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { splitClientIntoObjectsSQL } from "../src/authorization/clientSplitters.js";
 import {
   ClientKeySQL,
   ClientPurposeSQL,
   ClientSQL,
   ClientUserSQL,
-} from "../src/types.js";
+} from "pagopa-interop-readmodel-models";
+import { splitClientIntoObjectsSQL } from "../src/authorization/clientSplitters.js";
 
 describe("Client splitter", () => {
   it("should convert a client into client SQL objects", () => {
