@@ -40,7 +40,10 @@ export const aggregateDelegation = ({
           activationContractDocumentSQL
         )
       : undefined;
-
+  console.log(
+    "activationContract",
+    activationContract ? "true activation" : "false act"
+  );
   const revocationContractDocumentSQL = delegationContractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.revocation
   );
@@ -51,7 +54,7 @@ export const aggregateDelegation = ({
           revocationContractDocumentSQL
         )
       : undefined;
-
+  console.log("revocationContract", revocationContract);
   const submissionStampSQL = delegationStampsSQL.find(
     (stamp) => stamp.kind === delegationStampKind.submission
   );
@@ -75,24 +78,36 @@ export const aggregateDelegation = ({
     createdAt: stringToDate(delegationSQL.createdAt),
     eserviceId: unsafeBrandId<EServiceId>(delegationSQL.eserviceId),
     state: DelegationState.parse(delegationSQL.state),
-    stamps: {
-      submission: stampSQLToStamp(submissionStampSQL),
-      activation: activationStampSQL
-        ? stampSQLToStamp(activationStampSQL)
-        : undefined,
-      rejection: rejectionStampSQL
-        ? stampSQLToStamp(rejectionStampSQL)
-        : undefined,
-      revocation: revocationStampSQL
-        ? stampSQLToStamp(revocationStampSQL)
-        : undefined,
-    },
     kind: DelegationKind.parse(delegationSQL.kind),
     delegatorId: unsafeBrandId<TenantId>(delegationSQL.delegatorId),
     delegateId: unsafeBrandId<TenantId>(delegationSQL.delegateId),
     submittedAt: stringToDate(delegationSQL.submittedAt),
+    stamps: {
+      submission: stampSQLToStamp(submissionStampSQL),
+      ...(activationStampSQL
+        ? { activation: stampSQLToStamp(activationStampSQL) }
+        : {}),
+      ...(rejectionStampSQL
+        ? { rejection: stampSQLToStamp(rejectionStampSQL) }
+        : {}),
+      ...(revocationStampSQL
+        ? { revocation: stampSQLToStamp(revocationStampSQL) }
+        : {}),
+    },
     ...(activationContract ? { activationContract } : {}),
     ...(revocationContract ? { revocationContract } : {}),
+    ...(delegationSQL.approvedAt
+      ? { approvedAt: stringToDate(delegationSQL.approvedAt) }
+      : {}),
+    ...(delegationSQL.rejectedAt
+      ? { rejectedAt: stringToDate(delegationSQL.rejectedAt) }
+      : {}),
+    ...(delegationSQL.revokedAt
+      ? { revokedAt: stringToDate(delegationSQL.revokedAt) }
+      : {}),
+    ...(delegationSQL.rejectionReason
+      ? { rejectionReason: delegationSQL.rejectionReason }
+      : {}),
   };
   return {
     data: delegation,
