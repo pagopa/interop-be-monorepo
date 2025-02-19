@@ -14,7 +14,7 @@ import {
   ClientPurposeSQL,
   ClientSQL,
   ClientUserSQL,
-} from "../src/types.js";
+} from "pagopa-interop-readmodel-models";
 import { clientSQLToClient } from "./../src/authorization/clientAggregators.js";
 
 describe("Client Aggregator", () => {
