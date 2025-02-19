@@ -136,12 +136,13 @@ describe("Purpose splitter", () => {
     };
 
     const expectedPurposeVersionDocumentSQL: PurposeVersionDocumentSQL = {
-      ...purposeVersionRiskAnalysis,
       id: purposeVersionRiskAnalysis.id,
       metadataVersion: 1,
       purposeId: purpose.id,
       purposeVersionId: purposeVersion.id,
       createdAt: purposeVersionRiskAnalysis.createdAt.toISOString(),
+      contentType: purposeVersionRiskAnalysis.contentType,
+      path: purposeVersionRiskAnalysis.path,
     };
 
     expect(purposeSQL).toEqual(expectedPurposeSQL);
@@ -257,12 +258,13 @@ describe("Purpose splitter", () => {
     };
 
     const expectedPurposeVersionDocumentSQL: PurposeVersionDocumentSQL = {
-      ...purposeVersionRiskAnalysis,
       id: purposeVersionRiskAnalysis.id,
       metadataVersion: 1,
       purposeId: purpose.id,
       purposeVersionId: purposeVersion.id,
       createdAt: purposeVersionRiskAnalysis.createdAt.toISOString(),
+      contentType: purposeVersionRiskAnalysis.contentType,
+      path: purposeVersionRiskAnalysis.path,
     };
 
     expect(purposeSQL).toEqual(expectedPurposeSQL);
