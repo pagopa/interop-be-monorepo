@@ -3,7 +3,7 @@ import {
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { ProducerJWKKeySQL } from "../types.js";
+import { ProducerJWKKeySQL } from "pagopa-interop-readmodel-models";
 
 export const producerJWKKeySQLToProducerJWKKey = ({
   producerKeychainId,
