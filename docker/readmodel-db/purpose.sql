@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS readmodel.purpose_risk_analysis_form (
   purpose_id UUID NOT NULL REFERENCES readmodel.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
+  risk_analysis_id UUID,
   PRIMARY KEY (id)
 );
 
