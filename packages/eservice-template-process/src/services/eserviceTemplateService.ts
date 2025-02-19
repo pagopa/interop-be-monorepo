@@ -1369,6 +1369,17 @@ export function eserviceTemplateServiceBuilder(
         limit,
       });
     },
+    async getEServiceTemplateCreators(
+      creatorName: string | undefined,
+      limit: number,
+      offset: number,
+      { logger }: WithLogger<AppContext>
+    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+      logger.info(
+        `Retrieving producers from agreements with producer name ${creatorName}, limit ${limit}, offset ${offset}`
+      );
+      return await readModelService.getCreators(creatorName, limit, offset);
+    },
   };
 }
 
