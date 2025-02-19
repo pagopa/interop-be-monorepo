@@ -1,6 +1,7 @@
 import {
   EServiceId,
   Key,
+  KeyUse,
   ProducerKeychain,
   stringToDate,
   unsafeBrandId,
@@ -12,7 +13,7 @@ import {
   ProducerKeychainUserSQL,
   ProducerKeychainEServiceSQL,
   ProducerKeychainKeySQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const producerKeychainSQLToProducerKeychain = (
   {
@@ -42,8 +43,7 @@ export const producerKeychainSQLToProducerKeychain = (
     name: k.name,
     encodedPem: k.encodedPem,
     algorithm: k.algorithm,
-    // TODO: convert string to enum
-    use: k.use,
+    use: KeyUse.parse(k.use),
     createdAt: stringToDate(k.createdAt),
   }));
 
