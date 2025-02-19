@@ -10,7 +10,9 @@ import {
   riskAnalysisAnswerKind,
   RiskAnalysisId,
   RiskAnalysisMultiAnswer,
+  RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswer,
+  RiskAnalysisSingleAnswerId,
   stringToDate,
   unsafeBrandId,
   WithMetadata,
@@ -74,7 +76,9 @@ export const purposeSQLToPurpose = ({
         state: PurposeVersionState.parse(purposeVersionSQL.state),
         dailyCalls: purposeVersionSQL.dailyCalls,
         createdAt: stringToDate(purposeVersionSQL.createdAt),
-        riskAnalysis: purposeVersionDocument,
+        ...(purposeVersionDocument
+          ? { riskAnalysis: purposeVersionDocument }
+          : {}),
       };
 
       return [...acc, purposeVersion];
@@ -91,7 +95,9 @@ export const purposeSQLToPurpose = ({
     description: purposeSQL.description,
     isFreeOfCharge: purposeSQL.isFreeOfCharge,
     versions: purposeVersions,
-    riskAnalysisForm: purposeRiskAnalysisForm,
+    ...(purposeRiskAnalysisForm
+      ? { riskAnalysisForm: purposeRiskAnalysisForm }
+      : {}),
   };
 
   return {
@@ -115,44 +121,42 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
     );
   }
 
-  const { singleAnswers, multiAnswers } = answers.reduce(
-    (
-      acc: {
-        singleAnswers: RiskAnalysisSingleAnswer[];
-        multiAnswers: RiskAnalysisMultiAnswer[];
-      },
-      answer
-    ) => {
+  const { singleAnswers, multiAnswers } = answers.reduce<{
+    singleAnswers: RiskAnalysisSingleAnswer[];
+    multiAnswers: RiskAnalysisMultiAnswer[];
+  }>(
+    (acc, answer) =>
       match({
         ...answer,
         kind: RiskAnalysisAnswerKind.parse(answer.kind),
       })
-        .with({ kind: riskAnalysisAnswerKind.single }, () => ({
+        .with({ kind: riskAnalysisAnswerKind.single }, (a) => ({
           singleAnswers: [
             ...acc.singleAnswers,
             {
-              id: unsafeBrandId(answer.id),
-              key: answer.key,
-              value: answer.value?.[0],
+              id: unsafeBrandId<RiskAnalysisSingleAnswerId>(a.id),
+              key: a.key,
+              ...(a.value
+                ? {
+                    value: a.value[0],
+                  }
+                : undefined),
             },
           ],
           multiAnswers: acc.multiAnswers,
         }))
-        .with({ kind: riskAnalysisAnswerKind.multi }, () => ({
+        .with({ kind: riskAnalysisAnswerKind.multi }, (a) => ({
           singleAnswers: acc.singleAnswers,
           multiAnswers: [
             ...acc.multiAnswers,
             {
-              id: answer.id,
-              key: answer.key,
-              values: answer.value,
+              id: unsafeBrandId<RiskAnalysisMultiAnswerId>(a.id),
+              key: a.key,
+              values: a.value || [],
             },
           ],
         }))
-        .exhaustive();
-
-      return acc;
-    },
+        .exhaustive(),
     {
       singleAnswers: [],
       multiAnswers: [],
