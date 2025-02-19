@@ -1,6 +1,10 @@
 import {
+  AuthData,
   EServiceTemplateCollection,
+  hasPermission,
+  ReadModelFilter,
   ReadModelRepository,
+  userRoles,
   TenantCollection,
 } from "pagopa-interop-commons";
 import {
@@ -8,11 +12,13 @@ import {
   AttributeId,
   EServiceTemplate,
   EServiceTemplateId,
+  EServiceTemplateVersionState,
   ListResult,
   Tenant,
   TenantId,
   TenantReadModel,
   WithMetadata,
+  eserviceTemplateVersionState,
   descriptorState,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -22,6 +28,13 @@ import {
   ApiGetEServiceTemplateIstancesFilters,
   EServiceTemplateInstance,
 } from "../model/domain/models.js";
+
+export type GetEServiceTemplatesFilters = {
+  name?: string;
+  eserviceTemplatesIds: EServiceTemplateId[];
+  creatorsIds: TenantId[];
+  states: EServiceTemplateVersionState[];
+};
 
 async function getEServiceTemplate(
   eserviceTemplates: EServiceTemplateCollection,
@@ -130,6 +143,109 @@ export function readModelServiceBuilder({
       }
 
       return result.data;
+    },
+    async getEServiceTemplates(
+      filters: GetEServiceTemplatesFilters,
+      offset: number,
+      limit: number,
+      authData: AuthData
+    ): Promise<ListResult<EServiceTemplate>> {
+      const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
+
+      const nameFilter: ReadModelFilter<EServiceTemplate> = name
+        ? {
+            "data.name": {
+              $regex: ReadModelRepository.escapeRegExp(name),
+              $options: "i",
+            },
+          }
+        : {};
+
+      const idsFilter: ReadModelFilter<EServiceTemplate> =
+        ReadModelRepository.arrayToFilter(eserviceTemplatesIds, {
+          "data.id": { $in: eserviceTemplatesIds },
+        });
+
+      const creatorsIdsFilter: ReadModelFilter<EServiceTemplate> =
+        ReadModelRepository.arrayToFilter(creatorsIds, {
+          "data.creatorId": { $in: creatorsIds },
+        });
+
+      const templateStateFilter: ReadModelFilter<EServiceTemplate> =
+        ReadModelRepository.arrayToFilter(states, {
+          "data.versions.state": { $in: states },
+        });
+
+      const visibilityFilter: ReadModelFilter<EServiceTemplate> = hasPermission(
+        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
+        authData
+      )
+        ? {
+            $or: [
+              { "data.creatorId": authData.organizationId },
+              { "data.versions.1": { $exists: true } },
+              {
+                "data.versions": { $size: 1 },
+                "data.versions.0.state": {
+                  $ne: eserviceTemplateVersionState.draft,
+                },
+              },
+            ],
+          }
+        : {
+            $or: [
+              { "data.versions.1": { $exists: true } },
+              {
+                "data.versions": { $size: 1 },
+                "data.versions.0.state": {
+                  $ne: eserviceTemplateVersionState.draft,
+                },
+              },
+            ],
+          };
+
+      const aggregationPipeline = [
+        { $match: nameFilter },
+        { $match: idsFilter },
+        { $match: creatorsIdsFilter },
+        { $match: templateStateFilter },
+        { $match: visibilityFilter },
+        {
+          $project: {
+            data: 1,
+            computedColumn: { $toLower: ["$data.name"] },
+          },
+        },
+        {
+          $sort: { computedColumn: 1 },
+        },
+      ];
+
+      const data = await eserviceTemplates
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z
+        .array(EServiceTemplate)
+        .safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse eservice templates items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          eserviceTemplates,
+          aggregationPipeline
+        ),
+      };
     },
     async getEServiceTemplateInstances({
       eserviceTemplate,

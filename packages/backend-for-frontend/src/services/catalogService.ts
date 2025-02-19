@@ -381,6 +381,9 @@ export function catalogServiceBuilder(
           eservice,
           producerTenant
         ),
+        publishedAt: descriptor.publishedAt,
+        deprecatedAt: descriptor.deprecatedAt,
+        archivedAt: descriptor.archivedAt,
         rejectionReasons: descriptor.rejectionReasons,
       };
     },

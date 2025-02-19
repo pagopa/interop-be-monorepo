@@ -6,7 +6,11 @@ import {
   EServiceTemplateVersionId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
-import { bffApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  bffApi,
+  eserviceTemplateApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import {
   AttributeProcessClient,
   EServiceTemplateProcessClient,
@@ -17,10 +21,15 @@ import {
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
 } from "../api/catalogApiConverter.js";
-import { toBffEServiceTemplateApiEServiceTemplateDetails } from "../api/eserviceTemplateApiConverter.js";
+import {
+  toBffEServiceTemplateApiEServiceTemplateDetails,
+  toBffCatalogEServiceTemplate,
+  toBffProducerEServiceTemplate,
+} from "../api/eserviceTemplateApiConverter.js";
 import {
   eserviceTemplateVersionNotFound,
   noVersionInEServiceTemplate,
+  tenantNotFound,
 } from "../model/errors.js";
 import { cloneEServiceDocument } from "../utilities/fileUtils.js";
 import { config } from "../config/config.js";
@@ -97,6 +106,22 @@ export function eserviceTemplateServiceBuilder(
         `Activating version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
       );
       await eserviceTemplateClient.activateTemplateVersion(undefined, {
+        headers,
+        params: {
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+        },
+      });
+    },
+    publishEServiceTemplateVersion: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Publishing version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+      );
+      await eserviceTemplateClient.publishTemplateVersion(undefined, {
         headers,
         params: {
           eServiceTemplateId,
@@ -269,6 +294,86 @@ export function eserviceTemplateServiceBuilder(
         ),
       };
     },
+    getCatalogEServiceTemplates: async (
+      name: string | undefined,
+      creatorsIds: string[],
+      offset: number,
+      limit: number,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CatalogEServiceTemplates> => {
+      logger.info(
+        `Retrieving Catalog EService templates for name = ${name}, creatorsIds = ${creatorsIds}, offset = ${offset}, limit = ${limit}`
+      );
+      const eserviceTemplatesResponse: eserviceTemplateApi.EServiceTemplates =
+        await eserviceTemplateClient.getEServiceTemplates({
+          headers,
+          queries: {
+            name,
+            states: [
+              eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED,
+            ],
+            creatorsIds,
+            limit,
+            offset,
+          },
+        });
+
+      const creatorTenantsMap = await getTenantsFromEServiceTemplates(
+        tenantProcessClient,
+        eserviceTemplatesResponse.results,
+        headers
+      );
+
+      const results = eserviceTemplatesResponse.results.map((template) => {
+        const creator = creatorTenantsMap.get(template.creatorId);
+
+        if (!creator) {
+          throw tenantNotFound(template.creatorId);
+        }
+
+        return toBffCatalogEServiceTemplate(template, creator);
+      });
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: eserviceTemplatesResponse.totalCount,
+        },
+      };
+    },
+    getProducerEServiceTemplates: async (
+      name: string | undefined,
+      offset: number,
+      limit: number,
+      { headers, logger, authData }: WithLogger<BffAppContext>
+    ): Promise<bffApi.ProducerEServiceTemplates> => {
+      logger.info(
+        `Retrieving EService templates for creator ${authData.organizationId}, for name = ${name}, offset = ${offset}, limit = ${limit}`
+      );
+      const eserviceTemplatesResponse: eserviceTemplateApi.EServiceTemplates =
+        await eserviceTemplateClient.getEServiceTemplates({
+          headers,
+          queries: {
+            name,
+            creatorsIds: [authData.organizationId],
+            limit,
+            offset,
+          },
+        });
+
+      return {
+        results: eserviceTemplatesResponse.results.map(
+          toBffProducerEServiceTemplate
+        ),
+        pagination: {
+          offset,
+          limit,
+          totalCount: eserviceTemplatesResponse.totalCount,
+        },
+      };
+    },
     createEServiceTemplateEServiceRiskAnalysis: async (
       eServiceTemplateId: EServiceTemplateId,
       seed: bffApi.EServiceRiskAnalysisSeed,
@@ -426,6 +531,24 @@ export const retrieveEServiceTemplateVersion = (
 
   return eserviceTemplateVersion;
 };
+
+async function getTenantsFromEServiceTemplates(
+  tenantClient: TenantProcessClient,
+  eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
+  headers: BffAppContext["headers"]
+): Promise<Map<string, tenantApi.Tenant>> {
+  const creatorsIds = Array.from(
+    new Set(eserviceTemplates.map((t) => t.creatorId))
+  );
+
+  const tenants = await Promise.all(
+    creatorsIds.map(async (id) =>
+      tenantClient.tenant.getTenant({ headers, params: { id } })
+    )
+  );
+
+  return new Map(tenants.map((t) => [t.id, t]));
+}
 
 const getAttributeIds = (
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion

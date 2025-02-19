@@ -14,6 +14,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import {
   createEServiceTemplateVersionErrorMapper,
+  bffGetCatalogEServiceTemplateErrorMapper,
   bffGetEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { toBffCreatedEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
@@ -158,6 +159,31 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
+
+        try {
+          await eserviceTemplateService.publishEServiceTemplateVersion(
+            unsafeBrandId(eServiceTemplateId),
+            unsafeBrandId(eServiceTemplateVersionId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error publish version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
       async (req, res) => {
@@ -286,6 +312,61 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .get("/catalog/eservices/templates", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { q, creatorsIds, offset, limit } = req.query;
+
+      try {
+        const response =
+          await eserviceTemplateService.getCatalogEServiceTemplates(
+            q,
+            creatorsIds,
+            offset,
+            limit,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(bffApi.CatalogEServiceTemplates.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogEServiceTemplateErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          "Error retrieving Catalog eservice templates"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/producers/eservices/templates", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { q, offset, limit } = req.query;
+
+      try {
+        const response =
+          await eserviceTemplateService.getProducerEServiceTemplates(
+            q,
+            offset,
+            limit,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(bffApi.ProducerEServiceTemplates.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          "Error retrieving producer eservice templates"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/quotas/update",
       async (req, res) => {

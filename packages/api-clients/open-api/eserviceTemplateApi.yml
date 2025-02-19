@@ -43,8 +43,8 @@ paths:
           schema:
             type: string
         - in: query
-          name: producersIds
-          description: comma separated sequence of producers IDs
+          name: eserviceTemplatesIds
+          description: comma separated sequence of eservice templates IDs
           schema:
             type: array
             items:
@@ -374,6 +374,12 @@ paths:
           description: E-Service Template version published
         "400":
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:

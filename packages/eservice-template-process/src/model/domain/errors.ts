@@ -29,6 +29,8 @@ export const errorCodes = {
   originNotCompliant: "0017",
   invalidEServiceTemplateVersion: "0018",
   draftEServiceTemplateVersionAlreadyExists: "0019",
+  missingTemplateVersionInterface: "0020",
+  missingRiskAnalysis: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -231,5 +233,26 @@ export function draftEServiceTemplateVersionAlreadyExists(
     detail: `Draft version for EService Template ${eserviceTemplateId} already exists`,
     code: "draftEServiceTemplateVersionAlreadyExists",
     title: "Draft version already exists",
+  });
+}
+
+export function missingTemplateVersionInterface(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${templateId} version ${versionId} is missing the interface document`,
+    code: "missingTemplateVersionInterface",
+    title: "Missing template version interface",
+  });
+}
+
+export function missingRiskAnalysis(
+  templateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${templateId} is missing the risk analysis`,
+    code: "missingRiskAnalysis",
+    title: "Missing risk analysis",
   });
 }

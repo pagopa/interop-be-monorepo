@@ -12,7 +12,11 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceTemplateId,
+  TenantId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
@@ -35,10 +39,12 @@ import {
   updateEServiceTemplateErrorMapper,
   getEServiceTemplateIstancesErrorMapper,
   updateDraftTemplateVersionErrorMapper,
+  publishEServiceTemplateVersionErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
   eserviceTemplateVersionToApiEServiceTemplateVersion,
+  apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   apiDescriptorStateToDescriptorState,
   eserviceTemplateInstanceToApiEServiceTemplateInstance,
 } from "../model/domain/apiConverter.js";
@@ -79,8 +85,54 @@ const eserviceTemplatesRouter = (
     })
     .get(
       "/eservices/templates",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const {
+            name,
+            creatorsIds,
+            eserviceTemplatesIds,
+            states,
+            offset,
+            limit,
+          } = req.query;
+
+          const eserviceTemplates =
+            await eserviceTemplateService.getEServiceTemplates(
+              {
+                eserviceTemplatesIds:
+                  eserviceTemplatesIds.map<EServiceTemplateId>(unsafeBrandId),
+                creatorsIds: creatorsIds.map<TenantId>(unsafeBrandId),
+                states: states.map(
+                  apiEServiceTemplateVersionStateToEServiceTemplateVersionState
+                ),
+                name,
+              },
+              offset,
+              limit,
+              ctx
+            );
+
+          return res.status(200).send(
+            eserviceTemplateApi.EServiceTemplates.parse({
+              results: eserviceTemplates.results.map(
+                eserviceTemplateToApiEServiceTemplate
+              ),
+              totalCount: eserviceTemplates.totalCount,
+            })
+          );
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
     .post(
       "/eservices/templates",
@@ -267,8 +319,27 @@ const eserviceTemplatesRouter = (
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await eserviceTemplateService.publishEServiceTemplateVersion(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            publishEServiceTemplateVersionErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/suspend",

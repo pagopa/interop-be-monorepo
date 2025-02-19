@@ -12,6 +12,8 @@ import {
   userRoles,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   validateRiskAnalysis,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  RiskAnalysisValidationIssue,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -25,6 +27,9 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  ListResult,
+  unsafeBrandId,
+  WithMetadata,
   RiskAnalysis,
   RiskAnalysisId,
   Tenant,
@@ -32,9 +37,6 @@ import {
   TenantKind,
   eserviceMode,
   generateId,
-  unsafeBrandId,
-  WithMetadata,
-  ListResult,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -45,6 +47,7 @@ import {
   eServiceTemplateVersionNotFound,
   eserviceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
+  missingRiskAnalysis,
   notValidEServiceTemplateVersionState,
   versionAttributeGroupSupersetMissingInAttributesSeed,
   inconsistentAttributesSeedGroupsCount,
@@ -53,6 +56,7 @@ import {
   tenantNotFound,
   originNotCompliant,
   eserviceTemaplateRiskAnalysisNameDuplicate,
+  missingTemplateVersionInterface,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateVersionActivated,
@@ -72,6 +76,7 @@ import {
   toCreateEventEServiceTemplateVersionDocumentAdded,
   toCreateEventEServiceTemplateAdded,
   toCreateEventEServiceTemplateDraftUpdated,
+  toCreateEventEServiceTemplateVersionPublished,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -84,6 +89,10 @@ import {
   EServiceTemplateInstance,
 } from "../model/domain/models.js";
 import {
+  GetEServiceTemplatesFilters,
+  ReadModelService,
+} from "./readModelService.js";
+import {
   assertIsDraftTemplate,
   assertIsReceiveTemplate,
   assertTenantKindExists,
@@ -91,7 +100,6 @@ import {
   assertRequesterEServiceTemplateCreator,
   assertNoDraftEServiceTemplateVersions,
 } from "./validators.js";
-import { ReadModelService } from "./readModelService.js";
 
 export const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
@@ -427,6 +435,108 @@ export function eserviceTemplateServiceBuilder(
       await repository.createEvent(event);
     },
 
+    async publishEServiceTemplateVersion(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Publishing e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (
+        eserviceTemplateVersion.state !== eserviceTemplateVersionState.draft
+      ) {
+        throw notValidEServiceTemplateVersionState(
+          eserviceTemplateVersionId,
+          eserviceTemplateVersion.state
+        );
+      }
+
+      if (eserviceTemplateVersion.interface === undefined) {
+        throw missingTemplateVersionInterface(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
+      }
+
+      const tenant = await retrieveTenant(
+        eserviceTemplate.data.creatorId,
+        readModelService
+      );
+      assertTenantKindExists(tenant);
+
+      if (eserviceTemplate.data.mode === eserviceMode.receive) {
+        if (eserviceTemplate.data.riskAnalysis.length > 0) {
+          const riskAnalysisError = eserviceTemplate.data.riskAnalysis.reduce<
+            RiskAnalysisValidationIssue[]
+          >((acc, ra) => {
+            const result = validateRiskAnalysis(
+              riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
+              true,
+              tenant.kind
+            );
+
+            if (result.type === "invalid") {
+              return [...acc, ...result.issues];
+            }
+
+            return acc;
+          }, []);
+
+          if (riskAnalysisError.length > 0) {
+            throw riskAnalysisValidationFailed(riskAnalysisError);
+          }
+        } else {
+          throw missingRiskAnalysis(eserviceTemplateId);
+        }
+      }
+
+      const publishedTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        versions: eserviceTemplate.data.versions.map((v) =>
+          v.id === eserviceTemplateVersionId
+            ? {
+                ...v,
+                state: eserviceTemplateVersionState.published,
+                publishedAt: new Date(),
+              }
+            : eserviceTemplateVersion.version > v.version
+            ? {
+                ...v,
+                state: eserviceTemplateVersionState.deprecated,
+                deprecatedAt: new Date(),
+              }
+            : v
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceTemplateVersionPublished(
+          eserviceTemplateId,
+          eserviceTemplate.metadata.version,
+          eserviceTemplateVersionId,
+          publishedTemplate,
+          correlationId
+        )
+      );
+    },
+
     async activateEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
@@ -701,7 +811,6 @@ export function eserviceTemplateServiceBuilder(
 
       return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
     },
-
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
@@ -1336,6 +1445,31 @@ export function eserviceTemplateServiceBuilder(
       await repository.createEvents(events);
 
       return eserviceTemplateVersionWithDocs;
+    },
+    async getEServiceTemplates(
+      filters: GetEServiceTemplatesFilters,
+      offset: number,
+      limit: number,
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<ListResult<EServiceTemplate>> {
+      logger.info(
+        `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
+      );
+
+      const { results, totalCount } =
+        await readModelService.getEServiceTemplates(
+          filters,
+          offset,
+          limit,
+          authData
+        );
+
+      return {
+        results: results.map((eserviceTemplate) =>
+          applyVisibilityToEServiceTemplate(eserviceTemplate, authData)
+        ),
+        totalCount,
+      };
     },
     async getEServiceTemplateIstances(
       eserviceTemplateId: EServiceTemplateId,
