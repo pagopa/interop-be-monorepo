@@ -105,15 +105,14 @@ const getMockSignedToken = (token: object): string =>
 describe("JWT tests", () => {
   describe("readAuthDataFromJwtToken", () => {
     it("should successfully read data from a UI token with a single user role", async () => {
-      const token = {
-        ...mockUiToken,
-        "user-roles": "admin",
-      };
-      const signedToken = getMockSignedToken(token);
+      const token = jwt.decode(
+        getMockSignedToken({
+          ...mockUiToken,
+          "user-roles": "admin",
+        })
+      );
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      expect(readAuthDataFromJwtToken(decoded!)).toEqual({
+      expect(readAuthDataFromJwtToken(token!)).toEqual({
         externalId: {
           origin: "IPA",
           value: "5N2TR557",
@@ -126,15 +125,14 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a UI token with multiple comma separated user roles", async () => {
-      const token = {
-        ...mockUiToken,
-        "user-roles": "security,api",
-      };
-      const signedToken = getMockSignedToken(token);
+      const token = jwt.decode(
+        getMockSignedToken({
+          ...mockUiToken,
+          "user-roles": "security,api",
+        })
+      );
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      expect(readAuthDataFromJwtToken(decoded!)).toEqual({
+      expect(readAuthDataFromJwtToken(token!)).toEqual({
         externalId: {
           origin: "IPA",
           value: "5N2TR557",
@@ -147,15 +145,15 @@ describe("JWT tests", () => {
     });
 
     it("should fail reading auth data from a UI token with invalid user roles", async () => {
-      const signedToken = getMockSignedToken({
-        ...mockUiToken,
-        "user-roles": "api,invalid-role",
-      });
-
-      const decoded = jwt.decode(signedToken, { json: true });
+      const token = jwt.decode(
+        getMockSignedToken({
+          ...mockUiToken,
+          "user-roles": "api,invalid-role",
+        })
+      );
 
       expect(() => {
-        readAuthDataFromJwtToken(decoded!);
+        readAuthDataFromJwtToken(token!);
       }).toThrowError(
         invalidClaim(
           "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
@@ -164,15 +162,15 @@ describe("JWT tests", () => {
     });
 
     it("should fail reading auth data from a UI token with empty user roles", async () => {
-      const signedToken = getMockSignedToken({
-        ...mockUiToken,
-        "user-roles": "",
-      });
-
-      const decoded = jwt.decode(signedToken, { json: true });
+      const token = jwt.decode(
+        getMockSignedToken({
+          ...mockUiToken,
+          "user-roles": "",
+        })
+      );
 
       expect(() => {
-        readAuthDataFromJwtToken(decoded!);
+        readAuthDataFromJwtToken(token!);
       }).toThrowError(
         invalidClaim(
           'Validation error: String must contain at least 1 character(s) at "user-roles"'
@@ -181,11 +179,9 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a M2M token", async () => {
-      const signedToken = getMockSignedToken(mockM2MToken);
+      const token = jwt.decode(getMockSignedToken(mockM2MToken));
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      expect(readAuthDataFromJwtToken(decoded!)).toEqual({
+      expect(readAuthDataFromJwtToken(token!)).toEqual({
         externalId: {
           origin: "",
           value: "",
@@ -204,15 +200,15 @@ describe("JWT tests", () => {
         mockInternalToken,
         mockMaintenanceToken,
       ]);
-      const signedToken = getMockSignedToken({
-        ...mockToken,
-        jti: undefined,
-      });
-
-      const decoded = jwt.decode(signedToken, { json: true });
+      const token = jwt.decode(
+        getMockSignedToken({
+          ...mockToken,
+          jti: undefined,
+        })
+      );
 
       expect(() => {
-        readAuthDataFromJwtToken(decoded!);
+        readAuthDataFromJwtToken(token!);
       }).toThrowError(invalidClaim(`Validation error: Required at "jti"`));
     });
 
@@ -223,14 +219,14 @@ describe("JWT tests", () => {
         mockInternalToken,
         mockMaintenanceToken,
       ]);
-      const signedToken = getMockSignedToken({
-        ...mockToken,
-        aud: "",
-      });
+      const token = jwt.decode(
+        getMockSignedToken({
+          ...mockToken,
+          aud: "",
+        })
+      );
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      expect(() => readAuthDataFromJwtToken(decoded!)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(token!)).toThrowError(
         invalidClaim(
           'Validation error: String must contain at least 1 character(s) at "aud"'
         )
@@ -238,11 +234,9 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from an Internal token", async () => {
-      const signedToken = getMockSignedToken(mockInternalToken);
+      const token = jwt.decode(getMockSignedToken(mockInternalToken));
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      expect(readAuthDataFromJwtToken(decoded!)).toEqual({
+      expect(readAuthDataFromJwtToken(token!)).toEqual({
         externalId: {
           origin: "",
           value: "",
@@ -255,11 +249,9 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a Maintenance token", async () => {
-      const signedToken = getMockSignedToken(mockMaintenanceToken);
+      const token = jwt.decode(getMockSignedToken(mockMaintenanceToken));
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      expect(readAuthDataFromJwtToken(decoded!)).toEqual({
+      expect(readAuthDataFromJwtToken(token!)).toEqual({
         externalId: {
           origin: "",
           value: "",
@@ -272,13 +264,13 @@ describe("JWT tests", () => {
     });
 
     it("should fail when the token is invalid", async () => {
-      const signedToken = getMockSignedToken({
-        role: "invalid-role",
-      });
+      const token = jwt.decode(
+        getMockSignedToken({
+          role: "invalid-role",
+        })
+      );
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      expect(() => readAuthDataFromJwtToken(decoded!)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(token!)).toThrowError(
         invalidClaim(
           "Validation error: Invalid discriminator value. Expected 'm2m' | 'internal' | 'maintenance' |  at \"role\""
         )
@@ -286,11 +278,9 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a Support token", async () => {
-      const signedToken = getMockSignedToken(mockSupportToken);
+      const token = jwt.decode(getMockSignedToken(mockSupportToken));
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      expect(readAuthDataFromJwtToken(decoded!)).toEqual({
+      expect(readAuthDataFromJwtToken(token!)).toEqual({
         externalId: {
           origin: "IPA",
           value: "5N2TR557",
@@ -303,15 +293,15 @@ describe("JWT tests", () => {
     });
 
     it("should fail reading auth data from a Support token with invalid user roles", async () => {
-      const signedToken = getMockSignedToken({
-        ...mockSupportToken,
-        "user-roles": "support,invalid-role",
-      });
-
-      const decoded = jwt.decode(signedToken, { json: true });
+      const token = jwt.decode(
+        getMockSignedToken({
+          ...mockSupportToken,
+          "user-roles": "support,invalid-role",
+        })
+      );
 
       expect(() => {
-        readAuthDataFromJwtToken(decoded!);
+        readAuthDataFromJwtToken(token!);
       }).toThrowError(
         invalidClaim(
           "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
@@ -325,15 +315,14 @@ describe("JWT tests", () => {
         mockM2MToken,
         mockInternalToken,
       ]);
-      const token = {
-        ...mockToken,
-        aud: ["dev.interop.pagopa.it/ui", "dev.interop.pagopa.it/fake"],
-      };
-      const signedToken = getMockSignedToken(token);
+      const token = jwt.decode(
+        getMockSignedToken({
+          ...mockToken,
+          aud: ["dev.interop.pagopa.it/ui", "dev.interop.pagopa.it/fake"],
+        })
+      );
 
-      const decoded = jwt.decode(signedToken, { json: true });
-
-      const authData = readAuthDataFromJwtToken(decoded!);
+      const authData = readAuthDataFromJwtToken(token!);
 
       expect(authData).toMatchObject({
         userRoles: match(mockToken)
