@@ -13,16 +13,17 @@ import {
   PurposeVersion,
   PurposeVersionDocument,
   riskAnalysisAnswerKind,
+  RiskAnalysisId,
   tenantKind,
 } from "pagopa-interop-models";
-import { splitPurposeIntoObjectsSQL } from "../src/purpose/splitters.js";
 import {
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
   PurposeSQL,
   PurposeVersionDocumentSQL,
   PurposeVersionSQL,
-} from "../src/types.js";
+} from "pagopa-interop-readmodel-models";
+import { splitPurposeIntoObjectsSQL } from "../src/purpose/splitters.js";
 
 describe("Purpose splitter", () => {
   it("should convert a complete purpose into purpose SQL objects", () => {
@@ -32,6 +33,7 @@ describe("Purpose splitter", () => {
     const suspendedAt = new Date();
     const updatedAt = new Date();
     const firstActivationAt = new Date();
+    const riskAnalysisId = generateId<RiskAnalysisId>();
 
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
@@ -45,8 +47,10 @@ describe("Purpose splitter", () => {
       riskAnalysis: purposeVersionRiskAnalysis,
     };
 
-    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
-      getMockValidRiskAnalysisForm(tenantKind.PA);
+    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PA),
+      riskAnalysisId,
+    };
 
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -88,6 +92,7 @@ describe("Purpose splitter", () => {
       purposeId: purpose.id,
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
+      riskAnalysisId,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =
@@ -208,6 +213,7 @@ describe("Purpose splitter", () => {
       purposeId: purpose.id,
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
+      riskAnalysisId: null,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =

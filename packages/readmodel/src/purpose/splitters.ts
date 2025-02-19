@@ -14,7 +14,7 @@ import {
   PurposeSQL,
   PurposeVersionDocumentSQL,
   PurposeVersionSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const splitPurposeIntoObjectsSQL = (
   purpose: Purpose,
@@ -107,12 +107,12 @@ export const splitRiskAnalysisFormIntoObjectsSQL = (
   if (!riskAnalysisForm) {
     return undefined;
   }
-
   const purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
     id: riskAnalysisForm.id,
     metadataVersion,
     purposeId,
     version: riskAnalysisForm.version,
+    riskAnalysisId: riskAnalysisForm.riskAnalysisId || null,
   };
 
   const riskAnalysisSingleAnswers: PurposeRiskAnalysisAnswerSQL[] =
