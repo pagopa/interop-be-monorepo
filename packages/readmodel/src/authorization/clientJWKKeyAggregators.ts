@@ -1,12 +1,13 @@
 import {
   ClientJWKKey,
-  ClientJWKKeySQL,
+  unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
+import { ClientJWKKeySQL } from "pagopa-interop-readmodel-models";
 
 export const clientJWKKeySQLToClientJWKKey = ({
-  client_id,
-  metadata_version,
+  clientId,
+  metadataVersion,
   alg,
   e,
   kid,
@@ -18,7 +19,7 @@ export const clientJWKKeySQLToClientJWKKey = ({
   void (rest satisfies Record<string, never>);
   return {
     data: {
-      clientId: client_id,
+      clientId: unsafeBrandId(clientId),
       alg,
       e,
       kid,
@@ -27,7 +28,7 @@ export const clientJWKKeySQLToClientJWKKey = ({
       use,
     },
     metadata: {
-      version: metadata_version,
+      version: metadataVersion,
     },
   };
 };
