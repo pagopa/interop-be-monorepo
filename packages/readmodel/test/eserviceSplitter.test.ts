@@ -15,7 +15,6 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
@@ -24,7 +23,8 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-} from "../src/types.js";
+} from "pagopa-interop-readmodel-models";
+import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import { generateRiskAnalysisAnswersSQL } from "./utils.js";
 
 describe("E-service splitter", () => {
