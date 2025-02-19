@@ -1,6 +1,7 @@
 import {
   EventStoreConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
@@ -62,6 +63,73 @@ export const postgreSQLContainer = (
       {
         source: "../../docker/event-store-init.sql",
         target: "/docker-entrypoint-initdb.d/01-init.sql",
+      },
+    ])
+    .withExposedPorts(TEST_POSTGRES_DB_PORT);
+
+/**
+ * Starts a PostgreSQL container for testing purposes.
+ *
+ * @param config - The configuration for the ReadModel PostgreSQL container.
+ * @returns A promise that resolves to the started test container.
+ */
+export const postgreReadModelSQLContainer = (
+  config: ReadModelSQLDbConfig
+): GenericContainer =>
+  new GenericContainer(TEST_POSTGRES_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.readModelSQLDbName,
+      POSTGRES_USER: config.readModelSQLDbUsername,
+      POSTGRES_PASSWORD: config.readModelSQLDbPassword,
+    })
+    .withCopyFilesToContainer([
+      {
+        source: "../../docker/readmodel-db/schema.sql",
+        target: "/docker-entrypoint-initdb.d/00-schema.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/attribute.sql",
+        target: "/docker-entrypoint-initdb.d/01-attribute.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/tenant.sql",
+        target: "/docker-entrypoint-initdb.d/02-tenant.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/catalog.sql",
+        target: "/docker-entrypoint-initdb.d/03-catalog.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/agreement.sql",
+        target: "/docker-entrypoint-initdb.d/04-agreement.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/purpose.sql",
+        target: "/docker-entrypoint-initdb.d/05-purpose.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/client.sql",
+        target: "/docker-entrypoint-initdb.d/06-client.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/client-jwk-key.sql",
+        target: "/docker-entrypoint-initdb.d/07-client-jwk-key.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/producer-keychain.sql",
+        target: "/docker-entrypoint-initdb.d/08-producer-keychain.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/producer-jwk-key.sql",
+        target: "/docker-entrypoint-initdb.d/09-producer-jwk-key.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/delegation.sql",
+        target: "/docker-entrypoint-initdb.d/10-delegation.sql",
+      },
+      {
+        source: "../../docker/readmodel-db/eservice-template.sql",
+        target: "/docker-entrypoint-initdb.d/11-eservice-template.sql",
       },
     ])
     .withExposedPorts(TEST_POSTGRES_DB_PORT);
