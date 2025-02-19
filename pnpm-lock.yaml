@@ -1649,6 +1649,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0

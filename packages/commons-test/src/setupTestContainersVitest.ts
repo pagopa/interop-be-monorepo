@@ -28,6 +28,19 @@ import {
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
+import {
+  agreementInReadmodel,
+  attributeInReadmodel,
+  clientInReadmodel,
+  clientJwkKeyInReadmodel,
+  delegationInReadmodel,
+  eserviceInReadmodel,
+  eserviceTemplateInReadmodel,
+  producerJwkKeyInReadmodel,
+  producerKeychainInReadmodel,
+  purposeInReadmodel,
+  tenantInReadmodel,
+} from "pagopa-interop-readmodel-models";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
@@ -233,7 +246,17 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE delegation.events RESTART IDENTITY"
       );
 
-      // TODO truncate tables in readmodel (using cascade)
+      readModelDB?.delete(eserviceInReadmodel);
+      readModelDB?.delete(agreementInReadmodel);
+      readModelDB?.delete(attributeInReadmodel);
+      readModelDB?.delete(purposeInReadmodel);
+      readModelDB?.delete(tenantInReadmodel);
+      readModelDB?.delete(clientInReadmodel);
+      readModelDB?.delete(producerKeychainInReadmodel);
+      readModelDB?.delete(clientJwkKeyInReadmodel);
+      readModelDB?.delete(producerJwkKeyInReadmodel);
+      readModelDB?.delete(delegationInReadmodel);
+      readModelDB?.delete(eserviceTemplateInReadmodel);
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
