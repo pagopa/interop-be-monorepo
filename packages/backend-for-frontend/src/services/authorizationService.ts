@@ -15,7 +15,6 @@ import {
   UID,
   USER_ROLES,
   WithLogger,
-  decodeJwtToken,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
@@ -61,17 +60,11 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const { verified, maybeDecoded } = await verifyJwtToken(
-      identityToken,
-      config,
-      logger
-    );
-
-    const decoded = maybeDecoded ?? decodeJwtToken(identityToken, logger);
+    const { decoded } = await verifyJwtToken(identityToken, config, logger);
 
     const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
 
-    if (!verified) {
+    if (!decoded) {
       throw tokenVerificationFailed(
         sessionClaims?.uid,
         sessionClaims?.organization.id

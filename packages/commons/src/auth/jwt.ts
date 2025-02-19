@@ -1,115 +1,72 @@
-import jwt, { JwtHeader, JwtPayload, Secret } from "jsonwebtoken";
-import jwksClient from "jwks-rsa";
-import {
-  invalidClaim,
-  jwtDecodingError,
-  jwksSigningKeyError,
-} from "pagopa-interop-models";
+import jwt, { GetPublicKeyOrSecret, JwtPayload } from "jsonwebtoken";
+import { invalidClaim, jwksSigningKeyError } from "pagopa-interop-models";
 import { buildJwksClients, JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
-export const decodeJwtToken = (
-  jwtToken: string,
-  logger: Logger
-): JwtPayload | null => {
-  try {
-    return jwt.decode(jwtToken, { json: true });
-  } catch (err) {
-    logger.error(`Error decoding JWT token: ${err}`);
-    throw jwtDecodingError(err);
-  }
-};
-
-export const decodeJwtTokenHeaders = (
-  jwtToken: string,
-  logger: Logger
-): JwtHeader | undefined => {
-  try {
-    const decoded = jwt.decode(jwtToken, { complete: true });
-    return decoded?.header;
-  } catch (err) {
-    logger.error(`Error decoding JWT token: ${err}`);
-    throw jwtDecodingError(err);
-  }
-};
-
 export const readAuthDataFromJwtToken = (
-  jwtToken: string,
-  maybeDecoded: JwtPayload | string | undefined,
-  logger: Logger
+  token: JwtPayload | string
 ): AuthData => {
-  const decoded = maybeDecoded ?? decodeJwtToken(jwtToken, logger);
-  const token = AuthToken.safeParse(decoded);
-  if (token.success === false) {
-    throw invalidClaim(token.error);
+  const authToken = AuthToken.safeParse(token);
+  if (authToken.success === false) {
+    throw invalidClaim(authToken.error);
   } else {
-    return getAuthDataFromToken(token.data);
+    return getAuthDataFromToken(authToken.data);
   }
-};
-
-const getKey = async (
-  clients: jwksClient.JwksClient[],
-  kid: string,
-  logger: Logger
-): Promise<Secret> => {
-  logger.debug(`Getting signing key for kid ${kid}`);
-  for (const client of clients) {
-    try {
-      const signingKey = await client.getSigningKey(kid);
-      return signingKey.getPublicKey();
-    } catch (error) {
-      // Continue to the next client
-      logger.debug(`Skip Jwks client`);
-    }
-  }
-
-  logger.error(`Error getting signing key`);
-  throw jwksSigningKeyError();
 };
 
 export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
   logger: Logger
-): Promise<{
-  verified: boolean;
-  maybeDecoded?: JwtPayload | string;
-}> => {
+): Promise<{ decoded: JwtPayload | string | undefined }> => {
   try {
     const { acceptedAudiences } = config;
-
-    const jwtHeader = decodeJwtTokenHeaders(jwtToken, logger);
-    if (!jwtHeader?.kid) {
-      logger.warn("Token verification failed: missing kid");
-      return Promise.resolve({ verified: false });
-    }
-
     const jwksClients = buildJwksClients(config);
-    const secret: Secret = await getKey(jwksClients, jwtHeader.kid, logger);
+    /**
+     * This function is a callback used by the `jwt.verify` function to retrieve the public key
+     * associated with a given JWT token.
+     */
+    const getSecret: GetPublicKeyOrSecret = (header, callback) => {
+      if (!header.kid) {
+        return callback(new Error("Missing kid"));
+      }
+
+      logger.debug(`Getting signing key for kid ${header.kid}`);
+
+      // Use an IIFE (Immediately Invoked Function Expression) to handle the asynchronous operations.
+      // The IIFE is used to make the `getSecret` callback asynchronous, because the `jwt.verify` function
+      // expects a synchronous callback. The IIFE is needed to handle the case where the `getSigningKey`
+      // function of the jwksClient returns a promise.
+      (async (): Promise<void> => {
+        for (const client of jwksClients) {
+          try {
+            const signingKey = await client.getSigningKey(header.kid);
+            return callback(null, signingKey.getPublicKey());
+          } catch (error) {
+            logger.debug(`Skip Jwks client: ${error}`);
+          }
+        }
+        logger.error(`Error getting signing key`);
+        return callback(jwksSigningKeyError());
+      })().catch((error) => callback(error));
+    };
 
     return new Promise((resolve) => {
       jwt.verify(
         jwtToken,
-        secret,
+        getSecret,
         { audience: acceptedAudiences },
         (err, decoded) => {
           if (err) {
             logger.warn(`Token verification failed: ${err}`);
-            resolve({
-              verified: false,
-            });
-          } else {
-            resolve({
-              verified: true,
-              maybeDecoded: decoded,
-            });
           }
+          resolve({ decoded });
         }
       );
     });
   } catch (error) {
     logger.error(`Error verifying JWT token: ${error}`);
-    return Promise.resolve({ verified: false });
+    return Promise.resolve({ decoded: undefined });
   }
 };
 

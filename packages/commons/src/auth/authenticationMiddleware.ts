@@ -27,23 +27,13 @@ export const authenticationMiddleware: (
 
     try {
       const jwtToken = jwtFromAuthHeader(req, ctx.logger);
-      const { verified, maybeDecoded } = await verifyJwtToken(
-        jwtToken,
-        config,
-        ctx.logger
-      );
+      const { decoded } = await verifyJwtToken(jwtToken, config, ctx.logger);
 
-      const authData: AuthData = readAuthDataFromJwtToken(
-        jwtToken,
-        maybeDecoded,
-        ctx.logger
-      );
-
-      if (!verified) {
-        throw unauthorizedError(
-          `Invalid token for user ${authData.userId} and tenant ${authData.selfcareId}`
-        );
+      if (!decoded) {
+        throw unauthorizedError(`Invalid token: ${JSON.stringify(decoded)}`);
       }
+
+      const authData: AuthData = readAuthDataFromJwtToken(decoded);
 
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = authData;
