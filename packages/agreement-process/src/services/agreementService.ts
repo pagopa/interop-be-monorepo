@@ -320,33 +320,41 @@ export function agreementServiceBuilder(
 
       return agreement;
     },
-    async getAgreementProducers(
+    async getAgreementsProducers(
       producerName: string | undefined,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
-      // No need to assert requester permissions here, as this endpoint
-      // retrieves producer information from agreements without exposing any
-      // agreement data.
-      return await readModelService.getProducers(producerName, limit, offset);
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreementsProducers(
+        authData.organizationId,
+        producerName,
+        limit,
+        offset
+      );
     },
-    async getAgreementConsumers(
+    async getAgreementsConsumers(
       consumerName: string | undefined,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
       );
-      // No need to assert requester permissions here, as this endpoint
-      // retrieves consumer information from agreements without exposing any
-      // agreement data.
-      return await readModelService.getConsumers(consumerName, limit, offset);
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreementsConsumers(
+        authData.organizationId,
+        consumerName,
+        limit,
+        offset
+      );
     },
     async updateAgreement(
       agreementId: AgreementId,
@@ -963,19 +971,19 @@ export function agreementServiceBuilder(
 
       return updatedAgreement;
     },
-    async getAgreementEServices(
+    async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactEService>> {
       logger.info(
-        `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
+        `Retrieving EServices from agreements with consumers ${filters.consumerIds}, producers ${filters.producerIds}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
       );
-      // No need to assert requester permissions here, as this endpoint
-      // retrieves e-service information from agreements without exposing any
-      // agreement data.
+
+      // Permissions are checked in the readModelService
       return await readModelService.getAgreementsEServices(
+        authData.organizationId,
         filters,
         limit,
         offset

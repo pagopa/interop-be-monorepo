@@ -56,7 +56,6 @@ export type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
   producerIds: TenantId[];
-  agreeementStates: AgreementState[];
 };
 
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
@@ -280,16 +279,17 @@ async function getDelegation(
 
 // eslint-disable-next-line max-params
 async function searchTenantsByName(
+  requesterId: TenantId,
   agreements: AgreementCollection,
   tenantName: string | undefined,
   tenantIdField: "producerId" | "consumerId",
   limit: number,
   offset: number
 ): Promise<ListResult<CompactOrganization>> {
-  const aggregationPipeline = getTenantsByNamePipeline(
-    tenantName,
-    tenantIdField
-  );
+  const aggregationPipeline = [
+    ...getAgreementsPipeline(requesterId),
+    ...getTenantsByNamePipeline(tenantName, tenantIdField),
+  ];
 
   const data = await agreements
     .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }], {
@@ -459,6 +459,17 @@ function applyVisibilityToAgreements(requesterId: TenantId): Document {
   };
 }
 
+const getAgreementsPipeline = (
+  requesterId: TenantId,
+  producerIds: TenantId[] = [],
+  consumerIds: TenantId[] = []
+): Document[] => [
+  ...addDelegationDataPipeline,
+  ...getProducerOrDelegateFilter(producerIds),
+  ...getConsumerOrDelegateFilter(consumerIds),
+  applyVisibilityToAgreements(requesterId),
+];
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
@@ -488,11 +499,8 @@ export function readModelServiceBuilder(
       const agreementsData = await agreements
         .aggregate(
           [
-            ...addDelegationDataPipeline,
-            ...getProducerOrDelegateFilter(producerIds),
-            ...getConsumerOrDelegateFilter(consumerIds),
+            ...getAgreementsPipeline(requesterId, producerIds, consumerIds),
             getAgreementsFilters(otherFilters),
-            applyVisibilityToAgreements(requesterId),
           ],
           {
             allowDiskUse: true,
@@ -641,38 +649,48 @@ export function readModelServiceBuilder(
     async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
-    async getConsumers(
+    async getAgreementsConsumers(
+      requesterId: TenantId,
       name: string | undefined,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      return searchTenantsByName(agreements, name, "consumerId", limit, offset);
+      return searchTenantsByName(
+        requesterId,
+        agreements,
+        name,
+        "consumerId",
+        limit,
+        offset
+      );
     },
-    async getProducers(
+    async getAgreementsProducers(
+      requesterId: TenantId,
       name: string | undefined,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      return searchTenantsByName(agreements, name, "producerId", limit, offset);
+      return searchTenantsByName(
+        requesterId,
+        agreements,
+        name,
+        "producerId",
+        limit,
+        offset
+      );
     },
     async getAgreementsEServices(
+      requesterId: TenantId,
       filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
-      const agreementFilter = {
-        ...(filters.agreeementStates.length === 0
-          ? undefined
-          : { "data.state": { $in: filters.agreeementStates } }),
-      };
-
       const agreementAggregationPipeline = [
-        ...addDelegationDataPipeline,
-        ...getProducerOrDelegateFilter(filters.producerIds),
-        ...getConsumerOrDelegateFilter(filters.consumerIds),
-        {
-          $match: agreementFilter,
-        },
+        ...getAgreementsPipeline(
+          requesterId,
+          filters.producerIds,
+          filters.consumerIds
+        ),
         {
           $group: {
             _id: "$data.eserviceId",

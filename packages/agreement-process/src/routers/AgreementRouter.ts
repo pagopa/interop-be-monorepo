@@ -411,11 +411,11 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const producers = await agreementService.getAgreementProducers(
+        const producers = await agreementService.getAgreementsProducers(
           req.query.producerName,
           req.query.limit,
           req.query.offset,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
@@ -448,11 +448,11 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const consumers = await agreementService.getAgreementConsumers(
+        const consumers = await agreementService.getAgreementsConsumers(
           req.query.consumerName,
           req.query.limit,
           req.query.offset,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
@@ -709,18 +709,15 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const eservices = await agreementService.getAgreementEServices(
+        const eservices = await agreementService.getAgreementsEServices(
           {
             eserviceName: req.query.eServiceName,
             consumerIds: req.query.consumersIds.map(unsafeBrandId<TenantId>),
             producerIds: req.query.producersIds.map(unsafeBrandId<TenantId>),
-            agreeementStates: req.query.states.map(
-              apiAgreementStateToAgreementState
-            ),
           },
           req.query.limit,
           req.query.offset,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
