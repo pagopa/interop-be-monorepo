@@ -10,7 +10,7 @@ import { ClientJWKKeySQL } from "pagopa-interop-readmodel-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "../src/authorization/clientJWKKeySplitters.js";
 
 describe("Client JWK key splitter", () => {
-  it("should convert a client JWK key into client JWK key SQL objects", () => {
+  it("should convert a client JWK key into a client JWK key SQL object", () => {
     const publicKey = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
     }).publicKey;
