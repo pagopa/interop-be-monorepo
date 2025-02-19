@@ -1,5 +1,5 @@
 import { Attribute, dateToString } from "pagopa-interop-models";
-import { AttributeSQL } from "../types.js";
+import { AttributeSQL } from "pagopa-interop-readmodel-models";
 
 export const splitAttributeIntoObjectsSQL = (
   {
