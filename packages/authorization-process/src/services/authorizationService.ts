@@ -660,7 +660,10 @@ export function authorizationServiceBuilder(
         unsafeBrandId(authData.organizationId),
         client.data
       );
-      assertClientKeysCountIsBelowThreshold(clientId, client.data.keys.length);
+      assertClientKeysCountIsBelowThreshold(
+        clientId,
+        client.data.keys.length + 1
+      );
       if (!client.data.users.includes(authData.userId)) {
         throw userNotFound(authData.userId, authData.selfcareId);
       }

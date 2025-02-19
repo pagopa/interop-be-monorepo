@@ -237,7 +237,10 @@ describe("createKey", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      tooManyKeysPerClient(clientWith100Keys.id, clientWith100Keys.keys.length)
+      tooManyKeysPerClient(
+        clientWith100Keys.id,
+        clientWith100Keys.keys.length + 1
+      )
     );
   });
   it("should throw userNotFound if the user doesn't exist ", async () => {

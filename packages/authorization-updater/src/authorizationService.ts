@@ -297,15 +297,17 @@ export const authorizationServiceBuilder = (
     ) {
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
-      await authMgmtClients.keyApiClient.createKey(
-        {
-          name: key.name,
-          createdAt: key.createdAt.toISOString(),
-          userId: key.userId,
-          key: key.encodedPem,
-          use: keyUseToApiKeyUse(key.use),
-          alg: key.algorithm,
-        },
+      await authMgmtClients.keyApiClient.createKeys(
+        [
+          {
+            name: key.name,
+            createdAt: key.createdAt.toISOString(),
+            userId: key.userId,
+            key: key.encodedPem,
+            use: keyUseToApiKeyUse(key.use),
+            alg: key.algorithm,
+          },
+        ],
         {
           params: { clientId },
           withCredentials: true,
