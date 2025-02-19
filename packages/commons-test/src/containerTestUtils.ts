@@ -73,7 +73,7 @@ export const postgreSQLContainer = (
  * @param config - The configuration for the ReadModel PostgreSQL container.
  * @returns A promise that resolves to the started test container.
  */
-export const postgreReadModelSQLContainer = (
+export const postgreSQLReadModelContainer = (
   config: ReadModelSQLDbConfig
 ): GenericContainer =>
   new GenericContainer(TEST_POSTGRES_DB_IMAGE)

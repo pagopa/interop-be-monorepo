@@ -33,7 +33,7 @@ import {
   mailpitContainer,
   minioContainer,
   mongoDBContainer,
-  postgreReadModelSQLContainer,
+  postgreSQLReadModelContainer,
   postgreSQLContainer,
   redisContainer,
 } from "./containerTestUtils.js";
@@ -86,7 +86,7 @@ export function setupTestContainersVitestGlobal() {
     provide,
   }: GlobalSetupContext): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
-    let startedPostgreReadModelSqlContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
@@ -123,12 +123,12 @@ export function setupTestContainersVitestGlobal() {
     }
 
     if (readModelSQLConfig.success) {
-      startedPostgreReadModelSqlContainer = await postgreReadModelSQLContainer(
+      startedPostgreSqlReadModelContainer = await postgreSQLReadModelContainer(
         readModelSQLConfig.data
       ).start();
 
       readModelSQLConfig.data.readModelSQLDbPort =
-        startedPostgreReadModelSqlContainer.getMappedPort(
+        startedPostgreSqlReadModelContainer.getMappedPort(
           TEST_POSTGRES_DB_PORT
         );
 
@@ -200,7 +200,7 @@ export function setupTestContainersVitestGlobal() {
 
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
-      await startedPostgreReadModelSqlContainer?.stop();
+      await startedPostgreSqlReadModelContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
