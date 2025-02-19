@@ -16,7 +16,7 @@ import {
   AgreementStampSQL,
   AgreementDocumentSQL,
   AgreementAttributeSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const splitAgreementIntoObjectsSQL = (
   {
