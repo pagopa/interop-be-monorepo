@@ -14,7 +14,7 @@ import {
   DelegationContractDocumentSQL,
   DelegationSQL,
   DelegationStampSQL,
-} from "../types.js";
+} from "pagopa-interop-readmodel-models";
 
 export const splitDelegationIntoObjectsSQL = (
   {
