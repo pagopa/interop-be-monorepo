@@ -424,9 +424,12 @@ export function invalidKey(
   });
 }
 
-export function invalidKeyLength(key: string): ApiError<CommonErrorCodes> {
+export function invalidKeyLength(
+  length: number | undefined,
+  minLength: number
+): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Invalid length for the key ${key}, must be 2048 bites`,
+    detail: `Invalid RSA key length: ${length} bits. It must be at least ${minLength}`,
     code: "invalidKeyLength",
     title: "Invalid Key length",
   });

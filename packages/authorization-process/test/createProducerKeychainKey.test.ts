@@ -443,8 +443,6 @@ describe("createProducerKeychainKey", () => {
       alg: "",
     };
 
-    const jwk = createJWK(keySeed.key);
-
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
@@ -455,6 +453,6 @@ describe("createProducerKeychainKey", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKeyLength(JSON.stringify(jwk)));
+    ).rejects.toThrowError(invalidKeyLength(1024, 2048));
   });
 });

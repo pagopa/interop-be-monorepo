@@ -474,8 +474,6 @@ describe("createKeys", () => {
       alg: "",
     };
 
-    const jwk = createJWK(keySeed.key);
-
     const keysSeeds: authorizationApi.KeysSeed = [keySeed];
 
     await addOneClient(mockClient);
@@ -488,6 +486,6 @@ describe("createKeys", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKeyLength(JSON.stringify(jwk)));
+    ).rejects.toThrowError(invalidKeyLength(1024, 2048));
   });
 });
