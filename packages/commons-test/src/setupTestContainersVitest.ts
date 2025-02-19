@@ -41,7 +41,9 @@ import {
   purposeInReadmodel,
   tenantInReadmodel,
 } from "pagopa-interop-readmodel-models";
+import { Pool } from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
+
 /**
  * This function is a setup for vitest that initializes the read model repository, the postgres
  * database and the file manager and returns their instances along with a cleanup function.
@@ -203,11 +205,18 @@ export async function setupTestContainersVitest(
   }
 
   if (readModelSQLDbConfig) {
-    readModelDB = drizzle(
-      `postgresql://${readModelSQLDbConfig.readModelSQLDbUsername}:${readModelSQLDbConfig.readModelSQLDbPassword}@${readModelSQLDbConfig.readModelSQLDbHost}:${readModelSQLDbConfig.readModelSQLDbPort}/${readModelSQLDbConfig.readModelSQLDbName}`
-    );
+    const pool = new Pool({
+      host: readModelDbConfig?.readModelDbHost,
+      port: readModelDbConfig?.readModelDbPort,
+      database: readModelDbConfig?.readModelDbName,
+      user: readModelDbConfig?.readModelDbUsername,
+      password: readModelDbConfig?.readModelDbPassword,
+    });
+    readModelDB = drizzle({ client: pool });
 
-    // TODO use another constructor which doesn't require building the string?
+    // readModelDB = drizzle(
+    //   `postgresql://${readModelSQLDbConfig.readModelSQLDbUsername}:${readModelSQLDbConfig.readModelSQLDbPassword}@${readModelSQLDbConfig.readModelSQLDbHost}:${readModelSQLDbConfig.readModelSQLDbPort}/${readModelSQLDbConfig.readModelSQLDbName}`
+    // );
   }
 
   return {
