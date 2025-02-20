@@ -20,7 +20,6 @@ import {
   agreementState,
   delegationKind,
   delegationState,
-  ListResult,
   TenantId,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
@@ -30,18 +29,8 @@ import {
   addOneAgreement,
   agreementService,
   addOneDelegation,
+  expectSinglePageListResult,
 } from "./utils.js";
-
-function expectSinglePageListResult(
-  actual: ListResult<Agreement>,
-  expected: Agreement[]
-): void {
-  expect(actual).toEqual({
-    totalCount: expected.length,
-    results: expect.arrayContaining(expected),
-  });
-  expect(actual.results).toHaveLength(expected.length);
-}
 
 describe("get agreements", () => {
   let tenant1: Tenant;
