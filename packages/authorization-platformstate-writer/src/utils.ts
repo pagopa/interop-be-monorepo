@@ -647,9 +647,13 @@ export const upsertTokenGenStatesConsumerClient = async (
       updatedAt: {
         S: tokenGenStatesConsumerClient.updatedAt,
       },
-      consumerId: {
-        S: tokenGenStatesConsumerClient.consumerId,
-      },
+      ...(tokenGenStatesConsumerClient.consumerId
+        ? {
+            consumerId: {
+              S: tokenGenStatesConsumerClient.consumerId,
+            },
+          }
+        : {}),
       ...(tokenGenStatesConsumerClient.agreementId
         ? {
             agreementId: {
@@ -1193,25 +1197,24 @@ export const createTokenGenStatesConsumerClient = ({
   agreementEntry,
   catalogEntry,
 }: {
-  consumerId: TenantId;
+  consumerId: TenantId | undefined;
   kid: string;
   publicKey: string;
   clientId: ClientId;
   purposeId: PurposeId;
-  purposeEntry?: PlatformStatesPurposeEntry;
-  agreementEntry?: PlatformStatesAgreementEntry;
-  catalogEntry?: PlatformStatesCatalogEntry;
+  purposeEntry: PlatformStatesPurposeEntry | undefined;
+  agreementEntry: PlatformStatesAgreementEntry | undefined;
+  catalogEntry: PlatformStatesCatalogEntry | undefined;
 }): TokenGenerationStatesConsumerClient => {
   const pk = makeTokenGenerationStatesClientKidPurposePK({
     clientId,
     kid,
     purposeId,
   });
-  const realConsumerId = purposeEntry?.purposeConsumerId || consumerId;
 
   return {
     PK: pk,
-    consumerId: realConsumerId,
+    consumerId,
     updatedAt: new Date().toISOString(),
     clientKind: clientKindTokenGenStates.consumer,
     publicKey,
@@ -1222,14 +1225,16 @@ export const createTokenGenStatesConsumerClient = ({
       purposeId,
     }),
     GSIPK_purposeId: purposeId,
-    ...(purposeEntry && {
-      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-        consumerId: realConsumerId,
-        eserviceId: purposeEntry.purposeEserviceId,
+    ...(purposeEntry &&
+      consumerId && {
+        consumerId,
+        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          consumerId,
+          eserviceId: purposeEntry.purposeEserviceId,
+        }),
+        purposeState: purposeEntry.state,
+        purposeVersionId: purposeEntry.purposeVersionId,
       }),
-      purposeState: purposeEntry.state,
-      purposeVersionId: purposeEntry.purposeVersionId,
-    }),
     ...(purposeEntry &&
       agreementEntry && {
         agreementId: agreementEntry.agreementId,

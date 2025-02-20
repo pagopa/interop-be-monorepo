@@ -103,7 +103,7 @@ export async function handleMessageV2(
 
               const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
                 createTokenGenStatesConsumerClient({
-                  consumerId: client.consumerId,
+                  consumerId: purposeEntry?.purposeConsumerId,
                   kid: msg.data.kid,
                   publicKey: pem,
                   clientId: client.id,
@@ -257,7 +257,7 @@ export async function handleMessageV2(
             client.keys.map(async (key) => {
               const newTokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
                 createTokenGenStatesConsumerClient({
-                  consumerId: client.consumerId,
+                  consumerId: purposeEntry?.purposeConsumerId,
                   kid: key.kid,
                   publicKey: key.encodedPem,
                   clientId: client.id,
