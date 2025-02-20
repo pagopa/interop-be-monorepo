@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_an
   id UUID,
   eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_risk_analysis (risk_analysis_form_id) ON DELETE CASCADE,
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template_risk_analysis (risk_analysis_form_id) ON DELETE CASCADE,
   kind VARCHAR,
   key VARCHAR,
   value VARCHAR ARRAY,

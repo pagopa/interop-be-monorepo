@@ -19,7 +19,6 @@ services:
   # POSTGRESQL readmodel
   readmodel-sql:
     volumes:
-      - ./readmodel-db/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql
       - ./readmodel-db/attribute.sql:/docker-entrypoint-initdb.d/01-attribute.sql
       - ./readmodel-db/tenant.sql:/docker-entrypoint-initdb.d/02-tenant.sql
       - ./readmodel-db/catalog.sql:/docker-entrypoint-initdb.d/03-catalog.sql
