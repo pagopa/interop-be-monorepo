@@ -464,15 +464,13 @@ describe("createKey", () => {
       alg: "",
     };
 
-    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
-
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createKeys({
+      authorizationService.createKey({
         clientId: mockClient.id,
         authData: mockAuthData,
-        keysSeeds,
+        keySeed,
         correlationId: generateId(),
         logger: genericLogger,
       })
