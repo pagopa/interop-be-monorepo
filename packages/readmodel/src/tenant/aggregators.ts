@@ -169,9 +169,13 @@ const aggregateTenantAttributes = ({
     tenantVerifiedAttributesSQL.map((currentVerifiedAttributeSQL) => {
       const verifiersOfCurrentAttribute: TenantVerifier[] =
         tenantVerifiedAttributeVerifiersSQL
-          .filter((attr) => attr.id === currentVerifiedAttributeSQL.attributeId)
+          .filter(
+            (attr) =>
+              attr.tenantVerifiedAttributeId ===
+              currentVerifiedAttributeSQL.attributeId
+          )
           .map((tenantVerifierSQL) => ({
-            id: unsafeBrandId<TenantId>(tenantVerifierSQL.id),
+            id: unsafeBrandId<TenantId>(tenantVerifierSQL.tenantVerifierId),
             verificationDate: stringToDate(tenantVerifierSQL.verificationDate),
             expirationDate: stringToDate(tenantVerifierSQL.expirationDate),
             extensionDate: stringToDate(tenantVerifierSQL.extensionDate),
@@ -186,9 +190,13 @@ const aggregateTenantAttributes = ({
 
       const revokersOfCurrentAttribute: TenantRevoker[] =
         tenantVerifiedAttributeRevokersSQL
-          .filter((attr) => attr.id === currentVerifiedAttributeSQL.attributeId)
+          .filter(
+            (attr) =>
+              attr.tenantVerifiedAttributeId ===
+              currentVerifiedAttributeSQL.attributeId
+          )
           .map((tenantRevokerSQL) => ({
-            id: unsafeBrandId<TenantId>(tenantRevokerSQL.id),
+            id: unsafeBrandId<TenantId>(tenantRevokerSQL.tenantRevokerId),
             verificationDate: stringToDate(tenantRevokerSQL.verificationDate),
             expirationDate: stringToDate(tenantRevokerSQL.expirationDate),
             extensionDate: stringToDate(tenantRevokerSQL.extensionDate),
