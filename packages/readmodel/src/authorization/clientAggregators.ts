@@ -27,14 +27,11 @@ export const clientSQLToClient = (
     description,
     kind,
     createdAt,
-    ...rest
   }: ClientSQL,
   clientUsersSQL: ClientUserSQL[],
   clientPurposesSQL: ClientPurposeSQL[],
   clientKeysSQL: ClientKeySQL[]
 ): WithMetadata<Client> => {
-  void (rest satisfies Record<string, never>);
-
   const users: UserId[] = clientUsersSQL.map((u) =>
     unsafeBrandId<UserId>(u.userId)
   );
