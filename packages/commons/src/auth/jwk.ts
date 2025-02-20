@@ -1,7 +1,9 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
 import jwksClient, { JwksClient } from "jwks-rsa";
 import {
-  invalidKey,
+  notAnRSAKey,
+  invalidKeyLength,
+  invalidPublicKey,
   jwkDecodingError,
   notAllowedCertificateException,
   notAllowedPrivateKeyException,
@@ -45,17 +47,38 @@ function assertNotPrivateKey(key: string): void {
   throw notAllowedPrivateKeyException();
 }
 
+export function assertValidRSAKey(key: KeyObject): void {
+  if (key.asymmetricKeyType !== "rsa") {
+    throw notAnRSAKey();
+  }
+}
+
+export function assertValidRSAKeyLength(
+  key: KeyObject,
+  minLength: number = 2048
+): void {
+  const length = key.asymmetricKeyDetails?.modulusLength;
+  if (!length || length < minLength) {
+    throw invalidKeyLength(length, minLength);
+  }
+}
+
+function tryToCreatePublicKey(key: string): KeyObject {
+  try {
+    return crypto.createPublicKey(key);
+  } catch {
+    throw invalidPublicKey();
+  }
+}
+
 export function createPublicKey(key: string): KeyObject {
   const pemKey = decodeBase64ToPem(key);
-
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
-
-  try {
-    return crypto.createPublicKey(pemKey);
-  } catch (error) {
-    throw invalidKey(key, error);
-  }
+  const publicKey = tryToCreatePublicKey(pemKey);
+  assertValidRSAKey(publicKey);
+  assertValidRSAKeyLength(publicKey);
+  return publicKey;
 }
 
 export function sortJWK(jwk: JsonWebKey): JsonWebKey {

@@ -10,9 +10,11 @@ import {
   TenantId,
   UserId,
   generateId,
-  invalidKey,
+  invalidKeyLength,
+  invalidPublicKey,
   notAllowedCertificateException,
   notAllowedPrivateKeyException,
+  notAnRSAKey,
   toClientV2,
 } from "pagopa-interop-models";
 import {
@@ -375,7 +377,7 @@ describe("createKey", () => {
       })
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
-  it("should throw invalidKey if the key is not an RSA key", async () => {
+  it("should throw notAnRSAKey if the key is not an RSA key", async () => {
     const notRSAKey = crypto.generateKeyPairSync("ed25519", {
       modulusLength: 2048,
     }).publicKey;
@@ -401,7 +403,7 @@ describe("createKey", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
+    ).rejects.toThrowError(notAnRSAKey());
   });
   it("should throw invalidKey if the key doesn't have the delimiters", async () => {
     const keySeed: authorizationApi.KeySeed = {
@@ -421,9 +423,7 @@ describe("createKey", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(
-      invalidKey(keySeed.key, "error:1E08010C:DECODER routines::unsupported")
-    );
+    ).rejects.toThrowError(invalidPublicKey());
   });
   it("should throw notAllowedCertificateException if the key contains a certificate", async () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
@@ -446,5 +446,36 @@ describe("createKey", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(notAllowedCertificateException());
+  });
+
+  it("should throw invalidKeyLength if the key doesn't have 2048 bites", async () => {
+    const key = crypto.generateKeyPairSync("rsa", {
+      modulusLength: 1024,
+    }).publicKey;
+
+    const base64Key = Buffer.from(
+      key.export({ type: "pkcs1", format: "pem" })
+    ).toString("base64url");
+
+    const keySeed: authorizationApi.KeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: base64Key,
+      alg: "",
+    };
+
+    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
+
+    await addOneClient(mockClient);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
+        keysSeeds,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(invalidKeyLength(1024, 2048));
   });
 });
