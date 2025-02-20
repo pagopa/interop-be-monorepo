@@ -1,10 +1,12 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
   Agreement,
+  Delegation,
   EService,
   EServiceId,
   Tenant,
   agreementState,
+  delegationState,
   genericInternalError,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -15,12 +17,14 @@ export type ReadModelService = {
   getAgreementsByEserviceId: (
     eserviceId: EServiceId
   ) => Promise<Agreement[] | undefined>;
+  getDelegationByDelegatorId: (
+    delegatorId: string
+  ) => Promise<Delegation | undefined>;
 };
-
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ): ReadModelService {
-  const { eservices, tenants, agreements } = readModelRepository;
+  const { eservices, tenants, agreements, delegations } = readModelRepository;
 
   async function getEServiceById(id: string): Promise<EService | undefined> {
     const data = await eservices.findOne(
@@ -103,9 +107,41 @@ export function readModelServiceBuilder(
     }
     return undefined;
   }
+
+  async function getDelegationByDelegatorId(
+    delegatorId: string
+  ): Promise<Delegation | undefined> {
+    const data = await delegations.findOne(
+      {
+        "data.delegatorId": delegatorId,
+        // "data.state": {
+        //   $in: [delegationState.active, delegationState.waitingForApproval],
+        // }, I'm not sure if state waitingForApproval should be included
+        "data.state": delegationState.active,
+      },
+      { projection: { data: true } }
+    );
+
+    if (data) {
+      const result = Delegation.safeParse(data.data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
+    }
+    return undefined;
+  }
+
   return {
     getEServiceById,
     getTenantById,
     getAgreementsByEserviceId,
+    getDelegationByDelegatorId,
   };
 }

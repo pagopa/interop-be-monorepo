@@ -52,6 +52,7 @@ export const eventMailTemplateType = {
   purposeWaitingForApprovalMailTemplate: "purpose-waiting-for-approval-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   purposeVersionActivatedMailTemplate: "purpose-version-activated-mail",
+  delegateAgreementActivatedMailTemplate: "delegate-agreement-activated-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
@@ -228,13 +229,21 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const agreement = fromAgreementV2(agreementV2Msg);
 
+      const delegation = await readModelService.getDelegationByDelegatorId(
+        agreement.consumerId
+      );
+
+      const template = delegation
+        ? eventMailTemplateType.delegateAgreementActivatedMailTemplate
+        : eventMailTemplateType.agreementActivatedMailTemplate;
+
       const [htmlTemplate, eservice, producer, consumer] = await Promise.all([
-        retrieveHTMLTemplate(
-          eventMailTemplateType.agreementActivatedMailTemplate
-        ),
+        retrieveHTMLTemplate(template),
         retrieveAgreementEservice(agreement, readModelService),
         retrieveTenant(agreement.producerId, readModelService),
-        retrieveTenant(agreement.consumerId, readModelService),
+        delegation
+          ? retrieveTenant(delegation.delegateId, readModelService)
+          : retrieveTenant(agreement.consumerId, readModelService),
       ]);
 
       const consumerEmail = getLatestTenantMailOfKind(

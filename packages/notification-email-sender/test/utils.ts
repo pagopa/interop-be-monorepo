@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
+  Delegation,
   EService,
   Purpose,
   Tenant,
@@ -102,6 +103,12 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
     toReadModelPurpose(purpose),
     readModelRepository.purposes
   );
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await writeInReadmodel(delegation, readModelRepository.delegations);
 };
 
 type Mail = {
