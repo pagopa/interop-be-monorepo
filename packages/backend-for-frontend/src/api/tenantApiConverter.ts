@@ -189,6 +189,7 @@ export function toBffApiTenant(
     id: tenant.id,
     selfcareId: tenant.selfcareId,
     externalId: tenant.externalId,
+    kind: tenant.kind,
     createdAt: tenant.createdAt,
     updatedAt: tenant.updatedAt,
     name: tenant.name,
