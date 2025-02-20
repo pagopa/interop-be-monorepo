@@ -11,7 +11,9 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
+  Delegation,
   Tenant,
+  TenantMail,
   UserId,
   generateId,
   tenantMailKind,
@@ -39,6 +41,7 @@ import {
   sesEmailManagerConfig,
   sesEmailsenderData,
   templateService,
+  addOneDelegation,
 } from "./utils.js";
 
 beforeAll(() => {
@@ -107,6 +110,129 @@ describe("sendAgreementActivatedEmail", () => {
         eserviceName: eservice.name,
         activationDate: getFormattedAgreementStampDate(agreement, "activation"),
       }),
+    };
+
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mail.from,
+      mail.to,
+      mail.subject,
+      mail.body
+    );
+
+    const response: AxiosResponse = await axios.get(
+      `${sesEmailManagerConfig?.awsSesEndpoint}/store`
+    );
+    expect(response.status).toBe(200);
+    const lastEmail = response.data.emails[0];
+    expect(lastEmail).toMatchObject({
+      subject: mail.subject,
+      from: `${mail.from.name} <${mail.from.address}>`,
+      destination: { to: mail.to },
+      body: { html: mail.body },
+    });
+  });
+
+  it("should send an email to delegateConsumer to contact email addresses", async () => {
+    vi.spyOn(sesEmailManager, "send");
+    const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
+    const delegateEmail: TenantMail = {
+      ...getMockTenantMail(tenantMailKind.ContactEmail),
+      address: "gigio@test.it",
+    };
+
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      mails: [consumerEmail],
+    };
+    const producer: Tenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail(tenantMailKind.ContactEmail)],
+    };
+
+    const descriptor = getMockDescriptor();
+
+    const eservice = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producer.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
+    };
+
+    const delegate: Tenant = {
+      ...getMockTenant(),
+      name: "Gigio",
+      mails: [delegateEmail],
+    };
+
+    const delegation: Delegation = {
+      id: generateId(),
+      createdAt: new Date(),
+      eserviceId: eservice.id,
+      state: "Active",
+      kind: "DelegatedConsumer",
+      delegatorId: consumer.id,
+      delegateId: delegate.id,
+      stamps: {
+        submission: {
+          who: generateId(),
+          when: new Date(),
+        },
+        activation: {
+          who: generateId(),
+          when: new Date(),
+        },
+        rejection: undefined,
+        revocation: undefined,
+      },
+    };
+
+    await addOneDelegation(delegation);
+    await addOneTenant(delegate);
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+
+    await notificationEmailSenderService.sendAgreementActivatedEmail(
+      toAgreementV2(agreement),
+      genericLogger
+    );
+
+    const filename = fileURLToPath(import.meta.url);
+    const dirname = path.dirname(filename);
+    const templatePath = `../src/resources/templates/${eventMailTemplateType.delegateAgreementActivatedMailTemplate}.html`;
+
+    const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+    const delegateAgreementActivatedMailTemplate =
+      htmlTemplateBuffer.toString();
+
+    const mail = {
+      from: {
+        name: sesEmailsenderData.label,
+        address: sesEmailsenderData.mail,
+      },
+      subject: `Richiesta di fruizione ${agreement.id} attiva`,
+      to: [delegateEmail.address],
+      body: templateService.compileHtml(
+        delegateAgreementActivatedMailTemplate,
+        {
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+          producerName: producer.name,
+          consumerName: delegate.name,
+          eserviceName: eservice.name,
+          activationDate: getFormattedAgreementStampDate(
+            agreement,
+            "activation"
+          ),
+        }
+      ),
     };
 
     expect(sesEmailManager.send).toHaveBeenCalledWith(
