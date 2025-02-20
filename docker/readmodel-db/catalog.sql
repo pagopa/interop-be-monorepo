@@ -104,4 +104,3 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer(
   value VARCHAR ARRAY NOT NULL,
   PRIMARY KEY(id)
 );
-
