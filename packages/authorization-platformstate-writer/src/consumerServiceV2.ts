@@ -253,43 +253,38 @@ export async function handleMessageV2(
           );
 
         const addedTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
-          [];
+          await Promise.all(
+            client.keys.map(async (key) => {
+              const newTokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+                createTokenGenStatesConsumerClient({
+                  consumerId: client.consumerId,
+                  kid: key.kid,
+                  publicKey: key.encodedPem,
+                  clientId: client.id,
+                  purposeId,
+                  purposeEntry,
+                  agreementEntry,
+                  catalogEntry,
+                });
 
-        await Promise.all(
-          client.keys.map(async (key) => {
-            const newTokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
-              createTokenGenStatesConsumerClient({
-                consumerId: client.consumerId,
-                kid: key.kid,
-                publicKey: key.encodedPem,
-                clientId: client.id,
-                purposeId,
-                purposeEntry,
-                agreementEntry,
-                catalogEntry,
-              });
+              await upsertTokenGenStatesConsumerClient(
+                newTokenGenStatesConsumerClient,
+                dynamoDBClient,
+                logger
+              );
 
-            await upsertTokenGenStatesConsumerClient(
-              newTokenGenStatesConsumerClient,
-              dynamoDBClient,
-              logger
-            );
+              await deleteClientEntryFromTokenGenerationStates(
+                makeTokenGenerationStatesClientKidPK({
+                  clientId: client.id,
+                  kid: key.kid,
+                }),
+                dynamoDBClient,
+                logger
+              );
 
-            // eslint-disable-next-line functional/immutable-data
-            addedTokenGenStatesConsumerClients.push(
-              newTokenGenStatesConsumerClient
-            );
-
-            await deleteClientEntryFromTokenGenerationStates(
-              makeTokenGenerationStatesClientKidPK({
-                clientId: client.id,
-                kid: key.kid,
-              }),
-              dynamoDBClient,
-              logger
-            );
-          })
-        );
+              return newTokenGenStatesConsumerClient;
+            })
+          );
 
         // Second check for updated fields
         await Promise.all(
