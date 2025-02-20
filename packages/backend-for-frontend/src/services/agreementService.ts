@@ -29,7 +29,10 @@ import {
   contractNotFound,
 } from "../model/errors.js";
 import { config } from "../config/config.js";
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestTenantContactEmail,
+} from "../model/modelMappingUtils.js";
 import {
   toCompactEservice,
   toCompactDescriptor,
@@ -708,10 +711,7 @@ export async function enrichAgreement(
     await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
   const currentDescriptior = getCurrentDescriptor(eservice, agreement);
-
-  const activeDescriptor = eservice.descriptors
-    .toSorted((a, b) => Number(a.version) - Number(b.version))
-    .at(-1);
+  const activeDescriptor = getLatestActiveDescriptor(eservice);
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
     : [];
