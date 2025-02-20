@@ -18,7 +18,12 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { dateToSeconds, InteropTokenGenerator } from "pagopa-interop-commons";
+import {
+  dateToSeconds,
+  initMemoryRateLimiter,
+  InteropTokenGenerator,
+  MemoryRateLimiterConfig,
+} from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
 import { config } from "../src/config/config.js";
 
@@ -26,14 +31,12 @@ export const configTokenGenerationStates = inject(
   "tokenGenerationReadModelConfig"
 );
 
-export const { cleanup, fileManager, redisRateLimiter } =
-  await setupTestContainersVitest(
-    undefined,
-    undefined,
-    inject("fileManagerConfig"),
-    undefined,
-    inject("redisRateLimiterConfig")
-  );
+export const { cleanup, fileManager } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  inject("fileManagerConfig"),
+  undefined
+);
 
 afterEach(cleanup);
 
@@ -63,10 +66,20 @@ const tokenGenerator = new InteropTokenGenerator(
   mockKMSClient as unknown as KMSClient
 );
 
+export const memoryRateLimiterConfig = MemoryRateLimiterConfig.parse(
+  process.env
+);
+const memoryRateLimiter = await initMemoryRateLimiter({
+  limiterGroup: "TEST",
+  maxRequests: memoryRateLimiterConfig.rateLimiterMaxRequests,
+  rateInterval: memoryRateLimiterConfig.rateLimiterRateInterval,
+  burstPercentage: memoryRateLimiterConfig.rateLimiterBurstPercentage,
+});
+
 export const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  redisRateLimiter,
+  rateLimiter: memoryRateLimiter,
   producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
   fileManager,
 });
