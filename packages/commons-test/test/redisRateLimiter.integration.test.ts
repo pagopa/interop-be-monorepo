@@ -1,19 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from "vitest";
 import { generateId, TenantId } from "pagopa-interop-models";
-import { genericLogger, initRedisRateLimiter } from "pagopa-interop-commons";
+import { genericLogger } from "pagopa-interop-commons";
 import { sleep } from "../src/testUtils.js";
-import { redisRateLimiterConfig } from "./utils.js";
-
-const redisRateLimiter = await initRedisRateLimiter({
-  limiterGroup: "TEST",
-  maxRequests: redisRateLimiterConfig.rateLimiterMaxRequests,
-  rateInterval: redisRateLimiterConfig.rateLimiterRateInterval,
-  burstPercentage: redisRateLimiterConfig.rateLimiterBurstPercentage,
-  redisHost: redisRateLimiterConfig.rateLimiterRedisHost,
-  redisPort: redisRateLimiterConfig.rateLimiterRedisPort,
-  timeout: redisRateLimiterConfig.rateLimiterTimeout,
-});
+import { redisRateLimiter } from "./utils.js";
 
 describe("Redis rate limiter tests", async () => {
   /*

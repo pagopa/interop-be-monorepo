@@ -33,6 +33,7 @@ export const {
   undefined,
   undefined,
   emailManagerConfig,
+  undefined,
   sesEmailManagerConfig
 );
 export const readModelService = readModelServiceBuilder(readModelRepository);
