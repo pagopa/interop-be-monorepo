@@ -1,17 +1,15 @@
 import { constants } from "http2";
 import {
+  AppContext,
   fromAppContext,
   initFileManager,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
-  zodiosCtx,
-  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import express from "express";
 import { Problem, tooManyRequestsError } from "pagopa-interop-models";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
-import express from "express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { tokenServiceBuilder } from "../services/tokenService.js";
@@ -54,16 +52,24 @@ const tokenService = tokenServiceBuilder({
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function authorizationServerRouter(): express.Router {
-  const authorizationServerRouter = zodiosCtx.router(
-    authorizationServerApi.authApi.api,
-    {
-      validationErrorHandler: zodiosValidationErrorToApiProblem,
-    }
-  );
+  // TODO using express.Router() instead of zodiosCtx.router() for performance tests.
+  // const authorizationServerRouter = zodiosCtx.router(
+  //   authorizationServerApi.authApi.api,
+  //   {
+  //     validationErrorHandler: zodiosValidationErrorToApiProblem,
+  //   }
+  // );
+  const authorizationServerRouter = express.Router();
   authorizationServerRouter.post(
     "/authorization-server/token.oauth2",
-    async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    async (
+      req: express.Request & {
+        ctx?: AppContext;
+      },
+      res
+    ) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const ctx = fromAppContext(req.ctx!);
 
       try {
         const tokenResult = await tokenService.generateToken(
@@ -136,10 +142,7 @@ function authorizationServerRouter(): express.Router {
       }
     }
   );
-
-  // This cast will be removed when the router and the entire service
-  // will drop fastify-express and will be fully migrated to fastify
-  return authorizationServerRouter as unknown as express.Router;
+  return authorizationServerRouter;
 }
 
 export default authorizationServerRouter;
