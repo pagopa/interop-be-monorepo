@@ -88,26 +88,22 @@ export const splitTenantIntoObjectsSQL = (
         tenantId: id,
         metadataVersion,
         kind: tenantFeatureType.persistentCertifier,
-        details: { certifierId: feature.certifierId } satisfies Omit<
-          TenantFeatureCertifier,
-          "type"
-        >,
+        certifierId: feature.certifierId,
+        availabilityTimestamp: null,
       }))
       .with({ type: tenantFeatureType.delegatedProducer }, (feature) => ({
         tenantId: id,
         metadataVersion,
         kind: tenantFeatureType.delegatedProducer,
-        details: {
-          availabilityTimestamp: feature.availabilityTimestamp, // TODO here the date is not converted to string
-        } satisfies Omit<TenantFeatureDelegatedProducer, "type">,
+        certifierId: null,
+        availabilityTimestamp: dateToString(feature.availabilityTimestamp),
       }))
       .with({ type: tenantFeatureType.delegatedConsumer }, (feature) => ({
         tenantId: id,
         metadataVersion,
         kind: tenantFeatureType.delegatedConsumer,
-        details: {
-          availabilityTimestamp: feature.availabilityTimestamp, // TODO here the date is not converted to string
-        } satisfies Omit<TenantFeatureDelegatedConsumer, "type">,
+        certifierId: null,
+        availabilityTimestamp: dateToString(feature.availabilityTimestamp),
       }))
       .exhaustive()
   );
