@@ -7,11 +7,8 @@ CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation(
   delegate_id UUID NOT NULL,
   eservice_id UUID NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  submitted_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  approved_at TIMESTAMP WITH TIME ZONE,
-  rejected_at TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE,
   rejection_reason VARCHAR,
-  revoked_at TIMESTAMP WITH TIME ZONE,
   state VARCHAR NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (id)

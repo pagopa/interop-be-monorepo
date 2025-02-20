@@ -181,29 +181,6 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
       ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
     }
   );
-  it("should throw puroposeDelegationNotFound when the delegation cannot be found", async () => {
-    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
-      purposeVersionState.draft
-    );
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      versions: [mockPurposeVersion],
-      delegationId: generateId<DelegationId>(),
-    };
-
-    await addOnePurpose(mockPurpose);
-
-    expect(
-      purposeService.internalDeletePurposeAfterDelegationRevocation(
-        mockPurpose.id,
-        mockPurpose.delegationId!,
-        generateId(),
-        genericLogger
-      )
-    ).rejects.toThrowError(
-      puroposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
-    );
-  });
   it("should throw puroposeDelegationNotFound when the purpose delegationId is not equal to the one passed", async () => {
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft

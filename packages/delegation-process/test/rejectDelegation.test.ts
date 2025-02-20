@@ -73,7 +73,7 @@ describe.each([
     const expectedDelegation = toDelegationV2({
       ...delegation,
       state: delegationState.rejected,
-      rejectedAt: currentExecutionTime,
+      updatedAt: currentExecutionTime,
       rejectionReason,
       stamps: {
         ...delegation.stamps,
