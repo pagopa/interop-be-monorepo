@@ -12,9 +12,6 @@ CREATE TABLE IF NOT EXISTS readmodel.delegation(
   revoked_at TIMESTAMP WITH TIME ZONE,
   state VARCHAR NOT NULL,
   kind VARCHAR NOT NULL,
-  -- activationContract
-  -- revocationContract
-  -- stamps
   PRIMARY KEY (id)
 );
 
@@ -37,6 +34,5 @@ CREATE TABLE IF NOT EXISTS readmodel.delegation_contract_document(
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
-  -- activation/revocation
   PRIMARY KEY(id)
 );

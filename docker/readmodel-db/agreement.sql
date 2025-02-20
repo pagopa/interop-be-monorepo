@@ -6,18 +6,12 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement(
   producer_id UUID NOT NULL,
   consumer_id UUID NOT NULL,
   state varchar NOT NULL,
-  -- verifiedAttributes
-  -- certifiedAttributes
-  -- declaredAttributes
   suspended_by_consumer boolean,
   suspended_by_producer boolean,
   suspended_by_platform boolean,
-  -- consumerDocuments
   created_at timestamp WITH time zone NOT NULL,
   updated_at timestamp WITH time zone,
   consumer_notes varchar,
-  -- contract
-  -- stamps
   rejection_reason varchar,
   suspended_at timestamp WITH time zone,
   PRIMARY KEY (id)
@@ -51,6 +45,5 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_document(
   path varchar NOT NULL,
   created_at timestamp WITH time zone NOT NULL,
   kind varchar NOT NULL,
-  -- consumerDoc / contract
   PRIMARY KEY (id)
 );

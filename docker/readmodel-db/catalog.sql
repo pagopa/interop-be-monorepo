@@ -5,10 +5,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice (
   name VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   technology VARCHAR NOT NULL,
-  -- attributes (moved to descriptors)
-  -- descriptors
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  -- riskAnalysis
   mode VARCHAR NOT NULL,
   is_signal_hub_enabled BOOLEAN,
   is_consumer_delegable BOOLEAN,
@@ -35,8 +32,6 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
   description VARCHAR,
-  -- interface
-  -- docs
   state VARCHAR NOT NULL,
   audience VARCHAR ARRAY NOT NULL,
   voucher_lifespan INTEGER NOT NULL,
@@ -49,12 +44,9 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor (
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
   archived_at TIMESTAMP WITH TIME ZONE,
-  -- attributes
-  -- rejection_reasons
   PRIMARY KEY (id)
 );
 
--- TODO: what's the PK?
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_rejection_reason (
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
@@ -75,18 +67,9 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_document(
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
-  -- INTERFACE/DOCUMENT
   PRIMARY KEY(id)
 );
 
-/*
- certified: [[a], [b,c], [d]]
- attr, kind, group_id
- a | certified | 1
- b | certified | 2
- c | certified | 2
- d | certified | 3
- */
 CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_attribute(
   attribute_id UUID NOT NULL,
   eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id) ON DELETE CASCADE,
@@ -94,9 +77,7 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_descriptor_attribute(
   descriptor_id UUID NOT NULL REFERENCES readmodel.eservice_descriptor(id) ON DELETE CASCADE,
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
-  -- CERTIFIED/DECLARED/VERIFIED
   group_id INTEGER NOT NULL,
-  -- id of the group
   PRIMARY KEY(attribute_id, descriptor_id, group_id)
 );
 
@@ -117,7 +98,6 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_risk_analysis_answer(
   metadata_version INTEGER NOT NULL,
   risk_analysis_form_id UUID NOT NULL REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR NOT NULL,
-  -- SINGLE/MULTI
   key VARCHAR NOT NULL,
   value VARCHAR ARRAY NOT NULL,
   PRIMARY KEY(id)

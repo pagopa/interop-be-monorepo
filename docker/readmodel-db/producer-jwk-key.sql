@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_jwk_key(
   kty VARCHAR NOT NULL,
   n VARCHAR NOT NULL,
   use VARCHAR NOT NULL,
-  PRIMARY KEY (kid) -- same as above
+  PRIMARY KEY (producer_keychain_id, kid)
 );
