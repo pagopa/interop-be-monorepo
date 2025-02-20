@@ -195,53 +195,61 @@ EServiceAggregatorInput): WithMetadata<EService> => {
   };
 };
 
-/*
-export const eserviceSQLArraytoEserviceArray = (
-  eservicesSQL: EServiceSQL[],
-  riskAnalysisSQL: EserviceRiskAnalysisSQL[],
-  riskAnalysisAnswers: RiskAnalysisAnswerSQL[],
-  descriptorsSQL: DescriptorSQL[],
-  documentsSQL: DocumentSQL[],
-  attributesSQL: DescriptorAttributeSQL[]
-  // eslint-disable-next-line max-params
-): Array<WithMetadata<EService>> =>
-  eservicesSQL.map((eservice) => {
-    const riskAnalysisSQLOfCurrentEservice = riskAnalysisSQL.filter(
-      (ra) => ra.eservice_id === eservice.id
+export const aggregateEserviceArray = ({
+  eservicesSQL,
+  riskAnalysesSQL,
+  riskAnalysisAnswersSQL,
+  descriptorsSQL,
+  attributesSQL,
+  documentsSQL,
+  rejectionReasonsSQL,
+}: {
+  eservicesSQL: EServiceSQL[];
+  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateBindingSQL: EServiceTemplateBindingSQL[];
+}): Array<WithMetadata<EService>> =>
+  eservicesSQL.map((eserviceSQL) => {
+    const riskAnalysesSQLOfCurrentEservice = riskAnalysesSQL.filter(
+      (ra) => ra.eserviceId === eserviceSQL.id
     );
 
-    const formIds = riskAnalysisSQLOfCurrentEservice.map(
-      (ra) => ra.risk_analysis_form_id
-    );
-
-    const riskAnalysisAnswersSQLOfCurrentEservice = riskAnalysisAnswers.filter(
-      (ra) => formIds.includes(ra.risk_analysis_form_id)
-    );
+    const riskAnalysisAnswersSQLOfCurrentEservice =
+      riskAnalysisAnswersSQL.filter(
+        (answer) => answer.eserviceId === eserviceSQL.id
+      );
 
     const descriptorsSQLOfCurrentEservice = descriptorsSQL.filter(
-      (d) => d.eservice_id === eservice.id
-    );
-    const descriptorsIds = descriptorsSQL.map((d) => d.id);
-
-    const documentsSQLOfCurrentEservice = documentsSQL.filter((doc) =>
-      descriptorsIds.includes(doc.descriptor_id)
+      (d) => d.eserviceId === eserviceSQL.id
     );
 
-    const attributesSQLOfCurrentEservice = attributesSQL.filter((attr) =>
-      descriptorsIds.includes(attr.descriptor_id)
+    const documentsSQLOfCurrentEservice = documentsSQL.filter(
+      (doc) => doc.eserviceId === eserviceSQL.id
     );
 
-    return eserviceSQLtoEservice(
-      eservice,
-      riskAnalysisSQLOfCurrentEservice,
-      riskAnalysisAnswersSQLOfCurrentEservice,
-      descriptorsSQLOfCurrentEservice,
-      documentsSQLOfCurrentEservice,
-      attributesSQLOfCurrentEservice
+    const attributesSQLOfCurrentEservice = attributesSQL.filter(
+      (attr) => attr.eserviceId === eserviceSQL.id
     );
+
+    const rejectionReasonsSQLOfCurrentEservice = rejectionReasonsSQL.filter(
+      (rejectionReason) => rejectionReason.eserviceId === eserviceSQL.id
+    );
+
+    return aggregateEservice({
+      eserviceSQL,
+      riskAnalysesSQL: riskAnalysesSQLOfCurrentEservice,
+      riskAnalysisAnswersSQL: riskAnalysisAnswersSQLOfCurrentEservice,
+      descriptorsSQL: descriptorsSQLOfCurrentEservice,
+      documentsSQL: documentsSQLOfCurrentEservice,
+      attributesSQL: attributesSQLOfCurrentEservice,
+      rejectionReasonsSQL: rejectionReasonsSQLOfCurrentEservice,
+      templateBindingSQL: [],
+    });
   });
-
-  */
 
 export const aggregateRiskAnalysis = (
   riskAnalysisSQL: EServiceRiskAnalysisSQL,
