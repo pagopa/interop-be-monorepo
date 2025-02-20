@@ -87,4 +87,3 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_feature(
   certifier_id VARCHAR,
   availability_timestamp TIMESTAMP WITH TIME ZONE
 );
-
