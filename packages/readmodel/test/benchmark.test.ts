@@ -38,7 +38,7 @@ import {
   fromJoinToAggregator,
 } from "../src/catalog/retrievalJoin.js";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
-import { eserviceSQLtoEservice } from "../src/catalog/aggregators.js";
+import { aggregateEservice } from "../src/catalog/aggregators.js";
 import {
   retrieveDescriptorsSQL,
   retrieveEserviceAttributesSQL,
@@ -146,7 +146,7 @@ describe("benchmark", async () => {
     const timestamp2 = Date.now();
     // console.log(timestamp2);
 
-    const eserviceWithQueries = eserviceSQLtoEservice({
+    const eserviceWithQueries = aggregateEservice({
       eserviceSQL,
       descriptorsSQL,
       documentsSQL,
@@ -170,7 +170,7 @@ describe("benchmark", async () => {
     const timestamp5 = Date.now();
     //  console.log(timestamp5);
 
-    const eserviceWithJoin = eserviceSQLtoEservice(aggregatorInput);
+    const eserviceWithJoin = aggregateEservice(aggregatorInput);
 
     const timestamp6 = Date.now();
     // console.log(timestamp6);

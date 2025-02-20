@@ -23,7 +23,7 @@ import {
   fromJoinToAggregator,
 } from "../src/catalog/retrievalJoin.js";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
-import { eserviceSQLtoEservice } from "../src/catalog/aggregators.js";
+import { aggregateEservice } from "../src/catalog/aggregators.js";
 import { readModelDB } from "./utils.js";
 
 describe("", () => {
@@ -116,7 +116,7 @@ describe("", () => {
 
     const aggregatorInput = fromJoinToAggregator(res);
 
-    const aggregatedEserviceFromDb = eserviceSQLtoEservice(aggregatorInput);
+    const aggregatedEserviceFromDb = aggregateEservice(aggregatorInput);
 
     const resDiff = diff(
       { data: eservice, metadata: { version: 1 } },

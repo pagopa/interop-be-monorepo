@@ -38,18 +38,18 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 export const documentSQLtoDocument = (
-  input: EServiceDescriptorDocumentSQL
+  documentSQL: EServiceDescriptorDocumentSQL
 ): Document => ({
-  id: unsafeBrandId<EServiceDocumentId>(input.id),
-  path: input.path,
-  name: input.name,
-  prettyName: input.prettyName,
-  contentType: input.contentType,
-  checksum: input.checksum,
-  uploadDate: stringToDate(input.uploadDate),
+  id: unsafeBrandId<EServiceDocumentId>(documentSQL.id),
+  path: documentSQL.path,
+  name: documentSQL.name,
+  prettyName: documentSQL.prettyName,
+  contentType: documentSQL.contentType,
+  checksum: documentSQL.checksum,
+  uploadDate: stringToDate(documentSQL.uploadDate),
 });
 
-export const descriptorSQLtoDescriptor = ({
+export const aggregateDescriptor = ({
   descriptorSQL,
   documentsSQL,
   attributesSQL,
@@ -145,7 +145,7 @@ export type EServiceAggregatorInput = {
   templateBindingSQL: EServiceTemplateBindingSQL[];
 };
 
-export const eserviceSQLtoEservice = ({
+export const aggregateEservice = ({
   eserviceSQL,
   riskAnalysesSQL,
   riskAnalysisAnswersSQL,
@@ -156,7 +156,7 @@ export const eserviceSQLtoEservice = ({
 }: // TODO add template
 EServiceAggregatorInput): WithMetadata<EService> => {
   const descriptors = descriptorsSQL.map((descriptorSQL) =>
-    descriptorSQLtoDescriptor({
+    aggregateDescriptor({
       descriptorSQL,
       documentsSQL: documentsSQL.filter(
         (d) => d.descriptorId === descriptorSQL.id
@@ -171,7 +171,7 @@ EServiceAggregatorInput): WithMetadata<EService> => {
   );
 
   const riskAnalysis = riskAnalysesSQL.map((ra) =>
-    riskAnalysisSQLtoRiskAnalysis(
+    aggregateRiskAnalysis(
       ra,
       riskAnalysisAnswersSQL.filter(
         (answer) => answer.riskAnalysisFormId === ra.riskAnalysisFormId
@@ -243,7 +243,7 @@ export const eserviceSQLArraytoEserviceArray = (
 
   */
 
-export const riskAnalysisSQLtoRiskAnalysis = (
+export const aggregateRiskAnalysis = (
   riskAnalysisSQL: EServiceRiskAnalysisSQL,
   answers: EServiceRiskAnalysisAnswerSQL[]
 ): RiskAnalysis => {
