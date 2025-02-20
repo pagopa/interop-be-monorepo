@@ -380,6 +380,7 @@ export function catalogServiceBuilder(
         ),
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
+        archivedAt: descriptor.archivedAt,
         rejectionReasons: descriptor.rejectionReasons,
       };
     },
