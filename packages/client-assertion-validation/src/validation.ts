@@ -4,6 +4,8 @@ import {
   ClientAssertion,
   ClientAssertionHeader,
   ClientAssertionPayload,
+  ClientAssertionPayloadStrict,
+  ClientAssertionHeaderStrict,
   TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
 import * as jose from "jose";
@@ -15,7 +17,7 @@ import {
   JWTExpired,
   JWTInvalid,
 } from "jose/errors";
-import { createPublicKey } from "pagopa-interop-commons";
+import { createPublicKey, Logger } from "pagopa-interop-commons";
 import {
   failedValidation,
   successfulValidation,
@@ -77,7 +79,8 @@ export const validateRequestParameters = (
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined,
-  expectedAudiences: string[]
+  expectedAudiences: string[],
+  logger: Logger
 ): ValidationResult<ClientAssertion> => {
   try {
     const decodedPayload = jose.decodeJwt(clientAssertionJws);
@@ -135,12 +138,32 @@ export const verifyClientAssertion = (
         ]);
       }
 
+      const payloadStrictParseResult =
+        ClientAssertionPayloadStrict.safeParse(decodedPayload);
+      if (!payloadStrictParseResult.success) {
+        logger.warn(
+          `[CLIENTID=${validatedSub}] Invalid claims in client assertion payload: ${JSON.stringify(
+            JSON.parse(payloadStrictParseResult.error.message)
+          )}`
+        );
+      }
+
       const headerParseResult = ClientAssertionHeader.safeParse(decodedHeader);
 
       if (!headerParseResult.success) {
         return failedValidation([
           clientAssertionInvalidClaims(headerParseResult.error.message),
         ]);
+      }
+
+      const headerStrictParseResult =
+        ClientAssertionHeaderStrict.safeParse(decodedHeader);
+      if (!headerStrictParseResult.success) {
+        logger.warn(
+          `[CLIENTID=${validatedSub}] Invalid claims in client assertion header: ${JSON.stringify(
+            JSON.parse(headerStrictParseResult.error.message)
+          )}`
+        );
       }
 
       const result: ClientAssertion = {
