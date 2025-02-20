@@ -16,6 +16,9 @@ import {
   delegationState,
   delegationKind,
   AttributeId,
+  toReadModelAgreement,
+  toReadModelAttribute,
+  toReadModelEService,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -26,12 +29,14 @@ import {
   getMockEService,
   getMockTenant,
   getMockDelegation,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
   attributeVerificationNotAllowed,
   verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
+  expirationDateCannotBeInThePast,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -45,6 +50,9 @@ import {
   addOneAttribute,
   addOneEService,
   addOneDelegation,
+  agreements,
+  attributes,
+  eservices,
 } from "./utils.js";
 
 describe("verifyVerifiedAttribute", async () => {
@@ -373,5 +381,52 @@ describe("verifyVerifiedAttribute", async () => {
         genericLogger
       )
     ).rejects.toThrowError(verifiedAttributeSelfVerificationNotAllowed());
+  });
+  it("Should throw expirationDateCannotBeInThePast if the expirationDate is in the past", async () => {
+    const mockVerifiedBy = getMockVerifiedBy();
+    const mockRevokedBy = getMockRevokedBy();
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const tenantWithVerifiedAttribute: Tenant = {
+      ...targetTenant,
+      attributes: [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attribute.id,
+          verifiedBy: [
+            {
+              ...mockVerifiedBy,
+            },
+          ],
+          revokedBy: [{ ...mockRevokedBy }],
+        },
+      ],
+    };
+
+    await addOneTenant(tenantWithVerifiedAttribute);
+    await addOneTenant(requesterTenant);
+    await addOneAgreement(agreementEservice1);
+    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await writeInReadmodel(toReadModelEService(eService1), eservices);
+    await writeInReadmodel(
+      toReadModelAgreement(agreementEservice1),
+      agreements
+    );
+
+    expect(
+      tenantService.verifyVerifiedAttribute(
+        {
+          tenantId: targetTenant.id,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
+          expirationDate: yesterday.toISOString(),
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(expirationDateCannotBeInThePast(yesterday));
   });
 });
