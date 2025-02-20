@@ -6,13 +6,13 @@ import {
   tooManyRequestsError,
 } from "pagopa-interop-models";
 import { ExpressContext, fromAppContext } from "../context/context.js";
-import { RedisRateLimiter } from "./rateLimiterModel.js";
+import { RateLimiter } from "./rateLimiterModel.js";
 import { rateLimiterHeadersFromStatus } from "./rateLimiterUtils.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
 
 export function rateLimiterMiddleware(
-  rateLimiter: RedisRateLimiter
+  rateLimiter: RateLimiter
 ): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
     const ctx = fromAppContext(req.ctx);
