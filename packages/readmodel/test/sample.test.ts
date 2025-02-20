@@ -11,12 +11,12 @@ import { describe, it, expect } from "vitest";
 import { Descriptor, EService, tenantKind } from "pagopa-interop-models";
 import { diff } from "json-diff";
 import {
-  eserviceDescriptorAttributeInReadmodel,
-  eserviceDescriptorDocumentInReadmodel,
-  eserviceDescriptorInReadmodel,
-  eserviceInReadmodel,
-  eserviceRiskAnalysisAnswerInReadmodel,
-  eserviceRiskAnalysisInReadmodel,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import {
   eserviceJoin,
@@ -64,29 +64,37 @@ describe("", () => {
 
     const resSQL = splitEserviceIntoObjectsSQL(eservice, 1);
 
-    await readModelDB.delete(eserviceInReadmodel);
+    await readModelDB.delete(eserviceInReadmodelCatalog);
     await readModelDB.transaction(async (tx) => {
-      await tx.insert(eserviceInReadmodel).values(resSQL.eserviceSQL);
+      await tx.insert(eserviceInReadmodelCatalog).values(resSQL.eserviceSQL);
 
       for (const descriptor of resSQL.descriptorsSQL) {
-        await tx.insert(eserviceDescriptorInReadmodel).values(descriptor);
+        await tx
+          .insert(eserviceDescriptorInReadmodelCatalog)
+          .values(descriptor);
       }
 
       for (const doc of resSQL.documentsSQL) {
-        await tx.insert(eserviceDescriptorDocumentInReadmodel).values(doc);
+        await tx
+          .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+          .values(doc);
       }
 
       for (const att of resSQL.attributesSQL) {
-        await tx.insert(eserviceDescriptorAttributeInReadmodel).values(att);
+        await tx
+          .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+          .values(att);
       }
 
       for (const riskAnalysis of resSQL.riskAnalysisSQL) {
-        await tx.insert(eserviceRiskAnalysisInReadmodel).values(riskAnalysis);
+        await tx
+          .insert(eserviceRiskAnalysisInReadmodelCatalog)
+          .values(riskAnalysis);
       }
 
       for (const riskAnalysisAnswer of resSQL.riskAnalysisAnswersSQL) {
         await tx
-          .insert(eserviceRiskAnalysisAnswerInReadmodel)
+          .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
           .values(riskAnalysisAnswer);
       }
     });

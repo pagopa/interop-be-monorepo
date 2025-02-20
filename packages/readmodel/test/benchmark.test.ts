@@ -17,13 +17,13 @@ import {
 } from "pagopa-interop-models";
 import { diff } from "json-diff";
 import {
-  eserviceDescriptorAttributeInReadmodel,
-  eserviceDescriptorDocumentInReadmodel,
-  eserviceDescriptorInReadmodel,
-  eserviceDescriptorRejectionReasonInReadmodel,
-  eserviceInReadmodel,
-  eserviceRiskAnalysisAnswerInReadmodel,
-  eserviceRiskAnalysisInReadmodel,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
   EServiceSQL,
   EServiceRiskAnalysisSQL,
   EServiceRiskAnalysisAnswerSQL,
@@ -53,7 +53,7 @@ import { readModelDB } from "./utils.js";
 
 describe("benchmark", async () => {
   it("basic benchmark", async () => {
-    await readModelDB.delete(eserviceInReadmodel);
+    await readModelDB.delete(eserviceInReadmodelCatalog);
     const eserviceId = generateId<EServiceId>();
 
     // eslint-disable-next-line functional/no-let
@@ -232,33 +232,37 @@ const addEserviceObjectsInReadmodel = async ({
   eserviceTemplateBindingSQL?: EServiceTemplateBindingSQL;
 }) => {
   await readModelDB.transaction(async (tx) => {
-    await tx.insert(eserviceInReadmodel).values(eserviceSQL);
+    await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
 
     for (const descriptor of descriptorsSQL) {
-      await tx.insert(eserviceDescriptorInReadmodel).values(descriptor);
+      await tx.insert(eserviceDescriptorInReadmodelCatalog).values(descriptor);
     }
 
     for (const doc of documentsSQL) {
-      await tx.insert(eserviceDescriptorDocumentInReadmodel).values(doc);
+      await tx.insert(eserviceDescriptorDocumentInReadmodelCatalog).values(doc);
     }
 
     for (const att of attributesSQL) {
-      await tx.insert(eserviceDescriptorAttributeInReadmodel).values(att);
+      await tx
+        .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+        .values(att);
     }
 
     for (const riskAnalysis of riskAnalysisSQL) {
-      await tx.insert(eserviceRiskAnalysisInReadmodel).values(riskAnalysis);
+      await tx
+        .insert(eserviceRiskAnalysisInReadmodelCatalog)
+        .values(riskAnalysis);
     }
 
     for (const riskAnalysisAnswer of riskAnalysisAnswersSQL) {
       await tx
-        .insert(eserviceRiskAnalysisAnswerInReadmodel)
+        .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
         .values(riskAnalysisAnswer);
     }
 
     for (const rejectionReason of rejectionReasonsSQL) {
       await tx
-        .insert(eserviceDescriptorRejectionReasonInReadmodel)
+        .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
         .values(rejectionReason);
     }
   });

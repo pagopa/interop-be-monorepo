@@ -2,14 +2,14 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { EServiceId } from "pagopa-interop-models";
 import {
-  eserviceDescriptorAttributeInReadmodel,
-  eserviceDescriptorDocumentInReadmodel,
-  eserviceDescriptorRejectionReasonInReadmodel,
-  eserviceInReadmodel,
-  eserviceRiskAnalysisAnswerInReadmodel,
-  eserviceRiskAnalysisInReadmodel,
-  eserviceDescriptorInReadmodel,
-  eserviceTemplateBindingInReadmodel,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
+  eserviceTemplateBindingInReadmodelCatalog,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorRejectionReasonSQL,
@@ -74,63 +74,72 @@ export const eserviceJoin = async (
 ) =>
   await db
     .select({
-      eservice: eserviceInReadmodel,
-      descriptor: eserviceDescriptorInReadmodel,
-      document: eserviceDescriptorDocumentInReadmodel,
-      attribute: eserviceDescriptorAttributeInReadmodel,
-      rejection: eserviceDescriptorRejectionReasonInReadmodel,
-      riskAnalysis: eserviceRiskAnalysisInReadmodel,
-      riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodel,
-      templateBinding: eserviceTemplateBindingInReadmodel,
+      eservice: eserviceInReadmodelCatalog,
+      descriptor: eserviceDescriptorInReadmodelCatalog,
+      document: eserviceDescriptorDocumentInReadmodelCatalog,
+      attribute: eserviceDescriptorAttributeInReadmodelCatalog,
+      rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
+      riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
+      riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
+      templateBinding: eserviceTemplateBindingInReadmodelCatalog,
     })
-    .from(eserviceInReadmodel)
-    .where(eq(eserviceInReadmodel.id, eserviceId))
+    .from(eserviceInReadmodelCatalog)
+    .where(eq(eserviceInReadmodelCatalog.id, eserviceId))
     .leftJoin(
       // 1
-      eserviceDescriptorInReadmodel,
-      eq(eserviceInReadmodel.id, eserviceDescriptorInReadmodel.eserviceId)
+      eserviceDescriptorInReadmodelCatalog,
+      eq(
+        eserviceInReadmodelCatalog.id,
+        eserviceDescriptorInReadmodelCatalog.eserviceId
+      )
     )
     .leftJoin(
       // 2
-      eserviceDescriptorDocumentInReadmodel,
+      eserviceDescriptorDocumentInReadmodelCatalog,
       eq(
-        eserviceDescriptorInReadmodel.id,
-        eserviceDescriptorDocumentInReadmodel.descriptorId
+        eserviceDescriptorInReadmodelCatalog.id,
+        eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
       )
     )
     .leftJoin(
       // 3
-      eserviceDescriptorAttributeInReadmodel,
+      eserviceDescriptorAttributeInReadmodelCatalog,
       eq(
-        eserviceDescriptorInReadmodel.id,
-        eserviceDescriptorAttributeInReadmodel.descriptorId
+        eserviceDescriptorInReadmodelCatalog.id,
+        eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
       )
     )
     .leftJoin(
       // 4
-      eserviceDescriptorRejectionReasonInReadmodel,
+      eserviceDescriptorRejectionReasonInReadmodelCatalog,
       eq(
-        eserviceDescriptorInReadmodel.id,
-        eserviceDescriptorRejectionReasonInReadmodel.descriptorId
+        eserviceDescriptorInReadmodelCatalog.id,
+        eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
       )
     )
     .leftJoin(
       // 5
-      eserviceRiskAnalysisInReadmodel,
-      eq(eserviceInReadmodel.id, eserviceRiskAnalysisInReadmodel.eserviceId)
+      eserviceRiskAnalysisInReadmodelCatalog,
+      eq(
+        eserviceInReadmodelCatalog.id,
+        eserviceRiskAnalysisInReadmodelCatalog.eserviceId
+      )
     )
     .leftJoin(
       // 6
-      eserviceRiskAnalysisAnswerInReadmodel,
+      eserviceRiskAnalysisAnswerInReadmodelCatalog,
       eq(
-        eserviceRiskAnalysisInReadmodel.riskAnalysisFormId,
-        eserviceRiskAnalysisAnswerInReadmodel.riskAnalysisFormId
+        eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+        eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
       )
     )
     .leftJoin(
       // 7
-      eserviceTemplateBindingInReadmodel,
-      eq(eserviceInReadmodel.id, eserviceTemplateBindingInReadmodel.eserviceId)
+      eserviceTemplateBindingInReadmodelCatalog,
+      eq(
+        eserviceInReadmodelCatalog.id,
+        eserviceTemplateBindingInReadmodelCatalog.eserviceId
+      )
     );
 
 export const fromJoinToAggregator = (

@@ -3,14 +3,14 @@ import { EServiceId } from "pagopa-interop-models";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
-  eserviceDescriptorAttributeInReadmodel,
-  eserviceDescriptorDocumentInReadmodel,
-  eserviceDescriptorInReadmodel,
-  eserviceDescriptorRejectionReasonInReadmodel,
-  eserviceInReadmodel,
-  eserviceRiskAnalysisAnswerInReadmodel,
-  eserviceRiskAnalysisInReadmodel,
-  eserviceTemplateBindingInReadmodel,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateBindingInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -20,8 +20,8 @@ export const retrieveEServiceSQL = (
 ) =>
   db
     .select()
-    .from(eserviceInReadmodel)
-    .where(eq(eserviceInReadmodel.id, eserviceId))
+    .from(eserviceInReadmodelCatalog)
+    .where(eq(eserviceInReadmodelCatalog.id, eserviceId))
     .limit(1);
 
 export const retrieveDescriptorsSQL = (
@@ -30,8 +30,8 @@ export const retrieveDescriptorsSQL = (
 ) =>
   db
     .select()
-    .from(eserviceDescriptorInReadmodel)
-    .where(eq(eserviceDescriptorInReadmodel.eserviceId, eserviceId));
+    .from(eserviceDescriptorInReadmodelCatalog)
+    .where(eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId));
 
 export const retrieveEserviceDocumentSQL = (
   eserviceId: EServiceId,
@@ -39,8 +39,10 @@ export const retrieveEserviceDocumentSQL = (
 ) =>
   db
     .select()
-    .from(eserviceDescriptorDocumentInReadmodel)
-    .where(eq(eserviceDescriptorDocumentInReadmodel.eserviceId, eserviceId));
+    .from(eserviceDescriptorDocumentInReadmodelCatalog)
+    .where(
+      eq(eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, eserviceId)
+    );
 
 export const retrieveEserviceAttributesSQL = (
   eserviceId: EServiceId,
@@ -48,8 +50,10 @@ export const retrieveEserviceAttributesSQL = (
 ) =>
   db
     .select()
-    .from(eserviceDescriptorAttributeInReadmodel)
-    .where(eq(eserviceDescriptorAttributeInReadmodel.eserviceId, eserviceId));
+    .from(eserviceDescriptorAttributeInReadmodelCatalog)
+    .where(
+      eq(eserviceDescriptorAttributeInReadmodelCatalog.eserviceId, eserviceId)
+    );
 
 export const retrieveRejectionReasonsSQL = (
   eserviceId: EServiceId,
@@ -57,9 +61,12 @@ export const retrieveRejectionReasonsSQL = (
 ) =>
   db
     .select()
-    .from(eserviceDescriptorRejectionReasonInReadmodel)
+    .from(eserviceDescriptorRejectionReasonInReadmodelCatalog)
     .where(
-      eq(eserviceDescriptorRejectionReasonInReadmodel.eserviceId, eserviceId)
+      eq(
+        eserviceDescriptorRejectionReasonInReadmodelCatalog.eserviceId,
+        eserviceId
+      )
     );
 
 export const retrieveEserviceRiskAnalysesSQL = (
@@ -68,8 +75,8 @@ export const retrieveEserviceRiskAnalysesSQL = (
 ) =>
   db
     .select()
-    .from(eserviceRiskAnalysisInReadmodel)
-    .where(eq(eserviceRiskAnalysisInReadmodel.eserviceId, eserviceId));
+    .from(eserviceRiskAnalysisInReadmodelCatalog)
+    .where(eq(eserviceRiskAnalysisInReadmodelCatalog.eserviceId, eserviceId));
 
 export const retrieveEserviceRiskAnalysisAnswersSQL = (
   eserviceId: EServiceId,
@@ -77,8 +84,10 @@ export const retrieveEserviceRiskAnalysisAnswersSQL = (
 ) =>
   db
     .select()
-    .from(eserviceRiskAnalysisAnswerInReadmodel)
-    .where(eq(eserviceRiskAnalysisAnswerInReadmodel.eserviceId, eserviceId));
+    .from(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+    .where(
+      eq(eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId, eserviceId)
+    );
 
 export const retrieveEserviceTemplateBindingSQL = (
   eserviceId: EServiceId,
@@ -86,5 +95,7 @@ export const retrieveEserviceTemplateBindingSQL = (
 ) =>
   db
     .select()
-    .from(eserviceTemplateBindingInReadmodel)
-    .where(eq(eserviceTemplateBindingInReadmodel.eserviceId, eserviceId));
+    .from(eserviceTemplateBindingInReadmodelCatalog)
+    .where(
+      eq(eserviceTemplateBindingInReadmodelCatalog.eserviceId, eserviceId)
+    );
