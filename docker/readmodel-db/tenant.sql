@@ -54,27 +54,27 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute (
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_verifier (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   metadata_version INTEGER NOT NULL,
-  id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_verifier_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
   delegation_id UUID,
-  PRIMARY KEY (id, tenant_verified_attribute_id, tenant_id),
+  PRIMARY KEY (tenant_verifier_id, tenant_verified_attribute_id, tenant_id),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel.tenant_verified_attribute (tenant_id, attribute_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel.tenant_verified_attribute_revoker (
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   metadata_version INTEGER NOT NULL,
-  id UUID NOT NULL REFERENCES readmodel.tenant (id),
+  tenant_revoker_id UUID NOT NULL REFERENCES readmodel.tenant (id),
   tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
   revocation_date TIMESTAMP NOT NULL,
   delegation_id UUID,
-  PRIMARY KEY (id, tenant_verified_attribute_id, tenant_id),
+  PRIMARY KEY (tenant_revoker_id, tenant_verified_attribute_id, tenant_id),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel.tenant_verified_attribute (tenant_id, attribute_id)
 );
 
