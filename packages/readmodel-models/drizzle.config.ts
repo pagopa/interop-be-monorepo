@@ -13,5 +13,17 @@ export default defineConfig({
     database: process.env.READMODEL_SQL_DB_NAME!,
     ssl: process.env.READMODEL_SQL_DB_USE_SSL! === "true",
   },
-  schemaFilter: process.env.READMODEL_SQL_DB_SCHEMA!,
+  schemaFilter: [
+    "readmodel_agreement",
+    "readmodel_attribute",
+    "readmodel_catalog",
+    "readmodel_client_jwk_key",
+    "readmodel_client",
+    "readmodel_delegation",
+    "readmodel_eservice_template",
+    "readmodel_producer_jwk_key",
+    "readmodel_producer_keychain",
+    "readmodel_purpose",
+    "readmodel_tenant",
+  ],
 });

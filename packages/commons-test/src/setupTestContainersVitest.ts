@@ -29,17 +29,17 @@ import {
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
-  agreementInReadmodel,
-  attributeInReadmodel,
-  clientInReadmodel,
-  clientJwkKeyInReadmodel,
-  delegationInReadmodel,
-  eserviceInReadmodel,
-  eserviceTemplateInReadmodel,
-  producerJwkKeyInReadmodel,
-  producerKeychainInReadmodel,
-  purposeInReadmodel,
-  tenantInReadmodel,
+  agreementInReadmodelAgreement,
+  attributeInReadmodelAttribute,
+  clientInReadmodelClient,
+  clientJwkKeyInReadmodelClientJwkKey,
+  delegationInReadmodelDelegation,
+  eserviceInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  producerJwkKeyInReadmodelProducerJwkKey,
+  producerKeychainInReadmodelProducerKeychain,
+  purposeInReadmodelPurpose,
+  tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { Pool } from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
@@ -251,17 +251,17 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE delegation.events RESTART IDENTITY"
       );
 
-      await readModelDB?.delete(eserviceInReadmodel);
-      await readModelDB?.delete(agreementInReadmodel);
-      await readModelDB?.delete(attributeInReadmodel);
-      await readModelDB?.delete(purposeInReadmodel);
-      await readModelDB?.delete(tenantInReadmodel);
-      await readModelDB?.delete(clientInReadmodel);
-      await readModelDB?.delete(producerKeychainInReadmodel);
-      await readModelDB?.delete(clientJwkKeyInReadmodel);
-      await readModelDB?.delete(producerJwkKeyInReadmodel);
-      await readModelDB?.delete(delegationInReadmodel);
-      await readModelDB?.delete(eserviceTemplateInReadmodel);
+      await readModelDB?.delete(eserviceInReadmodelCatalog);
+      await readModelDB?.delete(agreementInReadmodelAgreement);
+      await readModelDB?.delete(attributeInReadmodelAttribute);
+      await readModelDB?.delete(purposeInReadmodelPurpose);
+      await readModelDB?.delete(tenantInReadmodelTenant);
+      await readModelDB?.delete(clientInReadmodelClient);
+      await readModelDB?.delete(producerKeychainInReadmodelProducerKeychain);
+      await readModelDB?.delete(clientJwkKeyInReadmodelClientJwkKey);
+      await readModelDB?.delete(producerJwkKeyInReadmodelProducerJwkKey);
+      await readModelDB?.delete(delegationInReadmodelDelegation);
+      await readModelDB?.delete(eserviceTemplateInReadmodelEserviceTemplate);
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
