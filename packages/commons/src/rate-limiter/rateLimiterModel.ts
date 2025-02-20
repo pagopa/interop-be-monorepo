@@ -13,6 +13,9 @@ export type RateLimiter = {
     organizationId: TenantId,
     logger: Logger
   ) => Promise<RateLimiterStatus>;
+};
+
+export type RedisRateLimiter = RateLimiter & {
   getCountByOrganization: (organizationId: TenantId) => Promise<number>;
   getBurstCountByOrganization: (organizationId: TenantId) => Promise<number>;
 };

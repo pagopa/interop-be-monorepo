@@ -10,16 +10,13 @@ import {
   FileManager,
   FileManagerConfig,
   LoggerConfig,
-  RateLimiter,
   ReadModelDbConfig,
   ReadModelRepository,
-  RedisRateLimiterConfig,
   S3Config,
   genericLogger,
   initDB,
   initPecEmailManager,
   initFileManager,
-  initRedisRateLimiter,
   EmailManagerPEC,
   EmailManagerSES,
   AWSSesConfig,
@@ -88,7 +85,6 @@ export function setupTestContainersVitest(
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: PecEmailManagerConfigTest,
-  RedisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
 ): Promise<{
   readModelRepository: ReadModelRepository;
@@ -96,7 +92,6 @@ export function setupTestContainersVitest(
   fileManager: FileManager;
   pecEmailManager: EmailManagerPEC;
   sesEmailManager: EmailManagerSES;
-  redisRateLimiter: RateLimiter;
   cleanup: () => Promise<void>;
 }>;
 export async function setupTestContainersVitest(
@@ -104,7 +99,6 @@ export async function setupTestContainersVitest(
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: PecEmailManagerConfigTest,
-  redisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
@@ -112,7 +106,6 @@ export async function setupTestContainersVitest(
   fileManager?: FileManager;
   pecEmailManager?: EmailManagerPEC;
   sesEmailManager?: EmailManagerSES;
-  redisRateLimiter?: RateLimiter;
   cleanup: () => Promise<void>;
 }> {
   const s3OriginalBucket = fileManagerConfig?.s3Bucket;
@@ -122,8 +115,6 @@ export async function setupTestContainersVitest(
   let fileManager: FileManager | undefined;
   let pecEmailManager: EmailManagerPEC | undefined;
   let sesEmailManager: EmailManagerSES | undefined;
-  let redisRateLimiter: RateLimiter | undefined;
-  const redisRateLimiterGroup = "TEST";
 
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
@@ -153,25 +144,12 @@ export async function setupTestContainersVitest(
     sesEmailManager = initSesMailManager(awsSESConfig);
   }
 
-  if (redisRateLimiterConfig) {
-    redisRateLimiter = await initRedisRateLimiter({
-      limiterGroup: redisRateLimiterGroup,
-      maxRequests: redisRateLimiterConfig.rateLimiterMaxRequests,
-      rateInterval: redisRateLimiterConfig.rateLimiterRateInterval,
-      burstPercentage: redisRateLimiterConfig.rateLimiterBurstPercentage,
-      redisHost: redisRateLimiterConfig.rateLimiterRedisHost,
-      redisPort: redisRateLimiterConfig.rateLimiterRedisPort,
-      timeout: redisRateLimiterConfig.rateLimiterTimeout,
-    });
-  }
-
   return {
     readModelRepository,
     postgresDB,
     fileManager,
     pecEmailManager,
     sesEmailManager,
-    redisRateLimiter,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});

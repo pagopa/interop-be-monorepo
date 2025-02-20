@@ -76,13 +76,13 @@ export type GenerateTokenReturnType =
 export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  redisRateLimiter,
+  rateLimiter,
   producer,
   fileManager,
 }: {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
-  redisRateLimiter: RateLimiter;
+  rateLimiter: RateLimiter;
   producer: Awaited<ReturnType<typeof initProducer>>;
   fileManager: FileManager;
 }) {
@@ -176,7 +176,7 @@ export function tokenServiceBuilder({
       }
 
       const { limitReached, ...rateLimiterStatus } =
-        await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
+        await rateLimiter.rateLimitByOrganization(key.consumerId, logger);
       if (limitReached) {
         return {
           limitReached: true,

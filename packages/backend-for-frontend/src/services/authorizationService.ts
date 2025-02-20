@@ -8,7 +8,7 @@ import {
   ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM,
   ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM,
   ORGANIZATION_ID_CLAIM,
-  RateLimiter,
+  RedisRateLimiter,
   RateLimiterStatus,
   SELFCARE_ID_CLAIM,
   SessionClaims,
@@ -51,7 +51,7 @@ export function authorizationServiceBuilder(
   interopTokenGenerator: InteropTokenGenerator,
   tenantProcessClient: PagoPAInteropBeClients["tenantProcessClient"],
   allowList: string[],
-  rateLimiter: RateLimiter
+  rateLimiter: RedisRateLimiter
 ) {
   const readJwt = async (
     identityToken: string,

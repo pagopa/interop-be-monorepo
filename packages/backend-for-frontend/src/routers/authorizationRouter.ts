@@ -6,7 +6,7 @@ import {
   InteropTokenGenerator,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  RateLimiter,
+  RedisRateLimiter,
   rateLimiterHeadersFromStatus,
 } from "pagopa-interop-commons";
 import { tooManyRequestsError } from "pagopa-interop-models";
@@ -21,7 +21,7 @@ const authorizationRouter = (
   ctx: ZodiosContext,
   { tenantProcessClient }: PagoPAInteropBeClients,
   allowList: string[],
-  rateLimiter: RateLimiter
+  rateLimiter: RedisRateLimiter
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const authorizationRouter = ctx.router(bffApi.authorizationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,

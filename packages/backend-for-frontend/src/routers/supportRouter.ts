@@ -3,7 +3,7 @@ import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
   InteropTokenGenerator,
-  RateLimiter,
+  RedisRateLimiter,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -19,7 +19,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 const supportRouter = (
   ctx: ZodiosContext,
   { tenantProcessClient }: PagoPAInteropBeClients,
-  rateLimiter: RateLimiter
+  rateLimiter: RedisRateLimiter
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const supportRouter = ctx.router(bffApi.supportApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,

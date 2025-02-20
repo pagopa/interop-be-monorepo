@@ -1,7 +1,7 @@
 import {
   FileManagerConfig,
   KafkaProducerConfig,
-  RedisRateLimiterConfig,
+  MemoryRateLimiterConfig,
   S3Config,
   AuthorizationServerTokenGenerationConfig,
   HTTPServerConfig,
@@ -11,7 +11,7 @@ import { z } from "zod";
 import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 
 const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
-  .and(RedisRateLimiterConfig)
+  .and(MemoryRateLimiterConfig)
   .and(KafkaProducerConfig)
   .and(FileManagerConfig)
   .and(S3Config)

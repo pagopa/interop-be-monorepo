@@ -2,7 +2,7 @@ import { constants } from "http2";
 import {
   fromAppContext,
   initFileManager,
-  initRedisRateLimiter,
+  initMemoryRateLimiter,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
   zodiosCtx,
@@ -19,14 +19,11 @@ import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
 
 const dynamoDBClient = new DynamoDBClient();
-const redisRateLimiter = await initRedisRateLimiter({
+const rateLimiter = await initMemoryRateLimiter({
   limiterGroup: "AUTHSERVER",
   maxRequests: config.rateLimiterMaxRequests,
   rateInterval: config.rateLimiterRateInterval,
   burstPercentage: config.rateLimiterBurstPercentage,
-  redisHost: config.rateLimiterRedisHost,
-  redisPort: config.rateLimiterRedisPort,
-  timeout: config.rateLimiterTimeout,
 });
 const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
@@ -42,7 +39,7 @@ const tokenGenerator = new InteropTokenGenerator({
 const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  redisRateLimiter,
+  rateLimiter,
   producer,
   fileManager,
 });
