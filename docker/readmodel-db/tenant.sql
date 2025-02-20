@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS readmodel.tenant_feature(
   tenant_id UUID NOT NULL REFERENCES readmodel.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   kind VARCHAR NOT NULL,
-  details JSON NOT NULL
+  certifier_id VARCHAR,
+  availability_timestamp TIMESTAMP WITH TIME ZONE
 );
 
