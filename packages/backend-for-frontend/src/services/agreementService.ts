@@ -710,7 +710,7 @@ export async function enrichAgreement(
   const { consumer, producer, eservice } =
     await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
-  const currentDescriptior = getCurrentDescriptor(eservice, agreement);
+  const currentDescriptor = getCurrentDescriptor(eservice, agreement);
   const activeDescriptor = getLatestActiveDescriptor(eservice);
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
@@ -798,7 +798,7 @@ export async function enrichAgreement(
     eservice: {
       id: agreement.eserviceId,
       name: eservice.name,
-      version: currentDescriptior.version,
+      version: currentDescriptor.version,
       activeDescriptor: activeDescriptor
         ? toCompactDescriptor(activeDescriptor)
         : undefined,
