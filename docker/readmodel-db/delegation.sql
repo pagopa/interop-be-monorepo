@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS readmodel.delegation(
+CREATE SCHEMA IF NOT EXISTS readmodel_delegation;
+
+CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation(
   id UUID,
   metadata_version INTEGER NOT NULL,
   delegator_id UUID NOT NULL,
@@ -15,8 +17,8 @@ CREATE TABLE IF NOT EXISTS readmodel.delegation(
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.delegation_stamp(
-  delegation_id uuid NOT NULL REFERENCES readmodel.delegation(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_stamp(
+  delegation_id uuid NOT NULL REFERENCES readmodel_delegation.delegation(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
   who uuid NOT NULL,
   "when" timestamp WITH time zone NOT NULL,
@@ -24,9 +26,9 @@ CREATE TABLE IF NOT EXISTS readmodel.delegation_stamp(
   PRIMARY KEY (delegation_id, kind)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.delegation_contract_document(
+CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_contract_document(
   id UUID,
-  delegation_id UUID NOT NULL REFERENCES readmodel.delegation (id) ON DELETE CASCADE,
+  delegation_id UUID NOT NULL REFERENCES readmodel_delegation.delegation (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,

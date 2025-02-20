@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS readmodel.eservice_template (
+CREATE SCHEMA IF NOT EXISTS readmodel_eservice_template;
+
+CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template (
   id UUID,
   metadata_version INTEGER NOT NULL,
   creator_id UUID NOT NULL,
@@ -14,9 +16,9 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version (
+CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version (
   id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
   description VARCHAR,
@@ -32,11 +34,11 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_document(
+CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version_document(
   id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  eservice_template_version_id UUID NOT NULL REFERENCES readmodel.eservice_template_version(id) ON DELETE CASCADE,
+  eservice_template_version_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template_version(id) ON DELETE CASCADE,
   name VARCHAR,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
@@ -47,20 +49,20 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_document(
   PRIMARY KEY(id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.eservice_template_version_attribute(
+CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version_attribute(
   attribute_id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  eservice_template_version_id UUID NOT NULL REFERENCES readmodel.eservice_template_version(id) ON DELETE CASCADE,
+  eservice_template_version_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template_version(id) ON DELETE CASCADE,
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
   PRIMARY KEY(attribute_id, eservice_template_version_id, group_id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
+CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_analysis(
   id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE,
@@ -69,11 +71,11 @@ CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis(
   PRIMARY KEY(id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.eservice_template_risk_analysis_answer(
+CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_analysis_answer(
   id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES readmodel.eservice_template (id) ON DELETE CASCADE,
+  eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel.eservice_risk_analysis (risk_analysis_form_id) ON DELETE CASCADE,
+  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_risk_analysis (risk_analysis_form_id) ON DELETE CASCADE,
   kind VARCHAR,
   key VARCHAR,
   value VARCHAR ARRAY,

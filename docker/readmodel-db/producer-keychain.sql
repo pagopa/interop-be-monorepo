@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS readmodel.producer_keychain (
+CREATE SCHEMA IF NOT EXISTS readmodel_producer_keychain;
+
+CREATE TABLE IF NOT EXISTS readmodel_producer_keychain.producer_keychain (
   id UUID,
   metadata_version INTEGER NOT NULL,
   producer_id UUID NOT NULL,
@@ -8,23 +10,23 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_user (
+CREATE TABLE IF NOT EXISTS readmodel_producer_keychain.producer_keychain_user (
   metadata_version INTEGER NOT NULL,
-  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id) ON DELETE CASCADE,
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel_producer_keychain.producer_keychain (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   PRIMARY KEY (producer_keychain_id, user_id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_eservice (
+CREATE TABLE IF NOT EXISTS readmodel_producer_keychain.producer_keychain_eservice (
   metadata_version INTEGER NOT NULL,
-  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id) ON DELETE CASCADE,
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel_producer_keychain.producer_keychain (id) ON DELETE CASCADE,
   eservice_id UUID NOT NULL,
   PRIMARY KEY (producer_keychain_id, eservice_id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_key (
+CREATE TABLE IF NOT EXISTS readmodel_producer_keychain.producer_keychain_key (
   metadata_version INTEGER NOT NULL,
-  producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id) ON DELETE CASCADE,
+  producer_keychain_id UUID NOT NULL REFERENCES readmodel_producer_keychain.producer_keychain (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   kid VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
