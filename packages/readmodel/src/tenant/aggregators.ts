@@ -10,6 +10,7 @@ import {
   tenantAttributeType,
   TenantFeature,
   TenantFeatureCertifier,
+  TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
   tenantFeatureType,
   TenantId,
@@ -64,46 +65,30 @@ export const aggregateTenantSQL = ({
 
   const features: TenantFeature[] = tenantFeaturesSQL.map((feature) =>
     match(feature.kind)
-      .with(tenantFeatureType.persistentCertifier, () => {
-        const res = TenantFeatureCertifier.omit({ type: true }).safeParse(
-          feature.details
-        );
-
-        if (res.success) {
-          const featurePayload = res.data;
-          return {
+      .with(
+        tenantFeatureType.persistentCertifier,
+        () =>
+          ({
             type: tenantFeatureType.persistentCertifier,
-            ...featurePayload,
-          };
-        }
-        throw genericInternalError("Unexpected tenant feature details");
-      })
-      .with(tenantFeatureType.delegatedProducer, () => {
-        const res = TenantFeatureDelegatedProducer.omit({
-          type: true,
-        }).safeParse(feature.details);
-
-        if (res.success) {
-          return {
+            certifierId: feature.certifierId!, // TODO
+          } satisfies TenantFeatureCertifier)
+      )
+      .with(
+        tenantFeatureType.delegatedProducer,
+        () =>
+          ({
             type: tenantFeatureType.delegatedProducer,
-            ...res.data, // NOTE: date conversion is already handled in the safeParse above
-          };
-        }
-        throw genericInternalError("Unexpected tenant feature details");
-      })
-      .with(tenantFeatureType.delegatedConsumer, () => {
-        const res = TenantFeatureDelegatedProducer.omit({
-          type: true,
-        }).safeParse(feature.details);
-
-        if (res.success) {
-          return {
+            availabilityTimestamp: stringToDate(feature.availabilityTimestamp!), // TODO
+          } satisfies TenantFeatureDelegatedProducer)
+      )
+      .with(
+        tenantFeatureType.delegatedConsumer,
+        () =>
+          ({
             type: tenantFeatureType.delegatedConsumer,
-            ...res.data, // NOTE: date conversion is already handled in the safeParse above
-          };
-        }
-        throw genericInternalError("Unexpected tenant feature details");
-      })
+            availabilityTimestamp: stringToDate(feature.availabilityTimestamp!), // TODO
+          } satisfies TenantFeatureDelegatedConsumer)
+      )
       .otherwise(() => {
         throw genericInternalError("Unexpected tenant feature");
       })
