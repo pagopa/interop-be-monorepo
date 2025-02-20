@@ -326,8 +326,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an instance of a template
-      operationId: updateEServiceInstance
+      summary: Upgrade an instance of a template
+      operationId: upgradeEServiceInstance
       parameters:
         - name: eServiceId
           in: path
@@ -338,7 +338,7 @@ paths:
             format: uuid
       responses:
         "200":
-          description: Updated EService Instance
+          description: Upgraded EService Instance
           content:
             application/json:
               schema:
