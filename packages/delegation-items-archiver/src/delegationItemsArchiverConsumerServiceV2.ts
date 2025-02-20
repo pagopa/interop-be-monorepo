@@ -58,21 +58,23 @@ export async function handleMessageV2({
         correlationId,
       });
 
-      await processPurposes({
-        readModelService,
-        purposeProcessClient,
-        headers,
-        delegationId: unsafeBrandId<DelegationId>(
-          delegationMsg.data.delegation.id
-        ),
-      });
+      await Promise.all([
+        processPurposes({
+          readModelService,
+          purposeProcessClient,
+          headers,
+          delegationId: unsafeBrandId<DelegationId>(
+            delegationMsg.data.delegation.id
+          ),
+        }),
 
-      await processAgreement({
-        agreementProcessClient,
-        headers,
-        delegation: delegationMsg.data.delegation,
-        readModelService,
-      });
+        processAgreement({
+          agreementProcessClient,
+          headers,
+          delegation: delegationMsg.data.delegation,
+          readModelService,
+        }),
+      ]);
     })
     .with(
       { type: "ConsumerDelegationApproved" },

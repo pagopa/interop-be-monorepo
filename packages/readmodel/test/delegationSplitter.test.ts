@@ -4,6 +4,7 @@ import {
   getMockDelegationDocument,
 } from "pagopa-interop-commons-test";
 import {
+  dateToString,
   Delegation,
   delegationContractKind,
   delegationKind,
@@ -19,9 +20,6 @@ import { splitDelegationIntoObjectsSQL } from "../src/delegation/splitters.js";
 
 describe("Delegation splitters", () => {
   it("should convert a complete delegation into delegation SQL objects", () => {
-    const approvedAt = new Date();
-    const revokedAt = new Date();
-    const rejectedAt = new Date();
     const rejectionReason = "Rejection reason";
     const revocationContract = getMockDelegationDocument();
     const activationContract = getMockDelegationDocument();
@@ -29,9 +27,7 @@ describe("Delegation splitters", () => {
       ...getMockDelegation({
         kind: delegationKind.delegatedProducer,
       }),
-      approvedAt,
-      revokedAt,
-      rejectedAt,
+      updatedAt: new Date(),
       rejectionReason,
       revocationContract,
       activationContract,
@@ -46,10 +42,8 @@ describe("Delegation splitters", () => {
     const expectedDelegationSQL: DelegationSQL = {
       metadataVersion: 1,
       createdAt: delegation.createdAt.toISOString(),
-      submittedAt: delegation.submittedAt.toISOString(),
-      approvedAt: approvedAt.toISOString(),
-      revokedAt: revokedAt.toISOString(),
-      rejectedAt: rejectedAt.toISOString(),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      updatedAt: dateToString(delegation.updatedAt!),
       rejectionReason,
       kind: delegation.kind,
       id: delegation.id,
@@ -109,10 +103,7 @@ describe("Delegation splitters", () => {
     const expectedDelegationSQL: DelegationSQL = {
       metadataVersion: 1,
       createdAt: delegation.createdAt.toISOString(),
-      submittedAt: delegation.submittedAt.toISOString(),
-      approvedAt: null,
-      revokedAt: null,
-      rejectedAt: null,
+      updatedAt: null,
       rejectionReason: null,
       kind: delegation.kind,
       id: delegation.id,

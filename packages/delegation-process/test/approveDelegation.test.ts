@@ -128,7 +128,8 @@ describe.each([
     const approvedDelegationWithoutContract: Delegation = {
       ...delegation,
       state: delegationState.active,
-      approvedAt: currentExecutionTime,
+      createdAt: currentExecutionTime,
+      updatedAt: currentExecutionTime,
       stamps: {
         ...delegation.stamps,
         activation: {
@@ -149,6 +150,10 @@ describe.each([
         kind === delegationKind.delegatedConsumer
           ? "alla fruizione"
           : "all’erogazione",
+      delegationActionText:
+        kind === delegationKind.delegatedConsumer
+          ? "a gestire la fruizione dell’"
+          : "ad erogare l’",
       todayDate: dateAtRomeZone(currentExecutionTime),
       todayTime: timeAtRomeZone(currentExecutionTime),
       delegationId: approvedDelegationWithoutContract.id,

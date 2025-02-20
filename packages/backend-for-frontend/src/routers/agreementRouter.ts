@@ -68,7 +68,7 @@ const agreementRouter = (
       }
     })
 
-    .get("/producer/agreements", async (req, res) => {
+    .get("/producers/agreements", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
