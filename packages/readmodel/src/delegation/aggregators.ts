@@ -76,12 +76,12 @@ export const aggregateDelegation = ({
   const delegation: Delegation = {
     id: unsafeBrandId<DelegationId>(delegationSQL.id),
     createdAt: stringToDate(delegationSQL.createdAt),
+    updatedAt: stringToDate(delegationSQL.updatedAt),
     eserviceId: unsafeBrandId<EServiceId>(delegationSQL.eserviceId),
     state: DelegationState.parse(delegationSQL.state),
     kind: DelegationKind.parse(delegationSQL.kind),
     delegatorId: unsafeBrandId<TenantId>(delegationSQL.delegatorId),
     delegateId: unsafeBrandId<TenantId>(delegationSQL.delegateId),
-    submittedAt: stringToDate(delegationSQL.submittedAt),
     stamps: {
       submission: stampSQLToStamp(submissionStampSQL),
       ...(activationStampSQL
@@ -96,15 +96,6 @@ export const aggregateDelegation = ({
     },
     ...(activationContract ? { activationContract } : {}),
     ...(revocationContract ? { revocationContract } : {}),
-    ...(delegationSQL.approvedAt
-      ? { approvedAt: stringToDate(delegationSQL.approvedAt) }
-      : {}),
-    ...(delegationSQL.rejectedAt
-      ? { rejectedAt: stringToDate(delegationSQL.rejectedAt) }
-      : {}),
-    ...(delegationSQL.revokedAt
-      ? { revokedAt: stringToDate(delegationSQL.revokedAt) }
-      : {}),
     ...(delegationSQL.rejectionReason
       ? { rejectionReason: delegationSQL.rejectionReason }
       : {}),
