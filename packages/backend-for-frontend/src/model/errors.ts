@@ -15,7 +15,6 @@ export const errorCodes = {
   invalidEserviceRequester: "0006",
   missingClaim: "0007",
   tenantLoginNotAllowed: "0008",
-  tokenVerificationFailed: "0009",
   eServiceNotFound: "0010",
   tenantNotFound: "0011",
   agreementNotFound: "0012",
@@ -218,20 +217,6 @@ export function tenantLoginNotAllowed(
     detail: `Tenant origin is not allowed and SelfcareID ${selfcareId} does not belong to allow list`,
     code: "tenantLoginNotAllowed",
     title: "Tenant login not allowed",
-  });
-}
-
-export function tokenVerificationFailed(
-  uid: string | undefined,
-  selfcareId: string | undefined
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail:
-      "Token verification failed" +
-      (uid ? " for user " + uid : "") +
-      (selfcareId ? " for tenant " + selfcareId : ""),
-    code: "tokenVerificationFailed",
-    title: "Token verification failed",
   });
 }
 

@@ -18,14 +18,18 @@ import {
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { TenantId, genericError, unsafeBrandId } from "pagopa-interop-models";
+import {
+  TenantId,
+  genericError,
+  unauthorizedError,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   missingClaim,
   missingSelfcareId,
   tenantLoginNotAllowed,
-  tokenVerificationFailed,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
@@ -62,14 +66,11 @@ export function authorizationServiceBuilder(
   }> => {
     const { decoded } = await verifyJwtToken(identityToken, config, logger);
 
-    const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
-
     if (!decoded) {
-      throw tokenVerificationFailed(
-        sessionClaims?.uid,
-        sessionClaims?.organization.id
-      );
+      throw unauthorizedError("Invalid token");
     }
+
+    const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
 
     if (error) {
       const claim = error.errors[0].path.join(".");

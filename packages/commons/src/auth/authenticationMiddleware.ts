@@ -11,7 +11,6 @@ import {
   JWTConfig,
   jwtFromAuthHeader,
 } from "../index.js";
-import { AuthData } from "./authData.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
@@ -30,13 +29,11 @@ export const authenticationMiddleware: (
       const { decoded } = await verifyJwtToken(jwtToken, config, ctx.logger);
 
       if (!decoded) {
-        throw unauthorizedError(`Invalid token: ${JSON.stringify(decoded)}`);
+        throw unauthorizedError("Invalid token");
       }
 
-      const authData: AuthData = readAuthDataFromJwtToken(decoded);
-
       // eslint-disable-next-line functional/immutable-data
-      req.ctx.authData = authData;
+      req.ctx.authData = readAuthDataFromJwtToken(decoded);
       return next();
     } catch (error) {
       const problem = makeApiProblem(

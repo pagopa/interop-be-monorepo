@@ -1,7 +1,24 @@
 import jwt, { GetPublicKeyOrSecret, JwtPayload } from "jsonwebtoken";
-import { invalidClaim, jwksSigningKeyError } from "pagopa-interop-models";
+import {
+  invalidClaim,
+  jwksSigningKeyError,
+  jwtDecodingError,
+  tokenVerificationFailed,
+} from "pagopa-interop-models";
 import { buildJwksClients, JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
+
+export const decodeJwtToken = (
+  jwtToken: string,
+  logger: Logger
+): JwtPayload | null => {
+  try {
+    return jwt.decode(jwtToken, { json: true });
+  } catch (err) {
+    logger.error(`Error decoding JWT token: ${err}`);
+    throw jwtDecodingError(err);
+  }
+};
 
 export const readAuthDataFromJwtToken = (
   token: JwtPayload | string
@@ -51,15 +68,24 @@ export const verifyJwtToken = async (
       })().catch((error) => callback(error));
     };
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       jwt.verify(
         jwtToken,
         getSecret,
         { audience: acceptedAudiences },
         (err, decoded) => {
-          if (err) {
+          if (err || !decoded) {
             logger.warn(`Token verification failed: ${err}`);
+
+            const unverifiedDecoded = decodeJwtToken(jwtToken, logger);
+            const authData =
+              unverifiedDecoded && readAuthDataFromJwtToken(unverifiedDecoded);
+
+            reject(
+              tokenVerificationFailed(authData?.userId, authData?.selfcareId)
+            );
           }
+
           resolve({ decoded });
         }
       );
