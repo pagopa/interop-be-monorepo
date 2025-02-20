@@ -720,7 +720,7 @@ describe("get agreements", () => {
     });
     expect(agreements).toEqual({
       totalCount: 5,
-      results: expect.arrayContaining([agreement3, agreement5]),
+      results: [agreement3, agreement5],
     });
   });
 

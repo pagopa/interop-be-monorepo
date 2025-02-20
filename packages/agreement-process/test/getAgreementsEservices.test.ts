@@ -26,7 +26,7 @@ import {
   expectSinglePageListResult,
 } from "./utils.js";
 
-describe("get agreement eservices", () => {
+describe("get agreements eservices", () => {
   let eservice1: EService;
   let eservice2: EService;
   let eservice3: EService;
@@ -329,7 +329,7 @@ describe("get agreement eservices", () => {
     );
   });
 
-  it("should get agreement eservices filtered by consumerId", async () => {
+  it("should get agreements eservices filtered by consumerId", async () => {
     const eservices = await agreementService.getAgreementsEServices(
       {
         eserviceName: undefined,
@@ -352,7 +352,7 @@ describe("get agreement eservices", () => {
     );
   });
 
-  it("should get agreement eservices filtered by producerId", async () => {
+  it("should get agreements eservices filtered by producerId", async () => {
     const eservices = await agreementService.getAgreementsEServices(
       {
         eserviceName: undefined,
@@ -372,7 +372,7 @@ describe("get agreement eservices", () => {
     expectSinglePageListResult(eservices, [eservice1].map(toCompactEService));
   });
 
-  it("should get agreement eservices with filters: name, consumerId, producerId", async () => {
+  it("should get agreements eservices with filters: name, consumerId, producerId", async () => {
     const eservices = await agreementService.getAgreementsEServices(
       {
         eserviceName: "Foo",
@@ -391,11 +391,11 @@ describe("get agreement eservices", () => {
 
     expect(eservices).toEqual({
       totalCount: 1,
-      results: expect.arrayContaining([eservice1].map(toCompactEService)),
+      results: [eservice1].map(toCompactEService),
     });
   });
 
-  it("should get agreement eservices with limit", async () => {
+  it("should get agreements eservices with limit", async () => {
     const eservices = await agreementService.getAgreementsEServices(
       {
         eserviceName: undefined,
@@ -414,13 +414,11 @@ describe("get agreement eservices", () => {
 
     expect(eservices).toEqual({
       totalCount: 3,
-      results: expect.arrayContaining(
-        [eservice2, eservice3].map(toCompactEService)
-      ),
+      results: [eservice2, eservice3].map(toCompactEService),
     });
   });
 
-  it("should get agreement eservices with offset and limit", async () => {
+  it("should get agreements eservices with offset and limit", async () => {
     const eservices = await agreementService.getAgreementsEServices(
       {
         eserviceName: undefined,
@@ -439,13 +437,11 @@ describe("get agreement eservices", () => {
 
     expect(eservices).toEqual({
       totalCount: 3,
-      results: expect.arrayContaining(
-        [eservice3, eservice4].map(toCompactEService)
-      ),
+      results: [eservice3, eservice4].map(toCompactEService),
     });
   });
 
-  it("should get no agreement eservices in case no filters match", async () => {
+  it("should get no agreements eservices in case no filters match", async () => {
     const eservices = await agreementService.getAgreementsEServices(
       {
         eserviceName: "Not existing name",
