@@ -2409,7 +2409,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("should update platform-states entry and update client-kid-purpose entries to token-generation-states table", async () => {
+    it("should update platform-states entry and update client-kid-purpose entries in token-generation-states table", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
