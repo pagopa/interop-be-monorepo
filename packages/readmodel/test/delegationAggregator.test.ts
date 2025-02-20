@@ -19,9 +19,7 @@ describe("Delegation aggregator", () => {
         ...getMockDelegation({
           kind: delegationKind.delegatedProducer,
         }),
-        approvedAt: new Date(),
-        revokedAt: new Date(),
-        rejectedAt: new Date(),
+        updatedAt: new Date(),
         rejectionReason: "Rejection reason",
         revocationContract: getMockDelegationDocument(),
         activationContract: getMockDelegationDocument(),
