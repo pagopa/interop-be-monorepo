@@ -191,9 +191,9 @@ const errorCodes = {
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
-  invalidKeyLength: "10003",
-  notAnRSAKey: "10004",
-  tokenVerificationFailed: "10008",
+  invalidKeyLength: "10008",
+  notAnRSAKey: "10009",
+  tokenVerificationFailed: "10010",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;

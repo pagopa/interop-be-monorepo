@@ -21,16 +21,13 @@ import {
 import {
   TenantId,
   genericError,
+  invalidClaim,
   unauthorizedError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
-import {
-  missingClaim,
-  missingSelfcareId,
-  tenantLoginNotAllowed,
-} from "../model/errors.js";
+import { missingSelfcareId, tenantLoginNotAllowed } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 
@@ -73,8 +70,7 @@ export function authorizationServiceBuilder(
     const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
 
     if (error) {
-      const claim = error.errors[0].path.join(".");
-      throw missingClaim(claim);
+      throw invalidClaim(error);
     }
 
     const userRoles: string[] = sessionClaims.organization.roles.map(
