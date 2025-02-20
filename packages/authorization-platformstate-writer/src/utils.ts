@@ -1059,6 +1059,7 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
   const updatedFields: Partial<TokenGenerationStatesConsumerClient> = {
     ...(purposeEntry
       ? {
+          ...setIfChanged("consumerId", purposeEntry.purposeConsumerId),
           ...setIfChanged(
             "GSIPK_consumerId_eserviceId",
             makeGSIPKConsumerIdEServiceId({
@@ -1206,10 +1207,11 @@ export const createTokenGenStatesConsumerClient = ({
     kid,
     purposeId,
   });
+  const realConsumerId = purposeEntry?.purposeConsumerId || consumerId;
 
   return {
     PK: pk,
-    consumerId,
+    consumerId: realConsumerId,
     updatedAt: new Date().toISOString(),
     clientKind: clientKindTokenGenStates.consumer,
     publicKey,
@@ -1222,7 +1224,7 @@ export const createTokenGenStatesConsumerClient = ({
     GSIPK_purposeId: purposeId,
     ...(purposeEntry && {
       GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-        consumerId,
+        consumerId: realConsumerId,
         eserviceId: purposeEntry.purposeEserviceId,
       }),
       purposeState: purposeEntry.state,
