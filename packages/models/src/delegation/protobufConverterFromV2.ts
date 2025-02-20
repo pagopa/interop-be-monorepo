@@ -107,11 +107,8 @@ export const fromDelegationV2 = (input: DelegationV2): Delegation => {
     delegateId: unsafeBrandId(input.delegateId),
     eserviceId: unsafeBrandId(input.eserviceId),
     createdAt: bigIntToDate(input.createdAt),
-    submittedAt: bigIntToDate(input.submittedAt),
-    approvedAt: bigIntToDate(input.approvedAt),
-    rejectedAt: bigIntToDate(input.rejectedAt),
+    updatedAt: bigIntToDate(input.updatedAt),
     rejectionReason: input.rejectionReason,
-    revokedAt: bigIntToDate(input.revokedAt),
     state: fromDelegationStateV2(input.state),
     kind: fromDelegationKindV2(input.kind),
     activationContract:
