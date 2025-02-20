@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_user (
 CREATE TABLE IF NOT EXISTS readmodel.producer_keychain_eservice (
   metadata_version INTEGER NOT NULL,
   producer_keychain_id UUID NOT NULL REFERENCES readmodel.producer_keychain (id) ON DELETE CASCADE,
-  eservice_id UUID NOT NULL REFERENCES readmodel.eservice (id),
+  eservice_id UUID NOT NULL,
   PRIMARY KEY (producer_keychain_id, eservice_id)
 );
 
