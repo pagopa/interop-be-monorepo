@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import {
-  makeApiProblemBuilder,
-  unauthorizedError,
-} from "pagopa-interop-models";
+import { makeApiProblemBuilder } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   ExpressContext,
@@ -28,10 +25,6 @@ export const authenticationMiddleware: (
       const jwtToken = jwtFromAuthHeader(req, ctx.logger);
       const { decoded } = await verifyJwtToken(jwtToken, config, ctx.logger);
 
-      if (!decoded) {
-        throw unauthorizedError("Invalid token");
-      }
-
       // eslint-disable-next-line functional/immutable-data
       req.ctx.authData = readAuthDataFromJwtToken(decoded);
       return next();
@@ -40,9 +33,9 @@ export const authenticationMiddleware: (
         error,
         (err) =>
           match(err.code)
-            .with("unauthorizedError", () => 401)
+            .with("tokenVerificationFailed", () => 401)
             .with("operationForbidden", () => 403)
-            .with("missingHeader", "badBearerToken", () => 400)
+            .with("missingHeader", "badBearerToken", "genericError", () => 400)
             .otherwise(() => 500),
         ctx.logger,
         ctx.correlationId

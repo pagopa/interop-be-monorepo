@@ -80,6 +80,7 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .with("genericError", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>

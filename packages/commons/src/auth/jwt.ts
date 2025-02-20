@@ -36,7 +36,7 @@ export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
   logger: Logger
-): Promise<{ decoded: JwtPayload | string | undefined }> => {
+): Promise<{ decoded: JwtPayload | string }> => {
   try {
     const { acceptedAudiences } = config;
     const jwksClients = buildJwksClients(config);
@@ -85,15 +85,15 @@ export const verifyJwtToken = async (
             reject(
               tokenVerificationFailed(authData?.userId, authData?.selfcareId)
             );
+          } else {
+            resolve({ decoded });
           }
-
-          resolve({ decoded });
         }
       );
     });
   } catch (error) {
     logger.error(`Error verifying JWT token: ${error}`);
-    return Promise.resolve({ decoded: undefined });
+    return Promise.reject(error);
   }
 };
 

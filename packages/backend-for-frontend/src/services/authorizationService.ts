@@ -22,7 +22,6 @@ import {
   TenantId,
   genericError,
   invalidClaim,
-  unauthorizedError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -62,10 +61,6 @@ export function authorizationServiceBuilder(
     selfcareId: string;
   }> => {
     const { decoded } = await verifyJwtToken(identityToken, config, logger);
-
-    if (!decoded) {
-      throw unauthorizedError("Invalid token");
-    }
 
     const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
 
