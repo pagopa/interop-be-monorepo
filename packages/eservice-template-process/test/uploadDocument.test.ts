@@ -21,6 +21,7 @@ import {
 } from "pagopa-interop-commons-test";
 
 import {
+  checksumDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   interfaceAlreadyExists,
@@ -235,6 +236,39 @@ describe("upload Document", () => {
       )
     ).rejects.toThrowError(
       prettyNameDuplicate(document.prettyName.toLowerCase(), version.id)
+    );
+  });
+
+  it("should throw checksumDuplicate if the checksum is already present in the version", async () => {
+    const document = {
+      ...getMockDocument(),
+      prettyName: "First doc",
+      checksum: "checksum",
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [
+        {
+          ...mockVersion,
+          docs: [document],
+        },
+      ],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    await expect(
+      eserviceTemplateService.createEServiceTemplateDocument(
+        eserviceTemplate.id,
+        mockVersion.id,
+        buildDocumentSeed(),
+        {
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(
+      checksumDuplicate(document.name, eserviceTemplate.id, mockVersion.id)
     );
   });
 });

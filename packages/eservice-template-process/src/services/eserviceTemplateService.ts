@@ -42,6 +42,7 @@ import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
+  checksumDuplicate,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
@@ -1417,6 +1418,17 @@ export function eserviceTemplateServiceBuilder(
         )
       ) {
         throw prettyNameDuplicate(document.prettyName, version.id);
+      }
+
+      if (
+        document.kind === "DOCUMENT" &&
+        version.docs.some((d) => d.checksum === document.checksum)
+      ) {
+        throw checksumDuplicate(
+          document.fileName,
+          eserviceTemplate.data.id,
+          version.id
+        );
       }
 
       const isInterface = document.kind === "INTERFACE";
