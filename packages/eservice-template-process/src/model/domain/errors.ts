@@ -29,6 +29,7 @@ export const errorCodes = {
   originNotCompliant: "0017",
   missingTemplateVersionInterface: "0018",
   missingRiskAnalysis: "0019",
+  instanceNameConflict: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -232,5 +233,15 @@ export function missingRiskAnalysis(
     detail: `EService template ${templateId} is missing the risk analysis`,
     code: "missingRiskAnalysis",
     title: "Missing risk analysis",
+  });
+}
+
+export function instanceNameConflict(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eserviceTemplateId} instance name conflict`,
+    code: "instanceNameConflict",
+    title: "Instance name conflict",
   });
 }

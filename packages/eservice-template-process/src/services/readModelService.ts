@@ -10,6 +10,7 @@ import {
 import {
   Attribute,
   AttributeId,
+  DescriptorState,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionState,
@@ -18,10 +19,11 @@ import {
   TenantId,
   TenantReadModel,
   WithMetadata,
+  descriptorState,
   eserviceTemplateVersionState,
   genericInternalError,
 } from "pagopa-interop-models";
-import { Filter, WithId } from "mongodb";
+import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
 
 export type GetEServiceTemplatesFilters = {
@@ -85,11 +87,120 @@ async function getTenant(
   return result.data;
 }
 
+function getTemplateInstancesFilter(
+  eserviceTemplateId: EServiceTemplateId,
+  filters: {
+    producerName?: string;
+    states: DescriptorState[];
+  }
+): Document[] {
+  const { producerName, states } = filters;
+
+  const producerNameFilter = producerName
+    ? {
+        "data.producerName": {
+          $regex: ReadModelRepository.escapeRegExp(producerName),
+          $options: "i",
+        },
+      }
+    : {};
+
+  const descriptorsStateFilter =
+    states.length > 0
+      ? {
+          "data.latestVersion.state": { $in: states },
+        }
+      : {};
+
+  return [
+    {
+      $match: {
+        "data.templateId": eserviceTemplateId,
+        $or: [
+          { "data.descriptors.1": { $exists: true } },
+          {
+            "data.descriptors": { $size: 1 },
+            "data.descriptors.0.state": {
+              $ne: descriptorState.draft,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "tenants",
+        localField: "data.producerId",
+        foreignField: "data.id",
+        as: "producer",
+      },
+    },
+    {
+      $addFields: {
+        "data.producerName": { $arrayElemAt: ["$producer.data.name", 0] },
+      },
+    },
+    { $match: producerNameFilter },
+    {
+      $addFields: {
+        "data.descriptors": {
+          $filter: {
+            input: "$data.descriptors",
+            as: "descriptor",
+            cond: {
+              $ne: ["$$descriptor.state", descriptorState.draft],
+            },
+          },
+        },
+      },
+    },
+    {
+      $unwind: "$data.descriptors",
+    },
+    {
+      $sort: {
+        "data.descriptors.version": -1,
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        data: { $first: "$data" },
+        latestVersion: { $first: "$data.descriptors" },
+      },
+    },
+    {
+      $addFields: {
+        "data.latestVersion": "$latestVersion",
+      },
+    },
+    { $match: descriptorsStateFilter },
+    {
+      $project: {
+        id: "$data.id",
+        name: "$data.name",
+        instanceId: "$data.instanceId",
+        producerId: "$data.producerId",
+        producerName: "$data.producerName",
+        state: "$data.latestVersion.state",
+        templateVersionId: "$data.latestVersion.templateVersionId",
+        lowerProducerName: {
+          $toLower: "$data.producerName",
+        },
+      },
+    },
+    {
+      $sort: { lowerProducerName: 1 },
+    },
+  ];
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder({
   eserviceTemplates,
   tenants,
   attributes,
+  eservices,
 }: ReadModelRepository) {
   return {
     async getEServiceTemplateById(
@@ -240,6 +351,33 @@ export function readModelServiceBuilder({
           aggregationPipeline
         ),
       };
+    },
+
+    checkNameConflictInstances: async (
+      eserviceTemplate: EServiceTemplate,
+      newName: string
+    ): Promise<boolean> => {
+      const aggregationPipeline = getTemplateInstancesFilter(
+        eserviceTemplate.id,
+        {
+          states: [],
+        }
+      );
+
+      const instances = await eservices
+        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .map((data) => ({
+          name: data.instanceId ? `${data.instanceId} ${newName}` : newName,
+          producerId: data.producerId,
+        }))
+        .toArray();
+
+      const data = await eservices.countDocuments({
+        "data.name": { $in: instances.map((i) => i.name) },
+        "data.producerId": { $in: instances.map((i) => i.producerId) },
+      });
+
+      return data > 0;
     },
   };
 }

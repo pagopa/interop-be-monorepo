@@ -47,6 +47,7 @@ import {
   eserviceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
   missingRiskAnalysis,
+  instanceNameConflict,
   notValidEServiceTemplateVersionState,
   versionAttributeGroupSupersetMissingInAttributesSeed,
   inconsistentAttributesSeedGroupsCount,
@@ -616,11 +617,23 @@ export function eserviceTemplateServiceBuilder(
         if (eserviceTemplateWithSameName !== undefined) {
           throw eServiceTemplateDuplicate(name);
         }
+
+        const hasConflictingInstances =
+          await readModelService.checkNameConflictInstances(
+            eserviceTemplate.data,
+            name
+          );
+
+        if (hasConflictingInstances) {
+          throw instanceNameConflict(eserviceTemplateId);
+        }
       }
+
       const updatedEserviceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         name,
       };
+
       await repository.createEvent(
         toCreateEventEServiceTemplateNameUpdated(
           eserviceTemplate.data.id,
