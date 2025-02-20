@@ -25,7 +25,6 @@ import {
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { splitTenantIntoObjectsSQL } from "../src/tenant/splitters.js";
 import {
   TenantCertifiedAttributeSQL,
   TenantDeclaredAttributeSQL,
@@ -35,7 +34,8 @@ import {
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
-} from "../src/types.js";
+} from "pagopa-interop-readmodel-models";
+import { splitTenantIntoObjectsSQL } from "../src/tenant/splitters.js";
 
 describe("Tenant splitters", () => {
   beforeAll(async () => {
@@ -188,7 +188,7 @@ describe("Tenant splitters", () => {
       };
 
       const expectedTenantVerifierSQL: TenantVerifiedAttributeVerifierSQL = {
-        id: tenantVerifier.id,
+        tenantVerifierId: tenantVerifier.id,
         tenantId: tenant.id,
         metadataVersion: 1,
         delegationId,
@@ -199,7 +199,7 @@ describe("Tenant splitters", () => {
       };
 
       const expectedTenantRevokerSQL: TenantVerifiedAttributeRevokerSQL = {
-        id: tenantRevoker.id,
+        tenantRevokerId: tenantRevoker.id,
         tenantId: tenant.id,
         metadataVersion: 1,
         delegationId,
@@ -214,19 +214,22 @@ describe("Tenant splitters", () => {
         tenantId: tenant.id,
         metadataVersion: 1,
         kind: tenantFeatureType.persistentCertifier,
-        details: { certifierId: tenantFeatureCertifier.certifierId },
+        certifierId: tenantFeatureCertifier.certifierId,
+        availabilityTimestamp: null,
       };
       const expectedTenantFeatureDelegatedConsumerSQL: TenantFeatureSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         kind: tenantFeatureType.delegatedConsumer,
-        details: { availabilityTimestamp: new Date() },
+        certifierId: null,
+        availabilityTimestamp: new Date().toISOString(),
       };
       const expectedTenantFeatureDelegatedProducerSQL: TenantFeatureSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         kind: tenantFeatureType.delegatedProducer,
-        details: { availabilityTimestamp: new Date() },
+        certifierId: null,
+        availabilityTimestamp: new Date().toISOString(),
       };
 
       expect(tenantSQL).toEqual(expectedTenantSQL);
@@ -396,7 +399,7 @@ describe("Tenant splitters", () => {
       };
 
       const expectedTenantVerifierSQL: TenantVerifiedAttributeVerifierSQL = {
-        id: tenantVerifier.id,
+        tenantVerifierId: tenantVerifier.id,
         tenantId: tenant.id,
         metadataVersion: 1,
         delegationId,
@@ -407,7 +410,7 @@ describe("Tenant splitters", () => {
       };
 
       const expectedTenantRevokerSQL: TenantVerifiedAttributeRevokerSQL = {
-        id: tenantRevoker.id,
+        tenantRevokerId: tenantRevoker.id,
         tenantId: tenant.id,
         metadataVersion: 1,
         delegationId,
@@ -422,19 +425,22 @@ describe("Tenant splitters", () => {
         tenantId: tenant.id,
         metadataVersion: 1,
         kind: tenantFeatureType.persistentCertifier,
-        details: { certifierId: tenantFeatureCertifier.certifierId },
+        certifierId: tenantFeatureCertifier.certifierId,
+        availabilityTimestamp: null,
       };
       const expectedTenantFeatureDelegatedConsumerSQL: TenantFeatureSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         kind: tenantFeatureType.delegatedConsumer,
-        details: { availabilityTimestamp: new Date() },
+        certifierId: null,
+        availabilityTimestamp: new Date().toISOString(),
       };
       const expectedTenantFeatureDelegatedProducerSQL: TenantFeatureSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         kind: tenantFeatureType.delegatedProducer,
-        details: { availabilityTimestamp: new Date() },
+        certifierId: null,
+        availabilityTimestamp: new Date().toISOString(),
       };
 
       expect(tenantSQL).toEqual(expectedTenantSQL);
