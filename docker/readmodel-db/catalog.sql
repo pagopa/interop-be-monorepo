@@ -116,4 +116,3 @@ CREATE INDEX eservice_descriptor_rejection_reason_descriptor_id_idx ON readmodel
 CREATE INDEX eservice_risk_analysis_eservice_id_idx ON readmodel_catalog.eservice_risk_analysis (eservice_id);
 
 CREATE INDEX eservice_risk_analysis_answer_risk_analysis_form_id_idx ON readmodel_catalog.eservice_risk_analysis_answer (risk_analysis_form_id);
-
