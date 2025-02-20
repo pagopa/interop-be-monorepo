@@ -2016,7 +2016,7 @@ function buildVerifiedBy(
               delegationId: producerDelegation,
               verificationDate: new Date(),
               expirationDate: expirationDate
-                ? new Date(expirationDate)
+                ? validateExpirationDate(new Date(expirationDate))
                 : undefined,
               extensionDate: expirationDate
                 ? new Date(expirationDate)
@@ -2030,7 +2030,9 @@ function buildVerifiedBy(
           id: organizationId,
           delegationId: producerDelegation,
           verificationDate: new Date(),
-          expirationDate: expirationDate ? new Date(expirationDate) : undefined,
+          expirationDate: expirationDate
+            ? validateExpirationDate(new Date(expirationDate))
+            : undefined,
           extensionDate: expirationDate ? new Date(expirationDate) : undefined,
         },
       ];
@@ -2097,7 +2099,9 @@ function assignVerifiedAttribute(
           id: organizationId,
           delegationId: producerDelegationId,
           verificationDate: new Date(),
-          expirationDate: expirationDate ? new Date(expirationDate) : undefined,
+          expirationDate: expirationDate
+            ? validateExpirationDate(new Date(expirationDate))
+            : undefined,
           extensionDate: expirationDate ? new Date(expirationDate) : undefined,
         },
       ],
@@ -2149,6 +2153,10 @@ async function revokeCertifiedAttribute(
   } satisfies Tenant;
 }
 
+function validateExpirationDate(expirationDate: Date): Date {
+  assertValidExpirationDate(expirationDate);
+  return expirationDate;
+}
 function validateAddress(address: string): string {
   // Here I am removing the non-printing control characters
   const removeNonPrintingcontrolCharacters = address.replace(
