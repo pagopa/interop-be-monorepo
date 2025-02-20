@@ -10,10 +10,11 @@ import {
   ProducerKeychain,
   Key,
   ProducerKeychainKeyAddedV2,
-  invalidKey,
   invalidKeyLength,
   toProducerKeychainV2,
   Client,
+  notAnRSAKey,
+  invalidPublicKey,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -402,7 +403,7 @@ describe("createProducerKeychainKey", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
+    ).rejects.toThrowError(notAnRSAKey());
   });
   it("should throw invalidKey if the key doesn't have the delimiters", async () => {
     const keySeed: authorizationApi.KeySeed = {
@@ -422,9 +423,7 @@ describe("createProducerKeychainKey", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(
-      Error("error:1E08010C:DECODER routines::unsupported")
-    );
+    ).rejects.toThrowError(invalidPublicKey());
   });
 
   it("should throw invalidKeyLength if the key doesn't have 2048 bites", async () => {

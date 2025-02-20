@@ -10,10 +10,11 @@ import {
   TenantId,
   UserId,
   generateId,
-  invalidKey,
   invalidKeyLength,
+  invalidPublicKey,
   notAllowedCertificateException,
   notAllowedPrivateKeyException,
+  notAnRSAKey,
   toClientV2,
 } from "pagopa-interop-models";
 import {
@@ -380,7 +381,7 @@ describe("createKeys", () => {
       })
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
-  it("should throw invalidKey if the key is not an RSA key", async () => {
+  it("should throw notAnRSAKey if the key is not an RSA key", async () => {
     const notRSAKey = crypto.generateKeyPairSync("ed25519", {
       modulusLength: 2048,
     }).publicKey;
@@ -408,7 +409,7 @@ describe("createKeys", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
+    ).rejects.toThrowError(notAnRSAKey());
   });
   it("should throw invalidKey if the key doesn't have the delimiters", async () => {
     const keySeed: authorizationApi.KeySeed = {
@@ -430,9 +431,7 @@ describe("createKeys", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(
-      Error("error:1E08010C:DECODER routines::unsupported")
-    );
+    ).rejects.toThrowError(invalidPublicKey());
   });
   it("should throw notAllowedCertificateException if the key contains a certificate", async () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
