@@ -3,9 +3,6 @@ import {
   DeclaredTenantAttribute,
   TenantAttribute,
   tenantAttributeType,
-  TenantFeatureCertifier,
-  TenantFeatureDelegatedConsumer,
-  TenantFeatureDelegatedProducer,
   tenantFeatureType,
   TenantId,
   TenantMail,
@@ -236,7 +233,7 @@ const splitTenantAttributesIntoObjectsSQL = (
                 return {
                   tenantId,
                   metadataVersion,
-                  id,
+                  tenantVerifierId: id,
                   tenantVerifiedAttributeId: attr.id,
                   verificationDate: dateToString(verificationDate),
                   expirationDate: dateToString(expirationDate),
@@ -263,7 +260,7 @@ const splitTenantAttributesIntoObjectsSQL = (
               }: TenantRevoker) => ({
                 tenantId,
                 metadataVersion,
-                id,
+                tenantRevokerId: id,
                 tenantVerifiedAttributeId: attr.id,
                 verificationDate: dateToString(verificationDate),
                 expirationDate: dateToString(expirationDate),
