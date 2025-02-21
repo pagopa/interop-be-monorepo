@@ -66,7 +66,7 @@ const tokenGenerator = new InteropTokenGenerator(
 export const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  // redisRateLimiter,
+  redisRateLimiter,
   producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
   fileManager,
 });
