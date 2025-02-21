@@ -97,7 +97,7 @@ describe("E-service aggregator", () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       attributes: {
-        certified: [[]],
+        certified: [],
         declared: [],
         verified: [],
       },
