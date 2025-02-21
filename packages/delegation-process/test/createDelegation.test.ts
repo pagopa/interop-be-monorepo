@@ -148,7 +148,6 @@ describe.each([
         kind,
         state: delegationState.waitingForApproval,
         createdAt: currentExecutionTime,
-        submittedAt: currentExecutionTime,
         stamps: {
           submission: {
             who: authData.userId,
@@ -230,7 +229,6 @@ describe.each([
         kind,
         state: delegationState.waitingForApproval,
         createdAt: currentExecutionTime,
-        submittedAt: currentExecutionTime,
         stamps: {
           submission: {
             who: authData.userId,
