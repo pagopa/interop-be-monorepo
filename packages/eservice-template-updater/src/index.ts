@@ -1,6 +1,7 @@
 import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
+  initFileManager,
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
@@ -13,7 +14,9 @@ import { config } from "./config/config.js";
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
 );
+
 await refreshableToken.init();
+const fileManager = initFileManager(config);
 
 async function processMessage({
   message,
@@ -31,6 +34,7 @@ async function processMessage({
         refreshableToken,
         partition,
         offset: message.offset,
+        fileManager,
       })
     )
     .exhaustive();
