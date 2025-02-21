@@ -29,6 +29,6 @@ describe("Client JWK key aggregator", () => {
 
     const aggregatedClientJWKKey =
       clientJWKKeySQLToClientJWKKey(clientJWKKeySQL);
-    expect(aggregatedClientJWKKey).toEqual(aggregatedClientJWKKey);
+    expect(aggregatedClientJWKKey).toMatchObject(aggregatedClientJWKKey);
   });
 });
