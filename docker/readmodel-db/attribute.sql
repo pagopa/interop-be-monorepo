@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS readmodel.attribute(
+CREATE SCHEMA IF NOT EXISTS readmodel_attribute;
+
+CREATE TABLE IF NOT EXISTS readmodel_attribute.attribute(
   id UUID,
   metadata_version INTEGER NOT NULL,
   code VARCHAR,

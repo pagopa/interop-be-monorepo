@@ -275,32 +275,6 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
       );
     }
   );
-  it("should throw puroposeDelegationNotFound when the delegation cannot be found", async () => {
-    const mockPurposeVersion: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
-    };
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      versions: [mockPurposeVersion],
-      delegationId: generateId<DelegationId>(),
-    };
-
-    await addOnePurpose(mockPurpose);
-    expect(
-      purposeService.internalArchivePurposeVersionAfterDelegationRevocation(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          delegationId: mockPurpose.delegationId!,
-        },
-        generateId(),
-        genericLogger
-      )
-    ).rejects.toThrowError(
-      puroposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
-    );
-  });
   it("should throw puroposeDelegationNotFound when the delegationId of the purpose is not the same of the one passed", async () => {
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),

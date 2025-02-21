@@ -19,15 +19,8 @@ export const delegationToApiDelegation = (
   delegateId: delegation.delegateId,
   eserviceId: delegation.eserviceId,
   createdAt: delegation.createdAt.toJSON(),
-  submittedAt: delegation.submittedAt.toJSON(),
-  approvedAt: delegation.approvedAt
-    ? delegation.approvedAt.toJSON()
-    : undefined,
-  rejectedAt: delegation.rejectedAt
-    ? delegation.rejectedAt.toJSON()
-    : undefined,
+  updatedAt: delegation.updatedAt ? delegation.updatedAt.toJSON() : undefined,
   rejectionReason: delegation.rejectionReason || undefined,
-  revokedAt: delegation.revokedAt ? delegation.revokedAt.toJSON() : undefined,
   state: delegationStateToApiDelegationState(delegation.state),
   kind: delegationKindToApiDelegationKind(delegation.kind),
   activationContract: delegation.activationContract

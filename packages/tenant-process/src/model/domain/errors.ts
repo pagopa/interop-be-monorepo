@@ -3,7 +3,6 @@ import {
   AttributeId,
   DelegationId,
   EServiceId,
-  TenantFeature,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -34,13 +33,11 @@ export const errorCodes = {
   certifierWithExistingAttributes: "0023",
   attributeNotFoundInTenant: "0024",
   tenantNotFoundByExternalId: "0025",
-  tenantAlreadyHasFeature: "0026",
-  tenantDoesNotHaveFeature: "0027",
-  notValidMailAddress: "0028",
-  agreementNotFound: "0029",
-  descriptorNotFoundInEservice: "0030",
-  delegationNotFound: "0031",
-  operationRestrictedToDelegate: "0032",
+  notValidMailAddress: "0026",
+  agreementNotFound: "0027",
+  descriptorNotFoundInEservice: "0028",
+  delegationNotFound: "0029",
+  operationRestrictedToDelegate: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -298,28 +295,6 @@ export function attributeNotFoundInTenant(
     detail: `Attribute ${attributeId} not found in tenant ${tenantId}`,
     code: "attributeNotFoundInTenant",
     title: "Attribute not found in tenant",
-  });
-}
-
-export function tenantAlreadyHasFeature(
-  tenantId: TenantId,
-  featureType: TenantFeature["type"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} already has ${featureType} feature assigned`,
-    code: "tenantAlreadyHasFeature",
-    title: "Feature already assigned",
-  });
-}
-
-export function tenantDoesNotHaveFeature(
-  tenantId: TenantId,
-  featureType: TenantFeature["type"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} doesn't have ${featureType} feature assigned`,
-    code: "tenantDoesNotHaveFeature",
-    title: "Feature not assigned",
   });
 }
 
