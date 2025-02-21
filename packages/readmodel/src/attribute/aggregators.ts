@@ -24,8 +24,8 @@ export const attributeSQLtoAttribute = ({
     kind: AttributeKind.parse(kind),
     description,
     creationTime: stringToDate(creationTime),
-    origin: origin || undefined,
-    code: code || undefined,
+    ...(origin ? { origin } : {}),
+    ...(code ? { code } : {}),
   },
   metadata: { version: metadataVersion },
 });
