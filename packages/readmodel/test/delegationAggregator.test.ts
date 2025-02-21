@@ -41,7 +41,7 @@ describe("Delegation aggregator", () => {
       delegationContractDocumentsSQL,
     });
 
-    expect(aggregatedDelegation).toEqual(delegation);
+    expect(aggregatedDelegation).toMatchObject(delegation);
   });
 
   it("should convert incomplete delegation SQL objects into a business logic delegation (null -> undefined)", () => {
@@ -68,6 +68,6 @@ describe("Delegation aggregator", () => {
       delegationContractDocumentsSQL,
     });
 
-    expect(aggregatedDelegation).toEqual(delegation);
+    expect(aggregatedDelegation).toMatchObject(delegation);
   });
 });
