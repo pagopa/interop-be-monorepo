@@ -11,6 +11,7 @@ import {
 import { Problem, tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import express from "express";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -18,7 +19,18 @@ import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
 
-const dynamoDBClient = new DynamoDBClient();
+const dynamoDBClient = new DynamoDBClient({
+  requestHandler: {
+    requestTimeout: 3_000,
+    httpsAgent: { maxSockets: 1000 },
+  },
+});
+const kmsClient = new KMSClient({
+  requestHandler: {
+    requestTimeout: 3_000,
+    httpsAgent: { maxSockets: 1000 },
+  },
+});
 const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "AUTHSERVER",
   maxRequests: config.rateLimiterMaxRequests,
@@ -31,13 +43,16 @@ const redisRateLimiter = await initRedisRateLimiter({
 const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
 
-const tokenGenerator = new InteropTokenGenerator({
-  generatedInteropTokenKid: config.generatedInteropTokenKid,
-  generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
-  generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
-  generatedInteropTokenM2MDurationSeconds:
-    config.generatedInteropTokenM2MDurationSeconds,
-});
+const tokenGenerator = new InteropTokenGenerator(
+  {
+    generatedInteropTokenKid: config.generatedInteropTokenKid,
+    generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
+    generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
+    generatedInteropTokenM2MDurationSeconds:
+      config.generatedInteropTokenM2MDurationSeconds,
+  },
+  kmsClient
+);
 
 const tokenService = tokenServiceBuilder({
   tokenGenerator,
