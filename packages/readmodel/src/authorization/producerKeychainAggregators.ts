@@ -61,3 +61,35 @@ export const aggregateProducerKeychainSQL = (
     metadata: { version: metadataVersion },
   };
 };
+
+export const aggregateProducerKeychainArraySQL = ({
+  producerKeychainsSQL,
+  producerKeychainUsersSQL,
+  producerKeychainEServicesSQL,
+  producerKeychainKeysSQL,
+}: {
+  producerKeychainsSQL: ProducerKeychainSQL[];
+  producerKeychainUsersSQL: ProducerKeychainUserSQL[];
+  producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[];
+  producerKeychainKeysSQL: ProducerKeychainKeySQL[];
+}): Array<WithMetadata<ProducerKeychain>> =>
+  producerKeychainsSQL.map((producerKeychainSQL) => {
+    const usersSQLOfCurrentKeychain = producerKeychainUsersSQL.filter(
+      (user) => user.producerKeychainId === producerKeychainSQL.id
+    );
+
+    const eservicesSQLOfCurrentKeychain = producerKeychainEServicesSQL.filter(
+      (eservice) => eservice.producerKeychainId === producerKeychainSQL.id
+    );
+
+    const keysOfCurrentKeychain = producerKeychainKeysSQL.filter(
+      (key) => key.producerKeychainId === producerKeychainSQL.id
+    );
+
+    return aggregateProducerKeychainSQL(
+      producerKeychainSQL,
+      usersSQLOfCurrentKeychain,
+      eservicesSQLOfCurrentKeychain,
+      keysOfCurrentKeychain
+    );
+  });
