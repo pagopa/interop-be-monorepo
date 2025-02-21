@@ -707,7 +707,7 @@ export async function enrichAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
-  const { consumer, producer, eservice } =
+  const { consumer, producer, eservice, delegation } =
     await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
   const currentDescriptor = getCurrentDescriptor(eservice, agreement);
@@ -742,18 +742,6 @@ export async function enrichAgreement(
     consumer.attributes,
     attributes
   );
-
-  const delegation = (
-    await clients.delegationProcessClient.delegation.getDelegations({
-      queries: {
-        delegatorIds: [agreement.consumerId],
-        eserviceIds: [agreement.eserviceId],
-        offset: 0,
-        limit: 1,
-      },
-      headers: ctx.headers,
-    })
-  ).results.at(0);
 
   const delegationInfo = await match(delegation)
     .with(P.nullish, () => undefined)
@@ -877,6 +865,7 @@ async function getConsumerProducerEserviceDelegation(
     queries: {
       delegatorIds: [agreement.consumerId],
       eserviceIds: [agreement.eserviceId],
+      delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
       kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
       offset: 0,
       limit: 1,
