@@ -311,8 +311,7 @@ describe("authorization server tests", () => {
     );
   });
 
-  // TODO re-enable or investigate alternatives. See comment in AuthorizationServerRouter.ts
-  it.skip("should block the request because of the rate limiter", async () => {
+  it("should block the request because of the rate limiter", async () => {
     const purposeId = generateId<PurposeId>();
     const clientId = generateId<ClientId>();
 
@@ -630,12 +629,11 @@ describe("authorization server tests", () => {
     expect(parsedDecodedFileContent).toEqual(expectedMessageBody);
     expect(response.limitReached).toBe(false);
     expect(response.token).toBeDefined();
-    // TODO re-enable or investigate alternatives. See comment in AuthorizationServerRouter.ts
-    // expect(response.rateLimiterStatus).toEqual({
-    //   maxRequests: config.rateLimiterMaxRequests,
-    //   rateInterval: config.rateLimiterRateInterval,
-    //   remainingRequests: config.rateLimiterMaxRequests - 1,
-    // });
+    expect(response.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
   });
 
   it("should succeed - consumer key - kafka audit succeeded", async () => {
@@ -712,12 +710,11 @@ describe("authorization server tests", () => {
 
     expect(result.limitReached).toBe(false);
     expect(result.token).toBeDefined();
-    // TODO re-enable or investigate alternatives. See comment in AuthorizationServerRouter.ts
-    // expect(result.rateLimiterStatus).toEqual({
-    //   maxRequests: config.rateLimiterMaxRequests,
-    //   rateInterval: config.rateLimiterRateInterval,
-    //   remainingRequests: config.rateLimiterMaxRequests - 1,
-    // });
+    expect(result.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
 
     const fileList = await fileManager.listFiles(
       config.s3Bucket,
@@ -820,11 +817,10 @@ describe("authorization server tests", () => {
 
     expect(response.limitReached).toBe(false);
     expect(response.token).toBeDefined();
-    // TODO re-enable or investigate alternatives. See comment in AuthorizationServerRouter.ts
-    // expect(response.rateLimiterStatus).toEqual({
-    //   maxRequests: config.rateLimiterMaxRequests,
-    //   rateInterval: config.rateLimiterRateInterval,
-    //   remainingRequests: config.rateLimiterMaxRequests - 1,
-    // });
+    expect(response.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
   });
 });
