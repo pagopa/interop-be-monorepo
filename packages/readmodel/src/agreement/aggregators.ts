@@ -20,6 +20,10 @@ import {
   agreementDocumentKind,
   AgreementDocument,
   AgreementDocumentId,
+  AgreementStamp,
+  UserId,
+  DelegationId,
+  agreementStampKind,
 } from "pagopa-interop-models";
 
 export const agreementSQLToAgreement = ({
@@ -43,22 +47,37 @@ export const agreementSQLToAgreement = ({
     .filter((a) => a.kind === attributeKind.declared)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
 
-  const consumerDocsSQL: AgreementDocumentSQL[] = agreementDocumentsSQL.filter(
-    (d) => d.kind === agreementDocumentKind.consumerDoc
-  );
-  const consumerDocuments: AgreementDocument[] = consumerDocsSQL.map(
-    agreementDocumentSQLtoAgreementDocument
-  );
+  const consumerDocuments: AgreementDocument[] = agreementDocumentsSQL
+    .filter((d) => d.kind === agreementDocumentKind.consumerDoc)
+    .map(documentSQLtoDocument);
 
-  const contractSQL = agreementDocumentsSQL.find(
-    (d) => d.kind === agreementDocumentKind.contract
+  const contractSQL: AgreementDocumentSQL | undefined =
+    agreementDocumentsSQL.find(
+      (d) => d.kind === agreementDocumentKind.contract
+    );
+  const contract = contractSQL ? documentSQLtoDocument(contractSQL) : undefined;
+
+  const submissionStampSQL = agreementStampsSQL.find(
+    (stamp) => stamp.kind === agreementStampKind.submission
   );
-  const contract = contractSQL
-    ? agreementDocumentSQLtoAgreementDocument(contractSQL)
-    : undefined;
-
-  const stamps = null;
-
+  const activationStampSQL = agreementStampsSQL.find(
+    (stamp) => stamp.kind === agreementStampKind.activation
+  );
+  const rejectionStampSQL = agreementStampsSQL.find(
+    (stamp) => stamp.kind === agreementStampKind.rejection
+  );
+  const suspensionByProducerStampSQL = agreementStampsSQL.find(
+    (stamp) => stamp.kind === agreementStampKind.suspensionByProducer
+  );
+  const suspensionByConsumerStampSQL = agreementStampsSQL.find(
+    (stamp) => stamp.kind === agreementStampKind.suspensionByConsumer
+  );
+  const upgradeStampSQL = agreementStampsSQL.find(
+    (stamp) => stamp.kind === agreementStampKind.upgrade
+  );
+  const archivingStampSQL = agreementStampsSQL.find(
+    (stamp) => stamp.kind === agreementStampKind.archiving
+  );
   const agreement: Agreement = {
     id: unsafeBrandId<AgreementId>(agreementSQL.id),
     eserviceId: unsafeBrandId<EServiceId>(agreementSQL.producerId),
@@ -95,7 +114,31 @@ export const agreementSQLToAgreement = ({
         }
       : {}),
     ...(contract ? { contract } : {}),
-    stamps,
+    stamps: {
+      ...(submissionStampSQL
+        ? { submission: stampSQLtoStamp(submissionStampSQL) }
+        : {}),
+      ...(activationStampSQL
+        ? { activation: stampSQLtoStamp(activationStampSQL) }
+        : {}),
+      ...(rejectionStampSQL
+        ? { rejection: stampSQLtoStamp(rejectionStampSQL) }
+        : {}),
+      ...(suspensionByProducerStampSQL
+        ? {
+            suspensionByProducer: stampSQLtoStamp(suspensionByProducerStampSQL),
+          }
+        : {}),
+      ...(suspensionByConsumerStampSQL
+        ? {
+            suspensionByConsumer: stampSQLtoStamp(suspensionByConsumerStampSQL),
+          }
+        : {}),
+      ...(upgradeStampSQL ? { upgrade: stampSQLtoStamp(upgradeStampSQL) } : {}),
+      ...(archivingStampSQL
+        ? { archiving: stampSQLtoStamp(archivingStampSQL) }
+        : {}),
+    },
     ...(agreementSQL.rejectionReason !== null
       ? {
           rejectionReason: agreementSQL.rejectionReason,
@@ -114,7 +157,7 @@ export const agreementSQLToAgreement = ({
   };
 };
 
-export const agreementDocumentSQLtoAgreementDocument = (
+const documentSQLtoDocument = (
   document: AgreementDocumentSQL
 ): AgreementDocument => ({
   id: unsafeBrandId<AgreementDocumentId>(document.id),
@@ -123,4 +166,14 @@ export const agreementDocumentSQLtoAgreementDocument = (
   prettyName: document.prettyName,
   contentType: document.contentType,
   createdAt: stringToDate(document.createdAt),
+});
+
+const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
+  who: unsafeBrandId<UserId>(stampSQL.who),
+  when: stringToDate(stampSQL.when),
+  ...(stampSQL.delegationId !== null
+    ? {
+        delegationId: unsafeBrandId<DelegationId>(stampSQL.delegationId),
+      }
+    : {}),
 });
