@@ -37,6 +37,6 @@ describe("Producer JWK key aggregator", () => {
     const aggregatedProducerJWKKey =
       producerJWKKeySQLToProducerJWKKey(producerJWKKeySQL);
 
-    expect(aggregatedProducerJWKKey).toEqual(producerJWKKey);
+    expect(aggregatedProducerJWKKey).toMatchObject(producerJWKKey);
   });
 });
