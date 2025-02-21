@@ -36,7 +36,7 @@ describe("Tenant aggregators", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-  it("should convert a Tenant into TenantSQL and related items", () => {
+  it("should convert Tenant SQL objects item into a Tenant", () => {
     const tenantMail: TenantMail = {
       ...getMockTenantMail(),
       description: "mail description",
@@ -145,7 +145,7 @@ describe("Tenant aggregators", () => {
       metadata: { version: 1 },
     });
   });
-  it("should convert undefined into null", () => {
+  it("should convert null to undefined", () => {
     const tenantMail: TenantMail = {
       ...getMockTenantMail(),
       description: undefined,
