@@ -69,7 +69,6 @@ describe("E-service aggregator", () => {
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      eserviceTemplateBindingSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -132,7 +131,6 @@ describe("E-service aggregator", () => {
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      eserviceTemplateBindingSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({

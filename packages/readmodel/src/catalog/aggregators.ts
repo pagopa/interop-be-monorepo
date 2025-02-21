@@ -34,7 +34,7 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceTemplateBindingSQL,
+  // EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const documentSQLtoDocument = (
@@ -214,7 +214,7 @@ export const aggregateEserviceArray = ({
   attributesSQL: EServiceDescriptorAttributeSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  templateBindingSQL: EServiceTemplateBindingSQL[];
+  // templateBindingSQL: EServiceTemplateBindingSQL[];
 }): Array<WithMetadata<EService>> =>
   eservicesSQL.map((eserviceSQL) => {
     const riskAnalysesSQLOfCurrentEservice = riskAnalysesSQL.filter(
