@@ -42,6 +42,7 @@ import {
   InteropConsumerToken,
   InteropTokenGenerator,
   Logger,
+  RateLimiter,
   RateLimiterStatus,
   secondsToMilliseconds,
 } from "pagopa-interop-commons";
@@ -75,13 +76,13 @@ export type GenerateTokenReturnType =
 export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  // redisRateLimiter,
+  redisRateLimiter,
   producer,
   fileManager,
 }: {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
-  // redisRateLimiter: RateLimiter;
+  redisRateLimiter: RateLimiter;
   producer: Awaited<ReturnType<typeof initProducer>>;
   fileManager: FileManager;
 }) {
@@ -174,14 +175,8 @@ export function tokenServiceBuilder({
         );
       }
 
-      // TODO re-enable or investigate alternatives. See comment in AuthorizationServerRouter.ts
-      const limitReached = false;
-      const rateLimiterStatus = {
-        maxRequests: 0,
-        rateInterval: 0,
-        remainingRequests: 0,
-      };
-
+      const { limitReached, ...rateLimiterStatus } =
+        await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
       if (limitReached) {
         return {
           limitReached: true,

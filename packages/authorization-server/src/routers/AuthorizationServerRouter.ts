@@ -2,6 +2,7 @@ import { constants } from "http2";
 import {
   fromAppContext,
   initFileManager,
+  initRedisRateLimiter,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
   zodiosCtx,
@@ -18,21 +19,15 @@ import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
 
 const dynamoDBClient = new DynamoDBClient();
-/* TODO rate limiter removed for performance tests.
-  Re-enable it when performance tests are completed, if
-  rate limiter is not the bottleneck.
-  Otherwise we should consider a different approach.
-*/
-// const redisRateLimiter = await initRedisRateLimiter({
-//   limiterGroup: "AUTHSERVER",
-//   maxRequests: config.rateLimiterMaxRequests,
-//   rateInterval: config.rateLimiterRateInterval,
-//   burstPercentage: config.rateLimiterBurstPercentage,
-//   redisHost: config.rateLimiterRedisHost,
-//   redisPort: config.rateLimiterRedisPort,
-//   timeout: config.rateLimiterTimeout,
-// });
-
+const redisRateLimiter = await initRedisRateLimiter({
+  limiterGroup: "AUTHSERVER",
+  maxRequests: config.rateLimiterMaxRequests,
+  rateInterval: config.rateLimiterRateInterval,
+  burstPercentage: config.rateLimiterBurstPercentage,
+  redisHost: config.rateLimiterRedisHost,
+  redisPort: config.rateLimiterRedisPort,
+  timeout: config.rateLimiterTimeout,
+});
 const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
 
@@ -47,7 +42,7 @@ const tokenGenerator = new InteropTokenGenerator({
 const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  // redisRateLimiter,
+  redisRateLimiter,
   producer,
   fileManager,
 });
