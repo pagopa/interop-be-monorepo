@@ -34,7 +34,7 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceTemplateBindingSQL,
+  // EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const documentSQLtoDocument = (
@@ -108,9 +108,9 @@ export const aggregateDescriptor = ({
     voucherLifespan: descriptorSQL.voucherLifespan,
     dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
-    agreementApprovalPolicy: AgreementApprovalPolicy.parse(
-      descriptorSQL.agreementApprovalPolicy
-    ), // TODO use safeParse?
+    agreementApprovalPolicy: descriptorSQL.agreementApprovalPolicy
+      ? AgreementApprovalPolicy.parse(descriptorSQL.agreementApprovalPolicy)
+      : undefined, // TODO use safeParse?
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
     ...(descriptorSQL.publishedAt
@@ -214,7 +214,7 @@ export const aggregateEserviceArray = ({
   attributesSQL: EServiceDescriptorAttributeSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  templateBindingSQL: EServiceTemplateBindingSQL[];
+  // templateBindingSQL: EServiceTemplateBindingSQL[];
 }): Array<WithMetadata<EService>> =>
   eservicesSQL.map((eserviceSQL) => {
     const riskAnalysesSQLOfCurrentEservice = riskAnalysesSQL.filter(

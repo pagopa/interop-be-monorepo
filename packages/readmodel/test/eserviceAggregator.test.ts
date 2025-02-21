@@ -69,7 +69,6 @@ describe("E-service aggregator", () => {
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      eserviceTemplateBindingSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -98,7 +97,7 @@ describe("E-service aggregator", () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       attributes: {
-        certified: [[]],
+        certified: [],
         declared: [],
         verified: [],
       },
@@ -106,10 +105,11 @@ describe("E-service aggregator", () => {
       interface: undefined,
       rejectionReasons: undefined,
       description: undefined,
-      publishedAt: undefined,
-      suspendedAt: undefined,
-      deprecatedAt: undefined,
-      archivedAt: undefined,
+      // TODO the optional fields should not be set, otherwise they are expected in the result. Instead, the result will not fill these if the entries have null in db
+      // publishedAt: undefined,
+      // suspendedAt: undefined,
+      // deprecatedAt: undefined,
+      // archivedAt: undefined,
       agreementApprovalPolicy: undefined,
     };
 
@@ -131,8 +131,6 @@ describe("E-service aggregator", () => {
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      eserviceTemplateBindingSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -144,7 +142,6 @@ describe("E-service aggregator", () => {
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     });
 
     expect(aggregatedEservice).toMatchObject({
