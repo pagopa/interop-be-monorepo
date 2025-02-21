@@ -10852,14 +10852,14 @@ paths:
       tags:
         - clients
       summary: Create Keys for the specific clientId.
-      operationId: createKeys
+      operationId: createKey
       requestBody:
         required: true
         description: an array of base64 encoded PEM keys.
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/KeysSeed"
+              $ref: "#/components/schemas/KeySeed"
       description: Creates one or more keys for the corresponding client.
       parameters:
         - name: clientId
@@ -15948,10 +15948,6 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/CompactUser"
-    KeysSeed:
-      type: array
-      items:
-        $ref: "#/components/schemas/KeySeed"
     KeySeed:
       description: "Models the seed for a public key to be persisted"
       type: object
