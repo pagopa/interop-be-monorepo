@@ -86,7 +86,7 @@ describe("", () => {
           .values(att);
       }
 
-      for (const riskAnalysis of resSQL.riskAnalysisSQL) {
+      for (const riskAnalysis of resSQL.riskAnalysesSQL) {
         await tx
           .insert(eserviceRiskAnalysisInReadmodelCatalog)
           .values(riskAnalysis);

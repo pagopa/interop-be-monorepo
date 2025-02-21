@@ -30,7 +30,7 @@ export const splitEserviceIntoObjectsSQL = (
   version: number
 ): {
   eserviceSQL: EServiceSQL;
-  riskAnalysisSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
   descriptorsSQL: EServiceDescriptorSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
@@ -64,11 +64,11 @@ export const splitEserviceIntoObjectsSQL = (
     serverUrl: "", // TODO
   };
 
-  const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
+  const { riskAnalysesSQL, riskAnalysisAnswersSQL } =
     eservice.riskAnalysis.reduce(
       (
         acc: {
-          riskAnalysisSQL: EServiceRiskAnalysisSQL[];
+          riskAnalysesSQL: EServiceRiskAnalysisSQL[];
           riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
         },
         currentRiskAnalysis: RiskAnalysis
@@ -80,14 +80,14 @@ export const splitEserviceIntoObjectsSQL = (
             version
           );
         return {
-          riskAnalysisSQL: acc.riskAnalysisSQL.concat(eserviceRiskAnalysisSQL),
+          riskAnalysesSQL: acc.riskAnalysesSQL.concat(eserviceRiskAnalysisSQL),
           riskAnalysisAnswersSQL: acc.riskAnalysisAnswersSQL.concat(
             riskAnalysisAnswersSQL
           ),
         };
       },
       {
-        riskAnalysisSQL: [],
+        riskAnalysesSQL: [],
         riskAnalysisAnswersSQL: [],
       }
     );
@@ -133,7 +133,7 @@ export const splitEserviceIntoObjectsSQL = (
   return {
     eserviceSQL,
     eserviceTemplateBindingSQL,
-    riskAnalysisSQL,
+    riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     descriptorsSQL,
     attributesSQL,

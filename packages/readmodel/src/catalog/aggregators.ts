@@ -142,7 +142,7 @@ export type EServiceAggregatorInput = {
   attributesSQL: EServiceDescriptorAttributeSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  templateBindingSQL: EServiceTemplateBindingSQL[];
+  // templateBindingSQL: EServiceTemplateBindingSQL[];
 };
 
 export const aggregateEservice = ({
@@ -188,6 +188,9 @@ EServiceAggregatorInput): WithMetadata<EService> => {
     descriptors,
     riskAnalysis,
     mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
+    isClientAccessDelegable: eserviceSQL.isClientAccessDelegable || undefined,
+    isConsumerDelegable: eserviceSQL.isConsumerDelegable || undefined,
+    isSignalHubEnabled: eserviceSQL.isSignalHubEnabled || undefined,
   };
   return {
     data: eservice,
@@ -247,7 +250,7 @@ export const aggregateEserviceArray = ({
       documentsSQL: documentsSQLOfCurrentEservice,
       attributesSQL: attributesSQLOfCurrentEservice,
       rejectionReasonsSQL: rejectionReasonsSQLOfCurrentEservice,
-      templateBindingSQL: [],
+      // templateBindingSQL: [],
     });
   });
 

@@ -31,7 +31,6 @@ import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorRejectionReasonSQL,
-  EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   eserviceJoin,
@@ -46,7 +45,6 @@ import {
   retrieveEserviceRiskAnalysesSQL,
   retrieveEserviceRiskAnalysisAnswersSQL,
   retrieveEServiceSQL,
-  retrieveEserviceTemplateBindingSQL,
   retrieveRejectionReasonsSQL,
 } from "../src/catalog/retrievalMultiQuery.js";
 import { readModelDB } from "./utils.js";
@@ -138,10 +136,10 @@ describe("benchmark", async () => {
       eserviceId,
       readModelDB
     );
-    const templateBindingSQL = await retrieveEserviceTemplateBindingSQL(
-      eserviceId,
-      readModelDB
-    );
+    // const templateBindingSQL = await retrieveEserviceTemplateBindingSQL(
+    //   eserviceId,
+    //   readModelDB
+    // );
 
     const timestamp2 = Date.now();
     // console.log(timestamp2);
@@ -154,7 +152,7 @@ describe("benchmark", async () => {
       rejectionReasonsSQL,
       riskAnalysesSQL,
       riskAnalysisAnswersSQL,
-      templateBindingSQL,
+      // templateBindingSQL,
     });
 
     const timestamp3 = Date.now();
@@ -229,7 +227,6 @@ const addEserviceObjectsInReadmodel = async ({
   attributesSQL: EServiceDescriptorAttributeSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  eserviceTemplateBindingSQL?: EServiceTemplateBindingSQL;
 }) => {
   await readModelDB.transaction(async (tx) => {
     await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
