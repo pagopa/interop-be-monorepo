@@ -67,30 +67,39 @@ export const aggregateTenantSQL = ({
 
   const features: TenantFeature[] = tenantFeaturesSQL.map((feature) =>
     match(feature.kind)
-      .with(
-        tenantFeatureType.persistentCertifier,
-        () =>
-          ({
-            type: tenantFeatureType.persistentCertifier,
-            certifierId: feature.certifierId!, // TODO
-          } satisfies TenantFeatureCertifier)
-      )
-      .with(
-        tenantFeatureType.delegatedProducer,
-        () =>
-          ({
-            type: tenantFeatureType.delegatedProducer,
-            availabilityTimestamp: stringToDate(feature.availabilityTimestamp!), // TODO
-          } satisfies TenantFeatureDelegatedProducer)
-      )
-      .with(
-        tenantFeatureType.delegatedConsumer,
-        () =>
-          ({
-            type: tenantFeatureType.delegatedConsumer,
-            availabilityTimestamp: stringToDate(feature.availabilityTimestamp!), // TODO
-          } satisfies TenantFeatureDelegatedConsumer)
-      )
+      .with(tenantFeatureType.persistentCertifier, () => {
+        if (!feature.certifierId) {
+          throw genericInternalError(
+            "certifierId can't be missing in certifier feature"
+          );
+        }
+        return {
+          type: tenantFeatureType.persistentCertifier,
+          certifierId: feature.certifierId,
+        } satisfies TenantFeatureCertifier;
+      })
+      .with(tenantFeatureType.delegatedProducer, () => {
+        if (!feature.availabilityTimestamp) {
+          throw genericInternalError(
+            "availabilityTimestamp can't be missing in delegatedProducer feature"
+          );
+        }
+        return {
+          type: tenantFeatureType.delegatedProducer,
+          availabilityTimestamp: stringToDate(feature.availabilityTimestamp),
+        } satisfies TenantFeatureDelegatedProducer;
+      })
+      .with(tenantFeatureType.delegatedConsumer, () => {
+        if (!feature.availabilityTimestamp) {
+          throw genericInternalError(
+            "availabilityTimestamp can't be missing in delegatedConsumer feature"
+          );
+        }
+        return {
+          type: tenantFeatureType.delegatedConsumer,
+          availabilityTimestamp: stringToDate(feature.availabilityTimestamp),
+        } satisfies TenantFeatureDelegatedConsumer;
+      })
       .otherwise(() => {
         throw genericInternalError("Unexpected tenant feature");
       })
