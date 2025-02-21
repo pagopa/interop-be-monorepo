@@ -1214,7 +1214,6 @@ export const createTokenGenStatesConsumerClient = ({
 
   return {
     PK: pk,
-    consumerId,
     updatedAt: new Date().toISOString(),
     clientKind: clientKindTokenGenStates.consumer,
     publicKey,
