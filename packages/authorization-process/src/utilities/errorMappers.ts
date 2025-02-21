@@ -119,7 +119,9 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "notAllowedPrivateKeyException",
       "notAllowedCertificateException",
       "jwkDecodingError",
-      "invalidKey",
+      "invalidPublicKey",
+      "notAnRSAKey",
+      "invalidKeyLength",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
@@ -140,7 +142,13 @@ export const createProducerKeychainKeyErrorMapper = (
   if (baseMapperResult === HTTP_STATUS_INTERNAL_SERVER_ERROR) {
     return match(error.code)
       .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
-      .with("tooManyKeysPerProducerKeychain", () => HTTP_STATUS_BAD_REQUEST)
+      .with(
+        "tooManyKeysPerProducerKeychain",
+        "invalidPublicKey",
+        "notAnRSAKey",
+        "invalidKeyLength",
+        () => HTTP_STATUS_BAD_REQUEST
+      )
       .with(
         "organizationNotAllowedOnProducerKeychain",
         () => HTTP_STATUS_FORBIDDEN
