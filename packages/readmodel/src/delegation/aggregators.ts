@@ -22,6 +22,27 @@ import {
   DelegationContractDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 
+export const aggregateDelegationArray = ({
+  delegationSQL,
+  delegationStampsSQL,
+  delegationContractDocumentsSQL,
+}: {
+  delegationSQL: DelegationSQL[];
+  delegationStampsSQL: DelegationStampSQL[];
+  delegationContractDocumentsSQL: DelegationContractDocumentSQL[];
+}): Array<WithMetadata<Delegation>> =>
+  delegationSQL.map((delegationSQL) =>
+    aggregateDelegation({
+      delegationSQL,
+      delegationStampsSQL: delegationStampsSQL.filter(
+        (stampSQL) => stampSQL.delegationId === delegationSQL.id
+      ),
+      delegationContractDocumentsSQL: delegationContractDocumentsSQL.filter(
+        (docSQL) => docSQL.delegationId === delegationSQL.id
+      ),
+    })
+  );
+
 export const aggregateDelegation = ({
   delegationSQL,
   delegationStampsSQL,
