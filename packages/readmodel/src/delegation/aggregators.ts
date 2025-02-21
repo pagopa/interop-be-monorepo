@@ -40,10 +40,7 @@ export const aggregateDelegation = ({
           activationContractDocumentSQL
         )
       : undefined;
-  console.log(
-    "activationContract",
-    activationContract ? "true activation" : "false act"
-  );
+
   const revocationContractDocumentSQL = delegationContractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.revocation
   );
@@ -54,7 +51,7 @@ export const aggregateDelegation = ({
           revocationContractDocumentSQL
         )
       : undefined;
-  console.log("revocationContract", revocationContract);
+
   const submissionStampSQL = delegationStampsSQL.find(
     (stamp) => stamp.kind === delegationStampKind.submission
   );
