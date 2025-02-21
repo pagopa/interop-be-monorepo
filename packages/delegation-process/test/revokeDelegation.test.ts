@@ -99,8 +99,6 @@ describe.each([
         delegateId,
       }),
       eserviceId,
-      approvedAt: delegationActivationDate,
-      submittedAt: delegationCreationDate,
       stamps: {
         submission: {
           who: generateId<UserId>(),
@@ -155,7 +153,7 @@ describe.each([
     const revokedDelegationWithoutContract: Delegation = {
       ...existentDelegation,
       state: delegationState.revoked,
-      revokedAt: currentExecutionTime,
+      updatedAt: currentExecutionTime,
       stamps: {
         ...existentDelegation.stamps,
         revocation: {
@@ -176,6 +174,10 @@ describe.each([
         kind === delegationKind.delegatedConsumer
           ? "alla fruizione"
           : "all’erogazione",
+      delegationActionText:
+        kind === delegationKind.delegatedConsumer
+          ? "a gestire la fruizione dell’"
+          : "ad erogare l’",
       todayDate: dateAtRomeZone(currentExecutionTime),
       todayTime: timeAtRomeZone(currentExecutionTime),
       delegationId: revokedDelegationWithoutContract.id,
