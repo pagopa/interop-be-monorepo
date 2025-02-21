@@ -21,7 +21,7 @@ import {
 import {
   eserviceJoin,
   fromJoinToAggregator,
-} from "../src/catalog/retrievalJoin.js";
+} from "../src/catalog/eserviceRetrievalJoin.js";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import { aggregateEservice } from "../src/catalog/aggregators.js";
 import { readModelDB } from "./utils.js";

@@ -35,7 +35,7 @@ import {
 import {
   eserviceJoin,
   fromJoinToAggregator,
-} from "../src/catalog/retrievalJoin.js";
+} from "../src/catalog/eserviceRetrievalJoin.js";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import { aggregateEservice } from "../src/catalog/aggregators.js";
 import {
@@ -46,7 +46,7 @@ import {
   retrieveEserviceRiskAnalysisAnswersSQL,
   retrieveEServiceSQL,
   retrieveRejectionReasonsSQL,
-} from "../src/catalog/retrievalMultiQuery.js";
+} from "../src/catalog/eserviceRetrievalMultiQuery.js";
 import { readModelDB } from "./utils.js";
 
 describe("benchmark", async () => {
