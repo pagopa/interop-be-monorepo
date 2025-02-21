@@ -5,7 +5,7 @@ import { splitClientIntoObjectsSQL } from "../src/authorization/clientSplitters.
 import { clientSQLToClient } from "../src/authorization/clientAggregators.js";
 
 describe("Client aggregator", () => {
-  it("should convert a client into client SQL objects", () => {
+  it("should convert client SQL objects into a business logic client", () => {
     const client: WithMetadata<Client> = {
       data: {
         ...getMockClient(),
