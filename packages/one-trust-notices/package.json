@@ -30,10 +30,10 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.693.0",
     "@aws-sdk/util-dynamodb": "3.693.0",
-    "axios": "1.7.4",
-    "html2json": "1.0.2",
+    "axios": "^1.7.4",
+    "html2json": "^1.0.2",
     "lodash.isempty": "4.4.0",
     "pagopa-interop-commons": "workspace:*",
-    "zod": "3.23.8"
+    "zod": "^3.23.8"
   }
 }
