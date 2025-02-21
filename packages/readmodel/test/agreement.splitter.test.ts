@@ -3,7 +3,7 @@ import {
   getMockAgreementAttribute,
   getMockAgreementDocument,
   getMockAgreementStamps,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import {
   Agreement,

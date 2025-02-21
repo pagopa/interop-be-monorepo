@@ -26,7 +26,7 @@ import {
   agreementStampKind,
 } from "pagopa-interop-models";
 
-export const agreementSQLToAgreement = ({
+export const aggregateAgreement = ({
   agreementSQL,
   agreementStampsSQL,
   agreementDocumentsSQL,
@@ -80,7 +80,7 @@ export const agreementSQLToAgreement = ({
   );
   const agreement: Agreement = {
     id: unsafeBrandId<AgreementId>(agreementSQL.id),
-    eserviceId: unsafeBrandId<EServiceId>(agreementSQL.producerId),
+    eserviceId: unsafeBrandId<EServiceId>(agreementSQL.eserviceId),
     descriptorId: unsafeBrandId<DescriptorId>(agreementSQL.descriptorId),
     producerId: unsafeBrandId<TenantId>(agreementSQL.producerId),
     consumerId: unsafeBrandId<TenantId>(agreementSQL.consumerId),
