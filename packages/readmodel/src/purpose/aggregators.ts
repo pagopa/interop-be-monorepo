@@ -28,7 +28,7 @@ import {
 import { match } from "ts-pattern";
 
 // TODO: ...rest
-export const purposeSQLToPurpose = ({
+export const aggregatePurpose = ({
   purposeSQL,
   purposeRiskAnalysisFormSQL,
   purposeRiskAnalysisAnswersSQL,

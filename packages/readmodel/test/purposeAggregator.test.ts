@@ -15,7 +15,7 @@ import {
   getMockPurposeVersionDocument,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test/index.js";
-import { purposeSQLToPurpose } from "../src/purpose/aggregators.js";
+import { aggregatePurpose } from "../src/purpose/aggregators.js";
 import { splitPurposeIntoObjectsSQL } from "../src/purpose/splitters.js";
 
 describe("Purpose aggregator", () => {
@@ -56,7 +56,7 @@ describe("Purpose aggregator", () => {
       purposeVersionDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
-    const aggregatedPurpose = purposeSQLToPurpose({
+    const aggregatedPurpose = aggregatePurpose({
       purposeSQL,
       purposeRiskAnalysisFormSQL,
       purposeRiskAnalysisAnswersSQL,
@@ -86,7 +86,7 @@ describe("Purpose aggregator", () => {
       purposeVersionDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
-    const aggregatedPurpose = purposeSQLToPurpose({
+    const aggregatedPurpose = aggregatePurpose({
       purposeSQL,
       purposeRiskAnalysisFormSQL,
       purposeRiskAnalysisAnswersSQL,
