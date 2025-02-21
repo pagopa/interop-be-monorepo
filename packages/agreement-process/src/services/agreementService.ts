@@ -235,7 +235,9 @@ export function agreementServiceBuilder(
       { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<Agreement>> {
       logger.info(
-        `Getting agreements with producerId = ${filters.producerId}, consumerId = ${filters.consumerId}, eserviceId = ${filters.eserviceId}, agreementStates = ${filters.agreementStates}, attributeId = ${filters.attributeId}, showOnlyUpgradeable = ${filters.showOnlyUpgradeable}, offset = ${offset}, limit = ${limit}`
+        `Getting agreements with filters: ${JSON.stringify(
+          filters
+        )}, offset = ${offset}, limit = ${limit}`
       );
 
       // Permissions are checked in the readModelService
@@ -978,7 +980,9 @@ export function agreementServiceBuilder(
       { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactEService>> {
       logger.info(
-        `Retrieving EServices from agreements with consumers ${filters.consumerIds}, producers ${filters.producerIds}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
+        `Retrieving EServices from agreements with filters: ${JSON.stringify(
+          filters
+        )}, offset ${offset}, limit ${limit}`
       );
 
       // Permissions are checked in the readModelService

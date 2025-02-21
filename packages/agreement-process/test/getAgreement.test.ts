@@ -70,45 +70,41 @@ describe("get agreement", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(agreement, addOneDelegation);
 
-    const retrievedDocumentByConsumer = await agreementService.getAgreementById(
-      agreement.id,
-      {
+    const retrievedAgreementByConsumer =
+      await agreementService.getAgreementById(agreement.id, {
         authData: getRandomAuthData(consumer.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-      }
-    );
-    expect(retrievedDocumentByConsumer).toEqual(agreement);
+      });
+    expect(retrievedAgreementByConsumer).toEqual(agreement);
 
-    const retrievedDocumentByProducer = await agreementService.getAgreementById(
-      agreement.id,
-      {
+    const retrievedAgreementByProducer =
+      await agreementService.getAgreementById(agreement.id, {
         authData: getRandomAuthData(producer.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-      }
-    );
-    expect(retrievedDocumentByProducer).toEqual(agreement);
+      });
+    expect(retrievedAgreementByProducer).toEqual(agreement);
 
-    const retrievedDocumentByProducerDelegate =
+    const retrievedAgreementByProducerDelegate =
       await agreementService.getAgreementById(agreement.id, {
         authData: getRandomAuthData(producerDelegate.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
       });
-    expect(retrievedDocumentByProducerDelegate).toEqual(agreement);
+    expect(retrievedAgreementByProducerDelegate).toEqual(agreement);
 
-    const retrievedDocumentByConsumerDelegate =
+    const retrievedAgreementByConsumerDelegate =
       await agreementService.getAgreementById(agreement.id, {
         authData: getRandomAuthData(consumerDelegate.id),
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
       });
-    expect(retrievedDocumentByConsumerDelegate).toEqual(agreement);
+    expect(retrievedAgreementByConsumerDelegate).toEqual(agreement);
   });
 
   it(`should throw an organizationNotAllowed error when the requester is
