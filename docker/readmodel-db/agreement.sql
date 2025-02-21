@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS readmodel.agreement(
+CREATE SCHEMA IF NOT EXISTS readmodel_agreement;
+
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement(
   id uuid,
   metadata_version integer NOT NULL,
   eservice_id uuid NOT NULL,
@@ -6,25 +8,19 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement(
   producer_id UUID NOT NULL,
   consumer_id UUID NOT NULL,
   state varchar NOT NULL,
-  -- verifiedAttributes
-  -- certifiedAttributes
-  -- declaredAttributes
   suspended_by_consumer boolean,
   suspended_by_producer boolean,
   suspended_by_platform boolean,
-  -- consumerDocuments
   created_at timestamp WITH time zone NOT NULL,
   updated_at timestamp WITH time zone,
   consumer_notes varchar,
-  -- contract
-  -- stamps
   rejection_reason varchar,
   suspended_at timestamp WITH time zone,
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.agreement_stamp(
-  agreement_id uuid NOT NULL REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp(
+  agreement_id uuid NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
   who uuid NOT NULL,
   delegation_id uuid,
@@ -33,17 +29,17 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_stamp(
   PRIMARY KEY (agreement_id, kind)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.agreement_attribute(
-  agreement_id uuid NOT NULL REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute(
+  agreement_id uuid NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
   attribute_id uuid NOT NULL,
   kind varchar NOT NULL,
   PRIMARY KEY (agreement_id, attribute_id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel.agreement_document(
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_document(
   id uuid,
-  agreement_id uuid NOT NULL REFERENCES readmodel.agreement(id) ON DELETE CASCADE,
+  agreement_id uuid NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
   metadata_version integer NOT NULL,
   name varchar NOT NULL,
   pretty_name varchar NOT NULL,
@@ -51,6 +47,5 @@ CREATE TABLE IF NOT EXISTS readmodel.agreement_document(
   path varchar NOT NULL,
   created_at timestamp WITH time zone NOT NULL,
   kind varchar NOT NULL,
-  -- consumerDoc / contract
   PRIMARY KEY (id)
 );

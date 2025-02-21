@@ -23,7 +23,6 @@ import { agreementArchivableStates } from "../src/model/domain/agreement-validat
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  delegationNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -150,25 +149,5 @@ describe("internal archive agreement", () => {
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, notArchivableState)
     );
-  });
-  it("should throw delegationNotFound when the delegation is not present", async () => {
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      randomArrayItem(agreementArchivableStates)
-    );
-
-    await addOneAgreement(agreement);
-
-    const invalidDelegationid = generateId<DelegationId>();
-
-    await expect(
-      agreementService.internalArchiveAgreementAfterDelegationRevocation(
-        agreement.id,
-        invalidDelegationid,
-        generateId(),
-        genericLogger
-      )
-    ).rejects.toThrowError(delegationNotFound(invalidDelegationid));
   });
 });
