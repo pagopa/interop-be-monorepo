@@ -255,20 +255,8 @@ export const delegationInReadmodelDelegation = readmodelDelegation.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
-    submittedAt: timestamp("submitted_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    approvedAt: timestamp("approved_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
-    rejectedAt: timestamp("rejected_at", {
-      withTimezone: true,
-      mode: "string",
-    }),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
     rejectionReason: varchar("rejection_reason"),
-    revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "string" }),
     state: varchar().notNull(),
     kind: varchar().notNull(),
   }
