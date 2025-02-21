@@ -7,6 +7,7 @@ import { isDefined } from "pagopa-interop-commons";
 import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
+  DelegationId,
   Tenant,
   TenantAttribute,
   TenantMail,
@@ -37,6 +38,9 @@ export function toTenantAttribute(
       verificationDate: new Date(v.verificationDate),
       expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
       extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
+      delegationId: v.delegationId
+        ? unsafeBrandId<DelegationId>(v.delegationId)
+        : undefined,
     })),
     revokedBy: att.verified.revokedBy.map((r) => ({
       id: unsafeBrandId(r.id),
@@ -44,6 +48,9 @@ export function toTenantAttribute(
       revocationDate: new Date(r.revocationDate),
       expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,
       extensionDate: r.extensionDate ? new Date(r.extensionDate) : undefined,
+      delegationId: r.delegationId
+        ? unsafeBrandId<DelegationId>(r.delegationId)
+        : undefined,
     })),
   };
 
@@ -53,6 +60,9 @@ export function toTenantAttribute(
     assignmentTimestamp: new Date(att.declared.assignmentTimestamp),
     revocationTimestamp: att.declared.revocationTimestamp
       ? new Date(att.declared.revocationTimestamp)
+      : undefined,
+    delegationId: att.declared.delegationId
+      ? unsafeBrandId<DelegationId>(att.declared.delegationId)
       : undefined,
   };
 
@@ -112,6 +122,7 @@ const toBffApiDeclaredTenantAttribute = (
         description: registryAttribute.description,
         assignmentTimestamp: tenantAttribute.assignmentTimestamp,
         revocationTimestamp: tenantAttribute.revocationTimestamp,
+        delegationId: tenantAttribute.delegationId,
       }
     : undefined;
 };
@@ -178,6 +189,7 @@ export function toBffApiTenant(
     id: tenant.id,
     selfcareId: tenant.selfcareId,
     externalId: tenant.externalId,
+    kind: tenant.kind,
     createdAt: tenant.createdAt,
     updatedAt: tenant.updatedAt,
     name: tenant.name,

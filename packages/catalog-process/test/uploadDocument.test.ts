@@ -10,14 +10,19 @@ import {
   unsafeBrandId,
   operationForbidden,
   Document,
+  delegationState,
   generateId,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   interfaceAlreadyExists,
   prettyNameDuplicate,
 } from "../src/model/domain/errors.js";
@@ -31,6 +36,7 @@ import {
   getMockDocument,
   getMockEService,
   buildDocumentSeed,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("upload Document", () => {
@@ -39,7 +45,9 @@ describe("upload Document", () => {
   const mockDocument = getMockDocument();
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.archived
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
     )
   )(
     "should write on event-store for the upload of a document when descriptor state is %s",
@@ -60,6 +68,80 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         {
           authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+      expect(writtenEvent.event_version).toBe(2);
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorInterfaceDeletedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedEservice = toEServiceV2({
+        ...eservice,
+        descriptors: [
+          {
+            ...descriptor,
+            interface: {
+              ...mockDocument,
+              id: unsafeBrandId(
+                writtenPayload.eservice!.descriptors[0]!.interface!.id
+              ),
+              checksum:
+                writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
+              uploadDate: new Date(
+                writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+              ),
+            },
+            serverUrls: ["pagopa.it"],
+          },
+        ],
+      });
+
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    }
+  );
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
+    )
+  )(
+    "should write on event-store for the upload of a document when descriptor state is %s (delegate)",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        serverUrls: [],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      const returnedEService = await catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildInterfaceSeed(),
+        {
+          authData: getMockAuthData(delegation.delegateId),
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
@@ -142,6 +224,63 @@ describe("upload Document", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+  it("should throw operationForbidden if the requester is not the producer", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildInterfaceSeed(),
+        {
+          authData: getMockAuthData(),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.uploadDocument(
+        eservice.id,
+        descriptor.id,
+        buildInterfaceSeed(),
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
     const eservice: EService = {
       ...mockEService,
@@ -167,10 +306,12 @@ describe("upload Document", () => {
 
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state === descriptorState.archived
+      (state) =>
+        state === descriptorState.archived ||
+        state === descriptorState.waitingForApproval
     )
   )(
-    "should throw notValidDescriptor if the descriptor is in %s state",
+    "should throw notValidDescriptorState if the descriptor is in %s state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -192,7 +333,7 @@ describe("upload Document", () => {
             logger: genericLogger,
           }
         )
-      ).rejects.toThrowError(notValidDescriptor(descriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
   it("should throw interfaceAlreadyExists if the descriptor already contains an interface", async () => {

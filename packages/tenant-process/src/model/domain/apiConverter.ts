@@ -11,6 +11,8 @@ import {
   tenantMailKind,
   TenantFeature,
   tenantAttributeType,
+  TenantFeatureType,
+  tenantFeatureType,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -45,6 +47,11 @@ export function toApiTenantFeature(
         availabilityTimestamp: feature.availabilityTimestamp.toJSON(),
       },
     }))
+    .with({ type: "DelegatedConsumer" }, (feature) => ({
+      delegatedConsumer: {
+        availabilityTimestamp: feature.availabilityTimestamp.toJSON(),
+      },
+    }))
     .exhaustive();
 }
 
@@ -56,6 +63,7 @@ export function toApiTenantVerifier(
     verificationDate: verifier.verificationDate.toJSON(),
     expirationDate: verifier.expirationDate?.toJSON(),
     extensionDate: verifier.extensionDate?.toJSON(),
+    delegationId: verifier.delegationId,
   };
 }
 
@@ -68,6 +76,7 @@ export function toApiTenantRevoker(
     expirationDate: revoker.expirationDate?.toJSON(),
     extensionDate: revoker.extensionDate?.toJSON(),
     revocationDate: revoker.revocationDate.toJSON(),
+    delegationId: revoker.delegationId,
   };
 }
 
@@ -95,6 +104,7 @@ export function toApiTenantAttribute(
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
         revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
+        delegationId: attribute.delegationId,
       },
     }))
     .exhaustive();
@@ -132,4 +142,23 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
   };
+}
+
+export function apiTenantFeatureTypeToTenantFeatureType(
+  input: tenantApi.TenantFeatureType
+): TenantFeatureType {
+  return match<tenantApi.TenantFeatureType, TenantFeatureType>(input)
+    .with(
+      tenantApi.TenantFeatureType.Values.DELEGATED_PRODUCER,
+      () => tenantFeatureType.delegatedProducer
+    )
+    .with(
+      tenantApi.TenantFeatureType.Values.PERSISTENT_CERTIFIER,
+      () => tenantFeatureType.persistentCertifier
+    )
+    .with(
+      tenantApi.TenantFeatureType.Values.DELEGATED_CONSUMER,
+      () => tenantFeatureType.delegatedConsumer
+    )
+    .exhaustive();
 }

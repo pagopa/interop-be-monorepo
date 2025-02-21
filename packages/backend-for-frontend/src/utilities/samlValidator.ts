@@ -1,4 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
+import { SignedXml } from "xml-crypto";
+import { DOMParser } from "@xmldom/xmldom";
 import { config } from "../config/config.js";
 import { samlNotValid } from "../model/errors.js";
 import { SAMLResponse } from "../model/types.js";
@@ -88,9 +90,31 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
     throw samlNotValid("Response not found");
   }
   const response = saml.Response;
-  if (!response.Signature) {
+  if (!response.Signature?.SignatureValue) {
     throw samlNotValid("Missing Signature");
   }
+
+  const doc = new DOMParser().parseFromString(samlResponse, "text/xml");
+  const node = doc.getElementsByTagNameNS("*", "Signature").item(0);
+
+  if (!node) {
+    throw samlNotValid("Signature not found");
+  }
+
+  const sig = new SignedXml({
+    publicCert: config.samlPublicKey,
+  });
+
+  sig.loadSignature(node);
+  try {
+    const isValid = sig.checkSignature(samlResponse);
+    if (!isValid) {
+      throw samlNotValid("Signature is not valid");
+    }
+  } catch (e) {
+    throw samlNotValid("Signature contains errors");
+  }
+
   if (!response.Assertion || response.Assertion.length === 0) {
     throw samlNotValid("Missing Assertions");
   }

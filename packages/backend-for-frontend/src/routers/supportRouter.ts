@@ -1,7 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
-  buildJwksClients,
   ExpressContext,
   InteropTokenGenerator,
   RateLimiter,
@@ -20,8 +19,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 const supportRouter = (
   ctx: ZodiosContext,
   { tenantProcessClient }: PagoPAInteropBeClients,
-  rateLimiter: RateLimiter,
-  jwksClients: ReturnType<typeof buildJwksClients>
+  rateLimiter: RateLimiter
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const supportRouter = ctx.router(bffApi.supportApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -32,8 +30,7 @@ const supportRouter = (
     interopTokenGenerator,
     tenantProcessClient,
     config.tenantAllowedOrigins,
-    rateLimiter,
-    jwksClients
+    rateLimiter
   );
 
   supportRouter.post("/session/saml2/tokens", async (req, res) => {

@@ -9,7 +9,7 @@ import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { ApiError, genericError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
-import { z } from "zod";
+import { ZodError, z } from "zod";
 import { config } from "../config/config.js";
 import {
   ErrorCodes,
@@ -22,6 +22,27 @@ import { CatalogProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { ConfigurationDoc } from "../model/types.js";
 import { calculateChecksum } from "./fileUtils.js";
+
+const Wsdl = z.object({
+  definitions: z.object({
+    binding: z.array(
+      z.object({
+        operation: z.array(
+          z.object({
+            name: z.string(),
+          })
+        ),
+      })
+    ),
+    service: z.object({
+      port: z.array(
+        z.object({
+          address: z.object({ location: z.string() }),
+        })
+      ),
+    }),
+  }),
+});
 
 // eslint-disable-next-line max-params
 export async function verifyAndCreateEServiceDocument(
@@ -92,7 +113,7 @@ export async function verifyAndCreateEServiceDocument(
 const getFileType = (
   name: string
 ): "json" | "yaml" | "wsdl" | "xml" | undefined =>
-  match(name)
+  match(name.toLowerCase())
     .with(P.string.endsWith("json"), () => "json" as const)
     .with(
       P.string.endsWith("yaml"),
@@ -156,17 +177,18 @@ export const verifyAndCreateImportedDoc = async (
 };
 
 function handleOpenApiV2(openApi: Record<string, unknown>) {
-  const { data: host, error: hostError } = z.string().safeParse(openApi.host);
-  const { error: pathsError } = z.array(z.object({})).safeParse(openApi.paths);
+  const { data, error } = z
+    .object({
+      host: z.string(),
+      paths: z.array(z.object({})),
+    })
+    .safeParse(openApi);
 
-  if (hostError) {
-    throw new Error();
-  }
-  if (pathsError) {
-    throw new Error();
+  if (error) {
+    throw error;
   }
 
-  return [host];
+  return [data.host];
 }
 
 function handleOpenApiV3(openApi: Record<string, unknown>) {
@@ -174,7 +196,7 @@ function handleOpenApiV3(openApi: Record<string, unknown>) {
     .array(z.object({ url: z.string() }))
     .safeParse(openApi.servers);
   if (error) {
-    throw new Error();
+    throw error;
   }
 
   return servers.flatMap((s) => s.url);
@@ -205,23 +227,34 @@ function processSoapInterface(file: string) {
     removeNSPrefix: true,
     ignoreAttributes: false,
     attributeNamePrefix: "",
-    isArray: (name: string) => ["operation"].indexOf(name) !== -1,
+    isArray: (name: string) =>
+      ["operation", "port", "binding"].indexOf(name) !== -1,
   }).parse(file);
 
-  const address = xml.definitions?.service?.port?.address?.location;
-  if (!address) {
+  const { data: parsedXml, success, error } = Wsdl.safeParse(xml);
+
+  if (!success) {
+    throw error;
+  }
+
+  const address = parsedXml.definitions.service.port.map(
+    (p) => p.address.location
+  );
+  if (address.length === 0) {
     throw interfaceExtractingInfoError();
   }
 
-  const endpoints = xml.definitions?.binding?.operation;
+  const endpoints = parsedXml.definitions.binding.flatMap((b) =>
+    b.operation.map((o) => o.name)
+  );
   if (endpoints.length === 0) {
     throw interfaceExtractingInfoError();
   }
 
-  return [address];
+  return address;
 }
 
-async function handleEServiceDocumentProcessing(
+export async function handleEServiceDocumentProcessing(
   doc: bffApi.createEServiceDocument_Body,
   technology: catalogApi.EServiceTechnology,
   eServiceId: string
@@ -260,7 +293,11 @@ async function handleEServiceDocumentProcessing(
       });
   } catch (error) {
     throw match(error)
-      .with(P.instanceOf(ApiError<ErrorCodes>), () => error)
+      .with(
+        P.instanceOf(ApiError<ErrorCodes>),
+        P.instanceOf(ZodError),
+        () => error
+      )
       .otherwise(() => invalidInterfaceFileDetected(eServiceId));
   }
 }

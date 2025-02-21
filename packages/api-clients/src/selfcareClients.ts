@@ -11,25 +11,13 @@ const createClientConfig = (selfcareApiKey: string): ZodiosOptions => ({
 });
 
 export type SelfcareV2InstitutionClient = ZodiosInstance<
-  typeof selfcareV2ClientApi.institutionsApi.api
+  typeof selfcareV2ClientApi.InstitutionApi.api
 >;
 
 export const selfcareV2InstitutionClientBuilder = (
   config: SelfCareConfig
 ): SelfcareV2InstitutionClient =>
-  selfcareV2ClientApi.createInstitutionsApiClient(
-    config.selfcareBaseUrl,
-    createClientConfig(config.selfcareApiKey)
-  );
-
-export type SelfcareV2ProductClient = ZodiosInstance<
-  typeof selfcareV2ClientApi.productApi.api
->;
-
-export const selfcareV2ProductClientBuilder = (
-  config: SelfCareConfig
-): SelfcareV2ProductClient =>
-  selfcareV2ClientApi.createProductApiClient(
+  selfcareV2ClientApi.createInstitutionApiClient(
     config.selfcareBaseUrl,
     createClientConfig(config.selfcareApiKey)
   );
@@ -46,26 +34,14 @@ export const selfcareV2DelegationClientBuilder = (
     createClientConfig(config.selfcareApiKey)
   );
 
-export type SelfcareV2InterceptorClient = ZodiosInstance<
-  typeof selfcareV2ClientApi.interceptorApi.api
->;
-
-export const selfcareV2InterceptorClientBuilder = (
-  config: SelfCareConfig
-): SelfcareV2InterceptorClient =>
-  selfcareV2ClientApi.createInterceptorApiClient(
-    config.selfcareBaseUrl,
-    createClientConfig(config.selfcareApiKey)
-  );
-
 export type SelfcareV2UsersClient = ZodiosInstance<
-  typeof selfcareV2ClientApi.usersApi.api
+  typeof selfcareV2ClientApi.UserApi.api
 >;
 
 export const selfcareV2UsersClientBuilder = (
   config: SelfCareConfig
 ): SelfcareV2UsersClient =>
-  selfcareV2ClientApi.createUsersApiClient(
+  selfcareV2ClientApi.createUserApiClient(
     config.selfcareBaseUrl,
     createClientConfig(config.selfcareApiKey)
   );

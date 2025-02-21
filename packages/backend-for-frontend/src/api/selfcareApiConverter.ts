@@ -19,51 +19,49 @@ export const toBffApiCompactUser = (
     }));
 
 export const toApiSelfcareInstitution = (
-  input: selfcareV2ClientApi.InstitutionResource
+  input: selfcareV2ClientApi.UserInstitutionResource
 ): bffApi.SelfcareInstitution =>
   match(input)
     .with(
       {
-        id: P.nonNullable,
-        description: P.nonNullable,
-        userProductRoles: P.nonNullable,
+        institutionId: P.nonNullable,
+        institutionDescription: P.nonNullable,
+        products: P.nonNullable,
       },
-      (institution) => ({
-        id: institution.id,
-        description: institution.description,
-        userProductRoles: institution.userProductRoles,
-      })
+      (institution) => {
+        const productRole = institution.products
+          .map((product) => product.productRole)
+          .filter((role): role is string => !!role);
+
+        return {
+          id: institution.institutionId,
+          description: institution.institutionDescription,
+          userProductRoles: productRole,
+        };
+      }
     )
-    .with({ id: P.nullish }, () => {
-      throw selfcareEntityNotFilled("InstitutionResource", "id");
+    .with({ institutionId: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserInstitutionResource", "institutionId");
     })
-    .with({ description: P.nullish }, () => {
-      throw selfcareEntityNotFilled("InstitutionResource", "description");
+    .with({ institutionDescription: P.nullish }, () => {
+      throw selfcareEntityNotFilled(
+        "UserInstitutionResource",
+        "institutionDescription"
+      );
     })
-    .with({ userProductRoles: P.nullish }, () => {
-      throw selfcareEntityNotFilled("InstitutionResource", "userProductRoles");
+    .with({ products: P.nullish }, () => {
+      throw selfcareEntityNotFilled("UserInstitutionResource", "products");
     })
     .otherwise(() => {
-      throw selfcareEntityNotFilled("InstitutionResource", "unkown");
+      throw selfcareEntityNotFilled("UserInstitutionResource", "unknown");
     });
 
 export const toApiSelfcareProduct = (
   input: selfcareV2ClientApi.ProductResource
-): bffApi.SelfcareProduct =>
-  match(input)
-    .with({ id: P.nonNullable, title: P.nonNullable }, (product) => ({
-      id: product.id,
-      name: product.title,
-    }))
-    .with({ id: P.nullish }, () => {
-      throw selfcareEntityNotFilled("ProductResource", "id");
-    })
-    .with({ title: P.nullish }, () => {
-      throw selfcareEntityNotFilled("ProductResource", "title");
-    })
-    .otherwise(() => {
-      throw selfcareEntityNotFilled("ProductResource", "unknown");
-    });
+): bffApi.SelfcareProduct => ({
+  id: input.id,
+  name: input.title,
+});
 
 export const toApiSelfcareUser = (
   input: selfcareV2ClientApi.UserResource,

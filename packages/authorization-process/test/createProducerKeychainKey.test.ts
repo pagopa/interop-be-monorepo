@@ -10,9 +10,11 @@ import {
   ProducerKeychain,
   Key,
   ProducerKeychainKeyAddedV2,
-  invalidKey,
+  invalidKeyLength,
   toProducerKeychainV2,
   Client,
+  notAnRSAKey,
+  invalidPublicKey,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -77,10 +79,10 @@ describe("createProducerKeychainKey", () => {
 
   function mockSelfcareV2ClientCall(
     value: Awaited<
-      ReturnType<typeof selfcareV2Client.getInstitutionProductUsersUsingGET>
+      ReturnType<typeof selfcareV2Client.getInstitutionUsersByProductUsingGET>
     >
   ): void {
-    selfcareV2Client.getInstitutionProductUsersUsingGET = vi.fn(
+    selfcareV2Client.getInstitutionUsersByProductUsingGET = vi.fn(
       async () => value
     );
   }
@@ -401,7 +403,7 @@ describe("createProducerKeychainKey", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
+    ).rejects.toThrowError(notAnRSAKey());
   });
   it("should throw invalidKey if the key doesn't have the delimiters", async () => {
     const keySeed: authorizationApi.KeySeed = {
@@ -421,8 +423,35 @@ describe("createProducerKeychainKey", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(
-      invalidKey(keySeed.key, "error:1E08010C:DECODER routines::unsupported")
-    );
+    ).rejects.toThrowError(invalidPublicKey());
+  });
+
+  it("should throw invalidKeyLength if the key doesn't have 2048 bites", async () => {
+    const key = crypto.generateKeyPairSync("rsa", {
+      modulusLength: 1024,
+    }).publicKey;
+
+    const base64Key = Buffer.from(
+      key.export({ type: "pkcs1", format: "pem" })
+    ).toString("base64url");
+
+    const keySeed: authorizationApi.KeySeed = {
+      name: "key seed",
+      use: "ENC",
+      key: base64Key,
+      alg: "",
+    };
+
+    await addOneProducerKeychain(mockProducerKeychain);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+    expect(
+      authorizationService.createProducerKeychainKey({
+        producerKeychainId: mockProducerKeychain.id,
+        authData: mockAuthData,
+        keySeed,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(invalidKeyLength(1024, 2048));
   });
 });

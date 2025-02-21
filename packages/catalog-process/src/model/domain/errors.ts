@@ -1,5 +1,7 @@
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
+  DelegationId,
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
@@ -7,7 +9,6 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0001",
@@ -33,6 +34,11 @@ export const errorCodes = {
   riskAnalysisDuplicated: "0021",
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
+  eserviceWithActiveOrPendingDelegation: "0024",
+  invalidEServiceFlags: "0025",
+  inconsistentAttributesSeedGroupsCount: "0026",
+  descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
+  unchangedAttributes: "0028",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -89,7 +95,7 @@ export function eServiceDocumentNotFound(
   });
 }
 
-export function notValidDescriptor(
+export function notValidDescriptorState(
   descriptorId: DescriptorId,
   descriptorStatus: string
 ): ApiError<ErrorCodes> {
@@ -269,5 +275,59 @@ export function audienceCannotBeEmpty(
     detail: `Descriptor ${descriptorId} can't be published with empty audience`,
     code: "audienceCannotBeEmpty",
     title: "Audience cannot be empty",
+  });
+}
+
+export function inconsistentAttributesSeedGroupsCount(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attributes seed contains a different number of groups than the descriptor for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "inconsistentAttributesSeedGroupsCount",
+    title: "Inconsistent attributes seed groups count",
+  });
+}
+
+export function descriptorAttributeGroupSupersetMissingInAttributesSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Missing required attribute group superset in attributes seed for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "descriptorAttributeGroupSupersetMissingInAttributesSeed",
+    title: "Descriptor attribute group superset missing in attributes seed",
+  });
+}
+
+export function unchangedAttributes(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No new attributes detected in attribute seed for EService ${eserviceId} and Descriptor ${descriptorId}`,
+    code: "unchangedAttributes",
+    title: "Unchanged attributes",
+  });
+}
+
+export function eserviceWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be deleted with an active or pending delegation ${delegationId}`,
+    code: "eserviceWithActiveOrPendingDelegation",
+    title: "E-service with active or pending delegation",
+  });
+}
+
+export function invalidEServiceFlags(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} flags are not valid`,
+    code: "invalidEServiceFlags",
+    title: "Invalid EService flags",
   });
 }

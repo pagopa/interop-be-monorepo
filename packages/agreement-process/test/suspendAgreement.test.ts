@@ -10,6 +10,7 @@ import {
   getMockAgreementAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
@@ -30,25 +31,29 @@ import {
   Tenant,
   TenantId,
   agreementState,
+  delegationKind,
+  delegationState,
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { match } from "ts-pattern";
 import { agreementSuspendableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  operationNotAllowed,
+  organizationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   addOneAgreement,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
+  getRandomPastStamp,
   readLastAgreementEvent,
 } from "./utils.js";
 
@@ -181,12 +186,10 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
+    expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
 
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
@@ -285,12 +288,10 @@ describe("suspend agreement", () => {
         },
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
+    expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
 
   it("should preserve the suspension flags and the stamps that it does not update", async () => {
@@ -318,13 +319,13 @@ describe("suspend agreement", () => {
       suspendedByProducer: randomBoolean(),
       suspendedByPlatform: randomBoolean(),
       stamps: {
-        activation: createStamp(authData.userId),
-        archiving: createStamp(authData.userId),
-        rejection: createStamp(authData.userId),
-        submission: createStamp(authData.userId),
-        upgrade: createStamp(authData.userId),
-        suspensionByConsumer: createStamp(authData.userId),
-        suspensionByProducer: createStamp(authData.userId),
+        activation: getRandomPastStamp(authData.userId),
+        archiving: getRandomPastStamp(authData.userId),
+        rejection: getRandomPastStamp(authData.userId),
+        submission: getRandomPastStamp(authData.userId),
+        upgrade: getRandomPastStamp(authData.userId),
+        suspensionByConsumer: getRandomPastStamp(authData.userId),
+        suspensionByProducer: getRandomPastStamp(authData.userId),
       },
     };
 
@@ -393,13 +394,114 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toMatchObject(
+    expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toMatchObject(
-      toAgreementV2(returnedAgreement)
-    );
+    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
+
+  describe.each(agreementSuspendableStates)(
+    "should succeed if the agreement is in %s state",
+    async (state) => {
+      it.each([
+        delegationKind.delegatedConsumer,
+        delegationKind.delegatedProducer,
+      ])("and the requester is the %s", async (kind) => {
+        const date = new Date();
+        const consumer: Tenant = {
+          ...getMockTenant(),
+          attributes: [
+            getMockCertifiedTenantAttribute(),
+            getMockDeclaredTenantAttribute(),
+            getMockVerifiedTenantAttribute(),
+          ],
+        };
+
+        const descriptor = {
+          ...getMockDescriptorPublished(),
+          attributes: {
+            certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
+            declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
+            verified: [[getMockEServiceAttribute(consumer.attributes[2].id)]],
+          },
+        };
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [descriptor],
+        };
+        const agreement = {
+          ...getMockAgreement(),
+          state,
+          eserviceId: eservice.id,
+          producerId: eservice.producerId,
+          consumerId: consumer.id,
+          descriptorId: descriptor.id,
+          suspendedByConsumer: false,
+          suspendedByProducer: false,
+          suspendedByPlatform: false,
+        };
+        const authData = getRandomAuthData();
+        const delegation = getMockDelegation({
+          kind,
+          delegateId: authData.organizationId,
+          eserviceId: eservice.id,
+          delegatorId: match(kind)
+            .with(delegationKind.delegatedProducer, () => eservice.producerId)
+            .with(delegationKind.delegatedConsumer, () => consumer.id)
+            .exhaustive(),
+          state: delegationState.active,
+        });
+
+        await addOneAgreement(agreement);
+        await addOneEService(eservice);
+        await addOneTenant(consumer);
+        await addOneDelegation(delegation);
+
+        const expectedAgreement = {
+          ...agreement,
+          state: agreementState.suspended,
+          suspendedByProducer: match(kind)
+            .with(delegationKind.delegatedProducer, () => true)
+            .with(delegationKind.delegatedConsumer, () => false)
+            .exhaustive(),
+          suspendedByConsumer: match(kind)
+            .with(delegationKind.delegatedProducer, () => false)
+            .with(delegationKind.delegatedConsumer, () => true)
+            .exhaustive(),
+          stamps: {
+            ...agreement.stamps,
+            ...match(kind)
+              .with(delegationKind.delegatedProducer, () => ({
+                suspensionByProducer: {
+                  delegationId: delegation.id,
+                  who: authData.userId,
+                  when: date,
+                },
+              }))
+              .with(delegationKind.delegatedConsumer, () => ({
+                suspensionByConsumer: {
+                  delegationId: delegation.id,
+                  who: authData.userId,
+                  when: date,
+                },
+              }))
+              .exhaustive(),
+          },
+        };
+
+        const actualAgreement = await agreementService.suspendAgreement(
+          agreement.id,
+          {
+            authData,
+            serviceName: "",
+            correlationId: generateId(),
+            logger: genericLogger,
+          }
+        );
+        expect(actualAgreement).toEqual(expectedAgreement);
+      });
+    }
+  );
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
@@ -415,9 +517,13 @@ describe("suspend agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw operationNotAllowed when the requester is not the Consumer or the Producer", async () => {
+  it("should throw organizationNotAllowed when the requester is not the Consumer or the Producer", async () => {
     const authData = getRandomAuthData();
-    const agreement = getMockAgreement();
+    const agreement = getMockAgreement(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      randomArrayItem(agreementSuspendableStates)
+    );
     await addOneAgreement(agreement);
     await expect(
       agreementService.suspendAgreement(agreement.id, {
@@ -426,7 +532,7 @@ describe("suspend agreement", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
@@ -530,4 +636,102 @@ describe("suspend agreement", () => {
       descriptorNotFound(eservice.id, agreement.descriptorId)
     );
   });
+
+  it.each([
+    { kind: delegationKind.delegatedConsumer, desc: "consumer" },
+    { kind: delegationKind.delegatedProducer, desc: "producer" },
+  ])(
+    "should throw organizationNotAllowed a error when the requester is the $desc but not the $kind",
+    async ({ kind }) => {
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const consumer = getMockTenant();
+      const delegate = getMockTenant();
+      const agreement = {
+        ...getMockAgreement(),
+        state: randomArrayItem(agreementSuspendableStates),
+        eserviceId: eservice.id,
+        producerId: eservice.producerId,
+        consumerId: consumer.id,
+        descriptorId: eservice.descriptors[0].id,
+      };
+      const authData = getRandomAuthData(
+        match(kind)
+          .with(delegationKind.delegatedProducer, () => agreement.producerId)
+          .with(delegationKind.delegatedConsumer, () => agreement.consumerId)
+          .exhaustive()
+      );
+      const delegation = getMockDelegation({
+        kind,
+        delegateId: delegate.id,
+        eserviceId: eservice.id,
+        delegatorId: match(kind)
+          .with(delegationKind.delegatedProducer, () => eservice.producerId)
+          .with(delegationKind.delegatedConsumer, () => consumer.id)
+          .exhaustive(),
+        state: delegationState.active,
+      });
+
+      await addOneAgreement(agreement);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+      await addOneTenant(delegate);
+      await addOneDelegation(delegation);
+
+      await expect(
+        agreementService.suspendAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    }
+  );
+
+  it.each([delegationKind.delegatedProducer, delegationKind.delegatedConsumer])(
+    "should throw a organizationNotAllowed error when the requester is the %s but the delegation in not active",
+    async (kind) => {
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [getMockDescriptorPublished()],
+      };
+      const consumer = getMockTenant();
+      const agreement = {
+        ...getMockAgreement(),
+        state: randomArrayItem(agreementSuspendableStates),
+        eserviceId: eservice.id,
+        producerId: eservice.producerId,
+        consumerId: consumer.id,
+        descriptorId: eservice.descriptors[0].id,
+      };
+      const authData = getRandomAuthData();
+      const delegation = getMockDelegation({
+        kind,
+        delegateId: authData.organizationId,
+        eserviceId: eservice.id,
+        delegatorId: match(kind)
+          .with(delegationKind.delegatedProducer, () => eservice.producerId)
+          .with(delegationKind.delegatedConsumer, () => consumer.id)
+          .exhaustive(),
+        state: delegationState.waitingForApproval,
+      });
+
+      await addOneAgreement(agreement);
+      await addOneEService(eservice);
+      await addOneTenant(consumer);
+      await addOneDelegation(delegation);
+
+      await expect(
+        agreementService.suspendAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    }
+  );
 });

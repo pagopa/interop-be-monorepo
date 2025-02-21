@@ -84,7 +84,7 @@ describe("interfaceExporter", () => {
         genericLogger
       )
     ).toContain(
-      `${mockEserviceId1}/${mockDescriptor1.id}/${mockDocument1.name}`
+      `${config.datalakeInterfacesExportPath}/${mockEserviceId1}/${mockDescriptor1.id}/${mockDocument1.name}`
     );
 
     expect(
@@ -93,7 +93,7 @@ describe("interfaceExporter", () => {
         genericLogger
       )
     ).toContain(
-      `${mockEserviceId2}/${mockDescriptor2.id}/${mockDocument2.name}`
+      `${config.datalakeInterfacesExportPath}/${mockEserviceId2}/${mockDescriptor2.id}/${mockDocument2.name}`
     );
   });
 

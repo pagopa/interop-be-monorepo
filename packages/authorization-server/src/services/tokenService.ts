@@ -6,9 +6,7 @@ import {
 } from "pagopa-interop-client-assertion-validation";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
-  clientKidPrefix,
-  clientKidPurposePrefix,
-  clientKindTokenStates,
+  clientKindTokenGenStates,
   DescriptorId,
   EServiceId,
   generateId,
@@ -16,16 +14,17 @@ import {
   makeTokenGenerationStatesClientKidPK,
   makeTokenGenerationStatesClientKidPurposePK,
   TenantId,
-  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesApiClient,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
-  TokenGenerationStatesClientPurposeEntry,
-  TokenGenerationStatesGenericEntry,
+  TokenGenerationStatesGenericClient,
   unsafeBrandId,
   GeneratedTokenAuditDetails,
   GSIPKEServiceIdDescriptorId,
   ClientAssertion,
-  FullTokenGenerationStatesClientPurposeEntry,
+  FullTokenGenerationStatesConsumerClient,
+  CorrelationId,
+  ClientKindTokenGenStates,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -43,8 +42,8 @@ import {
   InteropConsumerToken,
   InteropTokenGenerator,
   Logger,
-  RateLimiter,
   RateLimiterStatus,
+  secondsToMilliseconds,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import { config } from "../config/config.js";
@@ -53,11 +52,9 @@ import {
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
   fallbackAuditFailed,
-  invalidTokenClientKidPurposeEntry,
+  incompleteTokenGenerationStatesConsumerClient,
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
-  keyTypeMismatch,
-  unexpectedTokenGenerationStatesEntry,
   platformStateValidationFailed,
 } from "../model/domain/errors.js";
 
@@ -78,22 +75,24 @@ export type GenerateTokenReturnType =
 export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  redisRateLimiter,
+  // redisRateLimiter,
   producer,
   fileManager,
 }: {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
-  redisRateLimiter: RateLimiter;
+  // redisRateLimiter: RateLimiter;
   producer: Awaited<ReturnType<typeof initProducer>>;
   fileManager: FileManager;
 }) {
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      correlationId: string,
+      correlationId: CorrelationId,
       logger: Logger
     ): Promise<GenerateTokenReturnType> {
+      logger.info(`[CLIENTID=${request.client_id}] Token requested`);
+
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
         client_assertion_type: request.client_assertion_type,
@@ -102,21 +101,38 @@ export function tokenServiceBuilder({
       });
 
       if (parametersErrors) {
-        throw clientAssertionRequestValidationFailed(request.client_id);
+        throw clientAssertionRequestValidationFailed(
+          request.client_id,
+          parametersErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const { data: jwt, errors: clientAssertionErrors } =
-        verifyClientAssertion(request.client_assertion, request.client_id);
+        verifyClientAssertion(
+          request.client_assertion,
+          request.client_id,
+          config.clientAssertionAudience,
+          logger
+        );
 
       if (clientAssertionErrors) {
-        // TODO double check if errors have to be logged or put inside the error below (check the same for parameters errors)
-        logger.warn(clientAssertionErrors.map((error) => error.detail));
-        throw clientAssertionValidationFailed(request.client_id);
+        throw clientAssertionValidationFailed(
+          request.client_id,
+          clientAssertionErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const clientId = jwt.payload.sub;
       const kid = jwt.header.kid;
       const purposeId = jwt.payload.purposeId;
+
+      logTokenGenerationInfo({
+        validatedJwt: jwt,
+        clientKind: undefined,
+        tokenJti: undefined,
+        message: "Client assertion validated",
+        logger,
+      });
 
       const pk = purposeId
         ? makeTokenGenerationStatesClientKidPurposePK({
@@ -128,6 +144,14 @@ export function tokenServiceBuilder({
 
       const key = await retrieveKey(dynamoDBClient, pk);
 
+      logTokenGenerationInfo({
+        validatedJwt: jwt,
+        clientKind: key.clientKind,
+        tokenJti: undefined,
+        message: "Key retrieved",
+        logger,
+      });
+
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
           request.client_assertion,
@@ -136,19 +160,28 @@ export function tokenServiceBuilder({
         );
 
       if (clientAssertionSignatureErrors) {
-        throw clientAssertionSignatureValidationFailed(request.client_id);
+        throw clientAssertionSignatureValidationFailed(
+          request.client_id,
+          clientAssertionSignatureErrors.map((error) => error.detail).join(", ")
+        );
       }
 
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
         throw platformStateValidationFailed(
-          platformStateErrors.map((error) => error.detail)
+          platformStateErrors.map((error) => error.detail).join(", ")
         );
       }
 
-      const { limitReached, ...rateLimiterStatus } =
-        await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
+      // TODO re-enable or investigate alternatives. See comment in AuthorizationServerRouter.ts
+      const limitReached = false;
+      const rateLimiterStatus = {
+        maxRequests: 0,
+        rateInterval: 0,
+        remainingRequests: 0,
+      };
+
       if (limitReached) {
         return {
           limitReached: true,
@@ -158,26 +191,33 @@ export function tokenServiceBuilder({
         };
       }
 
-      return await match(key.clientKind)
-        .with(clientKindTokenStates.consumer, async () => {
-          const parsedKey =
-            FullTokenGenerationStatesClientPurposeEntry.safeParse(key);
-          if (parsedKey.success) {
+      return await match(key)
+        .with(
+          { clientKind: clientKindTokenGenStates.consumer },
+          async (key) => {
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: jwt.payload.sub,
-              audience: parsedKey.data.descriptorAudience,
-              purposeId: parsedKey.data.GSIPK_purposeId,
-              tokenDurationInSeconds: parsedKey.data.descriptorVoucherLifespan,
-              digest: jwt.payload.digest,
+              audience: key.descriptorAudience,
+              purposeId: key.GSIPK_purposeId,
+              tokenDurationInSeconds: key.descriptorVoucherLifespan,
+              digest: jwt.payload.digest || undefined,
             });
 
             await publishAudit({
               producer,
               generatedToken: token,
-              key: parsedKey.data,
+              key,
               clientAssertion: jwt,
               correlationId,
               fileManager,
+              logger,
+            });
+
+            logTokenGenerationInfo({
+              validatedJwt: jwt,
+              clientKind: key.clientKind,
+              tokenJti: token.payload.jti,
+              message: "Token generated",
               logger,
             });
 
@@ -187,12 +227,19 @@ export function tokenServiceBuilder({
               rateLimiterStatus,
             };
           }
-          throw invalidTokenClientKidPurposeEntry(key.PK);
-        })
-        .with(clientKindTokenStates.api, async () => {
+        )
+        .with({ clientKind: clientKindTokenGenStates.api }, async (key) => {
           const token = await tokenGenerator.generateInteropApiToken({
             sub: jwt.payload.sub,
             consumerId: key.consumerId,
+          });
+
+          logTokenGenerationInfo({
+            validatedJwt: jwt,
+            clientKind: key.clientKind,
+            tokenJti: token.payload.jti,
+            message: "Token generated",
+            logger,
           });
 
           return {
@@ -210,7 +257,7 @@ export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
   pk: TokenGenerationStatesClientKidPurposePK | TokenGenerationStatesClientKidPK
 ): Promise<
-  TokenGenerationStatesClientEntry | TokenGenerationStatesClientPurposeEntry
+  FullTokenGenerationStatesConsumerClient | TokenGenerationStatesApiClient
 > => {
   const input: GetItemInput = {
     Key: {
@@ -226,63 +273,29 @@ export const retrieveKey = async (
     throw tokenGenerationStatesEntryNotFound(pk);
   } else {
     const unmarshalled = unmarshall(data.Item);
-    const tokenGenerationEntry =
-      TokenGenerationStatesGenericEntry.safeParse(unmarshalled);
+    const tokenGenStatesClient =
+      TokenGenerationStatesGenericClient.safeParse(unmarshalled);
 
-    if (!tokenGenerationEntry.success) {
+    if (!tokenGenStatesClient.success) {
       throw genericInternalError(
-        `Unable to parse token generation entry item: result ${JSON.stringify(
-          tokenGenerationEntry
+        `Unable to parse token-generation-states client: result ${JSON.stringify(
+          tokenGenStatesClient
         )} - data ${JSON.stringify(data)} `
       );
     }
 
-    return match(tokenGenerationEntry.data)
-      .when(
-        (entry) =>
-          entry.clientKind === clientKindTokenStates.consumer &&
-          entry.PK.startsWith(clientKidPurposePrefix),
-        () => {
-          const clientKidPurposeEntry =
-            FullTokenGenerationStatesClientPurposeEntry.safeParse(
-              tokenGenerationEntry.data
-            );
-          if (!clientKidPurposeEntry.success) {
-            throw invalidTokenClientKidPurposeEntry(
-              tokenGenerationEntry.data.PK
-            );
-          }
+    return match(tokenGenStatesClient.data)
+      .with({ clientKind: clientKindTokenGenStates.consumer }, (entry) => {
+        const tokenGenStatesConsumerClient =
+          FullTokenGenerationStatesConsumerClient.safeParse(entry);
+        if (!tokenGenStatesConsumerClient.success) {
+          throw incompleteTokenGenerationStatesConsumerClient(entry.PK);
+        }
 
-          return clientKidPurposeEntry.data;
-        }
-      )
-      .when(
-        (entry) =>
-          entry.clientKind === clientKindTokenStates.consumer &&
-          entry.PK.startsWith(clientKidPrefix),
-        (entry) => {
-          throw keyTypeMismatch(entry.PK, entry.clientKind);
-        }
-      )
-      .when(
-        (entry) =>
-          entry.clientKind === clientKindTokenStates.api &&
-          entry.PK.startsWith(clientKidPurposePrefix),
-        (entry) => {
-          throw keyTypeMismatch(entry.PK, entry.clientKind);
-        }
-      )
-      .when(
-        (entry) =>
-          entry.clientKind === clientKindTokenStates.api &&
-          entry.PK.startsWith(clientKidPrefix),
-        () => tokenGenerationEntry.data as TokenGenerationStatesClientEntry
-      )
-      .otherwise(() => {
-        throw unexpectedTokenGenerationStatesEntry(
-          tokenGenerationEntry.data.PK
-        );
-      });
+        return tokenGenStatesConsumerClient.data;
+      })
+      .with({ clientKind: clientKindTokenGenStates.api }, (entry) => entry)
+      .exhaustive();
   }
 };
 
@@ -296,17 +309,17 @@ export const publishAudit = async ({
   logger,
 }: {
   producer: Awaited<ReturnType<typeof initProducer>>;
-  generatedToken: InteropConsumerToken | InteropApiToken;
-  key: FullTokenGenerationStatesClientPurposeEntry;
+  generatedToken: InteropConsumerToken;
+  key: FullTokenGenerationStatesConsumerClient;
   clientAssertion: ClientAssertion;
-  correlationId: string;
+  correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
-    issuedAt: generatedToken.payload.iat,
+    issuedAt: secondsToMilliseconds(generatedToken.payload.iat),
     clientId: clientAssertion.payload.sub,
     organizationId: key.consumerId,
     agreementId: key.agreementId,
@@ -320,16 +333,16 @@ export const publishAudit = async ({
     purposeVersionId: unsafeBrandId(key.purposeVersionId),
     algorithm: generatedToken.header.alg,
     keyId: generatedToken.header.kid,
-    audience: generatedToken.payload.aud.join(","),
+    audience: [generatedToken.payload.aud].flat().join(","),
     subject: generatedToken.payload.sub,
-    notBefore: generatedToken.payload.nbf,
-    expirationTime: generatedToken.payload.exp,
+    notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
+    expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
     issuer: generatedToken.payload.iss,
     clientAssertion: {
       algorithm: clientAssertion.header.alg,
       audience: [clientAssertion.payload.aud].flat().join(","),
-      expirationTime: clientAssertion.payload.exp,
-      issuedAt: clientAssertion.payload.iat,
+      expirationTime: secondsToMilliseconds(clientAssertion.payload.exp),
+      issuedAt: secondsToMilliseconds(clientAssertion.payload.iat),
       issuer: clientAssertion.payload.iss,
       jwtId: clientAssertion.payload.jti,
       keyId: clientAssertion.header.kid,
@@ -409,4 +422,25 @@ const deconstructGSIPK_eserviceId_descriptorId = (
     eserviceId: parsedEserviceId.data,
     descriptorId: parsedDescriptorId.data,
   };
+};
+
+export const logTokenGenerationInfo = ({
+  validatedJwt,
+  clientKind,
+  tokenJti,
+  message,
+  logger,
+}: {
+  validatedJwt: ClientAssertion;
+  clientKind: ClientKindTokenGenStates | undefined;
+  tokenJti: string | undefined;
+  message: string;
+  logger: Logger;
+}): void => {
+  const clientId = `[CLIENTID=${validatedJwt.payload.sub}]`;
+  const kid = `[KID=${validatedJwt.header.kid}]`;
+  const purposeId = `[PURPOSEID=${validatedJwt.payload.purposeId}]`;
+  const tokenType = `[TYPE=${clientKind}]`;
+  const jti = `[JTI=${tokenJti}]`;
+  logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
 };

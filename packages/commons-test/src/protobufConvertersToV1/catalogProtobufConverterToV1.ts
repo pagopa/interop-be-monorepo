@@ -39,6 +39,7 @@ export const toEServiceDescriptorStateV1 = (
     .with("Archived", () => EServiceDescriptorStateV1.ARCHIVED)
     .with("Published", () => EServiceDescriptorStateV1.PUBLISHED)
     .with("Deprecated", () => EServiceDescriptorStateV1.DEPRECATED)
+    .with("WaitingForApproval", () => EServiceDescriptorStateV1.DRAFT)
     .exhaustive();
 
 export const toEServiceTechnologyV1 = (

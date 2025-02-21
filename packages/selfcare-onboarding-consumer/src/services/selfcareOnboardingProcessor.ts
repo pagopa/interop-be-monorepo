@@ -6,14 +6,14 @@ import {
 import { EachMessagePayload } from "kafkajs";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
-  CorrelationId,
   generateId,
+  CorrelationId,
   genericInternalError,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { TenantProcessClient } from "../clients/tenantProcessClient.js";
 import { InstitutionEventPayload } from "../model/institutionEvent.js";
-import { ORIGIN_IPA } from "../model/constants.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareOnboardingProcessorBuilder(
@@ -75,7 +75,7 @@ export function selfcareOnboardingProcessorBuilder(
         }
 
         const externalIdValue =
-          institution.origin === ORIGIN_IPA
+          institution.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
             ? institution.subUnitCode || institution.originId
             : institution.taxCode || institution.originId;
 
