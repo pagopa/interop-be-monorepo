@@ -26,6 +26,32 @@ import {
   agreementStampKind,
 } from "pagopa-interop-models";
 
+export const aggregatorAgreementArray = ({
+  agreementSQL,
+  agreementStampsSQL,
+  agreementDocumentsSQL,
+  agreementAttributesSQL,
+}: {
+  agreementSQL: AgreementSQL[];
+  agreementStampsSQL: AgreementStampSQL[];
+  agreementDocumentsSQL: AgreementDocumentSQL[];
+  agreementAttributesSQL: AgreementAttributeSQL[];
+}): Array<WithMetadata<Agreement>> =>
+  agreementSQL.map((agreementSQL) =>
+    aggregateAgreement({
+      agreementSQL,
+      agreementStampsSQL: agreementStampsSQL.filter(
+        (stampSQL) => stampSQL.agreementId === agreementSQL.id
+      ),
+      agreementDocumentsSQL: agreementDocumentsSQL.filter(
+        (documentSQL) => documentSQL.agreementId === agreementSQL.id
+      ),
+      agreementAttributesSQL: agreementAttributesSQL.filter(
+        (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
+      ),
+    })
+  );
+
 export const aggregateAgreement = ({
   agreementSQL,
   agreementStampsSQL,
