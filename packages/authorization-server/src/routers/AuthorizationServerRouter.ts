@@ -1,7 +1,7 @@
 import { constants } from "http2";
 import {
   fromAppContext,
-  initFileManager,
+  // initFileManager,
   initRedisRateLimiter,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
@@ -12,7 +12,7 @@ import { Problem, tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
-import { initProducer } from "kafka-iam-auth";
+// import { initProducer } from "kafka-iam-auth";
 import express from "express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
@@ -40,8 +40,8 @@ const redisRateLimiter = await initRedisRateLimiter({
   redisPort: config.rateLimiterRedisPort,
   timeout: config.rateLimiterTimeout,
 });
-const producer = await initProducer(config, config.tokenAuditingTopic);
-const fileManager = initFileManager(config);
+// const producer = await initProducer(config, config.tokenAuditingTopic);
+// const fileManager = initFileManager(config);
 
 const tokenGenerator = new InteropTokenGenerator(
   {
@@ -58,8 +58,8 @@ const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
-  fileManager,
+  // producer,
+  // fileManager,
 });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -78,7 +78,7 @@ function authorizationServerRouter(): express.Router {
       try {
         const tokenResult = await tokenService.generateToken(
           req.body,
-          ctx.correlationId,
+          // ctx.correlationId,
           ctx.logger
         );
 

@@ -77,19 +77,19 @@ export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
-  fileManager,
-}: {
+}: // producer,
+// fileManager,
+{
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
   redisRateLimiter: RateLimiter;
-  producer: Awaited<ReturnType<typeof initProducer>>;
-  fileManager: FileManager;
+  // producer: Awaited<ReturnType<typeof initProducer>>;
+  // fileManager: FileManager;
 }) {
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      correlationId: CorrelationId,
+      // correlationId: CorrelationId,
       logger: Logger
     ): Promise<GenerateTokenReturnType> {
       logger.info(`[CLIENTID=${request.client_id}] Token requested`);
@@ -198,15 +198,15 @@ export function tokenServiceBuilder({
               digest: jwt.payload.digest || undefined,
             });
 
-            await publishAudit({
-              producer,
-              generatedToken: token,
-              key,
-              clientAssertion: jwt,
-              correlationId,
-              fileManager,
-              logger,
-            });
+            // await publishAudit({
+            //   producer,
+            //   generatedToken: token,
+            //   key,
+            //   clientAssertion: jwt,
+            //   correlationId,
+            //   fileManager,
+            //   logger,
+            // });
 
             logTokenGenerationInfo({
               validatedJwt: jwt,
