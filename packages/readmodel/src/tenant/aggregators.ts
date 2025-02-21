@@ -14,9 +14,11 @@ import {
   TenantFeatureDelegatedProducer,
   tenantFeatureType,
   TenantId,
+  TenantKind,
   TenantMail,
   TenantMailKind,
   TenantRevoker,
+  TenantUnitType,
   TenantVerifier,
   unsafeBrandId,
   VerifiedTenantAttribute,
@@ -97,7 +99,14 @@ export const aggregateTenantSQL = ({
   const tenant: Tenant = {
     id: unsafeBrandId<TenantId>(tenantSQL.id),
     name: tenantSQL.name,
+    kind: tenantSQL.kind ? TenantKind.parse(tenantSQL.kind) : undefined,
     createdAt: stringToDate(tenantSQL.createdAt),
+    onboardedAt: stringToDate(tenantSQL.onboardedAt),
+    updatedAt: stringToDate(tenantSQL.updatedAt),
+    selfcareId: tenantSQL.selfcareId || undefined,
+    subUnitType: tenantSQL.subUnitType
+      ? TenantUnitType.parse(tenantSQL.subUnitType)
+      : undefined,
     attributes,
     externalId: {
       origin: tenantSQL.externalIdOrigin,
@@ -182,6 +191,7 @@ export const aggregateTenantArray = ({
 const tenantMailSQLToTenantMail = (mail: TenantMailSQL): TenantMail => ({
   id: mail.id,
   createdAt: stringToDate(mail.createdAt),
+  description: mail.description || undefined,
   kind: TenantMailKind.parse(mail.kind),
   address: mail.address,
 });
