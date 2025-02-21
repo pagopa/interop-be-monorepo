@@ -7,7 +7,7 @@ import {
 import { describe, it, expect } from "vitest";
 import { ProducerJWKKey, WithMetadata } from "pagopa-interop-models";
 import { splitProducerJWKKeyIntoObjectsSQL } from "../src/authorization/producerJWKKeySplitters.js";
-import { producerJWKKeySQLToProducerJWKKey } from "../src/authorization/producerJWKKeyAggregators.js";
+import { aggregateProducerJWKKey } from "../src/authorization/producerJWKKeyAggregators.js";
 
 describe("Producer JWK key aggregator", () => {
   it("should convert a producer JWK key SQL object into a business logic producer JWK key", () => {
@@ -34,8 +34,7 @@ describe("Producer JWK key aggregator", () => {
       1
     );
 
-    const aggregatedProducerJWKKey =
-      producerJWKKeySQLToProducerJWKKey(producerJWKKeySQL);
+    const aggregatedProducerJWKKey = aggregateProducerJWKKey(producerJWKKeySQL);
 
     expect(aggregatedProducerJWKKey).toMatchObject(producerJWKKey);
   });
