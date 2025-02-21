@@ -15,7 +15,7 @@ import {
   ProducerKeychainKeySQL,
 } from "pagopa-interop-readmodel-models";
 
-export const producerKeychainSQLToProducerKeychain = (
+export const aggregateProducerKeychainSQL = (
   {
     id,
     metadataVersion,
