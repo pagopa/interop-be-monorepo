@@ -2187,7 +2187,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       const instanceId = eservice.data.instanceId;
-      const updatedName = instanceId ? `${instanceId} ${newName}` : newName;
+      const updatedName = instanceId ? `${newName} ${instanceId}` : newName;
 
       if (updatedName === eservice.data.name) {
         return;
