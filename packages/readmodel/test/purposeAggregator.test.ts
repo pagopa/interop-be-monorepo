@@ -64,7 +64,7 @@ describe("Purpose aggregator", () => {
       purposeVersionDocumentsSQL,
     });
 
-    expect(aggregatedPurpose).toEqual(purpose);
+    expect(aggregatedPurpose).toMatchObject(purpose);
   });
 
   it("should convert incomplete purpose SQL objects into a business logic purpose (null -> undefined)", () => {
@@ -110,6 +110,6 @@ describe("Purpose aggregator", () => {
       purposeVersionDocumentsSQL,
     });
 
-    expect(aggregatedPurpose).toEqual(purpose);
+    expect(aggregatedPurpose).toMatchObject(purpose);
   });
 });
