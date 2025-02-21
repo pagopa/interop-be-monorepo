@@ -68,27 +68,11 @@ describe("Purpose aggregator", () => {
   });
 
   it("should convert incomplete purpose SQL objects into a business logic purpose (null -> undefined)", () => {
-    const purposeVersion: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      rejectionReason: undefined,
-      suspendedAt: undefined,
-      updatedAt: undefined,
-      firstActivationAt: undefined,
-      riskAnalysis: getMockPurposeVersionDocument(),
-    };
-
-    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
-      getMockValidRiskAnalysisForm(tenantKind.PA);
+    const purposeVersion = getMockPurposeVersion();
 
     const purpose: WithMetadata<Purpose> = {
       data: {
         ...getMockPurpose(),
-        delegationId: undefined,
-        suspendedByConsumer: undefined,
-        suspendedByProducer: undefined,
-        updatedAt: undefined,
-        freeOfChargeReason: undefined,
-        riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
       },
       metadata: { version: 1 },
