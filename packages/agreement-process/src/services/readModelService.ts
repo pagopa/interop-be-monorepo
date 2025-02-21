@@ -735,14 +735,6 @@ export function readModelServiceBuilder(
         "data.kind": delegationKind.delegatedConsumer,
       });
     },
-    async getConsumerDelegationById(
-      delegationId: string
-    ): Promise<Delegation | undefined> {
-      return getDelegation(delegations, {
-        "data.id": delegationId,
-        "data.kind": delegationKind.delegatedConsumer,
-      });
-    },
   };
 }
 

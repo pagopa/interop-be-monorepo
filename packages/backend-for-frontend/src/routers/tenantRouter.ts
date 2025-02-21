@@ -410,30 +410,16 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/tenants/delegatedProducer", async (req, res) => {
+    .post("/tenants/delegatedFeatures/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const tenantId = ctx.authData.organizationId;
 
       try {
-        await tenantService.assignTenantDelegatedProducerFeature(tenantId, ctx);
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
-          `Error while assigning delegated producer feature to ${tenantId}`
+        await tenantService.updateTenantDelegatedFeatures(
+          tenantId,
+          req.body,
+          ctx
         );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .delete("/tenants/delegatedProducer", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-      const tenantId = ctx.authData.organizationId;
-
-      try {
-        await tenantService.removeTenantDelegatedProducerFeature(tenantId, ctx);
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -441,43 +427,7 @@ const tenantRouter = (
           emptyErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          `Error while removing delegated producer feature to ${tenantId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .post("/tenants/delegatedConsumer", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-      const tenantId = ctx.authData.organizationId;
-
-      try {
-        await tenantService.assignTenantDelegatedConsumerFeature(tenantId, ctx);
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
-          `Error while assigning delegated consumer feature to ${tenantId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
-      }
-    })
-    .delete("/tenants/delegatedConsumer", async (req, res) => {
-      const ctx = fromBffAppContext(req.ctx, req.headers);
-      const tenantId = ctx.authData.organizationId;
-
-      try {
-        await tenantService.removeTenantDelegatedConsumerFeature(tenantId, ctx);
-        return res.status(204).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
-          `Error while removing delegated consumer feature to ${tenantId}`
+          `Error while updating delegated producer and consumer feature to ${tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

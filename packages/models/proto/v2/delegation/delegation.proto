@@ -3,21 +3,19 @@ syntax = "proto3";
 package delegation.v2;
 
 message DelegationV2 {
+  reserved 6, 7, 8, 10;
   string id = 1;
   string delegatorId = 2;
   string delegateId = 3;
   string eserviceId = 4;
   int64 createdAt = 5;
-  int64 submittedAt = 6;
-  optional int64 approvedAt = 7;
-  optional int64 rejectedAt = 8;
   optional string rejectionReason = 9;
-  optional int64 revokedAt = 10;
   DelegationStateV2 state = 11;
   DelegationKindV2 kind = 12;
   DelegationStampsV2 stamps = 13;  
   optional DelegationContractDocumentV2 activationContract = 14;
   optional DelegationContractDocumentV2 revocationContract = 15;
+  optional int64 updatedAt = 16;
 }
 
 message DelegationContractDocumentV2 {
