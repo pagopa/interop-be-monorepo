@@ -5,7 +5,12 @@ import {
 } from "pagopa-interop-models";
 import { ClientJWKKeySQL } from "pagopa-interop-readmodel-models";
 
-export const clientJWKKeySQLToClientJWKKey = ({
+export const aggregateClientJWKKeyArray = (
+  clientsJWKKeySQL: ClientJWKKeySQL[]
+): Array<WithMetadata<ClientJWKKey>> =>
+  clientsJWKKeySQL.map(aggregateClientJWKKey);
+
+export const aggregateClientJWKKey = ({
   clientId,
   metadataVersion,
   alg,

@@ -1,13 +1,10 @@
 import crypto from "crypto";
-import {
-  getMockClient,
-  getMockKey,
-} from "pagopa-interop-commons-test/index.js";
+import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
 import { keyToClientJWKKey } from "pagopa-interop-commons";
 import { Key } from "pagopa-interop-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "../src/authorization/clientJWKKeySplitters.js";
-import { clientJWKKeySQLToClientJWKKey } from "../src/authorization/clientJWKKeyAggregators.js";
+import { aggregateClientJWKKey } from "../src/authorization/clientJWKKeyAggregators.js";
 
 describe("Client JWK key aggregator", () => {
   it("should convert a client JWK key SQL object into a business logic client JWK key", () => {
@@ -27,8 +24,7 @@ describe("Client JWK key aggregator", () => {
     const clientJWKKey = keyToClientJWKKey(key, client.id);
     const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(clientJWKKey, 1);
 
-    const aggregatedClientJWKKey =
-      clientJWKKeySQLToClientJWKKey(clientJWKKeySQL);
+    const aggregatedClientJWKKey = aggregateClientJWKKey(clientJWKKeySQL);
     expect(aggregatedClientJWKKey).toMatchObject(aggregatedClientJWKKey);
   });
 });
