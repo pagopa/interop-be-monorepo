@@ -1,147 +1,159 @@
 import { InferSelectModel } from "drizzle-orm";
 import {
-  eserviceDescriptorAttributeInReadmodel,
-  eserviceDescriptorDocumentInReadmodel,
-  eserviceDescriptorInReadmodel,
-  eserviceDescriptorRejectionReasonInReadmodel,
-  eserviceInReadmodel,
-  eserviceRiskAnalysisAnswerInReadmodel,
-  eserviceRiskAnalysisInReadmodel,
-  eserviceTemplateBindingInReadmodel,
-  attributeInReadmodel,
-  agreementAttributeInReadmodel,
-  agreementDocumentInReadmodel,
-  agreementInReadmodel,
-  agreementStampInReadmodel,
-  tenantCertifiedAttributeInReadmodel,
-  tenantDeclaredAttributeInReadmodel,
-  tenantFeatureInReadmodel,
-  tenantInReadmodel,
-  tenantMailInReadmodel,
-  tenantVerifiedAttributeInReadmodel,
-  tenantVerifiedAttributeRevokerInReadmodel,
-  tenantVerifiedAttributeVerifierInReadmodel,
-  purposeInReadmodel,
-  purposeRiskAnalysisAnswerInReadmodel,
-  purposeRiskAnalysisFormInReadmodel,
-  purposeVersionDocumentInReadmodel,
-  purposeVersionInReadmodel,
-  clientInReadmodel,
-  clientKeyInReadmodel,
-  clientPurposeInReadmodel,
-  clientUserInReadmodel,
-  producerKeychainEserviceInReadmodel,
-  producerKeychainInReadmodel,
-  producerKeychainKeyInReadmodel,
-  producerKeychainUserInReadmodel,
-  clientJwkKeyInReadmodel,
-  producerJwkKeyInReadmodel,
-  delegationContractDocumentInReadmodel,
-  delegationInReadmodel,
-  delegationStampInReadmodel,
+  agreementAttributeInReadmodelAgreement,
+  agreementDocumentInReadmodelAgreement,
+  agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
+  attributeInReadmodelAttribute,
+  clientInReadmodelClient,
+  clientJwkKeyInReadmodelClientJwkKey,
+  clientKeyInReadmodelClient,
+  clientPurposeInReadmodelClient,
+  clientUserInReadmodelClient,
+  delegationContractDocumentInReadmodelDelegation,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
+  eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateBindingInReadmodelCatalog,
+  producerJwkKeyInReadmodelProducerJwkKey,
+  producerKeychainEserviceInReadmodelProducerKeychain,
+  producerKeychainInReadmodelProducerKeychain,
+  producerKeychainKeyInReadmodelProducerKeychain,
+  producerKeychainUserInReadmodelProducerKeychain,
+  purposeInReadmodelPurpose,
+  purposeRiskAnalysisAnswerInReadmodelPurpose,
+  purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeVersionDocumentInReadmodelPurpose,
+  purposeVersionInReadmodelPurpose,
+  tenantCertifiedAttributeInReadmodelTenant,
+  tenantDeclaredAttributeInReadmodelTenant,
+  tenantFeatureInReadmodelTenant,
+  tenantInReadmodelTenant,
+  tenantMailInReadmodelTenant,
+  tenantVerifiedAttributeInReadmodelTenant,
+  tenantVerifiedAttributeRevokerInReadmodelTenant,
+  tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "./drizzle/schema.js";
 
-export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodel>;
+export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodelCatalog>;
 export type EServiceDescriptorSQL = InferSelectModel<
-  typeof eserviceDescriptorInReadmodel
+  typeof eserviceDescriptorInReadmodelCatalog
 >;
 export type EServiceDescriptorRejectionReasonSQL = InferSelectModel<
-  typeof eserviceDescriptorRejectionReasonInReadmodel
+  typeof eserviceDescriptorRejectionReasonInReadmodelCatalog
 >;
 export type EServiceDescriptorDocumentSQL = InferSelectModel<
-  typeof eserviceDescriptorDocumentInReadmodel
+  typeof eserviceDescriptorDocumentInReadmodelCatalog
 >;
 export type EServiceRiskAnalysisSQL = InferSelectModel<
-  typeof eserviceRiskAnalysisInReadmodel
+  typeof eserviceRiskAnalysisInReadmodelCatalog
 >;
 export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
-  typeof eserviceRiskAnalysisAnswerInReadmodel
+  typeof eserviceRiskAnalysisAnswerInReadmodelCatalog
 >;
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
-  typeof eserviceDescriptorAttributeInReadmodel
+  typeof eserviceDescriptorAttributeInReadmodelCatalog
 >;
 export type EServiceTemplateBindingSQL = InferSelectModel<
-  typeof eserviceTemplateBindingInReadmodel
+  typeof eserviceTemplateBindingInReadmodelCatalog
 >;
 
-export type AttributeSQL = InferSelectModel<typeof attributeInReadmodel>;
+export type AttributeSQL = InferSelectModel<
+  typeof attributeInReadmodelAttribute
+>;
 
 export type AgreementAttributeSQL = InferSelectModel<
-  typeof agreementAttributeInReadmodel
+  typeof agreementAttributeInReadmodelAgreement
 >;
 export type AgreementDocumentSQL = InferSelectModel<
-  typeof agreementDocumentInReadmodel
+  typeof agreementDocumentInReadmodelAgreement
 >;
 export type AgreementStampSQL = InferSelectModel<
-  typeof agreementStampInReadmodel
+  typeof agreementStampInReadmodelAgreement
 >;
-export type AgreementSQL = InferSelectModel<typeof agreementInReadmodel>;
+export type AgreementSQL = InferSelectModel<
+  typeof agreementInReadmodelAgreement
+>;
 
-export type TenantSQL = InferSelectModel<typeof tenantInReadmodel>;
-export type TenantMailSQL = InferSelectModel<typeof tenantMailInReadmodel>;
+export type TenantSQL = InferSelectModel<typeof tenantInReadmodelTenant>;
+export type TenantMailSQL = InferSelectModel<
+  typeof tenantMailInReadmodelTenant
+>;
 export type TenantCertifiedAttributeSQL = InferSelectModel<
-  typeof tenantCertifiedAttributeInReadmodel
+  typeof tenantCertifiedAttributeInReadmodelTenant
 >;
 export type TenantDeclaredAttributeSQL = InferSelectModel<
-  typeof tenantDeclaredAttributeInReadmodel
+  typeof tenantDeclaredAttributeInReadmodelTenant
 >;
 export type TenantVerifiedAttributeSQL = InferSelectModel<
-  typeof tenantVerifiedAttributeInReadmodel
+  typeof tenantVerifiedAttributeInReadmodelTenant
 >;
 export type TenantVerifiedAttributeVerifierSQL = InferSelectModel<
-  typeof tenantVerifiedAttributeVerifierInReadmodel
+  typeof tenantVerifiedAttributeVerifierInReadmodelTenant
 >;
 export type TenantVerifiedAttributeRevokerSQL = InferSelectModel<
-  typeof tenantVerifiedAttributeRevokerInReadmodel
+  typeof tenantVerifiedAttributeRevokerInReadmodelTenant
 >;
 export type TenantFeatureSQL = InferSelectModel<
-  typeof tenantFeatureInReadmodel
+  typeof tenantFeatureInReadmodelTenant
 >;
 
-export type PurposeSQL = InferSelectModel<typeof purposeInReadmodel>;
+export type PurposeSQL = InferSelectModel<typeof purposeInReadmodelPurpose>;
 export type PurposeVersionSQL = InferSelectModel<
-  typeof purposeVersionInReadmodel
+  typeof purposeVersionInReadmodelPurpose
 >;
 export type PurposeVersionDocumentSQL = InferSelectModel<
-  typeof purposeVersionDocumentInReadmodel
+  typeof purposeVersionDocumentInReadmodelPurpose
 >;
 export type PurposeRiskAnalysisFormSQL = InferSelectModel<
-  typeof purposeRiskAnalysisFormInReadmodel
+  typeof purposeRiskAnalysisFormInReadmodelPurpose
 >;
 export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
-  typeof purposeRiskAnalysisAnswerInReadmodel
+  typeof purposeRiskAnalysisAnswerInReadmodelPurpose
 >;
 
-export type ClientSQL = InferSelectModel<typeof clientInReadmodel>;
-export type ClientUserSQL = InferSelectModel<typeof clientUserInReadmodel>;
-export type ClientPurposeSQL = InferSelectModel<
-  typeof clientPurposeInReadmodel
+export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
+export type ClientUserSQL = InferSelectModel<
+  typeof clientUserInReadmodelClient
 >;
-export type ClientKeySQL = InferSelectModel<typeof clientKeyInReadmodel>;
+export type ClientPurposeSQL = InferSelectModel<
+  typeof clientPurposeInReadmodelClient
+>;
+export type ClientKeySQL = InferSelectModel<typeof clientKeyInReadmodelClient>;
 
 export type ProducerKeychainSQL = InferSelectModel<
-  typeof producerKeychainInReadmodel
+  typeof producerKeychainInReadmodelProducerKeychain
 >;
 export type ProducerKeychainUserSQL = InferSelectModel<
-  typeof producerKeychainUserInReadmodel
+  typeof producerKeychainUserInReadmodelProducerKeychain
 >;
 export type ProducerKeychainEServiceSQL = InferSelectModel<
-  typeof producerKeychainEserviceInReadmodel
+  typeof producerKeychainEserviceInReadmodelProducerKeychain
 >;
 export type ProducerKeychainKeySQL = InferSelectModel<
-  typeof producerKeychainKeyInReadmodel
+  typeof producerKeychainKeyInReadmodelProducerKeychain
 >;
 
-export type ClientJWKKeySQL = InferSelectModel<typeof clientJwkKeyInReadmodel>;
+export type ClientJWKKeySQL = InferSelectModel<
+  typeof clientJwkKeyInReadmodelClientJwkKey
+>;
 
 export type ProducerJWKKeySQL = InferSelectModel<
-  typeof producerJwkKeyInReadmodel
+  typeof producerJwkKeyInReadmodelProducerJwkKey
 >;
 
-export type DelegationSQL = InferSelectModel<typeof delegationInReadmodel>;
+export type DelegationSQL = InferSelectModel<
+  typeof delegationInReadmodelDelegation
+>;
 export type DelegationStampSQL = InferSelectModel<
-  typeof delegationStampInReadmodel
+  typeof delegationStampInReadmodelDelegation
 >;
 export type DelegationContractDocumentSQL = InferSelectModel<
-  typeof delegationContractDocumentInReadmodel
+  typeof delegationContractDocumentInReadmodelDelegation
 >;

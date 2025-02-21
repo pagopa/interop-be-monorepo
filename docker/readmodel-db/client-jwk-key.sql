@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS readmodel.client_jwk_key(
+CREATE SCHEMA IF NOT EXISTS readmodel_client_jwk_key;
+
+CREATE TABLE IF NOT EXISTS readmodel_client_jwk_key.client_jwk_key(
   client_id UUID NOT NULL,
   metadata_version INTEGER NOT NULL,
   alg VARCHAR NOT NULL,
@@ -7,5 +9,5 @@ CREATE TABLE IF NOT EXISTS readmodel.client_jwk_key(
   kty VARCHAR NOT NULL,
   n VARCHAR NOT NULL,
   use VARCHAR NOT NULL,
-  PRIMARY KEY (kid) -- same as above
+  PRIMARY KEY (client_id, kid)
 );
