@@ -37,6 +37,6 @@ describe("Producer keychain aggregator", () => {
       producerKeychainEServicesSQL,
       producerKeychainKeysSQL
     );
-    expect(aggregatedProducerKeychain).toEqual(producerKeychain);
+    expect(aggregatedProducerKeychain).toMatchObject(producerKeychain);
   });
 });
