@@ -22,7 +22,6 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitEserviceIntoObjectsSQL = (
@@ -36,7 +35,6 @@ export const splitEserviceIntoObjectsSQL = (
   attributesSQL: EServiceDescriptorAttributeSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  eserviceTemplateBindingSQL?: EServiceTemplateBindingSQL;
 } => {
   const eserviceSQL: EServiceSQL = {
     id: eservice.id,
@@ -52,17 +50,17 @@ export const splitEserviceIntoObjectsSQL = (
     isClientAccessDelegable: eservice.isClientAccessDelegable || null,
   };
 
-  const eserviceTemplateBindingSQL: EServiceTemplateBindingSQL = {
-    eserviceId: eservice.id,
-    metadataVersion: version,
-    eserviceTemplateId: eservice.id, // TODO
-    instanceId: eservice.id, // TODO
-    name: "", // TODO,
-    email: "", // TODO,
-    url: "", // TODO,
-    termsAndConditionsUrl: "", // TODO,
-    serverUrl: "", // TODO
-  };
+  // const eserviceTemplateBindingSQL: EServiceTemplateBindingSQL = {
+  //   eserviceId: eservice.id,
+  //   metadataVersion: version,
+  //   eserviceTemplateId: eservice.id, // TODO
+  //   instanceId: eservice.id, // TODO
+  //   name: "", // TODO,
+  //   email: "", // TODO,
+  //   url: "", // TODO,
+  //   termsAndConditionsUrl: "", // TODO,
+  //   serverUrl: "", // TODO
+  // };
 
   const { riskAnalysesSQL, riskAnalysisAnswersSQL } =
     eservice.riskAnalysis.reduce(
@@ -132,7 +130,6 @@ export const splitEserviceIntoObjectsSQL = (
 
   return {
     eserviceSQL,
-    eserviceTemplateBindingSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     descriptorsSQL,

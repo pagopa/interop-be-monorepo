@@ -80,7 +80,6 @@ describe("E-service splitter", () => {
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      eserviceTemplateBindingSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
@@ -238,7 +237,6 @@ describe("E-service splitter", () => {
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      eserviceTemplateBindingSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
