@@ -108,9 +108,9 @@ export const aggregateDescriptor = ({
     voucherLifespan: descriptorSQL.voucherLifespan,
     dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
-    agreementApprovalPolicy: AgreementApprovalPolicy.parse(
-      descriptorSQL.agreementApprovalPolicy
-    ), // TODO use safeParse?
+    agreementApprovalPolicy: descriptorSQL.agreementApprovalPolicy
+      ? AgreementApprovalPolicy.parse(descriptorSQL.agreementApprovalPolicy)
+      : undefined, // TODO use safeParse?
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
     ...(descriptorSQL.publishedAt
