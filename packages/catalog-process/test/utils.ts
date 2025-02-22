@@ -28,6 +28,7 @@ import {
   toReadModelAgreement,
   DescriptorState,
   Delegation,
+  EServiceTemplate,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -56,6 +57,7 @@ export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
 export const delegations = readModelRepository.delegations;
+export const eserviceTemplates = readModelRepository.eserviceTemplates;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -290,6 +292,12 @@ export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
+};
+
+export const addOneEServiceTemplate = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  await writeInReadmodel(eserviceTemplate, eserviceTemplates);
 };
 
 export const readLastEserviceEvent = async (

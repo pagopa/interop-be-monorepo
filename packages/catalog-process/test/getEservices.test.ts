@@ -1,6 +1,9 @@
 /* eslint-disable functional/no-let */
 import { genericLogger, AuthData, userRoles } from "pagopa-interop-commons";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockEServiceTemplate,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   TenantId,
   EService,
@@ -12,6 +15,7 @@ import {
   agreementState,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
 import { getMockDelegation } from "pagopa-interop-commons-test";
@@ -27,6 +31,7 @@ import {
   getMockAgreement,
   getMockEServiceAttributes,
   addOneDelegation,
+  addOneEServiceTemplate,
 } from "./utils.js";
 
 describe("get eservices", () => {
@@ -1111,6 +1116,96 @@ describe("get eservices", () => {
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
+  });
+
+  it("should get the eServices if they exist (parameters: templateIds)", async () => {
+    const templateId1: EServiceTemplateId = generateId();
+    const eserviceTemplate1 = getMockEServiceTemplate(templateId1);
+    const templateId2: EServiceTemplateId = generateId();
+    const eserviceTemplate2 = getMockEServiceTemplate(templateId1);
+    const eserviceInstance1: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateId: templateId1,
+    };
+    const eserviceInstance2: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateId: templateId1,
+    };
+    const eserviceInstance3: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateId: templateId2,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate1);
+    await addOneEServiceTemplate(eserviceTemplate2);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
+
+    const result = await catalogService.getEServices(
+      getMockAuthData(organizationId3),
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templateIds: [templateId1],
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result.totalCount).toBe(2);
+    expect(result.results).toEqual([eserviceInstance1, eserviceInstance2]);
+  });
+
+  it.only("should get the eServices if they exist (parameters: templateIds, states)", async () => {
+    const templateId1: EServiceTemplateId = generateId();
+    const eserviceTemplate1 = getMockEServiceTemplate(templateId1);
+    const templateId2: EServiceTemplateId = generateId();
+    const eserviceTemplate2 = getMockEServiceTemplate(templateId1);
+    const eserviceInstance1: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateId: templateId1,
+    };
+    const eserviceInstance2: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.archived)],
+      templateId: templateId1,
+    };
+    const eserviceInstance3: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.suspended)],
+      templateId: templateId2,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate1);
+    await addOneEServiceTemplate(eserviceTemplate2);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
+
+    const result = await catalogService.getEServices(
+      getMockAuthData(organizationId3),
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [descriptorState.published],
+        agreementStates: [],
+        attributesIds: [],
+        templateIds: [templateId1],
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result.totalCount).toBe(1);
+    expect(result.results).toEqual([eserviceInstance1]);
   });
 
   it("should include eservices with no descriptors (requester is the producer, admin)", async () => {
