@@ -124,6 +124,7 @@ export function readModelServiceBuilder(
         mode,
         isConsumerDelegable,
         delegated,
+        templateIds,
       } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
@@ -313,6 +314,11 @@ export function readModelServiceBuilder(
         }))
         .otherwise(() => ({}));
 
+      const templateIdsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(templateIds, {
+          "data.templateId": { $in: templateIds },
+        });
+
       const aggregationPipeline = [
         delegationLookup,
         { $match: nameFilter },
@@ -324,6 +330,7 @@ export function readModelServiceBuilder(
         { $match: modeFilter },
         { $match: isConsumerDelegableFilter },
         { $match: delegatedFilter },
+        { $match: templateIdsFilter },
         {
           $project: {
             data: 1,

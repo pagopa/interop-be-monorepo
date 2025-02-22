@@ -15976,7 +15976,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
-        - eserviceTemplates
+        - eservices
       summary: Retrieves EService template instances
       description: Retrieves EService template instances
       operationId: getEServiceTemplateInstances
@@ -17340,6 +17340,9 @@ components:
           type: array
           items:
             type: string
+        templateVersionId:
+          type: string
+          format: uuid
     CompactEService:
       type: object
       additionalProperties: false
@@ -19478,22 +19481,29 @@ components:
       additionalProperties: false
       required:
         - id
+        - name
+        - producerId
         - producerName
-        - state
-        - version
+        - descriptors
       properties:
         id:
           type: string
           format: uuid
+        name:
+          type: string
+        producerId:
+          type: string
+          format: uuid
         producerName:
           type: string
-        state:
-          $ref: "#/components/schemas/EServiceDescriptorState"
+        activeDescriptor:
+          $ref: "#/components/schemas/CompactDescriptor"
+        descriptors:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactDescriptor"
         instanceId:
           type: string
-        version:
-          type: number
-          format: int32
     EServiceTemplateInstances:
       type: object
       additionalProperties: false
@@ -19502,12 +19512,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplateInstance"
-        totalCount:
-          type: integer
-          format: int32
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - totalCount
+        - pagination
     CatalogEServiceTemplate:
       type: object
       additionalProperties: false

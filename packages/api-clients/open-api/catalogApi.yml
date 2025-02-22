@@ -106,6 +106,16 @@ paths:
           schema:
             type: boolean
         - in: query
+          name: templateIds
+          description: comma separated sequence of template IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: offset
           required: true
           schema:
@@ -1731,7 +1741,7 @@ components:
         templateId:
           type: string
           format: uuid
-        istanceId:
+        instanceId:
           type: string
     EServiceMode:
       type: string
@@ -1990,6 +2000,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RejectionReason"
+        templateVersionId:
+          type: string
+          format: uuid
     Attribute:
       type: object
       additionalProperties: false

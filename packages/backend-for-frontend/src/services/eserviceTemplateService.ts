@@ -422,30 +422,6 @@ export function eserviceTemplateServiceBuilder(
         }
       );
     },
-    getEServiceTemplateInstances: async (
-      eServiceTemplateId: EServiceTemplateId,
-      producerName: string | undefined,
-      states: bffApi.EServiceDescriptorState[],
-      offset: number,
-      limit: number,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.EServiceTemplateInstances> => {
-      logger.info(
-        `Retrieving EService template ${eServiceTemplateId} instances`
-      );
-      return await eserviceTemplateClient.getEServiceTemplateInstances({
-        headers,
-        params: {
-          eServiceTemplateId,
-        },
-        queries: {
-          producerName,
-          states,
-          offset,
-          limit,
-        },
-      });
-    },
   };
 }
 

@@ -20,6 +20,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  EServiceTemplateId,
   RiskAnalysisId,
   TenantId,
   unsafeBrandId,
@@ -60,6 +61,7 @@ import {
   toBffCatalogDescriptorEService,
   toBffCatalogApiEserviceRiskAnalysisSeed,
   toCompactProducerDescriptor,
+  toBffEServiceTemplateInstance,
 } from "../api/catalogApiConverter.js";
 import { ConfigurationEservice } from "../model/types.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
@@ -1433,6 +1435,71 @@ export function catalogServiceBuilder(
           descriptorId,
         },
       });
+    },
+    getEServiceTemplateInstances: async (
+      eServiceTemplateId: EServiceTemplateId,
+      producerName: string | undefined,
+      states: bffApi.EServiceDescriptorState[],
+      offset: number,
+      limit: number,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceTemplateInstances> => {
+      logger.info(
+        `Retrieving EService template ${eServiceTemplateId} instances with producer name ${producerName}, states ${states}, offset ${offset}, limit ${limit}`
+      );
+
+      const producersMap = producerName
+        ? new Map(
+            (
+              await getAllFromPaginated<tenantApi.Tenant>((offset, limit) =>
+                tenantProcessClient.tenant.getProducers({
+                  queries: { name: producerName, offset, limit },
+                  headers,
+                })
+              )
+            ).map((producer) => [producer.id, producer])
+          )
+        : undefined;
+
+      const response = await catalogProcessClient.getEServices({
+        queries: {
+          producersIds: producersMap ? [...producersMap.keys()] : undefined,
+          states,
+          offset,
+          limit,
+        },
+        headers,
+      });
+
+      async function enhanceEServiceTemplateInstance(
+        eservice: catalogApi.EService
+      ): Promise<bffApi.EServiceTemplateInstance> {
+        const producer =
+          producersMap?.get(eservice.producerId) ??
+          (await tenantProcessClient.tenant.getTenant({
+            headers,
+            params: {
+              id: eservice.producerId,
+            },
+          }));
+
+        producersMap?.set(producer.id, producer);
+
+        return toBffEServiceTemplateInstance(eservice, producer);
+      }
+
+      const results = await Promise.all(
+        response.results.map(enhanceEServiceTemplateInstance)
+      );
+
+      return {
+        results,
+        pagination: {
+          offset,
+          limit,
+          totalCount: response.totalCount,
+        },
+      };
     },
   };
 }
