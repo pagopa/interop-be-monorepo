@@ -43,7 +43,7 @@ export async function handleMessageV2({
     : generateId<CorrelationId>();
 
   const loggerInstance = logger({
-    serviceName: "client-purpose-updater",
+    serviceName: "eservice-template-updater",
     eventType: decodedKafkaMessage.type,
     eventVersion: decodedKafkaMessage.event_version,
     streamId: decodedKafkaMessage.stream_id,
