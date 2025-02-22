@@ -36,14 +36,11 @@ import {
   deleteEServiceTemplateVersionErrorMapper,
   createEServiceTemplateErrorMapper,
   updateEServiceTemplateErrorMapper,
-  getEServiceTemplateIstancesErrorMapper,
   updateDraftTemplateVersionErrorMapper,
   publishEServiceTemplateVersionErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
-  apiDescriptorStateToDescriptorState,
-  eserviceTemplateInstanceToApiEServiceTemplateInstance,
   eserviceTemplateToApiEServiceTemplate,
 } from "../model/domain/apiConverter.js";
 
