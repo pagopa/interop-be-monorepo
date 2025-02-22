@@ -37,9 +37,8 @@ export type EServiceTemplateProcessServerConfig = z.infer<
 >;
 
 const EServiceTemplateUpdaterConfig = CatalogProcessServerConfig.and(
-  EServiceTemplateProcessServerConfig
+  EServiceTemplateTopicConfig
 )
-  .and(EServiceTemplateTopicConfig)
   .and(FileManagerConfig)
   .and(LoggerConfig)
   .and(TokenGenerationConfig)
