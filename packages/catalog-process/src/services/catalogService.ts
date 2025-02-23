@@ -2279,6 +2279,13 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended
+      ) {
+        return;
+      }
+
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
         descriptor,
@@ -2323,7 +2330,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
-        throw notValidDescriptorState(descriptor.id, descriptor.state);
+        return;
       }
 
       if (document.kind !== "DOCUMENT") {
@@ -2385,7 +2392,11 @@ export function catalogServiceBuilder(
         return;
       }
 
-      assertDocumentDeletableDescriptorState(descriptor);
+      try {
+        assertDocumentDeletableDescriptorState(descriptor);
+      } catch {
+        return;
+      }
 
       await fileManager.delete(config.s3Bucket, document.path, logger);
 
@@ -2423,7 +2434,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
-        throw notValidDescriptorState(descriptor.id, descriptor.state);
+        return;
       }
 
       const document = descriptor.docs.find((doc) => doc.id === documentId);
