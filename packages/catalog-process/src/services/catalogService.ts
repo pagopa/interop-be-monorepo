@@ -2388,12 +2388,6 @@ export function catalogServiceBuilder(
         return;
       }
 
-      try {
-        assertDocumentDeletableDescriptorState(descriptor);
-      } catch {
-        return;
-      }
-
       await fileManager.delete(config.s3Bucket, document.path, logger);
 
       const newEservice: EService = replaceDescriptor(eservice.data, {
