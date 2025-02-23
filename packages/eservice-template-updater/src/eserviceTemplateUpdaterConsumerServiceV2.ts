@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { randomUUID } from "crypto";
 import {
   CorrelationId,
