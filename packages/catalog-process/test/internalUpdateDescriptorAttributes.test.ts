@@ -3,7 +3,6 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAttribute,
-  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -13,10 +12,7 @@ import {
   generateId,
   attributeKind,
   EServiceDescriptorAttributesUpdatedV2,
-  operationForbidden,
   AttributeId,
-  delegationKind,
-  delegationState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
@@ -26,12 +22,9 @@ import {
   eServiceNotFound,
   inconsistentAttributesSeedGroupsCount,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
-  notValidDescriptorState,
-  unchangedAttributes,
 } from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
-  addOneDelegation,
   addOneEService,
   catalogService,
   getMockAuthData,
@@ -114,131 +107,102 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneAttribute(mockDeclaredAttribute3);
   });
 
-  it.each([descriptorState.published, descriptorState.suspended])(
-    "should write on event-store for the attributes update of a descriptor with state %s",
-    async (descriptorState) => {
-      const mockDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState,
-        attributes: {
-          certified: validMockDescriptorCertifiedAttributes,
-          verified: validMockDescriptorVerifiedAttributes,
-          declared: [],
-        },
-      };
+  it("should write on event-store for the internal attributes update of a descriptor", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      attributes: {
+        certified: validMockDescriptorCertifiedAttributes,
+        verified: validMockDescriptorVerifiedAttributes,
+        declared: [],
+      },
+    };
 
-      const mockEService: EService = {
-        ...getMockEService(),
-        descriptors: [mockDescriptor],
-      };
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
 
-      await addOneEService(mockEService);
+    await addOneEService(mockEService);
 
-      const updatedEService: EService = {
-        ...mockEService,
-        descriptors: [
-          {
-            ...mockDescriptor,
-            attributes:
-              validMockDescriptorAttributeSeed as Descriptor["attributes"],
-          },
-        ],
-      };
-
-      const returnedEService = await catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        validMockDescriptorAttributeSeed,
+    const updatedEService: EService = {
+      ...mockEService,
+      descriptors: [
         {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      );
-
-      const writtenEvent = await readLastEserviceEvent(mockEService.id);
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockEService.id,
-        version: "1",
-        type: "EServiceDescriptorAttributesUpdated",
-        event_version: 2,
-      });
-      const writtenPayload = decodeProtobufPayload({
-        messageType: EServiceDescriptorAttributesUpdatedV2,
-        payload: writtenEvent.data,
-      });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
-    }
-  );
-
-  it.each([descriptorState.published, descriptorState.suspended])(
-    "should write on event-store for the attributes update of a descriptor with state %s (producer delegate)",
-    async (descriptorState) => {
-      const mockDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState,
-        attributes: {
-          certified: validMockDescriptorCertifiedAttributes,
-          verified: validMockDescriptorVerifiedAttributes,
-          declared: [],
+          ...mockDescriptor,
+          attributes:
+            validMockDescriptorAttributeSeed as Descriptor["attributes"],
         },
-      };
+      ],
+    };
 
-      const mockEService: EService = {
-        ...getMockEService(),
-        descriptors: [mockDescriptor],
-      };
+    await catalogService.internalUpdateDescriptorAttributes(
+      mockEService.id,
+      mockDescriptor.id,
+      validMockDescriptorAttributeSeed,
+      {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
 
-      await addOneEService(mockEService);
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "EServiceDescriptorAttributesUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAttributesUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+  });
 
-      const delegation = getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        eserviceId: mockEService.id,
-        state: delegationState.active,
-      });
+  it("should not write on event-store for the internal attributes update of a descriptor", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      attributes: {
+        certified: validMockDescriptorCertifiedAttributes,
+        verified: validMockDescriptorVerifiedAttributes,
+        declared: [],
+      },
+    };
 
-      await addOneDelegation(delegation);
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
 
-      const updatedEService: EService = {
-        ...mockEService,
-        descriptors: [
-          {
-            ...mockDescriptor,
-            attributes:
-              validMockDescriptorAttributeSeed as Descriptor["attributes"],
-          },
-        ],
-      };
+    await addOneEService(mockEService);
 
-      const returnedEService = await catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      );
+    await catalogService.internalUpdateDescriptorAttributes(
+      mockEService.id,
+      mockDescriptor.id,
+      {
+        certified: validMockDescriptorCertifiedAttributes,
+        verified: validMockDescriptorVerifiedAttributes,
+        declared: [],
+      },
+      {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
 
-      const writtenEvent = await readLastEserviceEvent(mockEService.id);
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockEService.id,
-        version: "1",
-        type: "EServiceDescriptorAttributesUpdated",
-        event_version: 2,
-      });
-      const writtenPayload = decodeProtobufPayload({
-        messageType: EServiceDescriptorAttributesUpdatedV2,
-        payload: writtenEvent.data,
-      });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
-    }
-  );
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent).not.toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "EServiceDescriptorAttributesUpdated",
+      event_version: 2,
+    });
+  });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const mockDescriptor: Descriptor = {
@@ -257,7 +221,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     };
 
     expect(
-      catalogService.updateDescriptorAttributes(
+      catalogService.internalUpdateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -290,7 +254,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateDescriptorAttributes(
+      catalogService.internalUpdateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -334,7 +298,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateDescriptorAttributes(
+      catalogService.internalUpdateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {
@@ -358,162 +322,6 @@ describe("internalUpdateDescriptorAttributes", () => {
     ).rejects.toThrowError(attributeNotFound(notExistingAttributeId));
   });
 
-  it("should throw operationForbidden if the requester is not the producer", async () => {
-    const mockDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      attributes: {
-        certified: validMockDescriptorCertifiedAttributes,
-        verified: validMockDescriptorVerifiedAttributes,
-        declared: [],
-      },
-    };
-
-    const mockEService: EService = {
-      ...getMockEService(),
-      descriptors: [mockDescriptor],
-    };
-
-    await addOneEService(mockEService);
-
-    expect(
-      catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(operationForbidden);
-  });
-
-  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
-    const mockDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      attributes: {
-        certified: validMockDescriptorCertifiedAttributes,
-        verified: validMockDescriptorVerifiedAttributes,
-        declared: [],
-      },
-    };
-
-    const mockEService: EService = {
-      ...getMockEService(),
-      descriptors: [mockDescriptor],
-    };
-
-    await addOneEService(mockEService);
-
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      eserviceId: mockEService.id,
-      state: delegationState.active,
-    });
-
-    await addOneDelegation(delegation);
-
-    expect(
-      catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(operationForbidden);
-  });
-
-  it.each([
-    descriptorState.draft,
-    descriptorState.waitingForApproval,
-    descriptorState.archived,
-    descriptorState.deprecated,
-  ])(
-    "should throw notValidDescriptorState if the descriptor is in %s state",
-    async (descriptorState) => {
-      const mockDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState,
-        attributes: {
-          certified: validMockDescriptorCertifiedAttributes,
-          verified: validMockDescriptorVerifiedAttributes,
-          declared: [],
-        },
-      };
-
-      const mockEService: EService = {
-        ...getMockEService(),
-        descriptors: [mockDescriptor],
-      };
-
-      await addOneEService(mockEService);
-
-      expect(
-        catalogService.updateDescriptorAttributes(
-          mockEService.id,
-          mockDescriptor.id,
-          validMockDescriptorAttributeSeed,
-          {
-            authData: getMockAuthData(mockEService.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
-        )
-      ).rejects.toThrowError(
-        notValidDescriptorState(mockDescriptor.id, descriptorState)
-      );
-    }
-  );
-
-  it("should throw unchangedAttributes if the passed seed does not differ from the actual descriptor attributes", async () => {
-    const mockDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      attributes: {
-        certified: validMockDescriptorCertifiedAttributes,
-        verified: validMockDescriptorVerifiedAttributes,
-        declared: [],
-      },
-    };
-
-    const mockEService: EService = {
-      ...getMockEService(),
-      descriptors: [mockDescriptor],
-    };
-
-    await addOneEService(mockEService);
-
-    expect(
-      catalogService.updateDescriptorAttributes(
-        mockEService.id,
-        mockDescriptor.id,
-        {
-          certified: validMockDescriptorCertifiedAttributes,
-          verified: validMockDescriptorVerifiedAttributes,
-          declared: [],
-        },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      unchangedAttributes(mockEService.id, mockDescriptor.id)
-    );
-  });
-
   it("should throw inconsistentAttributesSeedGroupsCount if the passed seed contains an additional attribute group", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -533,7 +341,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateDescriptorAttributes(
+      catalogService.internalUpdateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {
@@ -580,7 +388,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateDescriptorAttributes(
+      catalogService.internalUpdateDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {
