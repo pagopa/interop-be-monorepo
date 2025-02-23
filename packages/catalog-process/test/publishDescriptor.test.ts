@@ -5,8 +5,9 @@ import {
   randomArrayItem,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getMockDelegation,
   getMockAuthData,
-} from "pagopa-interop-commons-test";
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -19,12 +20,15 @@ import {
   Tenant,
   generateId,
   operationForbidden,
+  delegationState,
+  EServiceDescriptorSubmittedByDelegateV2,
+  delegationKind,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   eServiceDescriptorWithoutInterface,
   tenantNotFound,
   tenantKindNotFound,
@@ -42,6 +46,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockAgreement,
+  addOneDelegation,
 } from "./utils.js";
 import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
@@ -163,6 +168,80 @@ describe("publish descriptor", () => {
     expect(writtenPayload.eservice).toEqual(expectedEservice);
   });
 
+  it("should write on event-store for the submission of the descriptor by the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+
+    const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
+    };
+
+    const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [descriptor],
+      riskAnalysis: [riskAnalysis],
+    };
+
+    const delegate = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegateId: delegate.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    await catalogService.publishDescriptor(eservice.id, descriptor.id, {
+      authData: getMockAuthData(delegate.id),
+      correlationId: generateId(),
+      serviceName: "",
+      logger: genericLogger,
+    });
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDescriptorSubmittedByDelegate",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorSubmittedByDelegateV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEservice = toEServiceV2({
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          state: descriptorState.waitingForApproval,
+        },
+      ],
+    });
+
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(writtenPayload.eservice).toEqual(expectedEservice);
+  });
+
   it("should also archive the previously published descriptor", async () => {
     const descriptor1: Descriptor = {
       ...mockDescriptor,
@@ -203,12 +282,12 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedDescriptor1: Descriptor = {
+    const expectedDescriptor1: Descriptor = {
       ...descriptor1,
       archivedAt: new Date(),
       state: descriptorState.archived,
     };
-    const updatedDescriptor2: Descriptor = {
+    const expectedDescriptor2: Descriptor = {
       ...descriptor2,
       publishedAt: new Date(),
       state: descriptorState.published,
@@ -216,7 +295,7 @@ describe("publish descriptor", () => {
 
     const expectedEservice: EService = {
       ...eservice,
-      descriptors: [updatedDescriptor1, updatedDescriptor2],
+      descriptors: [expectedDescriptor1, expectedDescriptor2],
     };
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEservice),
@@ -275,12 +354,12 @@ describe("publish descriptor", () => {
       payload: writtenEvent.data,
     });
 
-    const updatedDescriptor1: Descriptor = {
+    const expectedDescriptor1: Descriptor = {
       ...descriptor1,
       deprecatedAt: new Date(),
       state: descriptorState.deprecated,
     };
-    const updatedDescriptor2: Descriptor = {
+    const expectedDescriptor2: Descriptor = {
       ...descriptor2,
       publishedAt: new Date(),
       state: descriptorState.published,
@@ -288,7 +367,7 @@ describe("publish descriptor", () => {
 
     const expectedEservice: EService = {
       ...eservice,
-      descriptors: [updatedDescriptor1, updatedDescriptor2],
+      descriptors: [expectedDescriptor1, expectedDescriptor2],
     };
     expect(writtenPayload).toEqual({
       eservice: toEServiceV2(expectedEservice),
@@ -345,7 +424,35 @@ describe("publish descriptor", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw notValidDescriptor if the descriptor is in published state", async () => {
+  it("should throw operationForbidden if the requester of the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.publishDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw notValidDescriptorState if the descriptor is in published state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -364,11 +471,11 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.published)
+      notValidDescriptorState(descriptor.id, descriptorState.published)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in deprecated state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -387,11 +494,11 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.deprecated)
+      notValidDescriptorState(descriptor.id, descriptorState.deprecated)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in suspended state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -410,11 +517,11 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.suspended)
+      notValidDescriptorState(descriptor.id, descriptorState.suspended)
     );
   });
 
-  it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
+  it("should throw notValidDescriptorState if the descriptor is in archived state", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -433,7 +540,7 @@ describe("publish descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      notValidDescriptor(descriptor.id, descriptorState.archived)
+      notValidDescriptorState(descriptor.id, descriptorState.archived)
     );
   });
 

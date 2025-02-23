@@ -5,6 +5,7 @@ import {
   bffApi,
   selfcareV2ClientApi,
   SelfcareV2InstitutionClient,
+  SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { missingSelfcareId, userNotFound } from "../model/errors.js";
@@ -15,9 +16,11 @@ import {
   toApiSelfcareProduct,
   toApiSelfcareUser,
 } from "../api/selfcareApiConverter.js";
+import { config } from "../config/config.js";
 
 export function selfcareServiceBuilder(
-  selfcareV2Client: SelfcareV2InstitutionClient,
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient,
+  selfcareV2UsersClient: SelfcareV2UsersClient,
   tenantProcessClient: TenantProcessClient
 ) {
   const filterByUserNameOfSurname = (
@@ -45,16 +48,16 @@ export function selfcareServiceBuilder(
         `Retrieving User with with istitution id ${institutionId}, user ${userId}`
       );
 
-      const users = await selfcareV2Client.getInstitutionProductUsersUsingGET({
-        params: { institutionId },
-        queries: {
-          userIdForAuth: userId,
-          userId: userIdQuery,
-        },
-        headers: {
-          "X-Correlation-Id": correlationId,
-        },
-      });
+      const users: selfcareV2ClientApi.UserResource[] =
+        await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
+          params: { institutionId },
+          queries: {
+            userId: userIdQuery,
+          },
+          headers: {
+            "X-Correlation-Id": correlationId,
+          },
+        });
 
       const user = users.at(0);
       if (!user) {
@@ -72,7 +75,7 @@ export function selfcareServiceBuilder(
         `Retrieving Products for Institution ${institutionId} and User ${userId}`
       );
       const products =
-        await selfcareV2Client.getInstitutionUserProductsUsingGET({
+        await selfcareV2InstitutionClient.getInstitutionProductsUsingGET({
           params: { institutionId },
           queries: { userId },
           headers: {
@@ -90,8 +93,12 @@ export function selfcareServiceBuilder(
     }: WithLogger<BffAppContext>): Promise<bffApi.SelfcareInstitution[]> {
       logger.info(`Retrieving Institutions for User ${userId}`);
 
-      const institutions = await selfcareV2Client.getInstitutionsUsingGET({
-        queries: { userIdForAuth: userId },
+      const institutions = await selfcareV2UsersClient.v2getUserInstitution({
+        queries: {
+          userId,
+          states: "ACTIVE",
+          products: config.selfcareProductName,
+        },
         headers: {
           "X-Correlation-Id": correlationId,
         },
@@ -105,11 +112,10 @@ export function selfcareServiceBuilder(
       userId: string | undefined,
       roles: string[],
       query: string | undefined,
-      { authData, logger, correlationId, headers }: WithLogger<BffAppContext>
+      { logger, correlationId, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.Users> {
       logger.info(`Retrieving users for institutions ${tenantId}`);
 
-      const requesterId = authData.organizationId;
       const tenant = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,
@@ -121,12 +127,11 @@ export function selfcareServiceBuilder(
 
       const selfcareId = tenant.selfcareId;
       const users: selfcareV2ClientApi.UserResource[] =
-        await selfcareV2Client.getInstitutionProductUsersUsingGET({
+        await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
           params: { institutionId: selfcareId },
           queries: {
             userId,
-            userIdForAuth: requesterId,
-            productRoles: roles,
+            productRoles: roles.join(","),
           },
           headers: {
             "X-Correlation-Id": correlationId,

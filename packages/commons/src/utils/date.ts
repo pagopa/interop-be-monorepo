@@ -32,3 +32,11 @@ export function timeAtRomeZone(date: Date): string {
 export function dateToSeconds(date: Date): number {
   return Math.floor(date.getTime() / 1000);
 }
+
+export const secondsToMilliseconds = (timestamp: number): number => {
+  if (timestamp.toString().length === 10) {
+    return timestamp * 1000;
+  }
+
+  return timestamp;
+};

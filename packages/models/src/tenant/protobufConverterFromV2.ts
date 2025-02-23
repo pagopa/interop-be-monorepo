@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { match } from "ts-pattern";
-import { unsafeBrandId } from "../brandedIds.js";
+import { DelegationId, unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {
   TenantKindV2,
@@ -74,6 +74,12 @@ export const fromTenantFeatureV2 = (input: TenantFeatureV2): TenantFeature =>
         delegatedProducer.availabilityTimestamp
       ),
     }))
+    .with({ oneofKind: "delegatedConsumer" }, ({ delegatedConsumer }) => ({
+      type: "DelegatedConsumer",
+      availabilityTimestamp: bigIntToDate(
+        delegatedConsumer.availabilityTimestamp
+      ),
+    }))
     .with({ oneofKind: undefined }, () => {
       throw new Error("Unable to deserialize TenantFeature");
     })
@@ -84,6 +90,9 @@ export const fromTenantVerifierV2 = (
 ): TenantVerifier => ({
   ...input,
   id: unsafeBrandId(input.id),
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
+    : undefined,
   verificationDate: bigIntToDate(input.verificationDate),
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),
@@ -92,6 +101,9 @@ export const fromTenantVerifierV2 = (
 export const fromTenantRevokerV2 = (input: TenantRevokerV2): TenantRevoker => ({
   ...input,
   id: unsafeBrandId(input.id),
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
+    : undefined,
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),
   revocationDate: bigIntToDate(input.revocationDate),
@@ -137,6 +149,9 @@ export const fromTenantAttributesV2 = (
         revocationTimestamp: bigIntToDate(
           declaredAttribute.revocationTimestamp
         ),
+        delegationId: declaredAttribute.delegationId
+          ? unsafeBrandId<DelegationId>(declaredAttribute.delegationId)
+          : undefined,
         type: tenantAttributeType.DECLARED,
       };
     default:

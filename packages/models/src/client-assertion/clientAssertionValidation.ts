@@ -9,28 +9,34 @@ export const ClientAssertionDigest = z
   .strict();
 export type ClientAssertionDigest = z.infer<typeof ClientAssertionDigest>;
 
-export const ClientAssertionHeader = z
-  .object({
-    kid: z.string(),
-    alg: z.string(),
-    typ: z.string().optional(),
-  })
-  .strict();
+export const ClientAssertionHeader = z.object({
+  kid: z.string(),
+  alg: z.string(),
+  typ: z.string().optional(),
+});
 export type ClientAssertionHeader = z.infer<typeof ClientAssertionHeader>;
 
-export const ClientAssertionPayload = z
-  .object({
-    sub: ClientId,
-    jti: z.string(),
-    iat: z.number(),
-    iss: z.string(),
-    aud: z.array(z.string()).or(z.string()),
-    exp: z.number(),
-    digest: ClientAssertionDigest.optional(),
-    purposeId: PurposeId.optional(),
-  })
-  .strict();
+export const ClientAssertionHeaderStrict = ClientAssertionHeader.strict();
+export type ClientAssertionHeaderStrict = z.infer<
+  typeof ClientAssertionHeaderStrict
+>;
+
+export const ClientAssertionPayload = z.object({
+  sub: ClientId,
+  jti: z.string(),
+  iat: z.number(),
+  iss: z.string(),
+  aud: z.array(z.string()).or(z.string()),
+  exp: z.number(),
+  digest: ClientAssertionDigest.nullish(),
+  purposeId: PurposeId.optional(),
+});
 export type ClientAssertionPayload = z.infer<typeof ClientAssertionPayload>;
+
+export const ClientAssertionPayloadStrict = ClientAssertionPayload.strict();
+export type ClientAssertionPayloadStrict = z.infer<
+  typeof ClientAssertionPayloadStrict
+>;
 
 export const ClientAssertion = z
   .object({

@@ -8,6 +8,7 @@ import {
 } from "../src/utils.js";
 
 export const value64chars = crypto.randomBytes(32).toString("hex");
+export const expectedAudiences = ["test.interop.pagopa.it"];
 
 export const getMockAccessTokenRequest =
   async (): Promise<ClientAssertionValidationRequest> => ({

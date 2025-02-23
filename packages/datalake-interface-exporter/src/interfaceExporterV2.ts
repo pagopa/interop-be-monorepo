@@ -11,25 +11,29 @@ export async function exportInterfaceV2(
   logger: Logger
 ): Promise<void> {
   await match(decodedMsg)
-    .with({ type: "EServiceDescriptorPublished" }, async ({ data }) => {
-      if (data.eservice) {
-        logger.info(
-          `Processing ${decodedMsg.type} message - Partition number: ${originalPayload.partition} - Offset: ${originalPayload.message.offset}`
-        );
-        const eservice = fromEServiceV2(data.eservice);
-        const publishedDescriptor = eservice.descriptors.find(
-          (d) => d.id === data.descriptorId
-        );
-        if (publishedDescriptor) {
-          await exportInterface(
-            eservice.id,
-            publishedDescriptor,
-            fileManager,
-            logger
+    .with(
+      { type: "EServiceDescriptorPublished" },
+      { type: "EServiceDescriptorApprovedByDelegator" },
+      async ({ data }) => {
+        if (data.eservice) {
+          logger.info(
+            `Processing ${decodedMsg.type} message - Partition number: ${originalPayload.partition} - Offset: ${originalPayload.message.offset}`
           );
+          const eservice = fromEServiceV2(data.eservice);
+          const publishedDescriptor = eservice.descriptors.find(
+            (d) => d.id === data.descriptorId
+          );
+          if (publishedDescriptor) {
+            await exportInterface(
+              eservice.id,
+              publishedDescriptor,
+              fileManager,
+              logger
+            );
+          }
         }
       }
-    })
+    )
     .with(
       { type: "EServiceAdded" },
       { type: "DraftEServiceUpdated" },
@@ -52,6 +56,14 @@ export async function exportInterfaceV2(
       { type: "EServiceRiskAnalysisUpdated" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceDescriptionUpdated" },
+      { type: "EServiceIsConsumerDelegableEnabled" },
+      { type: "EServiceIsConsumerDelegableDisabled" },
+      { type: "EServiceIsClientAccessDelegableEnabled" },
+      { type: "EServiceIsClientAccessDelegableDisabled" },
+      { type: "EServiceDescriptorSubmittedByDelegate" },
+      { type: "EServiceDescriptorRejectedByDelegator" },
+      { type: "EServiceDescriptorAttributesUpdated" },
+      { type: "EServiceNameUpdated" },
       () => undefined
     )
     .exhaustive();

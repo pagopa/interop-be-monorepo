@@ -5,7 +5,7 @@ import {
   GSIPKClientIdPurposeId,
   GSIPKConsumerIdEServiceId,
   GSIPKEServiceIdDescriptorId,
-  GSIPKKid,
+  GSIPKClientIdKid,
   PurposeId,
   PurposeVersionId,
   TenantId,
@@ -13,23 +13,25 @@ import {
   TokenGenerationStatesClientKidPurposePK,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
-import { ClientKindTokenStates } from "./commons.js";
+import { clientKindTokenGenStates } from "./commons.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
   consumerId: TenantId,
-  clientKind: ClientKindTokenStates,
   publicKey: z.string(),
   GSIPK_clientId: ClientId,
-  GSIPK_kid: GSIPKKid,
+  GSIPK_clientId_kid: GSIPKClientIdKid,
   updatedAt: z.string().datetime(),
 });
 type TokenGenerationStatesBaseEntry = z.infer<
   typeof TokenGenerationStatesBaseEntry
 >;
 
-export const TokenGenerationStatesClientPurposeEntry =
+export const TokenGenerationStatesConsumerClient =
   TokenGenerationStatesBaseEntry.extend({
-    PK: TokenGenerationStatesClientKidPurposePK,
+    PK: TokenGenerationStatesClientKidPurposePK.or(
+      TokenGenerationStatesClientKidPK
+    ),
+    clientKind: z.literal(clientKindTokenGenStates.consumer),
     GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId.optional(),
     agreementId: AgreementId.optional(),
     agreementState: ItemState.optional(),
@@ -42,26 +44,115 @@ export const TokenGenerationStatesClientPurposeEntry =
     purposeVersionId: PurposeVersionId.optional(),
     GSIPK_clientId_purposeId: GSIPKClientIdPurposeId.optional(),
   });
-export type TokenGenerationStatesClientPurposeEntry = z.infer<
-  typeof TokenGenerationStatesClientPurposeEntry
+export type TokenGenerationStatesConsumerClient = z.infer<
+  typeof TokenGenerationStatesConsumerClient
 >;
 
-export const FullTokenGenerationStatesClientPurposeEntry =
-  TokenGenerationStatesClientPurposeEntry.required();
-export type FullTokenGenerationStatesClientPurposeEntry = z.infer<
-  typeof FullTokenGenerationStatesClientPurposeEntry
+export const FullTokenGenerationStatesConsumerClient =
+  TokenGenerationStatesConsumerClient.required().extend({
+    PK: TokenGenerationStatesClientKidPurposePK,
+  });
+export type FullTokenGenerationStatesConsumerClient = z.infer<
+  typeof FullTokenGenerationStatesConsumerClient
 >;
 
-export const TokenGenerationStatesClientEntry =
+export const TokenGenerationStatesApiClient =
   TokenGenerationStatesBaseEntry.extend({
     PK: TokenGenerationStatesClientKidPK,
+    clientKind: z.literal(clientKindTokenGenStates.api),
   });
-export type TokenGenerationStatesClientEntry = z.infer<
-  typeof TokenGenerationStatesClientEntry
+export type TokenGenerationStatesApiClient = z.infer<
+  typeof TokenGenerationStatesApiClient
 >;
 
-export const TokenGenerationStatesGenericEntry =
-  TokenGenerationStatesClientPurposeEntry.or(TokenGenerationStatesClientEntry);
-export type TokenGenerationStatesGenericEntry = z.infer<
-  typeof TokenGenerationStatesGenericEntry
+export const TokenGenerationStatesGenericClient =
+  TokenGenerationStatesConsumerClient.or(TokenGenerationStatesApiClient);
+export type TokenGenerationStatesGenericClient = z.infer<
+  typeof TokenGenerationStatesGenericClient
+>;
+
+// GSI projection types
+// Agreement
+export const TokenGenStatesConsumerClientGSIAgreement =
+  TokenGenerationStatesConsumerClient.pick({
+    PK: true,
+    GSIPK_consumerId_eserviceId: true,
+    agreementState: true,
+    descriptorState: true,
+    descriptorAudience: true,
+    descriptorVoucherLifespan: true,
+  });
+export type TokenGenStatesConsumerClientGSIAgreement = z.infer<
+  typeof TokenGenStatesConsumerClientGSIAgreement
+>;
+
+// ClientPurpose
+export const TokenGenStatesConsumerClientGSIClientPurpose =
+  TokenGenerationStatesConsumerClient.pick({
+    PK: true,
+    GSIPK_clientId_purposeId: true,
+    GSIPK_clientId: true,
+    GSIPK_clientId_kid: true,
+    GSIPK_purposeId: true,
+    consumerId: true,
+    clientKind: true,
+    publicKey: true,
+  });
+export type TokenGenStatesConsumerClientGSIClientPurpose = z.infer<
+  typeof TokenGenStatesConsumerClientGSIClientPurpose
+>;
+
+// Descriptor
+export const TokenGenStatesConsumerClientGSIDescriptor =
+  TokenGenerationStatesConsumerClient.pick({
+    PK: true,
+    GSIPK_eserviceId_descriptorId: true,
+  });
+export type TokenGenStatesConsumerClientGSIDescriptor = z.infer<
+  typeof TokenGenStatesConsumerClientGSIDescriptor
+>;
+
+// ClientKid
+export const TokenGenStatesApiClientGSIClientKid =
+  TokenGenerationStatesApiClient.pick({
+    PK: true,
+    GSIPK_clientId_kid: true,
+  });
+export type TokenGenStatesApiClientGSIClientIdKid = z.infer<
+  typeof TokenGenStatesApiClientGSIClientKid
+>;
+
+export const TokenGenStatesConsumerClientGSIClientKid =
+  TokenGenerationStatesConsumerClient.pick({
+    PK: true,
+    GSIPK_clientId_kid: true,
+  });
+export type TokenGenStatesConsumerClientGSIClientKid = z.infer<
+  typeof TokenGenStatesConsumerClientGSIClientKid
+>;
+
+export const TokenGenStatesGenericClientGSIClientKid =
+  TokenGenStatesApiClientGSIClientKid.or(
+    TokenGenStatesConsumerClientGSIClientKid
+  );
+export type TokenGenStatesGenericClientGSIClientKid = z.infer<
+  typeof TokenGenStatesGenericClientGSIClientKid
+>;
+
+// Purpose
+export const TokenGenStatesConsumerClientGSIPurpose =
+  TokenGenerationStatesConsumerClient.pick({
+    PK: true,
+    GSIPK_purposeId: true,
+    agreementId: true,
+    agreementState: true,
+    GSIPK_eserviceId_descriptorId: true,
+    descriptorAudience: true,
+    descriptorState: true,
+    descriptorVoucherLifespan: true,
+    purposeState: true,
+    purposeVersionId: true,
+  });
+export type TokenGenStatesConsumerClientGSIPurpose = z.infer<
+  typeof TokenGenStatesConsumerClientGSIPurpose
 >;

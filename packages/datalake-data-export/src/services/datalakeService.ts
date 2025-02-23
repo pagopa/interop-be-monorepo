@@ -54,7 +54,7 @@ export function datalakeServiceBuilder(
           await fileManager.storeBytesByKey(
             config.dataLakeStorageBucket,
             bucketKey,
-            Buffer.from(JSON.stringify(ndjson)),
+            Buffer.from(ndjson),
             logger
           );
         }

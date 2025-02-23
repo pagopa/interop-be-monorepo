@@ -1,3 +1,4 @@
+/* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
@@ -39,18 +40,17 @@ import {
   itemState,
   ClientId,
   PurposeId,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKClientIdPurposeId,
   makeGSIPKEServiceIdDescriptorId,
   TokenGenerationStatesClientKidPurposePK,
   makeTokenGenerationStatesClientKidPurposePK,
-  clientKindTokenStates,
+  clientKindTokenGenStates,
   AgreementId,
   PurposeVersionId,
   ProducerKeychain,
   Delegation,
-  delegationKind,
   DelegationId,
   DelegationContractDocument,
   DelegationContractId,
@@ -58,17 +58,21 @@ import {
   TenantFeatureCertifier,
   TenantFeature,
   DescriptorState,
-  GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementEntry,
   PlatformStatesAgreementPK,
-  makeGSIPKKid,
+  makeGSIPKClientIdKid,
   TokenGenerationStatesClientKidPK,
-  TokenGenerationStatesClientEntry,
+  TokenGenerationStatesApiClient,
   makeTokenGenerationStatesClientKidPK,
   PlatformStatesClientPK,
   PlatformStatesClientEntry,
   makePlatformStatesClientPK,
+  AgreementStamps,
+  DelegationKind,
   unsafeBrandId,
+  UserId,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -104,6 +108,7 @@ export const getTenantCertifierFeatures = (
           feature as TenantFeatureCertifier,
         ])
         .with("DelegatedProducer", () => acc)
+        .with("DelegatedConsumer", () => acc)
         .exhaustive(),
     []
   );
@@ -140,6 +145,7 @@ export const getMockDescriptorPublished = (
     declared: declaredAttributes,
     verified: verifiedAttributes,
   },
+  rejectionReasons: undefined,
 });
 
 export const getMockEServiceAttribute = (
@@ -224,6 +230,18 @@ export const getMockTenantMail = (
   address: generateMock(z.string().email()),
 });
 
+export const getMockAgreementStamps = (): AgreementStamps => {
+  const stamps = generateMock(AgreementStamps);
+  delete stamps.submission?.delegationId;
+  delete stamps.activation?.delegationId;
+  delete stamps.rejection?.delegationId;
+  delete stamps.suspensionByConsumer?.delegationId;
+  delete stamps.suspensionByProducer?.delegationId;
+  delete stamps.upgrade?.delegationId;
+  delete stamps.archiving?.delegationId;
+  return stamps;
+};
+
 export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
@@ -233,6 +251,7 @@ export const getMockAgreement = (
   eserviceId,
   consumerId,
   state,
+  stamps: getMockAgreementStamps(),
 });
 
 export const getMockAttribute = (
@@ -308,6 +327,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
     verified: [],
     declared: [],
   },
+  rejectionReasons: undefined,
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {
@@ -369,23 +389,27 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
-export const getMockDelegationProducer = ({
+export const getMockDelegation = ({
+  kind,
   id = generateId<DelegationId>(),
   delegatorId = generateId<TenantId>(),
   delegateId = generateId<TenantId>(),
   eserviceId = generateId<EServiceId>(),
   state = "WaitingForApproval",
+  submitterId = generateId<UserId>(),
   activationContract = undefined,
   revocationContract = undefined,
 }: {
+  kind: DelegationKind;
   id?: DelegationId;
   delegatorId?: TenantId;
   delegateId?: TenantId;
   eserviceId?: EServiceId;
   state?: DelegationState;
+  submitterId?: UserId;
   activationContract?: DelegationContractDocument;
   revocationContract?: DelegationContractDocument;
-} = {}): Delegation => {
+}): Delegation => {
   const creationTime = new Date();
 
   return {
@@ -394,14 +418,13 @@ export const getMockDelegationProducer = ({
     delegateId,
     eserviceId,
     createdAt: creationTime,
-    submittedAt: creationTime,
     state,
     activationContract,
     revocationContract,
-    kind: delegationKind.delegatedProducer,
+    kind,
     stamps: {
       submission: {
-        who: delegatorId,
+        who: submitterId,
         when: creationTime,
       },
     },
@@ -419,11 +442,13 @@ export const getMockDelegationDocument = (
   createdAt: new Date(),
 });
 
-export const getMockTokenStatesClientPurposeEntry = (
-  tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
-): TokenGenerationStatesClientPurposeEntry => {
-  const clientId = tokenStateEntryPK
-    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+export const getMockTokenGenStatesConsumerClient = (
+  tokenGenStatesEntryPK?:
+    | TokenGenerationStatesClientKidPurposePK
+    | TokenGenerationStatesClientKidPK
+): TokenGenerationStatesConsumerClient => {
+  const clientId = tokenGenStatesEntryPK
+    ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
   const consumerId = generateId<TenantId>();
@@ -433,66 +458,77 @@ export const getMockTokenStatesClientPurposeEntry = (
   const purposeVersionId = generateId<PurposeVersionId>();
   const kid = `kid ${Math.random()}`;
 
-  return {
-    PK:
-      tokenStateEntryPK ||
-      makeTokenGenerationStatesClientKidPurposePK({
+  if (
+    !tokenGenStatesEntryPK ||
+    TokenGenerationStatesClientKidPurposePK.safeParse(tokenGenStatesEntryPK)
+      .success
+  ) {
+    return {
+      PK:
+        tokenGenStatesEntryPK ||
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid,
+          purposeId,
+        }),
+      descriptorState: itemState.active,
+      descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+      descriptorVoucherLifespan: 60,
+      updatedAt: new Date().toISOString(),
+      consumerId,
+      agreementId,
+      purposeVersionId,
+      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      }),
+      clientKind: clientKindTokenGenStates.consumer,
+      publicKey: "PEM",
+      GSIPK_clientId: clientId,
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
+      agreementState: itemState.active,
+      GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+        eserviceId,
+        descriptorId,
+      }),
+      GSIPK_purposeId: purposeId,
+      purposeState: itemState.active,
+      GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
         clientId,
-        kid,
         purposeId,
       }),
-    descriptorState: itemState.active,
-    descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-    descriptorVoucherLifespan: 60,
-    updatedAt: new Date().toISOString(),
-    consumerId,
-    agreementId,
-    purposeVersionId,
-    GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+    };
+  } else {
+    return {
+      PK: tokenGenStatesEntryPK,
+      updatedAt: new Date().toISOString(),
       consumerId,
-      eserviceId,
-    }),
-    clientKind: clientKindTokenStates.consumer,
-    publicKey: "PEM",
-    GSIPK_clientId: clientId,
-    GSIPK_kid: makeGSIPKKid(kid),
-    agreementState: itemState.active,
-    GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-      eserviceId,
-      descriptorId,
-    }),
-    GSIPK_purposeId: purposeId,
-    purposeState: itemState.active,
-    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-      clientId,
-      purposeId,
-    }),
-  };
+      clientKind: clientKindTokenGenStates.consumer,
+      publicKey: "PEM",
+      GSIPK_clientId: clientId,
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
+    };
+  }
 };
 
-export const getMockAgreementEntry = (
+export const getMockPlatformStatesAgreementEntry = (
   primaryKey: PlatformStatesAgreementPK,
-  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId(
-    {
-      consumerId: generateId<TenantId>(),
-      eserviceId: generateId<EServiceId>(),
-    }
-  )
+  agreementId: AgreementId
 ): PlatformStatesAgreementEntry => ({
   PK: primaryKey,
   state: itemState.inactive,
   version: 1,
   updatedAt: new Date().toISOString(),
-  GSIPK_consumerId_eserviceId,
-  GSISK_agreementTimestamp: new Date().toISOString(),
+  agreementId,
+  agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
 });
 
-export const getMockTokenStatesClientEntry = (
-  tokenStateEntryPK?: TokenGenerationStatesClientKidPK
-): TokenGenerationStatesClientEntry => {
-  const clientId = tokenStateEntryPK
-    ? unsafeBrandId<ClientId>(tokenStateEntryPK.split("#")[1])
+export const getMockTokenGenStatesApiClient = (
+  tokenGenStatesEntryPK?: TokenGenerationStatesClientKidPK
+): TokenGenerationStatesApiClient => {
+  const clientId = tokenGenStatesEntryPK
+    ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
 
   const consumerId = generateId<TenantId>();
@@ -500,17 +536,17 @@ export const getMockTokenStatesClientEntry = (
 
   return {
     PK:
-      tokenStateEntryPK ||
+      tokenGenStatesEntryPK ||
       makeTokenGenerationStatesClientKidPK({
         clientId,
         kid,
       }),
     updatedAt: new Date().toISOString(),
     consumerId,
-    clientKind: clientKindTokenStates.consumer,
+    clientKind: clientKindTokenGenStates.api,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
-    GSIPK_kid: makeGSIPKKid(kid),
+    GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
   };
 };
 
@@ -624,4 +660,29 @@ const signClientAssertion = async ({
   return await new jose.SignJWT(payload)
     .setProtectedHeader(headers)
     .sign(privateKey);
+};
+
+export const addSomeRandomDelegations = async <
+  T extends { eserviceId: EServiceId }
+>(
+  domainObject: T,
+  addOneDelegation: (delegation: Delegation) => Promise<void>
+): Promise<void> => {
+  const states = [delegationState.rejected, delegationState.revoked];
+  const kinds = [
+    delegationKind.delegatedProducer,
+    delegationKind.delegatedConsumer,
+  ];
+
+  for (const state of states) {
+    for (const kind of kinds) {
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: domainObject.eserviceId,
+          kind,
+          state,
+        })
+      );
+    }
+  }
 };

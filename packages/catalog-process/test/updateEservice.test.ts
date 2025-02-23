@@ -3,6 +3,7 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockDelegation,
   getMockValidRiskAnalysis,
   randomArrayItem,
   getMockAuthData,
@@ -17,8 +18,11 @@ import {
   operationForbidden,
   generateId,
   fromEServiceV2,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
+import { match } from "ts-pattern";
 import {
   eServiceNotFound,
   eServiceDuplicate,
@@ -34,6 +38,7 @@ import {
   getMockDocument,
   getMockDescriptor,
   getMockEService,
+  addOneDelegation,
 } from "./utils.js";
 import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
@@ -43,7 +48,17 @@ describe("update eService", () => {
   it("should write on event-store for the update of an eService (no technology change)", async () => {
     vi.spyOn(fileManager, "delete");
 
+    config.featureFlagSignalhubWhitelist = true;
+    config.signalhubWhitelistProducer = [mockEService.producerId];
+
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isConsumerDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
+      .with(undefined, () => undefined)
+      .with(true, () => randomArrayItem([false, true, undefined]))
+      .with(false, () => false)
+      .exhaustive();
+
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
@@ -52,6 +67,7 @@ describe("update eService", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      isSignalHubEnabled,
     };
     const updatedName = "eservice new name";
     await addOneEService(eservice);
@@ -65,6 +81,8 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
         isSignalHubEnabled,
+        isConsumerDelegable,
+        isClientAccessDelegable,
       },
       authData: getMockAuthData(mockEService.producerId),
     });
@@ -73,6 +91,76 @@ describe("update eService", () => {
       ...eservice,
       name: updatedName,
       isSignalHubEnabled,
+      isConsumerDelegable,
+      isClientAccessDelegable,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent.stream_id).toBe(mockEService.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("DraftEServiceUpdated");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(returnedEService).toEqual(eServiceToApiEService(updatedEService));
+    expect(fileManager.delete).not.toHaveBeenCalled();
+  });
+
+  it("should update an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isConsumerDelegable: false | undefined = randomArrayItem([
+      false,
+      undefined,
+    ]);
+    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const expectedIsClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      isSignalHubEnabled,
+    };
+    const updatedName = "eservice new name";
+    await addOneEService(eservice);
+    const returnedEService = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: updatedName,
+        description: mockEService.description,
+        technology: "REST",
+        mode: "DELIVER",
+        isSignalHubEnabled,
+        isConsumerDelegable,
+        isClientAccessDelegable,
+      },
+      {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const updatedEService: EService = {
+      ...eservice,
+      name: updatedName,
+      isSignalHubEnabled,
+      isConsumerDelegable,
+      isClientAccessDelegable: expectedIsClientAccessDelegable,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -94,6 +182,9 @@ describe("update eService", () => {
 
   it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
     vi.spyOn(fileManager, "delete");
+
+    config.featureFlagSignalhubWhitelist = true;
+    config.signalhubWhitelistProducer = [mockEService.producerId];
 
     const interfaceDocument = {
       ...mockDocument,
@@ -218,6 +309,10 @@ describe("update eService", () => {
   });
   it("should write on event-store for the update of an eService (update description only)", async () => {
     const updatedDescription = "eservice new description";
+
+    config.featureFlagSignalhubWhitelist = true;
+    config.signalhubWhitelistProducer = [mockEService.producerId];
+
     await addOneEService(mockEService);
 
     const returnedEService = await mockEserviceRouterRequest.put({
@@ -254,8 +349,57 @@ describe("update eService", () => {
       eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
     ).toEqual(returnedEService);
   });
+  it("should write on event-store for the update of an eService (delegate)", async () => {
+    const updatedDescription = "eservice new description";
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+    const returnedEService = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: mockEService.name,
+        description: updatedDescription,
+        technology: "REST",
+        mode: "DELIVER",
+      },
+      {
+        authData: getMockAuthData(delegation.delegateId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const updatedEService: EService = {
+      ...mockEService,
+      description: updatedDescription,
+      isSignalHubEnabled: false,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "DraftEServiceUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+  });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
+    config.featureFlagSignalhubWhitelist = true;
+
     const riskAnalysis = getMockValidRiskAnalysis("PA");
     const eservice: EService = {
       ...mockEService,
@@ -264,6 +408,8 @@ describe("update eService", () => {
       mode: "Receive",
     };
     await addOneEService(eservice);
+
+    config.signalhubWhitelistProducer = [eservice.producerId];
 
     const returnedEService = await mockEserviceRouterRequest.put({
       path: "/eservices/:eServiceId",
@@ -335,6 +481,35 @@ describe("update eService", () => {
         },
         {
           authData: getMockAuthData(),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: "eservice new name",
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,

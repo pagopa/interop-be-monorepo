@@ -5,9 +5,14 @@ import {
   EService,
   generateId,
   descriptorState,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { getMockAuthData } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -15,6 +20,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { documentToApiDocument } from "../src/model/domain/apiConverter.js";
 import {
+  addOneDelegation,
   addOneEService,
   catalogService,
   getMockDescriptor,
@@ -79,6 +85,49 @@ describe("get document by id", () => {
       authData: getMockAuthData(eservice.producerId),
     });
     expect(result).toEqual(documentToApiDocument(mockDocument));
+  });
+
+  it("should get the interface if it exists (requester is the delegate, admin)", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      docs: [],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "eservice 001",
+      descriptors: [descriptor],
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    const authData: AuthData = {
+      ...getMockAuthData(delegation.delegateId),
+      userRoles: [userRoles.ADMIN_ROLE],
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    const result = await catalogService.getDocumentById(
+      {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        documentId: mockDocument.id,
+      },
+      {
+        authData,
+        logger: genericLogger,
+        correlationId: generateId(),
+        serviceName: "",
+      }
+    );
+    expect(result).toEqual(mockDocument);
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

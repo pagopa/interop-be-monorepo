@@ -7,6 +7,7 @@ import {
   RiskAnalysisId,
   toEServiceV2,
   CorrelationId,
+  AttributeId,
 } from "pagopa-interop-models";
 
 export const toCreateEventEServiceAdded = (
@@ -14,7 +15,7 @@ export const toCreateEventEServiceAdded = (
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "EServiceAdded",
     event_version: 2,
@@ -30,7 +31,7 @@ export const toCreateEventClonedEServiceAdded = (
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: clonedEservice.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "EServiceCloned",
     event_version: 2,
@@ -472,6 +473,169 @@ export const toCreateEventEServiceDescriptionUpdated = (
   version,
   event: {
     type: "EServiceDescriptionUpdated",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorSubmittedByDelegate = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorSubmittedByDelegate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorApprovedByDelegator = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorApprovedByDelegator",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorRejectedByDelegator = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorRejectedByDelegator",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorAttributesUpdated = (
+  version: number,
+  descriptorId: DescriptorId,
+  attributeIds: AttributeId[],
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorAttributesUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      attributeIds,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceIsConsumerDelegableEnabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceIsConsumerDelegableEnabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceIsConsumerDelegableDisabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceIsConsumerDelegableDisabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceIsClientAccessDelegableEnabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceIsClientAccessDelegableEnabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceIsClientAccessDelegableDisabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceIsClientAccessDelegableDisabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceNameUpdated = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceNameUpdated",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),

@@ -10,8 +10,11 @@ import {
   eserviceMode,
   Tenant,
   agreementState,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
+import { getMockDelegation } from "pagopa-interop-commons-test";
 import { eServiceToApiEService } from "../src/model/domain/apiConverter.js";
 import {
   addOneEService,
@@ -22,6 +25,7 @@ import {
   getMockDocument,
   getMockAgreement,
   getMockEServiceAttributes,
+  addOneDelegation,
 } from "./utils.js";
 import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
@@ -60,6 +64,9 @@ describe("get eservices", () => {
       name: "eservice 001 test",
       descriptors: [descriptor1],
       producerId: organizationId1,
+      isSignalHubEnabled: true,
+      isConsumerDelegable: true,
+      isClientAccessDelegable: true,
     };
     await addOneEService(eservice1);
 
@@ -108,6 +115,7 @@ describe("get eservices", () => {
       name: "eservice 004 test",
       producerId: organizationId2,
       descriptors: [descriptor4],
+      isConsumerDelegable: true,
     };
     await addOneEService(eservice4);
 
@@ -207,6 +215,59 @@ describe("get eservices", () => {
       eServiceToApiEService(eservice3),
     ]);
   });
+  it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds)", async () => {
+    const delegatedOrganization1 = generateId<TenantId>();
+    const delegatedOrganization2 = generateId<TenantId>();
+
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      delegateId: delegatedOrganization1,
+      eserviceId: eservice4.id,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation1);
+
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice5.id,
+      state: delegationState.active,
+      delegateId: delegatedOrganization2,
+    });
+
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice6.id,
+      state: delegationState.rejected,
+      delegateId: delegatedOrganization2,
+    });
+
+    await addOneDelegation(delegation3);
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        producersIds: [
+          organizationId1,
+          delegatedOrganization1,
+          delegatedOrganization2,
+        ],
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result.totalCount).toBe(5);
+    expect(result.results).toEqual([
+      eservice1,
+      eservice2,
+      eservice3,
+      eservice4,
+      eservice5,
+    ]);
+  });
   it("should get the eServices if they exist (parameters: states)", async () => {
     const result = await mockEserviceRouterRequest.get({
       path: "/eservices",
@@ -279,6 +340,106 @@ describe("get eservices", () => {
       eServiceToApiEService(eservice5),
     ]);
   });
+  it("should get the eServices if they exist (parameters: delegated = true)", async () => {
+    const delegatedOrganization1 = generateId<TenantId>();
+    const delegatedOrganization2 = generateId<TenantId>();
+
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice4.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation1);
+
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice5.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.waitingForApproval,
+    });
+
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice6.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.rejected,
+    });
+
+    await addOneDelegation(delegation3);
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        delegated: true,
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result.totalCount).toBe(2);
+    expect(result.results).toEqual([eservice4, eservice5]);
+  });
+  it("should get the eServices if they exist (parameters: delegated = false)", async () => {
+    const delegatedOrganization1 = generateId<TenantId>();
+    const delegatedOrganization2 = generateId<TenantId>();
+
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice4.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation1);
+
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice5.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.waitingForApproval,
+    });
+
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice6.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.rejected,
+    });
+
+    await addOneDelegation(delegation3);
+
+    const delegation4 = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice6.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation4);
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        delegated: false,
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result.totalCount).toBe(4);
+    expect(result.results).toEqual([
+      eservice1,
+      eservice2,
+      eservice3,
+      eservice6,
+    ]);
+  });
   it("should get the eServices if they exist (parameters: statestates, name)", async () => {
     const result = await mockEserviceRouterRequest.get({
       path: "/eservices",
@@ -329,6 +490,155 @@ describe("get eservices", () => {
 
     expect(result.totalCount).toBe(1);
     expect(result.results).toEqual([eServiceToApiEService(eservice5)]);
+  });
+  it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds, states, name)", async () => {
+    const delegatedOrganization1: TenantId = generateId();
+    const delegatedOrganization2: TenantId = generateId();
+
+    const delegatedEService1: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 1 test",
+      producerId: organizationId1,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          interface: mockDocument,
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    const delegatedEService2: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 2",
+      producerId: organizationId1,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          interface: mockDocument,
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    const delegatedEService3: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 3 test",
+      producerId: organizationId1,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.draft,
+        },
+      ],
+    };
+
+    const delegatedEService4: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 4 test",
+      producerId: organizationId1,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    const delegatedEService5: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 5 test",
+      producerId: organizationId1,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    await addOneEService(delegatedEService1);
+    await addOneEService(delegatedEService2);
+    await addOneEService(delegatedEService3);
+    await addOneEService(delegatedEService4);
+    await addOneEService(delegatedEService5);
+
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService1.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation1);
+
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService2.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService3.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation3);
+
+    const delegation4 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService4.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation4);
+
+    const delegation5 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService5.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.waitingForApproval,
+    });
+
+    await addOneDelegation(delegation5);
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        producersIds: [
+          organizationId2,
+          delegatedOrganization1,
+          delegatedOrganization2,
+        ],
+        states: ["PUBLISHED"],
+        name: "test",
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result.totalCount).toBe(3);
+    expect(result.results).toEqual([
+      delegatedEService1,
+      delegatedEService4,
+      eservice5,
+    ]);
   });
   it("should not get the eServices if they don't exist (parameters: producersIds, states, name)", async () => {
     const result = await mockEserviceRouterRequest.get({
@@ -418,6 +728,42 @@ describe("get eservices", () => {
       path: "/eservices",
       queryParams: {
         producersIds: [organizationId2],
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result).toEqual({
+      totalCount: 2,
+      results: [
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+      ],
+    });
+  });
+  it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        isConsumerDelegable: true,
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result).toEqual({
+      totalCount: 2,
+      results: [eservice1, eservice4],
+    });
+  });
+
+  it("should get the eServices if they exist (parameters: producersIds, mode)", async () => {
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        producersIds: [organizationId2],
         mode: "DELIVER",
         offset: 0,
         limit: 50,
@@ -431,6 +777,164 @@ describe("get eservices", () => {
         eServiceToApiEService(eservice4),
         eServiceToApiEService(eservice5),
       ],
+    });
+  });
+
+  it("should get the eServices if they exist (parameters: producersIds, mode, delegated = true)", async () => {
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice4.id,
+      delegateId: organizationId3,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation1);
+
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice4.id,
+      delegateId: organizationId3,
+      state: delegationState.active,
+    });
+
+    await addOneDelegation(delegation2);
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        producersIds: [organizationId2],
+        mode: "DELIVER",
+        delegated: true,
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result).toEqual({
+      totalCount: 1,
+      results: [eservice4],
+    });
+  });
+
+  it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds, mode)", async () => {
+    const delegatedOrganization1: TenantId = generateId();
+    const delegatedOrganization2: TenantId = generateId();
+
+    const delegatedEService1: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 1",
+      producerId: organizationId1,
+      mode: eserviceMode.deliver,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    const delegatedEService2: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 2",
+      producerId: organizationId1,
+      mode: eserviceMode.receive,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    const delegatedEService3: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 3",
+      producerId: organizationId1,
+      mode: eserviceMode.deliver,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    const delegatedEService4: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "delegated eservice 4",
+      producerId: organizationId1,
+      mode: eserviceMode.deliver,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+        },
+      ],
+    };
+
+    await addOneEService(delegatedEService1);
+    await addOneEService(delegatedEService2);
+    await addOneEService(delegatedEService3);
+    await addOneEService(delegatedEService4);
+
+    const delegation1 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService1.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation1);
+
+    const delegation2 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService2.id,
+      delegateId: delegatedOrganization1,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation2);
+
+    const delegation3 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService3.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.active,
+    });
+    await addOneDelegation(delegation3);
+
+    const delegation4 = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: delegatedEService4.id,
+      delegateId: delegatedOrganization2,
+      state: delegationState.rejected,
+    });
+    await addOneDelegation(delegation4);
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        producersIds: [
+          organizationId2,
+          delegatedOrganization1,
+          delegatedOrganization2,
+        ],
+        mode: "DELIVER",
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result).toEqual({
+      totalCount: 4,
+      results: [delegatedEService1, delegatedEService3, eservice4, eservice5],
     });
   });
 
@@ -635,248 +1139,376 @@ describe("get eservices", () => {
       eServiceToApiEService(eservice6),
     ]);
   });
-  it("should include eservices whose only descriptor is draft (requester is the producer, admin)", async () => {
-    const descriptor8: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      state: descriptorState.draft,
-    };
-    const eservice8: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor8],
-    };
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should include eservices whose only descriptor is %s (requester is the producer, admin)",
+    async (state) => {
+      const descriptor8: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        state,
+      };
+      const eservice8: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor8],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId1),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice8);
 
-    await addOneEService(eservice8);
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
+        },
+        authData,
+      });
 
-    const result = await mockEserviceRouterRequest.get({
-      path: "/eservices",
-      queryParams: {
-        offset: 0,
-        limit: 50,
-      },
-      authData: getMockAuthData(organizationId1),
-    });
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice8,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should include eservices whose only descriptor is %s (requester is delegate, admin)",
+    async (state) => {
+      const descriptor9: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: organizationId2,
+        eserviceId: eservice9.id,
+        state: delegationState.active,
+      });
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId2),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice9);
+      await addOneDelegation(delegation);
 
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eServiceToApiEService(eservice1),
-      eServiceToApiEService(eservice2),
-      eServiceToApiEService(eservice3),
-      eServiceToApiEService(eservice4),
-      eServiceToApiEService(eservice5),
-      eServiceToApiEService(eservice6),
-      eServiceToApiEService(eservice8),
-    ]);
-  });
-  it("should not include eservices whose only descriptor is draft (requester is the producer, not admin nor api, nor support)", async () => {
-    const descriptor8: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      state: descriptorState.draft,
-    };
-    const eservice8: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor8],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SECURITY_ROLE],
-    };
-    await addOneEService(eservice8);
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
+        },
+        authData,
+      });
 
-    const result = await mockEserviceRouterRequest.get({
-      path: "/eservices",
-      queryParams: {
-        offset: 0,
-        limit: 50,
-      },
-      authData,
-    });
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice9,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not include eservices whose only descriptor is %s (requester is the producer, not admin nor api, nor support)",
+    async (state) => {
+      const descriptor8: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        state,
+      };
+      const eservice8: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor8],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId1),
+        userRoles: [userRoles.SECURITY_ROLE],
+      };
+      await addOneEService(eservice8);
 
-    expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eServiceToApiEService(eservice1),
-      eServiceToApiEService(eservice2),
-      eServiceToApiEService(eservice3),
-      eServiceToApiEService(eservice4),
-      eServiceToApiEService(eservice5),
-      eServiceToApiEService(eservice6),
-    ]);
-  });
-  it("should not include eservices whose only descriptor is draft (requester is not the producer)", async () => {
-    const descriptor8: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      state: descriptorState.draft,
-    };
-    const eservice8: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor8],
-    };
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
+        },
+        authData,
+      });
 
-    await addOneEService(eservice8);
-
-    const result = await mockEserviceRouterRequest.get({
-      path: "/eservices",
-      queryParams: {
-        offset: 0,
-        limit: 50,
-      },
-      authData: getMockAuthData(),
-    });
-
-    expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eServiceToApiEService(eservice1),
-      eServiceToApiEService(eservice2),
-      eServiceToApiEService(eservice3),
-      eServiceToApiEService(eservice4),
-      eServiceToApiEService(eservice5),
-      eServiceToApiEService(eservice6),
-    ]);
-  });
-  it("should not filter out draft descriptors if the eservice has both draft and non-draft ones (requester is the producer, admin)", async () => {
-    const descriptor9a: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      interface: mockDocument,
-      publishedAt: new Date(),
-      state: descriptorState.published,
-    };
-    const descriptor9b: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "2",
-      state: descriptorState.draft,
-    };
-    const eservice9: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor9a, descriptor9b],
-    };
-
-    await addOneEService(eservice9);
-
-    const result = await mockEserviceRouterRequest.get({
-      path: "/eservices",
-      queryParams: {
-        offset: 0,
-        limit: 50,
-      },
-      authData: getMockAuthData(organizationId1),
-    });
-
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eServiceToApiEService(eservice1),
-      eServiceToApiEService(eservice2),
-      eServiceToApiEService(eservice3),
-      eServiceToApiEService(eservice4),
-      eServiceToApiEService(eservice5),
-      eServiceToApiEService(eservice6),
-      eServiceToApiEService(eservice9),
-    ]);
-  });
-  it("should filter out draft descriptors if the eservice has both draft and non-draft ones (requester is the producer, but not admin nor api, nor support)", async () => {
-    const descriptor9a: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      interface: mockDocument,
-      publishedAt: new Date(),
-      state: descriptorState.published,
-    };
-    const descriptor9b: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "2",
-      state: descriptorState.draft,
-    };
-    const eservice9: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor9a, descriptor9b],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SECURITY_ROLE],
-    };
-    await addOneEService(eservice9);
-
-    const result = await mockEserviceRouterRequest.get({
-      path: "/eservices",
-      queryParams: {
-        offset: 0,
-        limit: 50,
-      },
-      authData,
-    });
-
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eServiceToApiEService(eservice1),
-      eServiceToApiEService(eservice2),
-      eServiceToApiEService(eservice3),
-      eServiceToApiEService(eservice4),
-      eServiceToApiEService(eservice5),
-      eServiceToApiEService(eservice6),
-      eServiceToApiEService({ ...eservice9, descriptors: [descriptor9a] }),
-    ]);
-  });
-  it("should filter out draft descriptors if the eservice has both draft and non-draft ones (requester is not the producer)", async () => {
-    const descriptor9a: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      interface: mockDocument,
-      publishedAt: new Date(),
-      state: descriptorState.published,
-    };
-    const descriptor9b: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
-      version: "2",
-      state: descriptorState.draft,
-    };
-    const eservice9: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: "eservice 008",
-      producerId: organizationId1,
-      descriptors: [descriptor9a, descriptor9b],
-    };
-
-    await addOneEService(eservice9);
-
-    const result = await mockEserviceRouterRequest.get({
-      path: "/eservices",
-      queryParams: {
-        offset: 0,
-        limit: 50,
-      },
-      authData: getMockAuthData(),
-    });
-
-    expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eServiceToApiEService(eservice1),
-      eServiceToApiEService(eservice2),
-      eServiceToApiEService(eservice3),
-      eServiceToApiEService(eservice4),
-      eServiceToApiEService(eservice5),
-      eServiceToApiEService(eservice6),
-      eServiceToApiEService({ ...eservice9, descriptors: [descriptor9a] }),
-    ]);
-  });
+      expect(result.totalCount).toBe(6);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not include eservices whose only descriptor is %s (requester is not the producer)",
+    async (state) => {
+      const descriptor8: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        state,
+      };
+      const eservice8: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor8],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice8);
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
+        },
+        authData,
+      });
+      expect(result.totalCount).toBe(6);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not filter out %s descriptors if the eservice has both of that state and not (requester is the producer, admin)",
+    async (state) => {
+      const descriptor9a: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const descriptor9b: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9a, descriptor9b],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId1),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice9);
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
+        },
+        authData,
+      });
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice9,
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should filter out %s descriptors if the eservice has both of that state and not (requester is the producer, but not admin nor api, nor support)",
+    async (state) => {
+      const descriptor9a: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const descriptor9b: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9a, descriptor9b],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId1),
+        userRoles: [userRoles.SECURITY_ROLE],
+      };
+      await addOneEService(eservice9);
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
+        },
+        authData,
+      });
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        { ...eservice9, descriptors: [descriptor9a] },
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should filter out %s descriptors if the eservice has both of that state and not (requester is not the producer)",
+    async (state) => {
+      const descriptor9a: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const descriptor9b: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9a, descriptor9b],
+      };
+      const authData: AuthData = {
+        ...getMockAuthData(),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice9);
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
+        },
+        authData,
+      });
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        { ...eservice9, descriptors: [descriptor9a] },
+      ]);
+    }
+  );
+  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not filter out %s descriptors if the eservice has both of that state and not (requester is delegate, admin)",
+    async (state) => {
+      const descriptor9a: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        interface: mockDocument,
+        publishedAt: new Date(),
+        state: descriptorState.published,
+      };
+      const descriptor9b: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state,
+      };
+      const eservice9: EService = {
+        ...mockEService,
+        id: generateId(),
+        name: "eservice 008",
+        producerId: organizationId1,
+        descriptors: [descriptor9a, descriptor9b],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: organizationId2,
+        eserviceId: eservice9.id,
+        state: delegationState.active,
+      });
+      const authData: AuthData = {
+        ...getMockAuthData(organizationId2),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      await addOneEService(eservice9);
+      await addOneDelegation(delegation);
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
+        },
+        authData,
+      });
+      expect(result.totalCount).toBe(7);
+      expect(result.results).toEqual([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice9,
+      ]);
+    }
+  );
 });

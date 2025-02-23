@@ -27,6 +27,11 @@ import {
   EServiceReadModel,
   TenantReadModel,
   genericInternalError,
+  Delegation,
+  DelegationState,
+  delegationState,
+  delegationKind,
+  DelegationKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -36,6 +41,7 @@ import {
   Consumer,
   consumer,
 } from "../model/domain/models.js";
+import { notActiveDescriptorState } from "./validators.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -99,6 +105,7 @@ export function readModelServiceBuilder(
   const agreements = readModelRepository.agreements;
   const attributes = readModelRepository.attributes;
   const tenants = readModelRepository.tenants;
+  const delegations = readModelRepository.delegations;
 
   return {
     async getEServices(
@@ -115,6 +122,8 @@ export function readModelServiceBuilder(
         name,
         attributesIds,
         mode,
+        isConsumerDelegable,
+        delegated,
       } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
@@ -147,10 +156,30 @@ export function readModelServiceBuilder(
           "data.id": { $in: ids },
         });
 
-      const producersIdsFilter: ReadModelFilter<EService> =
-        ReadModelRepository.arrayToFilter(producersIds, {
-          "data.producerId": { $in: producersIds },
-        });
+      const delegationLookup = {
+        $lookup: {
+          from: "delegations",
+          localField: "data.id",
+          foreignField: "data.eserviceId",
+          as: "delegations",
+        },
+      };
+
+      const producersIdsFilter = ReadModelRepository.arrayToFilter(
+        producersIds,
+        {
+          $or: [
+            { "data.producerId": { $in: producersIds } },
+            {
+              "delegations.data.delegateId": { $in: producersIds },
+              "delegations.data.state": { $eq: delegationState.active },
+              "delegations.data.kind": {
+                $eq: delegationKind.delegatedProducer,
+              },
+            },
+          ],
+        }
+      );
 
       const descriptorsStateFilter: ReadModelFilter<EService> =
         ReadModelRepository.arrayToFilter(states, {
@@ -192,16 +221,44 @@ export function readModelServiceBuilder(
             $nor: [
               {
                 $and: [
-                  { "data.producerId": { $ne: authData.organizationId } },
+                  {
+                    $nor: [
+                      { "data.producerId": authData.organizationId },
+                      {
+                        delegations: {
+                          $elemMatch: {
+                            "data.delegateId": authData.organizationId,
+                            "data.state": delegationState.active,
+                            "data.kind": delegationKind.delegatedProducer,
+                          },
+                        },
+                      },
+                    ],
+                  },
                   { "data.descriptors": { $size: 0 } },
                 ],
               },
               {
                 $and: [
-                  { "data.producerId": { $ne: authData.organizationId } },
+                  {
+                    $nor: [
+                      { "data.producerId": authData.organizationId },
+                      {
+                        delegations: {
+                          $elemMatch: {
+                            "data.delegateId": authData.organizationId,
+                            "data.state": delegationState.active,
+                            "data.kind": delegationKind.delegatedProducer,
+                          },
+                        },
+                      },
+                    ],
+                  },
                   { "data.descriptors": { $size: 1 } },
                   {
-                    "data.descriptors.state": { $eq: descriptorState.draft },
+                    "data.descriptors.state": {
+                      $in: notActiveDescriptorState,
+                    },
                   },
                 ],
               },
@@ -214,7 +271,9 @@ export function readModelServiceBuilder(
                 $and: [
                   { "data.descriptors": { $size: 1 } },
                   {
-                    "data.descriptors.state": { $eq: descriptorState.draft },
+                    "data.descriptors.state": {
+                      $in: notActiveDescriptorState,
+                    },
                   },
                 ],
               },
@@ -225,18 +284,46 @@ export function readModelServiceBuilder(
         ? { "data.mode": { $eq: mode } }
         : {};
 
+      const isConsumerDelegableFilter: ReadModelFilter<EService> =
+        isConsumerDelegable
+          ? { "data.isConsumerDelegable": { $eq: isConsumerDelegable } }
+          : {};
+
+      const delegatedFilter: ReadModelFilter<EService> = match(delegated)
+        .with(true, () => ({
+          "delegations.data.state": {
+            $in: [delegationState.active, delegationState.waitingForApproval],
+          },
+          "delegations.data.kind": delegationKind.delegatedProducer,
+        }))
+        .with(false, () => ({
+          delegations: {
+            $not: {
+              $elemMatch: {
+                "data.state": {
+                  $in: [
+                    delegationState.active,
+                    delegationState.waitingForApproval,
+                  ],
+                },
+                "data.kind": delegationKind.delegatedProducer,
+              },
+            },
+          },
+        }))
+        .otherwise(() => ({}));
+
       const aggregationPipeline = [
-        {
-          $match: {
-            ...nameFilter,
-            ...idsFilter,
-            ...producersIdsFilter,
-            ...descriptorsStateFilter,
-            ...attributesFilter,
-            ...visibilityFilter,
-            ...modeFilter,
-          } satisfies ReadModelFilter<EService>,
-        },
+        delegationLookup,
+        { $match: nameFilter },
+        { $match: idsFilter },
+        { $match: producersIdsFilter },
+        { $match: descriptorsStateFilter },
+        { $match: attributesFilter },
+        { $match: visibilityFilter },
+        { $match: modeFilter },
+        { $match: isConsumerDelegableFilter },
+        { $match: delegatedFilter },
         {
           $project: {
             data: 1,
@@ -497,6 +584,48 @@ export function readModelServiceBuilder(
 
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return getTenant(tenants, { "data.id": id });
+    },
+
+    async getLatestDelegation({
+      eserviceId,
+      kind,
+      states,
+      delegateId,
+    }: {
+      eserviceId: EServiceId;
+      kind: DelegationKind;
+      states?: DelegationState[];
+      delegateId?: TenantId;
+    }): Promise<Delegation | undefined> {
+      const data = await delegations.findOne(
+        {
+          "data.eserviceId": eserviceId,
+          "data.kind": kind,
+          ...(states && states.length > 0
+            ? { "data.state": { $in: states } }
+            : {}),
+          ...(delegateId ? { "data.delegateId": delegateId } : {}),
+        },
+        {
+          projection: { data: true },
+          sort: { "data.createdAt": -1 },
+        }
+      );
+
+      if (!data) {
+        return undefined;
+      }
+      const result = Delegation.safeParse(data.data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }
