@@ -168,11 +168,19 @@ export async function handleMessageV2({
             return;
           }
 
+          if (
+            descriptor.state ===
+            catalogApi.EServiceDescriptorState.Values.ARCHIVED
+          ) {
+            return;
+          }
+
           const clonedDoc = await cloneDocument(
             docToAddToInstances,
             fileManager,
             loggerInstance
           );
+
           try {
             await catalogProcess.client.internalCreateDescriptorDocument(
               clonedDoc,
