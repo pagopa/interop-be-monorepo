@@ -2279,13 +2279,6 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
-
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
         descriptor,
