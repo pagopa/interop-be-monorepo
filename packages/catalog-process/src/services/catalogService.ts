@@ -2333,12 +2333,11 @@ export function catalogServiceBuilder(
         throw operationForbidden;
       }
 
-      if (
-        descriptor.docs.some(
-          (d) =>
-            d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
-        )
-      ) {
+      const alreadyHasDoc = descriptor.docs.some(
+        (d) => d.checksum === document.checksum
+      );
+
+      if (alreadyHasDoc) {
         return;
       }
 
@@ -2388,12 +2387,6 @@ export function catalogServiceBuilder(
         return;
       }
 
-      try {
-        assertDocumentDeletableDescriptorState(descriptor);
-      } catch {
-        return;
-      }
-
       await fileManager.delete(config.s3Bucket, document.path, logger);
 
       const newEservice: EService = replaceDescriptor(eservice.data, {
@@ -2419,7 +2412,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      apiEServiceDescriptorDocumentUpdateSeed: catalogApi.UpdateEServiceDescriptorDocumentSeed,
+      { prettyName }: catalogApi.UpdateEServiceDescriptorDocumentSeed,
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
@@ -2437,9 +2430,7 @@ export function catalogServiceBuilder(
 
       if (
         descriptor.docs.some(
-          (d) =>
-            d.prettyName.toLowerCase() ===
-            apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
+          (d) => d.prettyName.toLowerCase() === prettyName.toLowerCase()
         )
       ) {
         return;
@@ -2447,7 +2438,7 @@ export function catalogServiceBuilder(
 
       const updatedDocument = {
         ...document,
-        prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+        prettyName,
       };
 
       const newEservice: EService = replaceDescriptor(eservice.data, {
