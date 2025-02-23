@@ -9,12 +9,14 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   Delegation,
   DelegationEvent,
   DelegationId,
   EService,
   Tenant,
   toDelegationV2,
+  toReadModelAgreement,
   toReadModelEService,
   toReadModelTenant,
 } from "pagopa-interop-models";
@@ -24,8 +26,6 @@ import {
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
 import puppeteer, { Browser } from "puppeteer";
-import { PDFDocument } from "pdf-lib";
-import { delegationProducerServiceBuilder } from "../src/services/delegationProducerService.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
@@ -37,9 +37,8 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
   );
 afterEach(cleanup);
 
-export const delegations = readModelRepository.delegations;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
+export const { delegations, agreements, eservices, tenants } =
+  readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -60,14 +59,12 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
 
 export const pdfGenerator = await initPDFGenerator();
 
-export const delegationProducerService = delegationProducerServiceBuilder(
-  postgresDB,
+export const delegationService = delegationServiceBuilder(
   readModelService,
+  postgresDB,
   pdfGenerator,
   fileManager
 );
-
-export const delegationService = delegationServiceBuilder(readModelService);
 
 export const writeSubmitDelegationInEventstore = async (
   delegation: Delegation
@@ -119,19 +116,6 @@ export const addOneEservice = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
-export const flushPDFMetadata = async (
-  byteArray: Uint8Array,
-  currentExecutionTime: Date
-): Promise<Uint8Array> => {
-  const pdfModified = await PDFDocument.load(byteArray);
-  // Remove metadata properties
-  pdfModified.setTitle("");
-  pdfModified.setAuthor("");
-  pdfModified.setSubject("");
-  pdfModified.setKeywords([]);
-  pdfModified.setProducer("");
-  pdfModified.setCreator("");
-  pdfModified.setCreationDate(currentExecutionTime);
-  pdfModified.setModificationDate(currentExecutionTime);
-  return await pdfModified.save();
+export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };

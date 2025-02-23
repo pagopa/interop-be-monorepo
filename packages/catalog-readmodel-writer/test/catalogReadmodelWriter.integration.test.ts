@@ -38,6 +38,7 @@ import {
   EServiceDraftDescriptorDeletedV2,
   EServiceDraftDescriptorUpdatedV2,
   EServiceEventEnvelope,
+  EServiceNameUpdatedV2,
   EServiceReadModel,
   EServiceRiskAnalysisAddedV1,
   EServiceRiskAnalysisAddedV2,
@@ -227,14 +228,14 @@ describe("database test", async () => {
         descriptors: [descriptor],
       };
       await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
-      const updatedDescriptor = {
+      const expectedDescriptor = {
         ...descriptor,
         attributes,
       };
       const updatedEService: EService = {
         ...mockEService,
         attributes: undefined,
-        descriptors: [updatedDescriptor],
+        descriptors: [expectedDescriptor],
       };
       const payload: MovedAttributesFromEserviceToDescriptorsV1 = {
         eservice: toEServiceV1(updatedEService),
@@ -1585,6 +1586,45 @@ describe("database test", async () => {
         data: toReadModelEService(updatedEService),
         metadata: { version: 2 },
       });
+    });
+
+    it("EServiceNameUpdated", async () => {
+      const publishedDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        interface: getMockDocument(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        name: "previousName",
+        descriptors: [publishedDescriptor],
+      };
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      const updatedEService: EService = {
+        ...eservice,
+        name: "newName",
+      };
+      const payload: EServiceNameUpdatedV2 = {
+        eservice: toEServiceV2(updatedEService),
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 2,
+        type: "EServiceNameUpdated",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, eservices);
+      const retrievedEservice = await eservices.findOne({
+        "data.id": mockEService.id,
+      });
+      expect(retrievedEservice?.data).toEqual(
+        toReadModelEService(updatedEService)
+      );
+      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
   });
 });

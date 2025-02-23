@@ -11,6 +11,8 @@ import {
   DelegationState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { toCompactDescriptor } from "./catalogApiConverter.js";
+import { toCompactEserviceLight } from "./agreementApiConverter.js";
 
 export type DelegationsQueryParams = {
   delegatorIds?: string[];
@@ -52,21 +54,34 @@ export function toDelegationKind(
     .exhaustive();
 }
 
+export function toBffDelegationApiDelegationDoc(
+  document: delegationApi.DelegationContractDocument
+): bffApi.Document {
+  return {
+    id: document.id,
+    name: document.name,
+    contentType: document.contentType,
+    prettyName: document.prettyName,
+    createdAt: document.createdAt,
+  };
+}
+
 export function toBffDelegationApiDelegation(
   delegation: delegationApi.Delegation,
   delegator: tenantApi.Tenant,
   delegate: tenantApi.Tenant,
-  eservice: catalogApi.EService,
+  eservice: catalogApi.EService | undefined,
   producer: tenantApi.Tenant
 ): bffApi.Delegation {
   return {
     id: delegation.id,
-    eservice: {
+    eservice: eservice && {
       id: eservice.id,
       name: eservice.name,
       description: eservice.description,
       producerId: eservice.producerId,
       producerName: producer.name,
+      descriptors: eservice.descriptors.map(toCompactDescriptor),
     },
     delegate: {
       id: delegate.id,
@@ -76,9 +91,14 @@ export function toBffDelegationApiDelegation(
       id: delegator.id,
       name: delegator.name,
     },
-    activationContract: delegation.activationContract,
-    revocationContract: delegation.revocationContract,
-    submittedAt: delegation.submittedAt,
+    activationContract: delegation.activationContract
+      ? toBffDelegationApiDelegationDoc(delegation.activationContract)
+      : undefined,
+    revocationContract: delegation.revocationContract
+      ? toBffDelegationApiDelegationDoc(delegation.revocationContract)
+      : undefined,
+    createdAt: delegation.createdAt,
+    updatedAt: delegation.updatedAt,
     rejectionReason: delegation.rejectionReason,
     state: delegation.state,
     kind: delegation.kind,
@@ -89,11 +109,11 @@ export function toBffDelegationApiCompactDelegation(
   delegation: delegationApi.Delegation,
   delegator: tenantApi.Tenant,
   delegate: tenantApi.Tenant,
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService | undefined
 ): bffApi.CompactDelegation {
   return {
     id: delegation.id,
-    eserviceName: eservice.name,
+    eservice: eservice && toCompactEserviceLight(eservice),
     delegate: {
       name: delegate.name,
       id: delegate.id,

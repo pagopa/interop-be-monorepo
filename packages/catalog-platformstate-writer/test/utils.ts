@@ -1,11 +1,11 @@
-import { inject, vi } from "vitest";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { inject } from "vitest";
 
-export const config = inject("tokenGenerationReadModelConfig");
+const config = inject("tokenGenerationReadModelConfig");
 
-export const sleep = (ms: number, mockDate = new Date()): Promise<void> =>
-  new Promise((resolve) => {
-    vi.useRealTimers();
-    setTimeout(resolve, ms);
-    vi.useFakeTimers();
-    vi.setSystemTime(mockDate);
-  });
+if (!config) {
+  throw new Error("config is not defined");
+}
+export const dynamoDBClient = new DynamoDBClient({
+  endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
+});

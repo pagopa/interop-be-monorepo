@@ -44,7 +44,7 @@ import {
   getClientUsersErrorMapper,
   removeClientPurposeErrorMapper,
   removeClientUserErrorMapper,
-  createKeysErrorMapper,
+  createKeyErrorMapper,
   getClientKeyWithClientErrorMapper,
   getClientsWithKeysErrorMapper,
   addClientPurposeErrorMapper,
@@ -84,8 +84,14 @@ const authorizationService = authorizationServiceBuilder(
 const authorizationRouter = (
   ctx: ZodiosContext
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
-  const { ADMIN_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE, API_ROLE } =
-    userRoles;
+  const {
+    ADMIN_ROLE,
+    SECURITY_ROLE,
+    M2M_ROLE,
+    SUPPORT_ROLE,
+    API_ROLE,
+    INTERNAL_ROLE,
+  } = userRoles;
 
   const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -411,22 +417,22 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { client } = await authorizationService.createKeys({
+          const { client } = await authorizationService.createKey({
             clientId: unsafeBrandId(req.params.clientId),
             authData: req.ctx.authData,
-            keysSeeds: req.body,
+            keySeed: req.body,
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
           });
           return res.status(200).send(
-            authorizationApi.Keys.parse({
+            authorizationApi.Key.parse({
               keys: client.keys.map((key) => keyToApiKey(key)),
             })
           );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createKeysErrorMapper,
+            createKeyErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -534,9 +540,7 @@ const authorizationRouter = (
           await authorizationService.addClientPurpose({
             clientId: unsafeBrandId(req.params.clientId),
             seed: req.body,
-            organizationId: ctx.authData.organizationId,
-            correlationId: ctx.correlationId,
-            logger: ctx.logger,
+            ctx,
           });
           return res.status(204).send();
         } catch (error) {
@@ -577,7 +581,7 @@ const authorizationRouter = (
     )
     .delete(
       "/clients/purposes/:purposeId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {

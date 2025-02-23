@@ -1,30 +1,36 @@
 import {
   Delegation,
+  delegationKind,
   DelegationKind,
+  DelegationStamp,
   DelegationState,
   delegationState,
+  EService,
   EServiceId,
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  operationForbidden,
   Tenant,
+  tenantFeatureType,
   TenantId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   delegationAlreadyExists,
-  delegationNotRevokable,
+  delegationRelatedAgreementExists,
+  delegationStampNotFound,
   delegatorAndDelegateSameIdError,
-  delegatorNotAllowToRevoke,
   differentEServiceProducer,
-  eserviceNotFound,
+  eserviceNotConsumerDelegable,
   incorrectState,
-  invalidExternalOriginError,
   operationRestrictedToDelegate,
+  operationRestrictedToDelegator,
+  originNotCompliant,
   tenantNotAllowedToDelegation,
-  tenantNotFound,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 /* ========= STATES ========= */
-export const delegationNotActivableStates: DelegationState[] = [
+export const inactiveDelegationStates: DelegationState[] = [
   delegationState.rejected,
   delegationState.revoked,
 ];
@@ -34,17 +40,11 @@ export const activeDelegationStates: DelegationState[] = [
   delegationState.active,
 ];
 
-export const assertEserviceExists = async (
+export const assertDelegatorIsProducer = (
   delegatorId: TenantId,
-  eserviceId: EServiceId,
-  readModelService: ReadModelService
-): Promise<void> => {
-  const eservice = await readModelService.getEServiceById(eserviceId);
-  if (!eservice) {
-    throw eserviceNotFound(eserviceId);
-  }
-
-  if (eservice.data.producerId !== delegatorId) {
+  eservice: EService
+): void => {
+  if (eservice.producerId !== delegatorId) {
     throw differentEServiceProducer(delegatorId);
   }
 };
@@ -58,46 +58,44 @@ export const assertDelegatorIsNotDelegate = (
   }
 };
 
-export const assertDelegatorIsIPA = async (
-  delegator?: Tenant
+export const assertDelegatorAndDelegateAllowedOrigins = async (
+  delegator: Tenant,
+  delegate: Tenant
 ): Promise<void> => {
-  if (delegator?.externalId?.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
-    throw invalidExternalOriginError(delegator?.externalId?.origin);
+  if (
+    !config.delegationsAllowedOrigins.includes(delegator?.externalId?.origin)
+  ) {
+    throw originNotCompliant(delegator, "Delegator");
+  }
+
+  if (
+    !config.delegationsAllowedOrigins.includes(delegate?.externalId?.origin)
+  ) {
+    throw originNotCompliant(delegate, "Delegate");
   }
 };
 
-export const assertTenantAllowedToReceiveProducerDelegation = (
-  tenant: Tenant
+export const assertTenantAllowedToReceiveDelegation = (
+  tenant: Tenant,
+  kind: DelegationKind
 ): void => {
   const delegationFeature = tenant.features.find(
-    (f) => f.type === "DelegatedProducer"
+    (f) =>
+      f.type ===
+      match(kind)
+        .with(
+          delegationKind.delegatedProducer,
+          () => tenantFeatureType.delegatedProducer
+        )
+        .with(
+          delegationKind.delegatedConsumer,
+          () => tenantFeatureType.delegatedConsumer
+        )
+        .exhaustive()
   );
 
   if (!delegationFeature) {
-    throw tenantNotAllowedToDelegation(tenant.id);
-  }
-};
-
-export const assertTenantExists = async (
-  tenantId: TenantId,
-  readModelService: ReadModelService
-): Promise<void> => {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (!tenant) {
-    throw tenantNotFound(tenantId);
-  }
-};
-
-export const assertDelegationIsRevokable = (
-  delegation: Delegation,
-  expectedDelegatorId: TenantId
-): void => {
-  if (delegation.delegatorId !== expectedDelegatorId) {
-    throw delegatorNotAllowToRevoke(delegation);
-  }
-
-  if (!activeDelegationStates.includes(delegation.state)) {
-    throw delegationNotRevokable(delegation);
+    throw tenantNotAllowedToDelegation(tenant.id, kind);
   }
 };
 
@@ -113,7 +111,7 @@ export const assertDelegationNotExists = async (
     delegatorId,
     eserviceId,
     delegationKind,
-    states: [delegationState.active, delegationState.waitingForApproval],
+    states: activeDelegationStates,
   });
 
   if (delegations.length > 0) {
@@ -123,22 +121,78 @@ export const assertDelegationNotExists = async (
 
 export const assertIsDelegate = (
   delegation: Delegation,
-  delegateId: TenantId
+  requesterId: TenantId
 ): void => {
-  if (delegation.delegateId !== delegateId) {
-    throw operationRestrictedToDelegate(delegateId, delegation.id);
+  if (delegation.delegateId !== requesterId) {
+    throw operationRestrictedToDelegate(requesterId, delegation.id);
+  }
+};
+
+export const assertIsDelegator = (
+  delegation: Delegation,
+  requesterId: TenantId
+): void => {
+  if (delegation.delegatorId !== requesterId) {
+    throw operationRestrictedToDelegator(requesterId, delegation.id);
   }
 };
 
 export const assertIsState = (
-  state: DelegationState,
+  expected: DelegationState | DelegationState[],
   delegation: Delegation
 ): void => {
-  if (delegation.state !== state) {
-    throw incorrectState(
-      delegation.id,
-      delegation.state,
-      delegationState.waitingForApproval
+  if (
+    (!Array.isArray(expected) && delegation.state !== expected) ||
+    (Array.isArray(expected) && !expected.includes(delegation.state))
+  ) {
+    throw incorrectState(delegation.id, delegation.state, expected);
+  }
+};
+
+export const assertRequesterIsDelegateOrDelegator = (
+  delegation: Delegation,
+  requesterId: TenantId
+): void => {
+  if (
+    delegation.delegateId !== requesterId &&
+    delegation.delegatorId !== requesterId
+  ) {
+    throw operationForbidden;
+  }
+};
+
+export function assertStampExists<S extends keyof Delegation["stamps"]>(
+  stamps: Delegation["stamps"],
+  stamp: S
+): asserts stamps is Delegation["stamps"] & {
+  [key in S]: DelegationStamp;
+} {
+  if (!stamps[stamp]) {
+    throw delegationStampNotFound(stamp);
+  }
+}
+
+export const assertEserviceIsConsumerDelegable = (eservice: EService): void => {
+  if (!eservice.isConsumerDelegable) {
+    throw eserviceNotConsumerDelegable(eservice.id);
+  }
+};
+
+export const assertNoDelegationRelatedAgreementExists = async (
+  consumerId: TenantId,
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<void> => {
+  const agreement = await readModelService.getDelegationRelatedAgreement(
+    eserviceId,
+    consumerId
+  );
+
+  if (agreement) {
+    throw delegationRelatedAgreementExists(
+      agreement.id,
+      agreement.eserviceId,
+      agreement.consumerId
     );
   }
 };

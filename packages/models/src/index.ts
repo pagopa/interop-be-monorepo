@@ -59,6 +59,7 @@ export * from "./authorization/authorizationReadModelAdapter.js";
 
 export * from "./user/user.js";
 
+// Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
 export * from "./token-generation-readmodel/token-generation-states-entry.js";
 export * from "./token-generation-readmodel/commons.js";
@@ -83,6 +84,7 @@ export * from "./brandedIds.js";
 export * from "./constants.js";
 export * from "./errors.js";
 export * from "./utils.js";
+export * from "./constants.js";
 
 //  Generated models
 export * from "./gen/v1/agreement/agreement.js";

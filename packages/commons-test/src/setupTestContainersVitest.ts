@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
@@ -5,7 +6,6 @@
 
 import {
   DB,
-  EmailManager,
   EventStoreConfig,
   FileManager,
   FileManagerConfig,
@@ -20,6 +20,10 @@ import {
   initPecEmailManager,
   initFileManager,
   initRedisRateLimiter,
+  EmailManagerPEC,
+  EmailManagerSES,
+  AWSSesConfig,
+  initSesMailManager,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
@@ -76,7 +80,7 @@ export function setupTestContainersVitest(
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
-  emailManager: EmailManager;
+  pecEmailManager: EmailManagerPEC;
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
@@ -84,12 +88,14 @@ export function setupTestContainersVitest(
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: PecEmailManagerConfigTest,
-  RedisRateLimiterConfig?: RedisRateLimiterConfig
+  RedisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig
 ): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
   fileManager: FileManager;
-  emailManager: EmailManager;
+  pecEmailManager: EmailManagerPEC;
+  sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
   cleanup: () => Promise<void>;
 }>;
@@ -98,12 +104,14 @@ export async function setupTestContainersVitest(
   eventStoreConfig?: EventStoreConfig,
   fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
   emailManagerConfig?: PecEmailManagerConfigTest,
-  redisRateLimiterConfig?: RedisRateLimiterConfig
+  redisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
   fileManager?: FileManager;
-  emailManager?: EmailManager;
+  pecEmailManager?: EmailManagerPEC;
+  sesEmailManager?: EmailManagerSES;
   redisRateLimiter?: RateLimiter;
   cleanup: () => Promise<void>;
 }> {
@@ -112,7 +120,8 @@ export async function setupTestContainersVitest(
   let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
-  let emailManager: EmailManager | undefined;
+  let pecEmailManager: EmailManagerPEC | undefined;
+  let sesEmailManager: EmailManagerSES | undefined;
   let redisRateLimiter: RateLimiter | undefined;
   const redisRateLimiterGroup = "TEST";
 
@@ -137,7 +146,11 @@ export async function setupTestContainersVitest(
   }
 
   if (emailManagerConfig) {
-    emailManager = initPecEmailManager(emailManagerConfig, false);
+    pecEmailManager = initPecEmailManager(emailManagerConfig, false);
+  }
+
+  if (awsSESConfig) {
+    sesEmailManager = initSesMailManager(awsSESConfig);
   }
 
   if (redisRateLimiterConfig) {
@@ -156,7 +169,8 @@ export async function setupTestContainersVitest(
     readModelRepository,
     postgresDB,
     fileManager,
-    emailManager,
+    pecEmailManager,
+    sesEmailManager,
     redisRateLimiter,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
@@ -209,6 +223,10 @@ export async function setupTestContainersVitest(
         await axios.delete(
           `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
         );
+      }
+
+      if (awsSESConfig?.awsSesEndpoint) {
+        await axios.post(`${awsSESConfig?.awsSesEndpoint}/clear-store`);
       }
     },
   };

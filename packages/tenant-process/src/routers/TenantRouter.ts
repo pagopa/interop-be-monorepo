@@ -12,7 +12,10 @@ import {
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { toApiTenant } from "../model/domain/apiConverter.js";
+import {
+  apiTenantFeatureTypeToTenantFeatureType,
+  toApiTenant,
+} from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
@@ -38,8 +41,7 @@ import {
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
   maintenanceTenantUpdatedErrorMapper,
-  assignTenantDelegatedProducerFeatureErrorMapper,
-  removeTenantDelegatedProducerFeatureErrorMapper,
+  updateTenantDelegatedFeaturesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
@@ -168,10 +170,11 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const { name, offset, limit } = req.query;
-          const tenants = await tenantService.getTenantsByName(
+          const { name, features, offset, limit } = req.query;
+          const tenants = await tenantService.getTenants(
             {
               name,
+              features: features.map(apiTenantFeatureTypeToTenantFeatureType),
               offset,
               limit,
             },
@@ -500,13 +503,14 @@ const tenantsRouter = (
       }
     )
     .post(
-      "/tenants/delegatedProducer",
+      "/tenants/delegatedFeatures/update",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          await tenantService.assignTenantDelegatedProducerFeature({
+          await tenantService.updateTenantDelegatedFeatures({
             organizationId: req.ctx.authData.organizationId,
+            tenantFeatures: req.body,
             correlationId: req.ctx.correlationId,
             authData: ctx.authData,
             logger: ctx.logger,
@@ -515,31 +519,7 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            assignTenantDelegatedProducerFeatureErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .delete(
-      "/tenants/delegatedProducer",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          await tenantService.removeTenantDelegatedProducerFeature({
-            organizationId: req.ctx.authData.organizationId,
-            correlationId: req.ctx.correlationId,
-            authData: ctx.authData,
-            logger: ctx.logger,
-          });
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            removeTenantDelegatedProducerFeatureErrorMapper,
+            updateTenantDelegatedFeaturesErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -822,9 +802,11 @@ const tenantsRouter = (
           const tenant = await tenantService.verifyVerifiedAttribute(
             {
               tenantId: unsafeBrandId(req.params.tenantId),
-              tenantAttributeSeed: req.body,
-              organizationId: ctx.authData.organizationId,
-              correlationId: ctx.correlationId,
+              attributeId: unsafeBrandId(req.body.id),
+              agreementId: unsafeBrandId(req.body.agreementId),
+              expirationDate: req.body.expirationDate,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
             },
             ctx.logger
           );
@@ -852,6 +834,7 @@ const tenantsRouter = (
             {
               tenantId: unsafeBrandId(req.params.tenantId),
               attributeId: unsafeBrandId(req.params.attributeId),
+              agreementId: unsafeBrandId(req.body.agreementId),
             },
             ctx
           );

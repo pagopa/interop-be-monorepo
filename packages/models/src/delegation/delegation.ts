@@ -4,6 +4,7 @@ import {
   DelegationId,
   EServiceId,
   TenantId,
+  UserId,
 } from "../brandedIds.js";
 
 export const delegationKind = {
@@ -42,7 +43,7 @@ export type DelegationContractDocument = z.infer<
 >;
 
 export const DelegationStamp = z.object({
-  who: TenantId,
+  who: UserId,
   when: z.coerce.date(),
 });
 export type DelegationStamp = z.infer<typeof DelegationStamp>;
@@ -61,11 +62,8 @@ export const Delegation = z.object({
   delegateId: TenantId,
   eserviceId: EServiceId,
   createdAt: z.coerce.date(),
-  submittedAt: z.coerce.date(),
-  approvedAt: z.coerce.date().optional(),
-  rejectedAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
   rejectionReason: z.string().optional(),
-  revokedAt: z.coerce.date().optional(),
   state: DelegationState,
   kind: DelegationKind,
   activationContract: DelegationContractDocument.optional(),
