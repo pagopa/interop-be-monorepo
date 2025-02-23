@@ -827,6 +827,56 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     );
   });
 
+  it.each([
+    "EServiceTemplateAdded",
+    "EServiceTemplateAudienceDescriptionUpdated",
+    "EServiceTemplateDeleted",
+    "EServiceTemplateDraftUpdated",
+    "EServiceTemplateDraftVersionDeleted",
+    "EServiceTemplateDraftVersionUpdated",
+    "EServiceTemplateRiskAnalysisAdded",
+    "EServiceTemplateRiskAnalysisDeleted",
+    "EServiceTemplateRiskAnalysisUpdated",
+    "EServiceTemplateVersionActivated",
+    "EServiceTemplateVersionAdded",
+    "EServiceTemplateVersionInterfaceAdded",
+    "EServiceTemplateVersionInterfaceDeleted",
+    "EServiceTemplateVersionInterfaceUpdated",
+    "EServiceTemplateVersionPublished",
+    "EServiceTemplateVersionSuspended",
+  ] as const)("Should ignore %s event", async (eventType) => {
+    const decodedKafkaMessage: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: "stream-id",
+      version: 2,
+      type: eventType,
+      event_version: 2,
+      data: {} as never,
+      log_date: new Date(),
+      correlation_id: correlationId,
+    };
+
+    const { handleMessageV2 } = await import(
+      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+    );
+
+    await handleMessageV2({
+      decodedKafkaMessage,
+      refreshableToken: mockRefreshableToken,
+      partition: 0,
+      offset: "10",
+      fileManager,
+    });
+
+    expect(internalUpdateEServiceNameFn).not.toHaveBeenCalled();
+    expect(internalUpdateEServiceDescriptionFn).not.toHaveBeenCalled();
+    expect(internalUpdateDescriptorAttributesFn).not.toHaveBeenCalled();
+    expect(internalUpdateDescriptorVoucherLifespanFn).not.toHaveBeenCalled();
+    expect(internalCreateDescriptorDocumentFn).not.toHaveBeenCalled();
+    expect(internalUpdateDescriptorDocumentFn).not.toHaveBeenCalled();
+    expect(internalDeleteDescriptorDocumentFn).not.toHaveBeenCalled();
+  });
+
   it("Should throw missingKafkaMessageDataError when eservice template data is missing", async () => {
     const decodedKafkaMessage: EServiceTemplateEventEnvelope = {
       sequence_num: 1,
