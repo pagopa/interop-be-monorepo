@@ -138,7 +138,7 @@ describe("verifyVerifiedAttribute", async () => {
         path: "/tenants/:tenantId/attributes/verified",
         pathParams: { tenantId: targetTenant.id },
         body: {
-          attributeId: tenantAttributeSeedId,
+          id: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
         },
         authData: getMockAuthData(requesterTenant.id),
@@ -182,7 +182,7 @@ describe("verifyVerifiedAttribute", async () => {
         updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      expect(returnedTenant).toEqual(updatedTenant);
+      expect(returnedTenant).toEqual(toApiTenant(updatedTenant));
     }
   );
 
@@ -230,7 +230,7 @@ describe("verifyVerifiedAttribute", async () => {
         path: "/tenants/:tenantId/attributes/verified",
         pathParams: { tenantId: tenantWithVerifiedAttribute.id },
         body: {
-          attributeId: tenantAttributeSeedId,
+          id: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
         },
         authData: getMockAuthData(requesterTenant.id),
@@ -265,6 +265,7 @@ describe("verifyVerifiedAttribute", async () => {
                 ...mockVerifiedBy,
                 id: requesterTenant.id,
                 verificationDate: new Date(),
+                delegationId: delegation.id,
               },
             ],
             revokedBy: [{ ...mockRevokedBy }],

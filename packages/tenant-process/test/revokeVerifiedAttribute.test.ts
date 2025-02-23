@@ -140,6 +140,9 @@ describe("revokeVerifiedAttribute", async () => {
           attributeId: verifiedAttribute.id,
         },
         authData,
+        body: {
+          agreementId: agreementEservice.id,
+        },
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -181,7 +184,7 @@ describe("revokeVerifiedAttribute", async () => {
       };
 
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      expect(returnedTenant).toEqual(updatedTenant);
+      expect(returnedTenant).toEqual(toApiTenant(updatedTenant));
     }
   );
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
