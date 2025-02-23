@@ -261,11 +261,11 @@ describe("get eservices", () => {
 
     expect(result.totalCount).toBe(5);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice4),
+      eServiceToApiEService(eservice5),
     ]);
   });
   it("should get the eServices if they exist (parameters: states)", async () => {
@@ -381,7 +381,10 @@ describe("get eservices", () => {
     });
 
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice4, eservice5]);
+    expect(result.results).toEqual([
+      eServiceToApiEService(eservice4),
+      eServiceToApiEService(eservice5),
+    ]);
   });
   it("should get the eServices if they exist (parameters: delegated = false)", async () => {
     const delegatedOrganization1 = generateId<TenantId>();
@@ -434,10 +437,10 @@ describe("get eservices", () => {
 
     expect(result.totalCount).toBe(4);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice6,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice6),
     ]);
   });
   it("should get the eServices if they exist (parameters: statestates, name)", async () => {
@@ -635,9 +638,9 @@ describe("get eservices", () => {
 
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([
-      delegatedEService1,
-      delegatedEService4,
-      eservice5,
+      eServiceToApiEService(delegatedEService1),
+      eServiceToApiEService(delegatedEService4),
+      eServiceToApiEService(eservice5),
     ]);
   });
   it("should not get the eServices if they don't exist (parameters: producersIds, states, name)", async () => {
@@ -728,6 +731,7 @@ describe("get eservices", () => {
       path: "/eservices",
       queryParams: {
         producersIds: [organizationId2],
+        mode: "DELIVER",
         offset: 0,
         limit: 50,
       },
@@ -755,7 +759,10 @@ describe("get eservices", () => {
 
     expect(result).toEqual({
       totalCount: 2,
-      results: [eservice1, eservice4],
+      results: [
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice4),
+      ],
     });
   });
 
@@ -812,7 +819,7 @@ describe("get eservices", () => {
 
     expect(result).toEqual({
       totalCount: 1,
-      results: [eservice4],
+      results: [eServiceToApiEService(eservice4)],
     });
   });
 
@@ -934,7 +941,12 @@ describe("get eservices", () => {
 
     expect(result).toEqual({
       totalCount: 4,
-      results: [delegatedEService1, delegatedEService3, eservice4, eservice5],
+      results: [
+        eServiceToApiEService(delegatedEService1),
+        eServiceToApiEService(delegatedEService3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+      ],
     });
   });
 
@@ -1171,13 +1183,13 @@ describe("get eservices", () => {
 
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice8,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService(eservice8),
       ]);
     }
   );
@@ -1222,13 +1234,13 @@ describe("get eservices", () => {
 
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService(eservice9),
       ]);
     }
   );
@@ -1264,12 +1276,12 @@ describe("get eservices", () => {
 
       expect(result.totalCount).toBe(6);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
       ]);
     }
   );
@@ -1303,12 +1315,12 @@ describe("get eservices", () => {
       });
       expect(result.totalCount).toBe(6);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
       ]);
     }
   );
@@ -1350,13 +1362,13 @@ describe("get eservices", () => {
       });
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService(eservice9),
       ]);
     }
   );
@@ -1398,13 +1410,13 @@ describe("get eservices", () => {
       });
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        { ...eservice9, descriptors: [descriptor9a] },
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService({ ...eservice9, descriptors: [descriptor9a] }),
       ]);
     }
   );
@@ -1446,13 +1458,13 @@ describe("get eservices", () => {
       });
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        { ...eservice9, descriptors: [descriptor9a] },
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService({ ...eservice9, descriptors: [descriptor9a] }),
       ]);
     }
   );
@@ -1501,13 +1513,13 @@ describe("get eservices", () => {
       });
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService(eservice9),
       ]);
     }
   );

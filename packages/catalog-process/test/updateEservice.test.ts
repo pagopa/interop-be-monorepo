@@ -136,9 +136,11 @@ describe("update eService", () => {
     };
     const updatedName = "eservice new name";
     await addOneEService(eservice);
-    const returnedEService = await catalogService.updateEService(
-      mockEService.id,
-      {
+
+    const returnedEService = await mockEserviceRouterRequest.put({
+      path: "/eservices/:eServiceId",
+      pathParams: { eServiceId: mockEService.id },
+      body: {
         name: updatedName,
         description: mockEService.description,
         technology: "REST",
@@ -147,13 +149,8 @@ describe("update eService", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+      authData: getMockAuthData(mockEService.producerId),
+    });
 
     const updatedEService: EService = {
       ...eservice,
@@ -174,9 +171,7 @@ describe("update eService", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(
-      eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
-    ).toEqual(returnedEService);
+    expect(eServiceToApiEService(updatedEService)).toEqual(returnedEService);
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -264,9 +259,7 @@ describe("update eService", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDocument.path);
-    expect(
-      eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
-    ).toEqual(returnedEService);
+    expect(returnedEService).toEqual(eServiceToApiEService(updatedEService));
   });
 
   it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {

@@ -15,7 +15,6 @@ import {
   operationForbidden,
   generateId,
   Document,
-  fromEServiceV2,
   unsafeBrandId,
   delegationState,
   delegationKind,
@@ -28,7 +27,6 @@ import {
   eServiceDocumentNotFound,
   prettyNameDuplicate,
 } from "../src/model/domain/errors.js";
-import { eServiceToApiEService } from "../src/model/domain/apiConverter.js";
 import {
   addOneEService,
   catalogService,
@@ -103,10 +101,8 @@ describe("update Document", () => {
       expect(writtenPayload.documentId).toEqual(mockDocument.id);
       expect(writtenPayload.eservice).toEqual(expectedEservice);
 
-      expect(
-        eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
-      ).toEqual(
-        eServiceToApiEService({
+      expect(expectedEservice).toEqual(
+        toEServiceV2({
           ...eservice,
           descriptors: [
             {
@@ -115,7 +111,9 @@ describe("update Document", () => {
                 {
                   ...returnedDocument,
                   id: unsafeBrandId(returnedDocument.id),
-                  uploadDate: new Date(),
+                  uploadDate: new Date(
+                    expectedEservice.descriptors[0].docs[0].uploadDate
+                  ),
                 },
               ],
             },

@@ -12,7 +12,6 @@ import {
   Document,
   delegationState,
   generateId,
-  fromEServiceV2,
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -82,7 +81,7 @@ describe("upload Document", () => {
         payload: writtenEvent.data,
       });
 
-      const expectedEservice = toEServiceV2({
+      const expectedEservice: EService = {
         ...eservice,
         descriptors: [
           {
@@ -101,13 +100,11 @@ describe("upload Document", () => {
             serverUrls: ["pagopa.it"],
           },
         ],
-      });
+      };
 
       expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-      expect(writtenPayload.eservice).toEqual(expectedEservice);
-      expect(
-        eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
-      ).toEqual(returnedEService);
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+      expect(eServiceToApiEService(expectedEservice)).toEqual(returnedEService);
     }
   );
   it.each(

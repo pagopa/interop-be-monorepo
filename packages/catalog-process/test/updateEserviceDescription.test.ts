@@ -15,7 +15,6 @@ import {
   EServiceDescriptionUpdatedV2,
   delegationState,
   generateId,
-  fromEServiceV2,
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -47,18 +46,18 @@ describe("update eService description", () => {
     };
     await addOneEService(eservice);
 
-    const updatedName = "eservice new name";
+    const updatedDescription = "eservice new description";
 
     const returnedEService = await mockEserviceRouterRequest.post({
-      path: "/eservices/:eServiceId/name/update",
+      path: "/eservices/:eServiceId/description/update",
       pathParams: { eServiceId: eservice.id },
-      body: { name: updatedName },
+      body: { description: updatedDescription },
       authData: getMockAuthData(eservice.producerId),
     });
 
     const updatedEService: EService = {
       ...eservice,
-      name: updatedName,
+      description: updatedDescription,
     };
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -74,9 +73,7 @@ describe("update eService description", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(
-      eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
-    ).toEqual(returnedEService);
+    expect(eServiceToApiEService(updatedEService)).toEqual(returnedEService);
   });
   it("should write on event-store for the update of the eService description (delegate)", async () => {
     const descriptor: Descriptor = {

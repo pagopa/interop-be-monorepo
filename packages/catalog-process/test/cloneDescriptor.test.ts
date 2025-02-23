@@ -16,7 +16,6 @@ import {
   toEServiceV2,
   generateId,
   operationForbidden,
-  fromEServiceV2,
   delegationState,
   delegationKind,
 } from "pagopa-interop-models";
@@ -230,9 +229,7 @@ describe("clone descriptor", () => {
     ).toContain(expectedDocument2.path);
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
-    expect(
-      eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
-    ).toEqual(newEService);
+    expect(eServiceToApiEService(expectedEService)).toEqual(newEService);
   });
   it("should fail if one of the file copy fails", async () => {
     const descriptor: Descriptor = {
