@@ -160,7 +160,7 @@ export async function handleMessageV2({
         refreshableToken,
         correlationId,
         async (instance, descriptor, headers) => {
-          const alreadyHasDoc = descriptor?.docs.find(
+          const alreadyHasDoc = descriptor?.docs.some(
             (d) => d.checksum === docToAddToInstances.checksum
           );
 
