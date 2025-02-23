@@ -107,61 +107,112 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneAttribute(mockDeclaredAttribute3);
   });
 
-  it("should write on event-store for the internal attributes update of a descriptor", async () => {
-    const mockDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      attributes: {
-        certified: validMockDescriptorCertifiedAttributes,
-        verified: validMockDescriptorVerifiedAttributes,
-        declared: [],
-      },
-    };
-
-    const mockEService: EService = {
-      ...getMockEService(),
-      descriptors: [mockDescriptor],
-    };
-
-    await addOneEService(mockEService);
-
-    const updatedEService: EService = {
-      ...mockEService,
-      descriptors: [
-        {
-          ...mockDescriptor,
-          attributes:
-            validMockDescriptorAttributeSeed as Descriptor["attributes"],
+  it.each([descriptorState.published, descriptorState.suspended])(
+    "should write on event-store for the internal attributes update of a descriptor with state %s",
+    async (descriptorState) => {
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState,
+        attributes: {
+          certified: validMockDescriptorCertifiedAttributes,
+          verified: validMockDescriptorVerifiedAttributes,
+          declared: [],
         },
-      ],
-    };
+      };
 
-    await catalogService.internalUpdateDescriptorAttributes(
-      mockEService.id,
-      mockDescriptor.id,
-      validMockDescriptorAttributeSeed,
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+      const mockEService: EService = {
+        ...getMockEService(),
+        descriptors: [mockDescriptor],
+      };
 
-    const writtenEvent = await readLastEserviceEvent(mockEService.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockEService.id,
-      version: "1",
-      type: "EServiceDescriptorAttributesUpdated",
-      event_version: 2,
-    });
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorAttributesUpdatedV2,
-      payload: writtenEvent.data,
-    });
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-  });
+      await addOneEService(mockEService);
 
-  it("should not write on event-store for the internal attributes update of a descriptor", async () => {
+      const updatedEService: EService = {
+        ...mockEService,
+        descriptors: [
+          {
+            ...mockDescriptor,
+            attributes:
+              validMockDescriptorAttributeSeed as Descriptor["attributes"],
+          },
+        ],
+      };
+
+      await catalogService.internalUpdateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        validMockDescriptorAttributeSeed,
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
+
+      const writtenEvent = await readLastEserviceEvent(mockEService.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockEService.id,
+        version: "1",
+        type: "EServiceDescriptorAttributesUpdated",
+        event_version: 2,
+      });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorAttributesUpdatedV2,
+        payload: writtenEvent.data,
+      });
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    }
+  );
+
+  it.each([
+    descriptorState.draft,
+    descriptorState.waitingForApproval,
+    descriptorState.archived,
+    descriptorState.deprecated,
+  ])(
+    "should not write on event-store for the internal attributes update of a descriptor if the descriptor state is state %s",
+    async (descriptorState) => {
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState,
+        attributes: {
+          certified: validMockDescriptorCertifiedAttributes,
+          verified: validMockDescriptorVerifiedAttributes,
+          declared: [],
+        },
+      };
+
+      const mockEService: EService = {
+        ...getMockEService(),
+        descriptors: [mockDescriptor],
+      };
+
+      await addOneEService(mockEService);
+
+      await catalogService.internalUpdateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        validMockDescriptorAttributeSeed,
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
+
+      const writtenEvent = await readLastEserviceEvent(mockEService.id);
+      expect(writtenEvent).not.toMatchObject({
+        stream_id: mockEService.id,
+        version: "1",
+        type: "EServiceDescriptorAttributesUpdated",
+        event_version: 2,
+      });
+    }
+  );
+
+  it("should not write on event-store for the internal attributes update of a descriptor if the descriptor has no new attributes", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
