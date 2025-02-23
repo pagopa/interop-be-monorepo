@@ -138,6 +138,8 @@ export const EService = z.object({
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
   isSignalHubEnabled: z.boolean().optional(),
+  isConsumerDelegable: z.boolean().optional(),
+  isClientAccessDelegable: z.boolean().optional(),
   template: EServiceTemplateBinding.optional(),
 });
 export type EService = z.infer<typeof EService>;

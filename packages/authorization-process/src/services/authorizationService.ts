@@ -17,13 +17,12 @@ import {
   authorizationEventToBinaryData,
   clientKind,
   generateId,
-  genericInternalError,
-  invalidKey,
   purposeVersionState,
   unsafeBrandId,
   ProducerKeychain,
   ProducerKeychainId,
   CorrelationId,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -33,6 +32,8 @@ import {
   userRoles,
   calculateKid,
   createJWK,
+  WithLogger,
+  AppContext,
 } from "pagopa-interop-commons";
 import {
   authorizationApi,
@@ -60,6 +61,8 @@ import {
   eserviceAlreadyLinkedToProducerKeychain,
   userNotAllowedToDeleteProducerKeychainKey,
   userNotAllowedToDeleteClientKey,
+  eserviceNotDelegableForClientAccess,
+  purposeDelegationNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -97,6 +100,7 @@ import {
   assertProducerKeychainKeysCountIsBelowThreshold,
   assertOrganizationIsEServiceProducer,
   assertKeyDoesNotAlreadyExist,
+  assertRequesterIsDelegateConsumer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -130,6 +134,24 @@ const retrievePurpose = async (
     throw purposeNotFound(purposeId);
   }
   return purpose;
+};
+
+const retrievePurposeDelegation = async (
+  purpose: Purpose,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> => {
+  if (!purpose.delegationId) {
+    return undefined;
+  }
+
+  const delegation = await readModelService.getActiveConsumerDelegationById(
+    purpose.delegationId
+  );
+  if (!delegation) {
+    throw purposeDelegationNotFound(purpose.delegationId);
+  }
+
+  return delegation;
 };
 
 const retrieveDescriptor = (
@@ -574,15 +596,11 @@ export function authorizationServiceBuilder(
     async addClientPurpose({
       clientId,
       seed,
-      organizationId,
-      correlationId,
-      logger,
+      ctx: { authData, correlationId, logger },
     }: {
       clientId: ClientId;
       seed: authorizationApi.PurposeAdditionDetails;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<void> {
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
@@ -590,10 +608,22 @@ export function authorizationServiceBuilder(
       const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      assertOrganizationIsPurposeConsumer(organizationId, purpose);
+      const delegation = await retrievePurposeDelegation(
+        purpose,
+        readModelService
+      );
+
+      const isDelegate =
+        delegation && purpose.consumerId !== authData.organizationId;
+
+      if (isDelegate) {
+        assertRequesterIsDelegateConsumer(authData, purpose, delegation);
+      } else {
+        assertOrganizationIsPurposeConsumer(authData.organizationId, purpose);
+      }
 
       if (client.data.purposes.includes(purposeId)) {
         throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
@@ -604,13 +634,17 @@ export function authorizationServiceBuilder(
         readModelService
       );
 
+      if (isDelegate && !eservice.isClientAccessDelegable) {
+        throw eserviceNotDelegableForClientAccess(eservice);
+      }
+
       const agreement = await readModelService.getActiveOrSuspendedAgreement(
         eservice.id,
-        organizationId
+        purpose.consumerId
       );
 
       if (agreement === undefined) {
-        throw noAgreementFoundInRequiredState(eservice.id, organizationId);
+        throw noAgreementFoundInRequiredState(eservice.id, purpose.consumerId);
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);
@@ -642,16 +676,16 @@ export function authorizationServiceBuilder(
       );
     },
 
-    async createKeys({
+    async createKey({
       clientId,
       authData,
-      keysSeeds,
+      keySeed,
       correlationId,
       logger,
     }: {
       clientId: ClientId;
       authData: AuthData;
-      keysSeeds: authorizationApi.KeysSeed;
+      keySeed: authorizationApi.KeySeed;
       correlationId: CorrelationId;
       logger: Logger;
     }): Promise<{ client: Client; showUsers: boolean }> {
@@ -663,7 +697,7 @@ export function authorizationServiceBuilder(
       );
       assertClientKeysCountIsBelowThreshold(
         clientId,
-        client.data.keys.length + keysSeeds.length
+        client.data.keys.length + 1
       );
       if (!client.data.users.includes(authData.userId)) {
         throw userNotFound(authData.userId, authData.selfcareId);
@@ -678,14 +712,7 @@ export function authorizationServiceBuilder(
         correlationId,
       });
 
-      if (keysSeeds.length !== 1) {
-        throw genericInternalError("Wrong number of keys");
-      }
-      const keySeed = keysSeeds[0];
       const jwk = createJWK(keySeed.key);
-      if (jwk.kty !== "RSA") {
-        throw invalidKey(keySeed.key, "Not an RSA key");
-      }
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -1059,11 +1086,6 @@ export function authorizationServiceBuilder(
       });
 
       const jwk = createJWK(keySeed.key);
-
-      if (jwk.kty !== "RSA") {
-        throw invalidKey(keySeed.key, "Not an RSA key");
-      }
-
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),

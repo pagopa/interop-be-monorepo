@@ -15,4 +15,5 @@ export * from "./sessionTokenGenerationConfig.js";
 export * from "./redisRateLimiterConfig.js";
 export * from "./pecEmailManagerConfig.js";
 export * from "./selfcareConfig.js";
+export * from "./featureFlagsConfig.js";
 export * from "./authorizationServerTokenGenerationConfig.js";
