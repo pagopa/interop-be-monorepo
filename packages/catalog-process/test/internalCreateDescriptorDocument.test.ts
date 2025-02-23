@@ -5,27 +5,16 @@ import {
   Descriptor,
   descriptorState,
   EService,
-  EServiceDescriptorInterfaceDeletedV2,
   toEServiceV2,
   unsafeBrandId,
-  operationForbidden,
-  Document,
-  delegationState,
   generateId,
-  delegationKind,
   EServiceDescriptorDocumentAddedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  decodeProtobufPayload,
-  getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptorState,
-  interfaceAlreadyExists,
-  prettyNameDuplicate,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -37,7 +26,6 @@ import {
   getMockDocument,
   getMockEService,
   buildDocumentSeed,
-  addOneDelegation,
 } from "./utils.js";
 
 describe("internalCreateDescriptorDocument", () => {
@@ -117,38 +105,46 @@ describe("internalCreateDescriptorDocument", () => {
     }
   );
 
-  it.each(
-    Object.values(descriptorState).filter(
-      (state) =>
-        state === descriptorState.archived ||
-        state === descriptorState.waitingForApproval
-    )
-  )(
-    "should not write on event-store for the internal creation of a document when descriptor state is %s",
-    async (state) => {
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptor],
-      };
-      await addOneEService(eservice);
-      expect(
-        catalogService.internalCreateDescriptorDocument(
-          eservice.id,
-          descriptor.id,
-          buildInterfaceSeed(),
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
-        )
-      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
-    }
-  );
+  it("should not write on event-store for the internal creation of a document if the descriptor already has the document", async () => {
+    const newDocument = buildDocumentSeed();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      docs: [
+        {
+          ...getMockDocument(),
+          ...newDocument,
+        },
+      ],
+      serverUrls: [],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    await catalogService.internalCreateDescriptorDocument(
+      eservice.id,
+      descriptor.id,
+      newDocument,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+
+    expect(writtenEvent).not.toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "EServiceDescriptorDocumentAdded",
+      event_version: 2,
+    });
+  });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
