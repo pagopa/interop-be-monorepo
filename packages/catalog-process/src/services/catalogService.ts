@@ -2329,10 +2329,6 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
-        return;
-      }
-
       if (document.kind !== "DOCUMENT") {
         throw operationForbidden;
       }
@@ -2432,10 +2428,6 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
-        return;
-      }
 
       const document = descriptor.docs.find((doc) => doc.id === documentId);
 
