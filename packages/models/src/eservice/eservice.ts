@@ -73,11 +73,31 @@ export type DescriptorRejectionReason = z.infer<
   typeof DescriptorRejectionReason
 >;
 
+export const DescriptorInterfaceContacts = z.object({
+  name: z.string(),
+  email: z.string(),
+  url: z.string(),
+  termsAndConditionsUrl: z.string(),
+  serverUrls: z.array(z.string()),
+});
+
+export type DescriptorInterfaceContancs = z.infer<
+  typeof DescriptorInterfaceContacts
+>;
+
+export const DescriptorInterface = Document.and(
+  z.object({
+    contacts: DescriptorInterfaceContacts.optional(),
+  })
+);
+
+export type DescriptorInterface = z.infer<typeof DescriptorInterface>;
+
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
   description: z.string().optional(),
-  interface: Document.optional(),
+  interface: DescriptorInterface.optional(),
   docs: z.array(Document),
   state: DescriptorState,
   audience: z.array(z.string()),
@@ -107,25 +127,6 @@ export const EServiceMode = z.enum([
 ]);
 export type EServiceMode = z.infer<typeof EServiceMode>;
 
-export const EServiceTemplateBindingInterface = z.object({
-  name: z.string(),
-  email: z.string(),
-  url: z.string(),
-  termsAndConditionsUrl: z.string(),
-  serverUrl: z.string(),
-});
-
-export type EServiceTemplateBindingInterface = z.infer<
-  typeof EServiceTemplateBindingInterface
->;
-
-export const EServiceTemplateBinding = z.object({
-  templateId: EServiceTemplateId,
-  istanceId: z.string().optional(),
-  interfaceInfo: EServiceTemplateBindingInterface.optional(),
-});
-export type EServiceTemplateBinding = z.infer<typeof EServiceTemplateBinding>;
-
 export const EService = z.object({
   id: EServiceId,
   producerId: TenantId,
@@ -140,6 +141,7 @@ export const EService = z.object({
   isSignalHubEnabled: z.boolean().optional(),
   isConsumerDelegable: z.boolean().optional(),
   isClientAccessDelegable: z.boolean().optional(),
-  template: EServiceTemplateBinding.optional(),
+  templateId: EServiceTemplateId.optional(),
+  instanceId: z.string().optional(),
 });
 export type EService = z.infer<typeof EService>;
