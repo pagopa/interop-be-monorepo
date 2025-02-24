@@ -25,6 +25,7 @@ import {
   PurposeRiskAnalysisAnswerSQL,
   PurposeVersionSQL,
   PurposeVersionDocumentSQL,
+  PurposeItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 
@@ -121,13 +122,7 @@ export const aggregatePurpose = ({
   purposeRiskAnalysisAnswersSQL,
   purposeVersionsSQL,
   purposeVersionDocumentsSQL,
-}: {
-  purposeSQL: PurposeSQL;
-  purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
-  purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
-  purposeVersionsSQL: PurposeVersionSQL[];
-  purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[];
-}): WithMetadata<Purpose> => {
+}: PurposeItemsSQL): WithMetadata<Purpose> => {
   const purposeRiskAnalysisForm =
     purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
       purposeRiskAnalysisFormSQL,
@@ -299,5 +294,74 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
           ),
         }
       : {}),
+  };
+};
+
+export const fromJoinToAggregatorPurpose = (
+  queryRes: Array<{
+    purpose: PurposeSQL;
+    purposeRiskAnalysisForm: PurposeRiskAnalysisFormSQL | null;
+    purposeRiskAnalysisAnswer: PurposeRiskAnalysisAnswerSQL | null;
+    purposeVersion: PurposeVersionSQL | null;
+    purposeVersionDocument: PurposeVersionDocumentSQL | null;
+  }>
+): PurposeItemsSQL => {
+  const purposeSQL = queryRes[0].purpose;
+  const purposeRiskAnalysisFormSQL = queryRes[0].purposeRiskAnalysisForm;
+
+  const purposeRiskAnalysisAnswerIdSet = new Set<string>();
+  const purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] = [];
+
+  const purposeVersionIdSet = new Set<string>();
+  const purposeVersionsSQL: PurposeVersionSQL[] = [];
+
+  const purposeVersionDocumentIdSet = new Set<string>();
+  const purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const purposeRiskAnalysisFormSQL = row.purposeRiskAnalysisForm;
+
+    if (purposeRiskAnalysisFormSQL) {
+      const purposeRiskAnalysisAnswerSQL = row.purposeRiskAnalysisAnswer;
+
+      if (
+        purposeRiskAnalysisAnswerSQL &&
+        !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerSQL.id)
+      ) {
+        purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        purposeRiskAnalysisAnswersSQL.push(purposeRiskAnalysisAnswerSQL);
+      }
+    }
+
+    const purposeVersionSQL = row.purposeVersion;
+    if (purposeVersionSQL) {
+      if (!purposeVersionIdSet.has(purposeVersionSQL.id)) {
+        purposeVersionIdSet.add(purposeVersionSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        purposeVersionsSQL.push(purposeVersionSQL);
+      }
+
+      const purposeVersionDocumentSQL = row.purposeVersionDocument;
+      if (
+        purposeVersionDocumentSQL &&
+        !purposeVersionDocumentIdSet.has(purposeVersionDocumentSQL.id)
+      ) {
+        purposeVersionDocumentIdSet.add(purposeVersionDocumentSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        purposeVersionDocumentsSQL.push(purposeVersionDocumentSQL);
+      }
+    }
+  });
+
+  return {
+    purposeSQL,
+    purposeRiskAnalysisFormSQL: purposeRiskAnalysisFormSQL || undefined,
+    purposeRiskAnalysisAnswersSQL:
+      purposeRiskAnalysisAnswersSQL.length > 0
+        ? purposeRiskAnalysisAnswersSQL
+        : undefined,
+    purposeVersionsSQL,
+    purposeVersionDocumentsSQL,
   };
 };

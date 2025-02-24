@@ -9,6 +9,7 @@ import {
   RiskAnalysisSingleAnswer,
 } from "pagopa-interop-models";
 import {
+  PurposeItemsSQL,
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
   PurposeSQL,
@@ -19,13 +20,7 @@ import {
 export const splitPurposeIntoObjectsSQL = (
   purpose: Purpose,
   version: number
-): {
-  purposeSQL: PurposeSQL;
-  purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
-  purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
-  purposeVersionsSQL: PurposeVersionSQL[];
-  purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[];
-} => {
+): PurposeItemsSQL => {
   const purposeSQL: PurposeSQL = {
     id: purpose.id,
     metadataVersion: version,
