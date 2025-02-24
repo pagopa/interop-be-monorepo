@@ -25,12 +25,12 @@ import {
   eServiceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
   prettyNameDuplicate,
-} from "../src/model/domain/errors";
+} from "../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
-} from "./utils";
+} from "./utils.js";
 
 describe("update Document", () => {
   const mockVersion = getMockEServiceTemplateVersion();
