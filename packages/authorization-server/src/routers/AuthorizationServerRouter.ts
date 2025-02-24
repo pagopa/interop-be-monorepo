@@ -22,13 +22,13 @@ import { config } from "../config/config.js";
 const dynamoDBClient = new DynamoDBClient({
   requestHandler: {
     requestTimeout: 3_000,
-    httpsAgent: { maxSockets: 1000 },
+    httpsAgent: { maxSockets: 2000 },
   },
 });
 const kmsClient = new KMSClient({
   requestHandler: {
     requestTimeout: 3_000,
-    httpsAgent: { maxSockets: 1000 },
+    httpsAgent: { maxSockets: 2000 },
   },
 });
 const redisRateLimiter = await initRedisRateLimiter({
@@ -41,7 +41,7 @@ const redisRateLimiter = await initRedisRateLimiter({
   timeout: config.rateLimiterTimeout,
 });
 // const producer = await initProducer(config, config.tokenAuditingTopic);
-// const fileManager = initFileManager(config);
+// const fileManager = initFileManager(config, 2000);
 
 const tokenGenerator = new InteropTokenGenerator(
   {
