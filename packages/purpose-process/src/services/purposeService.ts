@@ -117,7 +117,7 @@ import {
   isOverQuota,
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
-  assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
+  assertRequesterCanRetrievePurpose,
   verifyRequesterIsConsumerOrDelegateConsumer,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
@@ -264,28 +264,22 @@ export function purposeServiceBuilder(
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(organizationId, readModelService),
-      ]);
+      await assertRequesterCanRetrievePurpose(
+        purpose.data,
+        eservice,
+        { organizationId },
+        readModelService
+      );
 
-      const isAllowedToRetrieveRiskAnalysis =
-        await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
-          purpose.data,
-          eservice,
-          { organizationId },
-          readModelService
-        )
-          .then(() => true)
-          .catch(() => false);
-
-      if (!isAllowedToRetrieveRiskAnalysis) {
-        return {
-          purpose: { ...purpose.data, riskAnalysisForm: undefined },
-          isRiskAnalysisValid: false,
-        };
-      }
+      const tenantKind = await retrieveTenantKind(
+        organizationId,
+        readModelService
+      );
 
       const isRiskAnalysisValid = purposeIsDraft(purpose.data)
         ? isRiskAnalysisFormValid(
@@ -320,7 +314,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
+      await assertRequesterCanRetrievePurpose(
         purpose.data,
         eservice,
         { organizationId },
@@ -714,6 +708,7 @@ export function purposeServiceBuilder(
         `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
       );
 
+      // TODO same as in getAgreements, apply the filter for allowed purposes in the readmodel
       const purposesList = await readModelService.getPurposes(filters, {
         offset,
         limit,
@@ -727,7 +722,7 @@ export function purposeServiceBuilder(
           );
 
           const isAllowedToRetrieveRiskAnalysis =
-            await assertRequesterIsAllowedToRetrieveRiskAnalysisDocument(
+            await assertRequesterCanRetrievePurpose(
               purpose,
               eservice,
               { organizationId },
@@ -1394,6 +1389,8 @@ export function purposeServiceBuilder(
       logger.info(
         `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`
       );
+      // No permission checks needed for this route, as the configuration
+      // is the same for all tenants of the same kind and is not specific to a purpose.
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
@@ -1426,6 +1423,8 @@ export function purposeServiceBuilder(
       logger: Logger;
     }): Promise<RiskAnalysisFormRules> {
       logger.info(`Retrieve latest risk analysis configuration`);
+      // No permission checks needed for this route, as the configuration
+      // is the same for all tenants of the same kind and is not specific to a purpose.
 
       const kind =
         tenantKind ||

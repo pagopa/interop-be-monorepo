@@ -261,14 +261,15 @@ export async function isOverQuota(
   );
 }
 
-export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
+export const assertRequesterCanRetrievePurpose = async (
   purpose: Purpose,
   eservice: EService,
   authData: Pick<AuthData, "organizationId">,
   readModelService: ReadModelService
 ): Promise<void> => {
-  // This operation has a dedicated assertion because it's the only operation that
-  // can be performed also by the producer/consumer even when active producer/consumer delegations exist
+  // This validator is for retrieval operations that can be performed by all the tenants involved:
+  // the consumer, the producer, the consumer delegate, and the producer delegate.
+  // Consumers and producers can retrieve purposes even if delegations exist.
   try {
     assertRequesterIsConsumer(purpose, authData);
   } catch {
