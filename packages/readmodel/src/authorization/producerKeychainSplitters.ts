@@ -4,6 +4,7 @@ import {
   ProducerKeychainEServiceSQL,
   ProducerKeychainKeySQL,
   ProducerKeychainUserSQL,
+  ProducerKeychainItemsSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitProducerKeychainIntoObjectsSQL = (
@@ -19,12 +20,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
     ...rest
   }: ProducerKeychain,
   metadataVersion: number
-): {
-  producerKeychainSQL: ProducerKeychainSQL;
-  producerKeychainUsersSQL: ProducerKeychainUserSQL[];
-  producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[];
-  producerKeychainKeysSQL: ProducerKeychainKeySQL[];
-} => {
+): ProducerKeychainItemsSQL => {
   void (rest satisfies Record<string, never>);
 
   const producerKeychainSQL: ProducerKeychainSQL = {

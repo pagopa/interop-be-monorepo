@@ -140,6 +140,13 @@ export type ProducerKeychainKeySQL = InferSelectModel<
   typeof producerKeychainKeyInReadmodelProducerKeychain
 >;
 
+export type ProducerKeychainItemsSQL = {
+  producerKeychainSQL: ProducerKeychainSQL;
+  producerKeychainUsersSQL: ProducerKeychainUserSQL[];
+  producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[];
+  producerKeychainKeysSQL: ProducerKeychainKeySQL[];
+};
+
 export type ClientJWKKeySQL = InferSelectModel<
   typeof clientJwkKeyInReadmodelClientJwkKey
 >;

@@ -31,12 +31,12 @@ describe("Producer keychain aggregator", () => {
       producerKeychainKeysSQL,
     } = splitProducerKeychainIntoObjectsSQL(producerKeychain.data, 1);
 
-    const aggregatedProducerKeychain = aggregateProducerKeychainSQL(
+    const aggregatedProducerKeychain = aggregateProducerKeychainSQL({
       producerKeychainSQL,
       producerKeychainUsersSQL,
       producerKeychainEServicesSQL,
-      producerKeychainKeysSQL
-    );
+      producerKeychainKeysSQL,
+    });
     expect(aggregatedProducerKeychain).toMatchObject(producerKeychain);
   });
 });
