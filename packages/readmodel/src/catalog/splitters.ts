@@ -23,19 +23,12 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
+import { EServiceItemsSQL } from "./aggregators.js";
 
 export const splitEserviceIntoObjectsSQL = (
   eservice: EService,
   version: number
-): {
-  eserviceSQL: EServiceSQL;
-  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
-  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
-  descriptorsSQL: EServiceDescriptorSQL[];
-  attributesSQL: EServiceDescriptorAttributeSQL[];
-  documentsSQL: EServiceDescriptorDocumentSQL[];
-  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-} => {
+): EServiceItemsSQL => {
   const eserviceSQL: EServiceSQL = {
     id: eservice.id,
     metadataVersion: version,

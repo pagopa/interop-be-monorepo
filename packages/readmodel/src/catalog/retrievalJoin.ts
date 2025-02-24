@@ -19,7 +19,7 @@ import {
   EServiceSQL,
   EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
-import { EServiceAggregatorInput } from "./aggregators.js";
+import { EServiceItemsSQL } from "./aggregators.js";
 
 /*
 es1
@@ -153,7 +153,7 @@ export const fromJoinToAggregator = (
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
     templateBinding: EServiceTemplateBindingSQL | null;
   }>
-): EServiceAggregatorInput => {
+): EServiceItemsSQL => {
   const eserviceSQL = queryRes[0].eservice;
 
   const descriptorIdSet = new Set<string>();
@@ -238,6 +238,6 @@ export const fromJoinToAggregator = (
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
-    templateBindingSQL: [],
+    // templateBindingSQL: [],
   };
 };

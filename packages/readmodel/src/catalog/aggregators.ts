@@ -134,7 +134,7 @@ export const aggregateDescriptor = ({
   };
 };
 
-export type EServiceAggregatorInput = {
+export type EServiceItemsSQL = {
   eserviceSQL: EServiceSQL;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
@@ -154,7 +154,7 @@ export const aggregateEservice = ({
   documentsSQL,
   rejectionReasonsSQL,
 }: // TODO add template
-EServiceAggregatorInput): WithMetadata<EService> => {
+EServiceItemsSQL): WithMetadata<EService> => {
   const descriptors = descriptorsSQL.map((descriptorSQL) =>
     aggregateDescriptor({
       descriptorSQL,
@@ -325,7 +325,7 @@ export const fromJoinToAggregator = (
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
     // templateBinding: EServiceTemplateBindingSQL | null;
   }>
-): EServiceAggregatorInput => {
+): EServiceItemsSQL => {
   const eserviceSQL = queryRes[0].eservice;
 
   const descriptorIdSet = new Set<string>();

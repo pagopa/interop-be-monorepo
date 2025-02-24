@@ -24,20 +24,16 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  EServiceSQL,
-  EServiceRiskAnalysisSQL,
-  EServiceRiskAnalysisAnswerSQL,
-  EServiceDescriptorSQL,
-  EServiceDescriptorAttributeSQL,
-  EServiceDescriptorDocumentSQL,
-  EServiceDescriptorRejectionReasonSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   eserviceJoin,
   fromJoinToAggregator,
 } from "../src/catalog/retrievalJoin.js";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
-import { aggregateEservice } from "../src/catalog/aggregators.js";
+import {
+  aggregateEservice,
+  EServiceItemsSQL,
+} from "../src/catalog/aggregators.js";
 import {
   retrieveDescriptorsSQL,
   retrieveEserviceAttributesSQL,
@@ -213,21 +209,13 @@ describe("benchmark", async () => {
 
 const addEserviceObjectsInReadmodel = async ({
   eserviceSQL,
-  riskAnalysisSQL,
+  riskAnalysesSQL,
   riskAnalysisAnswersSQL,
   descriptorsSQL,
   attributesSQL,
   documentsSQL,
   rejectionReasonsSQL,
-}: {
-  eserviceSQL: EServiceSQL;
-  riskAnalysisSQL: EServiceRiskAnalysisSQL[];
-  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
-  descriptorsSQL: EServiceDescriptorSQL[];
-  attributesSQL: EServiceDescriptorAttributeSQL[];
-  documentsSQL: EServiceDescriptorDocumentSQL[];
-  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-}) => {
+}: EServiceItemsSQL) => {
   await readModelDB.transaction(async (tx) => {
     await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
 
@@ -245,7 +233,7 @@ const addEserviceObjectsInReadmodel = async ({
         .values(att);
     }
 
-    for (const riskAnalysis of riskAnalysisSQL) {
+    for (const riskAnalysis of riskAnalysesSQL) {
       await tx
         .insert(eserviceRiskAnalysisInReadmodelCatalog)
         .values(riskAnalysis);
