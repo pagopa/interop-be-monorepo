@@ -303,3 +303,117 @@ const aggregateTenantAttributes = ({
     ...verifiedTenantAttributes,
   ];
 };
+
+export const fromJoinToAggregator = (
+  queryRes: Array<{
+    tenant: TenantSQL;
+    mail: TenantMailSQL | null;
+    certifiedAttribute: TenantCertifiedAttributeSQL | null;
+    declaredAttribute: TenantDeclaredAttributeSQL | null;
+    verifiedAttribute: TenantVerifiedAttributeSQL | null;
+    verifier: TenantVerifiedAttributeVerifierSQL | null;
+    revoker: TenantVerifiedAttributeRevokerSQL | null;
+    feature: TenantFeatureSQL | null;
+  }>
+): TenantItemsSQL => {
+  const tenantSQL = queryRes[0].tenant;
+
+  const mailIdSet = new Set<string>();
+  const tenantMailsSQL: TenantMailSQL[] = [];
+
+  const certifiedAttributeIdSet = new Set<string>();
+  const tenantCertifiedAttributesSQL: TenantCertifiedAttributeSQL[] = [];
+
+  const declaredAttributeIdSet = new Set<string>();
+  const tenantDeclaredAttributesSQL: TenantDeclaredAttributeSQL[] = [];
+
+  const verifiedAttributeIdSet = new Set<string>();
+  const tenantVerifiedAttributesSQL: TenantVerifiedAttributeSQL[] = [];
+
+  const verifiersIdSet = new Set<string>();
+  const tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
+    [];
+
+  const revokersIdSet = new Set<string>();
+  const tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] =
+    [];
+
+  const featureKindSet = new Set<string>();
+  const tenantFeaturesSQL: TenantFeatureSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const mailSQL = row.mail;
+
+    if (mailSQL && !mailIdSet.has(mailSQL.id)) {
+      mailIdSet.add(mailSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      tenantMailsSQL.push(mailSQL);
+    }
+
+    const certifiedAttributeSQL = row.certifiedAttribute;
+
+    if (
+      certifiedAttributeSQL &&
+      !certifiedAttributeIdSet.has(certifiedAttributeSQL.attributeId)
+    ) {
+      certifiedAttributeIdSet.add(certifiedAttributeSQL.attributeId);
+      // eslint-disable-next-line functional/immutable-data
+      tenantCertifiedAttributesSQL.push(certifiedAttributeSQL);
+    }
+
+    const declaredAttributeSQL = row.declaredAttribute;
+
+    if (
+      declaredAttributeSQL &&
+      !declaredAttributeIdSet.has(declaredAttributeSQL.attributeId)
+    ) {
+      declaredAttributeIdSet.add(declaredAttributeSQL.attributeId);
+      // eslint-disable-next-line functional/immutable-data
+      tenantDeclaredAttributesSQL.push(declaredAttributeSQL);
+    }
+
+    const verifiedAttributeSQL = row.verifiedAttribute;
+
+    if (verifiedAttributeSQL) {
+      if (!verifiedAttributeIdSet.has(verifiedAttributeSQL.attributeId)) {
+        verifiedAttributeIdSet.add(verifiedAttributeSQL.attributeId);
+        // eslint-disable-next-line functional/immutable-data
+        tenantVerifiedAttributesSQL.push(verifiedAttributeSQL);
+      }
+
+      const verifier = row.verifier;
+
+      if (verifier && !verifiersIdSet.has(verifier.tenantVerifierId)) {
+        verifiersIdSet.add(verifier.tenantVerifierId);
+        // eslint-disable-next-line functional/immutable-data
+        tenantVerifiedAttributeVerifiersSQL.push(verifier);
+      }
+
+      const revoker = row.revoker;
+
+      if (revoker && !revokersIdSet.has(revoker.tenantRevokerId)) {
+        revokersIdSet.add(revoker.tenantRevokerId);
+        // eslint-disable-next-line functional/immutable-data
+        tenantVerifiedAttributeRevokersSQL.push(revoker);
+      }
+    }
+
+    const feature = row.feature;
+    if (feature && !featureKindSet.has(feature.kind)) {
+      featureKindSet.add(feature.kind);
+      // eslint-disable-next-line functional/immutable-data
+      tenantFeaturesSQL.push(feature);
+    }
+  });
+
+  return {
+    tenantSQL,
+    tenantMailsSQL,
+    tenantCertifiedAttributesSQL,
+    tenantDeclaredAttributesSQL,
+    tenantVerifiedAttributesSQL,
+    tenantVerifiedAttributeVerifiersSQL,
+    tenantVerifiedAttributeRevokersSQL,
+    tenantFeaturesSQL,
+  };
+};
