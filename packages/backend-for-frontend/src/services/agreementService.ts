@@ -267,13 +267,16 @@ export function agreementServiceBuilder(
       });
 
       if (!agreement.contract) {
-        if (
-          agreement.state === agreementApi.AgreementState.Values.ACTIVE ||
-          agreement.state === agreementApi.AgreementState.Values.SUSPENDED ||
-          agreement.state === agreementApi.AgreementState.Values.ARCHIVED
-        ) {
-          throw contractException(agreementId);
-        }
+        throw contractNotFound(agreementId);
+      }
+
+      const validAgreementStates = [
+        agreementApi.AgreementState.Values.ACTIVE,
+        agreementApi.AgreementState.Values.SUSPENDED,
+        agreementApi.AgreementState.Values.ARCHIVED,
+      ] as const;
+
+      if (!validAgreementStates.some((state) => state === agreement.state)) {
         throw contractNotFound(agreementId);
       }
 
