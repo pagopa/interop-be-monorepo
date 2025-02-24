@@ -20,6 +20,7 @@ import {
   DelegationSQL,
   DelegationStampSQL,
   DelegationContractDocumentSQL,
+  DelegationItemsSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const aggregateDelegationArray = ({
@@ -50,9 +51,9 @@ export const aggregateDelegation = ({
 }: {
   delegationSQL: DelegationSQL;
   delegationStampsSQL: DelegationStampSQL[];
-  delegationContractDocumentsSQL: DelegationContractDocumentSQL[];
+  delegationContractDocumentsSQL: DelegationContractDocumentSQL[] | undefined;
 }): WithMetadata<Delegation> => {
-  const activationContractDocumentSQL = delegationContractDocumentsSQL.find(
+  const activationContractDocumentSQL = delegationContractDocumentsSQL?.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.activation
   );
   const activationContract: DelegationContractDocument | undefined =
@@ -62,10 +63,9 @@ export const aggregateDelegation = ({
         )
       : undefined;
 
-  const revocationContractDocumentSQL = delegationContractDocumentsSQL.find(
+  const revocationContractDocumentSQL = delegationContractDocumentsSQL?.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.revocation
   );
-
   const revocationContract: DelegationContractDocument | undefined =
     revocationContractDocumentSQL
       ? delegationContractDocumentSQLToDelegationContractDocument(
@@ -167,3 +167,55 @@ const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({
   who: unsafeBrandId<UserId>(stampSQL.who),
   when: stringToDate(stampSQL.when),
 });
+
+// TODO: improve naming
+export const fromJoinToAggregatorDelegation = (
+  queryRes: Array<{
+    delegation: DelegationSQL;
+    delegationStamp: DelegationStampSQL | null;
+    delegationContractDocument: DelegationContractDocumentSQL | null;
+  }>
+): DelegationItemsSQL => {
+  const delegationSQL = queryRes[0].delegation;
+
+  const delegationStampsIdSet = new Set<[string, string]>();
+  const delegationStampsSQL: DelegationStampSQL[] = [];
+
+  const delegationContractDocumentsIdSet = new Set<string>();
+  const delegationContractDocumentsSQL: DelegationContractDocumentSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const delegationStamp = row.delegationStamp;
+
+    if (
+      delegationStamp &&
+      !delegationStampsIdSet.has([
+        delegationStamp.delegationId,
+        delegationStamp.kind,
+      ])
+    ) {
+      delegationStampsIdSet.add([
+        delegationStamp.delegationId,
+        delegationStamp.kind,
+      ]);
+      // eslint-disable-next-line functional/immutable-data
+      delegationStampsSQL.push(delegationStamp);
+    }
+
+    const delegationContractDocumentSQL = row.delegationContractDocument;
+    if (
+      delegationContractDocumentSQL &&
+      !delegationContractDocumentsIdSet.has(delegationContractDocumentSQL.id)
+    ) {
+      delegationContractDocumentsIdSet.add(delegationContractDocumentSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      delegationContractDocumentsSQL.push(delegationContractDocumentSQL);
+    }
+  });
+
+  return {
+    delegationSQL,
+    delegationStampsSQL,
+    delegationContractDocumentsSQL,
+  };
+};

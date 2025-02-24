@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import {
   DelegationContractDocumentSQL,
+  DelegationItemsSQL,
   DelegationSQL,
   DelegationStampSQL,
 } from "pagopa-interop-readmodel-models";
@@ -33,11 +34,7 @@ export const splitDelegationIntoObjectsSQL = (
     ...rest
   }: Delegation,
   metadataVersion: number
-): {
-  delegationSQL: DelegationSQL;
-  delegationStampsSQL: DelegationStampSQL[];
-  delegationContractDocumentsSQL: DelegationContractDocumentSQL[];
-} => {
+): DelegationItemsSQL => {
   void (rest satisfies Record<string, never>);
 
   const delegationSQL: DelegationSQL = {
