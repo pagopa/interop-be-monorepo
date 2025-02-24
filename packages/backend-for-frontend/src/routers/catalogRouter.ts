@@ -170,7 +170,7 @@ const catalogRouter = (
         }
       }
     )
-    .post("/eservices/templates/:templateId/instance", async (req, res) => {
+    .post("/eservices/templates/:templateId/instances", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const response =

@@ -175,7 +175,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:templateId/instance",
+      "/eservices/templates/:templateId/instances",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
