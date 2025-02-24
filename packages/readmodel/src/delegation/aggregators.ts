@@ -51,9 +51,9 @@ export const aggregateDelegation = ({
 }: {
   delegationSQL: DelegationSQL;
   delegationStampsSQL: DelegationStampSQL[];
-  delegationContractDocumentsSQL: DelegationContractDocumentSQL[] | undefined;
+  delegationContractDocumentsSQL: DelegationContractDocumentSQL[];
 }): WithMetadata<Delegation> => {
-  const activationContractDocumentSQL = delegationContractDocumentsSQL?.find(
+  const activationContractDocumentSQL = delegationContractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.activation
   );
   const activationContract: DelegationContractDocument | undefined =
@@ -63,7 +63,7 @@ export const aggregateDelegation = ({
         )
       : undefined;
 
-  const revocationContractDocumentSQL = delegationContractDocumentsSQL?.find(
+  const revocationContractDocumentSQL = delegationContractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.revocation
   );
   const revocationContract: DelegationContractDocument | undefined =
