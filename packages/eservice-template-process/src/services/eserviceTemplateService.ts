@@ -17,7 +17,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   AttributeId,
-  Document,
   EServiceAttribute,
   EserviceAttributes,
   EServiceTemplate,
@@ -79,7 +78,6 @@ import {
   toCreateEventEServiceTemplateDeleted,
   toCreateEventEServiceTemplateDraftVersionDeleted,
   toCreateEventEServiceTemplateVersionAdded,
-  toCreateEventEServiceTemplateVersionDocumentAdded,
   toCreateEventEServiceTemplateAdded,
   toCreateEventEServiceTemplateDraftUpdated,
   toCreateEventEServiceTemplateVersionPublished,
