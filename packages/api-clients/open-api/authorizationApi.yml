@@ -486,15 +486,15 @@ paths:
     post:
       tags:
         - client
-      summary: Create Keys for the specific clientId.
-      operationId: createKeys
+      summary: Create Key for the specific clientId.
+      operationId: createKey
       responses:
         "200":
-          description: Keys created
+          description: Key created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Keys"
+                $ref: "#/components/schemas/Key"
         "400":
           description: Bad Request
           content:
@@ -525,7 +525,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/KeysSeed"
+              $ref: "#/components/schemas/KeySeed"
       description: Creates one or more keys for the corresponding client.
       parameters:
         - name: clientId
@@ -1750,10 +1750,6 @@ components:
         - r
         - d
         - t
-    KeysSeed:
-      type: array
-      items:
-        $ref: "#/components/schemas/KeySeed"
     KeySeed:
       description: "Models the seed for a public key to be persisted"
       type: object
