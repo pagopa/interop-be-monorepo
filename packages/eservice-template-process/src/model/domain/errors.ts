@@ -36,6 +36,7 @@ export const errorCodes = {
   prettyNameDuplicate: "0023",
   checksumDuplicate: "0024",
   eServiceDocumentNotFound: "0025",
+  eserviceTemplateDocumentNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -303,5 +304,17 @@ export function eServiceDocumentNotFound(
     detail: `EService document ${documentId} not found in template version ${eServiceTemplateVersionId}`,
     code: "eServiceDocumentNotFound",
     title: "EService document not found",
+  });
+}
+
+export function eserviceTemplateDocumentNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} not found in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
+    code: "eserviceTemplateDocumentNotFound",
+    title: "Document not found",
   });
 }

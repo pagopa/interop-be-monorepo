@@ -1,12 +1,14 @@
 import { AuthData } from "pagopa-interop-commons";
 import {
   EServiceTemplate,
+  EServiceTemplateVersion,
   eserviceTemplateVersionState,
   operationForbidden,
   Tenant,
   TenantId,
   eserviceMode,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   draftEServiceTemplateVersionAlreadyExists,
   templateNotInDraftState,
@@ -71,4 +73,18 @@ export function assertNoDraftEServiceTemplateVersions(
   ) {
     throw draftEServiceTemplateVersionAlreadyExists(eserviceTemplate.id);
   }
+}
+
+export function versionStatesNotAllowingDocumentOperations(
+  version: EServiceTemplateVersion
+): boolean {
+  return match(version.state)
+    .with(
+      eserviceTemplateVersionState.draft,
+      eserviceTemplateVersionState.published,
+      eserviceTemplateVersionState.suspended,
+      () => false
+    )
+    .with(eserviceTemplateVersionState.deprecated, () => true)
+    .exhaustive();
 }

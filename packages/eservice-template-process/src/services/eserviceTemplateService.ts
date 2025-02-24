@@ -48,6 +48,7 @@ import {
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
+  eserviceTemplateDocumentNotFound,
   eserviceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
   missingRiskAnalysis,
@@ -85,6 +86,8 @@ import {
   toCreateEventEServiceTemplateVersionPublished,
   toCreateEventEServiceTemplateVersionInterfaceAdded,
   toCreateEventEServiceTemplateVersionDocumentAdded,
+  toCreateEventEServiceTemplateVersionInterfaceUpdated,
+  toCreateEventEServiceTemplateVersionDocumentUpdated,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -103,6 +106,7 @@ import {
   assertIsDraftEserviceTemplate,
   assertRequesterEServiceTemplateCreator,
   assertNoDraftEServiceTemplateVersions,
+  versionStatesNotAllowingDocumentOperations,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -297,6 +301,25 @@ async function parseAndCheckAttributes(
     ),
   };
 }
+
+const retrieveDocument = (
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersion: EServiceTemplateVersion,
+  documentId: EServiceDocumentId
+): Document => {
+  const document = [
+    ...eserviceTemplateVersion.docs,
+    eserviceTemplateVersion.interface,
+  ].find((doc) => doc != null && doc.id === documentId);
+  if (document === undefined) {
+    throw eserviceTemplateDocumentNotFound(
+      eserviceTemplateId,
+      eserviceTemplateVersion.id,
+      documentId
+    );
+  }
+  return document;
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
@@ -1588,6 +1611,7 @@ export function eserviceTemplateServiceBuilder(
 
       return updatedEServiceTemplate;
     },
+
     async getEServiceTemplateDocument(
       {
         eServiceTemplateId,
@@ -1635,6 +1659,99 @@ export function eserviceTemplateServiceBuilder(
       }
 
       return document;
+    },
+
+    async updateDocument(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      apiEServiceDescriptorDocumentUpdateSeed: eserviceTemplateApi.UpdateEServiceTemplateVersionDocumentSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<Document> {
+      logger.info(
+        `Updating Document ${documentId} of Version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const version = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (versionStatesNotAllowingDocumentOperations(version)) {
+        throw notValidEServiceTemplateVersionState(version.id, version.state);
+      }
+
+      const document = retrieveDocument(
+        eserviceTemplateId,
+        version,
+        documentId
+      );
+
+      if (
+        version.docs.some(
+          (d) =>
+            d.id !== documentId &&
+            d.prettyName.toLowerCase() ===
+              apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
+        )
+      ) {
+        throw prettyNameDuplicate(
+          apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+          version.id
+        );
+      }
+
+      const updatedDocument = {
+        ...document,
+        prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+      };
+
+      const isInterface = document.id === version?.interface?.id;
+      const newEserviceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        versions: eserviceTemplate.data.versions.map(
+          (v: EServiceTemplateVersion) =>
+            v.id === eserviceTemplateVersionId
+              ? {
+                  ...v,
+                  interface: isInterface ? updatedDocument : v.interface,
+                  docs: v.docs.map((doc) =>
+                    doc.id === documentId ? updatedDocument : doc
+                  ),
+                }
+              : v
+        ),
+      };
+
+      const event = isInterface
+        ? toCreateEventEServiceTemplateVersionInterfaceUpdated(
+            eserviceTemplateId,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            documentId,
+            newEserviceTemplate,
+            correlationId
+          )
+        : toCreateEventEServiceTemplateVersionDocumentUpdated(
+            eserviceTemplateId,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            documentId,
+            newEserviceTemplate,
+            correlationId
+          );
+
+      await repository.createEvent(event);
+      return updatedDocument;
     },
   };
 }
