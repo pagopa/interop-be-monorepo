@@ -72,7 +72,7 @@ describe("E-service splitter", () => {
 
     const {
       eserviceSQL,
-      riskAnalysisSQL,
+      riskAnalysesSQL,
       riskAnalysisAnswersSQL,
       descriptorsSQL,
       attributesSQL,
@@ -180,7 +180,7 @@ describe("E-service splitter", () => {
     };
 
     expect(eserviceSQL).toEqual(expectedEServiceSQL);
-    expect(riskAnalysisSQL).toEqual(
+    expect(riskAnalysesSQL).toEqual(
       expect.arrayContaining([
         expectedRiskAnalysisSQL1,
         expectedRiskAnalysisSQL2,
@@ -229,7 +229,7 @@ describe("E-service splitter", () => {
 
     const {
       eserviceSQL,
-      riskAnalysisSQL,
+      riskAnalysesSQL,
       riskAnalysisAnswersSQL,
       descriptorsSQL,
       attributesSQL,
@@ -309,7 +309,7 @@ describe("E-service splitter", () => {
     };
 
     expect(eserviceSQL).toEqual(expectedEServiceSQL);
-    expect(riskAnalysisSQL).toEqual(
+    expect(riskAnalysesSQL).toEqual(
       expect.arrayContaining([
         expectedRiskAnalysisSQL1,
         expectedRiskAnalysisSQL2,
