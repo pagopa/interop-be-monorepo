@@ -12,26 +12,20 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  ClientItemsSQL,
   ClientKeySQL,
   ClientPurposeSQL,
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
 
-export const clientSQLToClient = (
-  {
-    id,
-    metadataVersion,
-    consumerId,
-    name,
-    description,
-    kind,
-    createdAt,
-  }: ClientSQL,
-  clientUsersSQL: ClientUserSQL[],
-  clientPurposesSQL: ClientPurposeSQL[],
-  clientKeysSQL: ClientKeySQL[]
-): WithMetadata<Client> => {
+// TODO: ...rest?
+export const clientSQLToClient = ({
+  clientSQL,
+  clientUsersSQL,
+  clientPurposesSQL,
+  clientKeysSQL,
+}: ClientItemsSQL): WithMetadata<Client> => {
   const users: UserId[] = clientUsersSQL.map((u) =>
     unsafeBrandId<UserId>(u.userId)
   );
@@ -50,16 +44,81 @@ export const clientSQLToClient = (
 
   return {
     data: {
-      id: unsafeBrandId<ClientId>(id),
-      consumerId: unsafeBrandId<TenantId>(consumerId),
-      name,
+      id: unsafeBrandId<ClientId>(clientSQL.id),
+      consumerId: unsafeBrandId<TenantId>(clientSQL.consumerId),
+      name: clientSQL.name,
       purposes,
-      description: description || undefined,
+      description: clientSQL.description || undefined,
       users,
-      kind: ClientKind.parse(kind),
-      createdAt: stringToDate(createdAt),
+      kind: ClientKind.parse(clientSQL.kind),
+      createdAt: stringToDate(clientSQL.createdAt),
       keys,
     },
-    metadata: { version: metadataVersion },
+    metadata: { version: clientSQL.metadataVersion },
+  };
+};
+
+export const fromJoinToAggregatorClient = (
+  queryRes: Array<{
+    client: ClientSQL;
+    clientUser: ClientUserSQL | null;
+    clientPurpose: ClientPurposeSQL | null;
+    clientKey: ClientKeySQL | null;
+  }>
+): ClientItemsSQL => {
+  const clientSQL = queryRes[0].client;
+
+  const clientUserIdSet = new Set<[string, string]>();
+  const clientUsersSQL: ClientUserSQL[] = [];
+
+  const clientPurposeIdSet = new Set<[string, string]>();
+  const clientPurposesSQL: ClientPurposeSQL[] = [];
+
+  const clientKeyIdSet = new Set<[string, string]>();
+  const clientKeysSQL: ClientKeySQL[] = [];
+
+  queryRes.forEach((row) => {
+    const clientUserSQL = row.clientUser;
+    if (
+      clientUserSQL &&
+      !clientUserIdSet.has([clientUserSQL.clientId, clientUserSQL.userId])
+    ) {
+      clientUserIdSet.add([clientUserSQL.clientId, clientUserSQL.userId]);
+      // eslint-disable-next-line functional/immutable-data
+      clientUsersSQL.push(clientUserSQL);
+    }
+
+    const clientPurposeSQL = row.clientPurpose;
+    if (
+      clientPurposeSQL &&
+      !clientPurposeIdSet.has([
+        clientPurposeSQL.clientId,
+        clientPurposeSQL.purposeId,
+      ])
+    ) {
+      clientPurposeIdSet.add([
+        clientPurposeSQL.clientId,
+        clientPurposeSQL.purposeId,
+      ]);
+      // eslint-disable-next-line functional/immutable-data
+      clientPurposesSQL.push(clientPurposeSQL);
+    }
+
+    const clientKeySQL = row.clientKey;
+    if (
+      clientKeySQL &&
+      !clientKeyIdSet.has([clientKeySQL.clientId, clientKeySQL.kid])
+    ) {
+      clientKeyIdSet.add([clientKeySQL.clientId, clientKeySQL.kid]);
+      // eslint-disable-next-line functional/immutable-data
+      clientKeysSQL.push(clientKeySQL);
+    }
+  });
+
+  return {
+    clientSQL,
+    clientUsersSQL,
+    clientPurposesSQL,
+    clientKeysSQL,
   };
 };

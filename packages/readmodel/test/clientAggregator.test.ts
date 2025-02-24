@@ -21,12 +21,12 @@ describe("Client aggregator", () => {
     const { clientSQL, clientUsersSQL, clientPurposesSQL, clientKeysSQL } =
       splitClientIntoObjectsSQL(client.data, 1);
 
-    const aggregatedClient = clientSQLToClient(
+    const aggregatedClient = clientSQLToClient({
       clientSQL,
       clientUsersSQL,
       clientPurposesSQL,
-      clientKeysSQL
-    );
+      clientKeysSQL,
+    });
 
     expect(aggregatedClient).toMatchObject(client);
   });

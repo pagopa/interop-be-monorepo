@@ -1,5 +1,6 @@
 import { Client, dateToString } from "pagopa-interop-models";
 import {
+  ClientItemsSQL,
   ClientKeySQL,
   ClientPurposeSQL,
   ClientSQL,
@@ -20,12 +21,7 @@ export const splitClientIntoObjectsSQL = (
     ...rest
   }: Client,
   metadataVersion: number
-): {
-  clientSQL: ClientSQL;
-  clientUsersSQL: ClientUserSQL[];
-  clientPurposesSQL: ClientPurposeSQL[];
-  clientKeysSQL: ClientKeySQL[];
-} => {
+): ClientItemsSQL => {
   void (rest satisfies Record<string, never>);
 
   const clientSQL: ClientSQL = {
