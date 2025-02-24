@@ -214,8 +214,6 @@ export async function isOverQuota(
 ): Promise<boolean> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
-    consumersIds: [],
-    producersIds: [],
     states: [purposeVersionState.active],
     excludeDraft: true,
   });

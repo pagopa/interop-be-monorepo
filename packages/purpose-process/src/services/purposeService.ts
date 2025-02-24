@@ -258,8 +258,7 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      organizationId: TenantId,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -272,12 +271,12 @@ export function purposeServiceBuilder(
       await assertRequesterCanRetrievePurpose(
         purpose.data,
         eservice,
-        { organizationId },
+        authData,
         readModelService
       );
 
       const tenantKind = await retrieveTenantKind(
-        organizationId,
+        authData.organizationId,
         readModelService
       );
 
@@ -295,14 +294,12 @@ export function purposeServiceBuilder(
       purposeId,
       versionId,
       documentId,
-      organizationId,
-      logger,
+      ctx: { authData, logger },
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       documentId: PurposeVersionDocumentId;
-      organizationId: TenantId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<PurposeVersionDocument> {
       logger.info(
         `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
@@ -317,7 +314,7 @@ export function purposeServiceBuilder(
       await assertRequesterCanRetrievePurpose(
         purpose.data,
         eservice,
-        { organizationId },
+        authData,
         readModelService
       );
 
@@ -699,55 +696,25 @@ export function purposeServiceBuilder(
       return suspendedPurposeVersion;
     },
     async getPurposes(
-      organizationId: TenantId,
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number },
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<Purpose>> {
       logger.info(
-        `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
+        `Getting Purposes with filters: ${JSON.stringify(
+          filters
+        )}, limit = ${limit}, offset = ${offset}`
       );
 
-      // TODO same as in getAgreements, apply the filter for allowed purposes in the readmodel
-      const purposesList = await readModelService.getPurposes(filters, {
-        offset,
-        limit,
-      });
-
-      const mappingPurposeEservice = await Promise.all(
-        purposesList.results.map(async (purpose) => {
-          const eservice = await retrieveEService(
-            purpose.eserviceId,
-            readModelService
-          );
-
-          const isAllowedToRetrieveRiskAnalysis =
-            await assertRequesterCanRetrievePurpose(
-              purpose,
-              eservice,
-              { organizationId },
-              readModelService
-            )
-              .then(() => true)
-              .catch(() => false);
-
-          return { purpose, isAllowedToRetrieveRiskAnalysis };
-        })
+      // Permissions are checked in the readModelService
+      return await readModelService.getPurposes(
+        authData.organizationId,
+        filters,
+        {
+          offset,
+          limit,
+        }
       );
-
-      const purposesToReturn = mappingPurposeEservice.map(
-        ({ purpose, isAllowedToRetrieveRiskAnalysis }) => ({
-          ...purpose,
-          riskAnalysisForm: isAllowedToRetrieveRiskAnalysis
-            ? purpose.riskAnalysisForm
-            : undefined,
-        })
-      );
-
-      return {
-        results: purposesToReturn,
-        totalCount: purposesList.totalCount,
-      };
     },
     async createPurposeVersion(
       purposeId: PurposeId,
@@ -1255,13 +1222,12 @@ export function purposeServiceBuilder(
     async clonePurpose({
       purposeId,
       seed,
-      ctx,
+      ctx: { correlationId, authData, logger },
     }: {
       purposeId: PurposeId;
       seed: purposeApi.PurposeCloneSeed;
       ctx: WithLogger<AppContext>;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
-      const { correlationId, authData, logger } = ctx;
       const organizationId = authData.organizationId;
 
       logger.info(`Cloning Purpose ${purposeId}`);
@@ -1378,13 +1344,11 @@ export function purposeServiceBuilder(
     async retrieveRiskAnalysisConfigurationByVersion({
       eserviceId,
       riskAnalysisVersion,
-      organizationId,
-      logger,
+      ctx: { logger, authData },
     }: {
       eserviceId: EServiceId;
       riskAnalysisVersion: string;
-      organizationId: TenantId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<RiskAnalysisFormRules> {
       logger.info(
         `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`
@@ -1395,7 +1359,7 @@ export function purposeServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
         eservice,
-        organizationId,
+        authData.organizationId,
         readModelService
       );
 
@@ -1415,12 +1379,10 @@ export function purposeServiceBuilder(
     },
     async retrieveLatestRiskAnalysisConfiguration({
       tenantKind,
-      organizationId,
-      logger,
+      ctx: { logger, authData },
     }: {
       tenantKind: TenantKind | undefined;
-      organizationId: TenantId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<RiskAnalysisFormRules> {
       logger.info(`Retrieve latest risk analysis configuration`);
       // No permission checks needed for this route, as the configuration
@@ -1428,7 +1390,7 @@ export function purposeServiceBuilder(
 
       const kind =
         tenantKind ||
-        (await retrieveTenantKind(organizationId, readModelService));
+        (await retrieveTenantKind(authData.organizationId, readModelService));
 
       const riskAnalysisFormConfig = getLatestVersionFormRules(kind);
       if (!riskAnalysisFormConfig) {

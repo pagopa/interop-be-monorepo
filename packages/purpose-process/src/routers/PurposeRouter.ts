@@ -103,7 +103,6 @@ const purposeRouter = (
             limit,
           } = req.query;
           const purposes = await purposeService.getPurposes(
-            req.ctx.authData.organizationId,
             {
               title: name,
               eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
@@ -113,7 +112,7 @@ const purposeRouter = (
               excludeDraft,
             },
             { offset, limit },
-            ctx.logger
+            ctx
           );
           return res.status(200).send(
             purposeApi.Purposes.parse({
@@ -231,8 +230,7 @@ const purposeRouter = (
           const { purpose, isRiskAnalysisValid } =
             await purposeService.getPurposeById(
               unsafeBrandId(req.params.id),
-              ctx.authData.organizationId,
-              ctx.logger
+              ctx
             );
           return res
             .status(200)
@@ -389,8 +387,7 @@ const purposeRouter = (
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             documentId: unsafeBrandId(req.params.documentId),
-            organizationId: req.ctx.authData.organizationId,
-            logger: ctx.logger,
+            ctx,
           });
           return res
             .status(200)
@@ -601,8 +598,7 @@ const purposeRouter = (
           const riskAnalysisConfiguration =
             await purposeService.retrieveLatestRiskAnalysisConfiguration({
               tenantKind: req.query.tenantKind,
-              organizationId: req.ctx.authData.organizationId,
-              logger: ctx.logger,
+              ctx,
             });
           return res
             .status(200)
@@ -639,8 +635,7 @@ const purposeRouter = (
             await purposeService.retrieveRiskAnalysisConfigurationByVersion({
               eserviceId: unsafeBrandId(req.query.eserviceId),
               riskAnalysisVersion: req.params.riskAnalysisVersion,
-              organizationId: req.ctx.authData.organizationId,
-              logger: ctx.logger,
+              ctx,
             });
           return res
             .status(200)

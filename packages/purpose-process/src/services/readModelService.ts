@@ -134,81 +134,18 @@ async function getDelegation(
   return undefined;
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getProducerDelegatePurposesFilters(producersIds: TenantId[]) {
-  return producersIds && producersIds.length > 0
-    ? [
-        // the lookup on e-services is needed because unlike in agreements,
-        // here we don't have the producerId in the purpose and need to get it from the e-service
-        {
-          $lookup: {
-            from: "eservices",
-            localField: "data.eserviceId",
-            foreignField: "data.id",
-            as: "eservices",
-          },
-        },
-        {
-          $match: {
-            $or: [
-              { "eservices.data.producerId": { $in: producersIds } },
-              {
-                $and: [
-                  {
-                    "delegations.data.kind": delegationKind.delegatedProducer,
-                  },
-                  {
-                    "delegations.data.state": delegationState.active,
-                  },
-                  {
-                    "delegations.data.delegateId": {
-                      $in: producersIds,
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ]
-    : [];
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getConsumerDelegatePurposesFilters(consumersIds: TenantId[]) {
-  return consumersIds && consumersIds.length > 0
+function getConsumerOrDelegateFilter(consumerIds: TenantId[]): Document[] {
+  return consumerIds && consumerIds.length > 0
     ? [
         {
           $match: {
             $or: [
-              { "data.consumerId": { $in: consumersIds } },
+              { "data.consumerId": { $in: consumerIds } },
               {
-                $expr: {
-                  $anyElementTrue: {
-                    $map: {
-                      input: "$delegations",
-                      as: "del",
-                      in: {
-                        $and: [
-                          {
-                            $eq: [
-                              "$$del.data.kind",
-                              delegationKind.delegatedConsumer,
-                            ],
-                          },
-                          { $eq: ["$$del.data.state", delegationState.active] },
-                          {
-                            // We must perform this equality to identify the right consumer delegation
-                            // but an exact equality between the element
-                            // of a lookup and the original data item is possible only inside an $expr,
-                            // that's why we used an expression instead of normal filters
-                            $eq: ["$$del.data.id", "$data.delegationId"],
-                          },
-                          {
-                            $in: ["$$del.data.delegateId", consumersIds],
-                          },
-                        ],
-                      },
+                activeConsumerDelegations: {
+                  $elemMatch: {
+                    "data.delegateId": {
+                      $in: consumerIds,
                     },
                   },
                 },
@@ -220,31 +157,153 @@ function getConsumerDelegatePurposesFilters(consumersIds: TenantId[]) {
     : [];
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getDelegationsFilterPipeline(
-  filters: Pick<GetPurposesFilters, "consumersIds" | "producersIds">
-) {
-  return filters.producersIds.length > 0 || filters.consumersIds.length > 0
+function getProducerOrDelegateFilter(producerIds: TenantId[]): Document[] {
+  return producerIds && producerIds.length > 0
     ? [
         {
-          $lookup: {
-            from: "delegations",
-            localField: "data.eserviceId",
-            foreignField: "data.eserviceId",
-            as: "delegations",
+          $match: {
+            $or: [
+              { producerId: { $in: producerIds } },
+              {
+                activeProducerDelegations: {
+                  $elemMatch: {
+                    "data.delegateId": { $in: producerIds },
+                  },
+                },
+              },
+            ],
           },
         },
-        ...getProducerDelegatePurposesFilters(filters.producersIds),
-        ...getConsumerDelegatePurposesFilters(filters.consumersIds),
       ]
     : [];
 }
 
-async function buildGetPurposesAggregation(
-  filters: GetPurposesFilters
-): Promise<Document[]> {
-  const { title, eservicesIds, states, excludeDraft } = filters;
+const addProducerId: Document = {
+  $addFields: {
+    producerId: {
+      $ifNull: [{ $arrayElemAt: ["$eservices.data.producerId", 0] }, null],
+    },
+  },
+};
 
+const addProducerDelegationData: Document = {
+  $addFields: {
+    activeProducerDelegations: {
+      $filter: {
+        input: "$delegations",
+        as: "delegation",
+        cond: {
+          $and: [
+            {
+              $eq: ["$$delegation.data.kind", delegationKind.delegatedProducer],
+            },
+            { $eq: ["$$delegation.data.state", delegationState.active] },
+            {
+              $eq: ["$$delegation.data.delegatorId", "$producerId"],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const addConsumerDelegationData: Document = {
+  $addFields: {
+    activeConsumerDelegations: {
+      $filter: {
+        input: "$delegations",
+        as: "delegation",
+        cond: {
+          $and: [
+            {
+              $eq: ["$$delegation.data.kind", delegationKind.delegatedConsumer],
+            },
+            { $eq: ["$$delegation.data.state", delegationState.active] },
+            {
+              $eq: ["$$delegation.data.delegatorId", "$data.consumerId"],
+            },
+            {
+              $eq: ["$$delegation.data.id", "$data.delegationId"],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const addDelegationDataPipeline: Document[] = [
+  {
+    $lookup: {
+      from: "delegations",
+      localField: "data.eserviceId",
+      foreignField: "data.eserviceId",
+      as: "delegations",
+    },
+  },
+  {
+    // the lookup on e-services is needed because unlike in agreements,
+    // here we don't have the producerId in the purpose and need to get it from the e-service
+    $lookup: {
+      from: "eservices",
+      localField: "data.eserviceId",
+      foreignField: "data.id",
+      as: "eservices",
+    },
+  },
+  addProducerId,
+  addProducerDelegationData,
+  addConsumerDelegationData,
+];
+
+function applyVisibilityToPurposes(requesterId: TenantId): Document {
+  return {
+    $match: {
+      $or: [
+        {
+          producerId: requesterId,
+        },
+        {
+          "data.consumerId": requesterId,
+        },
+        {
+          activeProducerDelegations: {
+            $elemMatch: {
+              "data.delegateId": requesterId,
+            },
+          },
+        },
+        {
+          activeConsumerDelegations: {
+            $elemMatch: {
+              "data.delegateId": requesterId,
+            },
+          },
+        },
+      ],
+    },
+  };
+}
+
+const getPurposesPipeline = (
+  requesterId: TenantId,
+  producerIds: TenantId[] = [],
+  consumerIds: TenantId[] = []
+): Document[] => [
+  ...addDelegationDataPipeline,
+  ...getProducerOrDelegateFilter(producerIds),
+  ...getConsumerOrDelegateFilter(consumerIds),
+  applyVisibilityToPurposes(requesterId),
+];
+
+function getPurposesFilters(
+  filters: Pick<
+    GetPurposesFilters,
+    "title" | "eservicesIds" | "states" | "excludeDraft"
+  >
+): Document {
+  const { title, eservicesIds, states, excludeDraft } = filters;
   const titleFilter: ReadModelFilter<Purpose> = title
     ? {
         "data.title": {
@@ -301,26 +360,14 @@ async function buildGetPurposesAggregation(
       }
     : {};
 
-  return [
-    {
-      $match: {
-        ...titleFilter,
-        ...eservicesIdsFilter,
-        ...versionStateFilter,
-        ...draftFilter,
-      } satisfies ReadModelFilter<Purpose>,
-    },
-    ...getDelegationsFilterPipeline(filters),
-    {
-      $project: {
-        data: 1,
-        computedColumn: { $toLower: ["$data.title"] },
-      },
-    },
-    {
-      $sort: { computedColumn: 1 },
-    },
-  ];
+  return {
+    $match: {
+      ...titleFilter,
+      ...eservicesIdsFilter,
+      ...versionStateFilter,
+      ...draftFilter,
+    } satisfies ReadModelFilter<Purpose>,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -357,10 +404,26 @@ export function readModelServiceBuilder(
       } satisfies ReadModelFilter<Purpose>);
     },
     async getPurposes(
+      requesterId: TenantId,
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
-      const aggregationPipeline = await buildGetPurposesAggregation(filters);
+      const { producersIds, consumersIds, ...otherFilters } = filters;
+      const aggregationPipeline = [
+        {
+          ...getPurposesPipeline(requesterId, producersIds, consumersIds),
+          ...getPurposesFilters(otherFilters),
+        },
+        {
+          $project: {
+            data: 1,
+            computedColumn: { $toLower: ["$data.title"] },
+          },
+        },
+        {
+          $sort: { computedColumn: 1 },
+        },
+      ];
       const data = await purposes
         .aggregate(
           [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
@@ -404,11 +467,14 @@ export function readModelServiceBuilder(
         return result.data;
       }
     },
-    async getAllPurposes(filters: GetPurposesFilters): Promise<Purpose[]> {
-      const aggregationPipeline = await buildGetPurposesAggregation(filters);
-
+    async getAllPurposes(
+      filters: Pick<
+        GetPurposesFilters,
+        "eservicesIds" | "states" | "excludeDraft"
+      >
+    ): Promise<Purpose[]> {
       const data = await purposes
-        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .aggregate([getPurposesFilters(filters)], { allowDiskUse: true })
         .toArray();
 
       const result = z.array(Purpose).safeParse(data.map((d) => d.data));
