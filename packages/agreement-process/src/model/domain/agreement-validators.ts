@@ -127,7 +127,6 @@ export const agreementSubmissionConflictingStates: AgreementState[] = [
 
 export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
   agreementState.draft,
-  agreementState.pending,
 ];
 
 /* ========= ASSERTIONS ========= */
