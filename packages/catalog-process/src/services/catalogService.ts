@@ -2322,7 +2322,7 @@ export function catalogServiceBuilder(
             mode: eServiceModeToApiEServiceMode(template.mode),
             descriptor: {
               description: publishedVersion.description,
-              audience: [template.audienceDescription],
+              audience: [],
               voucherLifespan: publishedVersion.voucherLifespan,
               dailyCallsPerConsumer:
                 publishedVersion.dailyCallsPerConsumer ?? 1,
