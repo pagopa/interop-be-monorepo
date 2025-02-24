@@ -198,3 +198,54 @@ const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
       }
     : {}),
 });
+
+export const fromJoinToAggregator = (
+  queryRes: Array<{
+    agreement: AgreementSQL;
+    stamp: AgreementStampSQL | null;
+    attribute: AgreementAttributeSQL | null;
+    document: AgreementDocumentSQL | null;
+  }>
+): AgreementItemsSQL => {
+  const agreementSQL = queryRes[0].agreement;
+
+  const stampIdSet = new Set<string>();
+  const stampsSQL: AgreementStampSQL[] = [];
+
+  const attributeIdSet = new Set<string>();
+  const attributesSQL: AgreementAttributeSQL[] = [];
+
+  const documentIdSet = new Set<string>();
+  const documentsSQL: AgreementDocumentSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const stampSQL = row.stamp;
+    if (stampSQL && !stampIdSet.has(stampSQL?.kind)) {
+      stampIdSet.add(stampSQL?.kind);
+      // eslint-disable-next-line functional/immutable-data
+      stampsSQL.push(stampSQL);
+    }
+
+    const attributeSQL = row.attribute;
+
+    if (attributeSQL && !attributeIdSet.has(attributeSQL.attributeId)) {
+      attributeIdSet.add(attributeSQL.attributeId);
+      // eslint-disable-next-line functional/immutable-data
+      attributesSQL.push(attributeSQL);
+    }
+
+    const documentSQL = row.document;
+    if (documentSQL && !documentIdSet.has(documentSQL.id)) {
+      documentIdSet.add(documentSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      documentsSQL.push(documentSQL);
+    }
+  });
+
+  return {
+    agreementSQL,
+    stampsSQL,
+    attributesSQL,
+    documentsSQL,
+  };
+};
