@@ -89,7 +89,7 @@ export function descriptorPublishedNotFound(
   eServiceId: EServiceId
 ): NotificationEmailSenderError {
   return new InternalError({
-    detail: `Descriptor published not found in EService ${eServiceId}`,
+    detail: `Published descriptor not found in EService ${eServiceId}`,
     code: "descriptorPublishedNotFound",
   });
 }
