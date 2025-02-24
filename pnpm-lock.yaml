@@ -371,7 +371,7 @@ importers:
   packages/anac-certified-attributes-importer:
     dependencies:
       csv:
-        specifier: ^6.3.2
+        specifier: 6.3.2
         version: 6.3.2
       dotenv-flow:
         specifier: 4.1.0
@@ -386,7 +386,7 @@ importers:
         specifier: workspace:*
         version: link:../models
       ssh2-sftp-client:
-        specifier: ^9.1.0
+        specifier: 9.1.0
         version: 9.1.0
       zod:
         specifier: 3.23.8
@@ -2220,7 +2220,7 @@ importers:
   packages/ipa-certified-attributes-importer:
     dependencies:
       axios:
-        specifier: ^1.7.4
+        specifier: 1.7.4
         version: 1.7.4
       dotenv-flow:
         specifier: 4.1.0
@@ -2241,7 +2241,7 @@ importers:
         specifier: 5.2.0
         version: 5.2.0
       zod:
-        specifier: ^3.23.8
+        specifier: 3.23.8
         version: 3.23.8
     devDependencies:
       "@pagopa/eslint-config":
@@ -2575,10 +2575,10 @@ importers:
         specifier: 3.693.0
         version: 3.693.0(@aws-sdk/client-dynamodb@3.693.0)
       axios:
-        specifier: ^1.7.4
+        specifier: 1.7.4
         version: 1.7.4
       html2json:
-        specifier: ^1.0.2
+        specifier: 1.0.2
         version: 1.0.2
       lodash.isempty:
         specifier: 4.4.0
@@ -2587,7 +2587,7 @@ importers:
         specifier: workspace:*
         version: link:../commons
       zod:
-        specifier: ^3.23.8
+        specifier: 3.23.8
         version: 3.23.8
     devDependencies:
       "@pagopa/eslint-config":

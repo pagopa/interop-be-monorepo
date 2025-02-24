@@ -29,7 +29,10 @@ import {
   contractNotFound,
 } from "../model/errors.js";
 import { config } from "../config/config.js";
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestTenantContactEmail,
+} from "../model/modelMappingUtils.js";
 import {
   toCompactEservice,
   toCompactDescriptor,
@@ -704,14 +707,11 @@ export async function enrichAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
-  const { consumer, producer, eservice } =
+  const { consumer, producer, eservice, delegation } =
     await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
-  const currentDescriptior = getCurrentDescriptor(eservice, agreement);
-
-  const activeDescriptor = eservice.descriptors
-    .toSorted((a, b) => Number(a.version) - Number(b.version))
-    .at(-1);
+  const currentDescriptor = getCurrentDescriptor(eservice, agreement);
+  const activeDescriptor = getLatestActiveDescriptor(eservice);
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
     : [];
@@ -742,18 +742,6 @@ export async function enrichAgreement(
     consumer.attributes,
     attributes
   );
-
-  const delegation = (
-    await clients.delegationProcessClient.delegation.getDelegations({
-      queries: {
-        delegatorIds: [agreement.consumerId],
-        eserviceIds: [agreement.eserviceId],
-        offset: 0,
-        limit: 1,
-      },
-      headers: ctx.headers,
-    })
-  ).results.at(0);
 
   const delegationInfo = await match(delegation)
     .with(P.nullish, () => undefined)
@@ -798,7 +786,7 @@ export async function enrichAgreement(
     eservice: {
       id: agreement.eserviceId,
       name: eservice.name,
-      version: currentDescriptior.version,
+      version: currentDescriptor.version,
       activeDescriptor: activeDescriptor
         ? toCompactDescriptor(activeDescriptor)
         : undefined,
@@ -877,6 +865,7 @@ async function getConsumerProducerEserviceDelegation(
     queries: {
       delegatorIds: [agreement.consumerId],
       eserviceIds: [agreement.eserviceId],
+      delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
       kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
       offset: 0,
       limit: 1,
