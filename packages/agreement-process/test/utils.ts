@@ -36,6 +36,7 @@ import {
   UserId,
   delegationKind,
   delegationState,
+  ListResult,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -370,4 +371,15 @@ export async function addDelegationsAndDelegates({
     await addOneDelegation(consumerDelegation);
     await addOneTenant(delegateConsumer);
   }
+}
+
+export function expectSinglePageListResult<T>(
+  actual: ListResult<T>,
+  expected: T[]
+): void {
+  expect(actual).toEqual({
+    totalCount: expected.length,
+    results: expect.arrayContaining(expected),
+  });
+  expect(actual.results).toHaveLength(expected.length);
 }
