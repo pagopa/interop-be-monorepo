@@ -15,7 +15,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    async addEDelegation(delegation: WithMetadata<Delegation>): Promise<void> {
+    async addDelegation(delegation: WithMetadata<Delegation>): Promise<void> {
       const {
         delegationSQL,
         delegationStampsSQL,
