@@ -454,3 +454,35 @@ export const fromJoinToAggregatorArray = (
     templateBindingSQL: [],
   };
 };
+
+/*
+tenant  -> tenant_mail
+				-> tenant_certified_attribute
+				-> tenant_declared_attribute
+				-> tenant_verified_attribute -> tenant_verified_attribute_verifier
+																		 -> tenant_verified_attribute_verifier
+				-> tenant_feature
+
+
+purpose -> purpose_risk_analysis_form -> purpose_risk_analysis_answer
+				-> purpose_version -> purpose_version_document
+
+
+client -> client_user
+			 -> client_purpose
+			 -> client_key
+
+
+delegation -> delegation_stamp
+					 -> delegation_contract_document
+
+
+producer_keychain -> producer_keychain_user
+			 -> producer_keychain_eservice
+			 -> producer_keychain_key
+
+
+agreement -> agreement_stamp
+					-> agreement_attribute
+					-> agreement_document
+*/
