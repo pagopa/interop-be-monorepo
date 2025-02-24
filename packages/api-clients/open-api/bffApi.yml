@@ -2719,7 +2719,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{templateId}/instance:
+  /eservices/templates/{templateId}/instances:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -2750,7 +2750,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/CreatedResource"
         "400":
           description: Invalid input
           content:
@@ -19391,18 +19391,6 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-    EService:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - producerId
-        - name
-        - description
-        - technology
-        - descriptors
-        - riskAnalysis
-        - mode
     EServiceTemplate:
       type: object
       additionalProperties: false
