@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "develop"
+      - "PIN-6201-auth-server-perf-test"
     tags:
       - "*"
     paths:
