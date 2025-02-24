@@ -29,6 +29,7 @@ import {
   TenantCertifiedAttributeSQL,
   TenantDeclaredAttributeSQL,
   TenantFeatureSQL,
+  TenantItemsSQL,
   TenantMailSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
@@ -45,16 +46,7 @@ export const aggregateTenantSQL = ({
   tenantVerifiedAttributeVerifiersSQL,
   tenantVerifiedAttributeRevokersSQL,
   tenantFeaturesSQL,
-}: {
-  tenantSQL: TenantSQL;
-  tenantMailsSQL: TenantMailSQL[];
-  tenantCertifiedAttributesSQL: TenantCertifiedAttributeSQL[];
-  tenantDeclaredAttributesSQL: TenantDeclaredAttributeSQL[];
-  tenantVerifiedAttributesSQL: TenantVerifiedAttributeSQL[];
-  tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
-  tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
-  tenantFeaturesSQL: TenantFeatureSQL[];
-}): WithMetadata<Tenant> => {
+}: TenantItemsSQL): WithMetadata<Tenant> => {
   const mails = tenantMailsSQL.map(tenantMailSQLToTenantMail);
 
   const attributes = aggregateTenantAttributes({

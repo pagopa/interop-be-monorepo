@@ -17,6 +17,7 @@ import {
   TenantCertifiedAttributeSQL,
   TenantDeclaredAttributeSQL,
   TenantFeatureSQL,
+  TenantItemsSQL,
   TenantMailSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
@@ -41,16 +42,7 @@ export const splitTenantIntoObjectsSQL = (
     ...rest
   }: Tenant,
   metadataVersion: number
-): {
-  tenantSQL: TenantSQL;
-  tenantMailsSQL: TenantMailSQL[];
-  tenantCertifiedAttributesSQL: TenantCertifiedAttributeSQL[];
-  tenantDeclaredAttributesSQL: TenantDeclaredAttributeSQL[];
-  tenantVerifiedAttributesSQL: TenantVerifiedAttributeSQL[];
-  tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
-  tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
-  tenantFeaturesSQL: TenantFeatureSQL[];
-} => {
+): TenantItemsSQL => {
   void (rest satisfies Record<string, never>);
 
   const tenantSQL: TenantSQL = {

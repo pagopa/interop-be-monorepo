@@ -104,6 +104,17 @@ export type TenantFeatureSQL = InferSelectModel<
   typeof tenantFeatureInReadmodelTenant
 >;
 
+export type TenantItemsSQL = {
+  tenantSQL: TenantSQL;
+  tenantMailsSQL: TenantMailSQL[];
+  tenantCertifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  tenantDeclaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  tenantVerifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+  tenantFeaturesSQL: TenantFeatureSQL[];
+};
+
 export type PurposeSQL = InferSelectModel<typeof purposeInReadmodelPurpose>;
 export type PurposeVersionSQL = InferSelectModel<
   typeof purposeVersionInReadmodelPurpose
