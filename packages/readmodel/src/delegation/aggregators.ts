@@ -48,11 +48,7 @@ export const aggregateDelegation = ({
   delegationSQL,
   delegationStampsSQL,
   delegationContractDocumentsSQL,
-}: {
-  delegationSQL: DelegationSQL;
-  delegationStampsSQL: DelegationStampSQL[];
-  delegationContractDocumentsSQL: DelegationContractDocumentSQL[];
-}): WithMetadata<Delegation> => {
+}: DelegationItemsSQL): WithMetadata<Delegation> => {
   const activationContractDocumentSQL = delegationContractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.activation
   );
