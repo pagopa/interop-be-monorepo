@@ -64,6 +64,17 @@ export type EServiceTemplateBindingSQL = InferSelectModel<
   typeof eserviceTemplateBindingInReadmodelCatalog
 >;
 
+export type EServiceItemsSQL = {
+  eserviceSQL: EServiceSQL;
+  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  // templateBindingSQL: EServiceTemplateBindingSQL[];
+};
+
 export type AttributeSQL = InferSelectModel<
   typeof attributeInReadmodelAttribute
 >;

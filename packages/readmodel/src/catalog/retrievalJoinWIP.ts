@@ -19,8 +19,8 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
   EServiceTemplateBindingSQL,
+  EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
-import { EServiceItemsSQL } from "./aggregators.js";
 
 /*
 es1

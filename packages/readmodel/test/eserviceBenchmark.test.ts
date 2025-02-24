@@ -24,16 +24,14 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   eserviceJoin,
   fromJoinToAggregator,
 } from "../src/catalog/retrievalJoin.js";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
-import {
-  aggregateEservice,
-  EServiceItemsSQL,
-} from "../src/catalog/aggregators.js";
+import { aggregateEservice } from "../src/catalog/aggregators.js";
 import {
   retrieveDescriptorsSQL,
   retrieveEserviceAttributesSQL,

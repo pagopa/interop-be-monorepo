@@ -22,8 +22,8 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
+  EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
-import { EServiceItemsSQL } from "./aggregators.js";
 
 export const splitEserviceIntoObjectsSQL = (
   eservice: EService,
