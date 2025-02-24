@@ -13,7 +13,9 @@ import {
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import {
   aggregateEservice,
+  aggregateEserviceArray,
   fromJoinToAggregator,
+  fromJoinToAggregatorArray,
 } from "./catalog/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -158,6 +160,79 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       await db
         .delete(eserviceInReadmodelCatalog)
         .where(eq(eserviceInReadmodelCatalog.id, eserviceId));
+    },
+    async getAllEServices(): Promise<Array<WithMetadata<EService>>> {
+      const queryResult = await db
+        .select({
+          eservice: eserviceInReadmodelCatalog,
+          descriptor: eserviceDescriptorInReadmodelCatalog,
+          document: eserviceDescriptorDocumentInReadmodelCatalog,
+          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
+          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
+          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
+          // templateBinding: eserviceTemplateBindingInReadmodelCatalog,
+        })
+        .from(eserviceInReadmodelCatalog)
+        .leftJoin(
+          // 1
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          // 2
+          eserviceDescriptorDocumentInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 3
+          eserviceDescriptorAttributeInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 4
+          eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 5
+          eserviceRiskAnalysisInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          // 6
+          eserviceRiskAnalysisAnswerInReadmodelCatalog,
+          eq(
+            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          )
+        );
+      // .leftJoin(
+      //   // 7
+      //   eserviceTemplateBindingInReadmodelCatalog,
+      //   eq(
+      //     eserviceInReadmodelCatalog.id,
+      //     eserviceTemplateBindingInReadmodelCatalog.eserviceId
+      //   )
+      // );
+
+      const aggregatorInput = fromJoinToAggregatorArray(queryResult);
+      return aggregateEserviceArray(aggregatorInput);
     },
   };
 }
