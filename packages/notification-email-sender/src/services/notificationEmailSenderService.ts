@@ -20,6 +20,7 @@ import {
   PurposeV2,
   Tenant,
   TenantId,
+  descriptorState,
   fromAgreementV2,
   fromEServiceV2,
   fromPurposeV2,
@@ -141,7 +142,7 @@ export function getFormattedAgreementStampDate(
 
 function getLatestPublishedDescriptor(eservice: EService): Descriptor {
   const latestDescriptor = eservice.descriptors
-    .filter((d) => d.state === "Published")
+    .filter((d) => d.state === descriptorState.published)
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
   if (!latestDescriptor) {
