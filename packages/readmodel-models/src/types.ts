@@ -117,7 +117,6 @@ export type PurposeRiskAnalysisFormSQL = InferSelectModel<
 export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
   typeof purposeRiskAnalysisAnswerInReadmodelPurpose
 >;
-
 export type PurposeItemsSQL = {
   purposeSQL: PurposeSQL;
   purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
