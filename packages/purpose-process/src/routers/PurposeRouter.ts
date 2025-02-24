@@ -87,7 +87,6 @@ const purposeRouter = (
         API_ROLE,
         SECURITY_ROLE,
         M2M_ROLE,
-        INTERNAL_ROLE,
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
@@ -357,7 +356,7 @@ const purposeRouter = (
     )
     .delete(
       "/purposes/:purposeId/versions/:versionId",
-      authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
