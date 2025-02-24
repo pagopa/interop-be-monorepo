@@ -25,7 +25,6 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   agreementDescriptorNotFound,
-  contractException,
   contractNotFound,
 } from "../model/errors.js";
 import { config } from "../config/config.js";
