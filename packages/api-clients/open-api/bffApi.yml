@@ -434,7 +434,7 @@ paths:
         - agreements
       summary: Retrieves Tenants that are producers with existing Agreements
       description: Retrieves Tenants that are producers with existing Agreements
-      operationId: getAgreementProducers
+      operationId: getAgreementsProducers
       parameters:
         - in: query
           name: q
@@ -522,7 +522,7 @@ paths:
         - agreements
       summary: Retrieves Tenants that are consumers with existing Agreements
       description: Retrieves Tenants that are consumers with existing Agreements
-      operationId: getAgreementConsumers
+      operationId: getAgreementsConsumers
       parameters:
         - in: query
           name: q
@@ -5389,22 +5389,13 @@ paths:
         - agreements
       summary: Retrieves eservices for producers in agreements
       description: Retrieves eservices for producers in agreements
-      operationId: getAgreementEServiceProducers
+      operationId: getAgreementsProducerEServices
       parameters:
         - in: query
           name: q
           description: Query to filter EServices by name
           schema:
             type: string
-        - in: query
-          name: states
-          description: comma separated sequence of states
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/AgreementState"
-            default: []
-          explode: false
         - in: query
           name: offset
           required: true
@@ -5505,7 +5496,7 @@ paths:
         - agreements
       summary: Retrieves eservices for consumers in agreements
       description: Retrieves eservices for consumers in agreements
-      operationId: getAgreementEServiceConsumers
+      operationId: getAgreementsConsumerEServices
       parameters:
         - in: query
           name: q
@@ -10852,14 +10843,14 @@ paths:
       tags:
         - clients
       summary: Create Keys for the specific clientId.
-      operationId: createKeys
+      operationId: createKey
       requestBody:
         required: true
         description: an array of base64 encoded PEM keys.
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/KeysSeed"
+              $ref: "#/components/schemas/KeySeed"
       description: Creates one or more keys for the corresponding client.
       parameters:
         - name: clientId
@@ -15948,10 +15939,6 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/CompactUser"
-    KeysSeed:
-      type: array
-      items:
-        $ref: "#/components/schemas/KeySeed"
     KeySeed:
       description: "Models the seed for a public key to be persisted"
       type: object

@@ -1,38 +1,35 @@
 import { constants } from "http2";
 import {
+  ExpressContext,
   fromAppContext,
   initFileManager,
+  initRedisRateLimiter,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
-  zodiosCtx,
+  ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { Problem, tooManyRequestsError } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
-import express from "express";
+import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
 
 const dynamoDBClient = new DynamoDBClient();
-/* TODO rate limiter removed for performance tests.
-  Re-enable it when performance tests are completed, if
-  rate limiter is not the bottleneck.
-  Otherwise we should consider a different approach.
-*/
-// const redisRateLimiter = await initRedisRateLimiter({
-//   limiterGroup: "AUTHSERVER",
-//   maxRequests: config.rateLimiterMaxRequests,
-//   rateInterval: config.rateLimiterRateInterval,
-//   burstPercentage: config.rateLimiterBurstPercentage,
-//   redisHost: config.rateLimiterRedisHost,
-//   redisPort: config.rateLimiterRedisPort,
-//   timeout: config.rateLimiterTimeout,
-// });
-
+const redisRateLimiter = await initRedisRateLimiter({
+  limiterGroup: "AUTHSERVER",
+  maxRequests: config.rateLimiterMaxRequests,
+  rateInterval: config.rateLimiterRateInterval,
+  burstPercentage: config.rateLimiterBurstPercentage,
+  redisHost: config.rateLimiterRedisHost,
+  redisPort: config.rateLimiterRedisPort,
+  timeout: config.rateLimiterTimeout,
+});
 const producer = await initProducer(config, config.tokenAuditingTopic);
 const fileManager = initFileManager(config);
 
@@ -47,14 +44,15 @@ const tokenGenerator = new InteropTokenGenerator({
 const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  // redisRateLimiter,
+  redisRateLimiter,
   producer,
   fileManager,
 });
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function authorizationServerRouter(): express.Router {
-  const authorizationServerRouter = zodiosCtx.router(
+const authorizationServerRouter = (
+  ctx: ZodiosContext
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const authorizationServerRouter = ctx.router(
     authorizationServerApi.authApi.api,
     {
       validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -136,10 +134,7 @@ function authorizationServerRouter(): express.Router {
       }
     }
   );
-
-  // This cast will be removed when the router and the entire service
-  // will drop fastify-express and will be fully migrated to fastify
-  return authorizationServerRouter as unknown as express.Router;
-}
+  return authorizationServerRouter;
+};
 
 export default authorizationServerRouter;
