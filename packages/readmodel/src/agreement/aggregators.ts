@@ -3,6 +3,7 @@ import {
   AgreementStampSQL,
   AgreementDocumentSQL,
   AgreementAttributeSQL,
+  AgreementItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   Agreement,
@@ -40,13 +41,13 @@ export const aggregatorAgreementArray = ({
   agreementSQL.map((agreementSQL) =>
     aggregateAgreement({
       agreementSQL,
-      agreementStampsSQL: agreementStampsSQL.filter(
+      stampsSQL: agreementStampsSQL.filter(
         (stampSQL) => stampSQL.agreementId === agreementSQL.id
       ),
-      agreementDocumentsSQL: agreementDocumentsSQL.filter(
+      documentsSQL: agreementDocumentsSQL.filter(
         (documentSQL) => documentSQL.agreementId === agreementSQL.id
       ),
-      agreementAttributesSQL: agreementAttributesSQL.filter(
+      attributesSQL: agreementAttributesSQL.filter(
         (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
       ),
     })
@@ -54,54 +55,48 @@ export const aggregatorAgreementArray = ({
 
 export const aggregateAgreement = ({
   agreementSQL,
-  agreementStampsSQL,
-  agreementDocumentsSQL,
-  agreementAttributesSQL,
-}: {
-  agreementSQL: AgreementSQL;
-  agreementStampsSQL: AgreementStampSQL[];
-  agreementDocumentsSQL: AgreementDocumentSQL[];
-  agreementAttributesSQL: AgreementAttributeSQL[];
-}): WithMetadata<Agreement> => {
-  const verifiedAttributes: AgreementAttribute[] = agreementAttributesSQL
+  stampsSQL,
+  documentsSQL,
+  attributesSQL,
+}: AgreementItemsSQL): WithMetadata<Agreement> => {
+  const verifiedAttributes: AgreementAttribute[] = attributesSQL
     .filter((a) => a.kind === attributeKind.verified)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
-  const certifiedAttributes: AgreementAttribute[] = agreementAttributesSQL
+  const certifiedAttributes: AgreementAttribute[] = attributesSQL
     .filter((a) => a.kind === attributeKind.certified)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
-  const declaredAttributes: AgreementAttribute[] = agreementAttributesSQL
+  const declaredAttributes: AgreementAttribute[] = attributesSQL
     .filter((a) => a.kind === attributeKind.declared)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
 
-  const consumerDocuments: AgreementDocument[] = agreementDocumentsSQL
+  const consumerDocuments: AgreementDocument[] = documentsSQL
     .filter((d) => d.kind === agreementDocumentKind.consumerDoc)
     .map(documentSQLtoDocument);
 
-  const contractSQL: AgreementDocumentSQL | undefined =
-    agreementDocumentsSQL.find(
-      (d) => d.kind === agreementDocumentKind.contract
-    );
+  const contractSQL: AgreementDocumentSQL | undefined = documentsSQL.find(
+    (d) => d.kind === agreementDocumentKind.contract
+  );
   const contract = contractSQL ? documentSQLtoDocument(contractSQL) : undefined;
 
-  const submissionStampSQL = agreementStampsSQL.find(
+  const submissionStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.submission
   );
-  const activationStampSQL = agreementStampsSQL.find(
+  const activationStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.activation
   );
-  const rejectionStampSQL = agreementStampsSQL.find(
+  const rejectionStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.rejection
   );
-  const suspensionByProducerStampSQL = agreementStampsSQL.find(
+  const suspensionByProducerStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.suspensionByProducer
   );
-  const suspensionByConsumerStampSQL = agreementStampsSQL.find(
+  const suspensionByConsumerStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.suspensionByConsumer
   );
-  const upgradeStampSQL = agreementStampsSQL.find(
+  const upgradeStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.upgrade
   );
-  const archivingStampSQL = agreementStampsSQL.find(
+  const archivingStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.archiving
   );
   const agreement: Agreement = {
