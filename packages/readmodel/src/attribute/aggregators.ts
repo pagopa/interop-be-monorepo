@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-models";
 import { AttributeSQL } from "pagopa-interop-readmodel-models";
 
-export const attributeSQLtoAttribute = ({
+export const aggregateAttribute = ({
   id,
   metadataVersion,
   name,
