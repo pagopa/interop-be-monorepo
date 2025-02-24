@@ -30,7 +30,7 @@ import { z } from "zod";
 import { match } from "ts-pattern";
 import {
   agreementStampDateNotFound,
-  descriptorInValidStateNotFound,
+  descriptorPublishedNotFound,
   descriptorNotFound,
   eServiceNotFound,
   htmlTemplateNotFound,
@@ -139,19 +139,13 @@ export function getFormattedAgreementStampDate(
   return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
-const isValidDescriptorState = (d: Descriptor): boolean =>
-  match(d.state)
-    .with("Archived", "Deprecated", "Published", "Suspended", () => true)
-    .with("Draft", "WaitingForApproval", () => false)
-    .exhaustive();
-
-function getLatestValidDescriptor(eservice: EService): Descriptor {
+function getLatestPublishedDescriptor(eservice: EService): Descriptor {
   const latestDescriptor = eservice.descriptors
-    .filter(isValidDescriptorState)
+    .filter((d) => d.state === "Published")
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
   if (!latestDescriptor) {
-    throw descriptorInValidStateNotFound(eservice.id);
+    throw descriptorPublishedNotFound(eservice.id);
   }
   return latestDescriptor;
 }
@@ -337,10 +331,10 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(`Email sent for agreement ${agreement.id} rejection`);
       } catch (err) {
         logger.warn(
-          `Error sending email for agreement ${agreement.id}: ${err}`
+          `Error sending email for agreement ${agreement.id} rejection: ${err}`
         );
         throw genericInternalError(
-          `Error sending email for agreement ${agreement.id}: ${err}`
+          `Error sending email for agreement ${agreement.id} rejection: ${err}`
         );
       }
     },
@@ -525,6 +519,8 @@ export function notificationEmailSenderServiceBuilder(
           )
         );
 
+        const descriptor = getLatestPublishedDescriptor(eservice);
+
         for (const consumer of consumers) {
           const consumerEmail = getLatestTenantMailOfKind(
             consumer.mails,
@@ -537,8 +533,6 @@ export function notificationEmailSenderServiceBuilder(
             );
             continue;
           }
-
-          const descriptor = getLatestValidDescriptor(eservice);
 
           const mail = {
             from: { name: sesSenderData.label, address: sesSenderData.mail },

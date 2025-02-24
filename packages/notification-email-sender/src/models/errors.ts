@@ -8,7 +8,7 @@ type NotificationEmailSenderErrorCode =
   | "tenantDigitalAddressNotFound"
   | "descriptorNotFound"
   | "eserviceAgreementsNotFound"
-  | "descriptorInValidStateNotFound";
+  | "descriptorPublishedNotFound";
 
 export class NotificationEmailSenderError extends InternalError<NotificationEmailSenderErrorCode> {
   constructor({
@@ -54,7 +54,7 @@ export function eserviceAgreementsNotFound(
   eserviceId: EServiceId
 ): NotificationEmailSenderError {
   return new InternalError({
-    detail: `Not found agreements for eservice ${eserviceId}`,
+    detail: `Agreements not found for eservice ${eserviceId}`,
     code: "eserviceAgreementsNotFound",
   });
 }
@@ -85,11 +85,11 @@ export function descriptorNotFound(
   });
 }
 
-export function descriptorInValidStateNotFound(
+export function descriptorPublishedNotFound(
   eServiceId: EServiceId
 ): NotificationEmailSenderError {
   return new InternalError({
-    detail: `Descriptor with valid state not found in EService ${eServiceId}`,
-    code: "descriptorInValidStateNotFound",
+    detail: `Descriptor published not found in EService ${eServiceId}`,
+    code: "descriptorPublishedNotFound",
   });
 }

@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const EmailSenderConfig = z
+export const PECEmailSenderConfig = z
   .object({
     INTEROP_FE_BASE_URL: z.string(),
     PEC_SENDER_MAIL: z.string().email(),
@@ -17,14 +17,14 @@ export const EmailSenderConfig = z
     pecSenderMail: c.PEC_SENDER_MAIL,
     pecSenderLabel: c.PEC_SENDER_LABEL,
   }));
-export type EmailSenderConfig = z.infer<typeof EmailSenderConfig>;
+export type PECEmailSenderConfig = z.infer<typeof PECEmailSenderConfig>;
 
 export const CertifiedEmailSenderConfig = KafkaConsumerConfig.and(
   ReadModelDbConfig
 )
   .and(AgreementTopicConfig)
   .and(PecEmailManagerConfig)
-  .and(EmailSenderConfig);
+  .and(PECEmailSenderConfig);
 
 export type CertifiedEmailSenderConfig = z.infer<
   typeof CertifiedEmailSenderConfig
