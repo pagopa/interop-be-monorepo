@@ -8,12 +8,10 @@ import { z } from "zod";
 
 export const PECEmailSenderConfig = z
   .object({
-    INTEROP_FE_BASE_URL: z.string(),
     PEC_SENDER_MAIL: z.string().email(),
     PEC_SENDER_LABEL: z.string(),
   })
   .transform((c) => ({
-    interopFeBaseUrl: c.INTEROP_FE_BASE_URL,
     pecSenderMail: c.PEC_SENDER_MAIL,
     pecSenderLabel: c.PEC_SENDER_LABEL,
   }));
