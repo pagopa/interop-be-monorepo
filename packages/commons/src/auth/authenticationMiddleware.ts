@@ -35,7 +35,7 @@ export const authenticationMiddleware: (
           match(err.code)
             .with("tokenVerificationFailed", () => 401)
             .with("operationForbidden", () => 403)
-            .with("missingHeader", "badBearerToken", "genericError", () => 400)
+            .with("missingHeader", "badBearerToken", "invalidClaim", () => 400)
             .otherwise(() => 500),
         ctx.logger,
         ctx.correlationId

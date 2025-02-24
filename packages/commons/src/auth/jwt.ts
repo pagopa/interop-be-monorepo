@@ -1,6 +1,5 @@
 import jwt, { GetPublicKeyOrSecret, JwtPayload } from "jsonwebtoken";
 import {
-  genericError,
   invalidClaim,
   jwksSigningKeyError,
   jwtDecodingError,
@@ -46,7 +45,7 @@ export const verifyJwtToken = async (
      */
     const getSecret: GetPublicKeyOrSecret = (header, callback) => {
       if (!header.kid) {
-        return callback(genericError("Missing kid"));
+        return callback(invalidClaim("kid"));
       }
 
       logger.debug(`Getting signing key for kid ${header.kid}`);
