@@ -1163,7 +1163,7 @@ describe("get eservices", () => {
     expect(result.results).toEqual([eserviceInstance1, eserviceInstance2]);
   });
 
-  it.only("should get the eServices if they exist (parameters: templateIds, states)", async () => {
+  it("should get the eServices if they exist (parameters: templateIds, states)", async () => {
     const templateId1: EServiceTemplateId = generateId();
     const eserviceTemplate1 = getMockEServiceTemplate(templateId1);
     const templateId2: EServiceTemplateId = generateId();

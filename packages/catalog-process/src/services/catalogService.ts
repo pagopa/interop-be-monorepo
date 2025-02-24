@@ -2186,12 +2186,12 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      if (newName === eservice.data.name) {
-        return;
-      }
-
       const instanceId = eservice.data.instanceId;
       const updatedName = instanceId ? `${newName} ${instanceId}` : newName;
+
+      if (updatedName === eservice.data.name) {
+        return;
+      }
 
       await assertNotDuplicatedEServiceName(
         updatedName,
