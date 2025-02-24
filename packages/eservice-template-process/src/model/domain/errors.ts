@@ -31,6 +31,9 @@ export const errorCodes = {
   draftEServiceTemplateVersionAlreadyExists: "0019",
   missingTemplateVersionInterface: "0020",
   missingRiskAnalysis: "0021",
+  interfaceAlreadyExists: "0022",
+  prettyNameDuplicate: "0023",
+  checksumDuplicate: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -254,5 +257,38 @@ export function missingRiskAnalysis(
     detail: `EService template ${templateId} is missing the risk analysis`,
     code: "missingRiskAnalysis",
     title: "Missing risk analysis",
+  });
+}
+
+export function interfaceAlreadyExists(
+  interfaceName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interface ${interfaceName} already exists`,
+    code: "interfaceAlreadyExists",
+    title: "Interface already exists",
+  });
+}
+
+export function prettyNameDuplicate(
+  prettyName: string,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A document with prettyName ${prettyName} already exists in version ${eserviceTemplateVersionId}`,
+    code: "prettyNameDuplicate",
+    title: "Duplicated prettyName",
+  });
+}
+
+export function checksumDuplicate(
+  fileName: string,
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The document ${fileName} content already exists in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
+    code: "checksumDuplicate",
+    title: "Duplicated checksum",
   });
 }

@@ -13,10 +13,11 @@ import {
   EServiceTemplate,
   EServiceTemplateEvent,
   EServiceTemplateId,
-  toEServiceTemplateV2,
   RiskAnalysis,
   Tenant,
   toReadModelTenant,
+  generateId,
+  toEServiceTemplateV2,
   toReadModelAttribute,
   EServiceTemplateVersion,
   toReadModelEService,
@@ -146,3 +147,27 @@ export const buildUpdateVersionSeed = (
     verified: [],
   },
 });
+
+export const buildInterfaceSeed =
+  (): eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "INTERFACE",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
+
+export const buildDocumentSeed =
+  (): eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "DOCUMENT",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });

@@ -10,8 +10,11 @@ import {
 import {
   Descriptor,
   EServiceAttribute,
+  Technology,
+  technology,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -385,4 +388,13 @@ export function toCompactProducerDescriptor(
       descriptor.rejectionReasons &&
       descriptor.rejectionReasons.length > 0,
   };
+}
+
+export function apiTechnologyToTechnology(
+  input: catalogApi.EServiceTechnology
+): Technology {
+  return match<catalogApi.EServiceTechnology, Technology>(input)
+    .with("REST", () => technology.rest)
+    .with("SOAP", () => technology.soap)
+    .exhaustive();
 }
