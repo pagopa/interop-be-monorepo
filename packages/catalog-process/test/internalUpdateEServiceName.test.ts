@@ -124,7 +124,7 @@ describe("internalUpdateEServiceName", () => {
       ...getMockEService(),
       descriptors: [descriptor],
       instanceId: "test",
-      name: updatedName,
+      name: `${updatedName} test`,
     };
 
     await addOneEService(eservice);
