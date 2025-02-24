@@ -19,15 +19,11 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@zodios/core": "10.9.6",
-    "@zodios/express": "10.6.1",
     "express": "4.20.0",
     "kafkajs": "2.2.4",
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
-    "pagopa-interop-models": "workspace:*",
-    "zod": "3.23.8",
-    "zod-validation-error": "3.3.0"
+    "pagopa-interop-models": "workspace:*"
   },
   "devDependencies": {
     "@types/express": "4.17.21",
