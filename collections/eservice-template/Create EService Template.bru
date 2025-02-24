@@ -17,7 +17,7 @@ headers {
 
 body:json {
   {
-    "name": "Test name",
+    "name": "{{randomName}}",
     "audienceDescription": "This is the description of the audience",
     "eserviceDescription": "This is the description of the EService",
     "technology": "REST",
@@ -35,4 +35,11 @@ body:json {
 
 vars:post-response {
   eserviceTemplateId: res.body.id
+  eserviceTemplateVersionId: res.body.versions[0].id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 100)
+  
+  bru.setVar("randomName",`test name ${random}`)
 }
