@@ -430,10 +430,7 @@ export const validateSubmitOnDescriptor = async (
   eservice: EService,
   descriptorId: DescriptorId
 ): Promise<Descriptor> => {
-  const allowedStatus: DescriptorState[] = [
-    descriptorState.published,
-    descriptorState.suspended,
-  ];
+  const allowedStatus: DescriptorState[] = [descriptorState.published];
   return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
 };
 
