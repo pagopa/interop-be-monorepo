@@ -21,7 +21,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    async addEService(eservice: WithMetadata<EService>): Promise<void> {
+    async upsertEService(eservice: WithMetadata<EService>): Promise<void> {
       const {
         eserviceSQL,
         riskAnalysesSQL,
@@ -33,6 +33,10 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       } = splitEserviceIntoObjectsSQL(eservice.data, eservice.metadata.version);
 
       await db.transaction(async (tx) => {
+        await tx
+          .delete(eserviceInReadmodelCatalog)
+          .where(eq(eserviceInReadmodelCatalog.id, eserviceSQL.id));
+
         await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
 
         for (const descriptor of descriptorsSQL) {
