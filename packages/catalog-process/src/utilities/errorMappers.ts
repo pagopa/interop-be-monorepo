@@ -32,10 +32,19 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eServiceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
-    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
-    .with("interfaceAlreadyExists", () => HTTP_STATUS_CONFLICT)
-    .with("prettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "notValidDescriptor",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "eServiceTemplateWithoutPublishedVersion",
+      "interfaceAlreadyExists",
+      "prettyNameDuplicate",
+      "eServiceDuplicate",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceErrorMapper = (
