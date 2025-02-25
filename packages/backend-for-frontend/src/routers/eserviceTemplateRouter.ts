@@ -1,3 +1,4 @@
+import { constants } from "http2";
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
@@ -568,6 +569,34 @@ const eserviceTemplateRouter = (
             ctx.logger,
             ctx.correlationId,
             `Error creating eService template document of kind ${req.body.kind} and name ${req.body.prettyName} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { contentType, document } =
+            await eserviceTemplateService.getEServiceTemplateDocument(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.eServiceTemplateVersionId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+          return res
+            .header(constants.HTTP2_HEADER_CONTENT_TYPE, contentType)
+            .status(200)
+            .send(document);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error getting eService template document ${req.params.documentId} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
+  EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
@@ -36,6 +37,7 @@ import {
 import { cloneEServiceDocument } from "../utilities/fileUtils.js";
 import { config } from "../config/config.js";
 import { verifyAndCreateDocument } from "../utilities/eserviceDocumentUtils.js";
+import { config } from "../config/config.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
@@ -569,6 +571,33 @@ export function eserviceTemplateServiceBuilder(
       );
 
       return { id: documentId };
+    },
+    getEServiceTemplateDocument: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<{ contentType: string; document: Buffer }> => {
+      logger.info(
+        `Retrieving EService Template Document for EService template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId} and Document ${documentId}`
+      );
+      const { path, contentType } =
+        await eserviceTemplateClient.getEServiceTemplateDocumentById({
+          params: {
+            eServiceTemplateId,
+            eServiceTemplateVersionId,
+            documentId,
+          },
+          headers,
+        });
+
+      const stream = await fileManager.get(
+        config.eserviceDocumentsContainer,
+        path,
+        logger
+      );
+
+      return { contentType, document: Buffer.from(stream) };
     },
   };
 }
