@@ -74,7 +74,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     },
     async getEServiceById(
       eserviceId: EServiceId
-    ): Promise<WithMetadata<EService>> {
+    ): Promise<WithMetadata<EService> | undefined> {
       /*
         eservice ->1 descriptor ->2 document
                       descriptor ->3 attribute
@@ -151,6 +151,10 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       //     eserviceTemplateBindingInReadmodelCatalog.eserviceId
       //   )
       // );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
 
       const aggregatorInput = fromJoinToAggregator(queryResult);
 
