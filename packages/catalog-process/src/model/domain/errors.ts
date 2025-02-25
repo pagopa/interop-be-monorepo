@@ -8,6 +8,7 @@ import {
   RiskAnalysisId,
   TenantId,
   makeApiProblemBuilder,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -39,6 +40,8 @@ export const errorCodes = {
   inconsistentAttributesSeedGroupsCount: "0026",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
   unchangedAttributes: "0028",
+  eServiceTemplateNotFound: "0029",
+  eServiceTemplateWithoutPublishedVersion: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -329,5 +332,25 @@ export function invalidEServiceFlags(
     detail: `EService ${eserviceId} flags are not valid`,
     code: "invalidEServiceFlags",
     title: "Invalid EService flags",
+  });
+}
+
+export function eServiceTemplateNotFound(
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eServiceTemplateId} not found`,
+    code: "eServiceTemplateNotFound",
+    title: "EService template not found",
+  });
+}
+
+export function eServiceTemplateWithoutPublishedVersion(
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eServiceTemplateId} does not have a published version`,
+    code: "eServiceTemplateWithoutPublishedVersion",
+    title: "EService template without published version",
   });
 }

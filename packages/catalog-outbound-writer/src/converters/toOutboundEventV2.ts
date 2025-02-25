@@ -27,6 +27,7 @@ function toOutboundDescriptorV2(
 ): Exact<OutboundEServiceDescriptorV2, EServiceDescriptorV2> {
   return {
     ...descriptor,
+    templateVersionId: undefined, // todo outbound library must be updated
     interface:
       descriptor.interface && toOuboundEServiceDocumentV2(descriptor.interface),
     docs: descriptor.docs.map(toOuboundEServiceDocumentV2),

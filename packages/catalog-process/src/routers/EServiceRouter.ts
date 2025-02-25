@@ -59,6 +59,7 @@ import {
   approveDelegatedEServiceDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   updateEServiceFlagsErrorMapper,
+  createEServiceInstanceFromTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -167,6 +168,32 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createEServiceErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/templates/:templateId/instances",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const eService =
+            await catalogService.createEServiceInstanceFromTemplate(
+              unsafeBrandId(req.params.templateId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceInstanceFromTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
