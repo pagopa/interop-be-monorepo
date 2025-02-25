@@ -45,7 +45,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     },
     async getAgreementById(
       agreementId: AgreementId
-    ): Promise<WithMetadata<Agreement>> {
+    ): Promise<WithMetadata<Agreement> | undefined> {
       /*
       agreement ->1 agreement_stamp
       					->2 agreement_attribute
@@ -85,11 +85,15 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         );
 
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
       const aggregatorInput = fromJoinToAggregator(queryResult);
 
       return aggregateAgreement(aggregatorInput);
     },
-    async deleteAgreeementById(agreementId: AgreementId): Promise<void> {
+    async deleteAgreementById(agreementId: AgreementId): Promise<void> {
       await db
         .delete(agreementInReadmodelAgreement)
         .where(eq(agreementInReadmodelAgreement.id, agreementId));
