@@ -118,7 +118,7 @@ describe("createKey", () => {
 
     await addOneClient(mockClient);
 
-    const { key } = await authorizationService.createKey({
+    const key = await authorizationService.createKey({
       clientId: mockClient.id,
       authData: mockAuthData,
       keySeed,

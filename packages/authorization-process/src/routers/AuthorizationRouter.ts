@@ -417,7 +417,7 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { key } = await authorizationService.createKey({
+          const key = await authorizationService.createKey({
             clientId: unsafeBrandId(req.params.clientId),
             authData: req.ctx.authData,
             keySeed: req.body,
