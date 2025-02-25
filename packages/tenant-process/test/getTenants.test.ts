@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
 import { Tenant, tenantFeatureType } from "pagopa-interop-models";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { toApiTenant } from "../src/model/domain/apiConverter.js";
+import { mockTenantRouterRequest } from "./supertestSetup.js";
 import { addOneTenant, readModelService } from "./utils.js";
 
 describe("getTenants", () => {
@@ -30,28 +32,41 @@ describe("getTenants", () => {
       await addOneTenant(tenant2);
       await addOneTenant(tenant3);
 
-      const tenantsByName = await readModelService.getTenants({
-        name: undefined,
-        features: [],
-        offset: 0,
-        limit: 50,
+      const tenantsByName = await mockTenantRouterRequest.get({
+        path: "/tenants",
+        queryParams: { name: undefined, offset: 0, limit: 50 },
+        authData: getMockAuthData(),
       });
+
       expect(tenantsByName.totalCount).toBe(3);
-      expect(tenantsByName.results).toEqual([tenant1, tenant2, tenant3]);
+      expect(tenantsByName.results).toEqual([
+        toApiTenant(tenant1),
+        toApiTenant(tenant2),
+        toApiTenant(tenant3),
+      ]);
     });
     it("should get tenants by name", async () => {
       await addOneTenant(tenant1);
 
       await addOneTenant(tenant2);
 
-      const tenantsByName = await readModelService.getTenants({
-        name: "Tenant 1",
-        features: [],
-        offset: 0,
-        limit: 50,
+      const tenantsByName = await mockTenantRouterRequest.get({
+        path: "/tenants",
+        queryParams: { name: "Tenant 1", offset: 0, limit: 50 },
+        authData: getMockAuthData(),
       });
+
       expect(tenantsByName.totalCount).toBe(1);
-      expect(tenantsByName.results).toEqual([tenant1]);
+      expect(tenantsByName.results).toEqual([toApiTenant(tenant1)]);
+    });
+    it("should not get tenants if there are not any tenants", async () => {
+      const tenantsByName = await mockTenantRouterRequest.get({
+        path: "/tenants",
+        queryParams: { name: undefined, offset: 0, limit: 50 },
+        authData: getMockAuthData(),
+      });
+      expect(tenantsByName.totalCount).toBe(0);
+      expect(tenantsByName.results).toEqual([]);
     });
     it("should get tenants by feature", async () => {
       const tenantDelegatedProducer1: Tenant = {
@@ -260,12 +275,12 @@ describe("getTenants", () => {
 
       await addOneTenant(tenant2);
 
-      const tenantsByName = await readModelService.getTenants({
-        name: "Tenant 6",
-        features: [],
-        offset: 0,
-        limit: 50,
+      const tenantsByName = await mockTenantRouterRequest.get({
+        path: "/tenants",
+        queryParams: { name: "Tenant 6", offset: 0, limit: 50 },
+        authData: getMockAuthData(),
       });
+
       expect(tenantsByName.totalCount).toBe(0);
       expect(tenantsByName.results).toEqual([]);
     });
@@ -275,12 +290,13 @@ describe("getTenants", () => {
       await addOneTenant(tenant3);
       await addOneTenant(tenant4);
       await addOneTenant(tenant5);
-      const tenantsByName = await readModelService.getTenants({
-        name: undefined,
-        features: [],
-        offset: 0,
-        limit: 4,
+
+      const tenantsByName = await mockTenantRouterRequest.get({
+        path: "/tenants",
+        queryParams: { name: undefined, offset: 0, limit: 4 },
+        authData: getMockAuthData(),
       });
+
       expect(tenantsByName.results.length).toBe(4);
     });
     it("should get a maximun number of tenants based on a specified limit and offset", async () => {
@@ -289,12 +305,13 @@ describe("getTenants", () => {
       await addOneTenant(tenant3);
       await addOneTenant(tenant4);
       await addOneTenant(tenant5);
-      const tenantsByName = await readModelService.getTenants({
-        name: undefined,
-        features: [],
-        offset: 2,
-        limit: 4,
+
+      const tenantsByName = await mockTenantRouterRequest.get({
+        path: "/tenants",
+        queryParams: { name: undefined, offset: 2, limit: 4 },
+        authData: getMockAuthData(),
       });
+
       expect(tenantsByName.results.length).toBe(3);
     });
   });
