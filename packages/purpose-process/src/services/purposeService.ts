@@ -1081,10 +1081,8 @@ export function purposeServiceBuilder(
       );
 
       const delegationId = await verifyRequesterIsConsumerOrDelegateConsumer(
-        {
-          consumerId,
-          eserviceId,
-        },
+        consumerId,
+        eserviceId,
         authData,
         readModelService
       );
@@ -1152,10 +1150,8 @@ export function purposeServiceBuilder(
       );
 
       const delegationId = await verifyRequesterIsConsumerOrDelegateConsumer(
-        {
-          consumerId,
-          eserviceId,
-        },
+        consumerId,
+        eserviceId,
         authData,
         readModelService
       );

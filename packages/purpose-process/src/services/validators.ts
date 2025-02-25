@@ -382,24 +382,41 @@ const assertRequesterIsDelegateConsumer = (
 };
 
 export const verifyRequesterIsConsumerOrDelegateConsumer = async (
-  purpose: Pick<Purpose, "consumerId" | "eserviceId">,
+  consumerId: TenantId,
+  eserviceId: EServiceId,
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<DelegationId | undefined> => {
   try {
-    assertRequesterIsConsumer(purpose, authData);
+    assertRequesterIsConsumer(
+      {
+        consumerId,
+      },
+      authData
+    );
     return undefined;
   } catch {
     const consumerDelegation =
       await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-        purpose
+        {
+          eserviceId,
+          consumerId,
+        }
       );
 
     if (!consumerDelegation) {
       throw organizationIsNotTheConsumer(authData.organizationId);
     }
 
-    assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
+    assertRequesterIsDelegateConsumer(
+      {
+        consumerId,
+        eserviceId,
+        delegationId: consumerDelegation.id,
+      },
+      authData,
+      consumerDelegation
+    );
 
     return consumerDelegation?.id;
   }
