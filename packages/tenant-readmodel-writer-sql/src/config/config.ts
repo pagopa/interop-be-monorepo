@@ -1,11 +1,11 @@
 import {
-  ReadModelWriterConfig,
+  ReadModelWriterConfigSQL,
   TenantTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const TenantReadModelWriterConfig =
-  ReadModelWriterConfig.and(TenantTopicConfig);
+  ReadModelWriterConfigSQL.and(TenantTopicConfig);
 
 export type TenantReadModelWriterConfig = z.infer<
   typeof TenantReadModelWriterConfig

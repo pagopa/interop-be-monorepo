@@ -1,10 +1,6 @@
 import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
-import {
-  logger,
-  decodeKafkaMessage,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
+import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import {
   CorrelationId,
@@ -12,11 +8,16 @@ import {
   TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import {
+  readModelServiceBuilder,
+  makeDrizzleConnection,
+} from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { handleMessageV1 } from "./tenantConsumerServiceV1.js";
 import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
 
-const { tenants } = ReadModelRepository.init(config);
+const db = makeDrizzleConnection(config);
+const readModelService = readModelServiceBuilder(db);
 
 async function processMessage({
   message,
@@ -35,8 +36,8 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, tenants))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, tenants))
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
     .exhaustive();
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
