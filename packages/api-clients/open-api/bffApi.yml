@@ -19792,9 +19792,12 @@ components:
       properties:
         instanceId:
           type: string
-          format: uuid
-          description: Optional identifier to be appended to the template name
-          required: false
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan

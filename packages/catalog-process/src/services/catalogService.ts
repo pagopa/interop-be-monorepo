@@ -2338,9 +2338,10 @@ export function catalogServiceBuilder(
                   publishedVersion.agreementApprovalPolicy
                 ),
             },
-            isSignalHubEnabled: template.isSignalHubEnabled,
-            isConsumerDelegable: false,
-            isClientAccessDelegable: false,
+            isSignalHubEnabled:
+              seed.isSignalHubEnabled ?? template.isSignalHubEnabled,
+            isConsumerDelegable: seed.isConsumerDelegable ?? false,
+            isClientAccessDelegable: seed.isClientAccessDelegable ?? false,
           },
           eServiceTemplateReferences: {
             templateId: template.id,
