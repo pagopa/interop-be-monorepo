@@ -40,6 +40,7 @@ import {
   updateDraftTemplateVersionErrorMapper,
   publishEServiceTemplateVersionErrorMapper,
   createEServiceTemplateDocumentErrorMapper,
+  getEServiceTemplateDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
@@ -425,8 +426,35 @@ const eserviceTemplatesRouter = (
     )
     .get(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([API_ROLE, ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { eServiceTemplateId, eServiceTemplateVersionId, documentId } =
+            req.params;
+
+          const eServiceTemplateDocument =
+            await eserviceTemplateService.getEServiceTemplateDocument(
+              {
+                eServiceTemplateId: unsafeBrandId(eServiceTemplateId),
+                eServiceTemplateVersionId: unsafeBrandId(
+                  eServiceTemplateVersionId
+                ),
+                eServiceDocumentId: unsafeBrandId(documentId),
+              },
+              ctx
+            );
+          return res.status(200).send(eServiceTemplateDocument);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateDocumentErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .delete(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId",

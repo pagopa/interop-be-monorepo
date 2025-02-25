@@ -37,12 +37,14 @@ import {
   generateId,
   ListResult,
   Document,
+  EServiceDocumentId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   checksumDuplicate,
+  eServiceDocumentNotFound,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
@@ -1489,6 +1491,54 @@ export function eserviceTemplateServiceBuilder(
       await repository.createEvent(event);
 
       return updatedEServiceTemplate;
+    },
+    async getEServiceTemplateDocument(
+      {
+        eServiceTemplateId,
+        eServiceTemplateVersionId,
+        eServiceDocumentId,
+      }: {
+        eServiceTemplateId: EServiceTemplateId;
+        eServiceTemplateVersionId: EServiceTemplateVersionId;
+        eServiceDocumentId: EServiceDocumentId;
+      },
+      { authData, logger }: WithLogger<AppContext>
+    ): Promise<Document> {
+      logger.info(
+        `Getting EService Document ${eServiceDocumentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
+      );
+
+      const eServiceTemplate = await retrieveEServiceTemplate(
+        eServiceTemplateId,
+        readModelService
+      );
+
+      const version = retrieveEServiceTemplateVersion(
+        eServiceTemplateVersionId,
+        eServiceTemplate.data
+      );
+
+      if (version.state === eserviceTemplateVersionState.draft) {
+        assertRequesterEServiceTemplateCreator(
+          eServiceTemplate.data.creatorId,
+          authData
+        );
+      }
+
+      if (version.interface?.id === eServiceDocumentId) {
+        return version.interface;
+      }
+
+      const document = version.docs.find((d) => d.id === eServiceDocumentId);
+
+      if (document === undefined) {
+        throw eServiceDocumentNotFound(
+          eServiceDocumentId,
+          eServiceTemplateVersionId
+        );
+      }
+
+      return document;
     },
   };
 }
