@@ -1,13 +1,30 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Attribute, AttributeId, WithMetadata } from "pagopa-interop-models";
 import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
+import { Pool } from "pg";
+import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { aggregateAttribute } from "./attribute/aggregators.js";
 
+export const makeDrizzleConnection = (
+  readModelSQLDbConfig: ReadModelSQLDbConfig
+): ReturnType<typeof drizzle> => {
+  const pool = new Pool({
+    host: readModelSQLDbConfig.readModelSQLDbHost,
+    port: readModelSQLDbConfig.readModelSQLDbPort,
+    database: readModelSQLDbConfig.readModelSQLDbName,
+    user: readModelSQLDbConfig.readModelSQLDbUsername,
+    password: readModelSQLDbConfig.readModelSQLDbPassword,
+    ssl: readModelSQLDbConfig.readModelSQLDbUseSSL,
+  });
+  return drizzle({ client: pool });
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function readModelServiceBuilderSQL(db: ReturnType<typeof drizzle>) {
   return {
+    // TODO: (attribute, version)?
     async upsertAttribute(attribute: WithMetadata<Attribute>): Promise<void> {
       const attributeSQL = splitAttributeIntoObjectsSQL(
         attribute.data,
@@ -32,12 +49,20 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
       return aggregateAttribute(queryResult[0]);
     },
-    async deleteAttributeById(attributeId: AttributeId): Promise<void> {
+    async deleteAttributeById(
+      attributeId: AttributeId,
+      version: number
+    ): Promise<void> {
       await db
         .delete(attributeInReadmodelAttribute)
-        .where(eq(attributeInReadmodelAttribute.id, attributeId));
+        .where(
+          and(
+            eq(attributeInReadmodelAttribute.id, attributeId),
+            lte(attributeInReadmodelAttribute.metadataVersion, version)
+          )
+        );
     },
   };
 }
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
