@@ -73,7 +73,7 @@ export type DescriptorRejectionReason = z.infer<
   typeof DescriptorRejectionReason
 >;
 
-export const DescriptorInterfaceContacts = z.object({
+export const InstanceInterfaceMetadata = z.object({
   name: z.string(),
   email: z.string(),
   url: z.string(),
@@ -81,23 +81,24 @@ export const DescriptorInterfaceContacts = z.object({
   serverUrls: z.array(z.string()),
 });
 
-export type DescriptorInterfaceContacts = z.infer<
-  typeof DescriptorInterfaceContacts
+export type InstanceInterfaceMetadata = z.infer<
+  typeof InstanceInterfaceMetadata
 >;
 
-export const DescriptorInterface = Document.and(
-  z.object({
-    contacts: DescriptorInterfaceContacts.optional(),
-  })
-);
+export const InstanceEServiceTemplateVersion = z.object({
+  id: EServiceTemplateVersionId,
+  interfaceMetadata: InstanceInterfaceMetadata.optional(),
+});
 
-export type DescriptorInterface = z.infer<typeof DescriptorInterface>;
+export type InstanceEServiceTemplateVersion = z.infer<
+  typeof InstanceEServiceTemplateVersion
+>;
 
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
   description: z.string().optional(),
-  interface: DescriptorInterface.optional(),
+  interface: Document.optional(),
   docs: z.array(Document),
   state: DescriptorState,
   audience: z.array(z.string()),
@@ -113,7 +114,7 @@ export const Descriptor = z.object({
   archivedAt: z.coerce.date().optional(),
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
-  templateVersionId: EServiceTemplateVersionId.optional(),
+  templateVersion: InstanceEServiceTemplateVersion.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -126,6 +127,13 @@ export const EServiceMode = z.enum([
   ...Object.values(eserviceMode).slice(1),
 ]);
 export type EServiceMode = z.infer<typeof EServiceMode>;
+
+export const InstanceEServiceTemplate = z.object({
+  id: EServiceTemplateId,
+  instanceId: z.string().optional(),
+});
+
+export type InstanceEServiceTemplate = z.infer<typeof InstanceEServiceTemplate>;
 
 export const EService = z.object({
   id: EServiceId,
@@ -141,7 +149,7 @@ export const EService = z.object({
   isSignalHubEnabled: z.boolean().optional(),
   isConsumerDelegable: z.boolean().optional(),
   isClientAccessDelegable: z.boolean().optional(),
-  templateId: EServiceTemplateId.optional(),
-  instanceId: z.string().optional(),
+  template: InstanceEServiceTemplate.optional(),
 });
+
 export type EService = z.infer<typeof EService>;
