@@ -8,13 +8,17 @@ import { aggregateAttribute } from "./attribute/aggregators.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    async addAttribute(attribute: WithMetadata<Attribute>): Promise<void> {
+    async upsertAttribute(attribute: WithMetadata<Attribute>): Promise<void> {
       const attributeSQL = splitAttributeIntoObjectsSQL(
         attribute.data,
         attribute.metadata.version
       );
 
       await db.transaction(async (tx) => {
+        await tx
+          .delete(attributeInReadmodelAttribute)
+          .where(eq(attributeInReadmodelAttribute.id, attributeSQL.id));
+
         await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
       });
     },
