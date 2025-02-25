@@ -430,8 +430,8 @@ export const validateSubmitOnDescriptor = async (
   eservice: EService,
   descriptorId: DescriptorId
 ): Promise<Descriptor> => {
-  const allowedStatus: DescriptorState[] = [descriptorState.published];
-  return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
+  const allowedState: DescriptorState[] = [descriptorState.published];
+  return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
 export const validateActiveOrPendingAgreement = (
