@@ -360,28 +360,11 @@ export async function createOpenApiInterfaceByTemplate(
   }
 
   const documentId = unsafeBrandId<EServiceDocumentId>(randomUUID());
-  const fileType = getFileType(eserviceTemplateInterface.name);
-  if (!fileType) {
-    throw invalidInterfaceContentTypeDetected(
-      eservice.id,
-      eserviceTemplateInterface.contentType,
-      eservice.technology
-    );
-  }
-
-  const updatedInterface = await interpolateOpenApiSpec(
+  const updatedInterfaceFile = await interpolateOpenApiSpec(
     eservice,
     Buffer.from(interfaceTemplate).toString(),
-    fileType,
+    eserviceTemplateInterface,
     eserviceInstanceInterfaceData
-  );
-
-  const updatedInterfaceFile = new File(
-    [updatedInterface],
-    eserviceTemplateInterface.prettyName,
-    {
-      type: eserviceTemplateInterface.contentType,
-    }
   );
 
   const descriptor = retrieveDraftDescriptor(eservice);
@@ -390,7 +373,7 @@ export async function createOpenApiInterfaceByTemplate(
     fileManager,
     eservice.id,
     apiTechnologyToTechnology(eservice.technology),
-    eserviceTemplateInterface.prettyName,
+    eserviceTemplateInterface.name,
     "INTERFACE",
     updatedInterfaceFile,
     documentId,
@@ -405,7 +388,7 @@ export async function createOpenApiInterfaceByTemplate(
           path: filePath,
           resourceId: documentId,
           name: eserviceTemplateInterface.name,
-          content: updatedInterface,
+          content: await fileToBuffer(updatedInterfaceFile),
         },
         logger
       );
@@ -439,9 +422,18 @@ export async function createOpenApiInterfaceByTemplate(
 async function interpolateOpenApiSpec(
   eservice: catalogApi.EService,
   file: string,
-  fileType: AllowedFileType,
+  eserviceTemplateInterface: eserviceTemplateApi.EServiceDoc,
   eserviceInstanceInterfaceData: bffApi.EserviceInterfaceTemplatePayload
-) {
+): Promise<File> {
+  const fileType = getFileType(eserviceTemplateInterface.name);
+  if (!fileType) {
+    throw invalidInterfaceContentTypeDetected(
+      eservice.id,
+      eserviceTemplateInterface.contentType,
+      eservice.technology
+    );
+  }
+
   const openApiObject = match(fileType)
     .with("json", "yaml", () => parseOpenApi(fileType, file, eservice.id))
     .otherwise(() => {
@@ -465,7 +457,11 @@ async function interpolateOpenApiSpec(
 
   try {
     await SwaggerParser.validate(openApiObject);
-    return Buffer.from(JSON.stringify(openApiObject));
+    const updatedInterface = Buffer.from(JSON.stringify(openApiObject));
+
+    return new File([updatedInterface], eserviceTemplateInterface.name, {
+      type: eserviceTemplateInterface.contentType,
+    });
   } catch (errors) {
     throw invalidInterfaceFileDetected(eservice.id);
   }
@@ -489,4 +485,9 @@ function retrieveDraftDescriptor(
   }
 
   return draftDescriptor;
+}
+
+async function fileToBuffer(file: File): Promise<Buffer> {
+  const arrayBuffer = await file.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }

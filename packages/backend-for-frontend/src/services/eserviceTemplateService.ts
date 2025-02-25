@@ -587,7 +587,7 @@ export function eserviceTemplateServiceBuilder(
         fileManager,
         eserviceTemplate.id,
         apiTechnologyToTechnology(eserviceTemplate.technology),
-        doc.prettyName,
+        doc.prettyName, // It's correct ???
         doc.kind,
         doc.doc,
         documentId,
@@ -813,3 +813,7 @@ const getAttributeIds = (
     atts.map((att) => att.id)
   ),
 ];
+
+export type EServiceTemplateService = ReturnType<
+  typeof eserviceTemplateServiceBuilder
+>;
