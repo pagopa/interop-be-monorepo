@@ -24,11 +24,15 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     },
     async getAttributeById(
       attributeId: AttributeId
-    ): Promise<WithMetadata<Attribute>> {
+    ): Promise<WithMetadata<Attribute> | undefined> {
       const queryResult = await db
         .select()
         .from(attributeInReadmodelAttribute)
         .where(eq(attributeInReadmodelAttribute.id, attributeId));
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
 
       return aggregateAttribute(queryResult[0]);
     },
