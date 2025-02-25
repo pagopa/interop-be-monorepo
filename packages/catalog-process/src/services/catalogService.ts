@@ -3,52 +3,59 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   AuthData,
+  CreateEvent,
   DB,
-  FileManager,
-  Logger,
-  WithLogger,
   eventRepository,
+  FileManager,
   formatDateddMMyyyyHHmmss,
   hasPermission,
+  Logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
+  WithLogger,
 } from "pagopa-interop-commons";
 import {
+  agreementState,
   AttributeId,
+  catalogEventToBinaryData,
   Delegation,
+  delegationKind,
+  delegationState,
   Descriptor,
   DescriptorId,
   DescriptorRejectionReason,
   DescriptorState,
+  descriptorState,
   Document,
   EService,
   EServiceAttribute,
-  EServiceDocumentId,
-  EServiceId,
   EserviceAttributes,
+  EServiceDocumentId,
+  EServiceEvent,
+  EServiceId,
+  eserviceMode,
+  EServiceTemplateId,
+  eserviceTemplateVersionState,
+  generateId,
   ListResult,
+  operationForbidden,
   RiskAnalysis,
   RiskAnalysisId,
   Tenant,
   TenantId,
-  WithMetadata,
-  agreementState,
-  catalogEventToBinaryData,
-  delegationKind,
-  delegationState,
-  descriptorState,
-  eserviceMode,
-  generateId,
-  operationForbidden,
   unsafeBrandId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
 import {
+  agreementApprovalPolicyToApiAgreementApprovalPolicy,
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
+  eServiceModeToApiEServiceMode,
+  technologyToApiTechnology,
 } from "../model/domain/apiConverter.js";
 import {
   attributeNotFound,
@@ -60,6 +67,8 @@ import {
   eServiceDuplicate,
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
+  eServiceTemplateNotFound,
+  eServiceTemplateWithoutPublishedVersion,
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
   inconsistentDailyCalls,
@@ -72,7 +81,11 @@ import {
   tenantNotFound,
   unchangedAttributes,
 } from "../model/domain/errors.js";
-import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  EServiceTemplateReferences,
+} from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -385,6 +398,194 @@ function isTenantInSignalHubWhitelist(
     : false;
 }
 
+async function innerCreateEService(
+  seed: {
+    eServiceSeed: catalogApi.EServiceSeed;
+    eServiceTemplateReferences?: EServiceTemplateReferences;
+  },
+  readModelService: ReadModelService,
+  { authData, correlationId }: WithLogger<AppContext>
+): Promise<{ eService: EService; events: Array<CreateEvent<EServiceEvent>> }> {
+  if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+    throw originNotCompliant(authData.externalId.origin);
+  }
+
+  const eserviceWithSameName =
+    await readModelService.getEServiceByNameAndProducerId({
+      name: seed.eServiceSeed.name,
+      producerId: authData.organizationId,
+    });
+  if (eserviceWithSameName) {
+    throw eServiceDuplicate(seed.eServiceSeed.name);
+  }
+
+  const creationDate = new Date();
+  const newEService: EService = {
+    id: generateId(),
+    producerId: authData.organizationId,
+    name: seed.eServiceSeed.name,
+    description: seed.eServiceSeed.description,
+    technology: apiTechnologyToTechnology(seed.eServiceSeed.technology),
+    mode: apiEServiceModeToEServiceMode(seed.eServiceSeed.mode),
+    attributes: undefined,
+    descriptors: [],
+    createdAt: creationDate,
+    riskAnalysis: [],
+    isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+      ? isTenantInSignalHubWhitelist(
+          authData.organizationId,
+          seed.eServiceSeed.isSignalHubEnabled
+        )
+      : seed.eServiceSeed.isSignalHubEnabled,
+    isConsumerDelegable: seed.eServiceSeed.isConsumerDelegable,
+    isClientAccessDelegable: match(seed.eServiceSeed.isConsumerDelegable)
+      .with(P.nullish, () => undefined)
+      .with(false, () => false)
+      .with(true, () => seed.eServiceSeed.isClientAccessDelegable)
+      .exhaustive(),
+    templateId: seed.eServiceTemplateReferences?.templateId,
+    instanceId: seed.eServiceTemplateReferences?.instanceId,
+  };
+
+  const eserviceCreationEvent = toCreateEventEServiceAdded(
+    newEService,
+    correlationId
+  );
+
+  if (
+    seed.eServiceSeed.descriptor.dailyCallsPerConsumer >
+    seed.eServiceSeed.descriptor.dailyCallsTotal
+  ) {
+    throw inconsistentDailyCalls();
+  }
+
+  const draftDescriptor: Descriptor = {
+    id: generateId(),
+    description: seed.eServiceSeed.descriptor.description,
+    version: "1",
+    interface: undefined,
+    docs: [],
+    state: descriptorState.draft,
+    voucherLifespan: seed.eServiceSeed.descriptor.voucherLifespan,
+    audience: seed.eServiceSeed.descriptor.audience,
+    dailyCallsPerConsumer: seed.eServiceSeed.descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.eServiceSeed.descriptor.dailyCallsTotal,
+    agreementApprovalPolicy:
+      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+        seed.eServiceSeed.descriptor.agreementApprovalPolicy
+      ),
+    serverUrls: [],
+    publishedAt: undefined,
+    suspendedAt: undefined,
+    deprecatedAt: undefined,
+    archivedAt: undefined,
+    createdAt: creationDate,
+    attributes: { certified: [], declared: [], verified: [] },
+    rejectionReasons: undefined,
+    templateVersionId: seed.eServiceTemplateReferences?.templateVersionId,
+  };
+
+  const eserviceWithDescriptor: EService = {
+    ...newEService,
+    descriptors: [draftDescriptor],
+  };
+
+  const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
+    eserviceWithDescriptor,
+    0,
+    draftDescriptor.id,
+    correlationId
+  );
+
+  return {
+    eService: eserviceWithDescriptor,
+    events: [eserviceCreationEvent, descriptorCreationEvent],
+  };
+}
+
+async function innerUploadDocument(
+  eService: WithMetadata<EService>,
+  descriptorId: DescriptorId,
+  document: catalogApi.CreateEServiceDescriptorDocumentSeed,
+  readModelService: ReadModelService,
+  { authData, correlationId }: WithLogger<AppContext>
+): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
+  await assertRequesterIsDelegateProducerOrProducer(
+    eService.data.producerId,
+    eService.data.id,
+    authData,
+    readModelService
+  );
+
+  const descriptor = retrieveDescriptor(descriptorId, eService);
+
+  if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+
+  if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
+    throw interfaceAlreadyExists(descriptor.id);
+  }
+
+  if (
+    document.kind === "DOCUMENT" &&
+    descriptor.docs.some(
+      (d) => d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
+    )
+  ) {
+    throw prettyNameDuplicate(document.prettyName, descriptor.id);
+  }
+
+  const isInterface = document.kind === "INTERFACE";
+  const newDocument: Document = {
+    id: unsafeBrandId(document.documentId),
+    name: document.fileName,
+    contentType: document.contentType,
+    prettyName: document.prettyName,
+    path: document.filePath,
+    checksum: document.checksum,
+    uploadDate: new Date(),
+  };
+
+  const updatedEService: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.map((d: Descriptor) =>
+      d.id === descriptorId
+        ? {
+            ...d,
+            interface: isInterface ? newDocument : d.interface,
+            docs: isInterface ? d.docs : [...d.docs, newDocument],
+            serverUrls: isInterface ? document.serverUrls : d.serverUrls,
+          }
+        : d
+    ),
+  };
+
+  const event =
+    document.kind === "INTERFACE"
+      ? toCreateEventEServiceInterfaceAdded(
+          eService.data.id,
+          eService.metadata.version,
+          {
+            descriptorId,
+            documentId: unsafeBrandId(document.documentId),
+            eservice: updatedEService,
+          },
+          correlationId
+        )
+      : toCreateEventEServiceDocumentAdded(
+          eService.metadata.version,
+          {
+            descriptorId,
+            documentId: unsafeBrandId(document.documentId),
+            eservice: updatedEService,
+          },
+          correlationId
+        );
+
+  return { eService: updatedEService, event };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
@@ -481,103 +682,20 @@ export function catalogServiceBuilder(
 
     async createEService(
       seed: catalogApi.EServiceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      ctx: WithLogger<AppContext>,
+      eServiceTemplateReferences?: EServiceTemplateReferences
     ): Promise<EService> {
-      logger.info(`Creating EService with name ${seed.name}`);
+      ctx.logger.info(`Creating EService with name ${seed.name}`);
 
-      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-        throw originNotCompliant(authData.externalId.origin);
-      }
-
-      const eserviceWithSameName =
-        await readModelService.getEServiceByNameAndProducerId({
-          name: seed.name,
-          producerId: authData.organizationId,
-        });
-      if (eserviceWithSameName) {
-        throw eServiceDuplicate(seed.name);
-      }
-
-      const creationDate = new Date();
-      const newEService: EService = {
-        id: generateId(),
-        producerId: authData.organizationId,
-        name: seed.name,
-        description: seed.description,
-        technology: apiTechnologyToTechnology(seed.technology),
-        mode: apiEServiceModeToEServiceMode(seed.mode),
-        attributes: undefined,
-        descriptors: [],
-        createdAt: creationDate,
-        riskAnalysis: [],
-        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
-          ? isTenantInSignalHubWhitelist(
-              authData.organizationId,
-              seed.isSignalHubEnabled
-            )
-          : seed.isSignalHubEnabled,
-        isConsumerDelegable: seed.isConsumerDelegable,
-        isClientAccessDelegable: match(seed.isConsumerDelegable)
-          .with(P.nullish, () => undefined)
-          .with(false, () => false)
-          .with(true, () => seed.isClientAccessDelegable)
-          .exhaustive(),
-      };
-
-      const eserviceCreationEvent = toCreateEventEServiceAdded(
-        newEService,
-        correlationId
+      const { eService, events } = await innerCreateEService(
+        { eServiceSeed: seed, eServiceTemplateReferences },
+        readModelService,
+        ctx
       );
 
-      if (
-        seed.descriptor.dailyCallsPerConsumer > seed.descriptor.dailyCallsTotal
-      ) {
-        throw inconsistentDailyCalls();
-      }
+      await repository.createEvents(events);
 
-      const draftDescriptor: Descriptor = {
-        id: generateId(),
-        description: seed.descriptor.description,
-        version: "1",
-        interface: undefined,
-        docs: [],
-        state: descriptorState.draft,
-        voucherLifespan: seed.descriptor.voucherLifespan,
-        audience: seed.descriptor.audience,
-        dailyCallsPerConsumer: seed.descriptor.dailyCallsPerConsumer,
-        dailyCallsTotal: seed.descriptor.dailyCallsTotal,
-        agreementApprovalPolicy:
-          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.descriptor.agreementApprovalPolicy
-          ),
-        serverUrls: [],
-        publishedAt: undefined,
-        suspendedAt: undefined,
-        deprecatedAt: undefined,
-        archivedAt: undefined,
-        createdAt: creationDate,
-        attributes: { certified: [], declared: [], verified: [] },
-        rejectionReasons: undefined,
-      };
-
-      const eserviceWithDescriptor: EService = {
-        ...newEService,
-        descriptors: [draftDescriptor],
-      };
-
-      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
-        eserviceWithDescriptor,
-        0,
-        draftDescriptor.id,
-        correlationId
-      );
-
-      await repository.createEvents([
-        eserviceCreationEvent,
-        descriptorCreationEvent,
-      ]);
-
-      return eserviceWithDescriptor;
+      return eService;
     },
 
     async updateEService(
@@ -728,9 +846,9 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: catalogApi.CreateEServiceDescriptorDocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      ctx: WithLogger<AppContext>
     ): Promise<EService> {
-      logger.info(
+      ctx.logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
           document.kind
         }, name ${document.fileName}, path ${
@@ -738,80 +856,15 @@ export function catalogServiceBuilder(
         } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
 
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
+      const eService = await retrieveEService(eserviceId, readModelService);
+
+      const { eService: updatedEService, event } = await innerUploadDocument(
+        eService,
+        descriptorId,
+        document,
+        readModelService,
+        ctx
       );
-
-      const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
-        throw notValidDescriptorState(descriptor.id, descriptor.state);
-      }
-
-      if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
-        throw interfaceAlreadyExists(descriptor.id);
-      }
-
-      if (
-        document.kind === "DOCUMENT" &&
-        descriptor.docs.some(
-          (d) =>
-            d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
-        )
-      ) {
-        throw prettyNameDuplicate(document.prettyName, descriptor.id);
-      }
-
-      const isInterface = document.kind === "INTERFACE";
-      const newDocument: Document = {
-        id: unsafeBrandId(document.documentId),
-        name: document.fileName,
-        contentType: document.contentType,
-        prettyName: document.prettyName,
-        path: document.filePath,
-        checksum: document.checksum,
-        uploadDate: new Date(),
-      };
-
-      const updatedEService: EService = {
-        ...eservice.data,
-        descriptors: eservice.data.descriptors.map((d: Descriptor) =>
-          d.id === descriptorId
-            ? {
-                ...d,
-                interface: isInterface ? newDocument : d.interface,
-                docs: isInterface ? d.docs : [...d.docs, newDocument],
-                serverUrls: isInterface ? document.serverUrls : d.serverUrls,
-              }
-            : d
-        ),
-      };
-
-      const event =
-        document.kind === "INTERFACE"
-          ? toCreateEventEServiceInterfaceAdded(
-              eserviceId,
-              eservice.metadata.version,
-              {
-                descriptorId,
-                documentId: unsafeBrandId(document.documentId),
-                eservice: updatedEService,
-              },
-              correlationId
-            )
-          : toCreateEventEServiceDocumentAdded(
-              eservice.metadata.version,
-              {
-                descriptorId,
-                documentId: unsafeBrandId(document.documentId),
-                eservice: updatedEService,
-              },
-              correlationId
-            );
 
       await repository.createEvent(event);
 
@@ -2236,6 +2289,100 @@ export function catalogServiceBuilder(
       );
 
       return updatedEService;
+    },
+    async createEServiceInstanceFromTemplate(
+      templateId: EServiceTemplateId,
+      seed: catalogApi.InstanceEServiceSeed,
+      ctx: WithLogger<AppContext>
+    ): Promise<EService> {
+      ctx.logger.info(`Retrieving EService template ${templateId}`);
+
+      const template = await readModelService.getEServiceTemplateById(
+        templateId
+      );
+
+      if (!template) {
+        throw eServiceTemplateNotFound(templateId);
+      }
+
+      const publishedVersion = template.versions.find(
+        (version) => version.state === eserviceTemplateVersionState.published
+      );
+
+      if (!publishedVersion) {
+        throw eServiceTemplateWithoutPublishedVersion(templateId);
+      }
+
+      const { eService: createdEService, events } = await innerCreateEService(
+        {
+          eServiceSeed: {
+            name: `${template.name} ${seed.instanceId ?? ""}`.trim(),
+            description: template.eserviceDescription,
+            technology: technologyToApiTechnology(template.technology),
+            mode: eServiceModeToApiEServiceMode(template.mode),
+            descriptor: {
+              description: publishedVersion.description,
+              audience: [],
+              voucherLifespan: publishedVersion.voucherLifespan,
+              dailyCallsPerConsumer:
+                publishedVersion.dailyCallsPerConsumer ?? 1,
+              dailyCallsTotal: publishedVersion.dailyCallsTotal ?? 1,
+              agreementApprovalPolicy:
+                agreementApprovalPolicyToApiAgreementApprovalPolicy(
+                  publishedVersion.agreementApprovalPolicy
+                ),
+            },
+            isSignalHubEnabled: template.isSignalHubEnabled,
+            isConsumerDelegable: false,
+            isClientAccessDelegable: false,
+          },
+          eServiceTemplateReferences: {
+            templateId: template.id,
+            templateVersionId: publishedVersion.id,
+            instanceId: seed.instanceId,
+          },
+        },
+        readModelService,
+        ctx
+      );
+
+      const docEvents = [];
+      // eslint-disable-next-line functional/no-let
+      let lastEService = createdEService;
+      for (const [index, doc] of publishedVersion.docs.entries()) {
+        const clonedDocumentId = generateId<EServiceDocumentId>();
+        const clonedDocumentPath = await fileManager.copy(
+          config.s3Bucket,
+          doc.path,
+          config.eserviceDocumentsPath,
+          clonedDocumentId,
+          doc.name,
+          ctx.logger
+        );
+        const { eService, event } = await innerUploadDocument(
+          { data: lastEService, metadata: { version: index + 1 } },
+          createdEService.descriptors[0].id,
+          {
+            documentId: clonedDocumentId,
+            kind: "DOCUMENT",
+            prettyName: doc.prettyName,
+            filePath: clonedDocumentPath,
+            fileName: doc.name,
+            contentType: doc.contentType,
+            checksum: doc.checksum,
+            serverUrls: [], // not used in case of kind == "DOCUMENT"
+          },
+          readModelService,
+          ctx
+        );
+        // eslint-disable-next-line functional/immutable-data
+        docEvents.push(event);
+        lastEService = eService;
+      }
+
+      await repository.createEvents([...events, ...docEvents]);
+
+      return lastEService;
     },
   };
 }
