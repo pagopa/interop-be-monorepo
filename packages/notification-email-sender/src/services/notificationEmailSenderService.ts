@@ -140,7 +140,7 @@ export function getFormattedAgreementStampDate(
   return dateAtRomeZone(new Date(Number(stampDate)));
 }
 
-function getLatestPublishedDescriptor(eservice: EService): Descriptor {
+function retrieveLatestPublishedDescriptor(eservice: EService): Descriptor {
   const latestDescriptor = eservice.descriptors
     .filter((d) => d.state === descriptorState.published)
     .sort((a, b) => Number(a.version) - Number(b.version))
@@ -506,11 +506,12 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const eservice = fromEServiceV2(eserviceV2Msg);
 
-      const [htmlTemplate, agreements] = await Promise.all([
+      const [htmlTemplate, agreements, descriptor] = await Promise.all([
         retrieveHTMLTemplate(
           eventMailTemplateType.eserviceDescriptorPublishedMailTemplate
         ),
         readModelService.getAgreementsByEserviceId(eservice.id),
+        retrieveLatestPublishedDescriptor(eservice),
       ]);
 
       if (agreements && agreements.length > 0) {
@@ -519,8 +520,6 @@ export function notificationEmailSenderServiceBuilder(
             retrieveTenant(consumer.consumerId, readModelService)
           )
         );
-
-        const descriptor = getLatestPublishedDescriptor(eservice);
 
         for (const consumer of consumers) {
           const consumerEmail = getLatestTenantMailOfKind(
