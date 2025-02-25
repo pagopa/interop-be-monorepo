@@ -263,20 +263,15 @@ export function purposeServiceBuilder(
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      const eservice = await retrieveEService(
-        purpose.data.eserviceId,
-        readModelService
-      );
+      const [eservice, tenantKind] = await Promise.all([
+        retrieveEService(purpose.data.eserviceId, readModelService),
+        retrieveTenantKind(authData.organizationId, readModelService),
+      ]);
 
       await assertRequesterCanRetrievePurpose(
         purpose.data,
         eservice,
         authData,
-        readModelService
-      );
-
-      const tenantKind = await retrieveTenantKind(
-        authData.organizationId,
         readModelService
       );
 
