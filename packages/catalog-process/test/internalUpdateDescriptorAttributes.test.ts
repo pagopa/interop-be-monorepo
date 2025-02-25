@@ -11,7 +11,7 @@ import {
   toEServiceV2,
   generateId,
   attributeKind,
-  EServiceDescriptorAttributesUpdatedV2,
+  EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
   AttributeId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -154,11 +154,11 @@ describe("internalUpdateDescriptorAttributes", () => {
       expect(writtenEvent).toMatchObject({
         stream_id: mockEService.id,
         version: "1",
-        type: "EServiceDescriptorAttributesUpdated",
+        type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
         event_version: 2,
       });
       const writtenPayload = decodeProtobufPayload({
-        messageType: EServiceDescriptorAttributesUpdatedV2,
+        messageType: EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
         payload: writtenEvent.data,
       });
       expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -206,7 +206,7 @@ describe("internalUpdateDescriptorAttributes", () => {
       expect(writtenEvent).not.toMatchObject({
         stream_id: mockEService.id,
         version: "1",
-        type: "EServiceDescriptorAttributesUpdated",
+        type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
         event_version: 2,
       });
     }
@@ -250,7 +250,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     expect(writtenEvent).not.toMatchObject({
       stream_id: mockEService.id,
       version: "1",
-      type: "EServiceDescriptorAttributesUpdated",
+      type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
       event_version: 2,
     });
   });

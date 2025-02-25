@@ -8,7 +8,7 @@ import {
   toEServiceV2,
   unsafeBrandId,
   generateId,
-  EServiceDescriptorDocumentAddedV2,
+  EServiceDescriptorDocumentAddedByTemplateUpdateV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
@@ -71,12 +71,12 @@ describe("internalCreateDescriptorDocument", () => {
       expect(writtenEvent).toMatchObject({
         stream_id: mockEService.id,
         version: "1",
-        type: "EServiceDescriptorDocumentAdded",
+        type: "EServiceDescriptorDocumentAddedByTemplateUpdate",
         event_version: 2,
       });
 
       const writtenPayload = decodeProtobufPayload({
-        messageType: EServiceDescriptorDocumentAddedV2,
+        messageType: EServiceDescriptorDocumentAddedByTemplateUpdateV2,
         payload: writtenEvent.data,
       });
 
@@ -141,7 +141,7 @@ describe("internalCreateDescriptorDocument", () => {
     expect(writtenEvent).not.toMatchObject({
       stream_id: mockEService.id,
       version: "1",
-      type: "EServiceDescriptorDocumentAdded",
+      type: "EServiceDescriptorDocumentAddedByTemplateUpdate",
       event_version: 2,
     });
   });

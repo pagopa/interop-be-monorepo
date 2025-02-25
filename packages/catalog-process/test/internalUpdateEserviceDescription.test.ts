@@ -6,7 +6,7 @@ import {
   descriptorState,
   EService,
   toEServiceV2,
-  EServiceDescriptionUpdatedV2,
+  EServiceDescriptionUpdatedByTemplateUpdateV2,
   generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -55,11 +55,11 @@ describe("internalinternalUpdateEserviceDescription", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptionUpdated",
+      type: "EServiceDescriptionUpdatedByTemplateUpdate",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptionUpdatedV2,
+      messageType: EServiceDescriptionUpdatedByTemplateUpdateV2,
       payload: writtenEvent.data,
     });
 

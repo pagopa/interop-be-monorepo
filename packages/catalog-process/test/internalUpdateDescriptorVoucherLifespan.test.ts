@@ -4,7 +4,7 @@ import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   EService,
-  EServiceDescriptorQuotasUpdatedV2,
+  EServiceDescriptorQuotasUpdatedByTemplateUpdateV2,
   toEServiceV2,
   generateId,
 } from "pagopa-interop-models";
@@ -63,11 +63,11 @@ describe("update descriptor", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorQuotasUpdated",
+      type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorQuotasUpdatedV2,
+      messageType: EServiceDescriptorQuotasUpdatedByTemplateUpdateV2,
       payload: writtenEvent.data,
     });
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -101,7 +101,7 @@ describe("update descriptor", () => {
     expect(writtenEvent).not.toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceDescriptorQuotasUpdated",
+      type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
       event_version: 2,
     });
   });

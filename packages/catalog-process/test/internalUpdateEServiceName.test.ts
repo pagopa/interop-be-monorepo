@@ -6,7 +6,7 @@ import {
   EService,
   toEServiceV2,
   generateId,
-  EServiceNameUpdatedV2,
+  EServiceNameUpdatedByTemplateUpdateV2,
   TenantId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -56,12 +56,12 @@ describe("internalUpdateEServiceName", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceNameUpdated",
+      type: "EServiceNameUpdatedByTemplateUpdate",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceNameUpdatedV2,
+      messageType: EServiceNameUpdatedByTemplateUpdateV2,
       payload: writtenEvent.data,
     });
 
@@ -100,12 +100,12 @@ describe("internalUpdateEServiceName", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceNameUpdated",
+      type: "EServiceNameUpdatedByTemplateUpdate",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceNameUpdatedV2,
+      messageType: EServiceNameUpdatedByTemplateUpdateV2,
       payload: writtenEvent.data,
     });
 
@@ -140,7 +140,7 @@ describe("internalUpdateEServiceName", () => {
     expect(writtenEvent).not.toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceNameUpdated",
+      type: "EServiceNameUpdatedByTemplateUpdate",
       event_version: 2,
     });
   });
