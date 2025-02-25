@@ -1,5 +1,6 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { randomUUID } from "crypto";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
@@ -18,6 +19,7 @@ import {
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
+  apiTechnologyToTechnology,
   toBffCatalogApiDescriptorAttributes,
   toBffCatalogApiDescriptorDoc,
 } from "../api/catalogApiConverter.js";
@@ -30,13 +32,14 @@ import {
   eserviceTemplateVersionNotFound,
   tenantNotFound,
 } from "../model/errors.js";
+import { verifyAndCreateDocument } from "../utilities/eserviceDocumentUtils.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
-  _fileManager: FileManager
+  fileManager: FileManager
 ) {
   return {
     createEServiceTemplate: async (
@@ -421,6 +424,62 @@ export function eserviceTemplateServiceBuilder(
           },
         }
       );
+    },
+    createEServiceTemplateDocument: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      doc: bffApi.createEServiceDocument_Body,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      ctx.logger.info(
+        `Creating EService Template Document for EService template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
+      );
+      const eserviceTemplate =
+        await eserviceTemplateClient.getEServiceTemplateById({
+          params: { eServiceTemplateId },
+          headers: ctx.headers,
+        });
+
+      retrieveEServiceTemplateVersion(
+        eserviceTemplate,
+        eServiceTemplateVersionId
+      );
+
+      const documentId = randomUUID();
+
+      await verifyAndCreateDocument(
+        fileManager,
+        eserviceTemplate.id,
+        apiTechnologyToTechnology(eserviceTemplate.technology),
+        doc.prettyName,
+        doc.kind,
+        doc.doc,
+        documentId,
+        async (filePath, serverUrls, checksum) => {
+          await eserviceTemplateClient.createEServiceTemplateDocument(
+            {
+              documentId,
+              prettyName: doc.prettyName,
+              fileName: doc.doc.name,
+              filePath,
+              kind: doc.kind,
+              contentType: doc.doc.type,
+              checksum,
+              serverUrls,
+            },
+            {
+              headers: ctx.headers,
+              params: {
+                eServiceTemplateId: eserviceTemplate.id,
+                eServiceTemplateVersionId,
+              },
+            }
+          );
+        },
+        ctx.logger
+      );
+
+      return { id: documentId };
     },
   };
 }

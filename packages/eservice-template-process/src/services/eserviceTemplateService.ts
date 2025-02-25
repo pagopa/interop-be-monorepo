@@ -25,7 +25,6 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
-  ListResult,
   unsafeBrandId,
   WithMetadata,
   EServiceAttribute,
@@ -36,11 +35,14 @@ import {
   TenantKind,
   eserviceMode,
   generateId,
+  ListResult,
+  Document,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
+  checksumDuplicate,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
@@ -49,6 +51,8 @@ import {
   missingRiskAnalysis,
   instanceNameConflict,
   notValidEServiceTemplateVersionState,
+} from "../model/domain/errors.js";
+import {
   versionAttributeGroupSupersetMissingInAttributesSeed,
   inconsistentAttributesSeedGroupsCount,
   unchangedAttributes,
@@ -57,6 +61,8 @@ import {
   originNotCompliant,
   eserviceTemaplateRiskAnalysisNameDuplicate,
   missingTemplateVersionInterface,
+  interfaceAlreadyExists,
+  prettyNameDuplicate,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateVersionActivated,
@@ -75,6 +81,8 @@ import {
   toCreateEventEServiceTemplateAdded,
   toCreateEventEServiceTemplateDraftUpdated,
   toCreateEventEServiceTemplateVersionPublished,
+  toCreateEventEServiceTemplateVersionInterfaceAdded,
+  toCreateEventEServiceTemplateVersionDocumentAdded,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -1350,6 +1358,108 @@ export function eserviceTemplateServiceBuilder(
         ),
         totalCount,
       };
+    },
+    async createEServiceTemplateDocument(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      document: eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EServiceTemplate> {
+      logger.info(
+        `Creating EService Document ${document.documentId.toString()} of kind ${
+          document.kind
+        }, name ${document.fileName}, path ${
+          document.filePath
+        } for EService Template ${eserviceTemplateId} and Version ${eserviceTemplateVersionId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const version = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (document.kind === "INTERFACE" && version.interface !== undefined) {
+        throw interfaceAlreadyExists(version.id);
+      }
+
+      if (
+        document.kind === "DOCUMENT" &&
+        version.docs.some(
+          (d) =>
+            d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
+        )
+      ) {
+        throw prettyNameDuplicate(document.prettyName, version.id);
+      }
+
+      if (
+        document.kind === "DOCUMENT" &&
+        version.docs.some((d) => d.checksum === document.checksum)
+      ) {
+        throw checksumDuplicate(
+          document.fileName,
+          eserviceTemplate.data.id,
+          version.id
+        );
+      }
+
+      const isInterface = document.kind === "INTERFACE";
+      const newDocument: Document = {
+        id: unsafeBrandId(document.documentId),
+        name: document.fileName,
+        contentType: document.contentType,
+        prettyName: document.prettyName,
+        path: document.filePath,
+        checksum: document.checksum,
+        uploadDate: new Date(),
+      };
+
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        versions: eserviceTemplate.data.versions.map(
+          (v: EServiceTemplateVersion) =>
+            v.id === eserviceTemplateVersionId
+              ? {
+                  ...v,
+                  interface: isInterface ? newDocument : v.interface,
+                  docs: isInterface ? v.docs : [...v.docs, newDocument],
+                }
+              : v
+        ),
+      };
+
+      const event =
+        document.kind === "INTERFACE"
+          ? toCreateEventEServiceTemplateVersionInterfaceAdded(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              unsafeBrandId(document.documentId),
+              updatedEServiceTemplate,
+              correlationId
+            )
+          : toCreateEventEServiceTemplateVersionDocumentAdded(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              unsafeBrandId(document.documentId),
+              updatedEServiceTemplate,
+              correlationId
+            );
+
+      await repository.createEvent(event);
+
+      return updatedEServiceTemplate;
     },
   };
 }
