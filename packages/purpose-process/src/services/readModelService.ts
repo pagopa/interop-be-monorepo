@@ -223,6 +223,8 @@ const addConsumerDelegationData: Document = {
             {
               $eq: ["$$delegation.data.delegatorId", "$data.consumerId"],
             },
+            // Unlike in agreements, here it's not sufficient to have an active delegation
+            // to be able to see a purpose, we also need to have the delegationId in the purpose
             {
               $eq: ["$$delegation.data.id", "$data.delegationId"],
             },

@@ -362,7 +362,7 @@ export const assertRequesterCanActAsConsumer = (
 };
 
 const assertRequesterIsDelegateConsumer = (
-  purpose: Pick<Purpose, "consumerId" | "eserviceId">,
+  purpose: Pick<Purpose, "consumerId" | "eserviceId" | "delegationId">,
   authData: Pick<AuthData, "organizationId">,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
@@ -371,7 +371,8 @@ const assertRequesterIsDelegateConsumer = (
     activeConsumerDelegation?.delegatorId !== purpose.consumerId ||
     activeConsumerDelegation?.eserviceId !== purpose.eserviceId ||
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
-    activeConsumerDelegation?.state !== delegationState.active
+    activeConsumerDelegation?.state !== delegationState.active ||
+    purpose.delegationId !== activeConsumerDelegation?.id
   ) {
     throw organizationIsNotTheDelegatedConsumer(
       authData.organizationId,

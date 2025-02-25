@@ -171,7 +171,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should get the purpose if the requester is the e-service delegated producer", async () => {
+  it("should get the purpose if the requester is the e-service delegate producer", async () => {
     const producerDelegate = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -283,7 +283,7 @@ describe("getPurposeById", () => {
     }
   );
 
-  it("should get the purpose if the requester is the delegated consumer who created the purpose", async () => {
+  it("should get the purpose if the requester is the delegate consumer who created the purpose", async () => {
     const consumerDelegate = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -327,7 +327,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should get the purpose created by the delegated consumer if the requester is the e-service delegated producer", async () => {
+  it("should get the purpose created by the delegate consumer if the requester is the e-service delegate producer", async () => {
     const producer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -385,7 +385,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should get the purpose created by the delegated consumer if the requester is the e-service producer", async () => {
+  it("should get the purpose created by the delegate consumer if the requester is the e-service producer", async () => {
     const producer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -429,7 +429,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should get the purpose created by the delegated consumer if the requester is the consumer", async () => {
+  it("should get the purpose created by the delegate consumer if the requester is the consumer", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -472,7 +472,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should get the purpose when requester is a consumer delegate and the eservice was created by a delegate producer", async () => {
+  it("should get the purpose created by the delegate consumer when requester is a consumer delegate and the eservice was created by a delegate producer", async () => {
     const producer = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
