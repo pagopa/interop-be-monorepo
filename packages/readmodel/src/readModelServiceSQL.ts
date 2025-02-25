@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Tenant, TenantId, WithMetadata } from "pagopa-interop-models";
 import {
@@ -20,7 +20,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    async addTenant(tenant: WithMetadata<Tenant>): Promise<void> {
+    async upsertTenant(tenant: WithMetadata<Tenant>): Promise<void> {
       const {
         tenantSQL,
         tenantMailsSQL,
@@ -33,6 +33,10 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       } = splitTenantIntoObjectsSQL(tenant.data, tenant.metadata.version);
 
       await db.transaction(async (tx) => {
+        await tx
+          .delete(tenantInReadmodelTenant)
+          .where(eq(tenantInReadmodelTenant.id, tenant.data.id));
+
         await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
 
         for (const mail of tenantMailsSQL) {
@@ -154,10 +158,15 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
       return aggregateTenantSQL(aggregatorInput);
     },
-    async deleteTenantById(tenantId: TenantId): Promise<void> {
+    async deleteTenantById(tenantId: TenantId, version: number): Promise<void> {
       await db
         .delete(tenantInReadmodelTenant)
-        .where(eq(tenantInReadmodelTenant.id, tenantId));
+        .where(
+          and(
+            eq(tenantInReadmodelTenant.id, tenantId),
+            lte(tenantInReadmodelTenant.metadataVersion, version)
+          )
+        );
     },
   };
 }
