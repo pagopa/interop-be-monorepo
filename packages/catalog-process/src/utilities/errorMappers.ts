@@ -27,6 +27,17 @@ export const createEServiceErrorMapper = (
     .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createEServiceInstanceFromTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eServiceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("interfaceAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with("prettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const updateEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

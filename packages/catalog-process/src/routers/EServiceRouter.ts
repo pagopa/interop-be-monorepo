@@ -59,6 +59,7 @@ import {
   approveDelegatedEServiceDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   updateEServiceFlagsErrorMapper,
+  createEServiceInstanceFromTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -192,7 +193,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createEServiceErrorMapper,
+            createEServiceInstanceFromTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
