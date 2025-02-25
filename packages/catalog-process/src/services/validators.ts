@@ -18,6 +18,7 @@ import {
   descriptorState,
   eserviceMode,
   operationForbidden,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -30,6 +31,7 @@ import {
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
+  templateIdMustBeUndefined,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -250,4 +252,12 @@ export function assertDocumentDeletableDescriptorState(
       throw notValidDescriptorState(descriptor.id, descriptor.state);
     })
     .exhaustive();
+}
+
+export function assertTemplateIdIsUndefined(
+  templateId: EServiceTemplateId | undefined
+): void {
+  if (templateId !== undefined) {
+    throw templateIdMustBeUndefined(templateId);
+  }
 }

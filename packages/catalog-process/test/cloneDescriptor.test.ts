@@ -17,6 +17,7 @@ import {
   operationForbidden,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
@@ -24,6 +25,7 @@ import {
   eServiceDuplicate,
   eServiceNotFound,
   eServiceDescriptorNotFound,
+  templateIdMustBeUndefined,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -363,5 +365,26 @@ describe("clone descriptor", () => {
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
+  });
+  it("should throw templateIdMustBeUndefined if teh templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    expect(
+      catalogService.cloneDescriptor(eservice.id, descriptor.id, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
   });
 });

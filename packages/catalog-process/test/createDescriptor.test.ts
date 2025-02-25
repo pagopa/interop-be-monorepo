@@ -18,6 +18,8 @@ import {
   EServiceDescriptorDocumentAddedV2,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -26,6 +28,7 @@ import {
   eServiceNotFound,
   attributeNotFound,
   inconsistentDailyCalls,
+  templateIdMustBeUndefined,
 } from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -543,5 +546,26 @@ describe("create descriptor", async () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      templateId,
+      descriptors: [],
+    };
+
+    await addOneEService(eservice);
+    expect(
+      catalogService.createDescriptor(eservice.id, descriptorSeed, {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
   });
 });

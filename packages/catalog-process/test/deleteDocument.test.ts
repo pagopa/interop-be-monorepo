@@ -15,6 +15,8 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import {
@@ -22,6 +24,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   eServiceDocumentNotFound,
+  templateIdMustBeUndefined,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -505,5 +508,33 @@ describe("delete Document", () => {
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
+  });
+  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      docs: [mockDocument],
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateId,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+
+    expect(
+      catalogService.deleteDocument(
+        eService.id,
+        descriptor.id,
+        mockDocument.id,
+        {
+          authData: getMockAuthData(eService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
   });
 });

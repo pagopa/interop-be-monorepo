@@ -13,6 +13,7 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -25,6 +26,7 @@ import {
   notValidDescriptorState,
   interfaceAlreadyExists,
   prettyNameDuplicate,
+  templateIdMustBeUndefined,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -395,5 +397,33 @@ describe("upload Document", () => {
     ).rejects.toThrowError(
       prettyNameDuplicate(document.prettyName.toLowerCase(), descriptor.id)
     );
+  });
+  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateId,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+    expect(
+      catalogService.uploadDocument(
+        eService.id,
+        descriptor.id,
+        {
+          ...buildDocumentSeed(),
+        },
+        {
+          authData: getMockAuthData(eService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
   });
 });

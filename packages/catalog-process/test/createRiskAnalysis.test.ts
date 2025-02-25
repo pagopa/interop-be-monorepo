@@ -26,6 +26,7 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -37,6 +38,7 @@ import {
   tenantKindNotFound,
   riskAnalysisValidationFailed,
   riskAnalysisDuplicated,
+  templateIdMustBeUndefined,
 } from "../src/model/domain/errors.js";
 import {
   buildRiskAnalysisSeed,
@@ -516,5 +518,46 @@ describe("create risk analysis", () => {
         unexpectedFieldError("unexpectedField"),
       ])
     );
+  });
+  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
+    };
+
+    const mockValidRiskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
+      ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      templateId,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        },
+      ],
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.createRiskAnalysis(eservice.id, riskAnalysisSeed, {
+        authData: getMockAuthData(producer.id),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
   });
 });
