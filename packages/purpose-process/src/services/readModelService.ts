@@ -410,10 +410,8 @@ export function readModelServiceBuilder(
     ): Promise<ListResult<Purpose>> {
       const { producersIds, consumersIds, ...otherFilters } = filters;
       const aggregationPipeline = [
-        {
-          ...getPurposesPipeline(requesterId, producersIds, consumersIds),
-          ...getPurposesFilters(otherFilters),
-        },
+        ...getPurposesPipeline(requesterId, producersIds, consumersIds),
+        getPurposesFilters(otherFilters),
         {
           $project: {
             data: 1,
