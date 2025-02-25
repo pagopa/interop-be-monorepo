@@ -425,37 +425,34 @@ export function agreementServiceBuilder(
       return { id: agreement.id };
     },
 
-    async getAgreementsEserviceProducers(
+    async getAgreementsProducerEServices(
       {
         offset,
         limit,
         requesterId,
-        states,
         eServiceName,
       }: {
         offset: number;
         limit: number;
         requesterId: string;
-        states: agreementApi.AgreementState[];
         eServiceName?: string;
       },
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServicesLight> {
       logger.info(
-        `Retrieving producer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+        `Retrieving producer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
       if (eServiceName && eServiceName.length < 3) {
         return emptyPagination(offset, limit);
       }
 
-      const eservices = await agreementProcessClient.getAgreementEServices({
+      const eservices = await agreementProcessClient.getAgreementsEServices({
         queries: {
           offset,
           limit,
           eServiceName,
           producersIds: [requesterId],
-          states,
         },
         headers,
       });
@@ -470,7 +467,7 @@ export function agreementServiceBuilder(
       };
     },
 
-    async getAgreementsEserviceConsumers(
+    async getAgreementsConsumerEServices(
       {
         offset,
         limit,
@@ -485,14 +482,14 @@ export function agreementServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ) {
       logger.info(
-        `Retrieving consumer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+        `Retrieving consumer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
       if (eServiceName && eServiceName.length < 3) {
         return emptyPagination(offset, limit);
       }
 
-      const eservices = await agreementProcessClient.getAgreementEServices({
+      const eservices = await agreementProcessClient.getAgreementsEServices({
         queries: {
           offset,
           limit,
@@ -512,7 +509,7 @@ export function agreementServiceBuilder(
       };
     },
 
-    async getAgreementProducers(
+    async getAgreementsProducers(
       {
         offset,
         limit,
@@ -520,13 +517,13 @@ export function agreementServiceBuilder(
       }: { offset: number; limit: number; producerName?: string },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
-      logger.info(`Retrieving agreement producers`);
+      logger.info(`Retrieving producers from agreements`);
 
       if (producerName && producerName.length < 3) {
         return emptyPagination(offset, limit);
       }
 
-      const producers = await agreementProcessClient.getAgreementProducers({
+      const producers = await agreementProcessClient.getAgreementsProducers({
         queries: {
           offset,
           limit,
@@ -545,7 +542,7 @@ export function agreementServiceBuilder(
       };
     },
 
-    async getAgreementConsumers(
+    async getAgreementsConsumers(
       {
         offset,
         limit,
@@ -553,13 +550,13 @@ export function agreementServiceBuilder(
       }: { offset: number; limit: number; consumerName?: string },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
-      logger.info(`Retrieving agreement consumers`);
+      logger.info(`Retrieving consumers from agreements`);
 
       if (consumerName && consumerName.length < 3) {
         return emptyPagination(offset, limit);
       }
 
-      const consumers = await agreementProcessClient.getAgreementConsumers({
+      const consumers = await agreementProcessClient.getAgreementsConsumers({
         queries: {
           offset,
           limit,
