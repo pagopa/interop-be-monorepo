@@ -383,7 +383,7 @@ export const validateCreationOnDescriptor = (
   eservice: EService,
   descriptorId: DescriptorId
 ): Descriptor => {
-  const allowedState = [descriptorState.published];
+  const allowedState: DescriptorState[] = [descriptorState.published];
   return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
