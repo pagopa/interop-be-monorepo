@@ -186,11 +186,13 @@ const errorCodes = {
   jwkDecodingError: "10000",
   notAllowedPrivateKeyException: "10001",
   missingRequiredJWKClaim: "10002",
-  invalidKey: "10003",
+  invalidPublicKey: "10003",
   tooManyRequestsError: "10004",
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
+  invalidKeyLength: "10003",
+  notAnRSAKey: "10004",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -412,13 +414,29 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   });
 }
 
-export function invalidKey(
-  kid: string,
-  error: unknown
+export function invalidPublicKey(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Public key is invalid`,
+    code: "invalidPublicKey",
+    title: "Invalid Key",
+  });
+}
+
+export function invalidKeyLength(
+  length: number | undefined,
+  minLength: number = 2048
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
-    code: "invalidKey",
-    title: "Invalid Key",
+    detail: `Invalid RSA key length: ${length} bits. It must be at least ${minLength}`,
+    code: "invalidKeyLength",
+    title: "Invalid Key length",
+  });
+}
+
+export function notAnRSAKey(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Provided key is not an RSA key`,
+    code: "notAnRSAKey",
+    title: "Not an RSA key",
   });
 }

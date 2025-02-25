@@ -5,8 +5,13 @@ import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
 import mime from "mime";
 import { bffApi, catalogApi } from "pagopa-interop-api-clients";
-import { FileManager, WithLogger } from "pagopa-interop-commons";
-import { ApiError, genericError } from "pagopa-interop-models";
+import { FileManager, Logger, WithLogger } from "pagopa-interop-commons";
+import {
+  ApiError,
+  Technology,
+  genericError,
+  technology,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
 import { ZodError, z } from "zod";
@@ -21,6 +26,7 @@ import {
 import { CatalogProcessClient } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import { ConfigurationDoc } from "../model/types.js";
+import { apiTechnologyToTechnology } from "../api/catalogApiConverter.js";
 import { calculateChecksum } from "./fileUtils.js";
 
 const Wsdl = z.object({
@@ -45,66 +51,54 @@ const Wsdl = z.object({
 });
 
 // eslint-disable-next-line max-params
-export async function verifyAndCreateEServiceDocument(
-  catalogProcessClient: CatalogProcessClient,
+export async function verifyAndCreateDocument(
   fileManager: FileManager,
-  eService: catalogApi.EService,
-  doc: bffApi.createEServiceDocument_Body,
-  descriptorId: string,
+  id: string,
+  technology: Technology,
+  prettyName: string,
+  kind: "INTERFACE" | "DOCUMENT",
+  doc: File,
   documentId: string,
-  ctx: WithLogger<BffAppContext>
+  createDocumentHandler: (
+    path: string,
+    serverUrls: string[],
+    checksum: string
+  ) => Promise<void>,
+  logger: Logger
 ): Promise<void> {
-  const contentType = doc.doc.type;
+  const contentType = doc.type;
   if (!contentType) {
-    throw invalidInterfaceContentTypeDetected(
-      eService.id,
-      "invalid",
-      eService.technology
-    );
+    throw invalidInterfaceContentTypeDetected(id, "invalid", technology);
   }
 
   const serverUrls = await handleEServiceDocumentProcessing(
-    doc,
-    eService.technology,
-    eService.id
+    {
+      prettyName,
+      kind,
+      doc,
+    },
+    technology,
+    id
   );
   const filePath = await fileManager.storeBytes(
     {
       bucket: config.eserviceDocumentsContainer,
       path: config.eserviceDocumentsPath,
       resourceId: documentId,
-      name: doc.doc.name,
-      content: Buffer.from(await doc.doc.arrayBuffer()),
+      name: doc.name,
+      content: Buffer.from(await doc.arrayBuffer()),
     },
-    ctx.logger
+    logger
   );
 
-  const checksum = await calculateChecksum(Readable.from(doc.doc.stream()));
+  const checksum = await calculateChecksum(Readable.from(doc.stream()));
   try {
-    await catalogProcessClient.createEServiceDocument(
-      {
-        documentId,
-        prettyName: doc.prettyName,
-        fileName: doc.doc.name,
-        filePath,
-        kind: doc.kind,
-        contentType,
-        checksum,
-        serverUrls,
-      },
-      {
-        headers: ctx.headers,
-        params: {
-          eServiceId: eService.id,
-          descriptorId,
-        },
-      }
-    );
+    await createDocumentHandler(filePath, serverUrls, checksum);
   } catch (error) {
     await fileManager.delete(
       config.eserviceDocumentsContainer,
       filePath,
-      ctx.logger
+      logger
     );
     throw error;
   }
@@ -161,18 +155,38 @@ export const verifyAndCreateImportedDoc = async (
     type: mimeType,
   });
 
-  await verifyAndCreateEServiceDocument(
-    catalogProcessClient,
+  const documentId = randomUUID();
+
+  await verifyAndCreateDocument(
     fileManager,
-    eservice,
-    {
-      prettyName: doc.prettyName,
-      doc: file,
-      kind: docType,
+    eservice.id,
+    apiTechnologyToTechnology(eservice.technology),
+    doc.prettyName,
+    docType,
+    file,
+    documentId,
+    async (filePath, serverUrls, checksum) => {
+      await catalogProcessClient.createEServiceDocument(
+        {
+          documentId,
+          prettyName: doc.prettyName,
+          fileName: file.name,
+          filePath,
+          kind: docType,
+          contentType: file.type,
+          checksum,
+          serverUrls,
+        },
+        {
+          headers: context.headers,
+          params: {
+            eServiceId: eservice.id,
+            descriptorId: descriptor.id,
+          },
+        }
+      );
     },
-    descriptor.id,
-    randomUUID(),
-    context
+    context.logger
   );
 };
 
@@ -256,20 +270,20 @@ function processSoapInterface(file: string) {
 
 export async function handleEServiceDocumentProcessing(
   doc: bffApi.createEServiceDocument_Body,
-  technology: catalogApi.EServiceTechnology,
+  tech: Technology,
   eServiceId: string
 ) {
   const file = await doc.doc.text();
   try {
     return match({
       fileType: getFileType(doc.doc.name),
-      technology,
+      technology: tech,
       kind: doc.kind,
     })
       .with(
         {
           kind: "INTERFACE",
-          technology: "REST",
+          technology: technology.rest,
           fileType: P.union("json", "yaml"),
         },
         (f) => processRestInterface(f.fileType, file, eServiceId)
@@ -277,7 +291,7 @@ export async function handleEServiceDocumentProcessing(
       .with(
         {
           kind: "INTERFACE",
-          technology: "SOAP",
+          technology: technology.soap,
           fileType: P.union("xml", "wsdl"),
         },
         () => processSoapInterface(file)
