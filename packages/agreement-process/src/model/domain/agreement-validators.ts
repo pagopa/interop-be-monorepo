@@ -383,8 +383,8 @@ export const validateCreationOnDescriptor = (
   eservice: EService,
   descriptorId: DescriptorId
 ): Descriptor => {
-  const allowedStatus = [descriptorState.published];
-  return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
+  const allowedState = [descriptorState.published];
+  return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
 export const verifyCreationConflictingAgreements = async (
