@@ -10,17 +10,21 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockAuthData,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import { eServiceNotFound } from "../src/model/domain/errors.js";
+import { eServiceToApiEService } from "../src/model/domain/apiConverter.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("get eservice by id", () => {
   const mockDescriptor = getMockDescriptor();
@@ -42,10 +46,6 @@ describe("get eservice by id", () => {
       isClientAccessDelegable: true,
     };
     await addOneEService(eservice1);
-    const authData: AuthData = {
-      ...getMockAuthData(eservice1.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
 
     const descriptor2: Descriptor = {
       ...mockDescriptor,
@@ -73,13 +73,13 @@ describe("get eservice by id", () => {
     };
     await addOneEService(eservice3);
 
-    const result = await catalogService.getEServiceById(eservice1.id, {
-      authData,
-      logger: genericLogger,
-      correlationId: generateId(),
-      serviceName: "",
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices/:eServiceId",
+      pathParams: { eServiceId: eservice1.id },
+      authData: getMockAuthData(eservice1.producerId),
     });
-    expect(result).toEqual(eservice1);
+
+    expect(result).toEqual(eServiceToApiEService(eservice1));
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
@@ -5,7 +6,8 @@ import {
   getMockDelegation,
   getMockValidRiskAnalysis,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -15,6 +17,7 @@ import {
   eserviceMode,
   operationForbidden,
   generateId,
+  fromEServiceV2,
   delegationState,
   delegationKind,
 } from "pagopa-interop-models";
@@ -26,17 +29,18 @@ import {
   eserviceNotInDraftState,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { eServiceToApiEService } from "../src/model/domain/apiConverter.js";
 import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDocument,
   getMockDescriptor,
   getMockEService,
   addOneDelegation,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("update eService", () => {
   const mockEService = getMockEService();
@@ -67,9 +71,11 @@ describe("update eService", () => {
     };
     const updatedName = "eservice new name";
     await addOneEService(eservice);
-    const returnedEService = await catalogService.updateEService(
-      mockEService.id,
-      {
+
+    const returnedEService = await mockEserviceRouterRequest.put({
+      path: "/eservices/:eServiceId",
+      pathParams: { eServiceId: eservice.id },
+      body: {
         name: updatedName,
         description: mockEService.description,
         technology: "REST",
@@ -78,13 +84,8 @@ describe("update eService", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+      authData: getMockAuthData(mockEService.producerId),
+    });
 
     const updatedEService: EService = {
       ...eservice,
@@ -105,7 +106,7 @@ describe("update eService", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(returnedEService).toEqual(eServiceToApiEService(updatedEService));
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -135,9 +136,11 @@ describe("update eService", () => {
     };
     const updatedName = "eservice new name";
     await addOneEService(eservice);
-    const returnedEService = await catalogService.updateEService(
-      mockEService.id,
-      {
+
+    const returnedEService = await mockEserviceRouterRequest.put({
+      path: "/eservices/:eServiceId",
+      pathParams: { eServiceId: mockEService.id },
+      body: {
         name: updatedName,
         description: mockEService.description,
         technology: "REST",
@@ -146,13 +149,8 @@ describe("update eService", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+      authData: getMockAuthData(mockEService.producerId),
+    });
 
     const updatedEService: EService = {
       ...eservice,
@@ -173,7 +171,7 @@ describe("update eService", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(eServiceToApiEService(updatedEService)).toEqual(returnedEService);
     expect(fileManager.delete).not.toHaveBeenCalled();
   });
 
@@ -216,21 +214,17 @@ describe("update eService", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
 
-    const returnedEService = await catalogService.updateEService(
-      eservice.id,
-      {
+    const returnedEService = await mockEserviceRouterRequest.put({
+      path: "/eservices/:eServiceId",
+      pathParams: { eServiceId: eservice.id },
+      body: {
         name: updatedName,
         description: eservice.description,
         technology: "SOAP",
         mode: "DELIVER",
       },
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+      authData: getMockAuthData(eservice.producerId),
+    });
 
     const updatedEService: EService = {
       ...eservice,
@@ -260,12 +254,12 @@ describe("update eService", () => {
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
       interfaceDocument.path,
-      genericLogger
+      expect.anything()
     );
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(interfaceDocument.path);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(returnedEService).toEqual(eServiceToApiEService(updatedEService));
   });
 
   it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
@@ -313,21 +307,18 @@ describe("update eService", () => {
     config.signalhubWhitelistProducer = [mockEService.producerId];
 
     await addOneEService(mockEService);
-    const returnedEService = await catalogService.updateEService(
-      mockEService.id,
-      {
+
+    const returnedEService = await mockEserviceRouterRequest.put({
+      path: "/eservices/:eServiceId",
+      pathParams: { eServiceId: mockEService.id },
+      body: {
         name: mockEService.name,
         description: updatedDescription,
         technology: "REST",
         mode: "DELIVER",
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+      authData: getMockAuthData(mockEService.producerId),
+    });
 
     const updatedEService: EService = {
       ...mockEService,
@@ -347,7 +338,9 @@ describe("update eService", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(
+      eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
+    ).toEqual(returnedEService);
   });
   it("should write on event-store for the update of an eService (delegate)", async () => {
     const updatedDescription = "eservice new description";
@@ -411,21 +404,17 @@ describe("update eService", () => {
 
     config.signalhubWhitelistProducer = [eservice.producerId];
 
-    const returnedEService = await catalogService.updateEService(
-      eservice.id,
-      {
+    const returnedEService = await mockEserviceRouterRequest.put({
+      path: "/eservices/:eServiceId",
+      pathParams: { eServiceId: eservice.id },
+      body: {
         name: eservice.name,
         description: eservice.description,
         technology: "REST",
         mode: "DELIVER",
       },
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+      authData: getMockAuthData(eservice.producerId),
+    });
 
     const expectedEservice: EService = {
       ...eservice,
@@ -446,7 +435,9 @@ describe("update eService", () => {
     });
 
     expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(
+      eServiceToApiEService(fromEServiceV2(writtenPayload.eservice!))
+    ).toEqual(returnedEService);
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

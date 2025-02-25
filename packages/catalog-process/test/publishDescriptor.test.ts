@@ -6,6 +6,7 @@ import {
   getMockTenant,
   getMockValidRiskAnalysis,
   getMockDelegation,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -38,7 +39,6 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   addOneTenant,
   addOneAgreement,
@@ -48,6 +48,7 @@ import {
   getMockAgreement,
   addOneDelegation,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("publish descriptor", () => {
   const mockEService = getMockEService();
@@ -72,11 +73,11 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.publishDescriptor(eservice.id, descriptor.id, {
+
+    await mockEserviceRouterRequest.post({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId/publish",
+      pathParams: { eServiceId: eservice.id, descriptorId: descriptor.id },
       authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -134,11 +135,10 @@ describe("publish descriptor", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    await catalogService.publishDescriptor(eservice.id, descriptor.id, {
+    await mockEserviceRouterRequest.post({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId/publish",
+      pathParams: { eServiceId: eservice.id, descriptorId: descriptor.id },
       authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -261,12 +261,13 @@ describe("publish descriptor", () => {
       descriptors: [descriptor1, descriptor2],
     };
     await addOneEService(eservice);
-    await catalogService.publishDescriptor(eservice.id, descriptor2.id, {
+
+    await mockEserviceRouterRequest.post({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId/publish",
+      pathParams: { eServiceId: eservice.id, descriptorId: descriptor2.id },
       authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
     });
+
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
     expect(writtenEvent).toMatchObject({
@@ -332,12 +333,13 @@ describe("publish descriptor", () => {
       consumerId: tenant.id,
     });
     await addOneAgreement(agreement);
-    await catalogService.publishDescriptor(eservice.id, descriptor2.id, {
+
+    await mockEserviceRouterRequest.post({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId/publish",
+      pathParams: { eServiceId: eservice.id, descriptorId: descriptor2.id },
       authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
     });
+
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
     expect(writtenEvent).toMatchObject({

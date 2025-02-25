@@ -9,21 +9,25 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockAuthData,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
 } from "../src/model/domain/errors.js";
+import { documentToApiDocument } from "../src/model/domain/apiConverter.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("get document by id", () => {
   const mockDescriptor = getMockDescriptor();
@@ -40,25 +44,20 @@ describe("get document by id", () => {
       name: "eservice 001",
       descriptors: [descriptor],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+
     await addOneEService(eservice);
-    const result = await catalogService.getDocumentById(
-      {
-        eserviceId: eservice.id,
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      pathParams: {
+        eServiceId: eservice.id,
         descriptorId: descriptor.id,
         documentId: mockDocument.id,
       },
-      {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
-    );
-    expect(result).toEqual(mockDocument);
+      authData: getMockAuthData(eservice.producerId),
+    });
+
+    expect(result).toEqual(documentToApiDocument(mockDocument));
   });
 
   it("should get the interface if it exists (requester is the producer, admin)", async () => {
@@ -73,25 +72,19 @@ describe("get document by id", () => {
       name: "eservice 001",
       descriptors: [descriptor],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+
     await addOneEService(eservice);
-    const result = await catalogService.getDocumentById(
-      {
-        eserviceId: eservice.id,
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      pathParams: {
+        eServiceId: eservice.id,
         descriptorId: descriptor.id,
         documentId: mockDocument.id,
       },
-      {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
-    );
-    expect(result).toEqual(mockDocument);
+      authData: getMockAuthData(eservice.producerId),
+    });
+    expect(result).toEqual(documentToApiDocument(mockDocument));
   });
 
   it("should get the interface if it exists (requester is the delegate, admin)", async () => {

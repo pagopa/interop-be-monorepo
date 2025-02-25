@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, userRoles } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
+import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -25,12 +26,12 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
   readLastEserviceEvent,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("archive descriptor", () => {
   const mockEService = getMockEService();
@@ -47,11 +48,14 @@ describe("archive descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
+
+    await mockEserviceRouterRequest.post({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId/archive",
+      pathParams: { eServiceId: eservice.id, descriptorId: descriptor.id },
+      authData: {
+        ...getMockAuthData(eservice.producerId),
+        userRoles: [userRoles.INTERNAL_ROLE],
+      },
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);

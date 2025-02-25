@@ -3,6 +3,7 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -25,13 +26,13 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
   addOneDelegation,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("suspend descriptor", () => {
   const mockEService = getMockEService();
@@ -48,11 +49,11 @@ describe("suspend descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.suspendDescriptor(eservice.id, descriptor.id, {
+
+    await mockEserviceRouterRequest.post({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
+      pathParams: { eServiceId: eservice.id, descriptorId: descriptor.id },
       authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);

@@ -4,7 +4,8 @@ import {
   decodeProtobufPayload,
   getMockDelegation,
   readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -29,7 +30,6 @@ import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockEService,
   getMockDescriptor,
@@ -37,6 +37,7 @@ import {
   postgresDB,
   addOneDelegation,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("delete draft descriptor", () => {
   const mockDocument = getMockDocument();
@@ -58,16 +59,14 @@ describe("delete draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteDraftDescriptor(
-      eservice.id,
-      descriptorToDelete.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    await mockEserviceRouterRequest.delete({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId",
+      pathParams: {
+        eServiceId: eservice.id,
+        descriptorId: descriptorToDelete.id,
+      },
+      authData: getMockAuthData(eservice.producerId),
+    });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -171,16 +170,14 @@ describe("delete draft descriptor", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document2.path);
 
-    await catalogService.deleteDraftDescriptor(
-      eservice.id,
-      descriptorToDelete.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    await mockEserviceRouterRequest.delete({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId",
+      pathParams: {
+        eServiceId: eservice.id,
+        descriptorId: descriptorToDelete.id,
+      },
+      authData: getMockAuthData(eservice.producerId),
+    });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -205,17 +202,17 @@ describe("delete draft descriptor", () => {
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
       interfaceDocument.path,
-      genericLogger
+      expect.anything()
     );
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
       document1.path,
-      genericLogger
+      expect.anything()
     );
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
       document2.path,
-      genericLogger
+      expect.anything()
     );
 
     expect(
@@ -240,16 +237,14 @@ describe("delete draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteDraftDescriptor(
-      eservice.id,
-      draftDescriptor.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    await mockEserviceRouterRequest.delete({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId",
+      pathParams: {
+        eServiceId: eservice.id,
+        descriptorId: draftDescriptor.id,
+      },
+      authData: getMockAuthData(eservice.producerId),
+    });
 
     const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
       eservice.id,

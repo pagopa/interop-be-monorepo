@@ -11,6 +11,7 @@ import {
   getMockValidRiskAnalysis,
   decodeProtobufPayload,
   getMockDelegation,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   TenantKind,
@@ -43,12 +44,12 @@ import {
   addOneTenant,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockEService,
   addOneDelegation,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("create risk analysis", () => {
   const mockDescriptor = getMockDescriptor();
@@ -81,11 +82,11 @@ describe("create risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    await catalogService.createRiskAnalysis(eservice.id, riskAnalysisSeed, {
+    await mockEserviceRouterRequest.post({
+      path: "/eservices/:eServiceId/riskAnalysis",
+      pathParams: { eServiceId: eservice.id },
+      body: { ...riskAnalysisSeed },
       authData: getMockAuthData(producer.id),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);

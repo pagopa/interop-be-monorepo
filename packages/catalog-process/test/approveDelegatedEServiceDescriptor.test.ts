@@ -4,6 +4,7 @@ import {
   decodeProtobufPayload,
   getMockTenant,
   getMockDelegation,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -26,7 +27,6 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   addOneTenant,
   addOneAgreement,

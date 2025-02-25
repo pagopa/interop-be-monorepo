@@ -4,6 +4,7 @@ import {
   getMockValidRiskAnalysis,
   decodeProtobufPayload,
   getMockDelegation,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   EService,
@@ -27,12 +28,12 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
   readLastEserviceEvent,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("delete risk analysis", () => {
   const mockDescriptor = getMockDescriptor();
@@ -48,11 +49,10 @@ describe("delete risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
+    await mockEserviceRouterRequest.delete({
+      path: "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
+      pathParams: { eServiceId: eservice.id, riskAnalysisId: riskAnalysis.id },
       authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);

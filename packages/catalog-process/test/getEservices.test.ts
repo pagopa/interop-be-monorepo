@@ -1,6 +1,6 @@
 /* eslint-disable functional/no-let */
-import { genericLogger, AuthData, userRoles } from "pagopa-interop-commons";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { AuthData, userRoles } from "pagopa-interop-commons";
+import { getMockTenant, getMockAuthData } from "pagopa-interop-commons-test";
 import {
   TenantId,
   EService,
@@ -15,12 +15,11 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
 import { getMockDelegation } from "pagopa-interop-commons-test";
+import { eServiceToApiEService } from "../src/model/domain/apiConverter.js";
 import {
   addOneEService,
   addOneTenant,
   addOneAgreement,
-  catalogService,
-  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
@@ -28,6 +27,7 @@ import {
   getMockEServiceAttributes,
   addOneDelegation,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("get eservices", () => {
   let organizationId1: TenantId;
@@ -181,38 +181,39 @@ describe("get eservices", () => {
     await addOneAgreement(agreement3);
   });
   it("should get the eServices if they exist (parameters: eservicesIds)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         eservicesIds: [eservice1.id, eservice2.id],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice1, eservice2]);
+    expect(result.results).toEqual([
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+    ]);
   });
   it("should get the eServices if they exist (parameters: producersIds)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [organizationId1],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(3);
-    expect(result.results).toEqual([eservice1, eservice2, eservice3]);
+    expect(result.results).toEqual([
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+    ]);
   });
   it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds)", async () => {
     const delegatedOrganization1 = generateId<TenantId>();
@@ -244,110 +245,99 @@ describe("get eservices", () => {
 
     await addOneDelegation(delegation3);
 
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [
           organizationId1,
           delegatedOrganization1,
           delegatedOrganization2,
         ],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(5);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice4),
+      eServiceToApiEService(eservice5),
     ]);
   });
   it("should get the eServices if they exist (parameters: states)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: ["Published"],
-        agreementStates: [],
-        attributesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        states: ["PUBLISHED"],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(4);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice5,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice5),
     ]);
   });
   it("should get the eServices if they exist (parameters: agreementStates)", async () => {
-    const result1 = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: ["Active"],
-        attributesIds: [],
+    const result1 = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        agreementStates: ["ACTIVE"],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(organizationId3),
+    });
 
-    const result2 = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: ["Active", "Draft"],
-        attributesIds: [],
+    const result2 = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        agreementStates: ["ACTIVE", "DRAFT"],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(organizationId3),
+    });
 
     expect(result1.totalCount).toBe(2);
-    expect(result1.results).toEqual([eservice1, eservice3]);
+    expect(result1.results).toEqual([
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice3),
+    ]);
     expect(result2.totalCount).toBe(3);
-    expect(result2.results).toEqual([eservice1, eservice3, eservice4]);
+    expect(result2.results).toEqual([
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice4),
+    ]);
   });
   it("should get the eServices if they exist (parameters: name)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         name: "test",
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(5);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice4),
+      eServiceToApiEService(eservice5),
     ]);
   });
   it("should get the eServices if they exist (parameters: delegated = true)", async () => {
@@ -380,22 +370,21 @@ describe("get eservices", () => {
 
     await addOneDelegation(delegation3);
 
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         delegated: true,
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice4, eservice5]);
+    expect(result.results).toEqual([
+      eServiceToApiEService(eservice4),
+      eServiceToApiEService(eservice5),
+    ]);
   });
   it("should get the eServices if they exist (parameters: delegated = false)", async () => {
     const delegatedOrganization1 = generateId<TenantId>();
@@ -436,81 +425,74 @@ describe("get eservices", () => {
 
     await addOneDelegation(delegation4);
 
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         delegated: false,
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(4);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice6,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice6),
     ]);
   });
   it("should get the eServices if they exist (parameters: statestates, name)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: ["Published"],
-        agreementStates: ["Active"],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        states: ["PUBLISHED"],
+        agreementStates: ["ACTIVE"],
         name: "test",
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(organizationId3),
+    });
+
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice1, eservice3]);
+    expect(result.results).toEqual([
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice3),
+    ]);
   });
   it("should not get the eServices if they don't exist (parameters: statestates, name)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: ["Archived"],
-        agreementStates: ["Active"],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        states: ["ARCHIVED"],
+        agreementStates: ["ACTIVE"],
         name: "test",
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
   });
   it("should get the eServices if they exist (parameters: producersIds, states, name)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [organizationId2],
-        states: ["Published"],
-        agreementStates: [],
+        states: ["PUBLISHED"],
         name: "test",
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([eservice5]);
+    expect(result.results).toEqual([eServiceToApiEService(eservice5)]);
   });
   it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds, states, name)", async () => {
     const delegatedOrganization1: TenantId = generateId();
@@ -638,170 +620,170 @@ describe("get eservices", () => {
 
     await addOneDelegation(delegation5);
 
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [
           organizationId2,
           delegatedOrganization1,
           delegatedOrganization2,
         ],
-        states: ["Published"],
-        agreementStates: [],
+        states: ["PUBLISHED"],
         name: "test",
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([
-      delegatedEService1,
-      delegatedEService4,
-      eservice5,
+      eServiceToApiEService(delegatedEService1),
+      eServiceToApiEService(delegatedEService4),
+      eServiceToApiEService(eservice5),
     ]);
   });
   it("should not get the eServices if they don't exist (parameters: producersIds, states, name)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [organizationId2],
-        states: ["Published"],
-        agreementStates: [],
+        states: ["PUBLISHED"],
         name: "not-existing",
-        attributesIds: [],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
   });
   it("should get the eServices if they exist (pagination: limit)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        offset: 0,
+        limit: 5,
       },
-      0,
-      5,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(6);
     expect(result.results.length).toBe(5);
   });
   it("should get the eServices if they exist (pagination: offset, limit)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        offset: 5,
+        limit: 5,
       },
-      5,
-      5,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(6);
     expect(result.results.length).toBe(1);
   });
   it("should get the eServices if they exist (parameters: attributesIds)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         attributesIds: [
           attributesForDescriptor1and2.certified[0][0].id,
           attributesForDescriptor3.declared[0][1].id,
           attributesForDescriptor4.verified[0][1].id,
         ],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(4);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice4),
     ]);
   });
 
   it("should get the eServices if they exist (parameters: mode)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-        mode: eserviceMode.receive,
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        mode: "RECEIVE",
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result).toEqual({
       totalCount: 1,
-      results: [eservice6],
+      results: [eServiceToApiEService(eservice6)],
     });
   });
 
-  it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-        isConsumerDelegable: true,
+  it("should get the eServices if they exist (parameters: producerIds, mode)", async () => {
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        producersIds: [organizationId2],
+        mode: "DELIVER",
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result).toEqual({
       totalCount: 2,
-      results: [eservice1, eservice4],
+      results: [
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+      ],
+    });
+  });
+  it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        isConsumerDelegable: true,
+        offset: 0,
+        limit: 50,
+      },
+      authData: getMockAuthData(),
+    });
+
+    expect(result).toEqual({
+      totalCount: 2,
+      results: [
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice4),
+      ],
     });
   });
 
   it("should get the eServices if they exist (parameters: producersIds, mode)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [organizationId2],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-        mode: eserviceMode.deliver,
+        mode: "DELIVER",
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result).toEqual({
       totalCount: 2,
-      results: [eservice4, eservice5],
+      results: [
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+      ],
     });
   });
 
@@ -823,24 +805,21 @@ describe("get eservices", () => {
 
     await addOneDelegation(delegation2);
 
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [organizationId2],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-        mode: eserviceMode.deliver,
+        mode: "DELIVER",
         delegated: true,
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result).toEqual({
       totalCount: 1,
-      results: [eservice4],
+      results: [eServiceToApiEService(eservice4)],
     });
   });
 
@@ -945,142 +924,135 @@ describe("get eservices", () => {
     });
     await addOneDelegation(delegation4);
 
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [
           organizationId2,
           delegatedOrganization1,
           delegatedOrganization2,
         ],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
-        mode: eserviceMode.deliver,
+        mode: "DELIVER",
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result).toEqual({
       totalCount: 4,
-      results: [delegatedEService1, delegatedEService3, eservice4, eservice5],
+      results: [
+        eServiceToApiEService(delegatedEService1),
+        eServiceToApiEService(delegatedEService3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+      ],
     });
   });
 
   it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         attributesIds: [generateId()],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
   });
 
   it("should get the eServices if they exist (parameters: attributesIds, name)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         name: eservice1.name.slice(-6),
         attributesIds: [attributesForDescriptor1and2.verified[0][1].id],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([eservice1]);
+    expect(result.results).toEqual([eServiceToApiEService(eservice1)]);
   });
 
   it("should get the eServices if they exist (parameters: attributesIds, states)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: ["Archived"],
-        agreementStates: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        states: ["ARCHIVED"],
         attributesIds: [
           attributesForDescriptor1and2.certified[0][0].id,
           attributesForDescriptor4.verified[0][1].id,
         ],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
 
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([eservice4]);
+    expect(result.results).toEqual([eServiceToApiEService(eservice4)]);
   });
 
   it("should get the eServices if they exist (parameters: attributesIdstates, producersIds)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
-      {
-        eservicesIds: [],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         producersIds: [organizationId1],
-        states: [],
-        agreementStates: ["Active"],
+        agreementStates: ["ACTIVE"],
         attributesIds: [attributesForDescriptor1and2.certified[0][0].id],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(organizationId3),
+    });
+
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([eservice1]);
+    expect(result.results).toEqual([eServiceToApiEService(eservice1)]);
   });
 
   it("should get the eServices if they exist (parameters: attributesIdstates, eservicesIds)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
-      {
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
         eservicesIds: [eservice1.id, eservice4.id],
         producersIds: [organizationId1, organizationId2],
-        states: [],
-        agreementStates: ["Active", "Draft"],
+        agreementStates: ["ACTIVE", "DRAFT"],
         attributesIds: [
           attributesForDescriptor1and2.certified[0][0].id,
           attributesForDescriptor4.verified[0][1].id,
         ],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(organizationId3),
+    });
+
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice1, eservice4]);
+    expect(result.results).toEqual([
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice4),
+    ]);
   });
 
   it("should not get the eServices if they don't exist (parameters: attributesIdstates)", async () => {
-    const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: ["Draft"],
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        agreementStates: ["DRAFT"],
         attributesIds: [attributesForDescriptor1and2.certified[0][0].id],
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(organizationId3),
+    });
+
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
   });
@@ -1093,33 +1065,27 @@ describe("get eservices", () => {
       producerId: organizationId1,
       descriptors: [],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+
     await addOneEService(eservice7);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(organizationId1),
+    });
+
     expect(result.totalCount).toBe(7);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-      eservice7,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice4),
+      eServiceToApiEService(eservice5),
+      eServiceToApiEService(eservice6),
+      eServiceToApiEService(eservice7),
     ]);
   });
   it("should not include eservices with no descriptors (requester is the producer, not admin nor api, nor support)", async () => {
@@ -1135,27 +1101,24 @@ describe("get eservices", () => {
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice7);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData,
+    });
+
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice4),
+      eServiceToApiEService(eservice5),
+      eServiceToApiEService(eservice6),
     ]);
   });
   it("should not include eservices with no descriptors (requester is not the producer)", async () => {
@@ -1166,32 +1129,26 @@ describe("get eservices", () => {
       name: "eservice 007",
       descriptors: [],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+
     await addOneEService(eservice7);
-    const result = await catalogService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [],
-        states: [],
-        agreementStates: [],
-        attributesIds: [],
+
+    const result = await mockEserviceRouterRequest.get({
+      path: "/eservices",
+      queryParams: {
+        offset: 0,
+        limit: 50,
       },
-      0,
-      50,
-      genericLogger
-    );
+      authData: getMockAuthData(),
+    });
+
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
+      eServiceToApiEService(eservice1),
+      eServiceToApiEService(eservice2),
+      eServiceToApiEService(eservice3),
+      eServiceToApiEService(eservice4),
+      eServiceToApiEService(eservice5),
+      eServiceToApiEService(eservice6),
     ]);
   });
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -1214,28 +1171,25 @@ describe("get eservices", () => {
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice8);
-      const result = await catalogService.getEServices(
-        authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          states: [],
-          agreementStates: [],
-          attributesIds: [],
+
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
         },
-        0,
-        50,
-        genericLogger
-      );
+        authData,
+      });
+
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice8,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService(eservice8),
       ]);
     }
   );
@@ -1268,28 +1222,25 @@ describe("get eservices", () => {
       };
       await addOneEService(eservice9);
       await addOneDelegation(delegation);
-      const result = await catalogService.getEServices(
-        authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          states: [],
-          agreementStates: [],
-          attributesIds: [],
+
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
         },
-        0,
-        50,
-        genericLogger
-      );
+        authData,
+      });
+
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService(eservice9),
       ]);
     }
   );
@@ -1313,27 +1264,24 @@ describe("get eservices", () => {
         userRoles: [userRoles.SECURITY_ROLE],
       };
       await addOneEService(eservice8);
-      const result = await catalogService.getEServices(
-        authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          states: [],
-          agreementStates: [],
-          attributesIds: [],
+
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
         },
-        0,
-        50,
-        genericLogger
-      );
+        authData,
+      });
+
       expect(result.totalCount).toBe(6);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
       ]);
     }
   );
@@ -1357,27 +1305,22 @@ describe("get eservices", () => {
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice8);
-      const result = await catalogService.getEServices(
-        authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          states: [],
-          agreementStates: [],
-          attributesIds: [],
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
         },
-        0,
-        50,
-        genericLogger
-      );
+        authData,
+      });
       expect(result.totalCount).toBe(6);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
       ]);
     }
   );
@@ -1409,28 +1352,23 @@ describe("get eservices", () => {
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
-      const result = await catalogService.getEServices(
-        authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          states: [],
-          agreementStates: [],
-          attributesIds: [],
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
         },
-        0,
-        50,
-        genericLogger
-      );
+        authData,
+      });
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService(eservice9),
       ]);
     }
   );
@@ -1462,28 +1400,23 @@ describe("get eservices", () => {
         userRoles: [userRoles.SECURITY_ROLE],
       };
       await addOneEService(eservice9);
-      const result = await catalogService.getEServices(
-        authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          states: [],
-          agreementStates: [],
-          attributesIds: [],
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
         },
-        0,
-        50,
-        genericLogger
-      );
+        authData,
+      });
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        { ...eservice9, descriptors: [descriptor9a] },
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService({ ...eservice9, descriptors: [descriptor9a] }),
       ]);
     }
   );
@@ -1515,28 +1448,23 @@ describe("get eservices", () => {
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
-      const result = await catalogService.getEServices(
-        authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          states: [],
-          agreementStates: [],
-          attributesIds: [],
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
         },
-        0,
-        50,
-        genericLogger
-      );
+        authData,
+      });
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        { ...eservice9, descriptors: [descriptor9a] },
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService({ ...eservice9, descriptors: [descriptor9a] }),
       ]);
     }
   );
@@ -1575,28 +1503,23 @@ describe("get eservices", () => {
       };
       await addOneEService(eservice9);
       await addOneDelegation(delegation);
-      const result = await catalogService.getEServices(
-        authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          states: [],
-          agreementStates: [],
-          attributesIds: [],
+      const result = await mockEserviceRouterRequest.get({
+        path: "/eservices",
+        queryParams: {
+          offset: 0,
+          limit: 50,
         },
-        0,
-        50,
-        genericLogger
-      );
+        authData,
+      });
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
+        eServiceToApiEService(eservice1),
+        eServiceToApiEService(eservice2),
+        eServiceToApiEService(eservice3),
+        eServiceToApiEService(eservice4),
+        eServiceToApiEService(eservice5),
+        eServiceToApiEService(eservice6),
+        eServiceToApiEService(eservice9),
       ]);
     }
   );

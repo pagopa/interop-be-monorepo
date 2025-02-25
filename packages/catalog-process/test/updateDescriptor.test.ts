@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -23,16 +25,17 @@ import {
   notValidDescriptorState,
   inconsistentDailyCalls,
 } from "../src/model/domain/errors.js";
+import { eServiceToApiEService } from "../src/model/domain/apiConverter.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
   readLastEserviceEvent,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("update descriptor", () => {
   const mockEService = getMockEService();
@@ -75,17 +78,14 @@ describe("update descriptor", () => {
           },
         ],
       };
-      const returnedEService = await catalogService.updateDescriptor(
-        eservice.id,
-        descriptor.id,
-        expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      );
+
+      const returnedEService = await mockEserviceRouterRequest.post({
+        path: "/eservices/:eServiceId/descriptors/:descriptorId/update",
+        pathParams: { eServiceId: eservice.id, descriptorId: descriptor.id },
+        body: { ...expectedDescriptorQuotasSeed },
+        authData: getMockAuthData(eservice.producerId),
+      });
+
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
@@ -98,7 +98,7 @@ describe("update descriptor", () => {
         payload: writtenEvent.data,
       });
       expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(returnedEService).toEqual(eServiceToApiEService(updatedEService));
     }
   );
 
@@ -146,17 +146,14 @@ describe("update descriptor", () => {
           },
         ],
       };
-      const returnedEService = await catalogService.updateDescriptor(
-        eservice.id,
-        descriptor.id,
-        expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      );
+
+      const returnedEService = await mockEserviceRouterRequest.post({
+        path: "/eservices/:eServiceId/descriptors/:descriptorId/update",
+        pathParams: { eServiceId: eservice.id, descriptorId: descriptor.id },
+        body: { ...expectedDescriptorQuotasSeed },
+        authData: getMockAuthData(delegation.delegateId),
+      });
+
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
@@ -169,7 +166,7 @@ describe("update descriptor", () => {
         payload: writtenEvent.data,
       });
       expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(returnedEService).toEqual(eServiceToApiEService(updatedEService));
     }
   );
 

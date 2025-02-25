@@ -3,6 +3,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -29,7 +30,6 @@ import {
   addOneEService,
   addOneAttribute,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockEService,
@@ -37,6 +37,7 @@ import {
   buildUpdateDescriptorSeed,
   addOneDelegation,
 } from "./utils.js";
+import { mockEserviceRouterRequest } from "./supertestSetup.js";
 
 describe("update draft descriptor", () => {
   const mockDescriptor = getMockDescriptor();
@@ -89,17 +90,17 @@ describe("update draft descriptor", () => {
         },
       ],
     };
-    await catalogService.updateDraftDescriptor(
-      eservice.id,
-      descriptor.id,
-      expectedDescriptorSeed,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+
+    await mockEserviceRouterRequest.put({
+      path: "/eservices/:eServiceId/descriptors/:descriptorId",
+      pathParams: {
+        eServiceId: eservice.id,
+        descriptorId: descriptor.id,
+      },
+      body: { ...expectedDescriptorSeed },
+      authData: getMockAuthData(eservice.producerId),
+    });
+
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
