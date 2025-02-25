@@ -14612,7 +14612,7 @@ paths:
       parameters:
         - name: eServiceTemplateId
           in: path
-          description: The E-Service id to update
+          description: The E-Service id to retrieve
           required: true
           schema:
             type: string
