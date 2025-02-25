@@ -57,7 +57,7 @@ describe("Tenant splitters", () => {
         revocationTimestamp: new Date(),
       };
       const delegationId = generateId<DelegationId>();
-      const tenantDelcaredAttribute: DeclaredTenantAttribute = {
+      const tenantDeclaredAttribute: DeclaredTenantAttribute = {
         ...getMockDeclaredTenantAttribute(),
         assignmentTimestamp: new Date(),
         revocationTimestamp: new Date(),
@@ -118,7 +118,7 @@ describe("Tenant splitters", () => {
         mails: [tenantMail],
         attributes: [
           tenantCertifiedAttribute,
-          tenantDelcaredAttribute,
+          tenantDeclaredAttribute,
           tenantVerifiedAttribute,
         ],
         features: [
@@ -174,13 +174,13 @@ describe("Tenant splitters", () => {
       const expectedTenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
-        attributeId: tenantDelcaredAttribute.id,
+        attributeId: tenantDeclaredAttribute.id,
         assignmentTimestamp: new Date().toISOString(),
         revocationTimestamp: new Date().toISOString(),
         delegationId,
       };
 
-      const expectedTenantVerfiedAttributeSQL: TenantVerifiedAttributeSQL = {
+      const expectedTenantVerifiedAttributeSQL: TenantVerifiedAttributeSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         attributeId: tenantVerifiedAttribute.id,
@@ -241,7 +241,7 @@ describe("Tenant splitters", () => {
         expectedTenantDeclaredAttributeSQL,
       ]);
       expect(tenantVerifiedAttributesSQL).toEqual([
-        expectedTenantVerfiedAttributeSQL,
+        expectedTenantVerifiedAttributeSQL,
       ]);
       expect(tenantVerifiedAttributeVerifiersSQL).toEqual([
         expectedTenantVerifierSQL,
@@ -268,7 +268,7 @@ describe("Tenant splitters", () => {
         revocationTimestamp: undefined,
       };
       const delegationId = generateId<DelegationId>();
-      const tenantDelcaredAttribute: DeclaredTenantAttribute = {
+      const tenantDeclaredAttribute: DeclaredTenantAttribute = {
         ...getMockDeclaredTenantAttribute(),
         assignmentTimestamp: new Date(),
         revocationTimestamp: undefined,
@@ -329,7 +329,7 @@ describe("Tenant splitters", () => {
         mails: [tenantMail],
         attributes: [
           tenantCertifiedAttribute,
-          tenantDelcaredAttribute,
+          tenantDeclaredAttribute,
           tenantVerifiedAttribute,
         ],
         features: [
@@ -385,13 +385,13 @@ describe("Tenant splitters", () => {
       const expectedTenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
-        attributeId: tenantDelcaredAttribute.id,
+        attributeId: tenantDeclaredAttribute.id,
         assignmentTimestamp: new Date().toISOString(),
         revocationTimestamp: null,
         delegationId,
       };
 
-      const expectedTenantVerfiedAttributeSQL: TenantVerifiedAttributeSQL = {
+      const expectedTenantVerifiedAttributeSQL: TenantVerifiedAttributeSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         attributeId: tenantVerifiedAttribute.id,
@@ -452,7 +452,7 @@ describe("Tenant splitters", () => {
         expectedTenantDeclaredAttributeSQL,
       ]);
       expect(tenantVerifiedAttributesSQL).toEqual([
-        expectedTenantVerfiedAttributeSQL,
+        expectedTenantVerifiedAttributeSQL,
       ]);
       expect(tenantVerifiedAttributeVerifiersSQL).toEqual([
         expectedTenantVerifierSQL,
