@@ -30,6 +30,9 @@ export const errorCodes = {
   missingTemplateVersionInterface: "0018",
   missingRiskAnalysis: "0019",
   instanceNameConflict: "0020",
+  interfaceAlreadyExists: "0021",
+  prettyNameDuplicate: "0022",
+  checksumDuplicate: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -243,5 +246,38 @@ export function instanceNameConflict(
     detail: `EService Template ${eserviceTemplateId} instance name conflict`,
     code: "instanceNameConflict",
     title: "Instance name conflict",
+  });
+}
+
+export function interfaceAlreadyExists(
+  interfaceName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interface ${interfaceName} already exists`,
+    code: "interfaceAlreadyExists",
+    title: "Interface already exists",
+  });
+}
+
+export function prettyNameDuplicate(
+  prettyName: string,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A document with prettyName ${prettyName} already exists in version ${eserviceTemplateVersionId}`,
+    code: "prettyNameDuplicate",
+    title: "Duplicated prettyName",
+  });
+}
+
+export function checksumDuplicate(
+  fileName: string,
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The document ${fileName} content already exists in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
+    code: "checksumDuplicate",
+    title: "Duplicated checksum",
   });
 }

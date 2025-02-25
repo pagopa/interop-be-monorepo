@@ -47,7 +47,7 @@ import {
 } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
-  verifyAndCreateEServiceDocument,
+  verifyAndCreateDocument,
   verifyAndCreateImportedDoc,
 } from "../utilities/eserviceDocumentUtils.js";
 import { createDescriptorDocumentZipFile } from "../utilities/fileUtils.js";
@@ -62,6 +62,7 @@ import {
   toBffCatalogApiEserviceRiskAnalysisSeed,
   toCompactProducerDescriptor,
   toBffEServiceTemplateInstance,
+  apiTechnologyToTechnology,
 } from "../api/catalogApiConverter.js";
 import { ConfigurationEservice } from "../model/types.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
@@ -541,14 +542,36 @@ export function catalogServiceBuilder(
 
       const documentId = randomUUID();
 
-      await verifyAndCreateEServiceDocument(
-        catalogProcessClient,
+      await verifyAndCreateDocument(
         fileManager,
-        eService,
-        doc,
-        descriptorId,
+        eService.id,
+        apiTechnologyToTechnology(eService.technology),
+        doc.prettyName,
+        doc.kind,
+        doc.doc,
         documentId,
-        ctx
+        async (filePath, serverUrls, checksum) => {
+          await catalogProcessClient.createEServiceDocument(
+            {
+              documentId,
+              prettyName: doc.prettyName,
+              fileName: doc.doc.name,
+              filePath,
+              kind: doc.kind,
+              contentType: doc.doc.type,
+              checksum,
+              serverUrls,
+            },
+            {
+              headers: ctx.headers,
+              params: {
+                eServiceId: eService.id,
+                descriptorId,
+              },
+            }
+          );
+        },
+        ctx.logger
       );
 
       return { id: documentId };

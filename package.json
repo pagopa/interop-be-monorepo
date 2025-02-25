@@ -43,6 +43,7 @@
     "start:readmodel-writer": "turbo start --concurrency 20 --filter pagopa-interop-*-readmodel-writer",
     "start:ipa-certified-attributes-importer": "turbo start --filter pagopa-interop-ipa-certified-attributes-importer",
     "start:eservice-template": "turbo start --filter pagopa-interop-eservice-template-process",
+    "start:eservice-template-readmodel-writer": "turbo start --filter pagopa-interop-eservice-template-readmodel-writer",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
