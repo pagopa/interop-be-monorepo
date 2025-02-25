@@ -41,7 +41,7 @@ function toMockEServiceTemplateInstance(
     producerName: tenant.name,
     state: descriptor.state,
     version: eserviceTemplateVersion.version,
-    instanceId: eservice.instanceId,
+    instanceId: eservice.template?.instanceId,
   };
 }
 
@@ -82,14 +82,14 @@ describe("getEServiceTemplateInstances", () => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
-      templateVersionId: deprecatedEServiceTemplateVersion.id,
+      templateVersion: { id: deprecatedEServiceTemplateVersion.id },
       version: "1",
     };
 
     const draftDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "2",
     };
 
@@ -97,7 +97,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [publishedDescriptor, draftDescriptor],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice1);
@@ -105,7 +105,7 @@ describe("getEServiceTemplateInstances", () => {
     const suspendedDescriptor1: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "1",
     };
 
@@ -113,7 +113,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant2.id,
       descriptors: [suspendedDescriptor1],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice2);
@@ -121,7 +121,7 @@ describe("getEServiceTemplateInstances", () => {
     const archivedDescriptor1: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.archived,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "1",
     };
 
@@ -129,7 +129,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant2.id,
       descriptors: [archivedDescriptor1],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice3);
@@ -175,14 +175,14 @@ describe("getEServiceTemplateInstances", () => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
-      templateVersionId: deprecatedEServiceTemplateVersion.id,
+      templateVersion: { id: deprecatedEServiceTemplateVersion.id },
       version: "1",
     };
 
     const draftDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "2",
     };
 
@@ -190,7 +190,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [publishedDescriptor, draftDescriptor],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice1);
@@ -198,7 +198,7 @@ describe("getEServiceTemplateInstances", () => {
     const suspendedDescriptor1: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "1",
     };
 
@@ -206,7 +206,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant2.id,
       descriptors: [suspendedDescriptor1],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice2);
@@ -240,14 +240,14 @@ describe("getEServiceTemplateInstances", () => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
-      templateVersionId: deprecatedEServiceTemplateVersion.id,
+      templateVersion: { id: deprecatedEServiceTemplateVersion.id },
       version: "1",
     };
 
     const draftDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "2",
     };
 
@@ -255,7 +255,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [publishedDescriptor, draftDescriptor],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice1);
@@ -263,7 +263,7 @@ describe("getEServiceTemplateInstances", () => {
     const suspendedDescriptor1: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "1",
     };
 
@@ -271,7 +271,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant2.id,
       descriptors: [suspendedDescriptor1],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice2);
@@ -279,7 +279,7 @@ describe("getEServiceTemplateInstances", () => {
     const archivedDescriptor1: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.archived,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "1",
     };
 
@@ -287,7 +287,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant2.id,
       descriptors: [archivedDescriptor1],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice3);
@@ -328,14 +328,14 @@ describe("getEServiceTemplateInstances", () => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
-      templateVersionId: deprecatedEServiceTemplateVersion.id,
+      templateVersion: { id: deprecatedEServiceTemplateVersion.id },
       version: "1",
     };
 
     const draftDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "2",
     };
 
@@ -343,7 +343,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant.id,
       descriptors: [publishedDescriptor, draftDescriptor],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice1);
@@ -351,7 +351,7 @@ describe("getEServiceTemplateInstances", () => {
     const suspendedDescriptor1: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.suspended,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "1",
     };
 
@@ -359,7 +359,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant2.id,
       descriptors: [suspendedDescriptor1],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice2);
@@ -367,7 +367,7 @@ describe("getEServiceTemplateInstances", () => {
     const archivedDescriptor1: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.archived,
-      templateVersionId: publishedEServiceTemplateVersion.id,
+      templateVersion: { id: publishedEServiceTemplateVersion.id },
       version: "1",
     };
 
@@ -375,7 +375,7 @@ describe("getEServiceTemplateInstances", () => {
       ...getMockEService(),
       producerId: tenant2.id,
       descriptors: [archivedDescriptor1],
-      templateId: eserviceTemplateMock.id,
+      template: { id: eserviceTemplateMock.id },
     };
 
     await addOneEService(eservice3);
