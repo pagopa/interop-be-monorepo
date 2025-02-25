@@ -35,7 +35,6 @@ import {
   tenantNotFound,
 } from "../model/errors.js";
 import { cloneEServiceDocument } from "../utilities/fileUtils.js";
-import { config } from "../config/config.js";
 import { verifyAndCreateDocument } from "../utilities/eserviceDocumentUtils.js";
 import { config } from "../config/config.js";
 import { getAllBulkAttributes } from "./attributeService.js";
