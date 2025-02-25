@@ -396,7 +396,7 @@ const tenantsRouter = (
     )
     .post(
       "/tenants/:tenantId/mails",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
