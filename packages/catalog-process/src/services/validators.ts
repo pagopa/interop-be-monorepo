@@ -254,7 +254,7 @@ export function assertDocumentDeletableDescriptorState(
     .exhaustive();
 }
 
-export function assertTemplateIdIsUndefined(
+export function assertEServiceNotTemplateInstance(
   templateId: EServiceTemplateId | undefined
 ): void {
   if (templateId !== undefined) {

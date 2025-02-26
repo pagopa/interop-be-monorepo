@@ -134,7 +134,7 @@ import {
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
-  assertTemplateIdIsUndefined,
+  assertEServiceNotTemplateInstance,
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
@@ -883,7 +883,7 @@ export function catalogServiceBuilder(
 
       const eService = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eService.data.templateId);
+      assertEServiceNotTemplateInstance(eService.data.templateId);
 
       const { eService: updatedEService, event } = await innerUploadDocument(
         eService,
@@ -910,7 +910,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -985,7 +985,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1072,7 +1072,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1515,7 +1515,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
       await assertNoExistingProducerDelegationInActiveOrPendingState(
@@ -1672,7 +1672,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1730,7 +1730,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1797,7 +1797,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1870,7 +1870,7 @@ export function catalogServiceBuilder(
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1908,7 +1908,7 @@ export function catalogServiceBuilder(
       logger.info(`Updating EService ${eserviceId} description`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -2098,7 +2098,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -2236,7 +2236,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertTemplateIdIsUndefined(eservice.data.templateId);
+      assertEServiceNotTemplateInstance(eservice.data.templateId);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
