@@ -15,19 +15,6 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_template_binding (
-  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice(id),
-  metadata_version INTEGER NOT NULL,
-  eservice_template_id UUID,
-  instance_id VARCHAR,
-  name VARCHAR,
-  email VARCHAR,
-  url VARCHAR,
-  terms_and_conditions_url VARCHAR,
-  server_url VARCHAR,
-  PRIMARY KEY (eservice_id, eservice_template_id)
-);
-
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
