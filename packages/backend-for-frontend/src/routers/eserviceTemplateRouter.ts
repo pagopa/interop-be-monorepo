@@ -641,7 +641,7 @@ const eserviceTemplateRouter = (
             emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error getting eService template document ${req.params.documentId} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
+            `Error updating eService template document ${req.params.documentId} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
