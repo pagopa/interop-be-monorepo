@@ -25,7 +25,6 @@ import {
   toBffCatalogApiDescriptorDoc,
 } from "../api/catalogApiConverter.js";
 import {
-  toBffEServiceTemplateApiEServiceTemplateDetails,
   toBffCatalogEServiceTemplate,
   toBffEServiceTemplateDetails,
   toBffProducerEServiceTemplate,
