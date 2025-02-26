@@ -163,6 +163,10 @@ export function certifiedEmailSenderServiceBuilder(
       ];
 
       const mailOptions: Mail.Options = {
+        from: {
+          name: pecSenderData.label,
+          address: pecSenderData.mail,
+        },
         to: recipientsEmails,
         subject: `Richiesta di fruizione ${agreement.id} attiva`,
         html: templateService.compileHtml(htmlTemplate, {
