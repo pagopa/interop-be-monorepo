@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement(
   consumer_notes VARCHAR,
   rejection_reason VARCHAR,
   suspended_at TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT agreement_id_version_unique UNIQUE (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp(
@@ -26,7 +27,8 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp(
   delegation_id UUID,
   "when" TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
-  PRIMARY KEY (agreement_id, kind)
+  PRIMARY KEY (agreement_id, kind),
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute(
@@ -34,7 +36,8 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute(
   metadata_version INTEGER NOT NULL,
   attribute_id UUID NOT NULL,
   kind VARCHAR NOT NULL,
-  PRIMARY KEY (agreement_id, attribute_id)
+  PRIMARY KEY (agreement_id, attribute_id),
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_document(
@@ -47,5 +50,6 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_document(
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
 );
