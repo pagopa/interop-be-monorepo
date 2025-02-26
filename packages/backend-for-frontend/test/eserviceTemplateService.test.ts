@@ -8,6 +8,7 @@ import {
   EServiceId,
   EServiceTemplateId,
   EServiceTemplateVersion,
+  EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
 } from "pagopa-interop-models";
@@ -112,13 +113,25 @@ describe("E-service Template Service BFF ", () => {
             Authorization: "Bearer token",
           },
         };
-
-        const draftDescriptor = getMockDescriptor("Draft");
-        const eservice = getMockEService(
-          generateId<EServiceId>(),
-          authData.organizationId,
-          [draftDescriptor]
-        );
+        const eserviceTemplateId = generateId<EServiceTemplateId>();
+        const eserviceTemplateVersionId =
+          generateId<EServiceTemplateVersionId>();
+        const draftDescriptor = {
+          ...getMockDescriptor("Draft"),
+          templateVersionRef: {
+            id: eserviceTemplateVersionId,
+          },
+        };
+        const eservice = {
+          ...getMockEService(
+            generateId<EServiceId>(),
+            authData.organizationId,
+            [draftDescriptor]
+          ),
+          templateRef: {
+            id: eserviceTemplateId,
+          },
+        };
 
         const interfaceResourceId = generateId<EServiceDocumentId>();
         const apiFileBuffer = await readBufferFromFile(
@@ -146,12 +159,12 @@ describe("E-service Template Service BFF ", () => {
         };
 
         const eserviceTemplateVersion: EServiceTemplateVersion = {
-          ...getMockEServiceTemplateVersion(),
+          ...getMockEServiceTemplateVersion(eserviceTemplateVersionId),
           state: eserviceTemplateVersionState.published,
           interface: interfaceTemplate,
         };
         const eserviceTemplate = getMockEServiceTemplate(
-          generateId<EServiceTemplateId>(),
+          eserviceTemplateId,
           authData.organizationId,
           [eserviceTemplateVersion]
         );
@@ -194,8 +207,7 @@ describe("E-service Template Service BFF ", () => {
         const resourceId =
           await eserviceTemplateService.addEserviceInterfaceByTemplate(
             eservice.id,
-            eserviceTemplate.id,
-            eserviceTemplateVersion.id,
+            draftDescriptor.id,
             requestPayload,
             context
           );

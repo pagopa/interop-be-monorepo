@@ -225,17 +225,6 @@ export const SelfcareProcessConfig = z
   }));
 export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
 
-export const EServiceTemplateS3Config = z
-  .object({
-    ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
-    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
-  })
-  .transform((c) => ({
-    eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
-    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
-  }));
-export type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
-
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)

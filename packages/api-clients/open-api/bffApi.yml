@@ -3495,7 +3495,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 
-  /eservices/{eServiceId}/templates/{eServiceTemplateId}/{eServiceTemplateVersion}/interface:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/instances/interface:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -3513,20 +3513,13 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: eServiceTemplateId
+        - name: descriptorId
           in: path
-          description: the eservice template id
+          description: the eservice descriptor id
           required: true
           schema:
             type: string
             format: uuid
-        - name: eServiceTemplateVersion
-          in: path
-          description: the eservice teamplate version
-          required: true
-          schema: 
-            type: string
-            format: number
       requestBody:
         description: A payload containing the eservice's api data  
         required: true

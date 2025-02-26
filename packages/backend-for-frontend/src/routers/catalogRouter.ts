@@ -914,15 +914,14 @@ const catalogRouter = (
       }
     })
     .post(
-      "/eservices/:eServiceId/templates/:eServiceTemplateId/:eServiceTemplateVersion/interface",
+      "/eservices/:eServiceId/descriptors/:descriptorId/instances/interface",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const response =
             await eserviceTemplateService.addEserviceInterfaceByTemplate(
               unsafeBrandId(req.params.eServiceId),
-              unsafeBrandId(req.params.eServiceTemplateId),
-              unsafeBrandId(req.params.eServiceTemplateVersion),
+              unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
@@ -933,7 +932,7 @@ const catalogRouter = (
             emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error adding interface for eService ${req.params.eServiceId} by template ${req.params.eServiceTemplateId} version ${req.params.eServiceTemplateVersion}`
+            `Error adding interface for eService ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

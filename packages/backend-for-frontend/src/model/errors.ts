@@ -62,6 +62,7 @@ export const errorCodes = {
   eserviceTemplateInterfaceDataNotValid: "0052",
   tooManyDescriptorForInterfaceWithTemplate: "0053",
   eserviceDescriptorDraftNotFound: "0054",
+  templateDataNotFound: "0055",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -485,8 +486,18 @@ export function eserviceTemplateNotFound(
   eserviceTemplateId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Eservice teamplte ${eserviceTemplateId} not found`,
+    detail: `Eservice template ${eserviceTemplateId} not found`,
     code: "eserviceTemplateNotFound",
+    title: "EService template not found",
+  });
+}
+
+export function eserviceTemplateDataNotFound(
+  eServiceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Expected template reference in Eservice ${eServiceId} not found`,
+    code: "templateDataNotFound",
     title: "EService template not found",
   });
 }

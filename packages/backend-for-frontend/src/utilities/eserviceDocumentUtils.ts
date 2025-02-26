@@ -376,15 +376,17 @@ export async function createOpenApiInterfaceByTemplate(
     "INTERFACE",
     updatedInterfaceFile,
     documentId,
+    config.eserviceDocumentsContainer,
+    config.eserviceDocumentsPath,
     async (
-      filePath,
-      serverUrls,
-      checksum
+      path: string,
+      serverUrls: string[],
+      checksum: string
     ): Promise<catalogApi.EServiceDoc["id"]> => {
       const documentPath = await fileManager.storeBytes(
         {
           bucket,
-          path: filePath,
+          path,
           resourceId: documentId,
           name: eserviceTemplateInterface.name,
           content: await fileToBuffer(updatedInterfaceFile),

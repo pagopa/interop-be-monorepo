@@ -78,6 +78,7 @@ export const toEserviceCatalogProcessMock = (
   mode: "DELIVER" as const,
   technology: "REST" as const,
   riskAnalysis: [],
+  templateRef: eservice.templateRef,
   descriptors: [
     {
       ...descriptor,
@@ -89,6 +90,7 @@ export const toEserviceCatalogProcessMock = (
       deprecatedAt: undefined,
       archivedAt: undefined,
       rejectionReasons: undefined,
+      templateVersionRef: descriptor.templateVersionRef,
     },
   ],
 });
