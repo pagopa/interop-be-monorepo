@@ -369,7 +369,7 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
-    templateVersionId: descriptor.templateVersionId,
+    templateVersionId: descriptor?.templateVersionRef?.id,
   };
 }
 
