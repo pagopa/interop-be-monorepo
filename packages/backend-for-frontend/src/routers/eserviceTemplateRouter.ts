@@ -64,6 +64,28 @@ const eserviceTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/eservices/templates/:eServiceTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const eserviceTemplate =
+          await eserviceTemplateService.getEServiceTemplate(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            ctx
+          );
+        return res
+          .status(200)
+          .send(bffApi.EServiceTemplateDetails.parse(eserviceTemplate));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/eservices/templates/:eServiceTemplateId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
