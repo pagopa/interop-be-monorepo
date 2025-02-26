@@ -15,10 +15,13 @@ message EServiceV2 {
   optional bool isSignalHubEnabled = 10;
   optional bool isConsumerDelegable = 11;
   optional bool isClientAccessDelegable = 12;
-  optional string templateId = 13;
-  optional string instanceId = 14;
+  optional EServiceTemplateRefV2 templateRef = 13;
 }
 
+message EServiceTemplateRefV2 {
+  string id = 1;
+  optional string instanceId = 2;
+}
 
 message EServiceRiskAnalysisV2 {
   string id = 1;
@@ -72,7 +75,7 @@ message EServiceDescriptorV2 {
   optional string description = 3;
   repeated EServiceDocumentV2 docs = 4;
   EServiceDescriptorStateV2 state = 5;
-  optional EServiceDescriptorInterfaceV2 interface = 6;
+  optional EServiceDocumentV2 interface = 6;
   repeated string audience = 7;
   int32 voucherLifespan = 8;
   int32 dailyCallsPerConsumer = 9;
@@ -86,15 +89,20 @@ message EServiceDescriptorV2 {
   optional int64 archivedAt = 17;
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
-  optional string templateVersionId = 20;
+  optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
 }
 
-message EServiceDescriptorInterfaceContactsV2 {
+message CustomizedInterfaceMetadataV2 {
   string name = 1;
   string email = 2;
   string url = 3;
   string termsAndConditionsUrl = 4;
   repeated string serverUrls = 5;
+}
+
+message EServiceTemplateVersionRefV2 {
+  string id = 1;
+  optional CustomizedInterfaceMetadataV2 interfaceMetadata = 2;
 }
 
 message EServiceDocumentV2 {
@@ -105,17 +113,6 @@ message EServiceDocumentV2 {
   string checksum = 5;
   string uploadDate = 6;
   string prettyName = 7;
-}
-
-message EServiceDescriptorInterfaceV2 {
-  string id = 1;
-  string name = 2;
-  string contentType = 3;
-  string path = 4;
-  string checksum = 5;
-  string uploadDate = 6;
-  string prettyName = 7;
-  optional EServiceDescriptorInterfaceContactsV2 contacts = 8;
 }
 
 enum EServiceDescriptorStateV2 {

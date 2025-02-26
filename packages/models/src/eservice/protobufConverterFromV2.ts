@@ -1,8 +1,4 @@
-import {
-  EServiceTemplateId,
-  EServiceTemplateVersionId,
-  unsafeBrandId,
-} from "../brandedIds.js";
+import { unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
@@ -15,7 +11,8 @@ import {
   EServiceRiskAnalysisV2,
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
-  EServiceDescriptorInterfaceV2,
+  EServiceTemplateVersionRefV2,
+  EServiceTemplateRefV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -36,7 +33,8 @@ import {
   EService,
   Document,
   DescriptorRejectionReason,
-  DescriptorInterface,
+  EServiceTemplateRef,
+  EServiceTemplateVersionRef,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -94,13 +92,7 @@ export const fromEServiceAttributeV2 = (
 ): EServiceAttribute[] =>
   input.values.map((a) => ({ ...a, id: unsafeBrandId(a.id) }));
 
-export function fromDocumentV2(
-  input: EServiceDescriptorInterfaceV2
-): DescriptorInterface;
-export function fromDocumentV2(input: EServiceDocumentV2): Document;
-export function fromDocumentV2(
-  input: EServiceDocumentV2 | EServiceDescriptorInterfaceV2
-): Document | DescriptorInterface {
+export function fromDocumentV2(input: EServiceDocumentV2): Document {
   return {
     ...input,
     id: unsafeBrandId(input.id),
@@ -113,6 +105,13 @@ export const fromDescriptorRejectionReasonV2 = (
 ): DescriptorRejectionReason => ({
   ...input,
   rejectedAt: bigIntToDate(input.rejectedAt),
+});
+
+export const fromInstanceEServiceTemplateVersionV2 = (
+  input: EServiceTemplateVersionRefV2
+): EServiceTemplateVersionRef => ({
+  id: unsafeBrandId(input.id),
+  interfaceMetadata: input.interfaceMetadata,
 });
 
 export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
@@ -147,9 +146,10 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
     input.rejectionReasons.length > 0
       ? input.rejectionReasons.map(fromDescriptorRejectionReasonV2)
       : undefined,
-  templateVersionId: input.templateVersionId
-    ? unsafeBrandId<EServiceTemplateVersionId>(input.templateVersionId)
-    : undefined,
+  templateVersionRef:
+    input.templateVersionRef != null
+      ? fromInstanceEServiceTemplateVersionV2(input.templateVersionRef)
+      : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (
@@ -186,6 +186,13 @@ export const fromRiskAnalysisV2 = (
   riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
 });
 
+export const fromInstanceEServiceTemplateV2 = (
+  input: EServiceTemplateRefV2
+): EServiceTemplateRef => ({
+  id: unsafeBrandId(input.id),
+  instanceId: input.instanceId,
+});
+
 export const fromEServiceV2 = (input: EServiceV2): EService => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -195,7 +202,8 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   createdAt: bigIntToDate(input.createdAt),
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
   mode: fromEServiceModeV2(input.mode),
-  templateId: input.templateId
-    ? unsafeBrandId<EServiceTemplateId>(input.templateId)
-    : undefined,
+  templateRef:
+    input.templateRef != null
+      ? fromInstanceEServiceTemplateV2(input.templateRef)
+      : undefined,
 });
