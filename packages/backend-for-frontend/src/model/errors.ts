@@ -537,16 +537,6 @@ export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
   });
 }
 
-export function tooManyDescriptorForInterfaceWithTemplate(
-  eserviceId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The descriptors number in EService ${eserviceId} not allowed for Eservice Interface creation by template`,
-    code: "tooManyDescriptorForInterfaceWithTemplate",
-    title: "Descriptor number exceed",
-  });
-}
-
 export function eserviceDescriptorDraftNotFound(
   eserviceId: string
 ): ApiError<ErrorCodes> {

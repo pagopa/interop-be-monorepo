@@ -38,7 +38,6 @@ import {
   invalidInterfaceContentTypeDetected,
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
-  tooManyDescriptorForInterfaceWithTemplate,
 } from "../model/errors.js";
 import { ConfigurationDoc } from "../model/types.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -470,10 +469,6 @@ async function interpolateOpenApiSpec(
 function retrieveDraftDescriptor(
   eservice: catalogApi.EService
 ): catalogApi.EServiceDescriptor {
-  if (eservice.descriptors.length !== 1) {
-    throw tooManyDescriptorForInterfaceWithTemplate(eservice.id);
-  }
-
   const draftDescriptor = eservice.descriptors.find(
     (descriptor) =>
       apiDescriptorStateToDescriptorState(descriptor.state) ===

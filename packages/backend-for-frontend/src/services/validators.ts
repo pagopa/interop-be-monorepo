@@ -2,6 +2,7 @@ import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle
 import {
   agreementApi,
   catalogApi,
+  delegationApi,
   eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -89,6 +90,37 @@ export function assertRequesterIsProducer(
   if (!isRequesterEserviceProducer(requesterId, eservice)) {
     throw invalidEServiceRequester(eservice.id, requesterId);
   }
+}
+
+export function verifyRequesterIsProducerOrDelegateProducer(
+  requesterId: TenantId,
+  eservice: catalogApi.EService,
+  activeProducerDelegations: delegationApi.Delegation[] | undefined
+): void {
+  if (
+    !isRequesterEserviceProducer(requesterId, eservice) &&
+    !isRequesterIsProducerDelegate(
+      eservice,
+      requesterId,
+      activeProducerDelegations
+    )
+  ) {
+    throw invalidEServiceRequester(eservice.id, requesterId);
+  }
+}
+
+export function isRequesterIsProducerDelegate(
+  eservice: catalogApi.EService,
+  requesterId: TenantId,
+  activeProducerDelegations: delegationApi.Delegation[] | undefined
+): boolean {
+  const producerDelegation = activeProducerDelegations?.at(0);
+  return (
+    producerDelegation?.delegateId === requesterId &&
+    producerDelegation?.kind === "DELEGATED_CONSUMER" &&
+    producerDelegation?.state === "ACTIVE" &&
+    producerDelegation?.eserviceId !== eservice.id
+  );
 }
 
 export async function assertRequesterCanActAsProducer(

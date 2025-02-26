@@ -16,6 +16,7 @@ import {
 import {
   AttributeProcessClient,
   CatalogProcessClient,
+  DelegationProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -34,6 +35,7 @@ export const createEServiceTeamplateService = (
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   catalogProcessClient: CatalogProcessClient,
+  delegationProcessClient: DelegationProcessClient,
   fileManager: FileManager,
   config: BffProcessConfig
   // eslint-disable-next-line max-params
@@ -43,6 +45,7 @@ export const createEServiceTeamplateService = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
+    delegationProcessClient,
     fileManager,
     config
   );

@@ -28,6 +28,7 @@ const eserviceTemplateRouter = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
+    delegationProcessClient,
   }: PagoPAInteropBeClients,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
@@ -41,6 +42,7 @@ const eserviceTemplateRouter = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
+    delegationProcessClient,
     fileManager,
     bffConfig
   );

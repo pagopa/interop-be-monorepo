@@ -29,6 +29,7 @@ import {
 import {
   AttributeProcessClient,
   CatalogProcessClient,
+  DelegationProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -52,7 +53,7 @@ import {
 import { getAllBulkAttributes } from "./attributeService.js";
 import {
   assertIsDraftEservice,
-  assertRequesterIsProducer,
+  verifyRequesterIsProducerOrDelegateProducer,
   assertTemplateIsPublished,
 } from "./validators.js";
 
@@ -61,6 +62,7 @@ export function eserviceTemplateServiceBuilder(
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   catalogProcessClient: CatalogProcessClient,
+  delegationClients: DelegationProcessClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
@@ -690,7 +692,22 @@ export function eserviceTemplateServiceBuilder(
         headers
       );
 
-      assertRequesterIsProducer(authData.organizationId, eservice); // Producer delegate not allowed
+      const delegations = await delegationClients.delegation.getDelegations({
+        queries: {
+          limit: 1,
+          offset: 1,
+          delegationStates: ["ACTIVE"],
+          kind: "DELEGATED_PRODUCER",
+          eserviceIds: [eServiceId],
+        },
+        headers,
+      });
+
+      verifyRequesterIsProducerOrDelegateProducer(
+        authData.organizationId,
+        eservice,
+        delegations.results
+      );
       assertIsDraftEservice(eservice);
 
       const eserviceTemplate = await retrieveEServiceTemplate(

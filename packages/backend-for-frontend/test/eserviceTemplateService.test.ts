@@ -19,10 +19,15 @@ import {
   getMockEServiceTemplateVersion,
   getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
-import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  catalogApi,
+  delegationApi,
+  eserviceTemplateApi,
+} from "pagopa-interop-api-clients";
 import {
   AttributeProcessClient,
   CatalogProcessClient,
+  DelegationProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -30,7 +35,7 @@ import { config } from "../src/config/config.js";
 import { BffAppContext } from "../src/utilities/context.js";
 import { EServiceTemplateService } from "../src/services/eserviceTemplateService.js";
 import {
-  createEServiceTeamplateService,
+  createEServiceTeamplateService as createEServiceTemplateService,
   fileManager,
   toEserviceTemplateProcessMock,
   toEserviceCatalogProcessMock,
@@ -48,7 +53,8 @@ async function readBufferFromFile(
 
 function getEserviceTemplateServiceMock(
   mockEservice: catalogApi.EService,
-  mockEserviceTemplate: eserviceTemplateApi.EServiceTemplate
+  mockEserviceTemplate: eserviceTemplateApi.EServiceTemplate,
+  mockDelegation?: delegationApi.Delegation
 ): EServiceTemplateService {
   const tenantProcessClient = {} as unknown as TenantProcessClient;
   const attributeProcessClient = {} as unknown as AttributeProcessClient;
@@ -64,11 +70,18 @@ function getEserviceTemplateServiceMock(
     }),
   } as unknown as CatalogProcessClient;
 
-  return createEServiceTeamplateService(
+  const delegationProcessClient = {
+    delegation: {
+      getDelegations: vi.fn().mockResolvedValue(mockDelegation),
+    },
+  } as unknown as DelegationProcessClient;
+
+  return createEServiceTemplateService(
     eserviceProcessTemplateClient,
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
+    delegationProcessClient,
     fileManager,
     config
   );
@@ -148,7 +161,22 @@ describe("E-service Template Service BFF ", () => {
           toEserviceTemplateProcessMock(
             eserviceTemplate,
             eserviceTemplateVersion
-          )
+          ),
+          {
+            id: generateId(),
+            delegatorId: eservice.producerId,
+            delegateId: authData.organizationId,
+            eserviceId: eservice.id,
+            state: "ACTIVE",
+            kind: "DELEGATED_PRODUCER",
+            createdAt: new Date().toISOString(),
+            stamps: {
+              submission: {
+                who: authData.organizationId,
+                when: new Date().toISOString(),
+              },
+            },
+          }
         );
 
         const requestPayload = {
