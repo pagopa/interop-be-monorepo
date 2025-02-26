@@ -39,7 +39,6 @@ describe("initSesMailManager", () => {
 
     const rawData = commandInput.Content!.Raw!.Data;
 
-    // Converti il buffer in stringa e verifica che contenga le informazioni attese
     const emailString = Buffer.from(rawData!).toString();
     expect(emailString).toContain(`From: ${from}`);
     expect(emailString).toContain(`To: ${to[0]}`);
