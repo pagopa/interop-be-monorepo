@@ -19,16 +19,11 @@ import {
   TenantReadModel,
   WithMetadata,
   eserviceTemplateVersionState,
-  descriptorState,
   genericInternalError,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import {
-  ApiGetEServiceTemplateIstancesFilters,
-  EServiceTemplateInstance,
-} from "../model/domain/models.js";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -96,7 +91,6 @@ export function readModelServiceBuilder({
   eserviceTemplates,
   tenants,
   attributes,
-  eservices,
 }: ReadModelRepository) {
   return {
     async getEServiceTemplateById(
@@ -244,149 +238,6 @@ export function readModelServiceBuilder({
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eserviceTemplates,
-          aggregationPipeline
-        ),
-      };
-    },
-    async getEServiceTemplateInstances({
-      eserviceTemplate,
-      filters,
-      offset,
-      limit,
-    }: {
-      eserviceTemplate: EServiceTemplate;
-      filters: ApiGetEServiceTemplateIstancesFilters;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<EServiceTemplateInstance>> {
-      const { producerName, states } = filters;
-
-      const producerNameFilter = producerName
-        ? {
-            "data.producerName": {
-              $regex: ReadModelRepository.escapeRegExp(producerName),
-              $options: "i",
-            },
-          }
-        : {};
-
-      const descriptorsStateFilter =
-        states.length > 0
-          ? {
-              "data.latestVersion.state": { $in: states },
-            }
-          : {};
-
-      const aggregationPipeline = [
-        {
-          $match: {
-            "data.templateId": eserviceTemplate.id,
-            $or: [
-              { "data.descriptors.1": { $exists: true } },
-              {
-                "data.descriptors": { $size: 1 },
-                "data.descriptors.0.state": {
-                  $ne: descriptorState.draft,
-                },
-              },
-            ],
-          },
-        },
-        {
-          $lookup: {
-            from: "tenants",
-            localField: "data.producerId",
-            foreignField: "data.id",
-            as: "producer",
-          },
-        },
-        {
-          $addFields: {
-            "data.producerName": { $arrayElemAt: ["$producer.data.name", 0] },
-          },
-        },
-        { $match: producerNameFilter },
-        {
-          $addFields: {
-            "data.descriptors": {
-              $filter: {
-                input: "$data.descriptors",
-                as: "descriptor",
-                cond: {
-                  $ne: ["$$descriptor.state", descriptorState.draft],
-                },
-              },
-            },
-          },
-        },
-        {
-          $unwind: "$data.descriptors",
-        },
-        {
-          $sort: {
-            "data.descriptors.version": -1,
-          },
-        },
-        {
-          $group: {
-            _id: "$_id",
-            data: { $first: "$data" },
-            latestVersion: { $first: "$data.descriptors" },
-          },
-        },
-        {
-          $addFields: {
-            "data.latestVersion": "$latestVersion",
-          },
-        },
-        { $match: descriptorsStateFilter },
-        {
-          $project: {
-            id: "$data.id",
-            instanceId: "$data.instanceId",
-            producerName: "$data.producerName",
-            state: "$data.latestVersion.state",
-            templateVersionId: "$data.latestVersion.templateVersionId",
-            lowerProducerName: {
-              $toLower: "$data.producerName",
-            },
-          },
-        },
-        {
-          $sort: { lowerProducerName: 1 },
-        },
-      ];
-
-      const data = await eservices
-        .aggregate(
-          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
-          { allowDiskUse: true }
-        )
-        .map((data) => ({
-          id: data.id,
-          instanceId: data.instanceId,
-          producerName: data.producerName,
-          state: data.state,
-          version: eserviceTemplate.versions.find(
-            (v) => v.id === data.templateVersionId
-          )?.version,
-        }))
-        .toArray();
-
-      const result = z.array(EServiceTemplateInstance).safeParse(data);
-
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse eservice instance items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-
-      return {
-        results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          eservices,
           aggregationPipeline
         ),
       };

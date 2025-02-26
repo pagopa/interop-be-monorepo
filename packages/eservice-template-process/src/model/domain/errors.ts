@@ -2,7 +2,6 @@ import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
-  EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
@@ -28,12 +27,14 @@ export const errorCodes = {
   unchangedAttributes: "0015",
   attributeNotFound: "0016",
   originNotCompliant: "0017",
-  missingTemplateVersionInterface: "0018",
-  missingRiskAnalysis: "0019",
-  interfaceAlreadyExists: "0020",
-  prettyNameDuplicate: "0021",
-  checksumDuplicate: "0022",
-  eServiceDocumentNotFound: "0023",
+  invalidEServiceTemplateVersion: "0018",
+  draftEServiceTemplateVersionAlreadyExists: "0019",
+  missingTemplateVersionInterface: "0020",
+  missingRiskAnalysis: "0021",
+  interfaceAlreadyExists: "0022",
+  prettyNameDuplicate: "0023",
+  checksumDuplicate: "0024",
+  eserviceTemplateDocumentNotFound: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -219,6 +220,26 @@ export function eserviceTemplateNotInDraftState(
   });
 }
 
+export function invalidEServiceTemplateVersion(
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: details,
+    code: "invalidEServiceTemplateVersion",
+    title: "Version is not a valid e-service template version",
+  });
+}
+
+export function draftEServiceTemplateVersionAlreadyExists(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Draft version for EService Template ${eserviceTemplateId} already exists`,
+    code: "draftEServiceTemplateVersionAlreadyExists",
+    title: "Draft version already exists",
+  });
+}
+
 export function missingTemplateVersionInterface(
   templateId: EServiceTemplateId,
   versionId: EServiceTemplateVersionId
@@ -273,13 +294,14 @@ export function checksumDuplicate(
   });
 }
 
-export function eServiceDocumentNotFound(
-  documentId: EServiceDocumentId,
-  eServiceTemplateVersionId: EServiceTemplateVersionId
+export function eserviceTemplateDocumentNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string,
+  documentId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService document ${documentId} not found in template version ${eServiceTemplateVersionId}`,
-    code: "eServiceDocumentNotFound",
-    title: "EService document not found",
+    detail: `Document ${documentId} not found in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
+    code: "eserviceTemplateDocumentNotFound",
+    title: "Document not found",
   });
 }

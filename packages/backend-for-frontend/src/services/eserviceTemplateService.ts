@@ -31,8 +31,10 @@ import {
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   eserviceTemplateVersionNotFound,
+  noVersionInEServiceTemplate,
   tenantNotFound,
 } from "../model/errors.js";
+import { cloneEServiceDocument } from "../utilities/fileUtils.js";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import { verifyAndCreateDocument } from "../utilities/eserviceDocumentUtils.js";
 import { config } from "../config/config.js";
@@ -453,29 +455,67 @@ export function eserviceTemplateServiceBuilder(
         }
       );
     },
-    getEServiceTemplateInstances: async (
+    createEServiceTemplateVersion: async (
       eServiceTemplateId: EServiceTemplateId,
-      producerName: string | undefined,
-      states: bffApi.EServiceDescriptorState[],
-      offset: number,
-      limit: number,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.EServiceTemplateInstances> => {
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
       logger.info(
-        `Retrieving EService template ${eServiceTemplateId} instances`
+        `Creating new version for EService template ${eServiceTemplateId}`
       );
-      return await eserviceTemplateClient.getEServiceTemplateInstances({
-        headers,
-        params: {
-          eServiceTemplateId,
+      const eServiceTemplate =
+        await eserviceTemplateClient.getEServiceTemplateById({
+          params: { eServiceTemplateId },
+          headers,
+        });
+
+      if (eServiceTemplate.versions.length === 0) {
+        throw noVersionInEServiceTemplate(eServiceTemplateId);
+      }
+
+      const retrieveLatestEServiceTemplateVersion = (
+        versions: eserviceTemplateApi.EServiceTemplateVersion[]
+      ): eserviceTemplateApi.EServiceTemplateVersion =>
+        versions.reduce(
+          (latestVersions, curr) =>
+            curr.version > latestVersions.version ? curr : latestVersions,
+          versions[0]
+        );
+
+      const previousVersion = retrieveLatestEServiceTemplateVersion(
+        eServiceTemplate.versions
+      );
+
+      const clonedDocumentsCalls = previousVersion.docs.map((doc) =>
+        cloneEServiceDocument({
+          doc,
+          documentsContainer: config.eserviceTemplateDocumentsContainer,
+          documentsPath: config.eserviceTemplateDocumentsPath,
+          fileManager,
+          logger,
+        })
+      );
+
+      const clonedDocuments = await Promise.all(clonedDocumentsCalls);
+
+      const { id } = await eserviceTemplateClient.createEServiceTemplateVersion(
+        {
+          description: previousVersion.description,
+          voucherLifespan: previousVersion.voucherLifespan,
+          dailyCallsPerConsumer: previousVersion.dailyCallsPerConsumer,
+          dailyCallsTotal: previousVersion.dailyCallsTotal,
+          agreementApprovalPolicy: previousVersion.agreementApprovalPolicy,
+          attributes: previousVersion.attributes,
+          docs: clonedDocuments,
         },
-        queries: {
-          producerName,
-          states,
-          offset,
-          limit,
-        },
-      });
+        {
+          headers,
+          params: {
+            eServiceTemplateId,
+          },
+        }
+      );
+
+      return { id };
     },
     getEServiceTemplateCreators: async (
       {
@@ -535,6 +575,8 @@ export function eserviceTemplateServiceBuilder(
         doc.kind,
         doc.doc,
         documentId,
+        config.eserviceDocumentsContainer,
+        config.eserviceDocumentsPath,
         async (filePath, serverUrls, checksum) => {
           await eserviceTemplateClient.createEServiceTemplateDocument(
             {
@@ -581,12 +623,38 @@ export function eserviceTemplateServiceBuilder(
         });
 
       const stream = await fileManager.get(
-        config.eserviceDocumentsContainer,
+        config.eserviceTemplateDocumentsContainer,
         path,
         logger
       );
 
       return { contentType, document: Buffer.from(stream) };
+    },
+
+    updateEServiceTemplateDocumentById: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      updateEServiceTemplateVersionDocumentSeed: bffApi.UpdateEServiceTemplateVersionDocumentSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceDoc> => {
+      logger.info(
+        `Updating document ${documentId} of version ${eServiceTemplateVersionId} of EServiceTemplate ${eServiceTemplateId}`
+      );
+      const { id, name, contentType, prettyName } =
+        await eserviceTemplateClient.updateEServiceTemplateDocumentById(
+          updateEServiceTemplateVersionDocumentSeed,
+          {
+            params: {
+              eServiceTemplateId,
+              eServiceTemplateVersionId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      return { id, name, contentType, prettyName };
     },
   };
 }

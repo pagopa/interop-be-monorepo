@@ -29,6 +29,7 @@ import {
   updateEServiceTemplateEServiceDescriptionErrorMapper,
   updateEServiceTemplateVersionQuotasErrorMapper,
   updateEServiceTemplateVersionAttributesErrorMapper,
+  createEServiceTemplateVersionErrorMapper,
   getEServiceTemplateErrorMapper,
   createRiskAnalysisErrorMapper,
   deleteRiskAnalysisErrorMapper,
@@ -36,17 +37,16 @@ import {
   deleteEServiceTemplateVersionErrorMapper,
   createEServiceTemplateErrorMapper,
   updateEServiceTemplateErrorMapper,
-  getEServiceTemplateIstancesErrorMapper,
   updateDraftTemplateVersionErrorMapper,
   publishEServiceTemplateVersionErrorMapper,
   createEServiceTemplateDocumentErrorMapper,
   getEServiceTemplateDocumentErrorMapper,
+  documentUpdateErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
-  apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
-  apiDescriptorStateToDescriptorState,
-  eserviceTemplateInstanceToApiEServiceTemplateInstance,
   eserviceTemplateToApiEServiceTemplate,
+  eserviceTemplateVersionToApiEServiceTemplateVersion,
+  apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
 } from "../model/domain/apiConverter.js";
 
 const readModelService = readModelServiceBuilder(
@@ -230,8 +230,36 @@ const eserviceTemplatesRouter = (
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const eserviceTemplateVersion =
+            await eserviceTemplateService.createEServiceTemplateVersion(
+              unsafeBrandId(req.params.eServiceTemplateId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplateVersion.parse(
+                eserviceTemplateVersionToApiEServiceTemplateVersion(
+                  eserviceTemplateVersion
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceTemplateVersionErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .delete(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
@@ -464,7 +492,28 @@ const eserviceTemplatesRouter = (
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId/update",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await eserviceTemplateService.updateDocument(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.documentId),
+            req.body,
+            ctx
+          );
+          return res.status(204);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            documentUpdateErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/riskAnalysis",
@@ -655,52 +704,6 @@ const eserviceTemplatesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceTemplateVersionAttributesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/eservices/templates/:eServiceTemplateId/instances",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const { producerName, states, offset, limit } = req.query;
-
-          const { results, totalCount } =
-            await eserviceTemplateService.getEServiceTemplateIstances(
-              unsafeBrandId(req.params.eServiceTemplateId),
-              {
-                producerName,
-                states: states.map(apiDescriptorStateToDescriptorState),
-              },
-              offset,
-              limit,
-              ctx
-            );
-
-          return res.status(200).send(
-            eserviceTemplateApi.EServiceTemplateInstances.parse({
-              results: results.map(
-                eserviceTemplateInstanceToApiEServiceTemplateInstance
-              ),
-              totalCount,
-            })
-          );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getEServiceTemplateIstancesErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

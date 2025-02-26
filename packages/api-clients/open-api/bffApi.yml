@@ -16088,7 +16088,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
-        - eserviceTemplates
+        - eservices
       summary: Retrieves EService template instances
       description: Retrieves EService template instances
       operationId: getEServiceTemplateInstances
@@ -16461,6 +16461,82 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /eservices/templates/{eServiceTemplateId}/versions:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eserviceTemplates
+      summary: Adds a mew version to the specified e-service template
+      operationId: createEServiceTemplateVersion
+      parameters:
+        - name: eServiceTemplateId
+          in: path
+          description: The E-Service template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: EService template version created.
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -16573,7 +16649,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       tags:
         - eserviceTemplates
       summary: Get an e-service template document
@@ -16656,6 +16732,105 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+            type: array
+  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eserviceTemplates
+      summary: Updates an e-service template document
+      operationId: updateEServiceTemplateDocumentById
+      parameters:
+        - name: eServiceTemplateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eServiceTemplateVersionId
+          in: path
+          description: the version Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: documentId
+          in: path
+          description: the document id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the possible document updatable fields
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateVersionDocumentSeed"
+      responses:
+        "200":
+          description: EService Descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDoc"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService Not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+
   "/status":
     get:
       security: []
@@ -17735,6 +17910,9 @@ components:
           type: array
           items:
             type: string
+        templateVersionId:
+          type: string
+          format: uuid
     CompactEService:
       type: object
       additionalProperties: false
@@ -19787,22 +19965,29 @@ components:
       additionalProperties: false
       required:
         - id
+        - name
+        - producerId
         - producerName
-        - state
-        - version
+        - descriptors
       properties:
         id:
           type: string
           format: uuid
+        name:
+          type: string
+        producerId:
+          type: string
+          format: uuid
         producerName:
           type: string
-        state:
-          $ref: "#/components/schemas/EServiceDescriptorState"
+        activeDescriptor:
+          $ref: "#/components/schemas/CompactDescriptor"
+        descriptors:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactDescriptor"
         instanceId:
           type: string
-        version:
-          type: number
-          format: int32
     EServiceTemplateInstances:
       type: object
       additionalProperties: false
@@ -19811,12 +19996,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplateInstance"
-        totalCount:
-          type: integer
-          format: int32
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - totalCount
+        - pagination
     CatalogEServiceTemplate:
       type: object
       additionalProperties: false
@@ -19988,6 +20172,16 @@ components:
       required:
         - id
         - explicitAttributeVerification
+    UpdateEServiceTemplateVersionDocumentSeed:
+      required:
+        - prettyName
+      type: object
+      additionalProperties: false
+      properties:
+        prettyName:
+          type: string
+          minLength: 5
+          maxLength: 60
     ProblemError:
       properties:
         code:

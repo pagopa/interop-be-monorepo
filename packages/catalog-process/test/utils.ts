@@ -59,7 +59,7 @@ export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
 export const delegations = readModelRepository.delegations;
-export const eServiceTemplates = readModelRepository.eserviceTemplates;
+export const eserviceTemplates = readModelRepository.eserviceTemplates;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -323,5 +323,5 @@ export const addOneEServiceTemplate = async (
   eServiceTemplate: EServiceTemplate
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
-  await writeInReadmodel(eServiceTemplate, eServiceTemplates);
+  await writeInReadmodel(eServiceTemplate, eserviceTemplates);
 };

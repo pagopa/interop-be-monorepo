@@ -59,6 +59,8 @@ export async function verifyAndCreateDocument(
   kind: "INTERFACE" | "DOCUMENT",
   doc: File,
   documentId: string,
+  documentContainer: string,
+  documentPath: string,
   createDocumentHandler: (
     path: string,
     serverUrls: string[],
@@ -82,8 +84,8 @@ export async function verifyAndCreateDocument(
   );
   const filePath = await fileManager.storeBytes(
     {
-      bucket: config.eserviceDocumentsContainer,
-      path: config.eserviceDocumentsPath,
+      bucket: documentContainer,
+      path: documentPath,
       resourceId: documentId,
       name: doc.name,
       content: Buffer.from(await doc.arrayBuffer()),
@@ -95,11 +97,7 @@ export async function verifyAndCreateDocument(
   try {
     await createDocumentHandler(filePath, serverUrls, checksum);
   } catch (error) {
-    await fileManager.delete(
-      config.eserviceDocumentsContainer,
-      filePath,
-      logger
-    );
+    await fileManager.delete(documentContainer, filePath, logger);
     throw error;
   }
 }
@@ -165,6 +163,8 @@ export const verifyAndCreateImportedDoc = async (
     docType,
     file,
     documentId,
+    config.eserviceDocumentsContainer,
+    config.eserviceDocumentsPath,
     async (filePath, serverUrls, checksum) => {
       await catalogProcessClient.createEServiceDocument(
         {

@@ -270,13 +270,7 @@ const tenantsRouter = (
 
     .get(
       "/tenants/attributes/certified",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
+      authorizationMiddleware([ADMIN_ROLE, M2M_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -396,7 +390,7 @@ const tenantsRouter = (
     )
     .post(
       "/tenants/:tenantId/mails",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
@@ -476,7 +470,7 @@ const tenantsRouter = (
     )
     .delete(
       "/tenants/:tenantId/mails/:mailId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {

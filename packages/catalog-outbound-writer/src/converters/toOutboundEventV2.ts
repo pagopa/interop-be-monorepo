@@ -27,7 +27,7 @@ function toOutboundDescriptorV2(
 ): Exact<OutboundEServiceDescriptorV2, EServiceDescriptorV2> {
   return {
     ...descriptor,
-    templateVersionId: undefined, // todo outbound library must be updated
+    templateVersionRef: undefined, // todo outbound library must be updated
     interface:
       descriptor.interface && toOuboundEServiceDocumentV2(descriptor.interface),
     docs: descriptor.docs.map(toOuboundEServiceDocumentV2),
@@ -41,8 +41,7 @@ function toOutboundEServiceV2(
     ...eservice,
     riskAnalysis: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
-    templateId: undefined,
-    instanceId: undefined,
+    templateRef: undefined,
   };
 }
 

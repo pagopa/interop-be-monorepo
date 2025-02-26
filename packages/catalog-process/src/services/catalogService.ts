@@ -443,8 +443,12 @@ async function innerCreateEService(
       .with(false, () => false)
       .with(true, () => seed.eServiceSeed.isClientAccessDelegable)
       .exhaustive(),
-    templateId: seed.eServiceTemplateReferences?.templateId,
-    instanceId: seed.eServiceTemplateReferences?.instanceId,
+    templateRef: seed.eServiceTemplateReferences
+      ? {
+          id: seed.eServiceTemplateReferences.templateId,
+          instanceId: seed.eServiceTemplateReferences.instanceId,
+        }
+      : undefined,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -458,6 +462,8 @@ async function innerCreateEService(
   ) {
     throw inconsistentDailyCalls();
   }
+
+  const templateVersionId = seed.eServiceTemplateReferences?.templateVersionId;
 
   const draftDescriptor: Descriptor = {
     id: generateId(),
@@ -482,7 +488,9 @@ async function innerCreateEService(
     createdAt: creationDate,
     attributes: { certified: [], declared: [], verified: [] },
     rejectionReasons: undefined,
-    templateVersionId: seed.eServiceTemplateReferences?.templateVersionId,
+    templateVersionRef: templateVersionId
+      ? { id: templateVersionId }
+      : undefined,
   };
 
   const eserviceWithDescriptor: EService = {

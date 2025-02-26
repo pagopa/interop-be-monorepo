@@ -10,12 +10,9 @@ import {
   EServiceTemplateVersionState,
   EServiceTemplateVersion,
   EServiceTemplate,
-  DescriptorState,
-  descriptorState,
 } from "pagopa-interop-models";
-import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
-import { EServiceTemplateInstance } from "./models.js";
 
 export function technologyToApiTechnology(
   input: Technology
@@ -172,41 +169,3 @@ export const eserviceTemplateToApiEServiceTemplate = (
   ),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
 });
-
-export function descriptorStateToApiEServiceDescriptorState(
-  input: DescriptorState
-): catalogApi.EServiceDescriptorState {
-  return match<DescriptorState, catalogApi.EServiceDescriptorState>(input)
-    .with(descriptorState.draft, () => "DRAFT")
-    .with(descriptorState.published, () => "PUBLISHED")
-    .with(descriptorState.suspended, () => "SUSPENDED")
-    .with(descriptorState.deprecated, () => "DEPRECATED")
-    .with(descriptorState.archived, () => "ARCHIVED")
-    .with(descriptorState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
-    .exhaustive();
-}
-
-export function apiDescriptorStateToDescriptorState(
-  input: catalogApi.EServiceDescriptorState
-): DescriptorState {
-  return match<catalogApi.EServiceDescriptorState, DescriptorState>(input)
-    .with("DRAFT", () => descriptorState.draft)
-    .with("PUBLISHED", () => descriptorState.published)
-    .with("SUSPENDED", () => descriptorState.suspended)
-    .with("DEPRECATED", () => descriptorState.deprecated)
-    .with("ARCHIVED", () => descriptorState.archived)
-    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
-    .exhaustive();
-}
-
-export function eserviceTemplateInstanceToApiEServiceTemplateInstance(
-  input: EServiceTemplateInstance
-): eserviceTemplateApi.EServiceTemplateInstance {
-  return {
-    id: input.id,
-    producerName: input.producerName,
-    version: input.version,
-    state: descriptorStateToApiEServiceDescriptorState(input.state),
-    instanceId: input.instanceId,
-  };
-}
