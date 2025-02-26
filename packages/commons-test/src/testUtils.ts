@@ -79,6 +79,7 @@ import {
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
+  EServiceTemplateVersionState,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -694,7 +695,8 @@ export const addSomeRandomDelegations = async <
 };
 
 export const getMockEServiceTemplateVersion = (
-  eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>()
+  eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>(),
+  state: EServiceTemplateVersionState = eserviceTemplateVersionState.draft
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
   version: 1,
@@ -706,7 +708,7 @@ export const getMockEServiceTemplateVersion = (
     verified: [],
   },
   docs: [],
-  state: eserviceTemplateVersionState.draft,
+  state,
   voucherLifespan: 60,
   agreementApprovalPolicy: agreementApprovalPolicy.automatic,
 });

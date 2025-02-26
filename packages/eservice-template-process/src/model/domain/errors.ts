@@ -2,7 +2,6 @@ import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
-  EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
@@ -35,7 +34,7 @@ export const errorCodes = {
   interfaceAlreadyExists: "0022",
   prettyNameDuplicate: "0023",
   checksumDuplicate: "0024",
-  eServiceDocumentNotFound: "0025",
+  eserviceTemplateDocumentNotFound: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -295,13 +294,14 @@ export function checksumDuplicate(
   });
 }
 
-export function eServiceDocumentNotFound(
-  documentId: EServiceDocumentId,
-  eServiceTemplateVersionId: EServiceTemplateVersionId
+export function eserviceTemplateDocumentNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string,
+  documentId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService document ${documentId} not found in template version ${eServiceTemplateVersionId}`,
-    code: "eServiceDocumentNotFound",
-    title: "EService document not found",
+    detail: `Document ${documentId} not found in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
+    code: "eserviceTemplateDocumentNotFound",
+    title: "Document not found",
   });
 }
