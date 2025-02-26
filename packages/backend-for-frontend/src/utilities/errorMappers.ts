@@ -231,3 +231,32 @@ export const bffGetCatalogEServiceTemplateErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addEServiceInterfceByTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateIsNotPublished",
+      "eserviceIsNotDraft",
+      "eserviceTemplateInterfaceDataNotValid",
+      "invalidInterfaceContentTypeDetected",
+      "invalidInterfaceFileDetected",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("invalidEserviceRequester", () => HTTP_STATUS_UNAUTHORIZED)
+    .with(
+      "templateDataNotFound",
+      "eserviceTemplateInterfaceNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
+      "eserviceDescriptorDraftNotFound",
+      "interfaceExtractingInfoError",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "eServiceNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

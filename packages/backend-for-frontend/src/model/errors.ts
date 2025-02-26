@@ -58,7 +58,7 @@ export const errorCodes = {
   eserviceTemplateNotInPublishedState: "0048",
   eserviceTemplateNotFound: "0049",
   eserviceTemplateIsNotPublished: "0050",
-  eserviceTemplateInterfceNotFound: "0051",
+  eserviceTemplateInterfaceNotFound: "0051",
   eserviceTemplateInterfaceDataNotValid: "0052",
   tooManyDescriptorForInterfaceWithTemplate: "0053",
   eserviceDescriptorDraftNotFound: "0054",
@@ -535,7 +535,7 @@ export function eserviceTemplateInterfaceNotFound(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
-    code: "eserviceTemplateInterfceNotFound",
+    code: "eserviceTemplateInterfaceNotFound",
     title: "EService template interface document not found",
   });
 }
