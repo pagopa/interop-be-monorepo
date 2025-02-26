@@ -25,7 +25,7 @@ import {
   getMockEService,
 } from "./utils.js";
 
-describe("internalUpdateDescriptorDocument", () => {
+describe("updateTemplateInstanceDescriptorDocument", () => {
   const mockDescriptor = getMockDescriptor();
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
@@ -40,7 +40,7 @@ describe("internalUpdateDescriptorDocument", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.internalUpdateDescriptorDocument(
+    await catalogService.updateTemplateInstanceDescriptorDocument(
       eservice.id,
       descriptor.id,
       mockDocument.id,
@@ -111,7 +111,7 @@ describe("internalUpdateDescriptorDocument", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.internalUpdateDescriptorDocument(
+    await catalogService.updateTemplateInstanceDescriptorDocument(
       eservice.id,
       descriptor.id,
       mockDocument.id,
@@ -135,7 +135,7 @@ describe("internalUpdateDescriptorDocument", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     expect(
-      catalogService.internalUpdateDescriptorDocument(
+      catalogService.updateTemplateInstanceDescriptorDocument(
         mockEService.id,
         mockDescriptor.id,
         mockDocument.id,
@@ -157,7 +157,7 @@ describe("internalUpdateDescriptorDocument", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.internalUpdateDescriptorDocument(
+      catalogService.updateTemplateInstanceDescriptorDocument(
         eservice.id,
         mockDescriptor.id,
         generateId(),
@@ -186,7 +186,7 @@ describe("internalUpdateDescriptorDocument", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.internalUpdateDescriptorDocument(
+      catalogService.updateTemplateInstanceDescriptorDocument(
         eservice.id,
         descriptor.id,
         mockDocument.id,

@@ -1401,7 +1401,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/{eServiceId}/name/update:
+  /templates/eservices/{eServiceId}/name:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1421,8 +1421,8 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceNameUpdateSeed"
-      operationId: internalUpdateEServiceName
-      description: Internal updates the name of an e-service
+      operationId: updateTemplateInstanceName
+      description: Updates the name of a template instance after a template update
       responses:
         "204":
           description: E-Service name updated
@@ -1432,7 +1432,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/{eServiceId}/description/update:
+  /templates/eservices/{eServiceId}/description:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1452,8 +1452,8 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptionUpdateSeed"
-      operationId: internalUpdateEServiceDescription
-      description: Internap update the description of an e-service
+      operationId: updateTemplateInstanceDescription
+      description: Update the description of a template instance after a template update
       responses:
         "204":
           description: E-Service description updated
@@ -1463,7 +1463,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/voucherLifespan/update:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/voucherLifespan:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1490,8 +1490,8 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorVoucherLifespanUpdateSeed"
-      operationId: internalUpdateDescriptorVoucherLifespan
-      description: Internal update voucher lifespan of descriptor
+      operationId: updateTemplateInstanceDescriptorVoucherLifespan
+      description: Update voucher lifespan of a template instance descriptor after template update
       responses:
         "204":
           description: E-Service descriptor voucher lifespan updated
@@ -1501,7 +1501,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/attributes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1509,8 +1509,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      description: Internal update attributes of a descriptor
-      operationId: internalUpdateDescriptorAttributes
+      description: Update attributes of a template instance descriptor after template update
+      operationId: updateTemplateInstanceDescriptorAttributes
       parameters:
         - name: eServiceId
           in: path
@@ -1564,7 +1564,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/documents:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1572,8 +1572,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      description: Internal create a new e-service document
-      operationId: internalCreateDescriptorDocument
+      description: Add a new document in a template instance descriptor after template update
+      operationId: createTemplateInstanceDescriptorDocument
       parameters:
         - name: eServiceId
           in: path
@@ -1612,52 +1612,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
-  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
-    delete:
-      security:
-        - bearerAuth: []
-      tags:
-        - process
-      description: Internal deletes e-service document
-      operationId: internalDeleteDescriptorDocument
-      parameters:
-        - name: eServiceId
-          in: path
-          description: the eservice id
-          required: true
-          schema:
-            type: string
-        - name: descriptorId
-          in: path
-          description: the descriptor Id
-          required: true
-          schema:
-            type: string
-        - name: documentId
-          in: path
-          description: the document id
-          required: true
-          schema:
-            type: string
-      responses:
-        "204":
-          description: Document deleted.
-        "404":
-          description: E-Service descriptor document not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
+                $ref: "#/components/schemas/Problem" 
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1665,8 +1621,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      description: Internal Update e-service document
-      operationId: internalUpdateDescriptorDocument
+      description: Update a document in a template instance descriptor after template update
+      operationId: updateTemplateInstanceDescriptorDocument
       parameters:
         - name: eServiceId
           in: path
@@ -1702,6 +1658,47 @@ paths:
                 $ref: "#/components/schemas/EServiceDoc"
         "404":
           description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      description: Deletes a document in a template instance descriptor after template update
+      operationId: deleteTemplateInstanceDescriptorDocument
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          description: the document id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Document deleted.
+        "404":
+          description: E-Service descriptor document not found
           content:
             application/json:
               schema:

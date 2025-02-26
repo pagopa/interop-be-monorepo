@@ -376,21 +376,21 @@ export const rejectDelegatedEServiceDescriptorErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalUpdateEServiceNameErrorMapper = (
+export const updateTemplateInstanceNameErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalUpdateEServiceDescriptionErrorMapper = (
+export const updateTemplateInstanceDescriptionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalUpdateDescriptorVoucherLifespanErrorMapper = (
+export const updateTemplateInstanceDescriptorVoucherLifespanErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -398,7 +398,7 @@ export const internalUpdateDescriptorVoucherLifespanErrorMapper = (
     .with("eServiceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalUpdateDescriptorAttributesErrorMapper = (
+export const updateTemplateInstanceDescriptorAttributesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -416,7 +416,7 @@ export const internalUpdateDescriptorAttributesErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalCreateDescriptorDocumentErrorMapper = (
+export const createTemplateInstanceDescriptorDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -428,7 +428,7 @@ export const internalCreateDescriptorDocumentErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalDeleteDescriptorDocumentErrorMapper = (
+export const deleteTemplateInstanceDescriptorDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -439,7 +439,7 @@ export const internalDeleteDescriptorDocumentErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalUpdateDescriptorDocumentErrorMapper = (
+export const updateTemplateInstanceDescriptorDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

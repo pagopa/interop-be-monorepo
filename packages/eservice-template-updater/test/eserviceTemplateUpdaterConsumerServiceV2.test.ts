@@ -30,13 +30,13 @@ import {
 import { beforeAll, describe, expect, it, vi, afterEach } from "vitest";
 import * as commons from "pagopa-interop-commons";
 
-const internalUpdateEServiceNameFn = vi.fn();
-const internalUpdateEServiceDescriptionFn = vi.fn();
-const internalUpdateDescriptorAttributesFn = vi.fn();
-const internalUpdateDescriptorVoucherLifespanFn = vi.fn();
-const internalCreateDescriptorDocumentFn = vi.fn();
-const internalUpdateDescriptorDocumentFn = vi.fn();
-const internalDeleteDescriptorDocumentFn = vi.fn();
+const updateTemplateInstanceNameFn = vi.fn();
+const updateTemplateInstanceDescriptionFn = vi.fn();
+const updateTemplateInstanceDescriptorAttributesFn = vi.fn();
+const updateTemplateInstanceDescriptorVoucherLifespanFn = vi.fn();
+const createTemplateInstanceDescriptorDocumentFn = vi.fn();
+const updateTemplateInstanceDescriptorDocumentFn = vi.fn();
+const deleteTemplateInstanceDescriptorDocumentFn = vi.fn();
 
 const copyDocumentFn = vi.fn();
 
@@ -48,14 +48,14 @@ vi.doMock("pagopa-interop-api-clients", () => ({
   catalogApi: {
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     createProcessApiClient: () => ({
-      internalUpdateEServiceName: internalUpdateEServiceNameFn,
-      internalUpdateEServiceDescription: internalUpdateEServiceDescriptionFn,
-      internalUpdateDescriptorAttributes: internalUpdateDescriptorAttributesFn,
-      internalUpdateDescriptorVoucherLifespan:
-        internalUpdateDescriptorVoucherLifespanFn,
-      internalCreateDescriptorDocument: internalCreateDescriptorDocumentFn,
-      internalUpdateDescriptorDocument: internalUpdateDescriptorDocumentFn,
-      internalDeleteDescriptorDocument: internalDeleteDescriptorDocumentFn,
+      updateTemplateInstanceName: updateTemplateInstanceNameFn,
+      updateTemplateInstanceDescription: updateTemplateInstanceDescriptionFn,
+      updateTemplateInstanceDescriptorAttributes: updateTemplateInstanceDescriptorAttributesFn,
+      updateTemplateInstanceDescriptorVoucherLifespan:
+        updateTemplateInstanceDescriptorVoucherLifespanFn,
+      createTemplateInstanceDescriptorDocument: createTemplateInstanceDescriptorDocumentFn,
+      updateTemplateInstanceDescriptorDocument: updateTemplateInstanceDescriptorDocumentFn,
+      deleteTemplateInstanceDescriptorDocument: deleteTemplateInstanceDescriptorDocumentFn,
     }),
   },
 }));
@@ -95,16 +95,16 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
   });
 
   afterEach(() => {
-    internalUpdateEServiceNameFn.mockClear();
-    internalUpdateEServiceDescriptionFn.mockClear();
-    internalUpdateDescriptorAttributesFn.mockClear();
-    internalUpdateDescriptorVoucherLifespanFn.mockClear();
-    internalCreateDescriptorDocumentFn.mockClear();
-    internalUpdateDescriptorDocumentFn.mockClear();
-    internalDeleteDescriptorDocumentFn.mockClear();
+    updateTemplateInstanceNameFn.mockClear();
+    updateTemplateInstanceDescriptionFn.mockClear();
+    updateTemplateInstanceDescriptorAttributesFn.mockClear();
+    updateTemplateInstanceDescriptorVoucherLifespanFn.mockClear();
+    createTemplateInstanceDescriptorDocumentFn.mockClear();
+    updateTemplateInstanceDescriptorDocumentFn.mockClear();
+    deleteTemplateInstanceDescriptorDocumentFn.mockClear();
   });
 
-  it("The consumer should call the internalUpdateEServiceName route on EServiceTemplateNameUpdated event", async () => {
+  it("The consumer should call the updateTemplateInstanceName route on EServiceTemplateNameUpdated event", async () => {
     const payload: EServiceTemplateNameUpdatedV2 = {
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
     };
@@ -134,8 +134,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(internalUpdateEServiceNameFn).toHaveBeenCalledTimes(3);
-    expect(internalUpdateEServiceNameFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceNameFn).toHaveBeenCalledTimes(3);
+    expect(updateTemplateInstanceNameFn).toHaveBeenCalledWith(
       { name: eserviceTemplate.name },
       {
         params: {
@@ -144,7 +144,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateEServiceNameFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceNameFn).toHaveBeenCalledWith(
       { name: eserviceTemplate.name },
       {
         params: {
@@ -153,7 +153,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateEServiceNameFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceNameFn).toHaveBeenCalledWith(
       { name: eserviceTemplate.name },
       {
         params: {
@@ -164,7 +164,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     );
   });
 
-  it("The consumer should call the internalUpdateEServiceDescription route on EServiceTemplateVersionAttributesUpdated event", async () => {
+  it("The consumer should call the updateTemplateInstanceDescription route on EServiceTemplateVersionAttributesUpdated event", async () => {
     const payload: EServiceTemplateEServiceDescriptionUpdatedV2 = {
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
     };
@@ -194,8 +194,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(internalUpdateEServiceDescriptionFn).toHaveBeenCalledTimes(3);
-    expect(internalUpdateEServiceDescriptionFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledTimes(3);
+    expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
       { description: eserviceTemplate.eserviceDescription },
       {
         params: {
@@ -204,7 +204,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateEServiceDescriptionFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
       { description: eserviceTemplate.eserviceDescription },
       {
         params: {
@@ -213,7 +213,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateEServiceDescriptionFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
       { description: eserviceTemplate.eserviceDescription },
       {
         params: {
@@ -224,7 +224,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     );
   });
 
-  it("The consumer should call the internalUpdateDescriptorAttributes route on EServiceTemplateVersionAttributesUpdated event", async () => {
+  it("The consumer should call the updateTemplateInstanceDescriptorAttributes route on EServiceTemplateVersionAttributesUpdated event", async () => {
     const certifiedAttrId1 = generateId<AttributeId>();
     const certifiedAttrId2 = generateId<AttributeId>();
     const verifiedAttrId = generateId<AttributeId>();
@@ -311,8 +311,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(internalUpdateDescriptorAttributesFn).toHaveBeenCalledTimes(2);
-    expect(internalUpdateDescriptorAttributesFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorAttributesFn).toHaveBeenCalledTimes(2);
+    expect(updateTemplateInstanceDescriptorAttributesFn).toHaveBeenCalledWith(
       updatedVersion.attributes,
       {
         params: {
@@ -322,7 +322,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateDescriptorAttributesFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorAttributesFn).toHaveBeenCalledWith(
       updatedVersion.attributes,
       {
         params: {
@@ -332,7 +332,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateDescriptorAttributesFn).not.toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
       updatedVersion.attributes,
       {
         params: {
@@ -344,7 +344,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     );
   });
 
-  it("The consumer should call the internalUpdateDescriptorVoucherLifespan route on EServiceTemplateVersionQuotasUpdated event", async () => {
+  it("The consumer should call the updateTemplateInstanceDescriptorVoucherLifespan route on EServiceTemplateVersionQuotasUpdated event", async () => {
     const updatedVoucherLifespan = 1000;
 
     const updatedVersion: EServiceTemplateVersion = {
@@ -419,8 +419,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(internalUpdateDescriptorVoucherLifespanFn).toHaveBeenCalledTimes(2);
-    expect(internalUpdateDescriptorVoucherLifespanFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorVoucherLifespanFn).toHaveBeenCalledTimes(2);
+    expect(updateTemplateInstanceDescriptorVoucherLifespanFn).toHaveBeenCalledWith(
       { voucherLifespan: updatedVoucherLifespan },
       {
         params: {
@@ -430,7 +430,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateDescriptorVoucherLifespanFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorVoucherLifespanFn).toHaveBeenCalledWith(
       { voucherLifespan: updatedVoucherLifespan },
       {
         params: {
@@ -440,7 +440,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateDescriptorAttributesFn).not.toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
       { voucherLifespan: updatedVoucherLifespan },
       {
         params: {
@@ -452,7 +452,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     );
   });
 
-  it("The consumer should call the internalCreateDescriptorDocument route on EServiceTemplateVersionDocumentAdded event", async () => {
+  it("The consumer should call the createTemplateInstanceDescriptorDocument route on EServiceTemplateVersionDocumentAdded event", async () => {
     const oldDocument: Document = {
       ...getMockDocument(),
       checksum: "checksum1",
@@ -552,8 +552,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       serverUrls: [],
     };
 
-    expect(internalCreateDescriptorDocumentFn).toHaveBeenCalledTimes(1);
-    expect(internalCreateDescriptorDocumentFn).toHaveBeenCalledWith(
+    expect(createTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledTimes(1);
+    expect(createTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledWith(
       expectedDocument,
       {
         params: {
@@ -563,7 +563,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalCreateDescriptorDocumentFn).not.toHaveBeenCalledWith(
+    expect(createTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalledWith(
       expectedDocument,
       {
         params: {
@@ -573,7 +573,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateDescriptorAttributesFn).not.toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
       expectedDocument,
       {
         params: {
@@ -585,7 +585,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     );
   });
 
-  it("The consumer should call the internalUpdateDescriptorDocument route on EServiceTemplateVersionDocumentUpdated event", async () => {
+  it("The consumer should call the updateTemplateInstanceDescriptorDocument route on EServiceTemplateVersionDocumentUpdated event", async () => {
     const oldDocument: Document = {
       ...getMockDocument(),
       checksum: "checksum1",
@@ -672,8 +672,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(internalUpdateDescriptorDocumentFn).toHaveBeenCalledTimes(1);
-    expect(internalUpdateDescriptorDocumentFn).not.toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledTimes(1);
+    expect(updateTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalledWith(
       { prettyName: updatedDocument.prettyName },
       {
         params: {
@@ -684,7 +684,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateDescriptorDocumentFn).toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledWith(
       { prettyName: updatedDocument.prettyName },
       {
         params: {
@@ -695,7 +695,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalUpdateDescriptorAttributesFn).not.toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
       { prettyName: updatedDocument.prettyName },
       {
         params: {
@@ -708,7 +708,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     );
   });
 
-  it("The consumer should call the internalDeleteDescriptorDocument route on EServiceTemplateVersionDocumentDeleted event", async () => {
+  it("The consumer should call the deleteTemplateInstanceDescriptorDocument route on EServiceTemplateVersionDocumentDeleted event", async () => {
     const oldDocument: Document = {
       ...getMockDocument(),
       checksum: "checksum1",
@@ -794,8 +794,8 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(internalDeleteDescriptorDocumentFn).toHaveBeenCalledTimes(1);
-    expect(internalDeleteDescriptorDocumentFn).not.toHaveBeenCalledWith(
+    expect(deleteTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledTimes(1);
+    expect(deleteTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalledWith(
       undefined,
       {
         params: {
@@ -806,7 +806,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(internalDeleteDescriptorDocumentFn).toHaveBeenCalledWith(undefined, {
+    expect(deleteTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledWith(undefined, {
       params: {
         eServiceId: eserviceInstance2.id,
         descriptorId: descriptorInstance2.id,
@@ -814,7 +814,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       },
       headers: testHeaders,
     });
-    expect(internalUpdateDescriptorAttributesFn).not.toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
       undefined,
       {
         params: {
@@ -868,13 +868,13 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(internalUpdateEServiceNameFn).not.toHaveBeenCalled();
-    expect(internalUpdateEServiceDescriptionFn).not.toHaveBeenCalled();
-    expect(internalUpdateDescriptorAttributesFn).not.toHaveBeenCalled();
-    expect(internalUpdateDescriptorVoucherLifespanFn).not.toHaveBeenCalled();
-    expect(internalCreateDescriptorDocumentFn).not.toHaveBeenCalled();
-    expect(internalUpdateDescriptorDocumentFn).not.toHaveBeenCalled();
-    expect(internalDeleteDescriptorDocumentFn).not.toHaveBeenCalled();
+    expect(updateTemplateInstanceNameFn).not.toHaveBeenCalled();
+    expect(updateTemplateInstanceDescriptionFn).not.toHaveBeenCalled();
+    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalled();
+    expect(updateTemplateInstanceDescriptorVoucherLifespanFn).not.toHaveBeenCalled();
+    expect(createTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalled();
+    expect(updateTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalled();
+    expect(deleteTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalled();
   });
 
   it("Should throw missingKafkaMessageDataError when eservice template data is missing", async () => {

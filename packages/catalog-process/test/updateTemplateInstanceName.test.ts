@@ -24,7 +24,7 @@ import {
   getMockEService,
 } from "./utils.js";
 
-describe("internalUpdateEServiceName", () => {
+describe("updateTemplateInstanceName", () => {
   it("should write on event-store for the internal update of the eService name without instanceId", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -40,7 +40,7 @@ describe("internalUpdateEServiceName", () => {
 
     const updatedName = "eservice new name";
 
-    await catalogService.internalUpdateEServiceName(eservice.id, updatedName, {
+    await catalogService.updateTemplateInstanceName(eservice.id, updatedName, {
       authData: getMockAuthData(eservice.producerId),
       correlationId: generateId(),
       serviceName: "",
@@ -84,7 +84,7 @@ describe("internalUpdateEServiceName", () => {
 
     const updatedName = "eservice new name";
 
-    await catalogService.internalUpdateEServiceName(eservice.id, updatedName, {
+    await catalogService.updateTemplateInstanceName(eservice.id, updatedName, {
       authData: getMockAuthData(eservice.producerId),
       correlationId: generateId(),
       serviceName: "",
@@ -129,7 +129,7 @@ describe("internalUpdateEServiceName", () => {
 
     await addOneEService(eservice);
 
-    await catalogService.internalUpdateEServiceName(eservice.id, updatedName, {
+    await catalogService.updateTemplateInstanceName(eservice.id, updatedName, {
       authData: getMockAuthData(eservice.producerId),
       correlationId: generateId(),
       serviceName: "",
@@ -147,7 +147,7 @@ describe("internalUpdateEServiceName", () => {
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
     await expect(
-      catalogService.internalUpdateEServiceName(
+      catalogService.updateTemplateInstanceName(
         eservice.id,
         "eservice new name",
         {
@@ -184,7 +184,7 @@ describe("internalUpdateEServiceName", () => {
 
     const updatedName = duplicateName;
     await expect(
-      catalogService.internalUpdateEServiceName(eservice.id, updatedName, {
+      catalogService.updateTemplateInstanceName(eservice.id, updatedName, {
         authData: getMockAuthData(eservice.producerId),
         correlationId: generateId(),
         serviceName: "",

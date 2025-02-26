@@ -21,7 +21,7 @@ import {
   getMockEService,
 } from "./utils.js";
 
-describe("internalinternalUpdateEserviceDescription", () => {
+describe("internalupdateTemplateInstanceDescription", () => {
   it("should write on event-store for the internal update of the eService description", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -35,7 +35,7 @@ describe("internalinternalUpdateEserviceDescription", () => {
 
     const updatedDescription = "eservice new description";
 
-    await catalogService.internalUpdateEServiceDescription(
+    await catalogService.updateTemplateInstanceDescription(
       eservice.id,
       updatedDescription,
       {
@@ -70,7 +70,7 @@ describe("internalinternalUpdateEserviceDescription", () => {
     const eservice = getMockEService();
 
     expect(
-      catalogService.internalUpdateEServiceDescription(
+      catalogService.updateTemplateInstanceDescription(
         eservice.id,
         "eservice new description",
         {

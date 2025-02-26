@@ -60,13 +60,13 @@ import {
   approveDelegatedEServiceDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   updateEServiceFlagsErrorMapper,
-  internalUpdateEServiceNameErrorMapper,
-  internalUpdateEServiceDescriptionErrorMapper,
-  internalUpdateDescriptorVoucherLifespanErrorMapper,
-  internalUpdateDescriptorAttributesErrorMapper,
-  internalCreateDescriptorDocumentErrorMapper,
-  internalUpdateDescriptorDocumentErrorMapper,
-  internalDeleteDescriptorDocumentErrorMapper,
+  updateTemplateInstanceNameErrorMapper,
+  updateTemplateInstanceDescriptionErrorMapper,
+  updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
+  updateTemplateInstanceDescriptorAttributesErrorMapper,
+  createTemplateInstanceDescriptorDocumentErrorMapper,
+  updateTemplateInstanceDescriptorDocumentErrorMapper,
+  deleteTemplateInstanceDescriptorDocumentErrorMapper,
   createEServiceInstanceFromTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -946,13 +946,13 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/internal/eservices/:eServiceId/name/update",
+      "/templates/eservices/:eServiceId/name",
       authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.internalUpdateEServiceName(
+          await catalogService.updateTemplateInstanceName(
             unsafeBrandId(req.params.eServiceId),
             req.body.name,
             ctx
@@ -961,7 +961,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalUpdateEServiceNameErrorMapper,
+            updateTemplateInstanceNameErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -970,13 +970,13 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/internal/eservices/:eServiceId/description/update",
+      "/templates/eservices/:eServiceId/description",
       authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.internalUpdateEServiceDescription(
+          await catalogService.updateTemplateInstanceDescription(
             unsafeBrandId(req.params.eServiceId),
             req.body.description,
             ctx
@@ -985,7 +985,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalUpdateEServiceDescriptionErrorMapper,
+            updateTemplateInstanceDescriptionErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -994,13 +994,13 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/internal/eservices/:eServiceId/descriptors/:descriptorId/voucherLifespan/update",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/voucherLifespan",
       authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.internalUpdateDescriptorVoucherLifespan(
+          await catalogService.updateTemplateInstanceDescriptorVoucherLifespan(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body.voucherLifespan,
@@ -1010,7 +1010,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalUpdateDescriptorVoucherLifespanErrorMapper,
+            updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -1019,13 +1019,13 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/internal/eservices/:eServiceId/descriptors/:descriptorId/attributes/update",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/attributes",
       authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.internalUpdateDescriptorAttributes(
+          await catalogService.updateTemplateInstanceDescriptorAttributes(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1035,7 +1035,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalUpdateDescriptorAttributesErrorMapper,
+            updateTemplateInstanceDescriptorAttributesErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -1044,13 +1044,13 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/internal/eservices/:eServiceId/descriptors/:descriptorId/documents",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents",
       authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.internalCreateDescriptorDocument(
+          await catalogService.createTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1060,7 +1060,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalCreateDescriptorDocumentErrorMapper,
+            createTemplateInstanceDescriptorDocumentErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -1069,13 +1069,13 @@ const eservicesRouter = (
       }
     )
     .delete(
-      "/internal/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.internalDeleteDescriptorDocument(
+          await catalogService.deleteTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1085,7 +1085,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalDeleteDescriptorDocumentErrorMapper,
+            deleteTemplateInstanceDescriptorDocumentErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -1094,13 +1094,13 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/internal/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.internalUpdateDescriptorDocument(
+          await catalogService.updateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
@@ -1111,7 +1111,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalUpdateDescriptorDocumentErrorMapper,
+            updateTemplateInstanceDescriptorDocumentErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

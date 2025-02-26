@@ -64,7 +64,7 @@ export async function handleMessageV2({
         refreshableToken,
         correlationId,
         async (instance, headers) => {
-          await catalogProcess.client.internalUpdateEServiceName(
+          await catalogProcess.client.updateTemplateInstanceName(
             { name: newName },
             {
               params: {
@@ -86,7 +86,7 @@ export async function handleMessageV2({
           refreshableToken,
           correlationId,
           async (instance, headers) => {
-            await catalogProcess.client.internalUpdateEServiceDescription(
+            await catalogProcess.client.updateTemplateInstanceDescription(
               { description: newDescription },
               {
                 params: {
@@ -111,7 +111,7 @@ export async function handleMessageV2({
         refreshableToken,
         correlationId,
         async (instance, descriptor, headers) => {
-          await catalogProcess.client.internalUpdateDescriptorAttributes(
+          await catalogProcess.client.updateTemplateInstanceDescriptorAttributes(
             attributes,
             {
               params: {
@@ -132,7 +132,7 @@ export async function handleMessageV2({
         refreshableToken,
         correlationId,
         async (instance, descriptor, headers) => {
-          await catalogProcess.client.internalUpdateDescriptorVoucherLifespan(
+          await catalogProcess.client.updateTemplateInstanceDescriptorVoucherLifespan(
             { voucherLifespan: eserviceTemplateVersion.voucherLifespan },
             {
               params: {
@@ -180,7 +180,7 @@ export async function handleMessageV2({
           );
 
           try {
-            await catalogProcess.client.internalCreateDescriptorDocument(
+            await catalogProcess.client.createTemplateInstanceDescriptorDocument(
               clonedDoc,
               {
                 params: {
@@ -225,7 +225,7 @@ export async function handleMessageV2({
             return;
           }
 
-          await catalogProcess.client.internalUpdateDescriptorDocument(
+          await catalogProcess.client.updateTemplateInstanceDescriptorDocument(
             { prettyName: updatedEServiceTemplateDoc.prettyName },
             {
               params: {
@@ -258,7 +258,7 @@ export async function handleMessageV2({
             return;
           }
 
-          await catalogProcess.client.internalDeleteDescriptorDocument(
+          await catalogProcess.client.deleteTemplateInstanceDescriptorDocument(
             undefined,
             {
               params: {

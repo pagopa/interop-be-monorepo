@@ -28,7 +28,7 @@ import {
   buildDocumentSeed,
 } from "./utils.js";
 
-describe("internalCreateDescriptorDocument", () => {
+describe("createTemplateInstanceDescriptorDocument", () => {
   const mockDescriptor = getMockDescriptor();
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
@@ -54,7 +54,7 @@ describe("internalCreateDescriptorDocument", () => {
 
       const newDocument = buildDocumentSeed();
 
-      await catalogService.internalCreateDescriptorDocument(
+      await catalogService.createTemplateInstanceDescriptorDocument(
         eservice.id,
         descriptor.id,
         newDocument,
@@ -124,7 +124,7 @@ describe("internalCreateDescriptorDocument", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalCreateDescriptorDocument(
+    await catalogService.createTemplateInstanceDescriptorDocument(
       eservice.id,
       descriptor.id,
       newDocument,
@@ -148,7 +148,7 @@ describe("internalCreateDescriptorDocument", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
-      catalogService.internalCreateDescriptorDocument(
+      catalogService.createTemplateInstanceDescriptorDocument(
         mockEService.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
@@ -169,7 +169,7 @@ describe("internalCreateDescriptorDocument", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.internalCreateDescriptorDocument(
+      catalogService.createTemplateInstanceDescriptorDocument(
         eservice.id,
         mockDescriptor.id,
         buildInterfaceSeed(),

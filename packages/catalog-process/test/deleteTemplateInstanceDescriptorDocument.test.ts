@@ -62,7 +62,7 @@ describe("delete Document", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document.path);
 
-    await catalogService.internalDeleteDescriptorDocument(
+    await catalogService.deleteTemplateInstanceDescriptorDocument(
       eservice.id,
       descriptor.id,
       document.id,
@@ -124,7 +124,7 @@ describe("delete Document", () => {
 
     await addOneEService(eservice);
     await expect(
-      catalogService.internalDeleteDescriptorDocument(
+      catalogService.deleteTemplateInstanceDescriptorDocument(
         eservice.id,
         descriptor.id,
         mockDocument.id,
@@ -146,7 +146,7 @@ describe("delete Document", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     await expect(
-      catalogService.internalDeleteDescriptorDocument(
+      catalogService.deleteTemplateInstanceDescriptorDocument(
         mockEService.id,
         mockDescriptor.id,
         mockDocument.id,
@@ -168,7 +168,7 @@ describe("delete Document", () => {
     await addOneEService(eservice);
 
     await expect(
-      catalogService.internalDeleteDescriptorDocument(
+      catalogService.deleteTemplateInstanceDescriptorDocument(
         eservice.id,
         mockDescriptor.id,
         mockDocument.id,

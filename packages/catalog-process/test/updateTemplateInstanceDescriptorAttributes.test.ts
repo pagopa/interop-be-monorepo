@@ -33,7 +33,7 @@ import {
   readLastEserviceEvent,
 } from "./utils.js";
 
-describe("internalUpdateDescriptorAttributes", () => {
+describe("updateTemplateInstanceDescriptorAttributes", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
   const mockCertifiedAttribute2 = getMockAttribute(attributeKind.certified);
   const mockCertifiedAttribute3 = getMockAttribute(attributeKind.certified);
@@ -138,7 +138,7 @@ describe("internalUpdateDescriptorAttributes", () => {
         ],
       };
 
-      await catalogService.internalUpdateDescriptorAttributes(
+      await catalogService.updateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -190,7 +190,7 @@ describe("internalUpdateDescriptorAttributes", () => {
 
       await addOneEService(mockEService);
 
-      await catalogService.internalUpdateDescriptorAttributes(
+      await catalogService.updateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -230,7 +230,7 @@ describe("internalUpdateDescriptorAttributes", () => {
 
     await addOneEService(mockEService);
 
-    await catalogService.internalUpdateDescriptorAttributes(
+    await catalogService.updateTemplateInstanceDescriptorAttributes(
       mockEService.id,
       mockDescriptor.id,
       {
@@ -272,7 +272,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     };
 
     expect(
-      catalogService.internalUpdateDescriptorAttributes(
+      catalogService.updateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -305,7 +305,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.internalUpdateDescriptorAttributes(
+      catalogService.updateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -349,7 +349,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.internalUpdateDescriptorAttributes(
+      catalogService.updateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {
@@ -392,7 +392,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.internalUpdateDescriptorAttributes(
+      catalogService.updateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {
@@ -439,7 +439,7 @@ describe("internalUpdateDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.internalUpdateDescriptorAttributes(
+      catalogService.updateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {

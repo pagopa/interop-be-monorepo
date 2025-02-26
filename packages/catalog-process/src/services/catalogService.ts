@@ -2245,7 +2245,7 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
-    async internalUpdateEServiceName(
+    async updateTemplateInstanceName(
       eserviceId: EServiceId,
       newName: string,
       { correlationId, logger }: WithLogger<AppContext>
@@ -2280,7 +2280,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async internalUpdateEServiceDescription(
+    async updateTemplateInstanceDescription(
       eserviceId: EServiceId,
       description: string,
       { correlationId, logger }: WithLogger<AppContext>
@@ -2304,7 +2304,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async internalUpdateDescriptorVoucherLifespan(
+    async updateTemplateInstanceDescriptorVoucherLifespan(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       voucherLifespan: number,
@@ -2335,7 +2335,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async internalUpdateDescriptorAttributes(
+    async updateTemplateInstanceDescriptorAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.AttributesSeed,
@@ -2384,7 +2384,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async internalCreateDescriptorDocument(
+    async createTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: catalogApi.CreateEServiceDescriptorDocumentSeed,
@@ -2436,7 +2436,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async internalDeleteDescriptorDocument(
+    async deleteTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
@@ -2476,7 +2476,7 @@ export function catalogServiceBuilder(
       );
     },
 
-    async internalUpdateDescriptorDocument(
+    async updateTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
