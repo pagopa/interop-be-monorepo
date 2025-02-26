@@ -28,12 +28,14 @@ export const errorCodes = {
   unchangedAttributes: "0015",
   attributeNotFound: "0016",
   originNotCompliant: "0017",
-  missingTemplateVersionInterface: "0018",
-  missingRiskAnalysis: "0019",
-  interfaceAlreadyExists: "0020",
-  prettyNameDuplicate: "0021",
-  checksumDuplicate: "0022",
-  eServiceDocumentNotFound: "0023",
+  invalidEServiceTemplateVersion: "0018",
+  draftEServiceTemplateVersionAlreadyExists: "0019",
+  missingTemplateVersionInterface: "0020",
+  missingRiskAnalysis: "0021",
+  interfaceAlreadyExists: "0022",
+  prettyNameDuplicate: "0023",
+  checksumDuplicate: "0024",
+  eServiceDocumentNotFound: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -216,6 +218,26 @@ export function eserviceTemplateNotInDraftState(
     detail: `EService Template ${eserviceTemplateId} is not in draft state`,
     code: "eserviceTemplateNotInDraftState",
     title: "EService Template not in draft state",
+  });
+}
+
+export function invalidEServiceTemplateVersion(
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: details,
+    code: "invalidEServiceTemplateVersion",
+    title: "Version is not a valid e-service template version",
+  });
+}
+
+export function draftEServiceTemplateVersionAlreadyExists(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Draft version for EService Template ${eserviceTemplateId} already exists`,
+    code: "draftEServiceTemplateVersionAlreadyExists",
+    title: "Draft version already exists",
   });
 }
 

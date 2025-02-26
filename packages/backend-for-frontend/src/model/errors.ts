@@ -51,8 +51,9 @@ export const errorCodes = {
   clientAssertionPublicKeyNotFound: "0042",
   eserviceDelegated: "0043",
   delegatedEserviceNotExportable: "0044",
-  eserviceTemplateVersionNotFound: "0045",
-  catalogEServiceTemplatePublishedVersionNotFound: "0046",
+  noVersionInEServiceTemplate: "0045",
+  eserviceTemplateVersionNotFound: "0046",
+  catalogEServiceTemplatePublishedVersionNotFound: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -438,6 +439,16 @@ export function delegatedEserviceNotExportable(
     detail: `Impossibile to export Eservice with a valid delegation for producer ${delegatorId}`,
     code: "delegatedEserviceNotExportable",
     title: "Delegated Eservice is not exportable",
+  });
+}
+
+export function noVersionInEServiceTemplate(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No version found in Eservice Template ${eserviceTemplateId}`,
+    code: "noVersionInEServiceTemplate",
+    title: "No version found in Eservice Template",
   });
 }
 
