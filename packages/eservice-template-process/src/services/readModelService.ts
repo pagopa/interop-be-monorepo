@@ -280,7 +280,7 @@ export function readModelServiceBuilder({
       const aggregationPipeline = [
         {
           $match: {
-            "data.templateId": eserviceTemplate.id,
+            "data.templateRef.id": eserviceTemplate.id,
             $or: [
               { "data.descriptors.1": { $exists: true } },
               {
@@ -346,7 +346,7 @@ export function readModelServiceBuilder({
             instanceId: "$data.instanceId",
             producerName: "$data.producerName",
             state: "$data.latestVersion.state",
-            templateVersionId: "$data.latestVersion.templateVersionId",
+            templateVersionId: "$data.latestVersion.templateVersionRef.id",
             lowerProducerName: {
               $toLower: "$data.producerName",
             },
