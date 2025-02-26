@@ -2329,7 +2329,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const templateId = eservice.data.templateId;
+      const templateId = eservice.data.templateRef?.id;
       if (!templateId) {
         throw eServiceNotAnInstance(eserviceId);
       }
@@ -2344,7 +2344,7 @@ export function catalogServiceBuilder(
       );
       if (
         eservice.data.descriptors.some(
-          (d) => d.templateVersionId === lastVersion.id
+          (d) => d.templateVersionRef?.id === lastVersion.id
         )
       ) {
         throw eServiceAlreadyUpgraded(eserviceId);
@@ -2379,7 +2379,7 @@ export function catalogServiceBuilder(
       const newVersion = nextDescriptorVersion(eservice.data);
       const newDescriptor: Descriptor = {
         id: generateId(),
-        templateVersionId: lastVersion.id,
+        templateVersionRef: lastVersion.id ? { id: lastVersion.id } : undefined,
         description: lastVersion.description,
         version: newVersion,
         interface: undefined,

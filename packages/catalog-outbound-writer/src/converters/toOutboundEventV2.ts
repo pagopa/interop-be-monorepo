@@ -31,7 +31,6 @@ function toOutboundDescriptorV2(
     interface:
       descriptor.interface && toOuboundEServiceDocumentV2(descriptor.interface),
     docs: descriptor.docs.map(toOuboundEServiceDocumentV2),
-    templateVersionId: undefined, // TODO: update outbound model
   };
 }
 

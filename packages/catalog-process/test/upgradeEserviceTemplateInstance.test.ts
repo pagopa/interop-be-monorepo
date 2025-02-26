@@ -92,11 +92,11 @@ describe("upgrade eservice template instance", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateId: template.id,
+      templateRef: { id: template.id },
       descriptors: [
         {
           ...mockDescriptor,
-          templateVersionId: firstTemplateVersion.id,
+          templateVersionRef: { id: firstTemplateVersion.id },
           version: "1",
           state: descriptorState.published,
           interface: undefined,
@@ -180,7 +180,7 @@ describe("upgrade eservice template instance", () => {
         Number(writtenPayload.eservice?.descriptors[1].createdAt)
       ),
       docs: [expectedDocument1, expectedDocument2],
-      templateVersionId: secondTemplateVersion.id,
+      templateVersionRef: { id: secondTemplateVersion.id },
       description: secondTemplateVersion.description,
       state: descriptorState.draft,
       voucherLifespan: secondTemplateVersion.voucherLifespan,
@@ -263,11 +263,11 @@ describe("upgrade eservice template instance", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateId: template.id,
+      templateRef: { id: template.id },
       descriptors: [
         {
           ...mockDescriptor,
-          templateVersionId: firstTemplateVersion.id,
+          templateVersionRef: { id: firstTemplateVersion.id },
           version: "1",
           state: descriptorState.published,
           interface: undefined,
@@ -359,7 +359,7 @@ describe("upgrade eservice template instance", () => {
         Number(writtenPayload.eservice?.descriptors[1].createdAt)
       ),
       docs: [expectedDocument1, expectedDocument2],
-      templateVersionId: secondTemplateVersion.id,
+      templateVersionRef: { id: secondTemplateVersion.id },
       description: secondTemplateVersion.description,
       state: descriptorState.draft,
       voucherLifespan: secondTemplateVersion.voucherLifespan,
@@ -435,11 +435,11 @@ describe("upgrade eservice template instance", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateId: template.id,
+      templateRef: { id: template.id },
       descriptors: [
         {
           ...mockDescriptor,
-          templateVersionId: firstTemplateVersion.id,
+          templateVersionRef: { id: firstTemplateVersion.id },
           version: "1",
           state: descriptorState.published,
           interface: undefined,
@@ -507,7 +507,7 @@ describe("upgrade eservice template instance", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [mockDescriptor],
-      templateId: generateId<EServiceTemplateId>(),
+      templateRef: { id: generateId<EServiceTemplateId>() },
     };
     await addOneEService(eservice);
     expect(
@@ -518,7 +518,7 @@ describe("upgrade eservice template instance", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      eServiceTemplateNotFound(eservice.templateId as EServiceTemplateId)
+      eServiceTemplateNotFound(eservice.templateRef?.id as EServiceTemplateId)
     );
   });
   it("should throw eServiceAlreadyUpgraded if the eservice instance has already be upgraded", async () => {
@@ -545,11 +545,11 @@ describe("upgrade eservice template instance", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateId: template.id,
+      templateRef: { id: template.id },
       descriptors: [
         {
           ...mockDescriptor,
-          templateVersionId: firstTemplateVersion.id,
+          templateVersionRef: { id: firstTemplateVersion.id },
           version: "1",
           state: descriptorState.published,
           interface: undefined,
@@ -557,7 +557,7 @@ describe("upgrade eservice template instance", () => {
         },
         {
           ...mockDescriptor,
-          templateVersionId: secondTemplateVersion.id,
+          templateVersionRef: { id: secondTemplateVersion.id },
           version: "2",
           state: descriptorState.draft,
           interface: undefined,
