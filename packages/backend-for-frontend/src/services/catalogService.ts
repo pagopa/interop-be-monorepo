@@ -552,6 +552,8 @@ export function catalogServiceBuilder(
         doc.kind,
         doc.doc,
         documentId,
+        config.eserviceDocumentsContainer,
+        config.eserviceDocumentsPath,
         async (filePath, serverUrls, checksum) => {
           await catalogProcessClient.createEServiceDocument(
             {

@@ -488,8 +488,8 @@ export function eserviceTemplateServiceBuilder(
       const clonedDocumentsCalls = previousVersion.docs.map((doc) =>
         cloneEServiceDocument({
           doc,
-          documentsContainer: config.eserviceDocumentsContainer,
-          documentsPath: config.eserviceDocumentsPath,
+          documentsContainer: config.eserviceTemplateDocumentsContainer,
+          documentsPath: config.eserviceTemplateDocumentsPath,
           fileManager,
           logger,
         })
@@ -599,6 +599,8 @@ export function eserviceTemplateServiceBuilder(
         doc.kind,
         doc.doc,
         documentId,
+        config.eserviceDocumentsContainer,
+        config.eserviceDocumentsPath,
         async (filePath, serverUrls, checksum) => {
           await eserviceTemplateClient.createEServiceTemplateDocument(
             {
@@ -645,7 +647,7 @@ export function eserviceTemplateServiceBuilder(
         });
 
       const stream = await fileManager.get(
-        config.eserviceDocumentsContainer,
+        config.eserviceTemplateDocumentsContainer,
         path,
         logger
       );
