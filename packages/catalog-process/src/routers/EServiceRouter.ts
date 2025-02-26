@@ -947,7 +947,7 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/name",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -971,7 +971,7 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/description",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -995,7 +995,7 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/voucherLifespan",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -1020,7 +1020,7 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/attributes",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -1045,7 +1045,7 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -1070,7 +1070,7 @@ const eservicesRouter = (
     )
     .delete(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -1095,7 +1095,7 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authorizationMiddleware([M2M_ROLE]),
+      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
