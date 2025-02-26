@@ -8,7 +8,7 @@ concurrency:
 
 jobs:
   turbo:
-    name: Check formatting
+    name: Turbo
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
@@ -18,7 +18,12 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
-      - run: turbo run format:check --affected
+      - run: |
+          set -euo pipefail
+          
+          pnpm install -g turbo
+          turbo run format:check --affected
+
 
   # formatting:
   #   name: Check formatting
