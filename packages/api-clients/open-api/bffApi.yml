@@ -14674,6 +14674,57 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    get:
+      tags:
+        - eserviceTemplates
+      summary: Retrive e-service template
+      operationId: getEServiceTemplate
+      parameters:
+        - name: eServiceTemplateId
+          in: path
+          description: The E-Service id to retrieve
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: E-Service Template retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateDetails"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: E-Service template not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/suspend:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -19661,100 +19712,6 @@ components:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
-    EServiceTemplate:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - creatorId
-        - name
-        - audienceDescription
-        - eserviceDescription
-        - technology
-        - versions
-        - riskAnalysis
-        - mode
-      properties:
-        id:
-          type: string
-          format: uuid
-        creatorId:
-          type: string
-          format: uuid
-        name:
-          type: string
-        audienceDescription:
-          type: string
-        eserviceDescription:
-          type: string
-        technology:
-          $ref: "#/components/schemas/EServiceTechnology"
-        versions:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceTemplateVersion"
-        riskAnalysis:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceRiskAnalysis"
-        mode:
-          $ref: "#/components/schemas/EServiceMode"
-        isSignalHubEnabled:
-          type: boolean
-    EServiceTemplateVersion:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - version
-        - docs
-        - state
-        - creationDate
-        - voucherLifespan
-        - attributes
-      properties:
-        id:
-          type: string
-          format: uuid
-        version:
-          type: integer
-          format: int32
-        description:
-          type: string
-        voucherLifespan:
-          type: integer
-          format: int32
-        dailyCallsPerConsumer:
-          description: "maximum number of daily calls that this descriptor can afford per consumer."
-          type: integer
-          format: int32
-          minimum: 1
-        dailyCallsTotal:
-          description: "total daily calls available for this e-service."
-          type: integer
-          format: int32
-          minimum: 1
-        interface:
-          $ref: "#/components/schemas/EServiceDoc"
-        docs:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceDoc"
-        state:
-          $ref: "#/components/schemas/EServiceTemplateVersionState"
-        agreementApprovalPolicy:
-          $ref: "#/components/schemas/AgreementApprovalPolicy"
-        publishedAt:
-          type: string
-          format: date-time
-        suspendedAt:
-          type: string
-          format: date-time
-        deprecatedAt:
-          type: string
-          format: date-time
-        attributes:
-          $ref: "#/components/schemas/Attributes"
     EServiceTemplateSeed:
       type: object
       additionalProperties: false
