@@ -65,7 +65,7 @@ async function processMessage({
           );
           const token = (await refreshableToken.get()).serialized;
 
-          await agreementProcessClient.computeAgreementsByAttribute(
+          await agreementProcessClient.internalComputeAgreementsByAttribute(
             {
               attributeId: unsafeBrandId(attributeId),
               consumer: toApiCompactTenant(fromTenantV2(tenant)),
