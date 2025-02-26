@@ -161,7 +161,7 @@ export async function handleMessageV2({
         refreshableToken,
         correlationId,
         async (instance, descriptor, headers) => {
-          const alreadyHasDoc = descriptor?.docs.find(
+          const alreadyHasDoc = descriptor?.docs.some(
             (d) => d.checksum === docToAddToInstances.checksum
           );
 
@@ -169,10 +169,7 @@ export async function handleMessageV2({
             return;
           }
 
-          if (
-            descriptor.state ===
-            catalogApi.EServiceDescriptorState.Values.ARCHIVED
-          ) {
+          if (descriptor.state === "ARCHIVED") {
             return;
           }
 
