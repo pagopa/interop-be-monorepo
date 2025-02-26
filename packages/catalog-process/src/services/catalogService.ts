@@ -2496,11 +2496,7 @@ export function catalogServiceBuilder(
         throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
       }
 
-      if (
-        descriptor.docs.some(
-          (d) => d.prettyName.toLowerCase() === prettyName.toLowerCase()
-        )
-      ) {
+      if (descriptor.docs.some((d) => d.prettyName === prettyName)) {
         return;
       }
 
