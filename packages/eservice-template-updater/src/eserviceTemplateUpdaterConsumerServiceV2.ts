@@ -146,15 +146,7 @@ export async function handleMessageV2({
       );
     })
     .with({ type: "EServiceTemplateVersionDocumentAdded" }, async (msg) => {
-      const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
-
-      const docToAddToInstances = eserviceTemplateVersion.docs.find(
-        (d) => d.id === msg.data.documentId
-      );
-
-      if (!docToAddToInstances) {
-        return;
-      }
+      const docToAddToInstances = getTemplateDocumentFromEvent(msg);
 
       await commitUpdateToInstanceDescriptors(
         msg,
@@ -202,15 +194,7 @@ export async function handleMessageV2({
       );
     })
     .with({ type: "EServiceTemplateVersionDocumentUpdated" }, async (msg) => {
-      const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
-
-      const updatedEServiceTemplateDoc = eserviceTemplateVersion.docs.find(
-        (d) => d.id === msg.data.documentId
-      );
-
-      if (!updatedEServiceTemplateDoc) {
-        return;
-      }
+      const updatedEServiceTemplateDoc = getTemplateDocumentFromEvent(msg);
 
       await commitUpdateToInstanceDescriptors(
         msg,
@@ -292,6 +276,24 @@ export async function handleMessageV2({
       () => Promise.resolve
     )
     .exhaustive();
+}
+
+function getTemplateDocumentFromEvent(
+  msg: EServiceTemplateEventEnvelope & {
+    data: { documentId: string; eserviceTemplateVersionId: string };
+  }
+): catalogApi.EServiceDoc {
+  const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
+
+  const doc = eserviceTemplateVersion.docs.find(
+    (d) => d.id === msg.data.documentId
+  );
+
+  if (!doc) {
+    throw missingKafkaMessageDataError("document", msg.type);
+  }
+
+  return doc;
 }
 
 function getTemplateFromEvent(
