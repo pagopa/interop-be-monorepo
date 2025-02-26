@@ -24,7 +24,7 @@ interface ApplicationAuditBeginRequest {
   podName: string;
   uptimeSeconds: number;
   timestamp: number;
-  amazonTraceId: string;
+  amazonTraceId?: string;
 }
 
 interface ApplicationAuditEndRequest {
@@ -39,11 +39,48 @@ interface ApplicationAuditEndRequest {
   podName: string;
   uptimeSeconds: number;
   timestamp: number;
-  amazonTraceId: string;
+  amazonTraceId?: string;
   organizationId: string;
   userId?: string;
   httpResponseStatus: number;
+  executionTimeMs: number;
+}
 
+interface ApplicationAuditEndRequestAuthServer {
+  correlationId: string;
+  service: string;
+  serviceVersion: string;
+  endpoint: string;
+  httpMethod: string;
+  phase: Phase.END_REQUEST;
+  requesterIpAddress: string;
+  nodeIp: string;
+  podName: string;
+  uptimeSeconds: number;
+  timestamp: number;
+  amazonTraceId?: string;
+  organizationId: string;
+  userId?: string;
+  httpResponseStatus: number;
+  executionTimeMs: number;
+}
+
+interface ApplicationAuditEndRequestCustomBFF {
+  correlationId: string;
+  service: string;
+  serviceVersion: string;
+  endpoint: string;
+  httpMethod: string;
+  phase: Phase.END_REQUEST;
+  requesterIpAddress: string;
+  nodeIp: string;
+  podName: string;
+  uptimeSeconds: number;
+  timestamp: number;
+  amazonTraceId?: string;
+  organizationId?: string;
+  selfcareId?: string;
+  httpResponseStatus: number;
   executionTimeMs: number;
 }
 
@@ -71,16 +108,16 @@ export async function applicationAuditMiddleware(
     const firstMessage: ApplicationAuditBeginRequest = {
       correlationId,
       service: serviceName,
-      serviceVersion: config.stringProp,
+      serviceVersion: config.serviceVersion,
       endpoint: req.path,
       httpMethod: req.method,
       phase: Phase.BEGIN_REQUEST,
       requesterIpAddress: "TODO",
-      nodeIp: config.stringProp,
-      podName: config.stringProp,
+      nodeIp: config.nodeIp,
+      podName: config.podName,
       uptimeSeconds: process.uptime(), // TODO how many decimal digits?
       timestamp: requestTimestamp,
-      amazonTraceId: config.stringProp,
+      amazonTraceId: config.amazonTraceId,
     };
 
     await producer.send({
@@ -99,7 +136,7 @@ export async function applicationAuditMiddleware(
       const secondMessage: ApplicationAuditEndRequest = {
         correlationId,
         service: serviceName,
-        serviceVersion: config.stringProp,
+        serviceVersion: config.serviceVersion,
         endpoint: req.path,
         httpMethod: req.method,
         executionTimeMs: endTimestamp - requestTimestamp,
@@ -107,11 +144,11 @@ export async function applicationAuditMiddleware(
         phase: Phase.END_REQUEST,
         httpResponseStatus: res.statusCode,
         requesterIpAddress: "TODO",
-        nodeIp: config.stringProp,
-        podName: config.stringProp,
+        nodeIp: config.nodeIp,
+        podName: config.podName,
         uptimeSeconds: process.uptime(),
         timestamp: endTimestamp,
-        amazonTraceId: config.stringProp,
+        amazonTraceId: config.amazonTraceId,
       };
       await producer.send({
         messages: [

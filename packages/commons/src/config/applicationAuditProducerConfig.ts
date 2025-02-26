@@ -4,12 +4,16 @@ import { ApplicationAuditTopicConfig } from "./kafkaTopicConfig.js";
 
 export const ApplicationAuditProducerConfig = z
   .object({
-    INT_PROP: z.number(),
-    STRING_PROP: z.string(),
+    SERVICE_VERSION: z.string(),
+    NODE_IP: z.string(),
+    POD_NAME: z.string(),
+    AMAZON_TRACE_ID: z.string(),
   })
   .transform((c) => ({
-    intProp: c.INT_PROP,
-    stringProp: c.STRING_PROP,
+    serviceVersion: c.SERVICE_VERSION,
+    nodeIp: c.NODE_IP,
+    podName: c.POD_NAME,
+    amazonTraceId: c.AMAZON_TRACE_ID,
   }))
   .and(KafkaProducerConfig)
   .and(ApplicationAuditTopicConfig);
