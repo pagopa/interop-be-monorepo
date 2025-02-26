@@ -30,7 +30,7 @@ import {
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
   notValidDescriptorState,
   unchangedAttributes,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -618,7 +618,7 @@ describe("update descriptor", () => {
       )
     );
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -650,6 +650,6 @@ describe("update descriptor", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

@@ -82,7 +82,7 @@ export const documentCreateErrorMapper = (
     )
     .with("prettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -110,7 +110,7 @@ export const documentDeleteErrorMapper = (
     )
     .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -129,7 +129,7 @@ export const documentUpdateErrorMapper = (
     .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with("prettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -147,7 +147,7 @@ export const createDescriptorErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -194,7 +194,7 @@ export const updateDescriptorErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -262,7 +262,7 @@ export const cloneEServiceByDescriptorErrorMapper = (
     )
     .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -292,7 +292,7 @@ export const createRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -315,7 +315,7 @@ export const updateRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -337,7 +337,7 @@ export const deleteRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -349,7 +349,7 @@ export const updateEServiceDescriptionErrorMapper = (
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -372,7 +372,7 @@ export const updateEServiceNameErrorMapper = (
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -399,7 +399,7 @@ export const updateDescriptorAttributesErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "templateIdMustBeUndefined",
+      "templateInstanceNotAllowed",
       "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )

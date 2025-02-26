@@ -38,7 +38,7 @@ import {
   tenantKindNotFound,
   riskAnalysisValidationFailed,
   riskAnalysisDuplicated,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   buildRiskAnalysisSeed,
@@ -519,7 +519,7 @@ describe("create risk analysis", () => {
       ])
     );
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const producerTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
@@ -558,6 +558,6 @@ describe("create risk analysis", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

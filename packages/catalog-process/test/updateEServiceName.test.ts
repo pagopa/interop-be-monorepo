@@ -23,7 +23,7 @@ import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
   eServiceDuplicate,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -228,7 +228,7 @@ describe("update eService name on published eservice", () => {
       })
     ).rejects.toThrowError(eServiceDuplicate(duplicateName));
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -247,6 +247,6 @@ describe("update eService name on published eservice", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

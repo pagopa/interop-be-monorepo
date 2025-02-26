@@ -24,7 +24,7 @@ import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceNotInDraftState,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -295,7 +295,7 @@ describe("delete risk analysis", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const eservice: EService = {
       ...mockEService,
@@ -317,6 +317,6 @@ describe("delete risk analysis", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

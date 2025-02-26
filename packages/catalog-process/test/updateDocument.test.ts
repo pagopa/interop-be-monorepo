@@ -25,7 +25,7 @@ import {
   notValidDescriptorState,
   eServiceDocumentNotFound,
   prettyNameDuplicate,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -389,7 +389,7 @@ describe("update Document", () => {
       prettyNameDuplicate(document1.prettyName.toLowerCase(), descriptor.id)
     );
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -416,6 +416,6 @@ describe("update Document", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

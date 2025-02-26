@@ -25,7 +25,7 @@ import {
   eServiceDuplicate,
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -366,7 +366,7 @@ describe("clone descriptor", () => {
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
   });
-  it("should throw templateIdMustBeUndefined if teh templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if teh templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -385,6 +385,6 @@ describe("clone descriptor", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

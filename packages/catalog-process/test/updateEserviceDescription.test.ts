@@ -21,7 +21,7 @@ import { expect, describe, it } from "vitest";
 import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -234,7 +234,7 @@ describe("update eService description", () => {
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -258,6 +258,6 @@ describe("update eService description", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

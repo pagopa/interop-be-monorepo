@@ -31,7 +31,7 @@ import {
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -258,6 +258,6 @@ export function assertEServiceNotTemplateInstance(
   templateId: EServiceTemplateId | undefined
 ): void {
   if (templateId !== undefined) {
-    throw templateIdMustBeUndefined(templateId);
+    throw templateInstanceNotAllowed(templateId);
   }
 }

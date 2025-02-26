@@ -42,7 +42,7 @@ export const errorCodes = {
   unchangedAttributes: "0028",
   eServiceTemplateNotFound: "0029",
   eServiceTemplateWithoutPublishedVersion: "0030",
-  templateIdMustBeUndefined: "0031",
+  templateInstanceNotAllowed: "0031",
   eServiceNotAnInstance: "0032",
   eServiceAlreadyUpgraded: "0033",
 };
@@ -358,12 +358,12 @@ export function eServiceTemplateWithoutPublishedVersion(
   });
 }
 
-export function templateIdMustBeUndefined(
+export function templateInstanceNotAllowed(
   eServiceTemplateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService Template ${eServiceTemplateId} must not have a templateId`,
-    code: "templateIdMustBeUndefined",
+    code: "templateInstanceNotAllowed",
     title: "TemplateId must be undefined",
   });
 }

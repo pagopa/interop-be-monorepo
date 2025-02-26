@@ -28,7 +28,7 @@ import {
   eServiceNotFound,
   attributeNotFound,
   inconsistentDailyCalls,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -547,7 +547,7 @@ describe("create descriptor", async () => {
       })
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
       ...buildCreateDescriptorSeed(getMockDescriptor()),
@@ -566,6 +566,6 @@ describe("create descriptor", async () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

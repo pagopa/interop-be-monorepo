@@ -24,7 +24,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   eServiceDocumentNotFound,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -509,7 +509,7 @@ describe("delete Document", () => {
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -535,6 +535,6 @@ describe("delete Document", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

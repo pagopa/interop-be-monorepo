@@ -26,7 +26,7 @@ import {
   notValidDescriptorState,
   interfaceAlreadyExists,
   prettyNameDuplicate,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -398,7 +398,7 @@ describe("upload Document", () => {
       prettyNameDuplicate(document.prettyName.toLowerCase(), descriptor.id)
     );
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -424,6 +424,6 @@ describe("upload Document", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

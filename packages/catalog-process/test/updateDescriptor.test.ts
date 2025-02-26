@@ -24,7 +24,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   inconsistentDailyCalls,
-  templateIdMustBeUndefined,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -373,7 +373,7 @@ describe("update descriptor", () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
-  it("should throw templateIdMustBeUndefined if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -406,6 +406,6 @@ describe("update descriptor", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateIdMustBeUndefined(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });
