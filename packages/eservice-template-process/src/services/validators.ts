@@ -1,18 +1,19 @@
 import { AuthData } from "pagopa-interop-commons";
 import {
-  eserviceMode,
   EServiceTemplate,
   eserviceTemplateVersionState,
   operationForbidden,
   Tenant,
   TenantId,
+  eserviceMode,
 } from "pagopa-interop-models";
 import {
+  draftEServiceTemplateVersionAlreadyExists,
   templateNotInDraftState,
   templateNotInReceiveMode,
   tenantKindNotFound,
+  eserviceTemplateNotInDraftState,
 } from "../model/domain/errors.js";
-import { eserviceTemplateNotInDraftState } from "../model/domain/errors.js";
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
@@ -57,5 +58,17 @@ export function assertIsDraftEserviceTemplate(
     )
   ) {
     throw eserviceTemplateNotInDraftState(eserviceTemplate.id);
+  }
+}
+
+export function assertNoDraftEServiceTemplateVersions(
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (
+    eserviceTemplate.versions.some(
+      (v) => v.state === eserviceTemplateVersionState.draft
+    )
+  ) {
+    throw draftEServiceTemplateVersionAlreadyExists(eserviceTemplate.id);
   }
 }

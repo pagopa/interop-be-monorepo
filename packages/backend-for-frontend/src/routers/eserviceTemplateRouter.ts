@@ -14,6 +14,7 @@ import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateServ
 import { fromBffAppContext } from "../utilities/context.js";
 import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import {
+  createEServiceTemplateVersionErrorMapper,
   bffGetCatalogEServiceTemplateErrorMapper,
   bffGetEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -53,6 +54,28 @@ const eserviceTemplateRouter = (
               toBffCreatedEServiceTemplateVersion(eserviceTemplate)
             )
           );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/eservices/templates/:eServiceTemplateId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const eserviceTemplate =
+          await eserviceTemplateService.getEServiceTemplate(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            ctx
+          );
+        return res
+          .status(200)
+          .send(bffApi.EServiceTemplateDetails.parse(eserviceTemplate));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -490,6 +513,30 @@ const eserviceTemplateRouter = (
             ctx.logger,
             ctx.correlationId,
             `Error updating eservice template ${eServiceTemplateId} version ${eServiceTemplateVersionId} attributes`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/templates/:eServiceTemplateId/versions",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        const { eServiceTemplateId } = req.params;
+
+        try {
+          await eserviceTemplateService.createEServiceTemplateVersion(
+            unsafeBrandId(eServiceTemplateId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceTemplateVersionErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error creating new eservice template ${eServiceTemplateId} version`
           );
           return res.status(errorRes.status).send(errorRes);
         }
