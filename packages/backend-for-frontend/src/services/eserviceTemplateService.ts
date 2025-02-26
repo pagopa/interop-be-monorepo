@@ -26,7 +26,7 @@ import {
 } from "../api/catalogApiConverter.js";
 import {
   toBffCatalogEServiceTemplate,
-  toBffEServiceTemplateApiEServiceTemplateDetails,
+  toBffEServiceTemplateDetails,
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
@@ -291,11 +291,36 @@ export function eserviceTemplateServiceBuilder(
         agreementApprovalPolicy:
           eserviceTemplateVersion.agreementApprovalPolicy,
         attributes: eserviceTemplateVersionAttributes,
-        eserviceTemplate: toBffEServiceTemplateApiEServiceTemplateDetails(
+        eserviceTemplate: toBffEServiceTemplateDetails(
           eserviceTemplate,
           creatorTenant
         ),
       };
+    },
+    getEServiceTemplate: async (
+      eServiceTemplateId: EServiceTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceTemplateDetails> => {
+      logger.info(
+        `Retrieving EService template for eServiceTemplateId = ${eServiceTemplateId}`
+      );
+
+      const eserviceTemplate: eserviceTemplateApi.EServiceTemplate =
+        await eserviceTemplateClient.getEServiceTemplateById({
+          params: {
+            eServiceTemplateId,
+          },
+          headers,
+        });
+
+      const creatorTenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eserviceTemplate.creatorId,
+        },
+      });
+
+      return toBffEServiceTemplateDetails(eserviceTemplate, creatorTenant);
     },
     getCatalogEServiceTemplates: async (
       name: string | undefined,
