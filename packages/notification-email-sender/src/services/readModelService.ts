@@ -26,7 +26,7 @@ export function readModelServiceBuilder(
 
         if (!result.success) {
           throw genericInternalError(
-            `Unable to parse eservices item: result ${JSON.stringify(
+            `Unable to parse eservice item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
