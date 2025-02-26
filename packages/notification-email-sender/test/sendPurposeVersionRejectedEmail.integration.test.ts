@@ -103,7 +103,7 @@ describe("sendPurposeVersionRejectedEmail", () => {
     });
   });
 
-  it.only("should send an other purpose version rejected mail to the consumer's email addresses", async () => {
+  it("should send an other purpose version rejected mail to the consumer's email addresses", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail = getMockTenantMail(tenantMailKind.ContactEmail);
     const consumer: Tenant = {
