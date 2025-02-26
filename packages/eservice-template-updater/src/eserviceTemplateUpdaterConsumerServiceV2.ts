@@ -342,7 +342,7 @@ async function commitUpdateToInstanceDescriptors(
     correlationId,
     async (instance, headers) => {
       const instanceDescriptor = instance.descriptors.find(
-        (d) => d.templateVersionId === msg.data.eserviceTemplateVersionId
+        (d) => d.templateVersionRef?.id === msg.data.eserviceTemplateVersionId
       );
 
       if (instanceDescriptor) {
