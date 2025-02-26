@@ -50,12 +50,16 @@ vi.doMock("pagopa-interop-api-clients", () => ({
     createProcessApiClient: () => ({
       updateTemplateInstanceName: updateTemplateInstanceNameFn,
       updateTemplateInstanceDescription: updateTemplateInstanceDescriptionFn,
-      updateTemplateInstanceDescriptorAttributes: updateTemplateInstanceDescriptorAttributesFn,
+      updateTemplateInstanceDescriptorAttributes:
+        updateTemplateInstanceDescriptorAttributesFn,
       updateTemplateInstanceDescriptorVoucherLifespan:
         updateTemplateInstanceDescriptorVoucherLifespanFn,
-      createTemplateInstanceDescriptorDocument: createTemplateInstanceDescriptorDocumentFn,
-      updateTemplateInstanceDescriptorDocument: updateTemplateInstanceDescriptorDocumentFn,
-      deleteTemplateInstanceDescriptorDocument: deleteTemplateInstanceDescriptorDocumentFn,
+      createTemplateInstanceDescriptorDocument:
+        createTemplateInstanceDescriptorDocumentFn,
+      updateTemplateInstanceDescriptorDocument:
+        updateTemplateInstanceDescriptorDocumentFn,
+      deleteTemplateInstanceDescriptorDocument:
+        deleteTemplateInstanceDescriptorDocumentFn,
     }),
   },
 }));
@@ -250,17 +254,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
     const descriptorInstance1: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
     };
 
     const descriptorInstance2: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
     };
 
     const descriptorInstance3: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: generateId<EServiceTemplateVersionId>(),
+      templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
     };
 
     const eserviceInstance1: EService = {
@@ -311,7 +315,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(updateTemplateInstanceDescriptorAttributesFn).toHaveBeenCalledTimes(2);
+    expect(updateTemplateInstanceDescriptorAttributesFn).toHaveBeenCalledTimes(
+      2
+    );
     expect(updateTemplateInstanceDescriptorAttributesFn).toHaveBeenCalledWith(
       updatedVersion.attributes,
       {
@@ -332,16 +338,15 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
-      updatedVersion.attributes,
-      {
-        params: {
-          eServiceId: eserviceInstance3.id,
-          descriptorId: descriptorInstance3.id,
-        },
-        headers: testHeaders,
-      }
-    );
+    expect(
+      updateTemplateInstanceDescriptorAttributesFn
+    ).not.toHaveBeenCalledWith(updatedVersion.attributes, {
+      params: {
+        eServiceId: eserviceInstance3.id,
+        descriptorId: descriptorInstance3.id,
+      },
+      headers: testHeaders,
+    });
   });
 
   it("The consumer should call the updateTemplateInstanceDescriptorVoucherLifespan route on EServiceTemplateVersionQuotasUpdated event", async () => {
@@ -359,17 +364,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
     const descriptorInstance1: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
     };
 
     const descriptorInstance2: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
     };
 
     const descriptorInstance3: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: generateId<EServiceTemplateVersionId>(),
+      templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
     };
 
     const eserviceInstance1: EService = {
@@ -419,8 +424,12 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(updateTemplateInstanceDescriptorVoucherLifespanFn).toHaveBeenCalledTimes(2);
-    expect(updateTemplateInstanceDescriptorVoucherLifespanFn).toHaveBeenCalledWith(
+    expect(
+      updateTemplateInstanceDescriptorVoucherLifespanFn
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      updateTemplateInstanceDescriptorVoucherLifespanFn
+    ).toHaveBeenCalledWith(
       { voucherLifespan: updatedVoucherLifespan },
       {
         params: {
@@ -430,7 +439,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(updateTemplateInstanceDescriptorVoucherLifespanFn).toHaveBeenCalledWith(
+    expect(
+      updateTemplateInstanceDescriptorVoucherLifespanFn
+    ).toHaveBeenCalledWith(
       { voucherLifespan: updatedVoucherLifespan },
       {
         params: {
@@ -440,7 +451,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
+    expect(
+      updateTemplateInstanceDescriptorAttributesFn
+    ).not.toHaveBeenCalledWith(
       { voucherLifespan: updatedVoucherLifespan },
       {
         params: {
@@ -474,19 +487,19 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
     const descriptorInstance1: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
       docs: [oldDocument],
     };
 
     const descriptorInstance2: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
       docs: [oldDocument, newDocument],
     };
 
     const descriptorInstance3: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: generateId<EServiceTemplateVersionId>(),
+      templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
       docs: [oldDocument, newDocument],
     };
 
@@ -573,16 +586,15 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
-      expectedDocument,
-      {
-        params: {
-          eServiceId: eserviceInstance3.id,
-          descriptorId: descriptorInstance3.id,
-        },
-        headers: testHeaders,
-      }
-    );
+    expect(
+      updateTemplateInstanceDescriptorAttributesFn
+    ).not.toHaveBeenCalledWith(expectedDocument, {
+      params: {
+        eServiceId: eserviceInstance3.id,
+        descriptorId: descriptorInstance3.id,
+      },
+      headers: testHeaders,
+    });
   });
 
   it("The consumer should call the updateTemplateInstanceDescriptorDocument route on EServiceTemplateVersionDocumentUpdated event", async () => {
@@ -608,19 +620,19 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
     const descriptorInstance1: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
       docs: [oldDocument],
     };
 
     const descriptorInstance2: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
       docs: [oldDocument, updatedDocument],
     };
 
     const descriptorInstance3: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: generateId<EServiceTemplateVersionId>(),
+      templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
       docs: [oldDocument, updatedDocument],
     };
 
@@ -695,7 +707,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
+    expect(
+      updateTemplateInstanceDescriptorAttributesFn
+    ).not.toHaveBeenCalledWith(
       { prettyName: updatedDocument.prettyName },
       {
         params: {
@@ -730,19 +744,19 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
     const descriptorInstance1: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
       docs: [oldDocument],
     };
 
     const descriptorInstance2: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: updatedVersion.id,
+      templateVersionRef: { id: updatedVersion.id },
       docs: [oldDocument, deletedDocument],
     };
 
     const descriptorInstance3: Descriptor = {
       ...getMockDescriptor(),
-      templateVersionId: generateId<EServiceTemplateVersionId>(),
+      templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
       docs: [oldDocument, deletedDocument],
     };
 
@@ -806,25 +820,27 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         headers: testHeaders,
       }
     );
-    expect(deleteTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledWith(undefined, {
-      params: {
-        eServiceId: eserviceInstance2.id,
-        descriptorId: descriptorInstance2.id,
-        documentId: deletedDocument.id,
-      },
-      headers: testHeaders,
-    });
-    expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalledWith(
+    expect(deleteTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledWith(
       undefined,
       {
         params: {
-          eServiceId: eserviceInstance3.id,
-          descriptorId: descriptorInstance3.id,
+          eServiceId: eserviceInstance2.id,
+          descriptorId: descriptorInstance2.id,
           documentId: deletedDocument.id,
         },
         headers: testHeaders,
       }
     );
+    expect(
+      updateTemplateInstanceDescriptorAttributesFn
+    ).not.toHaveBeenCalledWith(undefined, {
+      params: {
+        eServiceId: eserviceInstance3.id,
+        descriptorId: descriptorInstance3.id,
+        documentId: deletedDocument.id,
+      },
+      headers: testHeaders,
+    });
   });
 
   it.each([
@@ -871,7 +887,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     expect(updateTemplateInstanceNameFn).not.toHaveBeenCalled();
     expect(updateTemplateInstanceDescriptionFn).not.toHaveBeenCalled();
     expect(updateTemplateInstanceDescriptorAttributesFn).not.toHaveBeenCalled();
-    expect(updateTemplateInstanceDescriptorVoucherLifespanFn).not.toHaveBeenCalled();
+    expect(
+      updateTemplateInstanceDescriptorVoucherLifespanFn
+    ).not.toHaveBeenCalled();
     expect(createTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalled();
     expect(updateTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalled();
     expect(deleteTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalled();
