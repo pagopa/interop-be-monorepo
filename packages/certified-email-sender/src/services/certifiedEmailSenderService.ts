@@ -24,6 +24,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import Mail from "nodemailer/lib/mailer/index.js";
 import {
   agreementStampDateNotFound,
   descriptorNotFound,
@@ -161,10 +162,10 @@ export function certifiedEmailSenderServiceBuilder(
         retrieveTenantDigitalAddress(producer).address,
       ];
 
-      const emailData = {
+      const mailOptions: Mail.Options = {
         to: recipientsEmails,
         subject: `Richiesta di fruizione ${agreement.id} attiva`,
-        body: templateService.compileHtml(htmlTemplate, {
+        html: templateService.compileHtml(htmlTemplate, {
           activationDate: getFormattedAgreementStampDate(
             agreement,
             "activation"
@@ -181,12 +182,7 @@ export function certifiedEmailSenderServiceBuilder(
         logger.info(
           `Sending certified email for agreement ${agreement.id} activation`
         );
-        await pecEmailManager.send({
-          from: { name: pecSenderData.label, address: pecSenderData.mail },
-          to: emailData.to,
-          subject: emailData.subject,
-          html: emailData.body,
-        });
+        await pecEmailManager.send(mailOptions);
         logger.info(
           `Certified email sent for agreement ${agreement.id} activation`
         );
