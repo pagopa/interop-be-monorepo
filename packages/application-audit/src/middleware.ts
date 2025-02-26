@@ -60,12 +60,12 @@ interface ApplicationAuditEndRequestAuthServer {
   timestamp: number;
   amazonTraceId?: string;
   organizationId: string;
-  userId?: string;
+  clientId?: string;
   httpResponseStatus: number;
   executionTimeMs: number;
 }
 
-interface ApplicationAuditEndRequestCustomBFF {
+export interface ApplicationAuditEndRequestCustomBFF {
   correlationId: string;
   service: string;
   serviceVersion: string;
@@ -149,6 +149,87 @@ export async function applicationAuditMiddleware(
         uptimeSeconds: process.uptime(),
         timestamp: endTimestamp,
         amazonTraceId: config.amazonTraceId,
+      };
+      await producer.send({
+        messages: [
+          {
+            key: "TODO",
+            value: JSON.stringify(secondMessage),
+          },
+        ],
+      });
+      console.log("APPLICATION AUDIT - REQUEST HANDLED", secondMessage);
+    });
+    return next();
+  };
+}
+
+export async function customApplicationAuditMiddlewareAuthServer(
+  serviceName: string,
+  config: ApplicationAuditProducerConfig
+): Promise<RequestHandler> {
+  console.log("INIT PRODUCER");
+  const producer = await initProducer(config, config.applicationAuditTopic);
+
+  return async (req, res, next): Promise<void> => {
+    const context = (req as Request & { ctx?: AppContext }).ctx;
+    const requestTimestamp = Date.now();
+
+    const correlationId = context?.correlationId;
+    const organizationId = context?.authData.organizationId;
+    if (!correlationId) {
+      throw genericInternalError("TODO");
+    }
+
+    if (!organizationId) {
+      throw genericInternalError("TODO");
+    }
+
+    const firstMessage: ApplicationAuditBeginRequest = {
+      correlationId,
+      service: serviceName,
+      serviceVersion: config.serviceVersion,
+      endpoint: req.path,
+      httpMethod: req.method,
+      phase: Phase.BEGIN_REQUEST,
+      requesterIpAddress: "TODO",
+      nodeIp: config.nodeIp,
+      podName: config.podName,
+      uptimeSeconds: process.uptime(), // TODO how many decimal digits?
+      timestamp: requestTimestamp,
+      amazonTraceId: config.amazonTraceId,
+    };
+
+    await producer.send({
+      messages: [
+        {
+          key: "TODO",
+          value: JSON.stringify(firstMessage),
+        },
+      ],
+    });
+    console.log("APPLICATION AUDIT - REQUEST RECEIVED", firstMessage);
+
+    res.on("finish", async () => {
+      const endTimestamp = Date.now();
+
+      const secondMessage: ApplicationAuditEndRequestAuthServer = {
+        correlationId,
+        service: serviceName,
+        serviceVersion: config.serviceVersion,
+        endpoint: req.path,
+        httpMethod: req.method,
+        phase: Phase.END_REQUEST,
+        requesterIpAddress: "TODO",
+        nodeIp: config.nodeIp,
+        podName: config.podName,
+        uptimeSeconds: process.uptime(),
+        timestamp: endTimestamp,
+        amazonTraceId: config.amazonTraceId,
+        organizationId,
+        clientId: req.body.clientId,
+        httpResponseStatus: res.statusCode,
+        executionTimeMs: endTimestamp - requestTimestamp,
       };
       await producer.send({
         messages: [
