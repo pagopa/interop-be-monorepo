@@ -17,6 +17,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
+import Mail from "nodemailer/lib/mailer/index.js";
 import { tenantDigitalAddressNotFound } from "../src/models/errors.js";
 import {
   certifiedMailTemplateEventType,
@@ -86,14 +87,14 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const activationNotificationEmailTemplate = htmlTemplateBuffer.toString();
 
-    const mail = {
+    const mailOptions: Mail.Options = {
       from: {
         name: pecEmailsenderData.label,
         address: pecEmailsenderData.mail,
       },
       subject: `Richiesta di fruizione ${agreement.id} attiva`,
       to: [consumerEmail.address, producerEmail.address],
-      body: templateService.compileHtml(activationNotificationEmailTemplate, {
+      html: templateService.compileHtml(activationNotificationEmailTemplate, {
         activationDate: getFormattedAgreementStampDate(agreement, "activation"),
         agreementId: agreement.id,
         eserviceName: eservice.name,
@@ -104,12 +105,7 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
       }),
     };
     expect(pecEmailManager.send).toHaveBeenCalledTimes(1);
-    expect(pecEmailManager.send).toHaveBeenCalledWith(
-      mail.from,
-      mail.to,
-      mail.subject,
-      mail.body
-    );
+    expect(pecEmailManager.send).toHaveBeenCalledWith(mailOptions);
   });
 
   it("should throw tenantDigitalAddressNotFound for Producer digital address not found", async () => {

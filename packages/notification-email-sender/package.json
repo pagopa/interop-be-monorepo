@@ -25,6 +25,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
+    "@types/nodemailer": "6.4.17",
     "cpx2": "7.0.1",
     "axios": "1.7.4",
     "pagopa-interop-commons-test": "workspace:*",
@@ -41,6 +42,7 @@
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "nodemailer": "6.9.14",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }

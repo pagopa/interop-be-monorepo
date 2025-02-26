@@ -21,6 +21,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import axios, { AxiosResponse } from "axios";
+import Mail from "nodemailer/lib/mailer/index.js";
 import { eventMailTemplateType } from "../src/services/notificationEmailSenderService.js";
 import {
   addOneEService,
@@ -74,37 +75,31 @@ describe("sendPurposeWaitingForApprovalEmail", () => {
     const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
     const aboveTheThresholdEmailTemplate = htmlTemplateBuffer.toString();
 
-    const mail = {
+    const mailOptions: Mail.Options = {
       from: {
         name: sesEmailsenderData.label,
         address: sesEmailsenderData.mail,
       },
       subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
       to: [consumerEmail.address],
-      body: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
+      html: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
         interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
         eserviceName: eservice.name,
       }),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(
-      mail.from,
-      mail.to,
-      mail.subject,
-      mail.body
-    );
+    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions);
 
     const response: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
     );
     expect(response.status).toBe(200);
     const lastEmail = response.data.emails[0];
-
+    expect(lastEmail.body.html).toContain(mailOptions.html);
     expect(lastEmail).toMatchObject({
-      subject: mail.subject,
-      from: `${mail.from.name} <${mail.from.address}>`,
-      destination: { to: mail.to },
-      body: { html: mail.body },
+      subject: mailOptions.subject,
+      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      destination: { to: mailOptions.to },
     });
   });
 });

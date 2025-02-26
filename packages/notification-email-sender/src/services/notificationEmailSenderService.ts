@@ -29,6 +29,7 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
+import Mail from "nodemailer/lib/mailer/index.js";
 import {
   agreementStampDateNotFound,
   descriptorPublishedNotFound,
@@ -191,11 +192,11 @@ export function notificationEmailSenderServiceBuilder(
         return;
       }
 
-      const mail = {
+      const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Nuova richiesta di fruizione per ${eservice.name} ricevuta`,
         to: [producerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
+        html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
           producerName: producer.name,
           consumerName: consumer.name,
@@ -206,7 +207,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending email for agreement ${agreement.id} submission`);
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        await sesEmailManager.send(mailOptions);
         logger.info(`Email sent for agreement ${agreement.id} submission`);
       } catch (err) {
         logger.warn(
@@ -251,11 +252,11 @@ export function notificationEmailSenderServiceBuilder(
 
       const descriptor = retrieveAgreementDescriptor(eservice, agreement);
 
-      const mail = {
+      const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di fruizione ${agreement.id} attiva`,
         to: [consumerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
+        html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
           producerName: producer.name,
           consumerName: consumer.name,
@@ -268,7 +269,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending email for agreement ${agreement.id} activation (${sesEmailManager.kind})`
         );
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        await sesEmailManager.send(mailOptions);
         logger.info(
           `Email sent for agreement ${agreement.id} activation (${sesEmailManager.kind})`
         );
@@ -313,11 +314,11 @@ export function notificationEmailSenderServiceBuilder(
         return;
       }
 
-      const mail = {
+      const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
         to: [consumerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
+        html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
           producerName: producer.name,
           consumerName: consumer.name,
@@ -328,7 +329,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending email for agreement ${agreement.id} rejection`);
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        await sesEmailManager.send(mailOptions);
         logger.info(`Email sent for agreement ${agreement.id} rejection`);
       } catch (err) {
         logger.warn(
@@ -365,11 +366,11 @@ export function notificationEmailSenderServiceBuilder(
         return;
       }
 
-      const mail = {
+      const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
         to: [consumerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
+        html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           purposeName: purpose.title,
           eserviceName: eservice.name,
@@ -380,7 +381,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending an email requesting a change in the load estimate as it is above the threshold, for purpose ${purpose.id}`
         );
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        await sesEmailManager.send(mailOptions);
         logger.info(
           `Email sent for requesting  a change in the load estimate as it is above the threshold, for purpose ${purpose.id}`
         );
@@ -417,11 +418,11 @@ export function notificationEmailSenderServiceBuilder(
         return;
       }
 
-      const mail = {
+      const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
         to: [consumerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
+        html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           eserviceName: eservice.name,
         }),
@@ -431,7 +432,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Send an email with the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id}`
         );
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        await sesEmailManager.send(mailOptions);
         logger.info(
           `Email sent for the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id}`
         );
@@ -477,11 +478,11 @@ export function notificationEmailSenderServiceBuilder(
         return;
       }
 
-      const mail = {
+      const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject,
         to: [consumerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
+        html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           purposeName: purpose.title,
         }),
@@ -489,7 +490,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending an email for purpose ${purpose.id} rejection`);
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        await sesEmailManager.send(mailOptions);
         logger.info(`Email sent for purpose ${purpose.id} rejection`);
       } catch (err) {
         logger.warn(
@@ -534,11 +535,11 @@ export function notificationEmailSenderServiceBuilder(
             continue;
           }
 
-          const mail = {
+          const mailOptions: Mail.Options = {
             from: { name: sesSenderData.label, address: sesSenderData.mail },
             subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
             to: [consumerEmail.address],
-            body: templateService.compileHtml(htmlTemplate, {
+            html: templateService.compileHtml(htmlTemplate, {
               interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
               eserviceName: eservice.name,
             }),
@@ -548,12 +549,7 @@ export function notificationEmailSenderServiceBuilder(
             logger.info(
               `Sending an email for published descriptor ${descriptor.id} of eservice ${eservice.id}`
             );
-            await sesEmailManager.send(
-              mail.from,
-              mail.to,
-              mail.subject,
-              mail.body
-            );
+            await sesEmailManager.send(mailOptions);
             logger.info(
               `Email sent for published descriptor ${descriptor.id} of eservice ${eservice.id}`
             );
@@ -597,11 +593,11 @@ export function notificationEmailSenderServiceBuilder(
         return;
       }
 
-      const mail = {
+      const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Accettazione richiesta di adeguamento stima di carico`,
         to: [consumerEmail.address],
-        body: templateService.compileHtml(htmlTemplate, {
+        html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
           purposeName: purpose.title,
         }),
@@ -611,7 +607,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending an email to activate the purpose version,  - Purpose ID: ${purpose.id}`
         );
-        await sesEmailManager.send(mail.from, mail.to, mail.subject, mail.body);
+        await sesEmailManager.send(mailOptions);
         logger.info(
           `Activation email sent for purpose version - Purpose ID: ${purpose.id}`
         );

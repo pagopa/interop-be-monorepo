@@ -22,6 +22,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import axios, { AxiosResponse } from "axios";
+import Mail from "nodemailer/lib/mailer/index.js";
 import { eventMailTemplateType } from "../src/services/notificationEmailSenderService.js";
 import {
   addOneAgreement,
@@ -123,14 +124,14 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     const eservicePublishedDescriptorEmailTemplate =
       htmlTemplateBuffer.toString();
 
-    const mail1 = {
+    const mailOptions1: Mail.Options = {
       from: {
         name: sesEmailsenderData.label,
         address: sesEmailsenderData.mail,
       },
       subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
       to: [consumerEmail1.address],
-      body: templateService.compileHtml(
+      html: templateService.compileHtml(
         eservicePublishedDescriptorEmailTemplate,
         {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
@@ -140,34 +141,28 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       ),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(
-      mail1.from,
-      mail1.to,
-      mail1.subject,
-      mail1.body
-    );
+    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions1);
 
     const response1: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
     );
     expect(response1.status).toBe(200);
     const lastEmail1 = response1.data.emails[0];
-
+    expect(lastEmail1.body.html.trim()).toBe(mailOptions1.html);
     expect(lastEmail1).toMatchObject({
-      subject: mail1.subject,
-      from: `${mail1.from.name} <${mail1.from.address}>`,
-      destination: { to: mail1.to },
-      body: { html: mail1.body },
+      subject: mailOptions1.subject,
+      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      destination: { to: mailOptions1.to },
     });
 
-    const mail2 = {
+    const mailOptions2: Mail.Options = {
       from: {
         name: sesEmailsenderData.label,
         address: sesEmailsenderData.mail,
       },
       subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
       to: [consumerEmail2.address],
-      body: templateService.compileHtml(
+      html: templateService.compileHtml(
         eservicePublishedDescriptorEmailTemplate,
         {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
@@ -177,24 +172,18 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       ),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(
-      mail2.from,
-      mail2.to,
-      mail2.subject,
-      mail2.body
-    );
+    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions2);
 
     const response2: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
     );
     expect(response2.status).toBe(200);
     const lastEmail2 = response2.data.emails[1];
-
+    expect(lastEmail2.body.html.trim()).toBe(mailOptions2.html);
     expect(lastEmail2).toMatchObject({
-      subject: mail2.subject,
-      from: `${mail2.from.name} <${mail2.from.address}>`,
-      destination: { to: mail2.to },
-      body: { html: mail2.body },
+      subject: mailOptions2.subject,
+      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      destination: { to: mailOptions2.to },
     });
   });
 

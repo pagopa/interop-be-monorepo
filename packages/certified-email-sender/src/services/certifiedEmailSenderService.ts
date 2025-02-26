@@ -181,12 +181,12 @@ export function certifiedEmailSenderServiceBuilder(
         logger.info(
           `Sending certified email for agreement ${agreement.id} activation`
         );
-        await pecEmailManager.send(
-          { name: pecSenderData.label, address: pecSenderData.mail },
-          emailData.to,
-          emailData.subject,
-          emailData.body
-        );
+        await pecEmailManager.send({
+          from: { name: pecSenderData.label, address: pecSenderData.mail },
+          to: emailData.to,
+          subject: emailData.subject,
+          html: emailData.body,
+        });
         logger.info(
           `Certified email sent for agreement ${agreement.id} activation`
         );

@@ -1,4 +1,9 @@
-import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import {
+  SESv2Client,
+  SendEmailCommand,
+  SendEmailCommandInput,
+} from "@aws-sdk/client-sesv2";
 import { mockClient } from "aws-sdk-client-mock";
 import { describe, it, expect, beforeEach } from "vitest";
 import { AWSSesConfig, initSesMailManager } from "pagopa-interop-commons";
@@ -23,30 +28,22 @@ describe("initSesMailManager", () => {
     const from = "test@example.com";
     const to = ["recipient@example.com"];
     const subject = "Test Subject";
-    const body = "<h1>Hello World</h1>";
+    const html = "<h1>Hello World</h1>";
 
-    await emailManager.send(from, to, subject, body);
+    await emailManager.send({ from, to, subject, html });
 
     expect(sesMock.calls()).toHaveLength(1);
 
-    const call = sesMock.calls()[0].args[0].input;
-    expect(call).toEqual({
-      Destination: {
-        ToAddresses: to,
-      },
-      Content: {
-        Simple: {
-          Subject: {
-            Data: subject,
-          },
-          Body: {
-            Html: {
-              Data: body,
-            },
-          },
-        },
-      },
-      FromEmailAddress: from,
-    });
+    const commandInput = sesMock.calls()[0].args[0]
+      .input as SendEmailCommandInput;
+
+    const rawData = commandInput.Content!.Raw!.Data;
+
+    // Converti il buffer in stringa e verifica che contenga le informazioni attese
+    const emailString = Buffer.from(rawData!).toString();
+    expect(emailString).toContain(`From: ${from}`);
+    expect(emailString).toContain(`To: ${to[0]}`);
+    expect(emailString).toContain(`Subject: ${subject}`);
+    expect(emailString).toContain(html);
   });
 });
