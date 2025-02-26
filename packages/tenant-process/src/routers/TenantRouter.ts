@@ -390,7 +390,7 @@ const tenantsRouter = (
     )
     .post(
       "/tenants/:tenantId/mails",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
@@ -470,7 +470,7 @@ const tenantsRouter = (
     )
     .delete(
       "/tenants/:tenantId/mails/:mailId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
