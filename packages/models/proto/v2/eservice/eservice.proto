@@ -15,10 +15,10 @@ message EServiceV2 {
   optional bool isSignalHubEnabled = 10;
   optional bool isConsumerDelegable = 11;
   optional bool isClientAccessDelegable = 12;
-  optional InstanceEServiceTemplateV2 template = 13;
+  optional EServiceTemplateRefV2 templateRef = 13;
 }
 
-message InstanceEServiceTemplateV2 {
+message EServiceTemplateRefV2 {
   string id = 1;
   optional string instanceId = 2;
 }
@@ -89,10 +89,10 @@ message EServiceDescriptorV2 {
   optional int64 archivedAt = 17;
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
-  optional InstanceEServiceTemplateVersionV2 templateVersion = 20;
+  optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
 }
 
-message InstanceInterfaceMetadataV2 {
+message CustomizedInterfaceMetadataV2 {
   string name = 1;
   string email = 2;
   string url = 3;
@@ -100,9 +100,9 @@ message InstanceInterfaceMetadataV2 {
   repeated string serverUrls = 5;
 }
 
-message InstanceEServiceTemplateVersionV2 {
+message EServiceTemplateVersionRefV2 {
   string id = 1;
-  optional InstanceInterfaceMetadataV2 interfaceMetadata = 2;
+  optional CustomizedInterfaceMetadataV2 interfaceMetadata = 2;
 }
 
 message EServiceDocumentV2 {

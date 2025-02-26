@@ -73,7 +73,7 @@ export type DescriptorRejectionReason = z.infer<
   typeof DescriptorRejectionReason
 >;
 
-export const InstanceInterfaceMetadata = z.object({
+export const CustomizedInterfaceMetadata = z.object({
   name: z.string(),
   email: z.string(),
   url: z.string(),
@@ -81,17 +81,17 @@ export const InstanceInterfaceMetadata = z.object({
   serverUrls: z.array(z.string()),
 });
 
-export type InstanceInterfaceMetadata = z.infer<
-  typeof InstanceInterfaceMetadata
+export type CustomizedInterfaceMetadata = z.infer<
+  typeof CustomizedInterfaceMetadata
 >;
 
-export const InstanceEServiceTemplateVersion = z.object({
+export const EServiceTemplateVersionRef = z.object({
   id: EServiceTemplateVersionId,
-  interfaceMetadata: InstanceInterfaceMetadata.optional(),
+  interfaceMetadata: CustomizedInterfaceMetadata.optional(),
 });
 
-export type InstanceEServiceTemplateVersion = z.infer<
-  typeof InstanceEServiceTemplateVersion
+export type EServiceTemplateVersionRef = z.infer<
+  typeof EServiceTemplateVersionRef
 >;
 
 export const Descriptor = z.object({
@@ -114,7 +114,7 @@ export const Descriptor = z.object({
   archivedAt: z.coerce.date().optional(),
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
-  templateVersion: InstanceEServiceTemplateVersion.optional(),
+  templateVersionRef: EServiceTemplateVersionRef.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -128,12 +128,12 @@ export const EServiceMode = z.enum([
 ]);
 export type EServiceMode = z.infer<typeof EServiceMode>;
 
-export const InstanceEServiceTemplate = z.object({
+export const EServiceTemplateRef = z.object({
   id: EServiceTemplateId,
   instanceId: z.string().optional(),
 });
 
-export type InstanceEServiceTemplate = z.infer<typeof InstanceEServiceTemplate>;
+export type EServiceTemplateRef = z.infer<typeof EServiceTemplateRef>;
 
 export const EService = z.object({
   id: EServiceId,
@@ -149,7 +149,7 @@ export const EService = z.object({
   isSignalHubEnabled: z.boolean().optional(),
   isConsumerDelegable: z.boolean().optional(),
   isClientAccessDelegable: z.boolean().optional(),
-  template: InstanceEServiceTemplate.optional(),
+  templateRef: EServiceTemplateRef.optional(),
 });
 
 export type EService = z.infer<typeof EService>;

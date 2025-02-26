@@ -443,7 +443,7 @@ async function innerCreateEService(
       .with(false, () => false)
       .with(true, () => seed.eServiceSeed.isClientAccessDelegable)
       .exhaustive(),
-    template: seed.eServiceTemplateReferences
+    templateRef: seed.eServiceTemplateReferences
       ? {
           id: seed.eServiceTemplateReferences.templateId,
           instanceId: seed.eServiceTemplateReferences.instanceId,
@@ -488,7 +488,9 @@ async function innerCreateEService(
     createdAt: creationDate,
     attributes: { certified: [], declared: [], verified: [] },
     rejectionReasons: undefined,
-    templateVersion: templateVersionId ? { id: templateVersionId } : undefined,
+    templateVersionRef: templateVersionId
+      ? { id: templateVersionId }
+      : undefined,
   };
 
   const eserviceWithDescriptor: EService = {

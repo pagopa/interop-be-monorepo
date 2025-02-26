@@ -11,8 +11,8 @@ import {
   EServiceRiskAnalysisV2,
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
-  InstanceEServiceTemplateVersionV2,
-  InstanceEServiceTemplateV2,
+  EServiceTemplateVersionRefV2,
+  EServiceTemplateRefV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -33,8 +33,8 @@ import {
   EService,
   Document,
   DescriptorRejectionReason,
-  InstanceEServiceTemplateVersion,
-  InstanceEServiceTemplate,
+  EServiceTemplateRef,
+  EServiceTemplateVersionRef,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
@@ -108,8 +108,8 @@ export const fromDescriptorRejectionReasonV2 = (
 });
 
 export const fromInstanceEServiceTemplateVersionV2 = (
-  input: InstanceEServiceTemplateVersionV2
-): InstanceEServiceTemplateVersion => ({
+  input: EServiceTemplateVersionRefV2
+): EServiceTemplateVersionRef => ({
   id: unsafeBrandId(input.id),
   interfaceMetadata: input.interfaceMetadata,
 });
@@ -146,9 +146,9 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
     input.rejectionReasons.length > 0
       ? input.rejectionReasons.map(fromDescriptorRejectionReasonV2)
       : undefined,
-  templateVersion:
-    input.templateVersion != null
-      ? fromInstanceEServiceTemplateVersionV2(input.templateVersion)
+  templateVersionRef:
+    input.templateVersionRef != null
+      ? fromInstanceEServiceTemplateVersionV2(input.templateVersionRef)
       : undefined,
 });
 
@@ -187,8 +187,8 @@ export const fromRiskAnalysisV2 = (
 });
 
 export const fromInstanceEServiceTemplateV2 = (
-  input: InstanceEServiceTemplateV2
-): InstanceEServiceTemplate => ({
+  input: EServiceTemplateRefV2
+): EServiceTemplateRef => ({
   id: unsafeBrandId(input.id),
   instanceId: input.instanceId,
 });
@@ -202,8 +202,8 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   createdAt: bigIntToDate(input.createdAt),
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
   mode: fromEServiceModeV2(input.mode),
-  template:
-    input.template != null
-      ? fromInstanceEServiceTemplateV2(input.template)
+  templateRef:
+    input.templateRef != null
+      ? fromInstanceEServiceTemplateV2(input.templateRef)
       : undefined,
 });

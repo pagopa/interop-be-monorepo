@@ -109,9 +109,9 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isConsumerDelegable: false,
       isClientAccessDelegable: false,
-      template: {
+      templateRef: {
         id: eServiceTemplate.id,
-        instanceId: eService?.template?.instanceId,
+        instanceId: eService?.templateRef?.instanceId,
       },
     };
 
@@ -124,7 +124,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
-      template: { id: eServiceTemplate.id },
+      templateRef: { id: eServiceTemplate.id },
       descriptors: [
         {
           ...mockDescriptor,
@@ -135,7 +135,7 @@ describe("create eService from template", () => {
           audience: [],
           dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
           dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
-          templateVersion: { id: publishedVersion.id },
+          templateVersionRef: { id: publishedVersion.id },
         },
       ],
     };
@@ -214,7 +214,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       descriptors: [],
-      template: { id: eServiceTemplate.id, instanceId },
+      templateRef: { id: eServiceTemplate.id, instanceId },
     };
 
     const expectedEServiceWithDescriptor: EService = {
@@ -226,7 +226,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
-      template: { id: eServiceTemplate.id, instanceId },
+      templateRef: { id: eServiceTemplate.id, instanceId },
       descriptors: [
         {
           ...mockDescriptor,
@@ -237,7 +237,7 @@ describe("create eService from template", () => {
           audience: [],
           dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
           dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
-          templateVersion: { id: publishedVersion.id },
+          templateVersionRef: { id: publishedVersion.id },
         },
       ],
     };
@@ -398,9 +398,9 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isConsumerDelegable: false,
       isClientAccessDelegable: false,
-      template: {
+      templateRef: {
         id: eServiceTemplate.id,
-        instanceId: eService?.template?.instanceId,
+        instanceId: eService?.templateRef?.instanceId,
       },
     };
 
@@ -413,7 +413,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
-      template: { id: eServiceTemplate.id },
+      templateRef: { id: eServiceTemplate.id },
       descriptors: [
         {
           ...mockDescriptor,
@@ -424,7 +424,7 @@ describe("create eService from template", () => {
           audience: [],
           dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
           dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
-          templateVersion: { id: publishedVersion.id },
+          templateVersionRef: { id: publishedVersion.id },
         },
       ],
     };

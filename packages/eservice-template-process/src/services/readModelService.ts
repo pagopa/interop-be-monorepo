@@ -280,7 +280,7 @@ export function readModelServiceBuilder({
       const aggregationPipeline = [
         {
           $match: {
-            "data.templateId": eserviceTemplate.id,
+            "data.templateRef.templateId": eserviceTemplate.id,
             $or: [
               { "data.descriptors.1": { $exists: true } },
               {
