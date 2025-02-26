@@ -631,7 +631,7 @@ export function eserviceTemplateServiceBuilder(
       return { contentType, document: Buffer.from(stream) };
     },
 
-    updateEServiceDocumentById: async (
+    updateEServiceTemplateDocumentById: async (
       eServiceTemplateId: EServiceTemplateId,
       eServiceTemplateVersionId: EServiceTemplateVersionId,
       documentId: EServiceDocumentId,

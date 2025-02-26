@@ -626,7 +626,7 @@ const eserviceTemplateRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const { contentType, document } =
+          const doc =
             await eserviceTemplateService.updateEServiceTemplateDocumentById(
               unsafeBrandId(req.params.eServiceTemplateId),
               unsafeBrandId(req.params.eServiceTemplateVersionId),
@@ -634,7 +634,7 @@ const eserviceTemplateRouter = (
               req.body,
               ctx
             );
-          return res.status(200).send(document);
+          return res.status(200).send(bffApi.EServiceDoc.parse(doc));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
