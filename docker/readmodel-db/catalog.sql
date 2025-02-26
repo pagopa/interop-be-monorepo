@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   PRIMARY KEY (id)
 );
 
+-- TODO: update with new eservice-template model
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_template_binding (
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice(id),
   metadata_version INTEGER NOT NULL,
