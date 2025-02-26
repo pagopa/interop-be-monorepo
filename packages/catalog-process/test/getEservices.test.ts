@@ -1122,21 +1122,21 @@ describe("get eservices", () => {
     const templateId1: EServiceTemplateId = generateId();
     const eserviceTemplate1 = getMockEServiceTemplate(templateId1);
     const templateId2: EServiceTemplateId = generateId();
-    const eserviceTemplate2 = getMockEServiceTemplate(templateId1);
+    const eserviceTemplate2 = getMockEServiceTemplate(templateId2);
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateId: templateId1,
+      templateRef: { id: templateId1 },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateId: templateId1,
+      templateRef: { id: templateId1 },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateId: templateId2,
+      templateRef: { id: templateId2 },
     };
 
     await addOneEServiceTemplate(eserviceTemplate1);
@@ -1167,21 +1167,21 @@ describe("get eservices", () => {
     const templateId1: EServiceTemplateId = generateId();
     const eserviceTemplate1 = getMockEServiceTemplate(templateId1);
     const templateId2: EServiceTemplateId = generateId();
-    const eserviceTemplate2 = getMockEServiceTemplate(templateId1);
+    const eserviceTemplate2 = getMockEServiceTemplate(templateId2);
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateId: templateId1,
+      templateRef: { id: templateId1 },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.archived)],
-      templateId: templateId1,
+      templateRef: { id: templateId1 },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.suspended)],
-      templateId: templateId2,
+      templateRef: { id: templateId2 },
     };
 
     await addOneEServiceTemplate(eserviceTemplate1);

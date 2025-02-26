@@ -2,6 +2,7 @@ import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
+  EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
@@ -33,6 +34,9 @@ export const errorCodes = {
   interfaceAlreadyExists: "0021",
   prettyNameDuplicate: "0022",
   checksumDuplicate: "0023",
+  invalidEServiceTemplateVersion: "0024",
+  draftEServiceTemplateVersionAlreadyExists: "0025",
+  eServiceDocumentNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -218,6 +222,26 @@ export function eserviceTemplateNotInDraftState(
   });
 }
 
+export function invalidEServiceTemplateVersion(
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: details,
+    code: "invalidEServiceTemplateVersion",
+    title: "Version is not a valid e-service template version",
+  });
+}
+
+export function draftEServiceTemplateVersionAlreadyExists(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Draft version for EService Template ${eserviceTemplateId} already exists`,
+    code: "draftEServiceTemplateVersionAlreadyExists",
+    title: "Draft version already exists",
+  });
+}
+
 export function missingTemplateVersionInterface(
   templateId: EServiceTemplateId,
   versionId: EServiceTemplateVersionId
@@ -279,5 +303,16 @@ export function checksumDuplicate(
     detail: `The document ${fileName} content already exists in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
     code: "checksumDuplicate",
     title: "Duplicated checksum",
+  });
+}
+
+export function eServiceDocumentNotFound(
+  documentId: EServiceDocumentId,
+  eServiceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService document ${documentId} not found in template version ${eServiceTemplateVersionId}`,
+    code: "eServiceDocumentNotFound",
+    title: "EService document not found",
   });
 }

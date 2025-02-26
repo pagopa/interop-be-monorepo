@@ -29,6 +29,8 @@ import {
   DescriptorState,
   Delegation,
   EServiceTemplate,
+  EServiceTemplateEvent,
+  toEServiceTemplateV2,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -271,6 +273,24 @@ export const writeEServiceInEventstore = async (
   await writeInEventstore(eventToWrite, "catalog", postgresDB);
 };
 
+export const writeEServiceTemplateInEventstore = async (
+  eserviceTemplate: EServiceTemplate
+): Promise<void> => {
+  const eserviceTemplateEvent: EServiceTemplateEvent = {
+    type: "EServiceTemplateAdded",
+    event_version: 2,
+    data: { eserviceTemplate: toEServiceTemplateV2(eserviceTemplate) },
+  };
+  const eventToWrite: StoredEvent<EServiceTemplateEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: eserviceTemplateEvent.data.eserviceTemplate!.id,
+    version: 0,
+    event: eserviceTemplateEvent,
+  };
+
+  await writeInEventstore(eventToWrite, "eservice_template", postgresDB);
+};
+
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeEServiceInEventstore(eservice);
   await writeInReadmodel(toReadModelEService(eservice), eservices);
@@ -294,13 +314,14 @@ export const addOneDelegation = async (
   await writeInReadmodel(delegation, delegations);
 };
 
-export const addOneEServiceTemplate = async (
-  eserviceTemplate: EServiceTemplate
-): Promise<void> => {
-  await writeInReadmodel(eserviceTemplate, eserviceTemplates);
-};
-
 export const readLastEserviceEvent = async (
   eserviceId: EServiceId
 ): Promise<ReadEvent<EServiceEvent>> =>
   await readLastEventByStreamId(eserviceId, "catalog", postgresDB);
+
+export const addOneEServiceTemplate = async (
+  eServiceTemplate: EServiceTemplate
+): Promise<void> => {
+  await writeEServiceTemplateInEventstore(eServiceTemplate);
+  await writeInReadmodel(eServiceTemplate, eserviceTemplates);
+};

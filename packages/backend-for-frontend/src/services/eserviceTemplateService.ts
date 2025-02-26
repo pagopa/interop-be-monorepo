@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
+  EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
@@ -25,14 +26,18 @@ import {
 } from "../api/catalogApiConverter.js";
 import {
   toBffCatalogEServiceTemplate,
-  toBffEServiceTemplateApiEServiceTemplateDetails,
+  toBffEServiceTemplateDetails,
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   eserviceTemplateVersionNotFound,
+  noVersionInEServiceTemplate,
   tenantNotFound,
 } from "../model/errors.js";
+import { cloneEServiceDocument } from "../utilities/fileUtils.js";
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import { verifyAndCreateDocument } from "../utilities/eserviceDocumentUtils.js";
+import { config } from "../config/config.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 export function eserviceTemplateServiceBuilder(
@@ -288,11 +293,36 @@ export function eserviceTemplateServiceBuilder(
         agreementApprovalPolicy:
           eserviceTemplateVersion.agreementApprovalPolicy,
         attributes: eserviceTemplateVersionAttributes,
-        eserviceTemplate: toBffEServiceTemplateApiEServiceTemplateDetails(
+        eserviceTemplate: toBffEServiceTemplateDetails(
           eserviceTemplate,
           creatorTenant
         ),
       };
+    },
+    getEServiceTemplate: async (
+      eServiceTemplateId: EServiceTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceTemplateDetails> => {
+      logger.info(
+        `Retrieving EService template for eServiceTemplateId = ${eServiceTemplateId}`
+      );
+
+      const eserviceTemplate: eserviceTemplateApi.EServiceTemplate =
+        await eserviceTemplateClient.getEServiceTemplateById({
+          params: {
+            eServiceTemplateId,
+          },
+          headers,
+        });
+
+      const creatorTenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: eserviceTemplate.creatorId,
+        },
+      });
+
+      return toBffEServiceTemplateDetails(eserviceTemplate, creatorTenant);
     },
     getCatalogEServiceTemplates: async (
       name: string | undefined,
@@ -425,6 +455,96 @@ export function eserviceTemplateServiceBuilder(
         }
       );
     },
+    createEServiceTemplateVersion: async (
+      eServiceTemplateId: EServiceTemplateId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Creating new version for EService template ${eServiceTemplateId}`
+      );
+      const eServiceTemplate =
+        await eserviceTemplateClient.getEServiceTemplateById({
+          params: { eServiceTemplateId },
+          headers,
+        });
+
+      if (eServiceTemplate.versions.length === 0) {
+        throw noVersionInEServiceTemplate(eServiceTemplateId);
+      }
+
+      const retrieveLatestEServiceTemplateVersion = (
+        versions: eserviceTemplateApi.EServiceTemplateVersion[]
+      ): eserviceTemplateApi.EServiceTemplateVersion =>
+        versions.reduce(
+          (latestVersions, curr) =>
+            curr.version > latestVersions.version ? curr : latestVersions,
+          versions[0]
+        );
+
+      const previousVersion = retrieveLatestEServiceTemplateVersion(
+        eServiceTemplate.versions
+      );
+
+      const clonedDocumentsCalls = previousVersion.docs.map((doc) =>
+        cloneEServiceDocument({
+          doc,
+          documentsContainer: config.eserviceTemplateDocumentsContainer,
+          documentsPath: config.eserviceTemplateDocumentsPath,
+          fileManager,
+          logger,
+        })
+      );
+
+      const clonedDocuments = await Promise.all(clonedDocumentsCalls);
+
+      const { id } = await eserviceTemplateClient.createEServiceTemplateVersion(
+        {
+          description: previousVersion.description,
+          voucherLifespan: previousVersion.voucherLifespan,
+          dailyCallsPerConsumer: previousVersion.dailyCallsPerConsumer,
+          dailyCallsTotal: previousVersion.dailyCallsTotal,
+          agreementApprovalPolicy: previousVersion.agreementApprovalPolicy,
+          attributes: previousVersion.attributes,
+          docs: clonedDocuments,
+        },
+        {
+          headers,
+          params: {
+            eServiceTemplateId,
+          },
+        }
+      );
+
+      return { id };
+    },
+    getEServiceTemplateCreators: async (
+      {
+        creatorName,
+        offset,
+        limit,
+      }: { creatorName: string | undefined; offset: number; limit: number },
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> => {
+      logger.info(`Retrieving EService template creators`);
+
+      const res = await eserviceTemplateClient.getEServiceTemplateCreators({
+        headers,
+        queries: {
+          creatorName,
+          offset,
+          limit,
+        },
+      });
+
+      return {
+        results: res.results.map(toBffCompactOrganization),
+        pagination: {
+          offset,
+          limit,
+          totalCount: res.totalCount,
+        },
+      };
+    },
     createEServiceTemplateDocument: async (
       eServiceTemplateId: EServiceTemplateId,
       eServiceTemplateVersionId: EServiceTemplateVersionId,
@@ -455,6 +575,8 @@ export function eserviceTemplateServiceBuilder(
         doc.kind,
         doc.doc,
         documentId,
+        config.eserviceDocumentsContainer,
+        config.eserviceDocumentsPath,
         async (filePath, serverUrls, checksum) => {
           await eserviceTemplateClient.createEServiceTemplateDocument(
             {
@@ -480,6 +602,33 @@ export function eserviceTemplateServiceBuilder(
       );
 
       return { id: documentId };
+    },
+    getEServiceTemplateDocument: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<{ contentType: string; document: Buffer }> => {
+      logger.info(
+        `Retrieving EService Template Document for EService template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId} and Document ${documentId}`
+      );
+      const { path, contentType } =
+        await eserviceTemplateClient.getEServiceTemplateDocumentById({
+          params: {
+            eServiceTemplateId,
+            eServiceTemplateVersionId,
+            documentId,
+          },
+          headers,
+        });
+
+      const stream = await fileManager.get(
+        config.eserviceTemplateDocumentsContainer,
+        path,
+        logger
+      );
+
+      return { contentType, document: Buffer.from(stream) };
     },
   };
 }
