@@ -4,7 +4,7 @@ import {
   Descriptor,
   descriptorState,
   EService,
-  EServiceDescriptorDocumentDeletedV2,
+  EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
   toEServiceV2,
   generateId,
 } from "pagopa-interop-models";
@@ -76,10 +76,12 @@ describe("delete Document", () => {
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
     expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorDocumentDeleted");
+    expect(writtenEvent.type).toBe(
+      "EServiceDescriptorDocumentDeletedByTemplateUpdate"
+    );
     expect(writtenEvent.event_version).toBe(2);
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorDocumentDeletedV2,
+      messageType: EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
       payload: writtenEvent.data,
     });
 

@@ -78,13 +78,19 @@ import {
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
   toCreateEventEServiceDescriptionUpdated,
+  toCreateEventEServiceDescriptionUpdatedByTemplateUpdate,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorApprovedByDelegator,
   toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorAttributesUpdated,
+  toCreateEventEServiceDescriptorAttributesUpdatedByTemplateUpdate,
+  toCreateEventEServiceDescriptorDocumentAddedByTemplateUpdate,
+  toCreateEventEServiceDescriptorDocumentDeletedByTemplateUpdate,
+  toCreateEventEServiceDescriptorDocumentUpdatedByTemplateUpdate,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
+  toCreateEventEServiceDescriptorQuotasUpdatedByTemplateUpdate,
   toCreateEventEServiceDescriptorRejectedByDelegator,
   toCreateEventEServiceDescriptorSubmittedByDelegate,
   toCreateEventEServiceDescriptorSuspended,
@@ -101,6 +107,7 @@ import {
   toCreateEventEServiceIsConsumerDelegableDisabled,
   toCreateEventEServiceIsConsumerDelegableEnabled,
   toCreateEventEServiceNameUpdated,
+  toCreateEventEServiceNameUpdatedByTemplateUpdate,
   toCreateEventEServiceRiskAnalysisAdded,
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
@@ -2205,7 +2212,7 @@ export function catalogServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventEServiceNameUpdated(
+        toCreateEventEServiceNameUpdatedByTemplateUpdate(
           eservice.metadata.version,
           updatedEservice,
           correlationId
@@ -2229,7 +2236,7 @@ export function catalogServiceBuilder(
         description,
       };
       await repository.createEvent(
-        toCreateEventEServiceDescriptionUpdated(
+        toCreateEventEServiceDescriptionUpdatedByTemplateUpdate(
           eservice.metadata.version,
           updatedEservice,
           correlationId
@@ -2258,7 +2265,7 @@ export function catalogServiceBuilder(
       });
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorQuotasUpdated(
+        toCreateEventEServiceDescriptorQuotasUpdatedByTemplateUpdate(
           eservice.data.id,
           eservice.metadata.version,
           descriptorId,
@@ -2307,7 +2314,7 @@ export function catalogServiceBuilder(
       );
 
       await repository.createEvent(
-        toCreateEventEServiceDescriptorAttributesUpdated(
+        toCreateEventEServiceDescriptorAttributesUpdatedByTemplateUpdate(
           eservice.metadata.version,
           descriptor.id,
           newAttributes,
@@ -2357,7 +2364,7 @@ export function catalogServiceBuilder(
       });
 
       await repository.createEvent(
-        toCreateEventEServiceDocumentAdded(
+        toCreateEventEServiceDescriptorDocumentAddedByTemplateUpdate(
           eservice.metadata.version,
           {
             descriptorId,
@@ -2395,7 +2402,7 @@ export function catalogServiceBuilder(
       });
 
       await repository.createEvent(
-        toCreateEventEServiceDocumentDeleted(
+        toCreateEventEServiceDescriptorDocumentDeletedByTemplateUpdate(
           eserviceId,
           eservice.metadata.version,
           {
@@ -2449,7 +2456,7 @@ export function catalogServiceBuilder(
       });
 
       await repository.createEvent(
-        toCreateEventEServiceDocumentUpdated(
+        toCreateEventEServiceDescriptorDocumentUpdatedByTemplateUpdate(
           eserviceId,
           eservice.metadata.version,
           {
