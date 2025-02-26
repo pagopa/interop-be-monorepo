@@ -127,7 +127,6 @@ export const agreementSubmissionConflictingStates: AgreementState[] = [
 
 export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
   agreementState.draft,
-  agreementState.pending,
 ];
 
 /* ========= ASSERTIONS ========= */
@@ -181,13 +180,15 @@ export const assertRequesterCanActAsConsumerOrProducer = (
   }
 };
 
-export const assertRequesterCanRetrieveConsumerDocuments = async (
+export const assertRequesterCanRetrieveAgreement = async (
   agreement: Agreement,
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<void> => {
-  // This operation has a dedicated assertion because it's the only operation that
-  // can be performed also by the producer/consumer even when active producer/consumer delegations exist
+  // This validator is for retrieval operations that can be performed by all the tenants involved:
+  // the consumer, the producer, the consumer delegate, and the producer delegate.
+  // Consumers and producers can retrieve agreements even if delegations exist.
+
   try {
     assertRequesterIsConsumer(agreement.consumerId, authData);
   } catch {
