@@ -93,10 +93,6 @@ import {
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
 import {
-  ApiGetEServiceTemplateIstancesFilters,
-  EServiceTemplateInstance,
-} from "../model/domain/models.js";
-import {
   GetEServiceTemplatesFilters,
   ReadModelService,
 } from "./readModelService.js";
@@ -1478,33 +1474,6 @@ export function eserviceTemplateServiceBuilder(
         ),
         totalCount,
       };
-    },
-    async getEServiceTemplateIstances(
-      eserviceTemplateId: EServiceTemplateId,
-      filters: ApiGetEServiceTemplateIstancesFilters,
-      offset: number,
-      limit: number,
-      { authData, logger }: WithLogger<AppContext>
-    ): Promise<ListResult<EServiceTemplateInstance>> {
-      logger.info(
-        `Getting EServices template ${eserviceTemplateId} instances with producer name = ${filters.producerName}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
-      );
-
-      const { data: eserviceTemplate } = await retrieveEServiceTemplate(
-        eserviceTemplateId,
-        readModelService
-      );
-      assertRequesterEServiceTemplateCreator(
-        eserviceTemplate.creatorId,
-        authData
-      );
-
-      return await readModelService.getEServiceTemplateInstances({
-        eserviceTemplate,
-        filters,
-        offset,
-        limit,
-      });
     },
     async getEServiceTemplateCreators(
       creatorName: string | undefined,

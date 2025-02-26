@@ -39,6 +39,7 @@ export function toEserviceCatalogProcessQueryParams(
     ...queryParams,
     eservicesIds: [],
     name: queryParams.q,
+    templateIds: [],
   };
 }
 
@@ -368,6 +369,7 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
+    templateVersionId: descriptor.templateVersionId,
   };
 }
 
@@ -387,6 +389,25 @@ export function toCompactProducerDescriptor(
       descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT &&
       descriptor.rejectionReasons &&
       descriptor.rejectionReasons.length > 0,
+  };
+}
+
+export function toBffEServiceTemplateInstance(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.EServiceTemplateInstance {
+  const activeDescriptor = getLatestActiveDescriptor(eservice);
+
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producerId: producer.id,
+    producerName: producer.name,
+    activeDescriptor: activeDescriptor
+      ? toCompactDescriptor(activeDescriptor)
+      : undefined,
+    descriptors: eservice.descriptors.map(toCompactDescriptor),
+    instanceId: eservice.instanceId,
   };
 }
 
