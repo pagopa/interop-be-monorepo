@@ -44,7 +44,6 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   checksumDuplicate,
-  eServiceDocumentNotFound,
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
@@ -1645,22 +1644,8 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
-      if (version.interface?.id === eServiceDocumentId) {
-        return version.interface;
-      }
-
-      const document = version.docs.find((d) => d.id === eServiceDocumentId);
-
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(
-          eServiceDocumentId,
-          eServiceTemplateVersionId
-        );
-      }
-
-      return document;
+      return retrieveDocument(eServiceTemplateId, version, eServiceDocumentId);
     },
-
     async updateDocument(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
