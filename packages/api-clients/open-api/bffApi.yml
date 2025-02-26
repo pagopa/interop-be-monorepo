@@ -19749,12 +19749,9 @@ components:
       properties:
         instanceId:
           type: string
-        isSignalHubEnabled:
-          type: boolean
-        isConsumerDelegable:
-          type: boolean
-        isClientAccessDelegable:
-          type: boolean
+          format: uuid
+          description: Optional identifier to be appended to the template name
+          required: false
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
