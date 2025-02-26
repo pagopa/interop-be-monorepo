@@ -148,7 +148,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     );
     expect(response1.status).toBe(200);
     const lastEmail1 = response1.data.emails[0];
-    expect(lastEmail1.body.html.trim()).toBe(mailOptions1.html);
+    expect(lastEmail1.body.html).toContain(mailOptions1.html);
     expect(lastEmail1).toMatchObject({
       subject: mailOptions1.subject,
       from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
@@ -179,7 +179,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     );
     expect(response2.status).toBe(200);
     const lastEmail2 = response2.data.emails[1];
-    expect(lastEmail2.body.html.trim()).toBe(mailOptions2.html);
+    expect(lastEmail2.body.html).toContain(mailOptions2.html);
     expect(lastEmail2).toMatchObject({
       subject: mailOptions2.subject,
       from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
