@@ -86,6 +86,7 @@ message EServiceDescriptorV2 {
   optional int64 archivedAt = 17;
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
+  optional string templateVersionId = 20;
 }
 
 message EServiceDescriptorInterfaceContactsV2 {
