@@ -370,7 +370,13 @@ async function commitUpdateToInstances(
     headers
   );
 
-  await Promise.all(instances.map((instance) => action(instance, headers)));
+  const chunkSize = 10;
+  // Call the action on each instance in chunks
+  // eslint-disable-next-line functional/no-let
+  for (let i = 0; i < instances.length; i += chunkSize) {
+    const chunk = instances.slice(i, i + chunkSize);
+    await Promise.all(chunk.map((instance) => action(instance, headers)));
+  }
 }
 
 async function cloneDocument(
