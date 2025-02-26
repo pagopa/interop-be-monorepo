@@ -267,7 +267,7 @@ export const getEServiceTemplateDocumentErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eServiceTemplateVersionNotFound",
-      "eServiceDocumentNotFound",
+      "eserviceTemplateDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
