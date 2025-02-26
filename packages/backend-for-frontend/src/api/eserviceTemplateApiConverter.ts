@@ -18,7 +18,7 @@ export function toBffCompactEServiceTemplateVersion(
   };
 }
 
-export function toBffEServiceTemplateApiEServiceTemplateDetails(
+export function toBffEServiceTemplateDetails(
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
   creator: tenantApi.Tenant
 ): bffApi.EServiceTemplateDetails {
