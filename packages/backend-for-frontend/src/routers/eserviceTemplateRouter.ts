@@ -495,6 +495,32 @@ const eserviceTemplateRouter = (
         }
       }
     )
+    .get("/eservice/templates/filter/creators", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      const { offset, limit, q } = req.query;
+      try {
+        const result =
+          await eserviceTemplateService.getEServiceTemplateCreators(
+            {
+              creatorName: q,
+              offset,
+              limit,
+            },
+            ctx
+          );
+        return res.status(200).send(bffApi.CompactOrganizations.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error retrieving e-service template creators filtered by creator name ${q}, offset ${offset}, limit ${limit}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
       async (req, res) => {

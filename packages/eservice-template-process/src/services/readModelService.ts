@@ -23,6 +23,7 @@ import {
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -228,6 +229,90 @@ export function readModelServiceBuilder({
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse eservice templates items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          eserviceTemplates,
+          aggregationPipeline
+        ),
+      };
+    },
+    async getCreators(
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
+      const nameFilter = name
+        ? {
+            "tenants.data.name": {
+              $regex: ReadModelRepository.escapeRegExp(name),
+              $options: "i",
+            },
+          }
+        : {};
+
+      const aggregationPipeline = [
+        {
+          $match: {
+            "data.versions.state": eserviceTemplateVersionState.published,
+          },
+        },
+        {
+          $lookup: {
+            from: "tenants",
+            localField: `data.creatorId`,
+            foreignField: "data.id",
+            as: "tenants",
+          },
+        },
+        {
+          $unwind: {
+            path: "$tenants",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $match: nameFilter,
+        },
+        {
+          $group: {
+            _id: `$data.creatorId`,
+            tenantId: { $first: `$data.creatorId` },
+            tenantName: { $first: "$tenants.data.name" },
+          },
+        },
+        {
+          $project: {
+            data: { id: "$tenantId", name: "$tenantName" },
+            lowerName: { $toLower: "$tenantName" },
+          },
+        },
+        {
+          $sort: { lowerName: 1 },
+        },
+      ];
+
+      const data = await eserviceTemplates
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          {
+            allowDiskUse: true,
+          }
+        )
+        .toArray();
+
+      const result = z
+        .array(eserviceTemplateApi.CompactOrganization)
+        .safeParse(data.map((d) => d.data));
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse compact organization items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );

@@ -33,6 +33,7 @@ import {
   eserviceTemplateVersionNotFound,
   tenantNotFound,
 } from "../model/errors.js";
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import { verifyAndCreateDocument } from "../utilities/eserviceDocumentUtils.js";
 import { config } from "../config/config.js";
 import { getAllBulkAttributes } from "./attributeService.js";
@@ -426,6 +427,34 @@ export function eserviceTemplateServiceBuilder(
           },
         }
       );
+    },
+    getEServiceTemplateCreators: async (
+      {
+        creatorName,
+        offset,
+        limit,
+      }: { creatorName: string | undefined; offset: number; limit: number },
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CompactOrganizations> => {
+      logger.info(`Retrieving EService template creators`);
+
+      const res = await eserviceTemplateClient.getEServiceTemplateCreators({
+        headers,
+        queries: {
+          creatorName,
+          offset,
+          limit,
+        },
+      });
+
+      return {
+        results: res.results.map(toBffCompactOrganization),
+        pagination: {
+          offset,
+          limit,
+          totalCount: res.totalCount,
+        },
+      };
     },
     createEServiceTemplateDocument: async (
       eServiceTemplateId: EServiceTemplateId,

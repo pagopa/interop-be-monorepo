@@ -658,6 +658,45 @@ const eserviceTemplatesRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .get(
+      "/eservices/templates/creators",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const { creatorName, offset, limit } = req.query;
+
+          const { results, totalCount } =
+            await eserviceTemplateService.getEServiceTemplateCreators(
+              creatorName,
+              offset,
+              limit,
+              ctx
+            );
+
+          return res.status(200).send(
+            eserviceTemplateApi.CompactOrganizations.parse({
+              results,
+              totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            () => 500,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 };
 export default eserviceTemplatesRouter;

@@ -276,6 +276,50 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/templates/{templateId}/instances:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create a new e-service instance from a template
+      operationId: createEServiceInstanceFromTemplate
+      parameters:
+        - name: templateId
+          in: path
+          description: The template id to create the e-service from
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Template instantiation parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstanceEServiceSeed"
+      responses:
+        "200":
+          description: EService created from template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/consumers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2114,6 +2158,15 @@ components:
         - url
         - termsAndConditionsUrl
         - serverUrls
+    InstanceEServiceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        instanceId:
+          type: string
+          format: uuid
+          description: Optional identifier to be appended to the template name
+          required: false
     Problem:
       properties:
         type:

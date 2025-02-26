@@ -61,7 +61,6 @@ import {
   toBffCatalogDescriptorEService,
   toBffCatalogApiEserviceRiskAnalysisSeed,
   toCompactProducerDescriptor,
-  toBffEServiceTemplateInstance,
   apiTechnologyToTechnology,
 } from "../api/catalogApiConverter.js";
 import { ConfigurationEservice } from "../model/types.js";
@@ -1459,69 +1458,28 @@ export function catalogServiceBuilder(
         },
       });
     },
-    getEServiceTemplateInstances: async (
-      eServiceTemplateId: EServiceTemplateId,
-      producerName: string | undefined,
-      states: bffApi.EServiceDescriptorState[],
-      offset: number,
-      limit: number,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.EServiceTemplateInstances> => {
+    createEServiceInstanceFromTemplate: async (
+      templateId: EServiceTemplateId,
+      seed: bffApi.InstanceEServiceSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedEServiceDescriptor> => {
       logger.info(
-        `Retrieving EService template ${eServiceTemplateId} instances with producer name ${producerName}, states ${states}, offset ${offset}, limit ${limit}`
+        `Creating EService from template ${templateId} ${
+          seed.instanceId ? `with instanceId ${seed.instanceId}` : ""
+        }`
       );
 
-      const producersMap = producerName
-        ? new Map(
-            (
-              await getAllFromPaginated<tenantApi.Tenant>((offset, limit) =>
-                tenantProcessClient.tenant.getProducers({
-                  queries: { name: producerName, offset, limit },
-                  headers,
-                })
-              )
-            ).map((producer) => [producer.id, producer])
-          )
-        : undefined;
-
-      const response = await catalogProcessClient.getEServices({
-        queries: {
-          producersIds: producersMap ? [...producersMap.keys()] : undefined,
-          states,
-          offset,
-          limit,
-        },
-        headers,
-      });
-
-      async function enhanceEServiceTemplateInstance(
-        eservice: catalogApi.EService
-      ): Promise<bffApi.EServiceTemplateInstance> {
-        const producer =
-          producersMap?.get(eservice.producerId) ??
-          (await tenantProcessClient.tenant.getTenant({
-            headers,
-            params: {
-              id: eservice.producerId,
-            },
-          }));
-
-        producersMap?.set(producer.id, producer);
-
-        return toBffEServiceTemplateInstance(eservice, producer);
-      }
-
-      const results = await Promise.all(
-        response.results.map(enhanceEServiceTemplateInstance)
-      );
+      const eService =
+        await catalogProcessClient.createEServiceInstanceFromTemplate(seed, {
+          headers,
+          params: {
+            templateId,
+          },
+        });
 
       return {
-        results,
-        pagination: {
-          offset,
-          limit,
-          totalCount: response.totalCount,
-        },
+        id: eService.id,
+        descriptorId: eService.descriptors[0].id,
       };
     },
   };
