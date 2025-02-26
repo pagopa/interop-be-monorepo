@@ -1126,17 +1126,17 @@ describe("get eservices", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateId: templateId1,
+      templateRef: { id: templateId1 },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateId: templateId1,
+      templateRef: { id: templateId1 },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateId: templateId2,
+      templateRef: { id: templateId2 },
     };
 
     await addOneEServiceTemplate(eserviceTemplate1);
@@ -1171,17 +1171,17 @@ describe("get eservices", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateId: templateId1,
+      templateRef: { id: templateId1 },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.archived)],
-      templateId: templateId1,
+      templateRef: { id: templateId1 },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptor(descriptorState.suspended)],
-      templateId: templateId2,
+      templateRef: { id: templateId2 },
     };
 
     await addOneEServiceTemplate(eserviceTemplate1);

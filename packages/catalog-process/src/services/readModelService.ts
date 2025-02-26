@@ -343,10 +343,12 @@ export function readModelServiceBuilder(
         }))
         .otherwise(() => ({}));
 
-      const templateIdsFilter: ReadModelFilter<EService> =
-        ReadModelRepository.arrayToFilter(templateIds, {
-          "data.templateId": { $in: templateIds },
-        });
+      const templateIdsFilter =
+        templateIds.length > 0
+          ? {
+              "data.templateRef.id": { $in: templateIds },
+            }
+          : {};
 
       const aggregationPipeline = [
         delegationLookup,
