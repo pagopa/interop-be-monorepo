@@ -630,6 +630,32 @@ export function eserviceTemplateServiceBuilder(
 
       return { contentType, document: Buffer.from(stream) };
     },
+
+    updateEServiceTemplateDocumentById: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      updateEServiceTemplateVersionDocumentSeed: bffApi.UpdateEServiceTemplateVersionDocumentSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceDoc> => {
+      logger.info(
+        `Updating document ${documentId} of version ${eServiceTemplateVersionId} of EServiceTemplate ${eServiceTemplateId}`
+      );
+      const { id, name, contentType, prettyName } =
+        await eserviceTemplateClient.updateEServiceTemplateDocumentById(
+          updateEServiceTemplateVersionDocumentSeed,
+          {
+            params: {
+              eServiceTemplateId,
+              eServiceTemplateVersionId,
+              documentId,
+            },
+            headers,
+          }
+        );
+
+      return { id, name, contentType, prettyName };
+    },
   };
 }
 
