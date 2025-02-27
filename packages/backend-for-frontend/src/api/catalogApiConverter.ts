@@ -369,7 +369,7 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
-    templateVersionId: descriptor.templateVersionId,
+    templateVersionId: descriptor?.templateVersionRef?.id,
   };
 }
 
@@ -407,7 +407,7 @@ export function toBffEServiceTemplateInstance(
       ? toCompactDescriptor(activeDescriptor)
       : undefined,
     descriptors: eservice.descriptors.map(toCompactDescriptor),
-    instanceId: eservice.instanceId,
+    instanceId: eservice.templateRef?.instanceId,
   };
 }
 
