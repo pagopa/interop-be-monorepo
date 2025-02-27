@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute(
   FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_document(
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_consumer_document(
   id UUID,
   agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
@@ -49,7 +49,19 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_document(
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  kind VARCHAR NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract(
+  id UUID,
+  agreement_id UUID UNIQUE NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
 );
