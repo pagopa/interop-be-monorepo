@@ -134,7 +134,7 @@ export function readModelServiceBuilder(
   const attributes = readModelRepository.attributes;
   const tenants = readModelRepository.tenants;
   const delegations = readModelRepository.delegations;
-  const templates = readModelRepository.eserviceTemplates;
+  const eserviceTemplates = readModelRepository.eserviceTemplates;
 
   return {
     async getEServices(
@@ -668,7 +668,7 @@ export function readModelServiceBuilder(
     async getEServiceTemplateById(
       id: EServiceTemplateId
     ): Promise<EServiceTemplate | undefined> {
-      return getEServiceTemplate(templates, { "data.id": id });
+      return getEServiceTemplate(eserviceTemplates, { "data.id": id });
     },
   };
 }

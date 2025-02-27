@@ -60,6 +60,7 @@ import {
   approveDelegatedEServiceDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   updateEServiceFlagsErrorMapper,
+  upgradeEServiceInstanceErrorMapper,
   createEServiceInstanceFromTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -931,6 +932,33 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorAttributesErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/instance/upgrade",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const upgradedEService = await catalogService.upgradeEServiceInstance(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(upgradedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            upgradeEServiceInstanceErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

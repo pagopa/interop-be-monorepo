@@ -881,7 +881,26 @@ const catalogRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .post("/eservices/:eServiceId/instance/upgrade", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.upgradeEServiceInstance(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error upgrade eService ${req.params.eServiceId} to the latest version of it's reference template`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return catalogRouter;
 };

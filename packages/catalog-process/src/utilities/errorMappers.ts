@@ -375,3 +375,21 @@ export const rejectDelegatedEServiceDescriptorErrorMapper = (
     .with("eServiceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const upgradeEServiceInstanceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "eServiceTemplateNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "eServiceNotAnInstance",
+      "eServiceAlreadyUpgraded",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
