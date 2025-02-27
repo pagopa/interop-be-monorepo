@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_interface(
   path VARCHAR NOT NULL,
   "checksum" VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY(id)
+  PRIMARY KEY(id, descriptor_id)
 );
 
 
