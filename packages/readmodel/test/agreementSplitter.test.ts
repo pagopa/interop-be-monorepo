@@ -4,7 +4,7 @@ import {
   getMockAgreementDocument,
   getMockAgreementStamps,
 } from "pagopa-interop-commons-test";
-import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   Agreement,
   AgreementDocument,
@@ -26,15 +26,6 @@ import {
 import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
 
 describe("Agreement Splitter", () => {
-  beforeEach(async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it("should convert an Agreement object as business model into a Agreement object as data model", () => {
     // set an Agreement
     const verifiedAttribute = getMockAgreementAttribute();
@@ -105,10 +96,12 @@ describe("Agreement Splitter", () => {
       suspendedByProducer: true,
       suspendedByPlatform: true,
       createdAt: agreement.createdAt.toISOString(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: agreement.updatedAt ? agreement.updatedAt.toISOString() : null,
       consumerNotes,
       rejectionReason,
-      suspendedAt: new Date().toISOString(),
+      suspendedAt: agreement.suspendedAt
+        ? agreement.suspendedAt.toISOString()
+        : null,
     };
 
     const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL = {
