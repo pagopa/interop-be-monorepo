@@ -1782,8 +1782,6 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceId:
-          type: string
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
           required: false
@@ -1792,7 +1790,7 @@ components:
       additionalProperties: false
       required:
         - id
-        - version
+        - instanceId
       properties:
         id:
           type: string
