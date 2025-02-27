@@ -13,7 +13,6 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "tsx --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "generate-protobuf": "mkdirp ./src/gen && npx protoc --ts_opt=eslint_disable --ts_out ./src/gen --proto_path ./proto ./proto/**/**/*.proto && tsc-esm-fix --src='src/gen/' --ext='.js'"
@@ -35,7 +34,6 @@
     "mkdirp": "3.0.1",
     "prettier": "2.8.8",
     "tsc-esm-fix": "2.20.27",
-    "typescript": "5.4.5",
-    "tsx": "4.19.1"
+    "typescript": "5.4.5"
   }
 }
