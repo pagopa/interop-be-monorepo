@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS readmodel_producer_keychain.producer_keychain_key (
   kid VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   encoded_pem VARCHAR NOT NULL,
-  algorithm VARCHAR NOT NULL,
-  use VARCHAR NOT NULL,
+  "algorithm" VARCHAR NOT NULL,
+  "use" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (producer_keychain_id, kid)
 );

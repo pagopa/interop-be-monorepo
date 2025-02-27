@@ -1,51 +1,55 @@
 CREATE SCHEMA IF NOT EXISTS readmodel_agreement;
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement(
-  id uuid,
-  metadata_version integer NOT NULL,
-  eservice_id uuid NOT NULL,
-  descriptor_id uuid NOT NULL,
+  id UUID,
+  metadata_version INTEGER NOT NULL,
+  eservice_id UUID NOT NULL,
+  descriptor_id UUID NOT NULL,
   producer_id UUID NOT NULL,
   consumer_id UUID NOT NULL,
-  state varchar NOT NULL,
+  state VARCHAR NOT NULL,
   suspended_by_consumer boolean,
   suspended_by_producer boolean,
   suspended_by_platform boolean,
-  created_at timestamp WITH time zone NOT NULL,
-  updated_at timestamp WITH time zone,
-  consumer_notes varchar,
-  rejection_reason varchar,
-  suspended_at timestamp WITH time zone,
-  PRIMARY KEY (id)
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  consumer_notes VARCHAR,
+  rejection_reason VARCHAR,
+  suspended_at TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (id),
+  CONSTRAINT agreement_id_version_unique UNIQUE (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp(
-  agreement_id uuid NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
-  metadata_version integer NOT NULL,
-  who uuid NOT NULL,
-  delegation_id uuid,
-  "when" timestamp WITH time zone NOT NULL,
-  kind varchar NOT NULL,
-  PRIMARY KEY (agreement_id, kind)
+  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  who UUID NOT NULL,
+  delegation_id UUID,
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
+  PRIMARY KEY (agreement_id, kind),
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute(
-  agreement_id uuid NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
-  metadata_version integer NOT NULL,
-  attribute_id uuid NOT NULL,
-  kind varchar NOT NULL,
-  PRIMARY KEY (agreement_id, attribute_id)
+  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  attribute_id UUID NOT NULL,
+  kind VARCHAR NOT NULL,
+  PRIMARY KEY (agreement_id, attribute_id),
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_document(
-  id uuid,
-  agreement_id uuid NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
-  metadata_version integer NOT NULL,
-  name varchar NOT NULL,
-  pretty_name varchar NOT NULL,
-  content_type varchar NOT NULL,
-  path varchar NOT NULL,
-  created_at timestamp WITH time zone NOT NULL,
-  kind varchar NOT NULL,
-  PRIMARY KEY (id)
+  id UUID,
+  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
 );

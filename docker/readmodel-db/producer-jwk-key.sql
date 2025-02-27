@@ -8,6 +8,6 @@ CREATE TABLE IF NOT EXISTS readmodel_producer_jwk_key.producer_jwk_key(
   kid VARCHAR NOT NULL,
   kty VARCHAR NOT NULL,
   n VARCHAR NOT NULL,
-  use VARCHAR NOT NULL,
+  "use" VARCHAR NOT NULL,
   PRIMARY KEY (producer_keychain_id, kid)
 );

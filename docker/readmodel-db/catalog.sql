@@ -8,25 +8,11 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   description VARCHAR NOT NULL,
   technology VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  mode VARCHAR NOT NULL,
+  "mode" VARCHAR NOT NULL,
   is_signal_hub_enabled BOOLEAN,
   is_consumer_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
   PRIMARY KEY (id)
-);
-
--- TODO: update with new eservice-template model
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_template_binding (
-  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice(id),
-  metadata_version INTEGER NOT NULL,
-  eservice_template_id UUID,
-  instance_id VARCHAR,
-  name VARCHAR,
-  email VARCHAR,
-  url VARCHAR,
-  terms_and_conditions_url VARCHAR,
-  server_url VARCHAR,
-  PRIMARY KEY (eservice_id, eservice_template_id)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
@@ -67,7 +53,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_document(
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
-  checksum VARCHAR NOT NULL,
+  "checksum" VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY(id)
@@ -101,7 +87,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer(
   metadata_version INTEGER NOT NULL,
   risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_risk_analysis (risk_analysis_form_id) ON DELETE CASCADE,
   kind VARCHAR NOT NULL,
-  key VARCHAR NOT NULL,
+  "key" VARCHAR NOT NULL,
   value VARCHAR ARRAY NOT NULL,
   PRIMARY KEY(id)
 );
