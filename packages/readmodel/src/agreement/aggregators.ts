@@ -29,28 +29,28 @@ import {
 
 export const aggregatorAgreementArray = ({
   agreementSQL,
-  agreementStampsSQL,
-  agreementConsumerDocumentsSQL,
+  stampsSQL,
+  consumerDocumentsSQL,
   contractSQL,
-  agreementAttributesSQL,
+  attributesSQL,
 }: {
   agreementSQL: AgreementSQL[];
-  agreementStampsSQL: AgreementStampSQL[];
-  agreementConsumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  stampsSQL: AgreementStampSQL[];
+  consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractSQL: AgreementContractSQL | null;
-  agreementAttributesSQL: AgreementAttributeSQL[];
+  attributesSQL: AgreementAttributeSQL[];
 }): Array<WithMetadata<Agreement>> =>
   agreementSQL.map((agreementSQL) =>
     aggregateAgreement({
       agreementSQL,
-      stampsSQL: agreementStampsSQL.filter(
+      stampsSQL: stampsSQL.filter(
         (stampSQL) => stampSQL.agreementId === agreementSQL.id
       ),
-      consumerDocumentsSQL: agreementConsumerDocumentsSQL.filter(
+      consumerDocumentsSQL: consumerDocumentsSQL.filter(
         (documentSQL) => documentSQL.agreementId === agreementSQL.id
       ),
       contractSQL,
-      attributesSQL: agreementAttributesSQL.filter(
+      attributesSQL: attributesSQL.filter(
         (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
       ),
     })
@@ -62,13 +62,7 @@ export const aggregateAgreement = ({
   consumerDocumentsSQL,
   contractSQL,
   attributesSQL,
-}: {
-  agreementSQL: AgreementSQL;
-  stampsSQL: AgreementStampSQL[];
-  consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
-  contractSQL: AgreementContractSQL | null;
-  attributesSQL: AgreementAttributeSQL[];
-}): WithMetadata<Agreement> => {
+}: AgreementItemsSQL): WithMetadata<Agreement> => {
   const verifiedAttributes: AgreementAttribute[] = attributesSQL
     .filter((a) => a.kind === attributeKind.verified)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));

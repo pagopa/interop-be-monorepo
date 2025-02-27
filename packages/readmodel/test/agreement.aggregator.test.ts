@@ -128,10 +128,10 @@ describe("Agreement Aggregator", () => {
     };
     const {
       agreementSQL,
-      stampsSQL,
       consumerDocumentsSQL,
       contractSQL,
       attributesSQL,
+      stampsSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
       agreement.metadata.version
