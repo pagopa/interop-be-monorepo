@@ -29,6 +29,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         riskAnalysisAnswersSQL,
         descriptorsSQL,
         attributesSQL,
+        interfacesSQL,
         documentsSQL,
         rejectionReasonsSQL,
       } = splitEserviceIntoObjectsSQL(eservice.data, eservice.metadata.version);
@@ -44,6 +45,12 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           await tx
             .insert(eserviceDescriptorInReadmodelCatalog)
             .values(descriptor);
+        }
+
+        for (const descriptorInterface of interfacesSQL) {
+          await tx
+            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .values(descriptorInterface);
         }
 
         for (const doc of documentsSQL) {
