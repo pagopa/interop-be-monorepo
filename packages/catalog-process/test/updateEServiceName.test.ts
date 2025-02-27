@@ -15,12 +15,15 @@ import {
   TenantId,
   delegationKind,
   delegationState,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
   eServiceDuplicate,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -224,5 +227,26 @@ describe("update eService name on published eservice", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(eServiceDuplicate(duplicateName));
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eService: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+      templateRef: { id: templateId },
+    };
+    await addOneEService(eService);
+    expect(
+      catalogService.updateEServiceName(eService.id, "eservice new name", {
+        authData: getMockAuthData(eService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

@@ -14,6 +14,8 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -22,6 +24,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   inconsistentDailyCalls,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -369,5 +372,40 @@ describe("update descriptor", () => {
         }
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+      {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
+        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+      };
+    expect(
+      catalogService.updateDescriptor(
+        eservice.id,
+        descriptor.id,
+        expectedDescriptorQuotasSeed,
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });
