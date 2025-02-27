@@ -6,6 +6,7 @@ import {
   EachMessagePayload,
   Kafka,
   KafkaConfig,
+  KafkaMessage,
   OauthbearerProviderResponse,
   Producer,
   ProducerRecord,
@@ -368,10 +369,11 @@ export const runConsumer = async (
           await consumerHandler(payload);
           await kafkaCommitMessageOffsets(consumer, payload);
         } catch (e) {
+          const messageInfo = extractBasicMessageInfo(payload.message);
           throw kafkaMessageProcessError(
             payload.topic,
             payload.partition,
-            payload.message.offset,
+            messageInfo,
             e
           );
         }
@@ -401,7 +403,7 @@ export const runBatchConsumer = async (
           throw kafkaMessageProcessError(
             payload.batch.topic,
             payload.batch.partition,
-            payload.batch.lastOffset().toString(),
+            { offset: payload.batch.lastOffset().toString() },
             e
           );
         }
@@ -449,3 +451,28 @@ export const validateTopicMetadata = async (
     return false;
   }
 };
+
+export function extractBasicMessageInfo(message: KafkaMessage): {
+  offset: string;
+  streamId?: string;
+  eventType?: string;
+  eventVersion?: number;
+} {
+  try {
+    if (!message.value) {
+      return { offset: message.offset };
+    }
+
+    const rawMessage = JSON.parse(message.value.toString());
+    const dataSource = rawMessage.value?.after || rawMessage;
+
+    return {
+      offset: message.offset,
+      streamId: dataSource.stream_id || dataSource.streamId || dataSource.id,
+      eventType: dataSource.type,
+      eventVersion: dataSource.event_version,
+    };
+  } catch {
+    return { offset: message.offset };
+  }
+}
