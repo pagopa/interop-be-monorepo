@@ -30,7 +30,7 @@ import {
   invalidHashLength,
   invalidHashAlgorithm,
   invalidKidFormat,
-  digestClaimNotFound,
+  invalidDigestClaim,
   audienceNotFound,
   invalidAgreementState,
   invalidEServiceState,
@@ -166,7 +166,7 @@ export const validateDigest = (
   }
   const result = ClientAssertionDigest.safeParse(digest);
   if (!result.success) {
-    return failedValidation([digestClaimNotFound(result.error.toString())]);
+    return failedValidation([invalidDigestClaim(JSON.stringify(result.error))]);
   }
   const validatedDigest = result.data;
   const digestLengthError =
