@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   deprecated_at TIMESTAMP WITH TIME ZONE,
   archived_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id),
-  CONSTRAINT eservice_id_version_unique UNIQUE (id, metadata_version)
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_rejection_reason (
