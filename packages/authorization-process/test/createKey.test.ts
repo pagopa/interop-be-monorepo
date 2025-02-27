@@ -118,13 +118,15 @@ describe("createKey", () => {
 
     await addOneClient(mockClient);
 
-    const { client } = await authorizationService.createKey({
+    const key = await authorizationService.createKey({
       clientId: mockClient.id,
       authData: mockAuthData,
       keySeed,
       correlationId: generateId(),
       logger: genericLogger,
     });
+
+    const client: Client = { ...mockClient, keys: [key] };
 
     const writtenEvent = await readLastEventByStreamId(
       client.id,
