@@ -43,6 +43,7 @@ import {
   AttributeProcessClient,
   CatalogProcessClient,
   DelegationProcessClient,
+  EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
@@ -65,6 +66,7 @@ import {
   toBffCatalogApiEserviceRiskAnalysisSeed,
   toCompactProducerDescriptor,
   apiTechnologyToTechnology,
+  EserviceTemplateData,
 } from "../api/catalogApiConverter.js";
 import { ConfigurationEservice } from "../model/types.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
@@ -209,6 +211,33 @@ const enhanceProducerEService = (
   };
 };
 
+export const retrieveEserviceTemplateData = async (
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor,
+  eserviceTemplateProcessClient: EServiceTemplateProcessClient,
+  headers: Headers
+): Promise<EserviceTemplateData | undefined> => {
+  const eServiceTemplateId = eservice.templateRef?.id;
+  const eserviceTemplate = eServiceTemplateId
+    ? await eserviceTemplateProcessClient.getEServiceTemplateById({
+        headers,
+        params: {
+          eServiceTemplateId,
+        },
+      })
+    : undefined;
+
+  return eserviceTemplate &&
+    descriptor.templateVersionRef &&
+    eservice.templateRef?.instanceId
+    ? {
+        templateId: eserviceTemplate.id,
+        templateVersionId: descriptor.templateVersionRef.id,
+        templateName: eserviceTemplate.name,
+        instanceId: eservice.templateRef?.instanceId,
+      }
+    : undefined;
+};
 export const retrieveEserviceDescriptor = (
   eservice: catalogApi.EService,
   descriptorId: DescriptorId
@@ -271,6 +300,7 @@ export function catalogServiceBuilder(
   agreementProcessClient: AgreementProcessClient,
   attributeProcessClient: AttributeProcessClient,
   delegationProcessClient: DelegationProcessClient,
+  eserviceTemplateProcessClient: EServiceTemplateProcessClient,
   fileManager: FileManager,
   bffConfig: BffProcessConfig
 ) {
@@ -363,7 +393,12 @@ export function catalogServiceBuilder(
           id: eservice.producerId,
         },
       });
-
+      const eserviceTemplateData = await retrieveEserviceTemplateData(
+        eservice,
+        descriptor,
+        eserviceTemplateProcessClient,
+        headers
+      );
       return {
         id: descriptor.id,
         version: descriptor.version,
@@ -381,7 +416,8 @@ export function catalogServiceBuilder(
         attributes: descriptorAttributes,
         eservice: toBffCatalogApiProducerDescriptorEService(
           eservice,
-          producerTenant
+          producerTenant,
+          eserviceTemplateData
         ),
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,

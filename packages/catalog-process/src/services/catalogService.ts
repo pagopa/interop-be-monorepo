@@ -37,6 +37,7 @@ import {
   EServiceTemplate,
   EServiceTemplateId,
   eserviceMode,
+  EServiceTemplateVersionRef,
   eserviceTemplateVersionState,
   generateId,
   ListResult,
@@ -536,6 +537,7 @@ async function innerCreateEService(
   };
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function innerUploadDocument(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
@@ -580,12 +582,22 @@ async function innerUploadDocument(
     uploadDate: new Date(),
   };
 
+  const templateData: EServiceTemplateVersionRef | undefined =
+    document.templateVersionRef
+      ? {
+          ...document.templateVersionRef,
+          id: unsafeBrandId(document.templateVersionRef.id),
+        }
+      : undefined;
+
   const updatedEService: EService = {
     ...eService.data,
     descriptors: eService.data.descriptors.map((d: Descriptor) =>
       d.id === descriptorId
         ? {
             ...d,
+            templateVersionRef:
+              isInterface && templateData ? { ...templateData } : undefined,
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
             serverUrls: isInterface ? document.serverUrls : d.serverUrls,

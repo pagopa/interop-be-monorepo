@@ -2000,6 +2000,8 @@ components:
           type: array
           items:
             type: string
+        templateVersionRef:
+          $ref: "#/components/schemas/EServiceTemplateVersionRef"
     UpdateEServiceDescriptorDocumentSeed:
       required:
         - prettyName

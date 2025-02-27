@@ -17725,6 +17725,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        templateRef:
+          required: false
+          $ref: "#/components/schemas/EServiceTemplateRef"
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false
@@ -17736,6 +17739,27 @@ components:
           format: uuid
         tenantKind:
           $ref: "#/components/schemas/TenantKind"
+    EServiceTemplateRef:
+      type: object
+      additionalProperties: false
+      required:
+        - templateId
+        - templateVersionId
+        - templateName
+        - instanceId
+      properties:
+        templateId:
+          type: string
+          format: uuid
+        templateVersionId:
+          type: string
+          format: uuid
+        templateName:
+          type: string
+        instanceId:
+          type: string
+          format: uuid
+    
     EServiceDoc:
       type: object
       additionalProperties: false

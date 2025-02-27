@@ -34,6 +34,13 @@ import {
 } from "../services/validators.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
 
+export type EserviceTemplateData = {
+  templateId: string;
+  templateName: string;
+  templateVersionId: string;
+  instanceId: string;
+};
+
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
 ): catalogApi.GetEServicesQueryParams {
@@ -244,7 +251,8 @@ export function toBffCatalogApiEserviceRiskAnalysisSeed(
 
 export function toBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
-  producer: tenantApi.Tenant
+  producer: tenantApi.Tenant,
+  eserviceTemplateData?: EserviceTemplateData
 ): bffApi.ProducerDescriptorEService {
   const producerMail = getLatestTenantContactEmail(producer);
 
@@ -278,6 +286,7 @@ export function toBffCatalogApiProducerDescriptorEService(
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    templateRef: eserviceTemplateData,
   };
 }
 
