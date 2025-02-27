@@ -46,17 +46,32 @@ export const splitClientIntoObjectsSQL = (
     purposeId,
   }));
 
-  const keysSQL: ClientKeySQL[] = keys.map((key) => ({
-    metadataVersion,
-    clientId: id,
-    userId: key.userId,
-    kid: key.kid,
-    name: key.name,
-    encodedPem: key.encodedPem,
-    algorithm: key.algorithm,
-    use: key.use,
-    createdAt: dateToString(key.createdAt),
-  }));
+  const keysSQL: ClientKeySQL[] = keys.map(
+    ({
+      userId,
+      kid,
+      name,
+      encodedPem,
+      algorithm,
+      use,
+      createdAt,
+      ...keyRest
+    }) => {
+      void (keyRest satisfies Record<string, never>);
+
+      return {
+        metadataVersion,
+        clientId: id,
+        userId,
+        kid,
+        name,
+        encodedPem,
+        algorithm,
+        use,
+        createdAt: dateToString(createdAt),
+      };
+    }
+  );
 
   return {
     clientSQL,
