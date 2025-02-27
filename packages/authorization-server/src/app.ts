@@ -1,11 +1,11 @@
-import { contextMiddleware, loggerMiddleware } from "pagopa-interop-commons";
+// import { contextMiddleware, loggerMiddleware } from "pagopa-interop-commons";
 import express from "express";
 import fastify from "fastify";
 import fastifyExpress from "@fastify/express";
-import healthRouter from "./routers/HealthRouter.js";
+// import healthRouter from "./routers/HealthRouter.js";
 import authorizationServerRouter from "./routers/AuthorizationServerRouter.js";
 
-const serviceName = "authorization-server";
+// const serviceName = "authorization-server";
 
 const app = fastify();
 await app.register(fastifyExpress);
@@ -14,10 +14,10 @@ await app.register(fastifyExpress);
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.express.disabled("x-powered-by");
 
-app.use(healthRouter);
-app.use(contextMiddleware(serviceName, false));
+// app.use(healthRouter);
+// app.use(contextMiddleware(serviceName, false));
 app.use(express.urlencoded({ extended: true }));
-app.use(loggerMiddleware(serviceName));
+// app.use(loggerMiddleware(serviceName));
 app.use(authorizationServerRouter());
 
 export default app;

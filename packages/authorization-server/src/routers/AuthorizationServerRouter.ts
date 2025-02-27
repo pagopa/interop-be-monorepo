@@ -1,15 +1,21 @@
 import { constants } from "http2";
 import {
-  fromAppContext,
+  // fromAppContext,
+  genericLogger,
   // initFileManager,
   // initRedisRateLimiter,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
-  zodiosCtx,
-  zodiosValidationErrorToApiProblem,
+  // zodiosCtx,
+  // zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { Problem, tooManyRequestsError } from "pagopa-interop-models";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
+import {
+  CorrelationId,
+  generateId,
+  Problem,
+  tooManyRequestsError,
+} from "pagopa-interop-models";
+// import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 // import { initProducer } from "kafka-iam-auth";
@@ -64,17 +70,22 @@ const tokenService = tokenServiceBuilder({
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function authorizationServerRouter(): express.Router {
-  const authorizationServerRouter = zodiosCtx.router(
-    authorizationServerApi.authApi.api,
-    {
-      validationErrorHandler: zodiosValidationErrorToApiProblem,
-    }
-  );
+  // const authorizationServerRouter = zodiosCtx.router(
+  //   authorizationServerApi.authApi.api,
+  //   {
+  //     validationErrorHandler: zodiosValidationErrorToApiProblem,
+  //   }
+  // );
+  const authorizationServerRouter = express.Router();
   authorizationServerRouter.post(
     "/authorization-server/token.oauth2",
     async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      // const ctx = fromAppContext(req.ctx);
 
+      const ctx = {
+        correlationId: generateId<CorrelationId>(),
+        logger: genericLogger,
+      };
       try {
         const tokenResult = await tokenService.generateToken(
           req.body,
