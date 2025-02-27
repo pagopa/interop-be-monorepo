@@ -158,6 +158,15 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
+      // TODO
+      { type: "EServiceNameUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
+
       () => undefined
     )
     .exhaustive();

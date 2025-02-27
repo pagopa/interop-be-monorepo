@@ -27,14 +27,16 @@ export const errorCodes = {
   unchangedAttributes: "0015",
   attributeNotFound: "0016",
   originNotCompliant: "0017",
-  invalidEServiceTemplateVersion: "0018",
-  draftEServiceTemplateVersionAlreadyExists: "0019",
-  missingTemplateVersionInterface: "0020",
-  missingRiskAnalysis: "0021",
-  interfaceAlreadyExists: "0022",
-  prettyNameDuplicate: "0023",
-  checksumDuplicate: "0024",
-  eserviceTemplateDocumentNotFound: "0025",
+  missingTemplateVersionInterface: "0018",
+  missingRiskAnalysis: "0019",
+  instanceNameConflict: "0020",
+  interfaceAlreadyExists: "0021",
+  prettyNameDuplicate: "0022",
+  checksumDuplicate: "0023",
+  invalidEServiceTemplateVersion: "0024",
+  draftEServiceTemplateVersionAlreadyExists: "0025",
+  eServiceDocumentNotFound: "0026",
+  eserviceTemplateDocumentNotFound: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -258,6 +260,16 @@ export function missingRiskAnalysis(
     detail: `EService template ${templateId} is missing the risk analysis`,
     code: "missingRiskAnalysis",
     title: "Missing risk analysis",
+  });
+}
+
+export function instanceNameConflict(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eserviceTemplateId} instance name conflict`,
+    code: "instanceNameConflict",
+    title: "Instance name conflict",
   });
 }
 
