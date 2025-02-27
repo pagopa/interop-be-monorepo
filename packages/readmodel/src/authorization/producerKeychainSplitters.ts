@@ -4,6 +4,7 @@ import {
   ProducerKeychainEServiceSQL,
   ProducerKeychainKeySQL,
   ProducerKeychainUserSQL,
+  ProducerKeychainItemsSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitProducerKeychainIntoObjectsSQL = (
@@ -19,12 +20,7 @@ export const splitProducerKeychainIntoObjectsSQL = (
     ...rest
   }: ProducerKeychain,
   metadataVersion: number
-): {
-  producerKeychainSQL: ProducerKeychainSQL;
-  producerKeychainUsersSQL: ProducerKeychainUserSQL[];
-  producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[];
-  producerKeychainKeysSQL: ProducerKeychainKeySQL[];
-} => {
+): ProducerKeychainItemsSQL => {
   void (rest satisfies Record<string, never>);
 
   const producerKeychainSQL: ProducerKeychainSQL = {
@@ -36,22 +32,21 @@ export const splitProducerKeychainIntoObjectsSQL = (
     description,
   };
 
-  const producerKeychainUsersSQL: ProducerKeychainUserSQL[] = users.map(
-    (userId) => ({
-      metadataVersion,
-      producerKeychainId: id,
-      userId,
-    })
-  );
+  const usersSQL: ProducerKeychainUserSQL[] = users.map((userId) => ({
+    metadataVersion,
+    producerKeychainId: id,
+    userId,
+  }));
 
-  const producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[] =
-    eservices.map((eserviceId) => ({
+  const eservicesSQL: ProducerKeychainEServiceSQL[] = eservices.map(
+    (eserviceId) => ({
       metadataVersion,
       producerKeychainId: id,
       eserviceId,
-    }));
+    })
+  );
 
-  const producerKeychainKeysSQL: ProducerKeychainKeySQL[] = keys.map((key) => ({
+  const keysSQL: ProducerKeychainKeySQL[] = keys.map((key) => ({
     metadataVersion,
     producerKeychainId: id,
     userId: key.userId,
@@ -65,8 +60,8 @@ export const splitProducerKeychainIntoObjectsSQL = (
 
   return {
     producerKeychainSQL,
-    producerKeychainUsersSQL,
-    producerKeychainEServicesSQL,
-    producerKeychainKeysSQL,
+    usersSQL,
+    eservicesSQL,
+    keysSQL,
   };
 };

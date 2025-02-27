@@ -24,19 +24,15 @@ describe("Producer keychain aggregator", () => {
       metadata: { version: 1 },
     };
 
-    const {
-      producerKeychainSQL,
-      producerKeychainUsersSQL,
-      producerKeychainEServicesSQL,
-      producerKeychainKeysSQL,
-    } = splitProducerKeychainIntoObjectsSQL(producerKeychain.data, 1);
+    const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+      splitProducerKeychainIntoObjectsSQL(producerKeychain.data, 1);
 
-    const aggregatedProducerKeychain = aggregateProducerKeychainSQL(
+    const aggregatedProducerKeychain = aggregateProducerKeychainSQL({
       producerKeychainSQL,
-      producerKeychainUsersSQL,
-      producerKeychainEServicesSQL,
-      producerKeychainKeysSQL
-    );
+      usersSQL,
+      eservicesSQL,
+      keysSQL,
+    });
     expect(aggregatedProducerKeychain).toMatchObject(producerKeychain);
   });
 });

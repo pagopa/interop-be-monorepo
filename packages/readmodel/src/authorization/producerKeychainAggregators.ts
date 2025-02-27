@@ -13,10 +13,11 @@ import {
   ProducerKeychainUserSQL,
   ProducerKeychainEServiceSQL,
   ProducerKeychainKeySQL,
+  ProducerKeychainItemsSQL,
 } from "pagopa-interop-readmodel-models";
 
-export const aggregateProducerKeychainSQL = (
-  {
+export const aggregateProducerKeychainSQL = ({
+  producerKeychainSQL: {
     id,
     metadataVersion,
     producerId,
@@ -24,28 +25,44 @@ export const aggregateProducerKeychainSQL = (
     createdAt,
     description,
     ...rest
-  }: ProducerKeychainSQL,
-  producerKeychainUsersSQL: ProducerKeychainUserSQL[],
-  producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[],
-  producerKeychainKeysSQL: ProducerKeychainKeySQL[]
-): WithMetadata<ProducerKeychain> => {
+  },
+  usersSQL,
+  eservicesSQL,
+  keysSQL,
+}: ProducerKeychainItemsSQL): WithMetadata<ProducerKeychain> => {
   void (rest satisfies Record<string, never>);
 
-  const users: UserId[] = producerKeychainUsersSQL.map((u) =>
-    unsafeBrandId(u.userId)
-  );
-  const eservices: EServiceId[] = producerKeychainEServicesSQL.map((e) =>
+  const users: UserId[] = usersSQL.map((u) => unsafeBrandId(u.userId));
+  const eservices: EServiceId[] = eservicesSQL.map((e) =>
     unsafeBrandId(e.eserviceId)
   );
-  const keys: Key[] = producerKeychainKeysSQL.map((k) => ({
-    userId: unsafeBrandId(k.userId),
-    kid: k.kid,
-    name: k.name,
-    encodedPem: k.encodedPem,
-    algorithm: k.algorithm,
-    use: KeyUse.parse(k.use),
-    createdAt: stringToDate(k.createdAt),
-  }));
+  const keys: Key[] = keysSQL.map(
+    ({
+      userId,
+      kid,
+      name,
+      encodedPem,
+      algorithm,
+      use,
+      createdAt,
+      ...keyRest
+    }: Omit<
+      ProducerKeychainKeySQL,
+      "metadataVersion" | "producerKeychainId"
+    >) => {
+      void (keyRest satisfies Record<string, never>);
+
+      return {
+        userId: unsafeBrandId(userId),
+        kid,
+        name,
+        encodedPem,
+        algorithm,
+        use: KeyUse.parse(use),
+        createdAt: stringToDate(createdAt),
+      };
+    }
+  );
 
   return {
     data: {
@@ -64,32 +81,26 @@ export const aggregateProducerKeychainSQL = (
 
 export const aggregateProducerKeychainArraySQL = ({
   producerKeychainsSQL,
-  producerKeychainUsersSQL,
-  producerKeychainEServicesSQL,
-  producerKeychainKeysSQL,
+  usersSQL: producerKeychainUsersSQL,
+  eservicesSQL: producerKeychainEServicesSQL,
+  keysSQL: producerKeychainKeysSQL,
 }: {
   producerKeychainsSQL: ProducerKeychainSQL[];
-  producerKeychainUsersSQL: ProducerKeychainUserSQL[];
-  producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[];
-  producerKeychainKeysSQL: ProducerKeychainKeySQL[];
+  usersSQL: ProducerKeychainUserSQL[];
+  eservicesSQL: ProducerKeychainEServiceSQL[];
+  keysSQL: ProducerKeychainKeySQL[];
 }): Array<WithMetadata<ProducerKeychain>> =>
-  producerKeychainsSQL.map((producerKeychainSQL) => {
-    const usersSQLOfCurrentKeychain = producerKeychainUsersSQL.filter(
-      (user) => user.producerKeychainId === producerKeychainSQL.id
-    );
-
-    const eservicesSQLOfCurrentKeychain = producerKeychainEServicesSQL.filter(
-      (eservice) => eservice.producerKeychainId === producerKeychainSQL.id
-    );
-
-    const keysOfCurrentKeychain = producerKeychainKeysSQL.filter(
-      (key) => key.producerKeychainId === producerKeychainSQL.id
-    );
-
-    return aggregateProducerKeychainSQL(
+  producerKeychainsSQL.map((producerKeychainSQL) =>
+    aggregateProducerKeychainSQL({
       producerKeychainSQL,
-      usersSQLOfCurrentKeychain,
-      eservicesSQLOfCurrentKeychain,
-      keysOfCurrentKeychain
-    );
-  });
+      usersSQL: producerKeychainUsersSQL.filter(
+        (user) => user.producerKeychainId === producerKeychainSQL.id
+      ),
+      eservicesSQL: producerKeychainEServicesSQL.filter(
+        (eservice) => eservice.producerKeychainId === producerKeychainSQL.id
+      ),
+      keysSQL: producerKeychainKeysSQL.filter(
+        (key) => key.producerKeychainId === producerKeychainSQL.id
+      ),
+    })
+  );
