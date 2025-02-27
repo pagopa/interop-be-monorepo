@@ -6,10 +6,12 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { ReadModelService } from "pagopa-interop-readmodel";
+import { CustomReadModelService } from "./customReadModelService.js";
 
 export async function handleMessageV1(
   message: TenantEventEnvelopeV1,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  customReadModelService: CustomReadModelService
 ): Promise<void> {
   await match(message)
     .with(
@@ -34,7 +36,7 @@ export async function handleMessageV1(
       );
     })
     .with({ type: "SelfcareMappingCreated" }, async (msg) => {
-      await readModelService.setSelfcareId(
+      await customReadModelService.setSelfcareId(
         unsafeBrandId(msg.data.tenantId),
         msg.data.selfcareId,
         msg.version
@@ -42,7 +44,7 @@ export async function handleMessageV1(
     })
     .with({ type: "SelfcareMappingDeleted" }, async () => Promise.resolve())
     .with({ type: "TenantMailDeleted" }, async (msg) => {
-      await readModelService.deleteTenantMailById(
+      await customReadModelService.deleteTenantMailById(
         unsafeBrandId(msg.data.tenantId),
         msg.data.mailId,
         msg.version

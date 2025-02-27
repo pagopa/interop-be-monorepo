@@ -15,9 +15,11 @@ import {
 import { config } from "./config/config.js";
 import { handleMessageV1 } from "./tenantConsumerServiceV1.js";
 import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
+import { customReadModelServiceBuilder } from "./customReadModelService.js";
 
 const db = makeDrizzleConnection(config);
 const readModelService = readModelServiceBuilder(db);
+const customReadModelService = customReadModelServiceBuilder(db);
 
 async function processMessage({
   message,
@@ -36,7 +38,9 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
+    .with({ event_version: 1 }, (msg) =>
+      handleMessageV1(msg, readModelService, customReadModelService)
+    )
     .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
     .exhaustive();
   loggerInstance.info(

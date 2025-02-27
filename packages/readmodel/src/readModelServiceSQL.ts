@@ -170,45 +170,6 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         );
     },
-    async deleteTenantMailById(
-      tenantId: TenantId,
-      tenantMailId: string,
-      version: number
-    ): Promise<void> {
-      await db.transaction(async (tx) => {
-        await tx
-          .delete(tenantMailInReadmodelTenant)
-          .where(
-            and(
-              eq(tenantMailInReadmodelTenant.id, tenantMailId),
-              eq(tenantInReadmodelTenant.id, tenantId),
-              lte(tenantInReadmodelTenant.metadataVersion, version)
-            )
-          );
-
-        await updateTenantVersionInRelatedTable(tx, tenantId, version);
-      });
-    },
-
-    async setSelfcareId(
-      tenantId: TenantId,
-      selfcareId: string,
-      version: number
-    ): Promise<void> {
-      await db.transaction(async (tx) => {
-        await tx
-          .update(tenantInReadmodelTenant)
-          .set({ selfcareId })
-          .where(
-            and(
-              eq(tenantInReadmodelTenant.id, tenantId),
-              lte(tenantInReadmodelTenant.metadataVersion, version)
-            )
-          );
-
-        await updateTenantVersionInRelatedTable(tx, tenantId, version);
-      });
-    },
   };
 }
 
@@ -216,44 +177,6 @@ export type DrizzleReturnType = ReturnType<typeof drizzle>;
 export type TransactionType = Parameters<
   Parameters<DrizzleReturnType["transaction"]>[0]
 >[0];
-
-const updateTenantVersionInRelatedTable = async (
-  tx: TransactionType,
-  tenantId: TenantId,
-  newVersion: number
-): Promise<void> => {
-  const tenantRelatedTables = [
-    // tenantInReadmodelTenant,
-    tenantMailInReadmodelTenant,
-    tenantCertifiedAttributeInReadmodelTenant,
-    tenantDeclaredAttributeInReadmodelTenant,
-    tenantVerifiedAttributeInReadmodelTenant,
-    tenantVerifiedAttributeVerifierInReadmodelTenant,
-    tenantVerifiedAttributeRevokerInReadmodelTenant,
-    tenantFeatureInReadmodelTenant,
-  ];
-  await tx
-    .update(tenantInReadmodelTenant)
-    .set({ metadataVersion: newVersion })
-    .where(
-      and(
-        eq(tenantInReadmodelTenant.id, tenantId),
-        lte(tenantInReadmodelTenant.metadataVersion, newVersion)
-      )
-    );
-
-  for (const table of tenantRelatedTables) {
-    await tx
-      .update(table)
-      .set({ metadataVersion: newVersion })
-      .where(
-        and(
-          eq(table.tenantId, tenantId),
-          lte(table.metadataVersion, newVersion)
-        )
-      );
-  }
-};
 
 export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
 
