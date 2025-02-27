@@ -319,7 +319,7 @@ export function notificationEmailSenderServiceBuilder(
         subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
         to: [consumerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`,
           producerName: producer.name,
           consumerName: consumer.name,
           eserviceName: eservice.name,
@@ -483,7 +483,7 @@ export function notificationEmailSenderServiceBuilder(
         subject,
         to: [consumerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
           purposeName: purpose.title,
         }),
       };
