@@ -5,7 +5,12 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Delegation,
+  DelegationId,
   delegationKind,
+  EServiceId,
+  generateId,
+  TenantId,
+  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
@@ -47,9 +52,19 @@ describe("Delegation aggregator", () => {
   it("should convert incomplete delegation SQL objects into a business logic delegation (null -> undefined)", () => {
     const delegation: WithMetadata<Delegation> = {
       data: {
-        ...getMockDelegation({
-          kind: delegationKind.delegatedProducer,
-        }),
+        kind: delegationKind.delegatedProducer,
+        id: generateId<DelegationId>(),
+        delegatorId: generateId<TenantId>(),
+        delegateId: generateId<TenantId>(),
+        eserviceId: generateId<EServiceId>(),
+        state: "WaitingForApproval",
+        createdAt: new Date(),
+        stamps: {
+          submission: {
+            who: generateId<UserId>(),
+            when: new Date(),
+          },
+        },
       },
       metadata: {
         version: 1,
