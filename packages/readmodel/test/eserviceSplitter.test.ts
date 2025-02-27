@@ -10,7 +10,6 @@ import {
   agreementApprovalPolicy,
   attributeKind,
   Descriptor,
-  documentKind,
   EService,
   tenantKind,
 } from "pagopa-interop-models";
@@ -76,6 +75,7 @@ describe("E-service splitter", () => {
       riskAnalysisAnswersSQL,
       descriptorsSQL,
       attributesSQL,
+      interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
@@ -157,7 +157,6 @@ describe("E-service splitter", () => {
       ...doc,
       metadataVersion: 1,
       eserviceId: eservice.id,
-      kind: documentKind.descriptorDocument,
       descriptorId: descriptor.id,
       uploadDate: doc.uploadDate.toISOString(),
     };
@@ -166,7 +165,6 @@ describe("E-service splitter", () => {
       ...interfaceDoc,
       metadataVersion: 1,
       eserviceId: eservice.id,
-      kind: documentKind.descriptorInterface,
       descriptorId: descriptor.id,
       uploadDate: interfaceDoc.uploadDate.toISOString(),
     };
@@ -189,9 +187,8 @@ describe("E-service splitter", () => {
     expect(riskAnalysisAnswersSQL).toEqual(expectedRiskAnalysisAnswersSQL);
     expect(descriptorsSQL).toEqual([expectedDescriptorSQL]);
     expect(attributesSQL).toEqual([expectedAttributeSQL]);
-    expect(documentsSQL).toEqual(
-      expect.arrayContaining([expectedDocumentSQL, expectedInterfaceDocSQL])
-    );
+    expect(interfacesSQL).toEqual([expectedInterfaceDocSQL]);
+    expect(documentsSQL).toEqual(expect.arrayContaining([expectedDocumentSQL]));
     expect(rejectionReasonsSQL).toEqual([expectedRejectionReasonSQL]);
   });
 
@@ -233,6 +230,7 @@ describe("E-service splitter", () => {
       riskAnalysisAnswersSQL,
       descriptorsSQL,
       attributesSQL,
+      interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
@@ -303,7 +301,6 @@ describe("E-service splitter", () => {
       ...doc,
       metadataVersion: 1,
       eserviceId: eservice.id,
-      kind: documentKind.descriptorDocument,
       descriptorId: descriptor.id,
       uploadDate: doc.uploadDate.toISOString(),
     };
@@ -318,6 +315,7 @@ describe("E-service splitter", () => {
     expect(riskAnalysisAnswersSQL).toEqual(expectedRiskAnalysisAnswersSQL);
     expect(descriptorsSQL).toEqual([expectedDescriptorSQL]);
     expect(attributesSQL).toHaveLength(0);
+    expect(interfacesSQL).toHaveLength(0);
     expect(documentsSQL).toEqual(expect.arrayContaining([expectedDocumentSQL]));
     expect(rejectionReasonsSQL).toHaveLength(0);
   });

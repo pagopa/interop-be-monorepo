@@ -1,10 +1,8 @@
 import {
   attributeKind,
-  documentKind,
   EServiceId,
   EServiceAttribute,
   DescriptorId,
-  DocumentKind,
   riskAnalysisAnswerKind,
   AttributeKind,
   EService,
@@ -17,6 +15,7 @@ import {
 import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
+  EServiceDescriptorInterfaceSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
   EServiceRiskAnalysisAnswerSQL,
@@ -83,43 +82,54 @@ export const splitEserviceIntoObjectsSQL = (
       }
     );
 
-  const { descriptorsSQL, attributesSQL, documentsSQL, rejectionReasonsSQL } =
-    eservice.descriptors.reduce(
-      (
-        acc: {
-          descriptorsSQL: EServiceDescriptorSQL[];
-          attributesSQL: EServiceDescriptorAttributeSQL[];
-          documentsSQL: EServiceDescriptorDocumentSQL[];
-          rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-        },
-        currentDescriptor: Descriptor
-      ) => {
-        const {
-          descriptorSQL,
-          attributesSQL,
-          documentsSQL,
-          rejectionReasonsSQL,
-        } = splitDescriptorIntoObjectsSQL(
-          eservice.id,
-          currentDescriptor,
-          version
-        );
-
-        return {
-          descriptorsSQL: acc.descriptorsSQL.concat([descriptorSQL]),
-          attributesSQL: acc.attributesSQL.concat(attributesSQL),
-          documentsSQL: acc.documentsSQL.concat(documentsSQL),
-          rejectionReasonsSQL:
-            acc.rejectionReasonsSQL.concat(rejectionReasonsSQL),
-        };
+  const {
+    descriptorsSQL,
+    attributesSQL,
+    interfacesSQL,
+    documentsSQL,
+    rejectionReasonsSQL,
+  } = eservice.descriptors.reduce(
+    (
+      acc: {
+        descriptorsSQL: EServiceDescriptorSQL[];
+        attributesSQL: EServiceDescriptorAttributeSQL[];
+        interfacesSQL: EServiceDescriptorInterfaceSQL[];
+        documentsSQL: EServiceDescriptorDocumentSQL[];
+        rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
       },
-      {
-        descriptorsSQL: [],
-        attributesSQL: [],
-        documentsSQL: [],
-        rejectionReasonsSQL: [],
-      }
-    );
+      currentDescriptor: Descriptor
+    ) => {
+      const {
+        descriptorSQL,
+        attributesSQL,
+        interfaceSQL,
+        documentsSQL,
+        rejectionReasonsSQL,
+      } = splitDescriptorIntoObjectsSQL(
+        eservice.id,
+        currentDescriptor,
+        version
+      );
+
+      return {
+        descriptorsSQL: acc.descriptorsSQL.concat([descriptorSQL]),
+        attributesSQL: acc.attributesSQL.concat(attributesSQL),
+        interfacesSQL: interfaceSQL
+          ? acc.interfacesSQL.concat([interfaceSQL])
+          : acc.interfacesSQL,
+        documentsSQL: acc.documentsSQL.concat(documentsSQL),
+        rejectionReasonsSQL:
+          acc.rejectionReasonsSQL.concat(rejectionReasonsSQL),
+      };
+    },
+    {
+      descriptorsSQL: [],
+      attributesSQL: [],
+      interfacesSQL: [],
+      documentsSQL: [],
+      rejectionReasonsSQL: [],
+    }
+  );
 
   return {
     eserviceSQL,
@@ -127,6 +137,7 @@ export const splitEserviceIntoObjectsSQL = (
     riskAnalysisAnswersSQL,
     descriptorsSQL,
     attributesSQL,
+    interfacesSQL,
     documentsSQL,
     rejectionReasonsSQL,
   };
@@ -183,6 +194,7 @@ export const splitDescriptorIntoObjectsSQL = (
 ): {
   descriptorSQL: EServiceDescriptorSQL;
   attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
 } => {
@@ -218,7 +230,6 @@ export const splitDescriptorIntoObjectsSQL = (
   const interfaceSQL = descriptor.interface
     ? documentToDocumentSQL(
         descriptor.interface,
-        documentKind.descriptorInterface,
         descriptor.id,
         eserviceId,
         version
@@ -226,13 +237,7 @@ export const splitDescriptorIntoObjectsSQL = (
     : undefined;
 
   const documentsSQL = descriptor.docs.map((doc) =>
-    documentToDocumentSQL(
-      doc,
-      documentKind.descriptorDocument,
-      descriptor.id,
-      eserviceId,
-      version
-    )
+    documentToDocumentSQL(doc, descriptor.id, eserviceId, version)
   );
 
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] =
@@ -250,7 +255,8 @@ export const splitDescriptorIntoObjectsSQL = (
   return {
     descriptorSQL,
     attributesSQL,
-    documentsSQL: interfaceSQL ? [interfaceSQL, ...documentsSQL] : documentsSQL,
+    interfaceSQL,
+    documentsSQL,
     rejectionReasonsSQL,
   };
 };
@@ -311,7 +317,6 @@ export const splitRiskAnalysisIntoObjectsSQL = (
 
 export const documentToDocumentSQL = (
   document: Document,
-  documentKind: DocumentKind,
   descriptorId: DescriptorId,
   eserviceId: EServiceId,
   version: number
@@ -326,7 +331,6 @@ export const documentToDocumentSQL = (
   path: document.path,
   checksum: document.checksum,
   uploadDate: dateToString(document.uploadDate),
-  kind: documentKind,
 });
 
 export const descriptorToDescriptorSQL = (
