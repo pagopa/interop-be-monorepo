@@ -432,24 +432,31 @@ describe("create eService from template", () => {
     const expectedDocument1: Document = {
       ...document1,
       id: unsafeBrandId(
-        eServiceDocument1CreationPayload.eservice!.descriptors[0].docs[0].id
+        eServiceDocument1CreationPayload.eservice?.descriptors[0]?.docs[0]
+          ?.id ?? ""
       ),
       uploadDate: new Date(
-        eServiceDocument1CreationPayload.eservice!.descriptors[0].docs[0].uploadDate
+        eServiceDocument1CreationPayload.eservice?.descriptors[0]?.docs[0]
+          ?.uploadDate ?? Date.now()
       ),
-      path: eServiceDocument1CreationPayload.eservice!.descriptors[0].docs[0]
-        .path,
+      path:
+        eServiceDocument1CreationPayload.eservice?.descriptors[0]?.docs[0]
+          ?.path ?? "",
     };
+
     const expectedDocument2: Document = {
       ...document2,
       id: unsafeBrandId(
-        eServiceDocument2CreationPayload.eservice!.descriptors[0].docs[1].id
+        eServiceDocument2CreationPayload.eservice?.descriptors[0]?.docs[1]
+          ?.id ?? ""
       ),
       uploadDate: new Date(
-        eServiceDocument2CreationPayload.eservice!.descriptors[0].docs[1].uploadDate
+        eServiceDocument2CreationPayload.eservice?.descriptors[0]?.docs[1]
+          ?.uploadDate ?? Date.now()
       ),
-      path: eServiceDocument2CreationPayload.eservice!.descriptors[0].docs[1]
-        .path,
+      path:
+        eServiceDocument2CreationPayload.eservice?.descriptors[0]?.docs[1]
+          ?.path ?? "",
     };
 
     expect(eServiceCreationPayload.eservice).toEqual(

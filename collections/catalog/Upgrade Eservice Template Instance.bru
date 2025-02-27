@@ -1,0 +1,17 @@
+meta {
+  name: Upgrade Eservice Template Instance
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/instance/upgrade
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+

@@ -320,6 +320,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/instance/upgrade:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Upgrade an instance of a template
+      operationId: upgradeEServiceInstance
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Upgraded EService Instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "404":
+          description: E-Service not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/consumers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2483,9 +2518,12 @@ components:
       properties:
         instanceId:
           type: string
-          format: uuid
-          description: Optional identifier to be appended to the template name
-          required: false
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
     Problem:
       properties:
         type:

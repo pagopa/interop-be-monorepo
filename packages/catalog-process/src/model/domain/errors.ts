@@ -5,10 +5,10 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  EServiceTemplateId,
   RiskAnalysisId,
   TenantId,
   makeApiProblemBuilder,
-  EServiceTemplateId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -42,6 +42,8 @@ export const errorCodes = {
   unchangedAttributes: "0028",
   eServiceTemplateNotFound: "0029",
   eServiceTemplateWithoutPublishedVersion: "0030",
+  eServiceNotAnInstance: "0031",
+  eServiceAlreadyUpgraded: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -352,5 +354,25 @@ export function eServiceTemplateWithoutPublishedVersion(
     detail: `EService Template ${eServiceTemplateId} does not have a published version`,
     code: "eServiceTemplateWithoutPublishedVersion",
     title: "EService template without published version",
+  });
+}
+
+export function eServiceNotAnInstance(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not an instance of a template`,
+    code: "eServiceNotAnInstance",
+    title: "EService is not an instance",
+  });
+}
+
+export function eServiceAlreadyUpgraded(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} as already the latest version of the template`,
+    code: "eServiceAlreadyUpgraded",
+    title: "EService already upgraded",
   });
 }
