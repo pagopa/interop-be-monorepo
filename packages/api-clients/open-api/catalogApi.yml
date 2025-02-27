@@ -1807,6 +1807,13 @@ components:
         id:
           type: string
           format: uuid
+        interfaceMetadata:
+          required: false
+          $ref: "#/components/schemas/CustomizedInterfaceMetadata"
+    CustomizedInterfaceMetadata:
+      type: object
+      additionalProperties: false
+      properties:
         name:
           type: string
         email:
