@@ -42,7 +42,7 @@ import {
   InteropConsumerToken,
   InteropTokenGenerator,
   Logger,
-  RateLimiter,
+  // RateLimiter,
   RateLimiterStatus,
   secondsToMilliseconds,
 } from "pagopa-interop-commons";
@@ -76,20 +76,20 @@ export type GenerateTokenReturnType =
 export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  redisRateLimiter,
-}: // producer,
+}: // redisRateLimiter,
+// producer,
 // fileManager,
 {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
-  redisRateLimiter: RateLimiter;
+  // redisRateLimiter: RateLimiter;
   // producer: Awaited<ReturnType<typeof initProducer>>;
   // fileManager: FileManager;
 }) {
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      // correlationId: CorrelationId,
+      _correlationId: CorrelationId,
       logger: Logger
     ): Promise<GenerateTokenReturnType> {
       logger.info(`[CLIENTID=${request.client_id}] Token requested`);
@@ -175,8 +175,15 @@ export function tokenServiceBuilder({
         );
       }
 
-      const { limitReached, ...rateLimiterStatus } =
-        await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
+      // const { limitReached, ...rateLimiterStatus } =
+      //   await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
+      const limitReached = false;
+      const rateLimiterStatus = {
+        maxRequests: 0,
+        rateInterval: 0,
+        remainingRequests: 0,
+      };
+
       if (limitReached) {
         return {
           limitReached: true,

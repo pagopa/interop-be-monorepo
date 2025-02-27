@@ -2,7 +2,7 @@ import { constants } from "http2";
 import {
   fromAppContext,
   // initFileManager,
-  initRedisRateLimiter,
+  // initRedisRateLimiter,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
   zodiosCtx,
@@ -31,15 +31,15 @@ const kmsClient = new KMSClient({
     httpsAgent: { maxSockets: 2000 },
   },
 });
-const redisRateLimiter = await initRedisRateLimiter({
-  limiterGroup: "AUTHSERVER",
-  maxRequests: config.rateLimiterMaxRequests,
-  rateInterval: config.rateLimiterRateInterval,
-  burstPercentage: config.rateLimiterBurstPercentage,
-  redisHost: config.rateLimiterRedisHost,
-  redisPort: config.rateLimiterRedisPort,
-  timeout: config.rateLimiterTimeout,
-});
+// const redisRateLimiter = await initRedisRateLimiter({
+//   limiterGroup: "AUTHSERVER",
+//   maxRequests: config.rateLimiterMaxRequests,
+//   rateInterval: config.rateLimiterRateInterval,
+//   burstPercentage: config.rateLimiterBurstPercentage,
+//   redisHost: config.rateLimiterRedisHost,
+//   redisPort: config.rateLimiterRedisPort,
+//   timeout: config.rateLimiterTimeout,
+// });
 // const producer = await initProducer(config, config.tokenAuditingTopic);
 // const fileManager = initFileManager(config, 2000);
 
@@ -57,7 +57,7 @@ const tokenGenerator = new InteropTokenGenerator(
 const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  redisRateLimiter,
+  // redisRateLimiter,
   // producer,
   // fileManager,
 });
@@ -78,7 +78,7 @@ function authorizationServerRouter(): express.Router {
       try {
         const tokenResult = await tokenService.generateToken(
           req.body,
-          // ctx.correlationId,
+          ctx.correlationId,
           ctx.logger
         );
 
