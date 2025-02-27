@@ -1,8 +1,9 @@
 import {
   AgreementSQL,
   AgreementStampSQL,
-  AgreementDocumentSQL,
   AgreementAttributeSQL,
+  AgreementConsumerDocumentSQL,
+  AgreementContractSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   Agreement,
@@ -17,7 +18,6 @@ import {
   attributeKind,
   AttributeId,
   AgreementAttribute,
-  agreementDocumentKind,
   AgreementDocument,
   AgreementDocumentId,
   AgreementStamp,
@@ -29,12 +29,14 @@ import {
 export const aggregatorAgreementArray = ({
   agreementSQL,
   agreementStampsSQL,
-  agreementDocumentsSQL,
+  agreementConsumerDocumentsSQL,
+  agreementContractSQL,
   agreementAttributesSQL,
 }: {
   agreementSQL: AgreementSQL[];
   agreementStampsSQL: AgreementStampSQL[];
-  agreementDocumentsSQL: AgreementDocumentSQL[];
+  agreementConsumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  agreementContractSQL: AgreementContractSQL | null;
   agreementAttributesSQL: AgreementAttributeSQL[];
 }): Array<WithMetadata<Agreement>> =>
   agreementSQL.map((agreementSQL) =>
@@ -43,9 +45,10 @@ export const aggregatorAgreementArray = ({
       agreementStampsSQL: agreementStampsSQL.filter(
         (stampSQL) => stampSQL.agreementId === agreementSQL.id
       ),
-      agreementDocumentsSQL: agreementDocumentsSQL.filter(
+      agreementConsumerDocumentsSQL: agreementConsumerDocumentsSQL.filter(
         (documentSQL) => documentSQL.agreementId === agreementSQL.id
       ),
+      agreementContractSQL,
       agreementAttributesSQL: agreementAttributesSQL.filter(
         (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
       ),
@@ -55,12 +58,14 @@ export const aggregatorAgreementArray = ({
 export const aggregateAgreement = ({
   agreementSQL,
   agreementStampsSQL,
-  agreementDocumentsSQL,
+  agreementConsumerDocumentsSQL,
+  agreementContractSQL,
   agreementAttributesSQL,
 }: {
   agreementSQL: AgreementSQL;
   agreementStampsSQL: AgreementStampSQL[];
-  agreementDocumentsSQL: AgreementDocumentSQL[];
+  agreementConsumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  agreementContractSQL: AgreementContractSQL | null;
   agreementAttributesSQL: AgreementAttributeSQL[];
 }): WithMetadata<Agreement> => {
   const verifiedAttributes: AgreementAttribute[] = agreementAttributesSQL
@@ -73,15 +78,8 @@ export const aggregateAgreement = ({
     .filter((a) => a.kind === attributeKind.declared)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
 
-  const consumerDocuments: AgreementDocument[] = agreementDocumentsSQL
-    .filter((d) => d.kind === agreementDocumentKind.consumerDoc)
-    .map(documentSQLtoDocument);
-
-  const contractSQL: AgreementDocumentSQL | undefined =
-    agreementDocumentsSQL.find(
-      (d) => d.kind === agreementDocumentKind.contract
-    );
-  const contract = contractSQL ? documentSQLtoDocument(contractSQL) : undefined;
+  const consumerDocuments: AgreementDocument[] =
+    agreementConsumerDocumentsSQL.map(documentSQLtoDocument);
 
   const submissionStampSQL = agreementStampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.submission
@@ -139,7 +137,9 @@ export const aggregateAgreement = ({
           consumerNotes: agreementSQL.consumerNotes,
         }
       : {}),
-    ...(contract ? { contract } : {}),
+    ...(agreementContractSQL
+      ? { contract: documentSQLtoDocument(agreementContractSQL) }
+      : {}),
     stamps: {
       ...(submissionStampSQL
         ? { submission: stampSQLtoStamp(submissionStampSQL) }
@@ -184,7 +184,7 @@ export const aggregateAgreement = ({
 };
 
 const documentSQLtoDocument = (
-  document: AgreementDocumentSQL
+  document: AgreementContractSQL | AgreementConsumerDocumentSQL
 ): AgreementDocument => ({
   id: unsafeBrandId<AgreementDocumentId>(document.id),
   path: document.path,

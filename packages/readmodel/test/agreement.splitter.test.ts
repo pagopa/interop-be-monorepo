@@ -8,7 +8,6 @@ import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import {
   Agreement,
   AgreementDocument,
-  agreementDocumentKind,
   AgreementStamp,
   agreementStampKind,
   AgreementStamps,
@@ -19,7 +18,8 @@ import {
 } from "pagopa-interop-models";
 import {
   AgreementAttributeSQL,
-  AgreementDocumentSQL,
+  AgreementConsumerDocumentSQL,
+  AgreementContractSQL,
   AgreementSQL,
   AgreementStampSQL,
 } from "pagopa-interop-readmodel-models";
@@ -87,7 +87,8 @@ describe("Agreement Splitter", () => {
     // convert an agreement into a specific agreement data model
     const {
       agreementSQL,
-      agreementDocumentsSQL,
+      agreementConsumerDocumentsSQL,
+      agreementContractSQL,
       agreementAttributesSQL,
       agreementStampsSQL,
     } = splitAgreementIntoObjectsSQL(agreement, 1);
@@ -110,19 +111,17 @@ describe("Agreement Splitter", () => {
       suspendedAt: new Date().toISOString(),
     };
 
-    const expectedAgreementDocumentSQL: AgreementDocumentSQL = {
+    const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL = {
       ...consumerDocument,
       agreementId: agreement.id,
       metadataVersion: 1,
-      kind: agreementDocumentKind.consumerDoc,
       createdAt: consumerDocument.createdAt.toISOString(),
     };
 
-    const expectedContractDocumentSQL: AgreementDocumentSQL = {
+    const expectedContractDocumentSQL: AgreementContractSQL = {
       ...contract,
       agreementId: agreement.id,
       metadataVersion: 1,
-      kind: agreementDocumentKind.contract,
       createdAt: contract.createdAt.toISOString(),
     };
 
@@ -163,12 +162,10 @@ describe("Agreement Splitter", () => {
     }
 
     expect(agreementSQL).toEqual(expectedAgreementSQL);
-    expect(agreementDocumentsSQL).toEqual(
-      expect.arrayContaining([
-        expectedAgreementDocumentSQL,
-        expectedContractDocumentSQL,
-      ])
-    );
+    expect(agreementConsumerDocumentsSQL).toEqual([
+      expectedAgreementConsumerDocumentSQL,
+    ]);
+    expect(agreementContractSQL).toEqual(expectedContractDocumentSQL);
     expect(agreementAttributesSQL).toEqual(
       expect.arrayContaining([
         expectedAgreementVerifiedAttributeSQL,
@@ -219,7 +216,8 @@ describe("Agreement Splitter", () => {
     // convert an agreement into a specific agreement data model
     const {
       agreementSQL,
-      agreementDocumentsSQL,
+      agreementConsumerDocumentsSQL,
+      agreementContractSQL,
       agreementAttributesSQL,
       agreementStampsSQL,
     } = splitAgreementIntoObjectsSQL(agreement, 1);
@@ -242,14 +240,12 @@ describe("Agreement Splitter", () => {
       suspendedAt: null,
     };
 
-    const expectedAgreementDocumentSQL: AgreementDocumentSQL = {
+    const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL = {
       ...consumerDocument,
       agreementId: agreement.id,
       metadataVersion: 1,
-      kind: agreementDocumentKind.consumerDoc,
       createdAt: consumerDocument.createdAt.toISOString(),
     };
-
     const expectedAgreementVerifiedAttributeSQL: AgreementAttributeSQL = {
       metadataVersion: 1,
       agreementId: agreement.id,
@@ -268,21 +264,22 @@ describe("Agreement Splitter", () => {
       kind: attributeKind.declared,
       attributeId: declaredAttribute.id,
     };
-
-    const agreementStampSQL: AgreementStampSQL = {
-      metadataVersion: 1,
-      agreementId: agreement.id,
-      kind: agreementStampKind.submission,
-      who: agreementSubmissionStamp.who,
-      when: agreementSubmissionStamp.when.toISOString(),
-      delegationId: null,
-    };
-    const expectedAgreementStampsSQL: AgreementStampSQL[] = [agreementStampSQL];
+    const expectedAgreementStampsSQL: AgreementStampSQL[] = [
+      {
+        metadataVersion: 1,
+        agreementId: agreement.id,
+        kind: agreementStampKind.submission,
+        who: agreementSubmissionStamp.who,
+        when: agreementSubmissionStamp.when.toISOString(),
+        delegationId: null,
+      },
+    ];
 
     expect(agreementSQL).toEqual(expectedAgreementSQL);
-    expect(agreementDocumentsSQL).toEqual(
-      expect.arrayContaining([expectedAgreementDocumentSQL])
-    );
+    expect(agreementConsumerDocumentsSQL).toEqual([
+      expectedAgreementConsumerDocumentSQL,
+    ]);
+    expect(agreementContractSQL).toBeNull();
     expect(agreementAttributesSQL).toEqual(
       expect.arrayContaining([
         expectedAgreementVerifiedAttributeSQL,

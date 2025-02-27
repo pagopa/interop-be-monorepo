@@ -1,8 +1,6 @@
 import {
   Agreement,
   AgreementDocument,
-  agreementDocumentKind,
-  AgreementDocumentKind,
   AgreementId,
   AgreementStamp,
   AgreementStampKind,
@@ -14,8 +12,9 @@ import {
 import {
   AgreementSQL,
   AgreementStampSQL,
-  AgreementDocumentSQL,
   AgreementAttributeSQL,
+  AgreementConsumerDocumentSQL,
+  AgreementContractSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitAgreementIntoObjectsSQL = (
@@ -46,7 +45,8 @@ export const splitAgreementIntoObjectsSQL = (
 ): {
   agreementSQL: AgreementSQL;
   agreementStampsSQL: AgreementStampSQL[];
-  agreementDocumentsSQL: AgreementDocumentSQL[];
+  agreementConsumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  agreementContractSQL: AgreementContractSQL | null;
   agreementAttributesSQL: AgreementAttributeSQL[];
 } => {
   void (rest satisfies Record<string, never>);
@@ -173,21 +173,11 @@ export const splitAgreementIntoObjectsSQL = (
 */
 
   const agreementContractSQL = contract
-    ? agreementDocumentToAgreementDocumentSQL(
-        contract,
-        agreementDocumentKind.contract,
-        id,
-        metadataVersion
-      )
-    : undefined;
+    ? agreementDocumentToAgreementDocumentSQL(contract, id, metadataVersion)
+    : null;
 
   const consumerDocumentsSQL = consumerDocuments.map((doc) =>
-    agreementDocumentToAgreementDocumentSQL(
-      doc,
-      agreementDocumentKind.consumerDoc,
-      id,
-      metadataVersion
-    )
+    agreementDocumentToAgreementDocumentSQL(doc, id, metadataVersion)
   );
 
   const agreementAttributesSQL: AgreementAttributeSQL[] = [
@@ -211,13 +201,11 @@ export const splitAgreementIntoObjectsSQL = (
     })),
   ];
 
-  const documentsSQL = agreementContractSQL
-    ? [agreementContractSQL, ...consumerDocumentsSQL]
-    : [...consumerDocumentsSQL];
   return {
     agreementSQL,
     agreementStampsSQL,
-    agreementDocumentsSQL: documentsSQL,
+    agreementConsumerDocumentsSQL: consumerDocumentsSQL,
+    agreementContractSQL,
     agreementAttributesSQL,
   };
 };
@@ -232,10 +220,9 @@ export const agreementDocumentToAgreementDocumentSQL = (
     createdAt,
     ...rest
   }: AgreementDocument,
-  kind: AgreementDocumentKind,
   agreementId: AgreementId,
   metadataVersion: number
-): AgreementDocumentSQL => {
+): AgreementConsumerDocumentSQL | AgreementContractSQL => {
   void (rest satisfies Record<string, never>);
   return {
     id,
@@ -246,6 +233,5 @@ export const agreementDocumentToAgreementDocumentSQL = (
     contentType,
     path,
     createdAt: dateToString(createdAt),
-    kind,
   };
 };

@@ -21,7 +21,7 @@ import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
 import { aggregateAgreement } from "../src/agreement/aggregators.js";
 
 describe("Agreement Aggregator", () => {
-  it.skip("should convert an Agreement object as data model into an Agreement object as business model", () => {
+  it("should convert an Agreement object as data model into an Agreement object as business model", () => {
     const eserviceId = generateId<EServiceId>();
     const mockAgreementStamps = getMockAgreementStamps();
     const agreementStamps: AgreementStamps = {};
@@ -69,7 +69,8 @@ describe("Agreement Aggregator", () => {
     };
     const {
       agreementSQL,
-      agreementDocumentsSQL,
+      agreementConsumerDocumentsSQL,
+      agreementContractSQL,
       agreementAttributesSQL,
       agreementStampsSQL,
     } = splitAgreementIntoObjectsSQL(
@@ -80,12 +81,14 @@ describe("Agreement Aggregator", () => {
     const aggregatedAgreement = aggregateAgreement({
       agreementSQL,
       agreementStampsSQL,
-      agreementDocumentsSQL,
+      agreementConsumerDocumentsSQL,
+      agreementContractSQL,
       agreementAttributesSQL,
     });
 
     expect(aggregatedAgreement).toMatchObject(agreement);
   });
+
   it("should convert a Agreement object with null values as data model into an Agreement object with undefined values as business model", () => {
     const mockAgreementStamps = getMockAgreementStamps();
     const agreementStamps: AgreementStamps = {};
@@ -125,7 +128,8 @@ describe("Agreement Aggregator", () => {
     };
     const {
       agreementSQL,
-      agreementDocumentsSQL,
+      agreementConsumerDocumentsSQL,
+      agreementContractSQL,
       agreementAttributesSQL,
       agreementStampsSQL,
     } = splitAgreementIntoObjectsSQL(
@@ -136,7 +140,8 @@ describe("Agreement Aggregator", () => {
     const aggregatedAgreement = aggregateAgreement({
       agreementSQL,
       agreementStampsSQL,
-      agreementDocumentsSQL,
+      agreementConsumerDocumentsSQL,
+      agreementContractSQL,
       agreementAttributesSQL,
     });
 
