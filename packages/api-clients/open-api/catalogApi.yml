@@ -1790,7 +1790,6 @@ components:
       additionalProperties: false
       required:
         - id
-        - instanceId
       properties:
         id:
           type: string
@@ -1813,6 +1812,12 @@ components:
     CustomizedInterfaceMetadata:
       type: object
       additionalProperties: false
+      required:
+        - name
+        - email
+        - url
+        - termsAndConditionsUrl
+        - serverUrls
       properties:
         name:
           type: string
