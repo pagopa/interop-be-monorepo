@@ -18,6 +18,7 @@ import {
   descriptorState,
   eserviceMode,
   operationForbidden,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -31,6 +32,7 @@ import {
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
+  templateInstanceNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -267,5 +269,13 @@ export async function assertNotDuplicatedEServiceName(
     if (eserviceWithSameName !== undefined) {
       throw eServiceDuplicate(name);
     }
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  templateId: EServiceTemplateId | undefined
+): void {
+  if (templateId !== undefined) {
+    throw templateInstanceNotAllowed(templateId);
   }
 }

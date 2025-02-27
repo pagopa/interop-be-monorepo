@@ -42,8 +42,9 @@ export const errorCodes = {
   unchangedAttributes: "0028",
   eServiceTemplateNotFound: "0029",
   eServiceTemplateWithoutPublishedVersion: "0030",
-  eServiceNotAnInstance: "0031",
-  eServiceAlreadyUpgraded: "0032",
+  templateInstanceNotAllowed: "0031",
+  eServiceNotAnInstance: "0032",
+  eServiceAlreadyUpgraded: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -354,6 +355,16 @@ export function eServiceTemplateWithoutPublishedVersion(
     detail: `EService Template ${eServiceTemplateId} does not have a published version`,
     code: "eServiceTemplateWithoutPublishedVersion",
     title: "EService template without published version",
+  });
+}
+
+export function templateInstanceNotAllowed(
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eServiceTemplateId} must not have a templateId`,
+    code: "templateInstanceNotAllowed",
+    title: "TemplateId must be undefined",
   });
 }
 
