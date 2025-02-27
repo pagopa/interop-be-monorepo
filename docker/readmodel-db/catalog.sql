@@ -44,6 +44,21 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_rejection_reaso
   rejected_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_interface(
+  id UUID,
+  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor(id) ON DELETE CASCADE,
+  name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  "checksum" VARCHAR NOT NULL,
+  upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY(id)
+);
+
+
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_document(
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
@@ -55,7 +70,6 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_document(
   path VARCHAR NOT NULL,
   "checksum" VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  kind VARCHAR NOT NULL,
   PRIMARY KEY(id)
 );
 
