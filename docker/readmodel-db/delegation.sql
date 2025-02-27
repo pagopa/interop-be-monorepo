@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_stamp (
   delegation_id uuid NOT NULL REFERENCES readmodel_delegation.delegation (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   who uuid NOT NULL,
-  when timestamp WITH time zone NOT NULL,
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (delegation_id, kind)
 );

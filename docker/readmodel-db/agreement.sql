@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp (
   metadata_version INTEGER NOT NULL,
   who UUID NOT NULL,
   delegation_id UUID,
-  when TIMESTAMP WITH TIME ZONE NOT NULL,
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (agreement_id, kind),
   FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
