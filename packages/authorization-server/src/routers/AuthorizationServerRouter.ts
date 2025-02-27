@@ -20,16 +20,16 @@ import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
 
 const dynamoDBClient = new DynamoDBClient({
-  requestHandler: {
-    requestTimeout: 3_000,
-    httpsAgent: { maxSockets: 2000 },
-  },
+  // requestHandler: {
+  //   requestTimeout: 3_000,
+  //   httpsAgent: { maxSockets: 2000 },
+  // },
 });
 const kmsClient = new KMSClient({
-  requestHandler: {
-    requestTimeout: 3_000,
-    httpsAgent: { maxSockets: 2000 },
-  },
+  // requestHandler: {
+  //   requestTimeout: 3_000,
+  //   httpsAgent: { maxSockets: 2000 },
+  // },
 });
 // const redisRateLimiter = await initRedisRateLimiter({
 //   limiterGroup: "AUTHSERVER",
