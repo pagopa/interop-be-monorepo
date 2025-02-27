@@ -11,34 +11,20 @@ import {
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  ClientKeySQL,
-  ClientPurposeSQL,
-  ClientSQL,
-  ClientUserSQL,
-} from "pagopa-interop-readmodel-models";
+import { ClientItemsSQL } from "pagopa-interop-readmodel-models";
 
-export const clientSQLToClient = (
-  {
-    id,
-    metadataVersion,
-    consumerId,
-    name,
-    description,
-    kind,
-    createdAt,
-  }: ClientSQL,
-  clientUsersSQL: ClientUserSQL[],
-  clientPurposesSQL: ClientPurposeSQL[],
-  clientKeysSQL: ClientKeySQL[]
-): WithMetadata<Client> => {
-  const users: UserId[] = clientUsersSQL.map((u) =>
-    unsafeBrandId<UserId>(u.userId)
-  );
-  const purposes: PurposeId[] = clientPurposesSQL.map((p) =>
+// TODO: ...rest?
+export const clientSQLToClient = ({
+  clientSQL,
+  usersSQL,
+  purposesSQL,
+  keysSQL,
+}: ClientItemsSQL): WithMetadata<Client> => {
+  const users: UserId[] = usersSQL.map((u) => unsafeBrandId<UserId>(u.userId));
+  const purposes: PurposeId[] = purposesSQL.map((p) =>
     unsafeBrandId<PurposeId>(p.purposeId)
   );
-  const keys: Key[] = clientKeysSQL.map((k) => ({
+  const keys: Key[] = keysSQL.map((k) => ({
     userId: unsafeBrandId<UserId>(k.userId),
     kid: k.kid,
     name: k.name,
@@ -50,16 +36,16 @@ export const clientSQLToClient = (
 
   return {
     data: {
-      id: unsafeBrandId<ClientId>(id),
-      consumerId: unsafeBrandId<TenantId>(consumerId),
-      name,
+      id: unsafeBrandId<ClientId>(clientSQL.id),
+      consumerId: unsafeBrandId<TenantId>(clientSQL.consumerId),
+      name: clientSQL.name,
       purposes,
-      description: description || undefined,
+      description: clientSQL.description || undefined,
       users,
-      kind: ClientKind.parse(kind),
-      createdAt: stringToDate(createdAt),
+      kind: ClientKind.parse(clientSQL.kind),
+      createdAt: stringToDate(clientSQL.createdAt),
       keys,
     },
-    metadata: { version: metadataVersion },
+    metadata: { version: clientSQL.metadataVersion },
   };
 };

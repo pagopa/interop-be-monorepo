@@ -26,7 +26,7 @@ describe("Client splitter", () => {
       description: undefined,
     };
 
-    const { clientSQL, clientUsersSQL, clientPurposesSQL, clientKeysSQL } =
+    const { clientSQL, usersSQL, purposesSQL, keysSQL } =
       splitClientIntoObjectsSQL(client, 1);
 
     const expectedClientSQL: ClientSQL = {
@@ -75,16 +75,16 @@ describe("Client splitter", () => {
     };
 
     expect(clientSQL).toEqual(expectedClientSQL);
-    expect(clientUsersSQL).toEqual(
+    expect(usersSQL).toEqual(
       expect.arrayContaining([expectedClientUserSQL1, expectedClientUserSQL2])
     );
-    expect(clientPurposesSQL).toEqual(
+    expect(purposesSQL).toEqual(
       expect.arrayContaining([
         expectedClientEServicesSQL1,
         expectedClientEServicesSQL2,
       ])
     );
-    expect(clientKeysSQL).toEqual(
+    expect(keysSQL).toEqual(
       expect.arrayContaining([expectedClientKeySQL1, expectedClientKeySQL2])
     );
   });
