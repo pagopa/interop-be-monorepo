@@ -1817,11 +1817,59 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        templateId:
+        templateRef:
+          $ref: "#/components/schemas/EServiceTemplateRef"
+          required: false
+    EServiceTemplateRef:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+      properties:
+        id:
           type: string
           format: uuid
         instanceId:
           type: string
+          format: uuid
+    EServiceTemplateVersionRef:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        interfaceMetadata:
+          required: false
+          $ref: "#/components/schemas/CustomizedInterfaceMetadata"
+    CustomizedInterfaceMetadata:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - email
+        - url
+        - termsAndConditionsUrl
+        - serverUrls
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        url:
+          type: string
+          format: uri
+        termsAndConditionsUrl:
+          type: string
+          format: uri
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
     EServiceMode:
       type: string
       description: Risk Analysis Mode
@@ -2079,9 +2127,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RejectionReason"
-        templateVersionId:
-          type: string
-          format: uuid
+        templateVersionRef:
+          $ref: "#/components/schemas/EServiceTemplateVersionRef"
+
     Attribute:
       type: object
       additionalProperties: false
