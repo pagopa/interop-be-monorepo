@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS readmodel_agreement;
 
-CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement(
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement (
   id UUID,
   metadata_version INTEGER NOT NULL,
   eservice_id UUID NOT NULL,
@@ -20,29 +20,29 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement(
   CONSTRAINT agreement_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp(
-  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp (
+  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   who UUID NOT NULL,
   delegation_id UUID,
-  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
+  when TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (agreement_id, kind),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute(
-  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute (
+  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   attribute_id UUID NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (agreement_id, attribute_id),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_consumer_document(
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_consumer_document (
   id UUID,
-  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
+  agreement_id UUID NOT NULL REFERENCES readmodel_agreement.agreement (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
@@ -50,12 +50,12 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_consumer_document(
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract(
+CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract (
   id UUID,
-  agreement_id UUID UNIQUE NOT NULL REFERENCES readmodel_agreement.agreement(id) ON DELETE CASCADE,
+  agreement_id UUID UNIQUE NOT NULL REFERENCES readmodel_agreement.agreement (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
@@ -63,5 +63,5 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract(
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
 );

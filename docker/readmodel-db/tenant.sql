@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_feature(
+CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_feature (
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   kind VARCHAR NOT NULL,
