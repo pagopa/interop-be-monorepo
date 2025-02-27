@@ -24,18 +24,11 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { describe, it, expect } from "vitest";
 import { splitTenantIntoObjectsSQL } from "../src/tenant/splitters.js";
 import { aggregateTenantSQL } from "../src/tenant/aggregators.js";
 
 describe("Tenant aggregators", () => {
-  beforeAll(async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-  });
-  afterAll(() => {
-    vi.useRealTimers();
-  });
   it("should convert Tenant SQL objects item into a Tenant", () => {
     const tenantMail: TenantMail = {
       ...getMockTenantMail(),
