@@ -35,7 +35,6 @@ import {
   clientJwkKeyInReadmodelClientJwkKey,
   delegationInReadmodelDelegation,
   eserviceInReadmodelCatalog,
-  eserviceTemplateInReadmodelEserviceTemplate,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainInReadmodelProducerKeychain,
   purposeInReadmodelPurpose,
@@ -261,7 +260,8 @@ export async function setupTestContainersVitest(
       await readModelDB?.delete(clientJwkKeyInReadmodelClientJwkKey);
       await readModelDB?.delete(producerJwkKeyInReadmodelProducerJwkKey);
       await readModelDB?.delete(delegationInReadmodelDelegation);
-      await readModelDB?.delete(eserviceTemplateInReadmodelEserviceTemplate);
+      // TODO: add eservice-template
+      // await readModelDB?.delete(eserviceTemplateInReadmodelEserviceTemplate);
 
       if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
