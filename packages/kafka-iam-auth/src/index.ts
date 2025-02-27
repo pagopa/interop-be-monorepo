@@ -80,7 +80,7 @@ const consumerKafkaEventsListener = (consumer: Consumer): void => {
   });
 
   consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
-    genericLogger.error(
+    genericLogger.warn(
       `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
     );
   });
@@ -94,7 +94,7 @@ const producerKafkaEventsListener = (producer: Producer): void => {
   }
   // eslint-disable-next-line sonarjs/no-identical-functions
   producer.on(producer.events.REQUEST_TIMEOUT, (e) => {
-    genericLogger.error(
+    genericLogger.warn(
       `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
     );
   });
@@ -257,7 +257,7 @@ const initCustomConsumer = async ({
       maxRetryTime: 3000,
       retries: 3,
       restartOnFailure: (error) => {
-        genericLogger.error(`Error during restart service: ${error.message}`);
+        genericLogger.warn(`Error during restart service: ${error.message}`);
         return Promise.resolve(false);
       },
     },
@@ -320,7 +320,7 @@ export const initProducer = async (
         maxRetryTime: 3000,
         retries: 3,
         restartOnFailure: (error) => {
-          genericLogger.error(`Error during restart service: ${error.message}`);
+          genericLogger.warn(`Error during restart service: ${error.message}`);
           return Promise.resolve(false);
         },
       },
