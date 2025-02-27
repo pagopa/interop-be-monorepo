@@ -315,6 +315,7 @@ export const fromJoinToAggregator = (
   queryRes: Array<{
     eservice: EServiceSQL;
     descriptor: EServiceDescriptorSQL | null;
+    interface: EServiceDescriptorInterfaceSQL | null;
     document: EServiceDescriptorDocumentSQL | null;
     attribute: EServiceDescriptorAttributeSQL | null;
     rejection: EServiceDescriptorRejectionReasonSQL | null;
@@ -327,6 +328,9 @@ export const fromJoinToAggregator = (
 
   const descriptorIdSet = new Set<string>();
   const descriptorsSQL: EServiceDescriptorSQL[] = [];
+
+  const interfaceIdSet = new Set<string>();
+  const interfacesSQL: EServiceDescriptorInterfaceSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
@@ -343,6 +347,7 @@ export const fromJoinToAggregator = (
   const rejectionReasonsSet = new Set<string>();
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   queryRes.forEach((row) => {
     const descriptorSQL = row.descriptor;
 
@@ -351,6 +356,14 @@ export const fromJoinToAggregator = (
         descriptorIdSet.add(descriptorSQL.id);
         // eslint-disable-next-line functional/immutable-data
         descriptorsSQL.push(descriptorSQL);
+      }
+
+      const interfaceSQL = row.interface;
+
+      if (interfaceSQL && !interfaceIdSet.has(interfaceSQL.id)) {
+        interfaceIdSet.add(interfaceSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        interfacesSQL.push(interfaceSQL);
       }
 
       const documentSQL = row.document;
@@ -402,6 +415,7 @@ export const fromJoinToAggregator = (
   return {
     eserviceSQL,
     descriptorsSQL,
+    interfacesSQL,
     documentsSQL,
     attributesSQL,
     riskAnalysesSQL,
@@ -419,6 +433,7 @@ export const fromJoinToAggregatorArray = (
   queryRes: Array<{
     eservice: EServiceSQL;
     descriptor: EServiceDescriptorSQL | null;
+    interface: EServiceDescriptorInterfaceSQL | null;
     document: EServiceDescriptorDocumentSQL | null;
     attribute: EServiceDescriptorAttributeSQL | null;
     rejection: EServiceDescriptorRejectionReasonSQL | null;
@@ -432,6 +447,7 @@ export const fromJoinToAggregatorArray = (
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
   descriptorsSQL: EServiceDescriptorSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   // templateBindingSQL: EServiceTemplateBindingSQL[];
@@ -441,6 +457,9 @@ export const fromJoinToAggregatorArray = (
 
   const descriptorIdSet = new Set<string>();
   const descriptorsSQL: EServiceDescriptorSQL[] = [];
+
+  const interfaceIdSet = new Set<string>();
+  const interfacesSQL: EServiceDescriptorDocumentSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
@@ -457,6 +476,7 @@ export const fromJoinToAggregatorArray = (
   const rejectionReasonsSet = new Set<string>();
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   queryRes.forEach((row) => {
     const eserviceSQL = row.eservice;
 
@@ -473,6 +493,14 @@ export const fromJoinToAggregatorArray = (
         descriptorIdSet.add(descriptorSQL.id);
         // eslint-disable-next-line functional/immutable-data
         descriptorsSQL.push(descriptorSQL);
+      }
+
+      const interfaceSQL = row.document;
+
+      if (interfaceSQL && !interfaceIdSet.has(interfaceSQL.id)) {
+        interfaceIdSet.add(interfaceSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        interfacesSQL.push(interfaceSQL);
       }
 
       const documentSQL = row.document;
@@ -524,6 +552,7 @@ export const fromJoinToAggregatorArray = (
   return {
     eservicesSQL,
     descriptorsSQL,
+    interfacesSQL,
     documentsSQL,
     attributesSQL,
     riskAnalysesSQL,

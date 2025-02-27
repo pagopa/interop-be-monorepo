@@ -5,6 +5,7 @@ import {
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
@@ -81,15 +82,17 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     ): Promise<WithMetadata<EService> | undefined> {
       /*
         eservice ->1 descriptor ->2 document
-                      descriptor ->3 attribute
-                      descriptor ->4 rejection reason
-                  ->5 risk analysis ->6 answer
-                  ->7 template binding
+                      descriptor ->3 interface
+                      descriptor ->4 attribute
+                      descriptor ->5 rejection reason
+                  ->6 risk analysis ->7 answer
+                  ->8 template binding
       */
       const queryResult = await db
         .select({
           eservice: eserviceInReadmodelCatalog,
           descriptor: eserviceDescriptorInReadmodelCatalog,
+          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
           document: eserviceDescriptorDocumentInReadmodelCatalog,
           attribute: eserviceDescriptorAttributeInReadmodelCatalog,
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
@@ -109,6 +112,14 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         )
         .leftJoin(
           // 2
+          eserviceDescriptorInterfaceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 3
           eserviceDescriptorDocumentInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -116,7 +127,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 3
+          // 4
           eserviceDescriptorAttributeInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -124,7 +135,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 4
+          // 5
           eserviceDescriptorRejectionReasonInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -132,7 +143,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 5
+          // 6
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -140,7 +151,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 6
+          // 7
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
@@ -148,7 +159,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         );
       // .leftJoin(
-      //   // 7
+      //   // 8
       //   eserviceTemplateBindingInReadmodelCatalog,
       //   eq(
       //     eserviceInReadmodelCatalog.id,
@@ -174,6 +185,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         .select({
           eservice: eserviceInReadmodelCatalog,
           descriptor: eserviceDescriptorInReadmodelCatalog,
+          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
           document: eserviceDescriptorDocumentInReadmodelCatalog,
           attribute: eserviceDescriptorAttributeInReadmodelCatalog,
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
@@ -200,6 +212,14 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         )
         .leftJoin(
           // 3
+          eserviceDescriptorDocumentInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 4
           eserviceDescriptorAttributeInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -207,7 +227,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 4
+          // 5
           eserviceDescriptorRejectionReasonInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -215,7 +235,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 5
+          // 6
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -223,7 +243,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 6
+          // 7
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
@@ -231,7 +251,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         );
       // .leftJoin(
-      //   // 7
+      //   // 8
       //   eserviceTemplateBindingInReadmodelCatalog,
       //   eq(
       //     eserviceInReadmodelCatalog.id,
