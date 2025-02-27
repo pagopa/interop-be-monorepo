@@ -28,7 +28,7 @@ import { validateAudience, validatePlatformState } from "../src/utils.js";
 import {
   algorithmNotAllowed,
   algorithmNotFound,
-  digestClaimNotFound,
+  invalidDigestClaim,
   expNotFound,
   invalidEServiceState,
   invalidAgreementState,
@@ -541,7 +541,7 @@ describe("validation test", async () => {
       expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
     });
 
-    it("digestClaimNotFound", async () => {
+    it("invalidDigestClaim", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: { digest: { alg: "alg", invalidProp: true } },
       });
@@ -553,7 +553,7 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(digestClaimNotFound("").code);
+      expect(errors![0].code).toEqual(invalidDigestClaim("").code);
     });
 
     it("invalidHashLength", async () => {
