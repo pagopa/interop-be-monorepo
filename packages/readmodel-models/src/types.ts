@@ -71,6 +71,7 @@ export type EServiceItemsSQL = {
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
   descriptorsSQL: EServiceDescriptorSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   // templateBindingSQL: EServiceTemplateBindingSQL[];
