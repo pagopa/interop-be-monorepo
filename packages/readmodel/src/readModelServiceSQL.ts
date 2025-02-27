@@ -3,7 +3,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Agreement, AgreementId, WithMetadata } from "pagopa-interop-models";
 import {
   agreementAttributeInReadmodelAgreement,
-  agreementDocumentInReadmodelAgreement,
+  agreementConsumerDocumentInReadmodelAgreement,
+  agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
@@ -19,9 +20,10 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     async addAgreement(agreement: WithMetadata<Agreement>): Promise<void> {
       const {
         agreementSQL,
-        agreementStampsSQL,
-        agreementAttributesSQL,
-        agreementDocumentsSQL,
+        stampsSQL,
+        attributesSQL,
+        consumerDocumentsSQL,
+        contractSQL,
       } = splitAgreementIntoObjectsSQL(
         agreement.data,
         agreement.metadata.version
@@ -30,16 +32,23 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       await db.transaction(async (tx) => {
         await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
 
-        for (const stamp of agreementStampsSQL) {
+        for (const stamp of stampsSQL) {
           await tx.insert(agreementStampInReadmodelAgreement).values(stamp);
         }
 
-        for (const attr of agreementAttributesSQL) {
+        for (const attr of attributesSQL) {
           await tx.insert(agreementAttributeInReadmodelAgreement).values(attr);
         }
 
-        for (const doc of agreementDocumentsSQL) {
-          await tx.insert(agreementDocumentInReadmodelAgreement).values(doc);
+        for (const doc of consumerDocumentsSQL) {
+          await tx
+            .insert(agreementConsumerDocumentInReadmodelAgreement)
+            .values(doc);
+        }
+        if (contractSQL !== null) {
+          await tx
+            .insert(agreementContractInReadmodelAgreement)
+            .values(contractSQL);
         }
       });
     },
@@ -50,13 +59,15 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       agreement ->1 agreement_stamp
       					->2 agreement_attribute
       					->3 agreement_document
+                ->4 agreement_contract
       */
       const queryResult = await db
         .select({
           agreement: agreementInReadmodelAgreement,
           stamp: agreementStampInReadmodelAgreement,
           attribute: agreementAttributeInReadmodelAgreement,
-          document: agreementDocumentInReadmodelAgreement,
+          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+          contract: agreementContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
         .where(eq(agreementInReadmodelAgreement.id, agreementId))
@@ -78,13 +89,20 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         )
         .leftJoin(
           // 3
-          agreementDocumentInReadmodelAgreement,
+          agreementConsumerDocumentInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
-            agreementDocumentInReadmodelAgreement.agreementId
+            agreementConsumerDocumentInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 4
+          agreementContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementContractInReadmodelAgreement.agreementId
           )
         );
-
       if (queryResult.length === 0) {
         return undefined;
       }
