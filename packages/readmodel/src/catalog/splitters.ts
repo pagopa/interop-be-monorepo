@@ -22,7 +22,6 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitEserviceIntoObjectsSQL = (

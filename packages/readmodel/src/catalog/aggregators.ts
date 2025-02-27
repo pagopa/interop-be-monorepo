@@ -35,7 +35,6 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceItemsSQL,
   // EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 
