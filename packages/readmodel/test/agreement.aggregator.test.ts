@@ -69,10 +69,10 @@ describe("Agreement Aggregator", () => {
     };
     const {
       agreementSQL,
-      agreementConsumerDocumentsSQL,
-      agreementContractSQL,
-      agreementAttributesSQL,
-      agreementStampsSQL,
+      consumerDocumentsSQL,
+      contractSQL,
+      attributesSQL,
+      stampsSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
       agreement.metadata.version
@@ -80,10 +80,10 @@ describe("Agreement Aggregator", () => {
 
     const aggregatedAgreement = aggregateAgreement({
       agreementSQL,
-      agreementStampsSQL,
-      agreementConsumerDocumentsSQL,
-      agreementContractSQL,
-      agreementAttributesSQL,
+      stampsSQL,
+      consumerDocumentsSQL,
+      contractSQL,
+      attributesSQL,
     });
 
     expect(aggregatedAgreement).toMatchObject(agreement);
@@ -128,10 +128,10 @@ describe("Agreement Aggregator", () => {
     };
     const {
       agreementSQL,
-      agreementConsumerDocumentsSQL,
-      agreementContractSQL,
-      agreementAttributesSQL,
-      agreementStampsSQL,
+      consumerDocumentsSQL,
+      contractSQL,
+      attributesSQL,
+      stampsSQL,
     } = splitAgreementIntoObjectsSQL(
       agreement.data,
       agreement.metadata.version
@@ -139,10 +139,10 @@ describe("Agreement Aggregator", () => {
 
     const aggregatedAgreement = aggregateAgreement({
       agreementSQL,
-      agreementStampsSQL,
-      agreementConsumerDocumentsSQL,
-      agreementContractSQL,
-      agreementAttributesSQL,
+      stampsSQL,
+      consumerDocumentsSQL,
+      contractSQL,
+      attributesSQL,
     });
 
     expect(aggregatedAgreement).toMatchObject(agreement);

@@ -4,6 +4,7 @@ import {
   AgreementAttributeSQL,
   AgreementConsumerDocumentSQL,
   AgreementContractSQL,
+  AgreementItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   Agreement,
@@ -28,28 +29,28 @@ import {
 
 export const aggregatorAgreementArray = ({
   agreementSQL,
-  agreementStampsSQL,
-  agreementConsumerDocumentsSQL,
-  agreementContractSQL,
-  agreementAttributesSQL,
+  stampsSQL,
+  consumerDocumentsSQL,
+  contractSQL,
+  attributesSQL,
 }: {
   agreementSQL: AgreementSQL[];
-  agreementStampsSQL: AgreementStampSQL[];
-  agreementConsumerDocumentsSQL: AgreementConsumerDocumentSQL[];
-  agreementContractSQL: AgreementContractSQL | null;
-  agreementAttributesSQL: AgreementAttributeSQL[];
+  stampsSQL: AgreementStampSQL[];
+  consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  contractSQL: AgreementContractSQL | null;
+  attributesSQL: AgreementAttributeSQL[];
 }): Array<WithMetadata<Agreement>> =>
   agreementSQL.map((agreementSQL) =>
     aggregateAgreement({
       agreementSQL,
-      agreementStampsSQL: agreementStampsSQL.filter(
+      stampsSQL: stampsSQL.filter(
         (stampSQL) => stampSQL.agreementId === agreementSQL.id
       ),
-      agreementConsumerDocumentsSQL: agreementConsumerDocumentsSQL.filter(
+      consumerDocumentsSQL: consumerDocumentsSQL.filter(
         (documentSQL) => documentSQL.agreementId === agreementSQL.id
       ),
-      agreementContractSQL,
-      agreementAttributesSQL: agreementAttributesSQL.filter(
+      contractSQL,
+      attributesSQL: attributesSQL.filter(
         (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
       ),
     })
@@ -57,49 +58,44 @@ export const aggregatorAgreementArray = ({
 
 export const aggregateAgreement = ({
   agreementSQL,
-  agreementStampsSQL,
-  agreementConsumerDocumentsSQL,
-  agreementContractSQL,
-  agreementAttributesSQL,
-}: {
-  agreementSQL: AgreementSQL;
-  agreementStampsSQL: AgreementStampSQL[];
-  agreementConsumerDocumentsSQL: AgreementConsumerDocumentSQL[];
-  agreementContractSQL: AgreementContractSQL | null;
-  agreementAttributesSQL: AgreementAttributeSQL[];
-}): WithMetadata<Agreement> => {
-  const verifiedAttributes: AgreementAttribute[] = agreementAttributesSQL
+  stampsSQL,
+  consumerDocumentsSQL,
+  contractSQL,
+  attributesSQL,
+}: AgreementItemsSQL): WithMetadata<Agreement> => {
+  const verifiedAttributes: AgreementAttribute[] = attributesSQL
     .filter((a) => a.kind === attributeKind.verified)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
-  const certifiedAttributes: AgreementAttribute[] = agreementAttributesSQL
+  const certifiedAttributes: AgreementAttribute[] = attributesSQL
     .filter((a) => a.kind === attributeKind.certified)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
-  const declaredAttributes: AgreementAttribute[] = agreementAttributesSQL
+  const declaredAttributes: AgreementAttribute[] = attributesSQL
     .filter((a) => a.kind === attributeKind.declared)
     .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
 
-  const consumerDocuments: AgreementDocument[] =
-    agreementConsumerDocumentsSQL.map(documentSQLtoDocument);
+  const consumerDocuments: AgreementDocument[] = consumerDocumentsSQL.map(
+    documentSQLtoDocument
+  );
 
-  const submissionStampSQL = agreementStampsSQL.find(
+  const submissionStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.submission
   );
-  const activationStampSQL = agreementStampsSQL.find(
+  const activationStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.activation
   );
-  const rejectionStampSQL = agreementStampsSQL.find(
+  const rejectionStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.rejection
   );
-  const suspensionByProducerStampSQL = agreementStampsSQL.find(
+  const suspensionByProducerStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.suspensionByProducer
   );
-  const suspensionByConsumerStampSQL = agreementStampsSQL.find(
+  const suspensionByConsumerStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.suspensionByConsumer
   );
-  const upgradeStampSQL = agreementStampsSQL.find(
+  const upgradeStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.upgrade
   );
-  const archivingStampSQL = agreementStampsSQL.find(
+  const archivingStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === agreementStampKind.archiving
   );
   const agreement: Agreement = {
@@ -137,9 +133,7 @@ export const aggregateAgreement = ({
           consumerNotes: agreementSQL.consumerNotes,
         }
       : {}),
-    ...(agreementContractSQL
-      ? { contract: documentSQLtoDocument(agreementContractSQL) }
-      : {}),
+    ...(contractSQL ? { contract: documentSQLtoDocument(contractSQL) } : {}),
     stamps: {
       ...(submissionStampSQL
         ? { submission: stampSQLtoStamp(submissionStampSQL) }

@@ -15,6 +15,7 @@ import {
   AgreementAttributeSQL,
   AgreementConsumerDocumentSQL,
   AgreementContractSQL,
+  AgreementItemsSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitAgreementIntoObjectsSQL = (
@@ -42,13 +43,7 @@ export const splitAgreementIntoObjectsSQL = (
     ...rest
   }: Agreement,
   metadataVersion: number
-): {
-  agreementSQL: AgreementSQL;
-  agreementStampsSQL: AgreementStampSQL[];
-  agreementConsumerDocumentsSQL: AgreementConsumerDocumentSQL[];
-  agreementContractSQL: AgreementContractSQL | null;
-  agreementAttributesSQL: AgreementAttributeSQL[];
-} => {
+): AgreementItemsSQL => {
   void (rest satisfies Record<string, never>);
   const agreementSQL: AgreementSQL = {
     id,
@@ -68,7 +63,7 @@ export const splitAgreementIntoObjectsSQL = (
     suspendedAt: dateToString(suspendedAt),
   };
 
-  const agreementStampsSQL: AgreementStampSQL[] = [];
+  const stampsSQL: AgreementStampSQL[] = [];
 
   const makeStampSQL = (
     agreementStamp: AgreementStamp,
@@ -93,7 +88,7 @@ export const splitAgreementIntoObjectsSQL = (
     const stamp = stamps[key];
     if (stamp) {
       // eslint-disable-next-line functional/immutable-data
-      agreementStampsSQL.push(
+      stampsSQL.push(
         makeStampSQL(stamp, id, metadataVersion, agreementStampKind[key])
       );
     }
@@ -172,7 +167,7 @@ export const splitAgreementIntoObjectsSQL = (
   }
 */
 
-  const agreementContractSQL = contract
+  const contractSQL = contract
     ? agreementDocumentToAgreementDocumentSQL(contract, id, metadataVersion)
     : null;
 
@@ -180,7 +175,7 @@ export const splitAgreementIntoObjectsSQL = (
     agreementDocumentToAgreementDocumentSQL(doc, id, metadataVersion)
   );
 
-  const agreementAttributesSQL: AgreementAttributeSQL[] = [
+  const attributesSQL: AgreementAttributeSQL[] = [
     ...certifiedAttributes.map((attr) => ({
       agreementId: id,
       metadataVersion,
@@ -203,10 +198,10 @@ export const splitAgreementIntoObjectsSQL = (
 
   return {
     agreementSQL,
-    agreementStampsSQL,
-    agreementConsumerDocumentsSQL: consumerDocumentsSQL,
-    agreementContractSQL,
-    agreementAttributesSQL,
+    stampsSQL,
+    consumerDocumentsSQL,
+    contractSQL,
+    attributesSQL,
   };
 };
 
