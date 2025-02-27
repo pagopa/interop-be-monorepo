@@ -20,7 +20,7 @@ import {
 } from "./tenant/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function readModelTenantServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
     async upsertTenant(tenant: WithMetadata<Tenant>): Promise<void> {
       const {
@@ -178,7 +178,9 @@ export type TransactionType = Parameters<
   Parameters<DrizzleReturnType["transaction"]>[0]
 >[0];
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type ReadModelTenantService = ReturnType<
+  typeof readModelTenantServiceBuilder
+>;
 
 export const makeDrizzleConnection = (
   readModelSQLDbConfig: ReadModelSQLDbConfig

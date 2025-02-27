@@ -5,12 +5,12 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { ReadModelService } from "pagopa-interop-readmodel";
+import { ReadModelTenantService } from "pagopa-interop-readmodel";
 import { CustomReadModelService } from "./customReadModelService.js";
 
 export async function handleMessageV1(
   message: TenantEventEnvelopeV1,
-  readModelService: ReadModelService,
+  readModelTenantService: ReadModelTenantService,
   customReadModelService: CustomReadModelService
 ): Promise<void> {
   await match(message)
@@ -23,14 +23,14 @@ export async function handleMessageV1(
           throw genericInternalError("Tenant not found in message");
         }
 
-        await readModelService.upsertTenant({
+        await readModelTenantService.upsertTenant({
           data: fromTenantV1(msg.data.tenant),
           metadata: { version: message.version },
         });
       }
     )
     .with({ type: "TenantDeleted" }, async (msg) => {
-      await readModelService.deleteTenantById(
+      await readModelTenantService.deleteTenantById(
         unsafeBrandId(msg.data.tenantId),
         message.version
       );
