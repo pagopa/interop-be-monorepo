@@ -237,7 +237,7 @@ describe("update eService name on published eservice", () => {
     const eService: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      templateId,
+      templateRef: { id: templateId },
     };
     await addOneEService(eService);
     expect(

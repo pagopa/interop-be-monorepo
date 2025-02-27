@@ -554,7 +554,7 @@ describe("create descriptor", async () => {
     };
     const eservice: EService = {
       ...getMockEService(),
-      templateId,
+      templateRef: { id: templateId },
       descriptors: [],
     };
 
