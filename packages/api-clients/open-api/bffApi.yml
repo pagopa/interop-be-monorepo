@@ -434,7 +434,7 @@ paths:
         - agreements
       summary: Retrieves Tenants that are producers with existing Agreements
       description: Retrieves Tenants that are producers with existing Agreements
-      operationId: getAgreementProducers
+      operationId: getAgreementsProducers
       parameters:
         - in: query
           name: q
@@ -522,7 +522,7 @@ paths:
         - agreements
       summary: Retrieves Tenants that are consumers with existing Agreements
       description: Retrieves Tenants that are consumers with existing Agreements
-      operationId: getAgreementConsumers
+      operationId: getAgreementsConsumers
       parameters:
         - in: query
           name: q
@@ -5389,22 +5389,13 @@ paths:
         - agreements
       summary: Retrieves eservices for producers in agreements
       description: Retrieves eservices for producers in agreements
-      operationId: getAgreementEServiceProducers
+      operationId: getAgreementsProducerEServices
       parameters:
         - in: query
           name: q
           description: Query to filter EServices by name
           schema:
             type: string
-        - in: query
-          name: states
-          description: comma separated sequence of states
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/AgreementState"
-            default: []
-          explode: false
         - in: query
           name: offset
           required: true
@@ -5505,7 +5496,7 @@ paths:
         - agreements
       summary: Retrieves eservices for consumers in agreements
       description: Retrieves eservices for consumers in agreements
-      operationId: getAgreementEServiceConsumers
+      operationId: getAgreementsConsumerEServices
       parameters:
         - in: query
           name: q
