@@ -16,7 +16,7 @@ import {
 import { afterEach, inject, vi } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
-import { initProducer } from "kafka-iam-auth";
+// import { initProducer } from "kafka-iam-auth";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { dateToSeconds, InteropTokenGenerator } from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
@@ -66,9 +66,9 @@ const tokenGenerator = new InteropTokenGenerator(
 export const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  redisRateLimiter,
-  producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
-  fileManager,
+  // redisRateLimiter,
+  // producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
+  // fileManager,
 });
 
 export const getMockAccessTokenRequest =
