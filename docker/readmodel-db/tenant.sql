@@ -62,7 +62,11 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_verifier (
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
   delegation_id UUID,
-  PRIMARY KEY (tenant_verifier_id, tenant_verified_attribute_id, tenant_id),
+  PRIMARY KEY (
+    tenant_verifier_id,
+    tenant_verified_attribute_id,
+    tenant_id
+  ),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id)
 );
 
@@ -76,7 +80,11 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
   extension_date TIMESTAMP WITH TIME ZONE,
   revocation_date TIMESTAMP NOT NULL,
   delegation_id UUID,
-  PRIMARY KEY (tenant_revoker_id, tenant_verified_attribute_id, tenant_id),
+  PRIMARY KEY (
+    tenant_revoker_id,
+    tenant_verified_attribute_id,
+    tenant_id
+  ),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id)
 );
 
