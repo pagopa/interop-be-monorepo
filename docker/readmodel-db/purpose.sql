@@ -25,10 +25,10 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_form (
   version VARCHAR NOT NULL,
   risk_analysis_id UUID,
   PRIMARY KEY (id),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose(id, metadata_version)
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_answer(
+CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_answer (
   id UUID,
   purpose_id UUID NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_answer(
   kind VARCHAR NOT NULL,
   "key" VARCHAR NOT NULL,
   value VARCHAR ARRAY,
-  PRIMARY KEY(id),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose(id, metadata_version)
+  PRIMARY KEY (id),
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version (
@@ -52,17 +52,17 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version (
   first_activation_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose(id, metadata_version)
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version_document (
-  purpose_id uuid NOT NULL REFERENCES readmodel_purpose.purpose(id) ON DELETE CASCADE,
-  metadata_version integer NOT NULL,
-  purpose_version_id uuid NOT NULL REFERENCES readmodel_purpose.purpose_version(id) ON DELETE CASCADE,
-  id uuid NOT NULL,
+  purpose_id UUID NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  purpose_version_id UUID NOT NULL REFERENCES readmodel_purpose.purpose_version (id) ON DELETE CASCADE,
+  id UUID NOT NULL,
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose(id, metadata_version)
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
 );
