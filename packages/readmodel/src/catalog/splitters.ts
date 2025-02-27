@@ -18,6 +18,7 @@ import {
   EServiceDescriptorInterfaceSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  EServiceItemsSQL,
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
@@ -26,16 +27,7 @@ import {
 export const splitEserviceIntoObjectsSQL = (
   eservice: EService,
   version: number
-): {
-  eserviceSQL: EServiceSQL;
-  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
-  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
-  descriptorsSQL: EServiceDescriptorSQL[];
-  attributesSQL: EServiceDescriptorAttributeSQL[];
-  documentsSQL: EServiceDescriptorDocumentSQL[];
-  interfacesSQL: EServiceDescriptorInterfaceSQL[];
-  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-} => {
+): EServiceItemsSQL => {
   const eserviceSQL: EServiceSQL = {
     id: eservice.id,
     metadataVersion: version,
