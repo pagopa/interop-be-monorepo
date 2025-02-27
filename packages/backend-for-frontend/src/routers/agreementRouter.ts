@@ -126,14 +126,13 @@ const agreementRouter = (
     .get("/producers/agreements/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      const { offset, limit, states, q } = req.query;
+      const { offset, limit, q } = req.query;
       try {
         const requesterId = ctx.authData.organizationId;
-        const result = await agreementService.getAgreementsEserviceProducers(
+        const result = await agreementService.getAgreementsProducerEServices(
           {
             offset,
             limit,
-            states,
             requesterId,
             eServiceName: q,
           },
@@ -159,7 +158,7 @@ const agreementRouter = (
       const { offset, limit, q } = req.query;
       try {
         const requesterId = ctx.authData.organizationId;
-        const result = await agreementService.getAgreementsEserviceConsumers(
+        const result = await agreementService.getAgreementsConsumerEServices(
           {
             offset,
             limit,
@@ -187,7 +186,7 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const result = await agreementService.getAgreementProducers(
+        const result = await agreementService.getAgreementsProducers(
           {
             offset,
             limit,
@@ -213,7 +212,7 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const result = await agreementService.getAgreementConsumers(
+        const result = await agreementService.getAgreementsConsumers(
           {
             offset,
             limit,
