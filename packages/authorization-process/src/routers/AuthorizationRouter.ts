@@ -417,18 +417,16 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { client } = await authorizationService.createKey({
+          const key = await authorizationService.createKey({
             clientId: unsafeBrandId(req.params.clientId),
             authData: req.ctx.authData,
             keySeed: req.body,
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(200).send(
-            authorizationApi.Key.parse({
-              keys: client.keys.map((key) => keyToApiKey(key)),
-            })
-          );
+          return res
+            .status(200)
+            .send(authorizationApi.Key.parse(keyToApiKey(key)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

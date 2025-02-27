@@ -89,7 +89,8 @@ const authorizationServerRouter = (
         return res.status(200).send({
           access_token: tokenResult.token.serialized,
           token_type: "Bearer",
-          expires_in: tokenResult.token.payload.exp,
+          expires_in:
+            tokenResult.token.payload.exp - tokenResult.token.payload.iat,
         });
       } catch (err) {
         const errorRes = makeApiProblem(

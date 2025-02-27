@@ -8,21 +8,24 @@ CREATE TABLE IF NOT EXISTS readmodel_client.client (
   description VARCHAR,
   kind VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT client_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_client.client_user (
   metadata_version INTEGER NOT NULL,
   client_id UUID NOT NULL REFERENCES readmodel_client.client (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
-  PRIMARY KEY (client_id, user_id)
+  PRIMARY KEY (client_id, user_id),
+  FOREIGN KEY (client_id, metadata_version) REFERENCES readmodel_client.client(id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_client.client_purpose (
   metadata_version INTEGER NOT NULL,
   client_id UUID NOT NULL REFERENCES readmodel_client.client (id) ON DELETE CASCADE,
   purpose_id UUID NOT NULL,
-  PRIMARY KEY (client_id, purpose_id)
+  PRIMARY KEY (client_id, purpose_id),
+  FOREIGN KEY (client_id, metadata_version) REFERENCES readmodel_client.client(id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_client.client_key (
@@ -35,5 +38,6 @@ CREATE TABLE IF NOT EXISTS readmodel_client.client_key (
   "algorithm" VARCHAR NOT NULL,
   "use" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (client_id, kid)
+  PRIMARY KEY (client_id, kid),
+  FOREIGN KEY (client_id, metadata_version) REFERENCES readmodel_client.client(id, metadata_version)
 );
