@@ -113,7 +113,7 @@ export function setupTestContainersVitest(
   pecEmailManager: EmailManagerPEC;
   sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
-  readModelDB: ReturnType<typeof drizzle>; // TODO double check type
+  readModelDB: ReturnType<typeof drizzle>;
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
