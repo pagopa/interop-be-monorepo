@@ -18,14 +18,17 @@ import {
   stringToDate,
   attributeKind,
   AttributeId,
-  AgreementAttribute,
   AgreementDocument,
   AgreementDocumentId,
   AgreementStamp,
   UserId,
   DelegationId,
   agreementStampKind,
+  AgreementStampKind,
+  genericInternalError,
+  AgreementAttribute,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export const aggregateAgreementSQLArray = ({
   agreementSQL,
@@ -63,41 +66,97 @@ export const aggregateAgreementSQL = ({
   contractSQL,
   attributesSQL,
 }: AgreementItemsSQL): WithMetadata<Agreement> => {
-  const verifiedAttributes: AgreementAttribute[] = attributesSQL
-    .filter((a) => a.kind === attributeKind.verified)
-    .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
-  const certifiedAttributes: AgreementAttribute[] = attributesSQL
-    .filter((a) => a.kind === attributeKind.certified)
-    .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
-  const declaredAttributes: AgreementAttribute[] = attributesSQL
-    .filter((a) => a.kind === attributeKind.declared)
-    .map((a) => ({ id: unsafeBrandId<AttributeId>(a.attributeId) }));
+  const { verifiedAttributes, certifiedAttributes, declaredAttributes } =
+    attributesSQL.reduce(
+      (
+        acc: {
+          verifiedAttributes: AgreementAttribute[];
+          certifiedAttributes: AgreementAttribute[];
+          declaredAttributes: AgreementAttribute[];
+        },
+        a
+      ) =>
+        match(a.kind)
+          .with(attributeKind.verified, () => ({
+            ...acc,
+            verifiedAttributes: [
+              ...acc.verifiedAttributes,
+              { id: unsafeBrandId<AttributeId>(a.attributeId) },
+            ],
+          }))
+          .with(attributeKind.certified, () => ({
+            ...acc,
+            certifiedAttributes: [
+              ...acc.certifiedAttributes,
+              { id: unsafeBrandId<AttributeId>(a.attributeId) },
+            ],
+          }))
+          .with(attributeKind.declared, () => ({
+            ...acc,
+            declaredAttributes: [
+              ...acc.declaredAttributes,
+              { id: unsafeBrandId<AttributeId>(a.attributeId) },
+            ],
+          }))
+          .otherwise(() => {
+            throw genericInternalError(`Unknown attribute kind: ${a.kind}`);
+          }),
+      {
+        verifiedAttributes: [],
+        certifiedAttributes: [],
+        declaredAttributes: [],
+      }
+    );
 
   const consumerDocuments: AgreementDocument[] = consumerDocumentsSQL.map(
     documentSQLtoDocument
   );
 
-  const submissionStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === agreementStampKind.submission
+  const {
+    submission: submissionStampSQL,
+    activation: activationStampSQL,
+    rejection: rejectionStampSQL,
+    suspensionByProducer: suspensionByProducerStampSQL,
+    suspensionByConsumer: suspensionByConsumerStampSQL,
+    upgrade: upgradeStampSQL,
+    archiving: archivingStampSQL,
+  } = stampsSQL.reduce(
+    (acc: { [key in AgreementStampKind]?: AgreementStampSQL }, stamp) =>
+      match(stamp.kind)
+        .with(agreementStampKind.submission, () => ({
+          ...acc,
+          submission: stamp,
+        }))
+        .with(agreementStampKind.activation, () => ({
+          ...acc,
+          activation: stamp,
+        }))
+        .with(agreementStampKind.rejection, () => ({
+          ...acc,
+          rejection: stamp,
+        }))
+        .with(agreementStampKind.suspensionByProducer, () => ({
+          ...acc,
+          suspensionByProducer: stamp,
+        }))
+        .with(agreementStampKind.suspensionByConsumer, () => ({
+          ...acc,
+          suspensionByConsumer: stamp,
+        }))
+        .with(agreementStampKind.upgrade, () => ({
+          ...acc,
+          upgrade: stamp,
+        }))
+        .with(agreementStampKind.archiving, () => ({
+          ...acc,
+          archiving: stamp,
+        }))
+        .otherwise(() => {
+          throw genericInternalError(`Unknown stamp kind: ${stamp.kind}`);
+        }),
+    {}
   );
-  const activationStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === agreementStampKind.activation
-  );
-  const rejectionStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === agreementStampKind.rejection
-  );
-  const suspensionByProducerStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === agreementStampKind.suspensionByProducer
-  );
-  const suspensionByConsumerStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === agreementStampKind.suspensionByConsumer
-  );
-  const upgradeStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === agreementStampKind.upgrade
-  );
-  const archivingStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === agreementStampKind.archiving
-  );
+
   const agreement: Agreement = {
     id: unsafeBrandId<AgreementId>(agreementSQL.id),
     eserviceId: unsafeBrandId<EServiceId>(agreementSQL.eserviceId),

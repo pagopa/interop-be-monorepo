@@ -18,7 +18,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
 import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
-import { aggregateAgreement } from "../src/agreement/aggregators.js";
+import { aggregateAgreementSQL } from "../src/agreement/aggregators.js";
 
 describe("Agreement Aggregator", () => {
   it("should convert an Agreement object as data model into an Agreement object as business model", () => {
@@ -78,7 +78,7 @@ describe("Agreement Aggregator", () => {
       agreement.metadata.version
     );
 
-    const aggregatedAgreement = aggregateAgreement({
+    const aggregatedAgreement = aggregateAgreementSQL({
       agreementSQL,
       stampsSQL,
       consumerDocumentsSQL,
@@ -137,7 +137,7 @@ describe("Agreement Aggregator", () => {
       agreement.metadata.version
     );
 
-    const aggregatedAgreement = aggregateAgreement({
+    const aggregatedAgreement = aggregateAgreementSQL({
       agreementSQL,
       stampsSQL,
       consumerDocumentsSQL,
