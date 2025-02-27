@@ -24,7 +24,7 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   TenantCertifiedAttributeSQL,
   TenantDeclaredAttributeSQL,
@@ -38,13 +38,6 @@ import {
 import { splitTenantIntoObjectsSQL } from "../src/tenant/splitters.js";
 
 describe("Tenant splitters", () => {
-  beforeAll(async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-  });
-  afterAll(() => {
-    vi.useRealTimers();
-  });
   describe("Tenant splitter", () => {
     it("should convert a Tenant into TenantSQL and related items", () => {
       const tenantMail: TenantMail = {
@@ -92,12 +85,12 @@ describe("Tenant splitters", () => {
         certifierId: generateId(),
       };
 
-      const TenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer = {
+      const tenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer = {
         type: tenantFeatureType.delegatedConsumer,
         availabilityTimestamp: new Date(),
       };
 
-      const TenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer = {
+      const tenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer = {
         type: tenantFeatureType.delegatedProducer,
         availabilityTimestamp: new Date(),
       };
@@ -123,8 +116,8 @@ describe("Tenant splitters", () => {
         ],
         features: [
           tenantFeatureCertifier,
-          TenantFeatureDelegatedConsumer,
-          TenantFeatureDelegatedProducer,
+          tenantFeatureDelegatedConsumer,
+          tenantFeatureDelegatedProducer,
         ],
       };
 
@@ -144,10 +137,12 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         kind: tenantKind.PA,
         selfcareId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: tenant.createdAt.toISOString(),
+        updatedAt: tenant.updatedAt ? tenant.updatedAt.toISOString() : null,
         name: tenant.name,
-        onboardedAt: new Date().toISOString(),
+        onboardedAt: tenant.onboardedAt
+          ? tenant.onboardedAt.toISOString()
+          : null,
         subUnitType: tenantUnitType.AOO,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
@@ -167,16 +162,22 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         tenantId: tenant.id,
         attributeId: tenantCertifiedAttribute.id,
-        assignmentTimestamp: new Date().toISOString(),
-        revocationTimestamp: new Date().toISOString(),
+        assignmentTimestamp:
+          tenantCertifiedAttribute.assignmentTimestamp.toISOString(),
+        revocationTimestamp: tenantCertifiedAttribute.revocationTimestamp
+          ? tenantCertifiedAttribute.revocationTimestamp.toISOString()
+          : null,
       };
 
       const expectedTenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         attributeId: tenantDeclaredAttribute.id,
-        assignmentTimestamp: new Date().toISOString(),
-        revocationTimestamp: new Date().toISOString(),
+        assignmentTimestamp:
+          tenantDeclaredAttribute.assignmentTimestamp.toISOString(),
+        revocationTimestamp: tenantDeclaredAttribute.revocationTimestamp
+          ? tenantDeclaredAttribute.revocationTimestamp.toISOString()
+          : null,
         delegationId,
       };
 
@@ -184,7 +185,8 @@ describe("Tenant splitters", () => {
         tenantId: tenant.id,
         metadataVersion: 1,
         attributeId: tenantVerifiedAttribute.id,
-        assignmentTimestamp: new Date().toISOString(),
+        assignmentTimestamp:
+          tenantVerifiedAttribute.assignmentTimestamp.toISOString(),
       };
 
       const expectedTenantVerifierSQL: TenantVerifiedAttributeVerifierSQL = {
@@ -193,9 +195,13 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         delegationId,
         tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
-        verificationDate: new Date().toISOString(),
-        expirationDate: new Date().toISOString(),
-        extensionDate: new Date().toISOString(),
+        verificationDate: tenantVerifier.verificationDate.toISOString(),
+        expirationDate: tenantVerifier.expirationDate
+          ? tenantVerifier.expirationDate.toISOString()
+          : null,
+        extensionDate: tenantVerifier.extensionDate
+          ? tenantVerifier.extensionDate.toISOString()
+          : null,
       };
 
       const expectedTenantRevokerSQL: TenantVerifiedAttributeRevokerSQL = {
@@ -204,10 +210,14 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         delegationId,
         tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
-        verificationDate: new Date().toISOString(),
-        expirationDate: new Date().toISOString(),
-        extensionDate: new Date().toISOString(),
-        revocationDate: new Date().toISOString(),
+        verificationDate: tenantRevoker.verificationDate.toISOString(),
+        expirationDate: tenantRevoker.expirationDate
+          ? tenantRevoker.expirationDate.toISOString()
+          : null,
+        extensionDate: tenantRevoker.extensionDate
+          ? tenantRevoker.extensionDate.toISOString()
+          : null,
+        revocationDate: tenantRevoker.revocationDate.toISOString(),
       };
 
       const expectedTenantFeatureCertifierSQL: TenantFeatureSQL = {
@@ -222,14 +232,16 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         kind: tenantFeatureType.delegatedConsumer,
         certifierId: null,
-        availabilityTimestamp: new Date().toISOString(),
+        availabilityTimestamp:
+          tenantFeatureDelegatedConsumer.availabilityTimestamp.toISOString(),
       };
       const expectedTenantFeatureDelegatedProducerSQL: TenantFeatureSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         kind: tenantFeatureType.delegatedProducer,
         certifierId: null,
-        availabilityTimestamp: new Date().toISOString(),
+        availabilityTimestamp:
+          tenantFeatureDelegatedProducer.availabilityTimestamp.toISOString(),
       };
 
       expect(tenantSQL).toEqual(expectedTenantSQL);
