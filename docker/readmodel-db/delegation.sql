@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS readmodel_delegation;
 
-CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation(
+CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation (
   id UUID,
   metadata_version INTEGER NOT NULL,
   delegator_id UUID NOT NULL,
@@ -15,17 +15,17 @@ CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation(
   CONSTRAINT delegation_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_stamp(
-  delegation_id uuid NOT NULL REFERENCES readmodel_delegation.delegation(id) ON DELETE CASCADE,
-  metadata_version integer NOT NULL,
-  who uuid NOT NULL,
-  "when" timestamp WITH time zone NOT NULL,
-  kind varchar NOT NULL,
+CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_stamp (
+  delegation_id UUID NOT NULL REFERENCES readmodel_delegation.delegation (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  who UUID NOT NULL,
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
   PRIMARY KEY (delegation_id, kind),
-  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation(id, metadata_version)
+  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_contract_document(
+CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_contract_document (
   id UUID,
   delegation_id UUID NOT NULL REFERENCES readmodel_delegation.delegation (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
@@ -35,6 +35,6 @@ CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_contract_document(
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
-  PRIMARY KEY(id),
-  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation(id, metadata_version)
+  PRIMARY KEY (id),
+  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation (id, metadata_version)
 );
