@@ -8,6 +8,6 @@ CREATE TABLE IF NOT EXISTS readmodel_client_jwk_key.client_jwk_key(
   kid VARCHAR NOT NULL,
   kty VARCHAR NOT NULL,
   n VARCHAR NOT NULL,
-  use VARCHAR NOT NULL,
+  "use" VARCHAR NOT NULL,
   PRIMARY KEY (client_id, kid)
 );

@@ -20,7 +20,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateBindingInReadmodelCatalog,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -59,10 +58,6 @@ export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
 >;
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
   typeof eserviceDescriptorAttributeInReadmodelCatalog
->;
-// TODO: remove after updating catalog.sql
-export type EServiceTemplateBindingSQL = InferSelectModel<
-  typeof eserviceTemplateBindingInReadmodelCatalog
 >;
 
 export type EServiceItemsSQL = {
