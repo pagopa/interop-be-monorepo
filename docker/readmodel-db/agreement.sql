@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp(
   "when" TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (agreement_id, kind),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute(
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute(
   attribute_id UUID NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (agreement_id, attribute_id),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_document(
@@ -51,5 +51,5 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_document(
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement(id, metadata_version)
 );
