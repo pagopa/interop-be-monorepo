@@ -974,7 +974,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/templates/eservices/:eServiceId/name",
+      "/internal/eservices/templates/:eServiceId/name",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -998,7 +998,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/templates/eservices/:eServiceId/description",
+      "/internal/eservices/templates/:eServiceId/description",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1022,7 +1022,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/templates/eservices/:eServiceId/descriptors/:descriptorId/voucherLifespan",
+      "/internal/eservices/templates/:eServiceId/descriptors/:descriptorId/voucherLifespan",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1047,7 +1047,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/templates/eservices/:eServiceId/descriptors/:descriptorId/attributes",
+      "/internal/eservices/templates/:eServiceId/descriptors/:descriptorId/attributes",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1072,7 +1072,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents",
+      "/internal/eservices/templates/:eServiceId/descriptors/:descriptorId/documents",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1097,7 +1097,7 @@ const eservicesRouter = (
       }
     )
     .delete(
-      "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      "/internal/eservices/templates/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1122,7 +1122,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      "/internal/eservices/templates/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
