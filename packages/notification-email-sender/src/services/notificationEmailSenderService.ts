@@ -540,7 +540,7 @@ export function notificationEmailSenderServiceBuilder(
             subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
             to: [consumerEmail.address],
             html: templateService.compileHtml(htmlTemplate, {
-              interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
+              interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`,
               eserviceName: eservice.name,
             }),
           };
