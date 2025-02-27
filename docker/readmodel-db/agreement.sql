@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement(
   rejection_reason VARCHAR,
   suspended_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id),
-  CONSTRAINT agreement_id_version_unique UNIQUE (id, metadata_version)
+  CONSTRAINT agreement_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp(
