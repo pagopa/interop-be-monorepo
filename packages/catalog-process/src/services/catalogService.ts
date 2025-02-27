@@ -2467,7 +2467,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (descriptor.state !== descriptorState.archived) {
+      if (descriptor.state === descriptorState.archived) {
         return;
       }
 

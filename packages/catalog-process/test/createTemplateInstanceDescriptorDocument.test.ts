@@ -35,9 +35,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
 
   it.each(
     Object.values(descriptorState).filter(
-      (state) =>
-        state !== descriptorState.archived &&
-        state !== descriptorState.waitingForApproval
+      (state) => state !== descriptorState.archived
     )
   )(
     "should write on event-store for the internal creation of a document when descriptor state is %s",
@@ -116,6 +114,42 @@ describe("createTemplateInstanceDescriptorDocument", () => {
           ...newDocument,
         },
       ],
+      serverUrls: [],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    await catalogService.createTemplateInstanceDescriptorDocument(
+      eservice.id,
+      descriptor.id,
+      newDocument,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+
+    expect(writtenEvent).not.toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "EServiceDescriptorDocumentAddedByTemplateUpdate",
+      event_version: 2,
+    });
+  });
+
+  it("should not write on event-store for the internal creation of a document if the descriptor is in archived state", async () => {
+    const newDocument = buildDocumentSeed();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.archived,
       serverUrls: [],
     };
     const eservice: EService = {
