@@ -2,9 +2,9 @@ import {
   AgreementSQL,
   AgreementStampSQL,
   AgreementAttributeSQL,
-  AgreementItemsSQL,
   AgreementConsumerDocumentSQL,
   AgreementContractSQL,
+  AgreementItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   Agreement,
