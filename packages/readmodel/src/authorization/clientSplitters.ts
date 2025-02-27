@@ -34,19 +34,19 @@ export const splitClientIntoObjectsSQL = (
     createdAt: dateToString(createdAt),
   };
 
-  const clientUsersSQL: ClientUserSQL[] = users.map((userId) => ({
+  const usersSQL: ClientUserSQL[] = users.map((userId) => ({
     metadataVersion,
     clientId: id,
     userId,
   }));
 
-  const clientPurposesSQL: ClientPurposeSQL[] = purposes.map((purposeId) => ({
+  const purposesSQL: ClientPurposeSQL[] = purposes.map((purposeId) => ({
     metadataVersion,
     clientId: id,
     purposeId,
   }));
 
-  const clientKeysSQL: ClientKeySQL[] = keys.map((key) => ({
+  const keysSQL: ClientKeySQL[] = keys.map((key) => ({
     metadataVersion,
     clientId: id,
     userId: key.userId,
@@ -60,8 +60,8 @@ export const splitClientIntoObjectsSQL = (
 
   return {
     clientSQL,
-    clientUsersSQL,
-    clientPurposesSQL,
-    clientKeysSQL,
+    usersSQL,
+    purposesSQL,
+    keysSQL,
   };
 };
