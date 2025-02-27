@@ -17,15 +17,20 @@ export const attributeSQLtoAttribute = ({
   creationTime,
   origin,
   code,
-}: AttributeSQL): WithMetadata<Attribute> => ({
-  data: {
-    id: unsafeBrandId<AttributeId>(id),
-    name,
-    kind: AttributeKind.parse(kind),
-    description,
-    creationTime: stringToDate(creationTime),
-    ...(origin ? { origin } : {}),
-    ...(code ? { code } : {}),
-  },
-  metadata: { version: metadataVersion },
-});
+  ...rest
+}: AttributeSQL): WithMetadata<Attribute> => {
+  void (rest satisfies Record<string, never>);
+
+  return {
+    data: {
+      id: unsafeBrandId<AttributeId>(id),
+      name,
+      kind: AttributeKind.parse(kind),
+      description,
+      creationTime: stringToDate(creationTime),
+      ...(origin ? { origin } : {}),
+      ...(code ? { code } : {}),
+    },
+    metadata: { version: metadataVersion },
+  };
+};
