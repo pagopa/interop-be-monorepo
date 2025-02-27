@@ -23,7 +23,7 @@ import {
   AgreementSQL,
   AgreementStampSQL,
 } from "pagopa-interop-readmodel-models";
-import { splitAgreementIntoObjectsSQL } from "./../src/agreement/splitters.js";
+import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
 
 describe("Agreement Splitter", () => {
   beforeEach(async () => {
