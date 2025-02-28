@@ -41,6 +41,10 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     async getDelegationById(
       delegationId: DelegationId
     ): Promise<WithMetadata<Delegation>> {
+      /*
+        delegation -> 1 delegation_stamp
+                  -> 2 delegation_contract_document
+      */
       const queryResult = await db
         .select({
           delegation: delegationInReadmodelDelegation,
