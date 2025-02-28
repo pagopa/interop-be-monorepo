@@ -123,13 +123,13 @@ describe("Tenant splitters", () => {
 
       const {
         tenantSQL,
-        tenantMailsSQL,
-        tenantCertifiedAttributesSQL,
-        tenantDeclaredAttributesSQL,
-        tenantVerifiedAttributesSQL,
-        tenantVerifiedAttributeVerifiersSQL,
-        tenantVerifiedAttributeRevokersSQL,
-        tenantFeaturesSQL,
+        mailsSQL,
+        certifiedAttributesSQL,
+        declaredAttributesSQL,
+        verifiedAttributesSQL,
+        verifiedAttributeVerifiersSQL,
+        verifiedAttributeRevokersSQL,
+        featuresSQL,
       } = splitTenantIntoObjectsSQL(tenant, 1);
 
       const expectedTenantSQL: TenantSQL = {
@@ -245,23 +245,21 @@ describe("Tenant splitters", () => {
       };
 
       expect(tenantSQL).toEqual(expectedTenantSQL);
-      expect(tenantMailsSQL).toEqual([expectedTenantMailSQL]);
-      expect(tenantCertifiedAttributesSQL).toEqual([
+      expect(mailsSQL).toEqual([expectedTenantMailSQL]);
+      expect(certifiedAttributesSQL).toEqual([
         expectedTenantCertifiedAttributeSQL,
       ]);
-      expect(tenantDeclaredAttributesSQL).toEqual([
+      expect(declaredAttributesSQL).toEqual([
         expectedTenantDeclaredAttributeSQL,
       ]);
-      expect(tenantVerifiedAttributesSQL).toEqual([
+      expect(verifiedAttributesSQL).toEqual([
         expectedTenantVerifiedAttributeSQL,
       ]);
-      expect(tenantVerifiedAttributeVerifiersSQL).toEqual([
+      expect(verifiedAttributeVerifiersSQL).toEqual([
         expectedTenantVerifierSQL,
       ]);
-      expect(tenantVerifiedAttributeRevokersSQL).toEqual([
-        expectedTenantRevokerSQL,
-      ]);
-      expect(tenantFeaturesSQL).toEqual(
+      expect(verifiedAttributeRevokersSQL).toEqual([expectedTenantRevokerSQL]);
+      expect(featuresSQL).toEqual(
         expect.arrayContaining([
           expectedTenantFeatureCertifierSQL,
           expectedTenantFeatureDelegatedConsumerSQL,
@@ -353,13 +351,13 @@ describe("Tenant splitters", () => {
 
       const {
         tenantSQL,
-        tenantMailsSQL,
-        tenantCertifiedAttributesSQL,
-        tenantDeclaredAttributesSQL,
-        tenantVerifiedAttributesSQL,
-        tenantVerifiedAttributeVerifiersSQL,
-        tenantVerifiedAttributeRevokersSQL,
-        tenantFeaturesSQL,
+        mailsSQL,
+        certifiedAttributesSQL,
+        declaredAttributesSQL,
+        verifiedAttributesSQL,
+        verifiedAttributeVerifiersSQL,
+        verifiedAttributeRevokersSQL,
+        featuresSQL,
       } = splitTenantIntoObjectsSQL(tenant, 1);
 
       const expectedTenantSQL: TenantSQL = {
@@ -456,23 +454,21 @@ describe("Tenant splitters", () => {
       };
 
       expect(tenantSQL).toEqual(expectedTenantSQL);
-      expect(tenantMailsSQL).toEqual([expectedTenantMailSQL]);
-      expect(tenantCertifiedAttributesSQL).toEqual([
+      expect(mailsSQL).toEqual([expectedTenantMailSQL]);
+      expect(certifiedAttributesSQL).toEqual([
         expectedTenantCertifiedAttributeSQL,
       ]);
-      expect(tenantDeclaredAttributesSQL).toEqual([
+      expect(declaredAttributesSQL).toEqual([
         expectedTenantDeclaredAttributeSQL,
       ]);
-      expect(tenantVerifiedAttributesSQL).toEqual([
+      expect(verifiedAttributesSQL).toEqual([
         expectedTenantVerifiedAttributeSQL,
       ]);
-      expect(tenantVerifiedAttributeVerifiersSQL).toEqual([
+      expect(verifiedAttributeVerifiersSQL).toEqual([
         expectedTenantVerifierSQL,
       ]);
-      expect(tenantVerifiedAttributeRevokersSQL).toEqual([
-        expectedTenantRevokerSQL,
-      ]);
-      expect(tenantFeaturesSQL).toEqual(
+      expect(verifiedAttributeRevokersSQL).toEqual([expectedTenantRevokerSQL]);
+      expect(featuresSQL).toEqual(
         expect.arrayContaining([
           expectedTenantFeatureCertifierSQL,
           expectedTenantFeatureDelegatedConsumerSQL,

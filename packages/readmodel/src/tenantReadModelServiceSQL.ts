@@ -14,10 +14,7 @@ import {
 import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
 import { Pool } from "pg";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
-import {
-  aggregateTenantSQL,
-  fromJoinToAggregator,
-} from "./tenant/aggregators.js";
+import { aggregateTenant, fromJoinToAggregator } from "./tenant/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantReadModelServiceBuilderSQL(
@@ -27,13 +24,13 @@ export function tenantReadModelServiceBuilderSQL(
     async upsertTenant(tenant: WithMetadata<Tenant>): Promise<void> {
       const {
         tenantSQL,
-        tenantMailsSQL,
-        tenantCertifiedAttributesSQL,
-        tenantDeclaredAttributesSQL,
-        tenantVerifiedAttributesSQL,
-        tenantVerifiedAttributeVerifiersSQL,
-        tenantVerifiedAttributeRevokersSQL,
-        tenantFeaturesSQL,
+        mailsSQL,
+        certifiedAttributesSQL,
+        declaredAttributesSQL,
+        verifiedAttributesSQL,
+        verifiedAttributeVerifiersSQL,
+        verifiedAttributeRevokersSQL,
+        featuresSQL,
       } = splitTenantIntoObjectsSQL(tenant.data, tenant.metadata.version);
 
       await db.transaction(async (tx) => {
@@ -43,42 +40,42 @@ export function tenantReadModelServiceBuilderSQL(
 
         await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
 
-        for (const mail of tenantMailsSQL) {
-          await tx.insert(tenantMailInReadmodelTenant).values(mail);
+        for (const mailSQL of mailsSQL) {
+          await tx.insert(tenantMailInReadmodelTenant).values(mailSQL);
         }
 
-        for (const certifiedAttr of tenantCertifiedAttributesSQL) {
+        for (const certifiedAttributeSQL of certifiedAttributesSQL) {
           await tx
             .insert(tenantCertifiedAttributeInReadmodelTenant)
-            .values(certifiedAttr);
+            .values(certifiedAttributeSQL);
         }
 
-        for (const declaredAttr of tenantDeclaredAttributesSQL) {
+        for (const declaredAttributeSQL of declaredAttributesSQL) {
           await tx
             .insert(tenantDeclaredAttributeInReadmodelTenant)
-            .values(declaredAttr);
+            .values(declaredAttributeSQL);
         }
 
-        for (const verifiedAttr of tenantVerifiedAttributesSQL) {
+        for (const verifiedAttributeSQL of verifiedAttributesSQL) {
           await tx
             .insert(tenantVerifiedAttributeInReadmodelTenant)
-            .values(verifiedAttr);
+            .values(verifiedAttributeSQL);
         }
 
-        for (const verifier of tenantVerifiedAttributeVerifiersSQL) {
+        for (const verifierSQL of verifiedAttributeVerifiersSQL) {
           await tx
             .insert(tenantVerifiedAttributeVerifierInReadmodelTenant)
-            .values(verifier);
+            .values(verifierSQL);
         }
 
-        for (const revoker of tenantVerifiedAttributeRevokersSQL) {
+        for (const revokerSQL of verifiedAttributeRevokersSQL) {
           await tx
             .insert(tenantVerifiedAttributeRevokerInReadmodelTenant)
-            .values(revoker);
+            .values(revokerSQL);
         }
 
-        for (const feature of tenantFeaturesSQL) {
-          await tx.insert(tenantFeatureInReadmodelTenant).values(feature);
+        for (const featureSQL of featuresSQL) {
+          await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
         }
       });
     },
@@ -88,7 +85,7 @@ export function tenantReadModelServiceBuilderSQL(
 				      ->2 tenant_certified_attribute
 				      ->3 tenant_declared_attribute
 				      ->4 tenant_verified_attribute ->5 tenant_verified_attribute_verifier
-																		       ->6 tenant_verified_attribute_revoker
+																		        ->6 tenant_verified_attribute_revoker
 				      ->7 tenant_feature
       */
       const queryResult = await db
@@ -160,7 +157,7 @@ export function tenantReadModelServiceBuilderSQL(
 
       const aggregatorInput = fromJoinToAggregator(queryResult);
 
-      return aggregateTenantSQL(aggregatorInput);
+      return aggregateTenant(aggregatorInput);
     },
     async deleteTenantById(tenantId: TenantId, version: number): Promise<void> {
       await db

@@ -26,7 +26,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { splitTenantIntoObjectsSQL } from "../src/tenant/splitters.js";
-import { aggregateTenantSQL } from "../src/tenant/aggregators.js";
+import { aggregateTenant } from "../src/tenant/aggregators.js";
 
 describe("Tenant aggregators", () => {
   it("should convert Tenant SQL objects item into a Tenant", () => {
@@ -113,24 +113,24 @@ describe("Tenant aggregators", () => {
 
     const {
       tenantSQL,
-      tenantMailsSQL,
-      tenantCertifiedAttributesSQL,
-      tenantDeclaredAttributesSQL,
-      tenantVerifiedAttributesSQL,
-      tenantVerifiedAttributeVerifiersSQL,
-      tenantVerifiedAttributeRevokersSQL,
-      tenantFeaturesSQL,
+      mailsSQL,
+      certifiedAttributesSQL,
+      declaredAttributesSQL,
+      verifiedAttributesSQL,
+      verifiedAttributeVerifiersSQL,
+      verifiedAttributeRevokersSQL,
+      featuresSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
-    const aggregatedTenant = aggregateTenantSQL({
+    const aggregatedTenant = aggregateTenant({
       tenantSQL,
-      tenantMailsSQL,
-      tenantCertifiedAttributesSQL,
-      tenantDeclaredAttributesSQL,
-      tenantVerifiedAttributesSQL,
-      tenantVerifiedAttributeVerifiersSQL,
-      tenantVerifiedAttributeRevokersSQL,
-      tenantFeaturesSQL,
+      mailsSQL,
+      certifiedAttributesSQL,
+      declaredAttributesSQL,
+      verifiedAttributesSQL,
+      verifiedAttributeVerifiersSQL,
+      verifiedAttributeRevokersSQL,
+      featuresSQL,
     });
 
     expect(aggregatedTenant).toMatchObject({
@@ -222,24 +222,24 @@ describe("Tenant aggregators", () => {
 
     const {
       tenantSQL,
-      tenantMailsSQL,
-      tenantCertifiedAttributesSQL,
-      tenantDeclaredAttributesSQL,
-      tenantVerifiedAttributesSQL,
-      tenantVerifiedAttributeVerifiersSQL,
-      tenantVerifiedAttributeRevokersSQL,
-      tenantFeaturesSQL,
+      mailsSQL,
+      certifiedAttributesSQL,
+      declaredAttributesSQL,
+      verifiedAttributesSQL,
+      verifiedAttributeVerifiersSQL,
+      verifiedAttributeRevokersSQL,
+      featuresSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
-    const aggregatedTenant = aggregateTenantSQL({
+    const aggregatedTenant = aggregateTenant({
       tenantSQL,
-      tenantMailsSQL,
-      tenantCertifiedAttributesSQL,
-      tenantDeclaredAttributesSQL,
-      tenantVerifiedAttributesSQL,
-      tenantVerifiedAttributeVerifiersSQL,
-      tenantVerifiedAttributeRevokersSQL,
-      tenantFeaturesSQL,
+      mailsSQL,
+      certifiedAttributesSQL,
+      declaredAttributesSQL,
+      verifiedAttributesSQL,
+      verifiedAttributeVerifiersSQL,
+      verifiedAttributeRevokersSQL,
+      featuresSQL,
     });
 
     expect(aggregatedTenant).toMatchObject({
