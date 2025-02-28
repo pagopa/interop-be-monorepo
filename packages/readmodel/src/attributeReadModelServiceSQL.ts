@@ -22,7 +22,7 @@ export const makeDrizzleConnection = (
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelAttributeServiceBuilderSQL(
+export function attributeReadModelServiceBuilderSQL(
   db: ReturnType<typeof drizzle>
 ) {
   return {
@@ -71,6 +71,6 @@ export function readModelAttributeServiceBuilderSQL(
   };
 }
 
-export type ReadModelAttributeServiceSQL = ReturnType<
-  typeof readModelAttributeServiceBuilderSQL
+export type AttributeReadModelServiceSQL = ReturnType<
+  typeof attributeReadModelServiceBuilderSQL
 >;
