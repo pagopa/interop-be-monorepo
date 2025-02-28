@@ -8,6 +8,10 @@ import {
 } from "pagopa-interop-models";
 import { AttributeSQL } from "pagopa-interop-readmodel-models";
 
+export const aggregateAttributeArray = (
+  attributes: AttributeSQL[]
+): Array<WithMetadata<Attribute>> => attributes.map(aggregateAttribute);
+
 export const aggregateAttribute = ({
   id,
   metadataVersion,
