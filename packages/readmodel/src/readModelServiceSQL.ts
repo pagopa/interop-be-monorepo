@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
-  clientSQLToClient,
+  aggregateClient,
   fromJoinToAggregatorClient,
 } from "./authorization/clientAggregators.js";
 
@@ -17,21 +17,21 @@ import {
 export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
     async addClient(client: WithMetadata<Client>): Promise<void> {
-      const { clientSQL, clientUsersSQL, clientPurposesSQL, clientKeysSQL } =
+      const { clientSQL, usersSQL, purposesSQL, keysSQL } =
         splitClientIntoObjectsSQL(client.data, client.metadata.version);
 
       await db.transaction(async (tx) => {
         await tx.insert(clientInReadmodelClient).values(clientSQL);
 
-        for (const user of clientUsersSQL) {
+        for (const user of usersSQL) {
           await tx.insert(clientUserInReadmodelClient).values(user);
         }
 
-        for (const purpose of clientPurposesSQL) {
+        for (const purpose of purposesSQL) {
           await tx.insert(clientPurposeInReadmodelClient).values(purpose);
         }
 
-        for (const key of clientKeysSQL) {
+        for (const key of keysSQL) {
           await tx.insert(clientKeyInReadmodelClient).values(key);
         }
       });
@@ -72,7 +72,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
       const aggregatorInput = fromJoinToAggregatorClient(queryResult);
 
-      return clientSQLToClient(aggregatorInput);
+      return aggregateClient(aggregatorInput);
     },
     async deleteClientById(clientId: ClientId): Promise<void> {
       await db
