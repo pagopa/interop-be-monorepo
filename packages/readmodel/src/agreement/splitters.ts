@@ -66,18 +66,22 @@ export const splitAgreementIntoObjectsSQL = (
   const stampsSQL: AgreementStampSQL[] = [];
 
   const makeStampSQL = (
-    agreementStamp: AgreementStamp,
+    { who, delegationId, when, ...stampRest }: AgreementStamp,
     agreementId: AgreementId,
     metadataVersion: number,
     kind: AgreementStampKind
-  ): AgreementStampSQL => ({
-    agreementId,
-    metadataVersion,
-    kind,
-    who: agreementStamp.who,
-    when: dateToString(agreementStamp.when),
-    delegationId: agreementStamp.delegationId || null,
-  });
+  ): AgreementStampSQL => {
+    void (stampRest satisfies Record<string, never>);
+
+    return {
+      agreementId,
+      metadataVersion,
+      kind,
+      who,
+      when: dateToString(when),
+      delegationId: delegationId || null,
+    };
+  };
 
   // TODO: improve?
   // eslint-disable-next-line functional/no-let
