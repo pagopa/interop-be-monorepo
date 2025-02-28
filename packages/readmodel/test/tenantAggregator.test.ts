@@ -113,24 +113,24 @@ describe("Tenant aggregators", () => {
 
     const {
       tenantSQL,
-      tenantMailsSQL,
-      tenantCertifiedAttributesSQL,
-      tenantDeclaredAttributesSQL,
-      tenantVerifiedAttributesSQL,
-      tenantVerifiedAttributeVerifiersSQL,
-      tenantVerifiedAttributeRevokersSQL,
-      tenantFeaturesSQL,
+      mailsSQL,
+      certifiedAttributesSQL,
+      declaredAttributesSQL,
+      verifiedAttributesSQL,
+      verifiedAttributeVerifiersSQL,
+      verifiedAttributeRevokersSQL,
+      featuresSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
     const aggregatedTenant = aggregateTenantSQL({
       tenantSQL,
-      tenantMailsSQL,
-      tenantCertifiedAttributesSQL,
-      tenantDeclaredAttributesSQL,
-      tenantVerifiedAttributesSQL,
-      tenantVerifiedAttributeVerifiersSQL,
-      tenantVerifiedAttributeRevokersSQL,
-      tenantFeaturesSQL,
+      mailsSQL,
+      certifiedAttributesSQL,
+      declaredAttributesSQL,
+      verifiedAttributesSQL,
+      verifiedAttributeVerifiersSQL,
+      verifiedAttributeRevokersSQL,
+      featuresSQL,
     });
 
     expect(aggregatedTenant).toMatchObject({
@@ -222,24 +222,24 @@ describe("Tenant aggregators", () => {
 
     const {
       tenantSQL,
-      tenantMailsSQL,
-      tenantCertifiedAttributesSQL,
-      tenantDeclaredAttributesSQL,
-      tenantVerifiedAttributesSQL,
-      tenantVerifiedAttributeVerifiersSQL,
-      tenantVerifiedAttributeRevokersSQL,
-      tenantFeaturesSQL,
+      mailsSQL,
+      certifiedAttributesSQL,
+      declaredAttributesSQL,
+      verifiedAttributesSQL,
+      verifiedAttributeVerifiersSQL,
+      verifiedAttributeRevokersSQL,
+      featuresSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
     const aggregatedTenant = aggregateTenantSQL({
       tenantSQL,
-      tenantMailsSQL,
-      tenantCertifiedAttributesSQL,
-      tenantDeclaredAttributesSQL,
-      tenantVerifiedAttributesSQL,
-      tenantVerifiedAttributeVerifiersSQL,
-      tenantVerifiedAttributeRevokersSQL,
-      tenantFeaturesSQL,
+      mailsSQL,
+      certifiedAttributesSQL,
+      declaredAttributesSQL,
+      verifiedAttributesSQL,
+      verifiedAttributeVerifiersSQL,
+      verifiedAttributeRevokersSQL,
+      featuresSQL,
     });
 
     expect(aggregatedTenant).toMatchObject({
