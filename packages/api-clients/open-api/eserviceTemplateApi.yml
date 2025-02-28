@@ -860,7 +860,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service template audience description
+      summary: Update an e-service published template audience description
       operationId: updateEServiceTemplateAudienceDescription
       parameters:
         - name: eServiceTemplateId
@@ -910,7 +910,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service template e-service description
+      summary: Update an e-service published template e-service description
       operationId: updateEServiceTemplateEServiceDescription
       parameters:
         - name: eServiceTemplateId
@@ -960,7 +960,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service template name
+      summary: Update an e-service published template name
       operationId: updateEServiceTemplateName
       parameters:
         - name: eServiceTemplateId
@@ -1345,6 +1345,7 @@ components:
           minLength: 5
           maxLength: 60
     AttributesSeed:
+      additionalProperties: false
       properties:
         certified:
           type: array
@@ -1661,6 +1662,7 @@ components:
         - id
         - explicitAttributeVerification
     Attributes:
+      additionalProperties: false
       properties:
         certified:
           type: array
