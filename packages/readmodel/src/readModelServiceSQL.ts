@@ -32,18 +32,20 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       await db.transaction(async (tx) => {
         await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
 
-        for (const stamp of stampsSQL) {
-          await tx.insert(agreementStampInReadmodelAgreement).values(stamp);
+        for (const stampSQL of stampsSQL) {
+          await tx.insert(agreementStampInReadmodelAgreement).values(stampSQL);
         }
 
-        for (const attr of attributesSQL) {
-          await tx.insert(agreementAttributeInReadmodelAgreement).values(attr);
+        for (const attributeSQL of attributesSQL) {
+          await tx
+            .insert(agreementAttributeInReadmodelAgreement)
+            .values(attributeSQL);
         }
 
-        for (const doc of consumerDocumentsSQL) {
+        for (const docSQL of consumerDocumentsSQL) {
           await tx
             .insert(agreementConsumerDocumentInReadmodelAgreement)
-            .values(doc);
+            .values(docSQL);
         }
         if (contractSQL !== null) {
           await tx
