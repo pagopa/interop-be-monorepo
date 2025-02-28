@@ -12,6 +12,7 @@ COPY ./packages/attribute-registry-process/package.json /app/packages/attribute-
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
+COPY ./packages/application-audit/package.json /app/packages/application-audit/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -21,6 +22,7 @@ COPY ./packages/attribute-registry-process /app/packages/attribute-registry-proc
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/api-clients /app/packages/api-clients
+COPY ./paclages/application-audit /app/packages/applciation-audit
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -32,6 +34,7 @@ RUN pnpm build && \
       packages/commons/ \
       packages/models/ \
       packages/api-clients \
+      packages/application-audit \
       packages/attribute-registry-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
