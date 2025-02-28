@@ -107,6 +107,16 @@ export type TenantVerifiedAttributeRevokerSQL = InferSelectModel<
 export type TenantFeatureSQL = InferSelectModel<
   typeof tenantFeatureInReadmodelTenant
 >;
+export type TenantItemsSQL = {
+  tenantSQL: TenantSQL;
+  mailsSQL: TenantMailSQL[];
+  certifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  declaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  verifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+  featuresSQL: TenantFeatureSQL[];
+};
 
 export type TenantItemsSQL = {
   tenantSQL: TenantSQL;

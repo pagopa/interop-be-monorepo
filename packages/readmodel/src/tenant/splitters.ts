@@ -59,19 +59,19 @@ export const splitTenantIntoObjectsSQL = (
     subUnitType: subUnitType || null,
   };
 
-  const tenantMailsSQL: TenantMailSQL[] = mails.map((mail) =>
+  const mailsSQL: TenantMailSQL[] = mails.map((mail) =>
     tenantMailToTenantMailSQL(mail, id, metadataVersion)
   );
 
   const {
-    tenantCertifiedAttributesSQL,
-    tenantDeclaredAttributesSQL,
-    tenantVerifiedAttributesSQL,
-    tenantVerifiedAttributeVerifiersSQL,
-    tenantVerifiedAttributeRevokersSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
   } = splitTenantAttributesIntoObjectsSQL(attributes, id, metadataVersion);
 
-  const tenantFeaturesSQL: TenantFeatureSQL[] = features.map((feature) =>
+  const featuresSQL: TenantFeatureSQL[] = features.map((feature) =>
     match(feature)
       .with({ type: tenantFeatureType.persistentCertifier }, (feature) => ({
         tenantId: id,
@@ -99,13 +99,13 @@ export const splitTenantIntoObjectsSQL = (
 
   return {
     tenantSQL,
-    tenantMailsSQL,
-    tenantCertifiedAttributesSQL,
-    tenantDeclaredAttributesSQL,
-    tenantVerifiedAttributesSQL,
-    tenantVerifiedAttributeVerifiersSQL,
-    tenantVerifiedAttributeRevokersSQL,
-    tenantFeaturesSQL,
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
   };
 };
 
@@ -127,25 +127,24 @@ const tenantMailToTenantMailSQL = (
 };
 
 const splitTenantAttributesIntoObjectsSQL = (
-  tenantAttributes: TenantAttribute[],
+  attributes: TenantAttribute[],
   tenantId: TenantId,
   metadataVersion: number
 ): {
-  tenantCertifiedAttributesSQL: TenantCertifiedAttributeSQL[];
-  tenantDeclaredAttributesSQL: TenantDeclaredAttributeSQL[];
-  tenantVerifiedAttributesSQL: TenantVerifiedAttributeSQL[];
-  tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
-  tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+  certifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  declaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  verifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
 } => {
-  const tenantCertifiedAttributesSQL: TenantCertifiedAttributeSQL[] = [];
-  const tenantDeclaredAttributesSQL: TenantDeclaredAttributeSQL[] = [];
-  const tenantVerifiedAttributesSQL: TenantVerifiedAttributeSQL[] = [];
-  const tenantVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
+  const certifiedAttributesSQL: TenantCertifiedAttributeSQL[] = [];
+  const declaredAttributesSQL: TenantDeclaredAttributeSQL[] = [];
+  const verifiedAttributesSQL: TenantVerifiedAttributeSQL[] = [];
+  const verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
     [];
-  const tenantVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] =
-    [];
+  const verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] = [];
 
-  tenantAttributes.forEach((attr) => {
+  attributes.forEach((attr) => {
     match(attr)
       .with(
         { type: tenantAttributeType.CERTIFIED },
@@ -157,7 +156,7 @@ const splitTenantAttributesIntoObjectsSQL = (
         }: Omit<CertifiedTenantAttribute, "type">) => {
           void (rest satisfies Record<string, never>);
 
-          const tenantCertifiedAttributeSQL: TenantCertifiedAttributeSQL = {
+          const certifiedAttributeSQL: TenantCertifiedAttributeSQL = {
             attributeId: id,
             tenantId,
             metadataVersion,
@@ -165,7 +164,7 @@ const splitTenantAttributesIntoObjectsSQL = (
             revocationTimestamp: dateToString(revocationTimestamp),
           };
           // eslint-disable-next-line functional/immutable-data
-          tenantCertifiedAttributesSQL.push(tenantCertifiedAttributeSQL);
+          certifiedAttributesSQL.push(certifiedAttributeSQL);
         }
       )
       .with(
@@ -179,7 +178,7 @@ const splitTenantAttributesIntoObjectsSQL = (
         }: Omit<DeclaredTenantAttribute, "type">) => {
           void (rest satisfies Record<string, never>);
 
-          const tenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
+          const declaredAttributeSQL: TenantDeclaredAttributeSQL = {
             attributeId: id,
             tenantId,
             metadataVersion,
@@ -188,7 +187,7 @@ const splitTenantAttributesIntoObjectsSQL = (
             delegationId: delegationId || null,
           };
           // eslint-disable-next-line functional/immutable-data
-          tenantDeclaredAttributesSQL.push(tenantDeclaredAttributeSQL);
+          declaredAttributesSQL.push(declaredAttributeSQL);
         }
       )
       .with(
@@ -202,14 +201,14 @@ const splitTenantAttributesIntoObjectsSQL = (
         }: Omit<VerifiedTenantAttribute, "type">) => {
           void (rest satisfies Record<string, never>);
 
-          const verifiedTenantAttributeSQL: TenantVerifiedAttributeSQL = {
+          const verifiedAttributeSQL: TenantVerifiedAttributeSQL = {
             attributeId: id,
             tenantId,
             metadataVersion,
             assignmentTimestamp: dateToString(assignmentTimestamp),
           };
           // eslint-disable-next-line functional/immutable-data
-          tenantVerifiedAttributesSQL.push(verifiedTenantAttributeSQL);
+          verifiedAttributesSQL.push(verifiedAttributeSQL);
 
           const verifiersOfCurrentAttribute: TenantVerifiedAttributeVerifierSQL[] =
             verifiedBy.map(
@@ -219,8 +218,9 @@ const splitTenantAttributesIntoObjectsSQL = (
                 expirationDate,
                 extensionDate,
                 delegationId,
+                ...verifierRest
               }: TenantVerifier) => {
-                void (rest satisfies Record<string, never>);
+                void (verifierRest satisfies Record<string, never>);
 
                 return {
                   tenantId,
@@ -236,9 +236,7 @@ const splitTenantAttributesIntoObjectsSQL = (
             );
 
           // eslint-disable-next-line functional/immutable-data
-          tenantVerifiedAttributeVerifiersSQL.push(
-            ...verifiersOfCurrentAttribute
-          );
+          verifiedAttributeVerifiersSQL.push(...verifiersOfCurrentAttribute);
 
           const revokersOfCurrentAttribute: TenantVerifiedAttributeRevokerSQL[] =
             revokedBy.map(
@@ -249,33 +247,36 @@ const splitTenantAttributesIntoObjectsSQL = (
                 extensionDate,
                 revocationDate,
                 delegationId,
-              }: TenantRevoker) => ({
-                tenantId,
-                metadataVersion,
-                tenantRevokerId: id,
-                tenantVerifiedAttributeId: attr.id,
-                verificationDate: dateToString(verificationDate),
-                expirationDate: dateToString(expirationDate),
-                extensionDate: dateToString(extensionDate),
-                revocationDate: dateToString(revocationDate),
-                delegationId: delegationId || null,
-              })
+                ...revokerRest
+              }: TenantRevoker) => {
+                void (revokerRest satisfies Record<string, never>);
+
+                return {
+                  tenantId,
+                  metadataVersion,
+                  tenantRevokerId: id,
+                  tenantVerifiedAttributeId: attr.id,
+                  verificationDate: dateToString(verificationDate),
+                  expirationDate: dateToString(expirationDate),
+                  extensionDate: dateToString(extensionDate),
+                  revocationDate: dateToString(revocationDate),
+                  delegationId: delegationId || null,
+                };
+              }
             );
 
           // eslint-disable-next-line functional/immutable-data
-          tenantVerifiedAttributeRevokersSQL.push(
-            ...revokersOfCurrentAttribute
-          );
+          verifiedAttributeRevokersSQL.push(...revokersOfCurrentAttribute);
         }
       )
       .exhaustive();
   });
 
   return {
-    tenantCertifiedAttributesSQL,
-    tenantDeclaredAttributesSQL,
-    tenantVerifiedAttributesSQL,
-    tenantVerifiedAttributeVerifiersSQL,
-    tenantVerifiedAttributeRevokersSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
   };
 };
