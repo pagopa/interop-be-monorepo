@@ -174,10 +174,10 @@ export const fromJoinToAggregatorDelegation = (
   const delegationSQL = queryRes[0].delegation;
 
   const delegationStampsIdSet = new Set<[string, string]>();
-  const delegationStampsSQL: DelegationStampSQL[] = [];
+  const stampsSQL: DelegationStampSQL[] = [];
 
   const delegationContractDocumentsIdSet = new Set<string>();
-  const delegationContractDocumentsSQL: DelegationContractDocumentSQL[] = [];
+  const contractDocumentsSQL: DelegationContractDocumentSQL[] = [];
 
   queryRes.forEach((row) => {
     const delegationStamp = row.delegationStamp;
@@ -194,7 +194,7 @@ export const fromJoinToAggregatorDelegation = (
         delegationStamp.kind,
       ]);
       // eslint-disable-next-line functional/immutable-data
-      delegationStampsSQL.push(delegationStamp);
+      stampsSQL.push(delegationStamp);
     }
 
     const delegationContractDocumentSQL = row.delegationContractDocument;
@@ -204,13 +204,13 @@ export const fromJoinToAggregatorDelegation = (
     ) {
       delegationContractDocumentsIdSet.add(delegationContractDocumentSQL.id);
       // eslint-disable-next-line functional/immutable-data
-      delegationContractDocumentsSQL.push(delegationContractDocumentSQL);
+      contractDocumentsSQL.push(delegationContractDocumentSQL);
     }
   });
 
   return {
     delegationSQL,
-    delegationStampsSQL,
-    delegationContractDocumentsSQL,
+    stampsSQL,
+    contractDocumentsSQL,
   };
 };
