@@ -24,7 +24,7 @@ COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
 COPY ./packages/api-clients /app/packages/api-clients
-COPY ./packages/application-audit /app/packages/applciation-audit
+COPY ./packages/application-audit /app/packages/application-audit
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
