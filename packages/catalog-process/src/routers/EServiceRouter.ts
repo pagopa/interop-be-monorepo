@@ -947,7 +947,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/instance/upgrade",
+      "/eservices/:eServiceId/instances/upgrade",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);

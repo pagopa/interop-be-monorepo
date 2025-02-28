@@ -320,7 +320,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/instance/upgrade:
+  /eservices/{eServiceId}/instances/upgrade:
     post:
       security:
         - bearerAuth: []
