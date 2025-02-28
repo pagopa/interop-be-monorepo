@@ -32,7 +32,7 @@ import delegationRouter from "./routers/delegationRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
 
-const serviceName = "backend-for-frontend";
+export const serviceName = "backend-for-frontend";
 const fileManager = initFileManager(config);
 const allowList = await getAllowList(serviceName, fileManager, config);
 
