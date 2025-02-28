@@ -66,12 +66,12 @@ export const splitAgreementIntoObjectsSQL = (
   const stampsSQL: AgreementStampSQL[] = [];
 
   const makeStampSQL = (
-    { who, delegationId, when, ...rest }: AgreementStamp,
+    { who, delegationId, when, ...stampRest }: AgreementStamp,
     agreementId: AgreementId,
     metadataVersion: number,
     kind: AgreementStampKind
   ): AgreementStampSQL => {
-    void (rest satisfies Record<string, never>);
+    void (stampRest satisfies Record<string, never>);
 
     return {
       agreementId,
