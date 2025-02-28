@@ -5,6 +5,7 @@ import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
+  eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -33,13 +34,6 @@ import {
   isValidDescriptor,
 } from "../services/validators.js";
 import { toBffCompactAgreement } from "./agreementApiConverter.js";
-
-export type EserviceTemplateData = {
-  templateId: string;
-  templateName: string;
-  templateVersionId: string;
-  instanceId: string | undefined;
-};
 
 export function toEserviceCatalogProcessQueryParams(
   queryParams: bffApi.BffGetCatalogQueryParam
@@ -251,8 +245,7 @@ export function toBffCatalogApiEserviceRiskAnalysisSeed(
 
 export function toBffCatalogApiProducerDescriptorEService(
   eservice: catalogApi.EService,
-  producer: tenantApi.Tenant,
-  eserviceTemplateData?: EserviceTemplateData
+  producer: tenantApi.Tenant
 ): bffApi.ProducerDescriptorEService {
   const producerMail = getLatestTenantContactEmail(producer);
 
@@ -286,7 +279,6 @@ export function toBffCatalogApiProducerDescriptorEService(
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
-    templateRef: eserviceTemplateData,
   };
 }
 
@@ -380,7 +372,6 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
-    templateVersionRef: descriptor.templateVersionRef,
   };
 }
 
@@ -442,4 +433,18 @@ export function apiDescriptorStateToDescriptorState(
     .with("ARCHIVED", () => descriptorState.archived)
     .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
     .exhaustive();
+}
+
+export function toBffEServiceTemplateRef(
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor,
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate
+): bffApi.EServiceTemplateRef {
+  return {
+    templateId: eserviceTemplate.id,
+    templateName: eserviceTemplate.name,
+    instanceId: eservice.templateRef?.instanceId,
+    templateVersionId: descriptor.templateVersionRef?.id,
+    interfaceMetadata: descriptor.templateVersionRef?.interfaceMetadata,
+  };
 }

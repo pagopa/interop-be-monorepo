@@ -17681,6 +17681,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DescriptorRejectionReason"
+        templateRef:
+            $ref: "#/components/schemas/EServiceTemplateRef"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -17725,9 +17727,6 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        templateRef:
-          required: false
-          $ref: "#/components/schemas/EServiceTemplateRef"
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false
@@ -17744,7 +17743,6 @@ components:
       additionalProperties: false
       required:
         - templateId
-        - templateVersionId
         - templateName
       properties:
         templateId:
@@ -17757,6 +17755,8 @@ components:
           type: string
         instanceId:
           type: string
+        interfaceMetadata:
+          $ref: "#/components/schemas/CustomizedInterfaceMetadata"
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -18077,20 +18077,6 @@ components:
           type: array
           items:
             type: string
-        templateVersionRef:
-          $ref: "#/components/schemas/EServiceTemplateVersionRef"
-    EServiceTemplateVersionRef:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
-        interfaceMetadata:
-          required: false
-          $ref: "#/components/schemas/CustomizedInterfaceMetadata"
     CustomizedInterfaceMetadata:
       type: object
       additionalProperties: false
