@@ -103,6 +103,7 @@ export const upgradeAgreementErrorMapper = (
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
+      "missingCertifiedAttributesError",
       "agreementNotInExpectedState",
       "publishedDescriptorNotFound",
       "noNewerDescriptor",
