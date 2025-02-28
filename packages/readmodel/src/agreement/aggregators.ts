@@ -60,31 +60,12 @@ export const aggregateAgreementSQLArray = ({
   );
 
 export const aggregateAgreementSQL = ({
-  agreementSQL: {
-    id,
-    eserviceId,
-    consumerId,
-    producerId,
-    descriptorId,
-    state,
-    createdAt,
-    updatedAt,
-    suspendedAt,
-    suspendedByConsumer,
-    suspendedByProducer,
-    suspendedByPlatform,
-    consumerNotes,
-    rejectionReason,
-    metadataVersion,
-    ...rest
-  },
+  agreementSQL,
   stampsSQL,
   consumerDocumentsSQL,
   contractSQL,
   attributesSQL,
 }: AgreementItemsSQL): WithMetadata<Agreement> => {
-  void (rest satisfies Record<string, never>);
-
   const { verifiedAttributes, certifiedAttributes, declaredAttributes } =
     attributesSQL.reduce(
       (
@@ -177,36 +158,38 @@ export const aggregateAgreementSQL = ({
   );
 
   const agreement: Agreement = {
-    id: unsafeBrandId<AgreementId>(id),
-    eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-    descriptorId: unsafeBrandId<DescriptorId>(descriptorId),
-    producerId: unsafeBrandId<TenantId>(producerId),
-    consumerId: unsafeBrandId<TenantId>(consumerId),
-    state: AgreementState.parse(state),
+    id: unsafeBrandId<AgreementId>(agreementSQL.id),
+    eserviceId: unsafeBrandId<EServiceId>(agreementSQL.eserviceId),
+    descriptorId: unsafeBrandId<DescriptorId>(agreementSQL.descriptorId),
+    producerId: unsafeBrandId<TenantId>(agreementSQL.producerId),
+    consumerId: unsafeBrandId<TenantId>(agreementSQL.consumerId),
+    state: AgreementState.parse(agreementSQL.state),
     verifiedAttributes,
     certifiedAttributes,
     declaredAttributes,
-    ...(suspendedByConsumer !== null
+    ...(agreementSQL.suspendedByConsumer !== null
       ? {
-          suspendedByConsumer,
+          suspendedByConsumer: agreementSQL.suspendedByConsumer,
         }
       : {}),
-    ...(suspendedByProducer !== null
+    ...(agreementSQL.suspendedByProducer !== null
       ? {
-          suspendedByProducer,
+          suspendedByProducer: agreementSQL.suspendedByProducer,
         }
       : {}),
-    ...(suspendedByPlatform !== null
+    ...(agreementSQL.suspendedByPlatform !== null
       ? {
-          suspendedByPlatform,
+          suspendedByPlatform: agreementSQL.suspendedByPlatform,
         }
       : {}),
     consumerDocuments,
-    createdAt: stringToDate(createdAt),
-    ...(updatedAt ? { updatedAt: stringToDate(updatedAt) } : {}),
-    ...(consumerNotes !== null
+    createdAt: stringToDate(agreementSQL.createdAt),
+    ...(agreementSQL.updatedAt
+      ? { updatedAt: stringToDate(agreementSQL.updatedAt) }
+      : {}),
+    ...(agreementSQL.consumerNotes !== null
       ? {
-          consumerNotes,
+          consumerNotes: agreementSQL.consumerNotes,
         }
       : {}),
     ...(contractSQL ? { contract: documentSQLtoDocument(contractSQL) } : {}),
@@ -235,66 +218,41 @@ export const aggregateAgreementSQL = ({
         ? { archiving: stampSQLtoStamp(archivingStampSQL) }
         : {}),
     },
-    ...(rejectionReason !== null
+    ...(agreementSQL.rejectionReason !== null
       ? {
-          rejectionReason,
+          rejectionReason: agreementSQL.rejectionReason,
         }
       : {}),
-    ...(suspendedAt !== null
+    ...(agreementSQL.suspendedAt !== null
       ? {
-          suspendedAt: stringToDate(suspendedAt),
+          suspendedAt: stringToDate(agreementSQL.suspendedAt),
         }
       : {}),
   };
 
   return {
     data: agreement,
-    metadata: { version: metadataVersion },
+    metadata: { version: agreementSQL.metadataVersion },
   };
 };
 
-const documentSQLtoDocument = ({
-  id,
-  path,
-  name,
-  prettyName,
-  contentType,
-  createdAt,
-  ...rest
-}: Omit<
-  AgreementContractSQL | AgreementConsumerDocumentSQL,
-  "agreementId" | "metadataVersion"
->): AgreementDocument => {
-  void (rest satisfies Record<string, never>);
+const documentSQLtoDocument = (
+  documentSQL: AgreementContractSQL | AgreementConsumerDocumentSQL
+): AgreementDocument => ({
+  id: unsafeBrandId<AgreementDocumentId>(documentSQL.id),
+  path: documentSQL.path,
+  name: documentSQL.name,
+  prettyName: documentSQL.prettyName,
+  contentType: documentSQL.contentType,
+  createdAt: stringToDate(documentSQL.createdAt),
+});
 
-  return {
-    id: unsafeBrandId<AgreementDocumentId>(id),
-    path,
-    name,
-    prettyName,
-    contentType,
-    createdAt: stringToDate(createdAt),
-  };
-};
-
-const stampSQLtoStamp = ({
-  who,
-  when,
-  delegationId,
-  ...rest
-}: Omit<
-  AgreementStampSQL,
-  "agreementId" | "metadataVersion" | "kind"
->): AgreementStamp => {
-  void (rest satisfies Record<string, never>);
-
-  return {
-    who: unsafeBrandId<UserId>(who),
-    when: stringToDate(when),
-    ...(delegationId !== null
-      ? {
-          delegationId: unsafeBrandId<DelegationId>(delegationId),
-        }
-      : {}),
-  };
-};
+const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
+  who: unsafeBrandId<UserId>(stampSQL.who),
+  when: stringToDate(stampSQL.when),
+  ...(stampSQL.delegationId !== null
+    ? {
+        delegationId: unsafeBrandId<DelegationId>(stampSQL.delegationId),
+      }
+    : {}),
+});
