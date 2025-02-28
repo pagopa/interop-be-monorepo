@@ -15,6 +15,7 @@ COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
 COPY ./packages/client-assertion-validation/package.json /app/packages/client-assertion-validation/package.json
 COPY ./packages/application-audit/package.json /app/packages/application-audit/package.json
+COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -27,6 +28,7 @@ COPY ./packages/api-clients /app/packages/api-clients
 COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
 COPY ./packages/client-assertion-validation /app/packages/client-assertion-validation
 COPY ./packages/application-audit /app/packages/application-audit
+COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -41,6 +43,7 @@ RUN pnpm build && \
       packages/agreement-lifecycle \
       packages/client-assertion-validation \
       packages/application-audit \
+      packages/kafka-iam-auth \
       packages/backend-for-frontend/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
