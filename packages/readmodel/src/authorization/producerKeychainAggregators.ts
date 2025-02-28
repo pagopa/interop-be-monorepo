@@ -17,65 +17,37 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 export const aggregateProducerKeychainSQL = ({
-  producerKeychainSQL: {
-    id,
-    metadataVersion,
-    producerId,
-    name,
-    createdAt,
-    description,
-    ...rest
-  },
+  producerKeychainSQL,
   usersSQL,
   eservicesSQL,
   keysSQL,
 }: ProducerKeychainItemsSQL): WithMetadata<ProducerKeychain> => {
-  void (rest satisfies Record<string, never>);
-
   const users: UserId[] = usersSQL.map((u) => unsafeBrandId(u.userId));
   const eservices: EServiceId[] = eservicesSQL.map((e) =>
     unsafeBrandId(e.eserviceId)
   );
-  const keys: Key[] = keysSQL.map(
-    ({
-      userId,
-      kid,
-      name,
-      encodedPem,
-      algorithm,
-      use,
-      createdAt,
-      ...keyRest
-    }: Omit<
-      ProducerKeychainKeySQL,
-      "metadataVersion" | "producerKeychainId"
-    >) => {
-      void (keyRest satisfies Record<string, never>);
-
-      return {
-        userId: unsafeBrandId(userId),
-        kid,
-        name,
-        encodedPem,
-        algorithm,
-        use: KeyUse.parse(use),
-        createdAt: stringToDate(createdAt),
-      };
-    }
-  );
+  const keys: Key[] = keysSQL.map((keySQL) => ({
+    userId: unsafeBrandId(keySQL.userId),
+    kid: keySQL.kid,
+    name: keySQL.name,
+    encodedPem: keySQL.encodedPem,
+    algorithm: keySQL.algorithm,
+    use: KeyUse.parse(keySQL.use),
+    createdAt: stringToDate(keySQL.createdAt),
+  }));
 
   return {
     data: {
-      id: unsafeBrandId(id),
-      producerId: unsafeBrandId(producerId),
-      name,
+      id: unsafeBrandId(producerKeychainSQL.id),
+      producerId: unsafeBrandId(producerKeychainSQL.producerId),
+      name: producerKeychainSQL.name,
       eservices,
-      description,
+      description: producerKeychainSQL.description,
       users,
-      createdAt: stringToDate(createdAt),
+      createdAt: stringToDate(producerKeychainSQL.createdAt),
       keys,
     },
-    metadata: { version: metadataVersion },
+    metadata: { version: producerKeychainSQL.metadataVersion },
   };
 };
 
