@@ -9,12 +9,12 @@ import {
 import { runConsumer } from "kafka-iam-auth";
 import {
   makeDrizzleConnection,
-  readModelServiceBuilderSQL,
+  readModelAttributeServiceBuilderSQL,
 } from "pagopa-interop-readmodel";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 import { config } from "./config/config.js";
 
-const readModelService = readModelServiceBuilderSQL(
+const readModelAttributeService = readModelAttributeServiceBuilderSQL(
   makeDrizzleConnection(config)
 );
 
@@ -34,7 +34,7 @@ async function processMessage({
       : generateId<CorrelationId>(),
   });
 
-  await handleMessage(msg, readModelService);
+  await handleMessage(msg, readModelAttributeService);
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
