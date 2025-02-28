@@ -170,6 +170,6 @@ export function tenantReadModelServiceBuilderSQL(
   };
 }
 
-export type ReadModelService = ReturnType<
+export type TenantReadModelServiceSQL = ReturnType<
   typeof tenantReadModelServiceBuilderSQL
 >;
