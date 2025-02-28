@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { RequestHandler, Request } from "express";
 import { initProducer } from "kafka-iam-auth";
 import { genericInternalError } from "pagopa-interop-models";
@@ -46,7 +45,7 @@ export interface ApplicationAuditEndRequest {
   executionTimeMs: number;
 }
 
-export interface ApplicationAuditEndRequestAuthServer {
+export interface ApplicationAuditEndRequestCustomAuthServer {
   correlationId: string;
   service: string;
   serviceVersion: string;
@@ -88,10 +87,11 @@ export async function applicationAuditMiddleware(
   serviceName: string,
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
-  console.log("INIT PRODUCER");
   const producer = await initProducer(config, config.applicationAuditTopic);
 
   return async (req, res, next): Promise<void> => {
+    console.log("path: ", req.path);
+    console.log("url: ", req.url);
     if (req.path !== "/session/tokens") {
       const context = (req as Request & { ctx?: AppContext }).ctx;
       const requestTimestamp = Date.now();
@@ -99,18 +99,22 @@ export async function applicationAuditMiddleware(
       const correlationId = context?.correlationId;
       const organizationId = context?.authData.organizationId;
       if (!correlationId) {
-        throw genericInternalError("TODO");
+        throw genericInternalError("TODO: error or non-null assertion?");
       }
 
       if (!organizationId) {
-        throw genericInternalError("TODO");
+        throw genericInternalError("TODO: error or non-null assertion?");
       }
 
-      const firstMessage: ApplicationAuditBeginRequest = {
+      /*
+      req.path:  /eservices/
+      req.url:  /eservices/?offsest=0&limit=1
+      */
+      const initialAudit: ApplicationAuditBeginRequest = {
         correlationId,
         service: serviceName,
         serviceVersion: config.serviceVersion,
-        endpoint: req.path,
+        endpoint: req.path, // TODO req.path or req.url? (see above)
         httpMethod: req.method,
         phase: Phase.BEGIN_REQUEST,
         requesterIpAddress: "TODO",
@@ -125,16 +129,16 @@ export async function applicationAuditMiddleware(
         messages: [
           {
             key: "TODO",
-            value: JSON.stringify(firstMessage),
+            value: JSON.stringify(initialAudit),
           },
         ],
       });
-      console.log("APPLICATION AUDIT - REQUEST RECEIVED", firstMessage);
+      console.log("APPLICATION AUDIT - REQUEST RECEIVED", initialAudit);
 
       res.on("finish", async () => {
         const endTimestamp = Date.now();
 
-        const secondMessage: ApplicationAuditEndRequest = {
+        const finalAudit: ApplicationAuditEndRequest = {
           correlationId,
           service: serviceName,
           serviceVersion: config.serviceVersion,
@@ -155,95 +159,14 @@ export async function applicationAuditMiddleware(
           messages: [
             {
               key: "TODO",
-              value: JSON.stringify(secondMessage),
+              value: JSON.stringify(finalAudit),
             },
           ],
         });
-        console.log("APPLICATION AUDIT - REQUEST HANDLED", secondMessage);
+        console.log("APPLICATION AUDIT - REQUEST HANDLED", finalAudit);
       });
     }
 
-    return next();
-  };
-}
-
-export async function customApplicationAuditMiddlewareAuthServer(
-  serviceName: string,
-  config: ApplicationAuditProducerConfig
-): Promise<RequestHandler> {
-  console.log("INIT PRODUCER");
-  const producer = await initProducer(config, config.applicationAuditTopic);
-
-  return async (req, res, next): Promise<void> => {
-    const context = (req as Request & { ctx?: AppContext }).ctx;
-    const requestTimestamp = Date.now();
-
-    const correlationId = context?.correlationId;
-    const organizationId = context?.authData.organizationId;
-    if (!correlationId) {
-      throw genericInternalError("TODO");
-    }
-
-    if (!organizationId) {
-      throw genericInternalError("TODO");
-    }
-
-    const firstMessage: ApplicationAuditBeginRequest = {
-      correlationId,
-      service: serviceName,
-      serviceVersion: config.serviceVersion,
-      endpoint: req.path,
-      httpMethod: req.method,
-      phase: Phase.BEGIN_REQUEST,
-      requesterIpAddress: "TODO",
-      nodeIp: config.nodeIp,
-      podName: config.podName,
-      uptimeSeconds: process.uptime(), // TODO how many decimal digits?
-      timestamp: requestTimestamp,
-      amazonTraceId: config.amazonTraceId,
-    };
-
-    await producer.send({
-      messages: [
-        {
-          key: "TODO",
-          value: JSON.stringify(firstMessage),
-        },
-      ],
-    });
-    console.log("APPLICATION AUDIT - REQUEST RECEIVED", firstMessage);
-
-    res.on("finish", async () => {
-      const endTimestamp = Date.now();
-
-      const secondMessage: ApplicationAuditEndRequestAuthServer = {
-        correlationId,
-        service: serviceName,
-        serviceVersion: config.serviceVersion,
-        endpoint: req.path,
-        httpMethod: req.method,
-        phase: Phase.END_REQUEST,
-        requesterIpAddress: "TODO",
-        nodeIp: config.nodeIp,
-        podName: config.podName,
-        uptimeSeconds: process.uptime(),
-        timestamp: endTimestamp,
-        amazonTraceId: config.amazonTraceId,
-        organizationId,
-        clientId: req.body.clientId,
-        httpResponseStatus: res.statusCode,
-        executionTimeMs: endTimestamp - requestTimestamp,
-      };
-      await producer.send({
-        messages: [
-          {
-            key: "TODO",
-            value: JSON.stringify(secondMessage),
-          },
-        ],
-      });
-      console.log("APPLICATION AUDIT - REQUEST HANDLED", secondMessage);
-    });
     return next();
   };
 }
