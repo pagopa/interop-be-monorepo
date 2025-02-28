@@ -9,7 +9,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { splitProducerKeychainIntoObjectsSQL } from "../src/authorization/producerKeychainSplitters.js";
-import { aggregateProducerKeychainSQL } from "../src/authorization/producerKeychainAggregators.js";
+import { aggregateProducerKeychain } from "../src/authorization/producerKeychainAggregators.js";
 
 describe("Producer keychain aggregator", () => {
   it("should convert a producer keychain SQL object into a business logic producer keychain ", () => {
@@ -24,18 +24,14 @@ describe("Producer keychain aggregator", () => {
       metadata: { version: 1 },
     };
 
-    const {
-      producerKeychainSQL,
-      producerKeychainUsersSQL,
-      producerKeychainEServicesSQL,
-      producerKeychainKeysSQL,
-    } = splitProducerKeychainIntoObjectsSQL(producerKeychain.data, 1);
+    const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+      splitProducerKeychainIntoObjectsSQL(producerKeychain.data, 1);
 
-    const aggregatedProducerKeychain = aggregateProducerKeychainSQL({
+    const aggregatedProducerKeychain = aggregateProducerKeychain({
       producerKeychainSQL,
-      producerKeychainUsersSQL,
-      producerKeychainEServicesSQL,
-      producerKeychainKeysSQL,
+      usersSQL,
+      eservicesSQL,
+      keysSQL,
     });
     expect(aggregatedProducerKeychain).toMatchObject(producerKeychain);
   });

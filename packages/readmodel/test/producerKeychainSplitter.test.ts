@@ -35,12 +35,8 @@ describe("Producer keychain splitter", () => {
       description,
     };
 
-    const {
-      producerKeychainSQL,
-      producerKeychainUsersSQL,
-      producerKeychainEServicesSQL,
-      producerKeychainKeysSQL,
-    } = splitProducerKeychainIntoObjectsSQL(producerKeychain, 1);
+    const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+      splitProducerKeychainIntoObjectsSQL(producerKeychain, 1);
 
     const expectedProducerKeychainSQL: ProducerKeychainSQL = {
       id: producerKeychain.id,
@@ -87,19 +83,19 @@ describe("Producer keychain splitter", () => {
     };
 
     expect(producerKeychainSQL).toEqual(expectedProducerKeychainSQL);
-    expect(producerKeychainUsersSQL).toEqual(
+    expect(usersSQL).toEqual(
       expect.arrayContaining([
         expectedProducerKeychainUserSQL1,
         expectedProducerKeychainUserSQL2,
       ])
     );
-    expect(producerKeychainEServicesSQL).toEqual(
+    expect(eservicesSQL).toEqual(
       expect.arrayContaining([
         expectedProducerKeychainEServicesSQL1,
         expectedProducerKeychainEServicesSQL2,
       ])
     );
-    expect(producerKeychainKeysSQL).toEqual(
+    expect(keysSQL).toEqual(
       expect.arrayContaining([
         expectedProducerKeychainKeySQL1,
         expectedProducerKeychainKeySQL2,

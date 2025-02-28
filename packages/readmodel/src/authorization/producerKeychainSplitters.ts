@@ -32,37 +32,51 @@ export const splitProducerKeychainIntoObjectsSQL = (
     description,
   };
 
-  const producerKeychainUsersSQL: ProducerKeychainUserSQL[] = users.map(
-    (userId) => ({
-      metadataVersion,
-      producerKeychainId: id,
-      userId,
-    })
-  );
+  const usersSQL: ProducerKeychainUserSQL[] = users.map((userId) => ({
+    metadataVersion,
+    producerKeychainId: id,
+    userId,
+  }));
 
-  const producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[] =
-    eservices.map((eserviceId) => ({
+  const eservicesSQL: ProducerKeychainEServiceSQL[] = eservices.map(
+    (eserviceId) => ({
       metadataVersion,
       producerKeychainId: id,
       eserviceId,
-    }));
+    })
+  );
 
-  const producerKeychainKeysSQL: ProducerKeychainKeySQL[] = keys.map((key) => ({
-    metadataVersion,
-    producerKeychainId: id,
-    userId: key.userId,
-    kid: key.kid,
-    name: key.name,
-    encodedPem: key.encodedPem,
-    algorithm: key.algorithm,
-    use: key.use,
-    createdAt: dateToString(key.createdAt),
-  }));
+  const keysSQL: ProducerKeychainKeySQL[] = keys.map(
+    ({
+      userId,
+      kid,
+      name,
+      encodedPem,
+      algorithm,
+      use,
+      createdAt,
+      ...keyRest
+    }) => {
+      void (keyRest satisfies Record<string, never>);
+
+      return {
+        metadataVersion,
+        producerKeychainId: id,
+        userId,
+        kid,
+        name,
+        encodedPem,
+        algorithm,
+        use,
+        createdAt: dateToString(createdAt),
+      };
+    }
+  );
 
   return {
     producerKeychainSQL,
-    producerKeychainUsersSQL,
-    producerKeychainEServicesSQL,
-    producerKeychainKeysSQL,
+    usersSQL,
+    eservicesSQL,
+    keysSQL,
   };
 };
