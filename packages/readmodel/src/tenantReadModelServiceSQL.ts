@@ -172,14 +172,14 @@ export function tenantReadModelServiceBuilderSQL(
   };
 }
 
+export type TenantReadModelServiceSQL = ReturnType<
+  typeof tenantReadModelServiceBuilderSQL
+>;
+
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
 export type TransactionType = Parameters<
   Parameters<DrizzleReturnType["transaction"]>[0]
 >[0];
-
-export type TenantReadModelServiceSQL = ReturnType<
-  typeof tenantReadModelServiceBuilderSQL
->;
 
 export const makeDrizzleConnection = (
   readModelSQLDbConfig: ReadModelSQLDbConfig
