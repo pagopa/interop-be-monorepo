@@ -79,12 +79,12 @@ export const splitDelegationIntoObjectsSQL = (
   const stampsSQL: DelegationStampSQL[] = [];
 
   const makeStampSQL = (
-    { who, when, ...rest }: DelegationStamp,
+    { who, when, ...stampRest }: DelegationStamp,
     delegationId: DelegationId,
     metadataVersion: number,
     kind: DelegationStampKind
   ): DelegationStampSQL => {
-    void (rest satisfies Record<string, never>);
+    void (stampRest satisfies Record<string, never>);
     return {
       delegationId,
       metadataVersion,
