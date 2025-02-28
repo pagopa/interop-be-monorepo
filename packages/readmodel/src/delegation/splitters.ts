@@ -50,7 +50,7 @@ export const splitDelegationIntoObjectsSQL = (
     kind,
   };
 
-  const delegationContractDocumentsSQL: DelegationContractDocumentSQL[] = [];
+  const contractDocumentsSQL: DelegationContractDocumentSQL[] = [];
 
   if (activationContract) {
     const activationContractSQL =
@@ -61,7 +61,7 @@ export const splitDelegationIntoObjectsSQL = (
         delegationContractKind.activation
       );
     // eslint-disable-next-line functional/immutable-data
-    delegationContractDocumentsSQL.push(activationContractSQL);
+    contractDocumentsSQL.push(activationContractSQL);
   }
 
   if (revocationContract) {
@@ -73,18 +73,18 @@ export const splitDelegationIntoObjectsSQL = (
         delegationContractKind.revocation
       );
     // eslint-disable-next-line functional/immutable-data
-    delegationContractDocumentsSQL.push(revocationContractSQL);
+    contractDocumentsSQL.push(revocationContractSQL);
   }
 
-  const delegationStampsSQL: DelegationStampSQL[] = [];
+  const stampsSQL: DelegationStampSQL[] = [];
 
   const makeStampSQL = (
-    { who, when, ...rest }: DelegationStamp,
+    { who, when, ...stampRest }: DelegationStamp,
     delegationId: DelegationId,
     metadataVersion: number,
     kind: DelegationStampKind
   ): DelegationStampSQL => {
-    void (rest satisfies Record<string, never>);
+    void (stampRest satisfies Record<string, never>);
     return {
       delegationId,
       metadataVersion,
@@ -103,15 +103,15 @@ export const splitDelegationIntoObjectsSQL = (
     const stamp = stamps[key];
     if (stamp) {
       // eslint-disable-next-line functional/immutable-data
-      delegationStampsSQL.push(
+      stampsSQL.push(
         makeStampSQL(stamp, id, metadataVersion, delegationStampKind[key])
       );
     }
   }
   return {
     delegationSQL,
-    delegationContractDocumentsSQL,
-    delegationStampsSQL,
+    contractDocumentsSQL,
+    stampsSQL,
   };
 };
 

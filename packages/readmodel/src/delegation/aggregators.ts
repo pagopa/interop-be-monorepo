@@ -25,20 +25,20 @@ import {
 
 export const aggregateDelegationArray = ({
   delegationSQL,
-  delegationStampsSQL,
-  delegationContractDocumentsSQL,
+  stampsSQL,
+  contractDocumentsSQL,
 }: {
   delegationSQL: DelegationSQL[];
-  delegationStampsSQL: DelegationStampSQL[];
-  delegationContractDocumentsSQL: DelegationContractDocumentSQL[];
+  stampsSQL: DelegationStampSQL[];
+  contractDocumentsSQL: DelegationContractDocumentSQL[];
 }): Array<WithMetadata<Delegation>> =>
   delegationSQL.map((delegationSQL) =>
     aggregateDelegation({
       delegationSQL,
-      delegationStampsSQL: delegationStampsSQL.filter(
+      stampsSQL: stampsSQL.filter(
         (stampSQL) => stampSQL.delegationId === delegationSQL.id
       ),
-      delegationContractDocumentsSQL: delegationContractDocumentsSQL.filter(
+      contractDocumentsSQL: contractDocumentsSQL.filter(
         (docSQL) => docSQL.delegationId === delegationSQL.id
       ),
     })
@@ -46,10 +46,10 @@ export const aggregateDelegationArray = ({
 
 export const aggregateDelegation = ({
   delegationSQL,
-  delegationStampsSQL,
-  delegationContractDocumentsSQL,
+  stampsSQL,
+  contractDocumentsSQL,
 }: DelegationItemsSQL): WithMetadata<Delegation> => {
-  const activationContractDocumentSQL = delegationContractDocumentsSQL.find(
+  const activationContractDocumentSQL = contractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.activation
   );
   const activationContract: DelegationContractDocument | undefined =
@@ -59,7 +59,7 @@ export const aggregateDelegation = ({
         )
       : undefined;
 
-  const revocationContractDocumentSQL = delegationContractDocumentsSQL.find(
+  const revocationContractDocumentSQL = contractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.revocation
   );
   const revocationContract: DelegationContractDocument | undefined =
@@ -69,7 +69,7 @@ export const aggregateDelegation = ({
         )
       : undefined;
 
-  const submissionStampSQL = delegationStampsSQL.find(
+  const submissionStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === delegationStampKind.submission
   );
 
@@ -77,13 +77,13 @@ export const aggregateDelegation = ({
     throw genericInternalError("submissions stamp can't be missing");
   }
 
-  const activationStampSQL = delegationStampsSQL.find(
+  const activationStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === delegationStampKind.activation
   );
-  const rejectionStampSQL = delegationStampsSQL.find(
+  const rejectionStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === delegationStampKind.rejection
   );
-  const revocationStampSQL = delegationStampsSQL.find(
+  const revocationStampSQL = stampsSQL.find(
     (stamp) => stamp.kind === delegationStampKind.revocation
   );
 
@@ -117,46 +117,45 @@ export const aggregateDelegation = ({
   return {
     data: delegation,
     metadata: {
-      version: 1,
+      version: delegationSQL.metadataVersion,
     },
   };
 };
 
 export const aggregateDelegationsArray = ({
   delegationsSQL,
-  delegationStampsSQL,
-  delegationContractDocumentsSQL,
+  stampsSQL,
+  contractDocumentsSQL,
 }: {
   delegationsSQL: DelegationSQL[];
-  delegationStampsSQL: DelegationStampSQL[];
-  delegationContractDocumentsSQL: DelegationContractDocumentSQL[];
+  stampsSQL: DelegationStampSQL[];
+  contractDocumentsSQL: DelegationContractDocumentSQL[];
 }): Array<WithMetadata<Delegation>> =>
   delegationsSQL.map((delegationSQL) => {
-    const stampsSQLOfCurrentDelegation = delegationStampsSQL.filter(
+    const stampsSQLOfCurrentDelegation = stampsSQL.filter(
       (stampSQL) => stampSQL.delegationId === delegationSQL.id
     );
 
-    const contractDocumentsSQLOfCurrentDelegation =
-      delegationContractDocumentsSQL.filter(
-        (docSQL) => docSQL.delegationId === delegationSQL.id
-      );
+    const contractDocumentsSQLOfCurrentDelegation = contractDocumentsSQL.filter(
+      (docSQL) => docSQL.delegationId === delegationSQL.id
+    );
 
     return aggregateDelegation({
       delegationSQL,
-      delegationStampsSQL: stampsSQLOfCurrentDelegation,
-      delegationContractDocumentsSQL: contractDocumentsSQLOfCurrentDelegation,
+      stampsSQL: stampsSQLOfCurrentDelegation,
+      contractDocumentsSQL: contractDocumentsSQLOfCurrentDelegation,
     });
   });
 
 const delegationContractDocumentSQLToDelegationContractDocument = (
-  delegationContractDocument: DelegationContractDocumentSQL
+  contractDocumentSQL: DelegationContractDocumentSQL
 ): DelegationContractDocument => ({
-  id: unsafeBrandId<DelegationContractId>(delegationContractDocument.id),
-  path: delegationContractDocument.path,
-  name: delegationContractDocument.name,
-  prettyName: delegationContractDocument.prettyName,
-  contentType: delegationContractDocument.contentType,
-  createdAt: stringToDate(delegationContractDocument.createdAt),
+  id: unsafeBrandId<DelegationContractId>(contractDocumentSQL.id),
+  path: contractDocumentSQL.path,
+  name: contractDocumentSQL.name,
+  prettyName: contractDocumentSQL.prettyName,
+  contentType: contractDocumentSQL.contentType,
+  createdAt: stringToDate(contractDocumentSQL.createdAt),
 });
 
 const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({

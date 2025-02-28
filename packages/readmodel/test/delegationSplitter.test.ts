@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   getMockDelegation,
   getMockDelegationDocument,
@@ -33,11 +32,8 @@ describe("Delegation splitters", () => {
       activationContract,
     };
 
-    const {
-      delegationSQL,
-      delegationStampsSQL,
-      delegationContractDocumentsSQL,
-    } = splitDelegationIntoObjectsSQL(delegation, 1);
+    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+      splitDelegationIntoObjectsSQL(delegation, 1);
 
     const expectedDelegationSQL: DelegationSQL = {
       metadataVersion: 1,
@@ -78,8 +74,8 @@ describe("Delegation splitters", () => {
     };
 
     expect(delegationSQL).toEqual(expectedDelegationSQL);
-    expect(delegationStampsSQL).toEqual([expectedDelegationStamps]);
-    expect(delegationContractDocumentsSQL).toEqual(
+    expect(stampsSQL).toEqual([expectedDelegationStamps]);
+    expect(contractDocumentsSQL).toEqual(
       expect.arrayContaining([
         expectedRevocationContractDocument,
         expectedActivationContractDocument,
@@ -94,11 +90,8 @@ describe("Delegation splitters", () => {
       }),
     };
 
-    const {
-      delegationSQL,
-      delegationStampsSQL,
-      delegationContractDocumentsSQL,
-    } = splitDelegationIntoObjectsSQL(delegation, 1);
+    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+      splitDelegationIntoObjectsSQL(delegation, 1);
 
     const expectedDelegationSQL: DelegationSQL = {
       metadataVersion: 1,
@@ -122,7 +115,7 @@ describe("Delegation splitters", () => {
     };
 
     expect(delegationSQL).toEqual(expectedDelegationSQL);
-    expect(delegationStampsSQL).toEqual([expectedDelegationStamps]);
-    expect(delegationContractDocumentsSQL).toHaveLength(0);
+    expect(stampsSQL).toEqual([expectedDelegationStamps]);
+    expect(contractDocumentsSQL).toHaveLength(0);
   });
 });
