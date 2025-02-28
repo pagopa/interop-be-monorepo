@@ -1345,7 +1345,7 @@ components:
           minLength: 5
           maxLength: 60
     AttributesSeed:
-        additionalProperties: false
+      additionalProperties: false
       properties:
         certified:
           type: array
