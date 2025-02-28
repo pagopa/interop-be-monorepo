@@ -10,21 +10,12 @@ import {
   rateLimiterHeadersFromStatus,
 } from "pagopa-interop-commons";
 import { tooManyRequestsError } from "pagopa-interop-models";
-import {
-  ApplicationAuditBeginRequest,
-  ApplicationAuditEndRequestCustomBFF,
-  Phase,
-} from "pagopa-interop-application-audit";
-import { initProducer } from "kafka-iam-auth";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { serviceName } from "../app.js";
-
-const producer = await initProducer(config, config.applicationAuditTopic);
 
 const authorizationRouter = (
   ctx: ZodiosContext,
@@ -49,32 +40,6 @@ const authorizationRouter = (
       const { identity_token: identityToken } = req.body;
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      const requestTimestamp = Date.now();
-
-      const firstMessage: ApplicationAuditBeginRequest = {
-        correlationId: ctx.correlationId,
-        service: serviceName,
-        serviceVersion: config.serviceVersion,
-        endpoint: req.path,
-        httpMethod: req.method,
-        phase: Phase.BEGIN_REQUEST,
-        requesterIpAddress: "TODO",
-        nodeIp: config.nodeIp,
-        podName: config.podName,
-        uptimeSeconds: process.uptime(), // TODO how many decimal digits?
-        timestamp: requestTimestamp,
-        amazonTraceId: config.amazonTraceId,
-      };
-
-      await producer.send({
-        messages: [
-          {
-            key: "TODO",
-            value: JSON.stringify(firstMessage),
-          },
-        ],
-      });
-
       try {
         const result = await authorizationService.getSessionToken(
           identityToken,
@@ -85,37 +50,8 @@ const authorizationRouter = (
         res.set(headers);
 
         if (result.limitReached) {
-          throw tooManyRequestsError(result.tenantId);
+          throw tooManyRequestsError(result.rateLimitedTenantId);
         }
-
-        const endTimestamp = Date.now();
-        const secondMessage: ApplicationAuditEndRequestCustomBFF = {
-          correlationId: ctx.correlationId,
-          service: serviceName,
-          serviceVersion: config.serviceVersion,
-          endpoint: req.path,
-          httpMethod: req.method,
-          phase: Phase.END_REQUEST,
-          requesterIpAddress: "TODO",
-          nodeIp: config.nodeIp,
-          podName: config.podName,
-          uptimeSeconds: process.uptime(),
-          timestamp: endTimestamp,
-          amazonTraceId: config.amazonTraceId,
-          organizationId: result.sessionToken.session_token,
-          selfcareId: result.selfcareId,
-          httpResponseStatus: res.statusCode,
-          executionTimeMs: endTimestamp - requestTimestamp,
-        };
-
-        await producer.send({
-          messages: [
-            {
-              key: "TODO",
-              value: JSON.stringify(secondMessage),
-            },
-          ],
-        });
 
         return res
           .status(200)
@@ -128,34 +64,6 @@ const authorizationRouter = (
           ctx.correlationId,
           "Error creating a session token"
         );
-
-        const endTimestamp = Date.now();
-
-        const secondMessage: ApplicationAuditEndRequestCustomBFF = {
-          correlationId: ctx.correlationId,
-          service: serviceName,
-          serviceVersion: config.serviceVersion,
-          endpoint: req.path,
-          httpMethod: req.method,
-          phase: Phase.END_REQUEST,
-          requesterIpAddress: "TODO",
-          nodeIp: config.nodeIp,
-          podName: config.podName,
-          uptimeSeconds: process.uptime(),
-          timestamp: endTimestamp,
-          amazonTraceId: config.amazonTraceId,
-          httpResponseStatus: err.status,
-          executionTimeMs: endTimestamp - requestTimestamp,
-        };
-
-        await producer.send({
-          messages: [
-            {
-              key: "TODO",
-              value: JSON.stringify(secondMessage),
-            },
-          ],
-        });
 
         return res.status(err.status).send();
       }

@@ -37,15 +37,12 @@ type GetSessionTokenReturnType =
   | {
       limitReached: true;
       sessionToken: undefined;
-      tenantId: TenantId;
-      selfcareId: string;
+      rateLimitedTenantId: TenantId;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
     }
   | {
       limitReached: false;
       sessionToken: bffApi.SessionToken;
-      tenantId: TenantId;
-      selfcareId: string;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
     };
 
@@ -204,9 +201,8 @@ export function authorizationServiceBuilder(
         return {
           limitReached: true,
           sessionToken: undefined,
-          tenantId,
+          rateLimitedTenantId: tenantId,
           rateLimiterStatus,
-          selfcareId,
         };
       }
 
@@ -228,8 +224,6 @@ export function authorizationServiceBuilder(
         limitReached: false,
         sessionToken: { session_token: sessionToken },
         rateLimiterStatus,
-        tenantId,
-        selfcareId,
       };
     },
     samlLoginCallback: async (
