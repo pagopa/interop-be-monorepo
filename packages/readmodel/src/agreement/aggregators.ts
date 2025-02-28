@@ -277,12 +277,24 @@ const documentSQLtoDocument = ({
   };
 };
 
-const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
-  who: unsafeBrandId<UserId>(stampSQL.who),
-  when: stringToDate(stampSQL.when),
-  ...(stampSQL.delegationId !== null
-    ? {
-        delegationId: unsafeBrandId<DelegationId>(stampSQL.delegationId),
-      }
-    : {}),
-});
+const stampSQLtoStamp = ({
+  who,
+  when,
+  delegationId,
+  ...rest
+}: Omit<
+  AgreementStampSQL,
+  "agreementId" | "metadataVersion" | "kind"
+>): AgreementStamp => {
+  void (rest satisfies Record<string, never>);
+
+  return {
+    who: unsafeBrandId<UserId>(who),
+    when: stringToDate(when),
+    ...(delegationId !== null
+      ? {
+          delegationId: unsafeBrandId<DelegationId>(delegationId),
+        }
+      : {}),
+  };
+};
