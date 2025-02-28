@@ -19,7 +19,7 @@ import {
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
 
-export const aggregateClientSQL = ({
+export const aggregateClient = ({
   clientSQL,
   usersSQL,
   purposesSQL,
@@ -55,7 +55,7 @@ export const aggregateClientSQL = ({
   };
 };
 
-export const aggregateClientSQLArray = ({
+export const aggregateClientArray = ({
   clientsSQL,
   usersSQL,
   purposesSQL,
@@ -67,7 +67,7 @@ export const aggregateClientSQLArray = ({
   keysSQL: ClientKeySQL[];
 }): Array<WithMetadata<Client>> =>
   clientsSQL.map((clientSQL) =>
-    aggregateClientSQL({
+    aggregateClient({
       clientSQL,
       usersSQL: usersSQL.filter((u) => u.clientId === clientSQL.id),
       purposesSQL: purposesSQL.filter((p) => p.clientId === clientSQL.id),
