@@ -4,6 +4,7 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
+import { applicationAuditMiddleware } from "pagopa-interop-application-audit";
 import purposeRouter from "./routers/PurposeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
@@ -20,6 +21,7 @@ app.use(healthRouter);
 app.use(contextMiddleware(serviceName));
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
+app.use(await applicationAuditMiddleware(serviceName, config));
 app.use(purposeRouter(zodiosCtx));
 
 export default app;

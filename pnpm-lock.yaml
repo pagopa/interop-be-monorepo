@@ -246,6 +246,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -502,6 +505,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -603,6 +609,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -801,6 +810,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1026,6 +1038,9 @@ importers:
       fast-xml-parser:
         specifier: 4.4.1
         version: 4.4.1
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
       mime:
         specifier: 4.0.4
         version: 4.0.4
@@ -1038,6 +1053,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-client-assertion-validation:
         specifier: workspace:*
         version: link:../client-assertion-validation
@@ -1976,6 +1994,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2951,6 +2972,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3192,6 +3216,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
