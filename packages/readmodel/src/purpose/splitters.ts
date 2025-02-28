@@ -112,12 +112,18 @@ const splitRiskAnalysisFormIntoObjectsSQL = (
     return undefined;
   }
 
-  const { id, version, singleAnswers, multiAnswers, riskAnalysisId, ...rest } =
-    riskAnalysisForm;
+  const {
+    id: riskAnalysisFormId,
+    version,
+    singleAnswers,
+    multiAnswers,
+    riskAnalysisId,
+    ...rest
+  } = riskAnalysisForm;
   void (rest satisfies Record<string, never>);
 
   const riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
-    id,
+    id: riskAnalysisFormId,
     metadataVersion,
     purposeId,
     version,
@@ -126,15 +132,20 @@ const splitRiskAnalysisFormIntoObjectsSQL = (
 
   const riskAnalysisSingleAnswers: PurposeRiskAnalysisAnswerSQL[] =
     singleAnswers.map(
-      ({ id, key, value, ...answerRest }: RiskAnalysisSingleAnswer) => {
+      ({
+        id: answerId,
+        key,
+        value,
+        ...answerRest
+      }: RiskAnalysisSingleAnswer) => {
         void (answerRest satisfies Record<string, never>);
         return {
-          id,
+          id: answerId,
           purposeId,
           metadataVersion,
           key,
           value: value ? [value] : [],
-          riskAnalysisFormId: id,
+          riskAnalysisFormId,
           kind: riskAnalysisAnswerKind.single,
         };
       }
@@ -142,15 +153,20 @@ const splitRiskAnalysisFormIntoObjectsSQL = (
 
   const riskAnalysisMultiAnswers: PurposeRiskAnalysisAnswerSQL[] =
     multiAnswers.map(
-      ({ id, key, values, ...answerRest }: RiskAnalysisMultiAnswer) => {
+      ({
+        id: answerId,
+        key,
+        values,
+        ...answerRest
+      }: RiskAnalysisMultiAnswer) => {
         void (answerRest satisfies Record<string, never>);
         return {
-          id,
+          id: answerId,
           purposeId,
           metadataVersion,
           key,
           value: values,
-          riskAnalysisFormId: id,
+          riskAnalysisFormId,
           kind: riskAnalysisAnswerKind.multi,
         };
       }
