@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import {
   DelegationContractDocumentSQL,
+  DelegationItemsSQL,
   DelegationSQL,
   DelegationStampSQL,
 } from "pagopa-interop-readmodel-models";
@@ -33,11 +34,7 @@ export const splitDelegationIntoObjectsSQL = (
     ...rest
   }: Delegation,
   metadataVersion: number
-): {
-  delegationSQL: DelegationSQL;
-  delegationStampsSQL: DelegationStampSQL[];
-  delegationContractDocumentsSQL: DelegationContractDocumentSQL[];
-} => {
+): DelegationItemsSQL => {
   void (rest satisfies Record<string, never>);
 
   const delegationSQL: DelegationSQL = {
@@ -53,7 +50,7 @@ export const splitDelegationIntoObjectsSQL = (
     kind,
   };
 
-  const delegationContractDocumentsSQL: DelegationContractDocumentSQL[] = [];
+  const contractDocumentsSQL: DelegationContractDocumentSQL[] = [];
 
   if (activationContract) {
     const activationContractSQL =
@@ -64,7 +61,7 @@ export const splitDelegationIntoObjectsSQL = (
         delegationContractKind.activation
       );
     // eslint-disable-next-line functional/immutable-data
-    delegationContractDocumentsSQL.push(activationContractSQL);
+    contractDocumentsSQL.push(activationContractSQL);
   }
 
   if (revocationContract) {
@@ -76,10 +73,10 @@ export const splitDelegationIntoObjectsSQL = (
         delegationContractKind.revocation
       );
     // eslint-disable-next-line functional/immutable-data
-    delegationContractDocumentsSQL.push(revocationContractSQL);
+    contractDocumentsSQL.push(revocationContractSQL);
   }
 
-  const delegationStampsSQL: DelegationStampSQL[] = [];
+  const stampsSQL: DelegationStampSQL[] = [];
 
   const makeStampSQL = (
     { who, when, ...rest }: DelegationStamp,
@@ -106,15 +103,15 @@ export const splitDelegationIntoObjectsSQL = (
     const stamp = stamps[key];
     if (stamp) {
       // eslint-disable-next-line functional/immutable-data
-      delegationStampsSQL.push(
+      stampsSQL.push(
         makeStampSQL(stamp, id, metadataVersion, delegationStampKind[key])
       );
     }
   }
   return {
     delegationSQL,
-    delegationContractDocumentsSQL,
-    delegationStampsSQL,
+    contractDocumentsSQL,
+    stampsSQL,
   };
 };
 

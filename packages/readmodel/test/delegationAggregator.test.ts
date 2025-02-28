@@ -34,16 +34,13 @@ describe("Delegation aggregator", () => {
       },
     };
 
-    const {
-      delegationSQL,
-      delegationStampsSQL,
-      delegationContractDocumentsSQL,
-    } = splitDelegationIntoObjectsSQL(delegation.data, 1);
+    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+      splitDelegationIntoObjectsSQL(delegation.data, 1);
 
     const aggregatedDelegation = aggregateDelegation({
       delegationSQL,
-      delegationStampsSQL,
-      delegationContractDocumentsSQL,
+      stampsSQL,
+      contractDocumentsSQL,
     });
 
     expect(aggregatedDelegation).toMatchObject(delegation);
@@ -71,16 +68,13 @@ describe("Delegation aggregator", () => {
       },
     };
 
-    const {
-      delegationSQL,
-      delegationStampsSQL,
-      delegationContractDocumentsSQL,
-    } = splitDelegationIntoObjectsSQL(delegation.data, 1);
+    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+      splitDelegationIntoObjectsSQL(delegation.data, 1);
 
     const aggregatedDelegation = aggregateDelegation({
       delegationSQL,
-      delegationStampsSQL,
-      delegationContractDocumentsSQL,
+      stampsSQL,
+      contractDocumentsSQL,
     });
 
     expect(aggregatedDelegation).toMatchObject(delegation);
