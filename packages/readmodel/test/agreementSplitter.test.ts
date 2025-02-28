@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   getMockAgreement,
   getMockAgreementAttribute,
@@ -96,12 +97,10 @@ describe("Agreement Splitter", () => {
       suspendedByProducer: true,
       suspendedByPlatform: true,
       createdAt: agreement.createdAt.toISOString(),
-      updatedAt: agreement.updatedAt ? agreement.updatedAt.toISOString() : null,
+      updatedAt: agreement.updatedAt!.toISOString(),
       consumerNotes,
       rejectionReason,
-      suspendedAt: agreement.suspendedAt
-        ? agreement.suspendedAt.toISOString()
-        : null,
+      suspendedAt: agreement.suspendedAt!.toISOString(),
     };
 
     const expectedAgreementConsumerDocumentSQL: AgreementConsumerDocumentSQL = {
