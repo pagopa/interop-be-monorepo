@@ -19,8 +19,7 @@ import {
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
 
-// TODO: ...rest?
-export const clientSQLToClient = ({
+export const aggregateClient = ({
   clientSQL,
   usersSQL,
   purposesSQL,
@@ -30,14 +29,14 @@ export const clientSQLToClient = ({
   const purposes: PurposeId[] = purposesSQL.map((p) =>
     unsafeBrandId<PurposeId>(p.purposeId)
   );
-  const keys: Key[] = keysSQL.map((k) => ({
-    userId: unsafeBrandId<UserId>(k.userId),
-    kid: k.kid,
-    name: k.name,
-    encodedPem: k.encodedPem,
-    algorithm: k.algorithm,
-    use: KeyUse.parse(k.use),
-    createdAt: stringToDate(k.createdAt),
+  const keys: Key[] = keysSQL.map((keySQL) => ({
+    userId: unsafeBrandId<UserId>(keySQL.userId),
+    kid: keySQL.kid,
+    name: keySQL.name,
+    encodedPem: keySQL.encodedPem,
+    algorithm: keySQL.algorithm,
+    use: KeyUse.parse(keySQL.use),
+    createdAt: stringToDate(keySQL.createdAt),
   }));
 
   return {
@@ -55,6 +54,26 @@ export const clientSQLToClient = ({
     metadata: { version: clientSQL.metadataVersion },
   };
 };
+
+export const aggregateClientArray = ({
+  clientsSQL,
+  usersSQL,
+  purposesSQL,
+  keysSQL,
+}: {
+  clientsSQL: ClientSQL[];
+  usersSQL: ClientUserSQL[];
+  purposesSQL: ClientPurposeSQL[];
+  keysSQL: ClientKeySQL[];
+}): Array<WithMetadata<Client>> =>
+  clientsSQL.map((clientSQL) =>
+    aggregateClient({
+      clientSQL,
+      usersSQL: usersSQL.filter((u) => u.clientId === clientSQL.id),
+      purposesSQL: purposesSQL.filter((p) => p.clientId === clientSQL.id),
+      keysSQL: keysSQL.filter((k) => k.clientId === clientSQL.id),
+    })
+  );
 
 export const fromJoinToAggregatorClient = (
   queryRes: Array<{
