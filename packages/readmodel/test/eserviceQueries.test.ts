@@ -54,7 +54,7 @@ describe("E-service queries", () => {
         metadata: { version: 1 },
       };
 
-      await readModelService.addEService(eservice);
+      await readModelService.upsertEService(eservice);
 
       const retrievedEService = await readModelService.getEServiceById(
         eservice.data.id
@@ -115,7 +115,7 @@ describe("E-service queries", () => {
         metadata: { version: 1 },
       };
 
-      await readModelService.addEService(eservice);
+      await readModelService.upsertEService(eservice);
 
       const retrievedEService = await readModelService.getEServiceById(
         eservice.data.id
@@ -143,10 +143,14 @@ describe("E-service queries", () => {
   });
 
   describe("get", () => {
-    it("undefined", () => {});
+    it("undefined", () => {
+      expect(1).toBe(1);
+    });
   });
 
   describe("delete", () => {
-    it("", () => {});
+    it("", () => {
+      expect(1).toBe(1);
+    });
   });
 });

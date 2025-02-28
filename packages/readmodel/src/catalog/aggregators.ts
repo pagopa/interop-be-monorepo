@@ -2,7 +2,6 @@ import {
   Document,
   attributeKind,
   Descriptor,
-  documentKind,
   EServiceAttribute,
   EService,
   RiskAnalysis,
@@ -29,12 +28,13 @@ import {
 import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
+  EServiceDescriptorInterfaceSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  EServiceItemsSQL,
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceItemsSQL,
   // EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 
@@ -52,22 +52,17 @@ export const documentSQLtoDocument = (
 
 export const aggregateDescriptor = ({
   descriptorSQL,
+  interfaceSQL,
   documentsSQL,
   attributesSQL,
   rejectionReasonsSQL,
 }: {
   descriptorSQL: EServiceDescriptorSQL;
+  interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
   documentsSQL: EServiceDescriptorDocumentSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
 }): Descriptor => {
-  const interfaceSQL = documentsSQL.find(
-    (d) => d.kind === documentKind.descriptorInterface
-  );
-
-  const docsSQL = documentsSQL.filter(
-    (d) => d.kind === documentKind.descriptorDocument
-  );
   const parsedInterface = interfaceSQL
     ? documentSQLtoDocument(interfaceSQL)
     : undefined;
@@ -103,7 +98,7 @@ export const aggregateDescriptor = ({
     version: descriptorSQL.version,
     description: descriptorSQL.description || undefined,
     interface: parsedInterface,
-    docs: docsSQL.map(documentSQLtoDocument),
+    docs: documentsSQL.map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
     audience: descriptorSQL.audience,
     voucherLifespan: descriptorSQL.voucherLifespan,
@@ -140,6 +135,7 @@ export const aggregateEservice = ({
   riskAnalysesSQL,
   riskAnalysisAnswersSQL,
   descriptorsSQL,
+  interfacesSQL,
   attributesSQL,
   documentsSQL,
   rejectionReasonsSQL,
@@ -148,6 +144,10 @@ EServiceItemsSQL): WithMetadata<EService> => {
   const descriptors = descriptorsSQL.map((descriptorSQL) =>
     aggregateDescriptor({
       descriptorSQL,
+      interfaceSQL: interfacesSQL.find(
+        (descriptorInterface) =>
+          descriptorInterface.descriptorId === descriptorSQL.id
+      ),
       documentsSQL: documentsSQL.filter(
         (d) => d.descriptorId === descriptorSQL.id
       ),
@@ -194,6 +194,7 @@ export const aggregateEserviceArray = ({
   riskAnalysisAnswersSQL,
   descriptorsSQL,
   attributesSQL,
+  interfacesSQL,
   documentsSQL,
   rejectionReasonsSQL,
 }: {
@@ -202,6 +203,7 @@ export const aggregateEserviceArray = ({
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
   descriptorsSQL: EServiceDescriptorSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   // templateBindingSQL: EServiceTemplateBindingSQL[];
@@ -218,6 +220,10 @@ export const aggregateEserviceArray = ({
 
     const descriptorsSQLOfCurrentEservice = descriptorsSQL.filter(
       (d) => d.eserviceId === eserviceSQL.id
+    );
+
+    const interfacesSQLOfCurrentEservice = interfacesSQL.filter(
+      (descriptorInterface) => descriptorInterface.eserviceId === eserviceSQL.id
     );
 
     const documentsSQLOfCurrentEservice = documentsSQL.filter(
@@ -237,6 +243,7 @@ export const aggregateEserviceArray = ({
       riskAnalysesSQL: riskAnalysesSQLOfCurrentEservice,
       riskAnalysisAnswersSQL: riskAnalysisAnswersSQLOfCurrentEservice,
       descriptorsSQL: descriptorsSQLOfCurrentEservice,
+      interfacesSQL: interfacesSQLOfCurrentEservice,
       documentsSQL: documentsSQLOfCurrentEservice,
       attributesSQL: attributesSQLOfCurrentEservice,
       rejectionReasonsSQL: rejectionReasonsSQLOfCurrentEservice,
@@ -308,6 +315,7 @@ export const fromJoinToAggregator = (
   queryRes: Array<{
     eservice: EServiceSQL;
     descriptor: EServiceDescriptorSQL | null;
+    interface: EServiceDescriptorInterfaceSQL | null;
     document: EServiceDescriptorDocumentSQL | null;
     attribute: EServiceDescriptorAttributeSQL | null;
     rejection: EServiceDescriptorRejectionReasonSQL | null;
@@ -318,18 +326,19 @@ export const fromJoinToAggregator = (
 ): EServiceItemsSQL => {
   const {
     eservicesSQL,
-    descriptorsSQL,
-    documentsSQL,
-    attributesSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
+    descriptorsSQL,
+    interfacesSQL,
+    documentsSQL,
+    attributesSQL,
     rejectionReasonsSQL,
-    // templateBindingSQL
   } = fromJoinToAggregatorArray(queryRes);
 
   return {
     eserviceSQL: eservicesSQL[0],
     descriptorsSQL,
+    interfacesSQL,
     documentsSQL,
     attributesSQL,
     riskAnalysesSQL,
@@ -343,6 +352,7 @@ export const fromJoinToAggregatorArray = (
   queryRes: Array<{
     eservice: EServiceSQL;
     descriptor: EServiceDescriptorSQL | null;
+    interface: EServiceDescriptorInterfaceSQL | null;
     document: EServiceDescriptorDocumentSQL | null;
     attribute: EServiceDescriptorAttributeSQL | null;
     rejection: EServiceDescriptorRejectionReasonSQL | null;
@@ -356,6 +366,7 @@ export const fromJoinToAggregatorArray = (
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
   descriptorsSQL: EServiceDescriptorSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   // templateBindingSQL: EServiceTemplateBindingSQL[];
@@ -365,6 +376,9 @@ export const fromJoinToAggregatorArray = (
 
   const descriptorIdSet = new Set<string>();
   const descriptorsSQL: EServiceDescriptorSQL[] = [];
+
+  const interfaceIdSet = new Set<string>();
+  const interfacesSQL: EServiceDescriptorDocumentSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
@@ -378,9 +392,10 @@ export const fromJoinToAggregatorArray = (
   const riskAnalysisAnswerIdSet = new Set<string>();
   const riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] = [];
 
-  const rejectionReasonsSet = new Set<string>();
+  const rejectionReasonsSet = new Set<[string, string]>();
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   queryRes.forEach((row) => {
     const eserviceSQL = row.eservice;
 
@@ -397,6 +412,14 @@ export const fromJoinToAggregatorArray = (
         descriptorIdSet.add(descriptorSQL.id);
         // eslint-disable-next-line functional/immutable-data
         descriptorsSQL.push(descriptorSQL);
+      }
+
+      const interfaceSQL = row.document;
+
+      if (interfaceSQL && !interfaceIdSet.has(interfaceSQL.id)) {
+        interfaceIdSet.add(interfaceSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        interfacesSQL.push(interfaceSQL);
       }
 
       const documentSQL = row.document;
@@ -431,11 +454,13 @@ export const fromJoinToAggregatorArray = (
         rejectionReasonSQL &&
         !rejectionReasonsSet.has([
           rejectionReasonSQL.descriptorId,
-          rejectionReasonSQL.rejectionReason,
           rejectionReasonSQL.rejectedAt,
         ])
       ) {
-        rejectionReasonsSet.add(rejectionReasonSQL.rejectionReason);
+        rejectionReasonsSet.add([
+          rejectionReasonSQL.descriptorId,
+          rejectionReasonSQL.rejectedAt,
+        ]);
         // eslint-disable-next-line functional/immutable-data
         rejectionReasonsSQL.push(rejectionReasonSQL);
       }
@@ -464,6 +489,7 @@ export const fromJoinToAggregatorArray = (
   return {
     eservicesSQL,
     descriptorsSQL,
+    interfacesSQL,
     documentsSQL,
     attributesSQL,
     riskAnalysesSQL,

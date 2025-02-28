@@ -65,6 +65,7 @@ describe("E-service aggregator", () => {
       riskAnalysisAnswersSQL,
       descriptorsSQL,
       attributesSQL,
+      interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
@@ -77,6 +78,7 @@ describe("E-service aggregator", () => {
       riskAnalysisAnswersSQL,
       descriptorsSQL,
       attributesSQL,
+      interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
@@ -128,6 +130,7 @@ describe("E-service aggregator", () => {
       riskAnalysisAnswersSQL,
       descriptorsSQL,
       attributesSQL,
+      interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding
@@ -139,6 +142,7 @@ describe("E-service aggregator", () => {
       riskAnalysisAnswersSQL,
       descriptorsSQL,
       attributesSQL,
+      interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
       // TODO: add eserviceTemplateBinding

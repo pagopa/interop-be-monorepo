@@ -382,8 +382,8 @@ export const validateCreationOnDescriptor = (
   eservice: EService,
   descriptorId: DescriptorId
 ): Descriptor => {
-  const allowedStatus = [descriptorState.published];
-  return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
+  const allowedState: DescriptorState[] = [descriptorState.published];
+  return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
 export const verifyCreationConflictingAgreements = async (
@@ -429,11 +429,8 @@ export const validateSubmitOnDescriptor = async (
   eservice: EService,
   descriptorId: DescriptorId
 ): Promise<Descriptor> => {
-  const allowedStatus: DescriptorState[] = [
-    descriptorState.published,
-    descriptorState.suspended,
-  ];
-  return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
+  const allowedState: DescriptorState[] = [descriptorState.published];
+  return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
 export const validateActiveOrPendingAgreement = (

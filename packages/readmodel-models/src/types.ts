@@ -1,7 +1,8 @@
 import { InferSelectModel } from "drizzle-orm";
 import {
   agreementAttributeInReadmodelAgreement,
-  agreementDocumentInReadmodelAgreement,
+  agreementConsumerDocumentInReadmodelAgreement,
+  agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
@@ -16,6 +17,7 @@ import {
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
@@ -47,6 +49,9 @@ export type EServiceDescriptorSQL = InferSelectModel<
 export type EServiceDescriptorRejectionReasonSQL = InferSelectModel<
   typeof eserviceDescriptorRejectionReasonInReadmodelCatalog
 >;
+export type EServiceDescriptorInterfaceSQL = InferSelectModel<
+  typeof eserviceDescriptorInterfaceInReadmodelCatalog
+>;
 export type EServiceDescriptorDocumentSQL = InferSelectModel<
   typeof eserviceDescriptorDocumentInReadmodelCatalog
 >;
@@ -59,13 +64,13 @@ export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
   typeof eserviceDescriptorAttributeInReadmodelCatalog
 >;
-
 export type EServiceItemsSQL = {
   eserviceSQL: EServiceSQL;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
   descriptorsSQL: EServiceDescriptorSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   // templateBindingSQL: EServiceTemplateBindingSQL[];
@@ -78,8 +83,11 @@ export type AttributeSQL = InferSelectModel<
 export type AgreementAttributeSQL = InferSelectModel<
   typeof agreementAttributeInReadmodelAgreement
 >;
-export type AgreementDocumentSQL = InferSelectModel<
-  typeof agreementDocumentInReadmodelAgreement
+export type AgreementConsumerDocumentSQL = InferSelectModel<
+  typeof agreementConsumerDocumentInReadmodelAgreement
+>;
+export type AgreementContractSQL = InferSelectModel<
+  typeof agreementContractInReadmodelAgreement
 >;
 export type AgreementStampSQL = InferSelectModel<
   typeof agreementStampInReadmodelAgreement
