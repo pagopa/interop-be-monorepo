@@ -95,34 +95,28 @@ export const fromJoinToAggregatorClient = (
   const keysSQL: ClientKeySQL[] = [];
 
   queryRes.forEach((row) => {
-    const clientUserSQL = row.clientUser;
-    if (
-      clientUserSQL &&
-      !userIdSet.has([clientUserSQL.clientId, clientUserSQL.userId])
-    ) {
-      userIdSet.add([clientUserSQL.clientId, clientUserSQL.userId]);
+    const userSQL = row.clientUser;
+    if (userSQL && !userIdSet.has([userSQL.clientId, userSQL.userId])) {
+      userIdSet.add([userSQL.clientId, userSQL.userId]);
       // eslint-disable-next-line functional/immutable-data
-      usersSQL.push(clientUserSQL);
+      usersSQL.push(userSQL);
     }
 
-    const clientPurposeSQL = row.clientPurpose;
+    const purposeSQL = row.clientPurpose;
     if (
-      clientPurposeSQL &&
-      !purposeIdSet.has([clientPurposeSQL.clientId, clientPurposeSQL.purposeId])
+      purposeSQL &&
+      !purposeIdSet.has([purposeSQL.clientId, purposeSQL.purposeId])
     ) {
-      purposeIdSet.add([clientPurposeSQL.clientId, clientPurposeSQL.purposeId]);
+      purposeIdSet.add([purposeSQL.clientId, purposeSQL.purposeId]);
       // eslint-disable-next-line functional/immutable-data
-      purposesSQL.push(clientPurposeSQL);
+      purposesSQL.push(purposeSQL);
     }
 
-    const clientKeySQL = row.clientKey;
-    if (
-      clientKeySQL &&
-      !keyIdSet.has([clientKeySQL.clientId, clientKeySQL.kid])
-    ) {
-      keyIdSet.add([clientKeySQL.clientId, clientKeySQL.kid]);
+    const keySQL = row.clientKey;
+    if (keySQL && !keyIdSet.has([keySQL.clientId, keySQL.kid])) {
+      keyIdSet.add([keySQL.clientId, keySQL.kid]);
       // eslint-disable-next-line functional/immutable-data
-      keysSQL.push(clientKeySQL);
+      keysSQL.push(keySQL);
     }
   });
 

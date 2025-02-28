@@ -23,16 +23,16 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       await db.transaction(async (tx) => {
         await tx.insert(clientInReadmodelClient).values(clientSQL);
 
-        for (const user of usersSQL) {
-          await tx.insert(clientUserInReadmodelClient).values(user);
+        for (const userSQL of usersSQL) {
+          await tx.insert(clientUserInReadmodelClient).values(userSQL);
         }
 
-        for (const purpose of purposesSQL) {
-          await tx.insert(clientPurposeInReadmodelClient).values(purpose);
+        for (const purposeSQL of purposesSQL) {
+          await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
         }
 
-        for (const key of keysSQL) {
-          await tx.insert(clientKeyInReadmodelClient).values(key);
+        for (const keySQL of keysSQL) {
+          await tx.insert(clientKeyInReadmodelClient).values(keySQL);
         }
       });
     },
