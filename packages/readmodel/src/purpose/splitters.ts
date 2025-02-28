@@ -9,6 +9,7 @@ import {
   RiskAnalysisSingleAnswer,
 } from "pagopa-interop-models";
 import {
+  PurposeItemsSQL,
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
   PurposeSQL,
@@ -19,13 +20,7 @@ import {
 export const splitPurposeIntoObjectsSQL = (
   purpose: Purpose,
   version: number
-): {
-  purposeSQL: PurposeSQL;
-  purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
-  purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
-  purposeVersionsSQL: PurposeVersionSQL[];
-  purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[];
-} => {
+): PurposeItemsSQL => {
   const purposeSQL: PurposeSQL = {
     id: purpose.id,
     metadataVersion: version,
@@ -54,43 +49,40 @@ export const splitPurposeIntoObjectsSQL = (
     version
   );
 
-  const { purposeVersionsSQL, purposeVersionDocumentsSQL } =
-    purpose.versions.reduce(
-      (
-        acc: {
-          purposeVersionsSQL: PurposeVersionSQL[];
-          purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[];
-        },
-        currentPurposeVersion: PurposeVersion
-      ) => {
-        const { purposeVersionSQL, purposeVersionDocumentSQL } =
-          splitPurposeVersionIntoObjectsSQL(
-            purpose.id,
-            currentPurposeVersion,
-            version
-          );
-        return {
-          purposeVersionsSQL: [...acc.purposeVersionsSQL, purposeVersionSQL],
-          purposeVersionDocumentsSQL: [
-            ...acc.purposeVersionDocumentsSQL,
-            ...(purposeVersionDocumentSQL ? [purposeVersionDocumentSQL] : []),
-          ],
-        };
+  const { versionsSQL, versionDocumentsSQL } = purpose.versions.reduce(
+    (
+      acc: {
+        versionsSQL: PurposeVersionSQL[];
+        versionDocumentsSQL: PurposeVersionDocumentSQL[];
       },
-      {
-        purposeVersionsSQL: [],
-        purposeVersionDocumentsSQL: [],
-      }
-    );
+      currentPurposeVersion: PurposeVersion
+    ) => {
+      const { versionSQL, versionDocumentSQL } =
+        splitPurposeVersionIntoObjectsSQL(
+          purpose.id,
+          currentPurposeVersion,
+          version
+        );
+      return {
+        versionsSQL: [...acc.versionsSQL, versionSQL],
+        versionDocumentsSQL: [
+          ...acc.versionDocumentsSQL,
+          ...(versionDocumentSQL ? [versionDocumentSQL] : []),
+        ],
+      };
+    },
+    {
+      versionsSQL: [],
+      versionDocumentsSQL: [],
+    }
+  );
 
   return {
     purposeSQL,
-    purposeRiskAnalysisFormSQL:
-      splitPurposeRiskAnalysisSQL?.purposeRiskAnalysisFormSQL,
-    purposeRiskAnalysisAnswersSQL:
-      splitPurposeRiskAnalysisSQL?.purposeRiskAnalysisAnswersSQL,
-    purposeVersionsSQL,
-    purposeVersionDocumentsSQL,
+    riskAnalysisFormSQL: splitPurposeRiskAnalysisSQL?.riskAnalysisFormSQL,
+    riskAnalysisAnswersSQL: splitPurposeRiskAnalysisSQL?.riskAnalysisAnswersSQL,
+    versionsSQL,
+    versionDocumentsSQL,
   };
 };
 
@@ -100,14 +92,14 @@ export const splitRiskAnalysisFormIntoObjectsSQL = (
   metadataVersion: number
 ):
   | {
-      purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL;
-      purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
+      riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL;
+      riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
     }
   | undefined => {
   if (!riskAnalysisForm) {
     return undefined;
   }
-  const purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
+  const riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
     id: riskAnalysisForm.id,
     metadataVersion,
     purposeId,
@@ -140,8 +132,8 @@ export const splitRiskAnalysisFormIntoObjectsSQL = (
     }));
 
   return {
-    purposeRiskAnalysisFormSQL,
-    purposeRiskAnalysisAnswersSQL: [
+    riskAnalysisFormSQL,
+    riskAnalysisAnswersSQL: [
       ...riskAnalysisSingleAnswers,
       ...riskAnalysisMultiAnswers,
     ],
@@ -153,10 +145,10 @@ export const splitPurposeVersionIntoObjectsSQL = (
   purposeVersion: PurposeVersion,
   metadataVersion: number
 ): {
-  purposeVersionSQL: PurposeVersionSQL;
-  purposeVersionDocumentSQL: PurposeVersionDocumentSQL | undefined;
+  versionSQL: PurposeVersionSQL;
+  versionDocumentSQL: PurposeVersionDocumentSQL | undefined;
 } => {
-  const purposeVersionSQL: PurposeVersionSQL = {
+  const versionSQL: PurposeVersionSQL = {
     id: purposeVersion.id,
     purposeId,
     metadataVersion,
@@ -169,7 +161,7 @@ export const splitPurposeVersionIntoObjectsSQL = (
     suspendedAt: dateToString(purposeVersion.suspendedAt),
   };
 
-  const purposeVersionDocumentSQL: PurposeVersionDocumentSQL | undefined =
+  const versionDocumentSQL: PurposeVersionDocumentSQL | undefined =
     purposeVersion.riskAnalysis
       ? {
           purposeId,
@@ -183,7 +175,7 @@ export const splitPurposeVersionIntoObjectsSQL = (
       : undefined;
 
   return {
-    purposeVersionSQL,
-    purposeVersionDocumentSQL,
+    versionSQL,
+    versionDocumentSQL,
   };
 };
