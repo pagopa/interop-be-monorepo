@@ -64,7 +64,6 @@ export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
   typeof eserviceDescriptorAttributeInReadmodelCatalog
 >;
-
 export type EServiceItemsSQL = {
   eserviceSQL: EServiceSQL;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
