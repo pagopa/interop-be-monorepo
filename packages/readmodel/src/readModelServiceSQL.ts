@@ -17,10 +17,6 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    /*
-    purpose -> purpose_risk_analysis_form -> purpose_risk_analysis_answer
-            -> purpose_version -> purpose_version_document
-    */
     async addPurpose(purpose: WithMetadata<Purpose>): Promise<void> {
       const {
         purposeSQL,
