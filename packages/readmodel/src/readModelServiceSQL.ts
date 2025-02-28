@@ -41,46 +41,46 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
         await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
 
-        for (const descriptor of descriptorsSQL) {
+        for (const descriptorSQL of descriptorsSQL) {
           await tx
             .insert(eserviceDescriptorInReadmodelCatalog)
-            .values(descriptor);
+            .values(descriptorSQL);
         }
 
-        for (const descriptorInterface of interfacesSQL) {
+        for (const interfaceSQL of interfacesSQL) {
           await tx
             .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .values(descriptorInterface);
+            .values(interfaceSQL);
         }
 
-        for (const doc of documentsSQL) {
+        for (const docSQL of documentsSQL) {
           await tx
             .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-            .values(doc);
+            .values(docSQL);
         }
 
-        for (const att of attributesSQL) {
+        for (const attributeSQL of attributesSQL) {
           await tx
             .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-            .values(att);
+            .values(attributeSQL);
         }
 
-        for (const riskAnalysis of riskAnalysesSQL) {
+        for (const riskAnalysisSQL of riskAnalysesSQL) {
           await tx
             .insert(eserviceRiskAnalysisInReadmodelCatalog)
-            .values(riskAnalysis);
+            .values(riskAnalysisSQL);
         }
 
-        for (const riskAnalysisAnswer of riskAnalysisAnswersSQL) {
+        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
           await tx
             .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
-            .values(riskAnalysisAnswer);
+            .values(riskAnalysisAnswerSQL);
         }
 
-        for (const rejectionReason of rejectionReasonsSQL) {
+        for (const rejectionReasonSQL of rejectionReasonsSQL) {
           await tx
             .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-            .values(rejectionReason);
+            .values(rejectionReasonSQL);
         }
       });
     },
