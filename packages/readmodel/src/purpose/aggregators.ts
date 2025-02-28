@@ -121,7 +121,7 @@ export const aggregatePurpose = ({
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
 }): WithMetadata<Purpose> => {
-  const purposeRiskAnalysisForm = riskAnalysisFormSQLToPurposeRiskAnalysisForm(
+  const riskAnalysisForm = riskAnalysisFormSQLToPurposeRiskAnalysisForm(
     riskAnalysisFormSQL,
     riskAnalysisAnswersSQL
   );
@@ -137,47 +137,42 @@ export const aggregatePurpose = ({
     new Map()
   );
 
-  const purposeVersions = versionsSQL.reduce(
-    (acc: PurposeVersion[], purposeVersionSQL) => {
-      const purposeVersionDocumentSQL = documentsByPurposeVersionId.get(
-        unsafeBrandId(purposeVersionSQL.id)
-      );
-      const purposeVersionDocument: PurposeVersionDocument | undefined =
-        purposeVersionDocumentSQL
-          ? {
-              id: unsafeBrandId(purposeVersionDocumentSQL.id),
-              path: purposeVersionDocumentSQL.path,
-              contentType: purposeVersionDocumentSQL.contentType,
-              createdAt: stringToDate(purposeVersionDocumentSQL.createdAt),
-            }
-          : undefined;
+  const versions = versionsSQL.reduce((acc: PurposeVersion[], versionSQL) => {
+    const versionDocumentSQL = documentsByPurposeVersionId.get(
+      unsafeBrandId(versionSQL.id)
+    );
+    const versionDocument: PurposeVersionDocument | undefined =
+      versionDocumentSQL
+        ? {
+            id: unsafeBrandId(versionDocumentSQL.id),
+            path: versionDocumentSQL.path,
+            contentType: versionDocumentSQL.contentType,
+            createdAt: stringToDate(versionDocumentSQL.createdAt),
+          }
+        : undefined;
 
-      const purposeVersion: PurposeVersion = {
-        id: unsafeBrandId(purposeVersionSQL.id),
-        state: PurposeVersionState.parse(purposeVersionSQL.state),
-        dailyCalls: purposeVersionSQL.dailyCalls,
-        createdAt: stringToDate(purposeVersionSQL.createdAt),
-        ...(purposeVersionSQL.rejectionReason
-          ? { rejectionReason: purposeVersionSQL.rejectionReason }
-          : {}),
-        firstActivationAt: stringToDate(purposeVersionSQL.firstActivationAt),
-        ...(purposeVersionSQL.suspendedAt
-          ? { suspendedAt: stringToDate(purposeVersionSQL.suspendedAt) }
-          : {}),
-        ...(purposeVersionSQL.updatedAt
-          ? {
-              updatedAt: stringToDate(purposeVersionSQL.updatedAt),
-            }
-          : {}),
-        ...(purposeVersionDocument
-          ? { riskAnalysis: purposeVersionDocument }
-          : {}),
-      };
+    const version: PurposeVersion = {
+      id: unsafeBrandId(versionSQL.id),
+      state: PurposeVersionState.parse(versionSQL.state),
+      dailyCalls: versionSQL.dailyCalls,
+      createdAt: stringToDate(versionSQL.createdAt),
+      ...(versionSQL.rejectionReason
+        ? { rejectionReason: versionSQL.rejectionReason }
+        : {}),
+      firstActivationAt: stringToDate(versionSQL.firstActivationAt),
+      ...(versionSQL.suspendedAt
+        ? { suspendedAt: stringToDate(versionSQL.suspendedAt) }
+        : {}),
+      ...(versionSQL.updatedAt
+        ? {
+            updatedAt: stringToDate(versionSQL.updatedAt),
+          }
+        : {}),
+      ...(versionDocument ? { riskAnalysis: versionDocument } : {}),
+    };
 
-      return [...acc, purposeVersion];
-    },
-    []
-  );
+    return [...acc, version];
+  }, []);
 
   const purpose: Purpose = {
     id: unsafeBrandId(purposeSQL.id),
@@ -187,10 +182,8 @@ export const aggregatePurpose = ({
     consumerId: unsafeBrandId(purposeSQL.consumerId),
     description: purposeSQL.description,
     isFreeOfCharge: purposeSQL.isFreeOfCharge,
-    versions: purposeVersions,
-    ...(purposeRiskAnalysisForm
-      ? { riskAnalysisForm: purposeRiskAnalysisForm }
-      : {}),
+    versions,
+    ...(riskAnalysisForm ? { riskAnalysisForm } : {}),
     ...(purposeSQL.suspendedByConsumer !== null
       ? {
           suspendedByConsumer: purposeSQL.suspendedByConsumer,
