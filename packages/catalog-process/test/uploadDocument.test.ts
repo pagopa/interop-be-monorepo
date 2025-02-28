@@ -426,87 +426,81 @@ describe("upload Document", () => {
         }
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
+  });
+  it("should write on event-store for the upload of a document when descriptor state is DRAFT and save interface with templateref data", async () => {
+    const templateVersionId: EServiceTemplateVersionId = generateId();
 
-    it("should write on event-store for the upload of a document when descriptor state is DRAFT and save interface with templateref data", async () => {
-      const templateId: EServiceTemplateId = generateId();
-      const templateVersionId: EServiceTemplateVersionId = generateId();
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+      serverUrls: [],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
 
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.draft),
-        serverUrls: [],
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptor],
-        templateRef: {
-          id: templateId,
-          instanceId: generateId(),
-        },
-      };
-      await addOneEService(eservice);
+    const templateEserviceTemplateVersionRef = {
+      id: templateVersionId,
+      interfaceMetadata: {
+        name: "templateVersionName",
+        email: "mailTest@example.com",
+        url: "http://example.com",
+        termsAndConditionsUrl: "http://example.com",
+        serverUrls: ["http://example2.com", "http://example3.com"],
+      },
+    };
+    const interfaceSeed = {
+      ...buildInterfaceSeed(),
+      templateVersionRef: templateEserviceTemplateVersionRef,
+    };
 
-      const templateEserviceTemplateVersionRef = {
-        id: templateVersionId,
-        interfaceMetadata: {
-          name: "templateVersionName",
-          email: "mailTest@example.com",
-          url: "http://example.com",
-          termsAndConditionsUrl: "http://example.com",
-          serverUrls: ["http://example2.com", "http://example3.com"],
-        },
-      };
-      const interfaceSeed = {
-        ...buildInterfaceSeed(),
-        templateVersionRef: templateEserviceTemplateVersionRef,
-      };
+    const returnedEService = await catalogService.uploadDocument(
+      eservice.id,
+      descriptor.id,
+      interfaceSeed,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
 
-      const returnedEService = await catalogService.uploadDocument(
-        eservice.id,
-        descriptor.id,
-        interfaceSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      );
-
-      const writtenEvent = await readLastEserviceEvent(eservice.id);
-      expect(writtenEvent.stream_id).toBe(eservice.id);
-      expect(writtenEvent.version).toBe("1");
-      expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
-      expect(writtenEvent.event_version).toBe(2);
-      const writtenPayload = decodeProtobufPayload({
-        messageType: EServiceDescriptorInterfaceDeletedV2,
-        payload: writtenEvent.data,
-      });
-
-      const expectedEservice = toEServiceV2({
-        ...eservice,
-        descriptors: [
-          {
-            ...descriptor,
-            templateVersionRef: templateEserviceTemplateVersionRef,
-            interface: {
-              ...mockDocument,
-              id: unsafeBrandId(
-                writtenPayload.eservice!.descriptors[0]!.interface!.id
-              ),
-              checksum:
-                writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
-              uploadDate: new Date(
-                writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
-              ),
-            },
-            serverUrls: ["pagopa.it"],
-          },
-        ],
-      });
-
-      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-      expect(writtenPayload.eservice).toEqual(expectedEservice);
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorInterfaceDeletedV2,
+      payload: writtenEvent.data,
     });
+
+    const expectedEservice = toEServiceV2({
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          templateVersionRef: templateEserviceTemplateVersionRef,
+          interface: {
+            ...mockDocument,
+            id: unsafeBrandId(
+              writtenPayload.eservice!.descriptors[0]!.interface!.id
+            ),
+            checksum:
+              writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
+            uploadDate: new Date(
+              writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+            ),
+          },
+          serverUrls: ["pagopa.it"],
+        },
+      ],
+    });
+
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 });
