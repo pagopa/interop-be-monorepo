@@ -38,7 +38,7 @@ export type EserviceTemplateData = {
   templateId: string;
   templateName: string;
   templateVersionId: string;
-  instanceId: string;
+  instanceId: string | undefined;
 };
 
 export function toEserviceCatalogProcessQueryParams(

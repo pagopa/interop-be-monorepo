@@ -227,9 +227,7 @@ export const retrieveEserviceTemplateData = async (
       })
     : undefined;
 
-  return eserviceTemplate &&
-    descriptor.templateVersionRef &&
-    eservice.templateRef?.instanceId
+  return eserviceTemplate && descriptor.templateVersionRef
     ? {
         templateId: eserviceTemplate.id,
         templateVersionId: descriptor.templateVersionRef.id,

@@ -17746,7 +17746,6 @@ components:
         - templateId
         - templateVersionId
         - templateName
-        - instanceId
       properties:
         templateId:
           type: string
@@ -17758,8 +17757,6 @@ components:
           type: string
         instanceId:
           type: string
-          format: uuid
-    
     EServiceDoc:
       type: object
       additionalProperties: false
