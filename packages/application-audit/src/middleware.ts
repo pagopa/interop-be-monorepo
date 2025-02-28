@@ -106,15 +106,15 @@ export async function applicationAuditMiddleware(
         throw genericInternalError("TODO: error or non-null assertion?");
       }
 
-      /*
-      req.path:  /eservices/
-      req.url:  /eservices/?offsest=0&limit=1
-      */
       const initialAudit: ApplicationAuditBeginRequest = {
         correlationId,
         service: serviceName,
         serviceVersion: config.serviceVersion,
-        endpoint: req.path, // TODO req.path or req.url? (see above)
+        /*
+          req.path:  /eservices/
+          req.url:  /eservices/?offset=0&limit=1
+         */
+        endpoint: req.path, // TODO req.path or req.url?
         httpMethod: req.method,
         phase: Phase.BEGIN_REQUEST,
         requesterIpAddress: "TODO",
