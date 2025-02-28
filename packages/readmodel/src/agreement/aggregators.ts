@@ -30,7 +30,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export const aggregateAgreementSQLArray = ({
+export const aggregateAgreementArray = ({
   agreementSQL,
   stampsSQL,
   consumerDocumentsSQL,
@@ -44,7 +44,7 @@ export const aggregateAgreementSQLArray = ({
   attributesSQL: AgreementAttributeSQL[];
 }): Array<WithMetadata<Agreement>> =>
   agreementSQL.map((agreementSQL) =>
-    aggregateAgreementSQL({
+    aggregateAgreement({
       agreementSQL,
       stampsSQL: stampsSQL.filter(
         (stampSQL) => stampSQL.agreementId === agreementSQL.id
@@ -59,7 +59,7 @@ export const aggregateAgreementSQLArray = ({
     })
   );
 
-export const aggregateAgreementSQL = ({
+export const aggregateAgreement = ({
   agreementSQL,
   stampsSQL,
   consumerDocumentsSQL,
