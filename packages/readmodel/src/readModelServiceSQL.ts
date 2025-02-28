@@ -24,39 +24,37 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     async addPurpose(purpose: WithMetadata<Purpose>): Promise<void> {
       const {
         purposeSQL,
-        purposeRiskAnalysisFormSQL,
-        purposeRiskAnalysisAnswersSQL,
-        purposeVersionsSQL,
-        purposeVersionDocumentsSQL,
+        riskAnalysisFormSQL,
+        riskAnalysisAnswersSQL,
+        versionsSQL,
+        versionDocumentsSQL,
       } = splitPurposeIntoObjectsSQL(purpose.data, purpose.metadata.version);
 
       await db.transaction(async (tx) => {
         await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
 
-        if (purposeRiskAnalysisFormSQL) {
+        if (riskAnalysisFormSQL) {
           await tx
             .insert(purposeRiskAnalysisFormInReadmodelPurpose)
-            .values(purposeRiskAnalysisFormSQL);
+            .values(riskAnalysisFormSQL);
         }
 
-        if (purposeRiskAnalysisAnswersSQL) {
-          for (const riskAnalysisAnswer of purposeRiskAnalysisAnswersSQL) {
+        if (riskAnalysisAnswersSQL) {
+          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
             await tx
               .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
-              .values(riskAnalysisAnswer);
+              .values(riskAnalysisAnswerSQL);
           }
         }
 
-        for (const purposeVersion of purposeVersionsSQL) {
-          await tx
-            .insert(purposeVersionInReadmodelPurpose)
-            .values(purposeVersion);
+        for (const versionSQL of versionsSQL) {
+          await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
         }
 
-        for (const purposeVersionDocument of purposeVersionDocumentsSQL) {
+        for (const versionDocumentSQL of versionDocumentsSQL) {
           await tx
             .insert(purposeVersionDocumentInReadmodelPurpose)
-            .values(purposeVersionDocument);
+            .values(versionDocumentSQL);
         }
       });
     },
