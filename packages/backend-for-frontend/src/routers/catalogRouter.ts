@@ -52,6 +52,7 @@ const catalogRouter = (
     agreementProcessClient,
     attributeProcessClient,
     delegationProcessClient,
+    eserviceTemplateProcessClient,
     fileManager,
     config
   );

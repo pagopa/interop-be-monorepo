@@ -738,6 +738,7 @@ export function eserviceTemplateServiceBuilder(
 
       const resourceId = await createOpenApiInterfaceByTemplate(
         eservice,
+        eserviceTemplateVersionId,
         templateInterface,
         eserviceInstanceInterfaceData,
         bffConfig.eserviceTemplateDocumentsContainer,

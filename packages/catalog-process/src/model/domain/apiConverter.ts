@@ -12,6 +12,8 @@ import {
   eserviceMode,
   Descriptor,
   Document,
+  unsafeBrandId,
+  EServiceTemplateVersionRef,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -204,4 +206,11 @@ export const eServiceToApiEService = (
   isSignalHubEnabled: eservice.isSignalHubEnabled,
   isConsumerDelegable: eservice.isConsumerDelegable,
   isClientAccessDelegable: eservice.isClientAccessDelegable,
+});
+
+export const apiEServiceTemplateVersionToEServiceTemplateVersion = (
+  templateVersionRef: catalogApi.EServiceTemplateVersionRef
+): EServiceTemplateVersionRef => ({
+  ...templateVersionRef,
+  id: unsafeBrandId(templateVersionRef.id),
 });
