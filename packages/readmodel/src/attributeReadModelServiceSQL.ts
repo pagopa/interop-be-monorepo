@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Attribute, AttributeId, WithMetadata } from "pagopa-interop-models";
 import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
@@ -6,7 +6,9 @@ import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { aggregateAttribute } from "./attribute/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function attributeReadModelServiceBuilderSQL(
+  db: ReturnType<typeof drizzle>
+) {
   return {
     async upsertAttribute(attribute: WithMetadata<Attribute>): Promise<void> {
       const attributeSQL = splitAttributeIntoObjectsSQL(
@@ -36,12 +38,22 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
       return aggregateAttribute(queryResult[0]);
     },
-    async deleteAttributeById(attributeId: AttributeId): Promise<void> {
+    async deleteAttributeById(
+      attributeId: AttributeId,
+      version: number
+    ): Promise<void> {
       await db
         .delete(attributeInReadmodelAttribute)
-        .where(eq(attributeInReadmodelAttribute.id, attributeId));
+        .where(
+          and(
+            eq(attributeInReadmodelAttribute.id, attributeId),
+            lte(attributeInReadmodelAttribute.metadataVersion, version)
+          )
+        );
     },
   };
 }
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type AttributeReadModelServiceSQL = ReturnType<
+  typeof attributeReadModelServiceBuilderSQL
+>;
