@@ -90,8 +90,6 @@ export async function applicationAuditMiddleware(
   const producer = await initProducer(config, config.applicationAuditTopic);
 
   return async (req, res, next): Promise<void> => {
-    console.log("path: ", req.path);
-    console.log("url: ", req.url);
     if (req.path !== "/session/tokens") {
       const context = (req as Request & { ctx?: AppContext }).ctx;
       const requestTimestamp = Date.now();
@@ -133,7 +131,6 @@ export async function applicationAuditMiddleware(
           },
         ],
       });
-      console.log("APPLICATION AUDIT - REQUEST RECEIVED", initialAudit);
 
       res.on("finish", async () => {
         const endTimestamp = Date.now();
@@ -163,7 +160,6 @@ export async function applicationAuditMiddleware(
             },
           ],
         });
-        console.log("APPLICATION AUDIT - REQUEST HANDLED", finalAudit);
       });
     }
 
