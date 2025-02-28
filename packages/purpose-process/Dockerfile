@@ -22,7 +22,7 @@ COPY ./packages/purpose-process /app/packages/purpose-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/api-clients /app/packages/api-clients
-COPY ./paclages/application-audit /app/packages/applciation-audit
+COPY ./packages/application-audit /app/packages/applciation-audit
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
