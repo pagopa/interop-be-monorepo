@@ -14,7 +14,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
 import {
-  aggregateProducerKeychainSQL,
+  aggregateProducerKeychain,
   fromJoinToAggregator,
 } from "./authorization/producerKeychainAggregators.js";
 
@@ -24,46 +24,42 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     async addProducerKeychain(
       producerKeychain: WithMetadata<ProducerKeychain>
     ): Promise<void> {
-      const {
-        producerKeychainSQL,
-        producerKeychainUsersSQL,
-        producerKeychainEServicesSQL,
-        producerKeychainKeysSQL,
-      } = splitProducerKeychainIntoObjectsSQL(
-        producerKeychain.data,
-        producerKeychain.metadata.version
-      );
+      const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+        splitProducerKeychainIntoObjectsSQL(
+          producerKeychain.data,
+          producerKeychain.metadata.version
+        );
 
       await db.transaction(async (tx) => {
         await tx
           .insert(producerKeychainInReadmodelProducerKeychain)
           .values(producerKeychainSQL);
 
-        for (const user of producerKeychainUsersSQL) {
+        for (const userSQL of usersSQL) {
           await tx
             .insert(producerKeychainUserInReadmodelProducerKeychain)
-            .values(user);
+            .values(userSQL);
         }
 
-        for (const purpose of producerKeychainEServicesSQL) {
+        for (const eserviceSQL of eservicesSQL) {
           await tx
             .insert(producerKeychainEserviceInReadmodelProducerKeychain)
-            .values(purpose);
+            .values(eserviceSQL);
         }
 
-        for (const key of producerKeychainKeysSQL) {
+        for (const keySQL of keysSQL) {
           await tx
             .insert(producerKeychainKeyInReadmodelProducerKeychain)
-            .values(key);
+            .values(keySQL);
         }
       });
     },
-    async getProducerKeychinById(
+    async getProducerKeychainById(
       producerKeychainId: ProducerKeychainId
     ): Promise<WithMetadata<ProducerKeychain>> {
       /*
         producer_keychain -> 1 producer_keychain_user
-                          -> 2 producer_keychaint_eservice
+                          -> 2 producer_keychain_eservice
                           -> 3 producer_keychain_key
       */
       const queryResult = await db
@@ -104,7 +100,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         );
 
       const aggregatorInput = fromJoinToAggregator(queryResult);
-      return aggregateProducerKeychainSQL(aggregatorInput);
+      return aggregateProducerKeychain(aggregatorInput);
     },
     async deleteProducerKeychainById(
       producerKeychainId: ProducerKeychainId

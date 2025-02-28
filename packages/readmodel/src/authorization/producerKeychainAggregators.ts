@@ -80,76 +80,76 @@ export const aggregateProducerKeychainArray = ({
 export const fromJoinToAggregator = (
   queryRes: Array<{
     producerKeychain: ProducerKeychainSQL;
-    producerKeychainUser: ProducerKeychainUserSQL | null;
-    producerKeychainEService: ProducerKeychainEServiceSQL | null;
-    producerKeychainKey: ProducerKeychainKeySQL | null;
+    user: ProducerKeychainUserSQL | null;
+    eservice: ProducerKeychainEServiceSQL | null;
+    key: ProducerKeychainKeySQL | null;
   }>
 ): ProducerKeychainItemsSQL => {
   const producerKeychainSQL = queryRes[0].producerKeychain;
 
-  const producerKeychainUserIdSet = new Set<[string, string]>();
-  const producerKeychainUsersSQL: ProducerKeychainUserSQL[] = [];
+  const userIdSet = new Set<[string, string]>();
+  const usersSQL: ProducerKeychainUserSQL[] = [];
 
-  const producerKeychainEServiceIdSet = new Set<[string, string]>();
-  const producerKeychainEServicesSQL: ProducerKeychainEServiceSQL[] = [];
+  const eserviceIdSet = new Set<[string, string]>();
+  const eservicesSQL: ProducerKeychainEServiceSQL[] = [];
 
-  const producerKeychainKeyIdSet = new Set<[string, string]>();
-  const producerKeychainKeysSQL: ProducerKeychainKeySQL[] = [];
+  const keyIdSet = new Set<[string, string]>();
+  const keysSQL: ProducerKeychainKeySQL[] = [];
 
   queryRes.forEach((row) => {
-    const producerKeychainUserSQL = row.producerKeychainUser;
+    const producerKeychainUserSQL = row.user;
     if (
       producerKeychainUserSQL &&
-      !producerKeychainUserIdSet.has([
+      !userIdSet.has([
         producerKeychainUserSQL.producerKeychainId,
         producerKeychainUserSQL.userId,
       ])
     ) {
-      producerKeychainUserIdSet.add([
+      userIdSet.add([
         producerKeychainUserSQL.producerKeychainId,
         producerKeychainUserSQL.userId,
       ]);
       // eslint-disable-next-line functional/immutable-data
-      producerKeychainUsersSQL.push(producerKeychainUserSQL);
+      usersSQL.push(producerKeychainUserSQL);
     }
 
-    const producerKeychainEserviceSQL = row.producerKeychainEService;
+    const producerKeychainEserviceSQL = row.eservice;
     if (
       producerKeychainEserviceSQL &&
-      !producerKeychainEServiceIdSet.has([
+      !eserviceIdSet.has([
         producerKeychainEserviceSQL.producerKeychainId,
         producerKeychainEserviceSQL.eserviceId,
       ])
     ) {
-      producerKeychainEServiceIdSet.add([
+      eserviceIdSet.add([
         producerKeychainEserviceSQL.producerKeychainId,
         producerKeychainEserviceSQL.eserviceId,
       ]);
       // eslint-disable-next-line functional/immutable-data
-      producerKeychainEServicesSQL.push(producerKeychainEserviceSQL);
+      eservicesSQL.push(producerKeychainEserviceSQL);
     }
 
-    const producerKeychainKeySQL = row.producerKeychainKey;
+    const producerKeychainKeySQL = row.key;
     if (
       producerKeychainKeySQL &&
-      !producerKeychainKeyIdSet.has([
+      !keyIdSet.has([
         producerKeychainKeySQL.producerKeychainId,
         producerKeychainKeySQL.kid,
       ])
     ) {
-      producerKeychainKeyIdSet.add([
+      keyIdSet.add([
         producerKeychainKeySQL.producerKeychainId,
         producerKeychainKeySQL.kid,
       ]);
       // eslint-disable-next-line functional/immutable-data
-      producerKeychainKeysSQL.push(producerKeychainKeySQL);
+      keysSQL.push(producerKeychainKeySQL);
     }
   });
 
   return {
     producerKeychainSQL,
-    producerKeychainUsersSQL,
-    producerKeychainEServicesSQL,
-    producerKeychainKeysSQL,
+    usersSQL,
+    eservicesSQL,
+    keysSQL,
   };
 };
