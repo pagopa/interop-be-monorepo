@@ -45,24 +45,10 @@ export const aggregateDelegationArray = ({
   );
 
 export const aggregateDelegation = ({
-  delegationSQL: {
-    id,
-    delegatorId,
-    delegateId,
-    eserviceId,
-    createdAt,
-    updatedAt,
-    rejectionReason,
-    state,
-    kind,
-    metadataVersion,
-    ...rest
-  },
+  delegationSQL,
   stampsSQL,
   contractDocumentsSQL,
 }: DelegationItemsSQL): WithMetadata<Delegation> => {
-  void (rest satisfies Record<string, never>);
-
   const activationContractDocumentSQL = contractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.activation
   );
@@ -103,14 +89,14 @@ export const aggregateDelegation = ({
   );
 
   const delegation: Delegation = {
-    id: unsafeBrandId<DelegationId>(id),
-    createdAt: stringToDate(createdAt),
-    updatedAt: stringToDate(updatedAt),
-    eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-    state: DelegationState.parse(state),
-    kind: DelegationKind.parse(kind),
-    delegatorId: unsafeBrandId<TenantId>(delegatorId),
-    delegateId: unsafeBrandId<TenantId>(delegateId),
+    id: unsafeBrandId<DelegationId>(delegationSQL.id),
+    createdAt: stringToDate(delegationSQL.createdAt),
+    updatedAt: stringToDate(delegationSQL.updatedAt),
+    eserviceId: unsafeBrandId<EServiceId>(delegationSQL.eserviceId),
+    state: DelegationState.parse(delegationSQL.state),
+    kind: DelegationKind.parse(delegationSQL.kind),
+    delegatorId: unsafeBrandId<TenantId>(delegationSQL.delegatorId),
+    delegateId: unsafeBrandId<TenantId>(delegationSQL.delegateId),
     stamps: {
       submission: stampSQLToStamp(submissionStampSQL),
       ...(activationStampSQL
@@ -125,12 +111,14 @@ export const aggregateDelegation = ({
     },
     ...(activationContract ? { activationContract } : {}),
     ...(revocationContract ? { revocationContract } : {}),
-    ...(rejectionReason ? { rejectionReason } : {}),
+    ...(delegationSQL.rejectionReason
+      ? { rejectionReason: delegationSQL.rejectionReason }
+      : {}),
   };
   return {
     data: delegation,
     metadata: {
-      version: metadataVersion,
+      version: delegationSQL.metadataVersion,
     },
   };
 };
@@ -160,42 +148,18 @@ export const aggregateDelegationsArray = ({
     });
   });
 
-const delegationContractDocumentSQLToDelegationContractDocument = ({
-  id,
-  path,
-  name,
-  prettyName,
-  contentType,
-  createdAt,
-  ...rest
-}: Omit<
-  DelegationContractDocumentSQL,
-  "delegationId" | "metadataVersion" | "kind"
->): DelegationContractDocument => {
-  void (rest satisfies Record<string, never>);
+const delegationContractDocumentSQLToDelegationContractDocument = (
+  contractDocumentSQL: DelegationContractDocumentSQL
+): DelegationContractDocument => ({
+  id: unsafeBrandId<DelegationContractId>(contractDocumentSQL.id),
+  path: contractDocumentSQL.path,
+  name: contractDocumentSQL.name,
+  prettyName: contractDocumentSQL.prettyName,
+  contentType: contractDocumentSQL.contentType,
+  createdAt: stringToDate(contractDocumentSQL.createdAt),
+});
 
-  return {
-    id: unsafeBrandId<DelegationContractId>(id),
-    path,
-    name,
-    prettyName,
-    contentType,
-    createdAt: stringToDate(createdAt),
-  };
-};
-
-const stampSQLToStamp = ({
-  who,
-  when,
-  ...rest
-}: Omit<
-  DelegationStampSQL,
-  "delegationId" | "metadataVersion" | "kind"
->): DelegationStamp => {
-  void (rest satisfies Record<string, never>);
-
-  return {
-    who: unsafeBrandId<UserId>(who),
-    when: stringToDate(when),
-  };
-};
+const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({
+  who: unsafeBrandId<UserId>(stampSQL.who),
+  when: stringToDate(stampSQL.when),
+});
