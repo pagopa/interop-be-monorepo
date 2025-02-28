@@ -1,8 +1,10 @@
 import { createHash } from "crypto";
 import {
+  InteropHeaders,
   InteropTokenGenerator,
   ReadModelRepository,
   RefreshableInteropToken,
+  getInteropHeaders,
   logger,
 } from "pagopa-interop-commons";
 import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
@@ -28,16 +30,19 @@ import {
   kindsToInclude,
 } from "./services/openDataService.js";
 
+const AGENCY_CLASSIFICATION = "Agency";
+
+// Tipologia Gestori di Pubblici Servizi
+const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
+
+// Categoria Gestori di Pubblici Servizi
+const PUBLIC_SERVICES_MANAGERS_CATEGORY = "L37";
+
 export type TenantSeed = {
   origin: string;
   originId: string;
   description: string;
   attributes: Array<{ origin: string; code: string }>;
-};
-
-type Header = {
-  "X-Correlation-Id": CorrelationId;
-  Authorization: string;
 };
 
 const correlationId = generateId<CorrelationId>();
@@ -104,7 +109,7 @@ export function getTenantUpsertData(
   // get a set with the attributes that should be created
   return institutionsAlreadyPresent.map((i) => {
     const attributesWithoutKind = match(i.classification)
-      .with("Agency", () => [
+      .with(AGENCY_CLASSIFICATION, () => [
         {
           origin: i.origin,
           code: i.category,
@@ -121,17 +126,29 @@ export function getTenantUpsertData(
         },
       ]);
 
+    const forcedGPSCategory = match(i.kind)
+      .with(PUBLIC_SERVICES_MANAGERS_TYPOLOGY, () => [
+        {
+          origin: i.origin,
+          code: PUBLIC_SERVICES_MANAGERS_CATEGORY,
+        },
+      ])
+      .otherwise(() => []);
+
     const shouldKindBeIncluded = kindsToInclude.has(i.kind);
 
-    const attributes = shouldKindBeIncluded
-      ? [
-          {
-            origin: i.origin,
-            code: createHash("sha256").update(i.kind).digest("hex"),
-          },
-          ...attributesWithoutKind,
-        ]
-      : attributesWithoutKind;
+    const attributes = [
+      ...(shouldKindBeIncluded
+        ? [
+            {
+              origin: i.origin,
+              code: createHash("sha256").update(i.kind).digest("hex"),
+            },
+          ]
+        : []),
+      ...attributesWithoutKind,
+      ...forcedGPSCategory,
+    ];
 
     return {
       origin: i.origin,
@@ -145,13 +162,16 @@ export function getTenantUpsertData(
 async function createNewAttributes(
   newAttributes: InternalCertifiedAttribute[],
   readModelService: ReadModelService,
-  headers: Header
+  headers: InteropHeaders
 ): Promise<void> {
   const client = attributeRegistryApi.createAttributeApiClient(
     config.attributeRegistryUrl
   );
 
   for (const attribute of newAttributes) {
+    loggerInstance.info(
+      `Creating attribute ${attribute.origin}/${attribute.code}`
+    );
     await client.createInternalCertifiedAttribute(attribute, {
       headers,
     });
@@ -260,7 +280,7 @@ export async function getAttributesToAssign(
 
 async function assignNewAttributes(
   attributesToAssign: tenantApi.InternalTenantSeed[],
-  headers: Header
+  headers: InteropHeaders
 ): Promise<void> {
   const tenantClient = tenantApi.createInternalApiClient(
     config.tenantProcessUrl
@@ -367,7 +387,7 @@ async function revokeAttributes(
     aOrigin: string;
     aCode: string;
   }>,
-  headers: Header
+  headers: InteropHeaders
 ): Promise<void> {
   const tenantClient = tenantApi.createInternalApiClient(
     config.tenantProcessUrl
@@ -389,18 +409,6 @@ async function revokeAttributes(
   }
 }
 
-async function getHeader(
-  refreshableToken: RefreshableInteropToken,
-  correlationId: CorrelationId
-): Promise<Header> {
-  const token = (await refreshableToken.get()).serialized;
-
-  return {
-    "X-Correlation-Id": correlationId,
-    Authorization: `Bearer ${token}`,
-  };
-}
-
 loggerInstance.info("Starting ipa-certified-attributes-importer");
 
 try {
@@ -416,6 +424,8 @@ try {
 
   const registryData = await getRegistryData();
 
+  loggerInstance.info("Getting Plaform data");
+
   const attributes = await readModelService.getAttributes();
   const tenants = await readModelService.getIPATenants();
 
@@ -427,11 +437,9 @@ try {
     attributes
   );
 
-  await createNewAttributes(
-    newAttributes,
-    readModelService,
-    await getHeader(refreshableToken, correlationId)
-  );
+  const token = (await refreshableToken.get()).serialized;
+  const headers = getInteropHeaders({ token, correlationId });
+  await createNewAttributes(newAttributes, readModelService, headers);
 
   const attributesToAssign = await getAttributesToAssign(
     tenants,
@@ -439,10 +447,7 @@ try {
     tenantUpsertData
   );
 
-  await assignNewAttributes(
-    attributesToAssign,
-    await getHeader(refreshableToken, correlationId)
-  );
+  await assignNewAttributes(attributesToAssign, headers);
 
   const attributesToRevoke = await getAttributesToRevoke(
     tenantUpsertData,
@@ -450,12 +455,9 @@ try {
     attributes
   );
 
-  await revokeAttributes(
-    attributesToRevoke,
-    await getHeader(refreshableToken, correlationId)
-  );
+  await revokeAttributes(attributesToRevoke, headers);
 
-  loggerInstance.info("IPA certified attributes imporr completed");
+  loggerInstance.info("IPA certified attributes import completed");
 } catch (error) {
   loggerInstance.error(error);
 }

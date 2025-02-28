@@ -18,7 +18,14 @@ export function readModelServiceBuilder(
         .find({ "data.externalId.origin": PUBLIC_ADMINISTRATIONS_IDENTIFIER })
         .toArray();
 
-      return z.array(Tenant).parse(data);
+      return z
+        .array(
+          z.object({
+            data: Tenant,
+          })
+        )
+        .parse(data)
+        .map((d) => d.data);
     },
     getAttributes: async (): Promise<Attribute[]> => {
       const data = await attributes
@@ -28,7 +35,14 @@ export function readModelServiceBuilder(
         })
         .toArray();
 
-      return z.array(Attribute).parse(data);
+      return z
+        .array(
+          z.object({
+            data: Attribute,
+          })
+        )
+        .parse(data)
+        .map((d) => d.data);
     },
   };
 }

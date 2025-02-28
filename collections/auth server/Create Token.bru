@@ -1,0 +1,18 @@
+meta {
+  name: Create Token
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-auth-server}}/authorization-server/token.oauth2
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  client_assertion: <string>
+  client_assertion_type: <string>
+  grant_type: client_credentials
+  client_id: <string>
+}
