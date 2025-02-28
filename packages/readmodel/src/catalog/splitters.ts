@@ -279,7 +279,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
   };
 
-  const riskAnalysisSingleAnwers: EServiceRiskAnalysisAnswerSQL[] =
+  const riskAnalysisSingleAnswers: EServiceRiskAnalysisAnswerSQL[] =
     riskAnalysis.riskAnalysisForm.singleAnswers.map(
       (a) =>
         ({
@@ -292,7 +292,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
           kind: riskAnalysisAnswerKind.single,
         } satisfies EServiceRiskAnalysisAnswerSQL)
     );
-  const riskAnalysisMultiAnwers: EServiceRiskAnalysisAnswerSQL[] =
+  const riskAnalysisMultiAnswers: EServiceRiskAnalysisAnswerSQL[] =
     riskAnalysis.riskAnalysisForm.multiAnswers.map(
       (a) =>
         ({
@@ -309,8 +309,8 @@ export const splitRiskAnalysisIntoObjectsSQL = (
   return {
     eserviceRiskAnalysisSQL,
     riskAnalysisAnswersSQL: [
-      ...riskAnalysisSingleAnwers,
-      ...riskAnalysisMultiAnwers,
+      ...riskAnalysisSingleAnswers,
+      ...riskAnalysisMultiAnswers,
     ],
   };
 };
