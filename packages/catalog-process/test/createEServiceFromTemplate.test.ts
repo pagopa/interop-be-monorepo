@@ -14,6 +14,7 @@ import {
   EServiceDescriptorDocumentAddedV2,
   EServiceTemplate,
   EServiceTemplateVersion,
+  EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
   toEServiceV2,
@@ -265,14 +266,18 @@ describe("create eService from template", () => {
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
     };
 
-    const publishedVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.published,
+    const eserviceTemplatePublishedVersionId =
+      generateId<EServiceTemplateVersionId>();
+    const eserviceTemplatePublishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(
+        eserviceTemplatePublishedVersionId,
+        eserviceTemplateVersionState.published
+      ),
       docs: [document1, document2],
     };
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
-      versions: [publishedVersion],
+      versions: [eserviceTemplatePublishedVersion],
     };
 
     await addOneEServiceTemplate(eServiceTemplate);
@@ -372,37 +377,22 @@ describe("create eService from template", () => {
       event_version: 2,
     });
 
-    const eServiceCreationPayload = decodeProtobufPayload({
+    const actualEServiceCreation = decodeProtobufPayload({
       messageType: EServiceAddedV2,
       payload: eServiceCreationEvent.data,
-    });
-    const descriptorCreationPayload = decodeProtobufPayload({
+    }).eservice;
+    const actualDescriptorCreation = decodeProtobufPayload({
       messageType: EServiceDescriptorAddedV2,
       payload: eServiceDescriptorCreationEvent.data,
-    });
-    const eServiceDocument1CreationPayload = decodeProtobufPayload({
+    }).eservice;
+    const actualEServiceDocument1Creation = decodeProtobufPayload({
       messageType: EServiceDescriptorDocumentAddedV2,
       payload: eServiceDocument1CreationEvent.data,
-    });
-    const eServiceDocument2CreationPayload = decodeProtobufPayload({
+    }).eservice;
+    const actualEServiceDocument2Creation = decodeProtobufPayload({
       messageType: EServiceDescriptorDocumentAddedV2,
       payload: eServiceDocument2CreationEvent.data,
     });
-
-    const expectedEService: EService = {
-      ...mockEService,
-      description: eServiceTemplate.eserviceDescription,
-      name: eServiceTemplate.name,
-      createdAt: eService.createdAt,
-      id: eService.id,
-      isSignalHubEnabled: eService.isSignalHubEnabled,
-      isConsumerDelegable: false,
-      isClientAccessDelegable: false,
-      templateRef: {
-        id: eServiceTemplate.id,
-        instanceId: eService?.templateRef?.instanceId,
-      },
-    };
 
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
@@ -417,14 +407,16 @@ describe("create eService from template", () => {
       descriptors: [
         {
           ...mockDescriptor,
-          description: publishedVersion.description,
+          description: eserviceTemplatePublishedVersion.description,
           id: eService.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
-          templateVersionRef: { id: publishedVersion.id },
+          dailyCallsPerConsumer:
+            eserviceTemplatePublishedVersion?.dailyCallsPerConsumer ?? 1,
+          dailyCallsTotal:
+            eserviceTemplatePublishedVersion?.dailyCallsTotal ?? 1,
+          templateVersionRef: { id: eserviceTemplatePublishedVersion.id },
         },
       ],
     };
@@ -432,51 +424,56 @@ describe("create eService from template", () => {
     const expectedDocument1: Document = {
       ...document1,
       id: unsafeBrandId(
-        eServiceDocument1CreationPayload.eservice?.descriptors[0]?.docs[0]
-          ?.id ?? ""
+        actualEServiceDocument1Creation?.descriptors[0]?.docs[0]?.id ?? ""
       ),
       uploadDate: new Date(
-        eServiceDocument1CreationPayload.eservice?.descriptors[0]?.docs[0]
-          ?.uploadDate ?? Date.now()
+        actualEServiceDocument1Creation?.descriptors[0]?.docs[0]?.uploadDate ??
+          Date.now()
       ),
       path:
-        eServiceDocument1CreationPayload.eservice?.descriptors[0]?.docs[0]
-          ?.path ?? "",
+        actualEServiceDocument1Creation?.descriptors[0]?.docs[0]?.path ?? "",
     };
 
     const expectedDocument2: Document = {
       ...document2,
       id: unsafeBrandId(
-        eServiceDocument2CreationPayload.eservice?.descriptors[0]?.docs[1]
-          ?.id ?? ""
+        actualEServiceDocument2Creation.eservice?.descriptors[0]?.docs[1]?.id ??
+          ""
       ),
       uploadDate: new Date(
-        eServiceDocument2CreationPayload.eservice?.descriptors[0]?.docs[1]
+        actualEServiceDocument2Creation.eservice?.descriptors[0]?.docs[1]
           ?.uploadDate ?? Date.now()
       ),
       path:
-        eServiceDocument2CreationPayload.eservice?.descriptors[0]?.docs[1]
+        actualEServiceDocument2Creation.eservice?.descriptors[0]?.docs[1]
           ?.path ?? "",
     };
 
-    expect(eServiceCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEService)
-    );
-    expect(descriptorCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEServiceWithDescriptor)
-    );
-    expect(eServiceDocument1CreationPayload.eservice).toEqual(
+    expect(actualEServiceCreation).toEqual(
       toEServiceV2({
         ...expectedEServiceWithDescriptor,
-        descriptors: [
-          {
-            ...expectedEServiceWithDescriptor.descriptors[0],
-            docs: [expectedDocument1],
-          },
-        ],
+        descriptors: [],
       })
     );
-    expect(eServiceDocument2CreationPayload.eservice).toEqual(
+    expect(actualDescriptorCreation).toEqual(
+      toEServiceV2(expectedEServiceWithDescriptor)
+    );
+
+    const expectedEventStoredDocument1 = toEServiceV2({
+      ...expectedEServiceWithDescriptor,
+      descriptors: [
+        {
+          ...expectedEServiceWithDescriptor.descriptors[0],
+          docs: [expectedDocument1],
+        },
+      ],
+    });
+
+    expect(actualEServiceDocument1Creation).toEqual(
+      expectedEventStoredDocument1
+    );
+
+    expect(actualEServiceDocument2Creation.eservice).toEqual(
       toEServiceV2({
         ...expectedEServiceWithDescriptor,
         descriptors: [

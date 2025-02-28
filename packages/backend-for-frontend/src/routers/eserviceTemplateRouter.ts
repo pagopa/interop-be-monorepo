@@ -1,24 +1,25 @@
 import { constants } from "http2";
-import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
+import { toBffCreatedEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import {
   createEServiceTemplateVersionErrorMapper,
   bffGetCatalogEServiceTemplateErrorMapper,
   bffGetEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
-import { toBffCreatedEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
+import { BffProcessConfig } from "../config/config.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
@@ -26,8 +27,11 @@ const eserviceTemplateRouter = (
     eserviceTemplateProcessClient,
     tenantProcessClient,
     attributeProcessClient,
+    catalogProcessClient,
+    delegationProcessClient,
   }: PagoPAInteropBeClients,
-  fileManager: FileManager
+  fileManager: FileManager,
+  bffConfig: BffProcessConfig
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eserviceTemplateRouter = ctx.router(bffApi.eserviceTemplatesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -37,7 +41,10 @@ const eserviceTemplateRouter = (
     eserviceTemplateProcessClient,
     tenantProcessClient,
     attributeProcessClient,
-    fileManager
+    catalogProcessClient,
+    delegationProcessClient,
+    fileManager,
+    bffConfig
   );
 
   eserviceTemplateRouter

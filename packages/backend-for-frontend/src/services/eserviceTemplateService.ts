@@ -1,24 +1,24 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { randomUUID } from "crypto";
-import { FileManager, WithLogger } from "pagopa-interop-commons";
-import {
-  EServiceDocumentId,
-  EServiceTemplateId,
-  EServiceTemplateVersionId,
-  RiskAnalysisId,
-} from "pagopa-interop-models";
 import {
   bffApi,
+  catalogApi,
   eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
-  AttributeProcessClient,
-  EServiceTemplateProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+  DescriptorId,
+  EServiceDocumentId,
+  EServiceId,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  RiskAnalysisId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
+import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
   toBffCatalogApiDescriptorAttributes,
@@ -30,21 +30,44 @@ import {
   toBffProducerEServiceTemplate,
 } from "../api/eserviceTemplateApiConverter.js";
 import {
+  AttributeProcessClient,
+  CatalogProcessClient,
+  DelegationProcessClient,
+  EServiceTemplateProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
+import { BffProcessConfig, config } from "../config/config.js";
+import {
+  eServiceNotFound,
+  eserviceTemplateDataNotFound,
+  eserviceTemplateInterfaceNotFound,
+  eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   noVersionInEServiceTemplate,
   tenantNotFound,
 } from "../model/errors.js";
+import { BffAppContext } from "../utilities/context.js";
+import {
+  createOpenApiInterfaceByTemplate,
+  verifyAndCreateDocument,
+} from "../utilities/eserviceDocumentUtils.js";
 import { cloneEServiceDocument } from "../utilities/fileUtils.js";
-import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
-import { verifyAndCreateDocument } from "../utilities/eserviceDocumentUtils.js";
-import { config } from "../config/config.js";
 import { getAllBulkAttributes } from "./attributeService.js";
+import { retrieveEserviceDescriptor } from "./catalogService.js";
+import {
+  assertIsDraftEservice,
+  assertTemplateIsPublished,
+  verifyRequesterIsProducerOrDelegateProducer,
+} from "./validators.js";
 
 export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
-  fileManager: FileManager
+  catalogProcessClient: CatalogProcessClient,
+  delegationClients: DelegationProcessClient,
+  fileManager: FileManager,
+  bffConfig: BffProcessConfig
 ) {
   return {
     createEServiceTemplate: async (
@@ -242,13 +265,11 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving EService template version for eServiceTemplateId = ${eServiceTemplateId}, eServiceTemplateVersionId = ${eServiceTemplateVersionId}`
       );
 
-      const eserviceTemplate: eserviceTemplateApi.EServiceTemplate =
-        await eserviceTemplateClient.getEServiceTemplateById({
-          params: {
-            eServiceTemplateId,
-          },
-          headers,
-        });
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eServiceTemplateId,
+        eserviceTemplateClient,
+        headers
+      );
 
       const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
         eserviceTemplate,
@@ -571,7 +592,7 @@ export function eserviceTemplateServiceBuilder(
         fileManager,
         eserviceTemplate.id,
         apiTechnologyToTechnology(eserviceTemplate.technology),
-        doc.prettyName,
+        doc.prettyName, // It's correct ???
         doc.kind,
         doc.doc,
         documentId,
@@ -656,6 +677,78 @@ export function eserviceTemplateServiceBuilder(
 
       return { id, name, contentType, prettyName };
     },
+    addEserviceInterfaceByTemplate: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      eserviceInstanceInterfaceData: bffApi.EserviceInterfaceTemplatePayload,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<CreatedResource> => {
+      const { logger, authData, headers } = ctx;
+      logger.info(
+        `Adding interface by template to EService ${eServiceId} with descriptor ${descriptorId}`
+      );
+
+      const eservice = await retrieveEService(
+        eServiceId,
+        catalogProcessClient,
+        headers
+      );
+      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+      assertIsDraftEservice(eservice);
+
+      const delegations = await delegationClients.delegation.getDelegations({
+        queries: {
+          limit: 1,
+          offset: 1,
+          delegationStates: ["ACTIVE"],
+          kind: "DELEGATED_PRODUCER",
+          eserviceIds: [eServiceId],
+        },
+        headers,
+      });
+      verifyRequesterIsProducerOrDelegateProducer(
+        authData.organizationId,
+        eservice,
+        delegations.results
+      );
+
+      const { eserviceTemplateId, eserviceTemplateVersionId } =
+        getTemplateDataFromEservice(eservice, descriptor);
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        eserviceTemplateClient,
+        headers
+      );
+
+      const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
+        eserviceTemplate,
+        eserviceTemplateVersionId
+      );
+
+      assertTemplateIsPublished(eserviceTemplate, eserviceTemplateVersionId);
+
+      const templateInterface = eserviceTemplateVersion.interface;
+      if (!templateInterface) {
+        throw eserviceTemplateInterfaceNotFound(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
+      }
+
+      const resourceId = await createOpenApiInterfaceByTemplate(
+        eservice,
+        eserviceTemplateVersionId,
+        templateInterface,
+        eserviceInstanceInterfaceData,
+        bffConfig.eserviceTemplateDocumentsContainer,
+        fileManager,
+        catalogProcessClient,
+        ctx
+      );
+
+      return { id: resourceId };
+    },
   };
 }
 
@@ -694,6 +787,61 @@ async function getTenantsFromEServiceTemplates(
 
   return new Map(tenants.map((t) => [t.id, t]));
 }
+export const retrieveEServiceTemplate = async (
+  eServiceTemplateId: string,
+  eserviceTemplateClient: EServiceTemplateProcessClient,
+  headers: BffAppContext["headers"]
+): Promise<eserviceTemplateApi.EServiceTemplate> => {
+  const eserviceTemplate = await eserviceTemplateClient.getEServiceTemplateById(
+    {
+      params: {
+        eServiceTemplateId,
+      },
+      headers,
+    }
+  );
+
+  if (!eserviceTemplate) {
+    throw eserviceTemplateNotFound(eServiceTemplateId);
+  }
+  return eserviceTemplate;
+};
+
+const retrieveEService = async (
+  eServiceId: EServiceId,
+  catalogProcessClient: CatalogProcessClient,
+  headers: BffAppContext["headers"]
+): Promise<catalogApi.EService> => {
+  const eservice = await catalogProcessClient.getEServiceById({
+    params: { eServiceId },
+    headers,
+  });
+
+  if (eservice === undefined) {
+    throw eServiceNotFound(eServiceId);
+  }
+  return eservice;
+};
+
+const getTemplateDataFromEservice = (
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor
+): {
+  eserviceTemplateId: EServiceTemplateId;
+  eserviceTemplateVersionId: EServiceTemplateVersionId;
+} => {
+  const eserviceTemplateId = eservice.templateRef?.id;
+  const eserviceTemplateVersionId = descriptor.templateVersionRef?.id;
+
+  if (!eserviceTemplateId || !eserviceTemplateVersionId) {
+    throw eserviceTemplateDataNotFound(eservice.id);
+  }
+
+  return {
+    eserviceTemplateId: unsafeBrandId(eserviceTemplateId),
+    eserviceTemplateVersionId: unsafeBrandId(eserviceTemplateVersionId),
+  };
+};
 
 const getAttributeIds = (
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
@@ -708,3 +856,7 @@ const getAttributeIds = (
     atts.map((att) => att.id)
   ),
 ];
+
+export type EServiceTemplateService = ReturnType<
+  typeof eserviceTemplateServiceBuilder
+>;

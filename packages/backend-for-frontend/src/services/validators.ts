@@ -2,12 +2,17 @@ import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle
 import {
   agreementApi,
   catalogApi,
+  delegationApi,
+  eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   delegationKind,
   delegationState,
   EServiceId,
+  EServiceTemplate,
+  EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -20,6 +25,9 @@ import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
 import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
+  eserviceIsNotDraft,
+  eserviceTemplateNotInPublishedState,
+  eserviceTemplateNotPublished,
   invalidEServiceRequester,
   notValidDescriptor,
 } from "../model/errors.js";
@@ -82,6 +90,37 @@ export function assertRequesterIsProducer(
   if (!isRequesterEserviceProducer(requesterId, eservice)) {
     throw invalidEServiceRequester(eservice.id, requesterId);
   }
+}
+
+export function verifyRequesterIsProducerOrDelegateProducer(
+  requesterId: TenantId,
+  eservice: catalogApi.EService,
+  activeProducerDelegations: delegationApi.Delegation[] | undefined
+): void {
+  if (
+    !isRequesterEserviceProducer(requesterId, eservice) &&
+    !isRequesterIsProducerDelegate(
+      eservice,
+      requesterId,
+      activeProducerDelegations
+    )
+  ) {
+    throw invalidEServiceRequester(eservice.id, requesterId);
+  }
+}
+
+export function isRequesterIsProducerDelegate(
+  eservice: catalogApi.EService,
+  requesterId: TenantId,
+  activeProducerDelegations: delegationApi.Delegation[] | undefined
+): boolean {
+  const producerDelegation = activeProducerDelegations?.at(0);
+  return (
+    producerDelegation?.delegateId === requesterId &&
+    producerDelegation?.kind === "DELEGATED_CONSUMER" &&
+    producerDelegation?.state === "ACTIVE" &&
+    producerDelegation?.eserviceId !== eservice.id
+  );
 }
 
 export async function assertRequesterCanActAsProducer(
@@ -195,5 +234,34 @@ export function verifyExportEligibility(
 ): void {
   if (!isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertIsNotDraftEserviceTemplate(
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (
+    eserviceTemplate.versions.length > 0 &&
+    eserviceTemplate.versions.every(
+      (v) => v.state === eserviceTemplateVersionState.draft
+    )
+  ) {
+    throw eserviceTemplateNotInPublishedState(eserviceTemplate.id);
+  }
+}
+
+export function assertIsDraftEservice(eservice: catalogApi.EService): void {
+  if (eservice.descriptors.some((d) => d.state !== "DRAFT")) {
+    throw eserviceIsNotDraft(eservice.id);
+  }
+}
+
+export function assertTemplateIsPublished(
+  template: eserviceTemplateApi.EServiceTemplate,
+  versionId: EServiceTemplateVersionId
+): void {
+  const templateVersion = template.versions.find((v) => v.id === versionId);
+  if (templateVersion?.state !== "PUBLISHED") {
+    throw eserviceTemplateNotPublished(template.id);
   }
 }

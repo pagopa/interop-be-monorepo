@@ -37,6 +37,7 @@ import {
   EServiceTemplate,
   EServiceTemplateId,
   eserviceMode,
+  EServiceTemplateVersionRef,
   eserviceTemplateVersionState,
   generateId,
   ListResult,
@@ -536,10 +537,11 @@ async function innerCreateEService(
   };
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function innerUploadDocument(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
-  document: catalogApi.CreateEServiceDescriptorDocumentSeed,
+  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
 ): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
@@ -556,29 +558,48 @@ async function innerUploadDocument(
     throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 
-  if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
+  if (documentSeed.kind === "INTERFACE" && descriptor.interface !== undefined) {
     throw interfaceAlreadyExists(descriptor.id);
   }
 
   if (
-    document.kind === "DOCUMENT" &&
+    documentSeed.kind === "DOCUMENT" &&
     descriptor.docs.some(
-      (d) => d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
+      (d) =>
+        d.prettyName.toLowerCase() === documentSeed.prettyName.toLowerCase()
     )
   ) {
-    throw prettyNameDuplicate(document.prettyName, descriptor.id);
+    throw prettyNameDuplicate(documentSeed.prettyName, descriptor.id);
   }
 
-  const isInterface = document.kind === "INTERFACE";
+  const isInterface = documentSeed.kind === "INTERFACE";
   const newDocument: Document = {
-    id: unsafeBrandId(document.documentId),
-    name: document.fileName,
-    contentType: document.contentType,
-    prettyName: document.prettyName,
-    path: document.filePath,
-    checksum: document.checksum,
+    id: unsafeBrandId(documentSeed.documentId),
+    name: documentSeed.fileName,
+    contentType: documentSeed.contentType,
+    prettyName: documentSeed.prettyName,
+    path: documentSeed.filePath,
+    checksum: documentSeed.checksum,
     uploadDate: new Date(),
   };
+
+  const templateData: EServiceTemplateVersionRef | undefined =
+    documentSeed.templateVersionRef
+      ? {
+          ...documentSeed.templateVersionRef,
+          id: unsafeBrandId(documentSeed.templateVersionRef.id),
+        }
+      : undefined;
+
+  const updateTemplateRef = templateData
+    ? isInterface
+      ? {
+          ...templateData,
+        }
+      : {
+          id: templateData.id,
+        }
+    : undefined;
 
   const updatedEService: EService = {
     ...eService.data,
@@ -586,22 +607,23 @@ async function innerUploadDocument(
       d.id === descriptorId
         ? {
             ...d,
+            templateVersionRef: updateTemplateRef,
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
-            serverUrls: isInterface ? document.serverUrls : d.serverUrls,
+            serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
           }
         : d
     ),
   };
 
   const event =
-    document.kind === "INTERFACE"
+    documentSeed.kind === "INTERFACE"
       ? toCreateEventEServiceInterfaceAdded(
           eService.data.id,
           eService.metadata.version,
           {
             descriptorId,
-            documentId: unsafeBrandId(document.documentId),
+            documentId: unsafeBrandId(documentSeed.documentId),
             eservice: updatedEService,
           },
           correlationId
@@ -610,7 +632,7 @@ async function innerUploadDocument(
           eService.metadata.version,
           {
             descriptorId,
-            documentId: unsafeBrandId(document.documentId),
+            documentId: unsafeBrandId(documentSeed.documentId),
             eservice: updatedEService,
           },
           correlationId
@@ -2782,6 +2804,7 @@ export function catalogServiceBuilder(
             contentType: doc.contentType,
             checksum: doc.checksum,
             serverUrls: [], // not used in case of kind == "DOCUMENT"
+            templateVersionRef: { id: publishedVersion.id },
           },
           readModelService,
           ctx

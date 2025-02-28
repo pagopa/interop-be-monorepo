@@ -126,6 +126,17 @@ export type EServiceTemplateProcessServerConfig = z.infer<
   typeof EServiceTemplateProcessServerConfig
 >;
 
+export const EServiceTemplateS3Config = z
+  .object({
+    ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
+    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
+  }));
+export type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
+
 export const S3PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_CONTAINER: z.string(),
@@ -213,17 +224,6 @@ export const SelfcareProcessConfig = z
     selfcareProductName: c.INTEROP_SELFCARE_PRODUCT_NAME,
   }));
 export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
-
-export const EServiceTemplateS3Config = z
-  .object({
-    ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
-    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
-  })
-  .transform((c) => ({
-    eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
-    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
-  }));
-export type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
 
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)

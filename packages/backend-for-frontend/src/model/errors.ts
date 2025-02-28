@@ -1,16 +1,17 @@
 import { constants } from "http2";
 import {
   ApiError,
-  parseErrorMessage,
-  makeApiProblemBuilder,
   AttributeId,
+  EServiceTemplateId,
+  makeApiProblemBuilder,
+  parseErrorMessage,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
   purposeNotFound: "0001",
   userNotFound: "0002",
   selfcareEntityNotFilled: "0003",
-  descriptorNotFound: "0004",
+  eserviceIsNotDraft: "0004",
   attributeNotExists: "0005",
   invalidEserviceRequester: "0006",
   missingClaim: "0007",
@@ -54,6 +55,14 @@ export const errorCodes = {
   noVersionInEServiceTemplate: "0045",
   eserviceTemplateVersionNotFound: "0046",
   catalogEServiceTemplatePublishedVersionNotFound: "0047",
+  eserviceTemplateNotInPublishedState: "0048",
+  eserviceTemplateNotFound: "0049",
+  eserviceTemplateIsNotPublished: "0050",
+  eserviceTemplateInterfaceNotFound: "0051",
+  eserviceTemplateInterfaceDataNotValid: "0052",
+  tooManyDescriptorForInterfaceWithTemplate: "0053",
+  eserviceDescriptorDraftNotFound: "0054",
+  templateDataNotFound: "0055",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -470,5 +479,81 @@ export function catalogEServiceTemplatePublishedVersionNotFound(
     detail: `Published version not found in catalog Eservice template ${eserviceTemplateId}`,
     code: "catalogEServiceTemplatePublishedVersionNotFound",
     title: "Catalog EService template published version not found",
+  });
+}
+
+export function eserviceTemplateNotFound(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Eservice template ${eserviceTemplateId} not found`,
+    code: "eserviceTemplateNotFound",
+    title: "EService template not found",
+  });
+}
+
+export function eserviceTemplateDataNotFound(
+  eServiceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Expected template reference in Eservice ${eServiceId} not found`,
+    code: "templateDataNotFound",
+    title: "EService template not found",
+  });
+}
+
+export function eserviceTemplateNotInPublishedState(
+  eserviceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eserviceTemplateId} is not in published state`,
+    code: "eserviceTemplateNotInPublishedState",
+    title: "EService Template not in published state",
+  });
+}
+export function eserviceIsNotDraft(eserviceId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not in draft state`,
+    code: "eserviceIsNotDraft",
+    title: "EService is not in draft state",
+  });
+}
+
+export function eserviceTemplateNotPublished(
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${eserviceTemplateId} is not in published state`,
+    code: "eserviceTemplateIsNotPublished",
+    title: "EService template is not in published state",
+  });
+}
+
+export function eserviceTemplateInterfaceNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
+    code: "eserviceTemplateInterfaceNotFound",
+    title: "EService template interface document not found",
+  });
+}
+
+export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface data not valid`,
+    code: "eserviceTemplateInterfaceDataNotValid",
+    title: "EService template interface data not valid",
+  });
+}
+
+export function eserviceDescriptorDraftNotFound(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Draft descriptor not found in Eservice ${eserviceId}`,
+    code: "eserviceDescriptorDraftNotFound",
+    title: "EService descriptor draft not found",
   });
 }

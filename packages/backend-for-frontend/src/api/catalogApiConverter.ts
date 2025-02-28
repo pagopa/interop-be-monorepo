@@ -5,10 +5,13 @@ import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
+  eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   Descriptor,
+  descriptorState,
+  DescriptorState,
   EServiceAttribute,
   Technology,
   technology,
@@ -369,7 +372,6 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
-    templateVersionId: descriptor?.templateVersionRef?.id,
   };
 }
 
@@ -418,4 +420,31 @@ export function apiTechnologyToTechnology(
     .with("REST", () => technology.rest)
     .with("SOAP", () => technology.soap)
     .exhaustive();
+}
+
+export function apiDescriptorStateToDescriptorState(
+  input: catalogApi.EServiceDescriptorState
+): DescriptorState {
+  return match<catalogApi.EServiceDescriptorState, DescriptorState>(input)
+    .with("DRAFT", () => descriptorState.draft)
+    .with("PUBLISHED", () => descriptorState.published)
+    .with("SUSPENDED", () => descriptorState.suspended)
+    .with("DEPRECATED", () => descriptorState.deprecated)
+    .with("ARCHIVED", () => descriptorState.archived)
+    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
+    .exhaustive();
+}
+
+export function toBffEServiceTemplateRef(
+  eservice: catalogApi.EService,
+  descriptor: catalogApi.EServiceDescriptor,
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate
+): bffApi.EServiceTemplateRef {
+  return {
+    templateId: eserviceTemplate.id,
+    templateName: eserviceTemplate.name,
+    instanceId: eservice.templateRef?.instanceId,
+    templateVersionId: descriptor.templateVersionRef?.id,
+    interfaceMetadata: descriptor.templateVersionRef?.interfaceMetadata,
+  };
 }
