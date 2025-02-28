@@ -25,6 +25,7 @@ import {
   PurposeVersionSQL,
   PurposeVersionDocumentSQL,
   PurposeRiskAnalysisFormSQL,
+  PurposeItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 
@@ -114,14 +115,8 @@ export const aggregatePurpose = ({
   riskAnalysisAnswersSQL,
   versionsSQL,
   versionDocumentsSQL,
-}: {
-  purposeSQL: PurposeSQL;
-  riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
-  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
-  versionsSQL: PurposeVersionSQL[];
-  versionDocumentsSQL: PurposeVersionDocumentSQL[];
-}): WithMetadata<Purpose> => {
-  const riskAnalysisForm = riskAnalysisFormSQLToPurposeRiskAnalysisForm(
+}: PurposeItemsSQL): WithMetadata<Purpose> => {
+  const riskAnalysisForm = purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
     riskAnalysisFormSQL,
     riskAnalysisAnswersSQL
   );
@@ -215,8 +210,7 @@ export const aggregatePurpose = ({
   };
 };
 
-// TODO: improve naming
-export const riskAnalysisFormSQLToPurposeRiskAnalysisForm = (
+const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined,
   answers: PurposeRiskAnalysisAnswerSQL[] | undefined
 ): PurposeRiskAnalysisForm | undefined => {
