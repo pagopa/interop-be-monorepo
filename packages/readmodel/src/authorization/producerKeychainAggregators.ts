@@ -16,7 +16,7 @@ import {
   ProducerKeychainItemsSQL,
 } from "pagopa-interop-readmodel-models";
 
-export const aggregateProducerKeychainSQL = ({
+export const aggregateProducerKeychain = ({
   producerKeychainSQL,
   usersSQL,
   eservicesSQL,
@@ -51,7 +51,7 @@ export const aggregateProducerKeychainSQL = ({
   };
 };
 
-export const aggregateProducerKeychainArraySQL = ({
+export const aggregateProducerKeychainArray = ({
   producerKeychainsSQL,
   usersSQL: producerKeychainUsersSQL,
   eservicesSQL: producerKeychainEServicesSQL,
@@ -63,7 +63,7 @@ export const aggregateProducerKeychainArraySQL = ({
   keysSQL: ProducerKeychainKeySQL[];
 }): Array<WithMetadata<ProducerKeychain>> =>
   producerKeychainsSQL.map((producerKeychainSQL) =>
-    aggregateProducerKeychainSQL({
+    aggregateProducerKeychain({
       producerKeychainSQL,
       usersSQL: producerKeychainUsersSQL.filter(
         (user) => user.producerKeychainId === producerKeychainSQL.id
