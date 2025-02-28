@@ -37,7 +37,7 @@ import {
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
 
-export const aggregateTenantSQL = ({
+export const aggregateTenant = ({
   tenantSQL,
   mailsSQL,
   certifiedAttributesSQL,
@@ -168,11 +168,11 @@ export const aggregateTenantArray = ({
       (revoker) => revoker.tenantId === tenantSQL.id
     );
 
-    const feautesSQLOfCurrentTenant = featuresSQL.filter(
+    const featuresSQLOfCurrentTenant = featuresSQL.filter(
       (feature) => feature.tenantId === tenantSQL.id
     );
 
-    return aggregateTenantSQL({
+    return aggregateTenant({
       tenantSQL,
       mailsSQL: mailsSQLOfCurrentTenant,
       certifiedAttributesSQL: certifiedAttributesSQLOfCurrentTenant,
@@ -180,7 +180,7 @@ export const aggregateTenantArray = ({
       verifiedAttributesSQL: verifiedAttributesSQLOfCurrentTenant,
       verifiedAttributeVerifiersSQL: verifiersSQLOfCurrentTenant,
       verifiedAttributeRevokersSQL: revokersSQLOfCurrentTenant,
-      featuresSQL: feautesSQLOfCurrentTenant,
+      featuresSQL: featuresSQLOfCurrentTenant,
     });
   });
 
