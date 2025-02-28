@@ -1038,9 +1038,6 @@ importers:
       fast-xml-parser:
         specifier: 4.4.1
         version: 4.4.1
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
       mime:
         specifier: 4.0.4
         version: 4.0.4
