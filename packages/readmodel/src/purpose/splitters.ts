@@ -4,6 +4,8 @@ import {
   PurposeId,
   PurposeRiskAnalysisForm,
   PurposeVersion,
+  PurposeVersionDocument,
+  PurposeVersionId,
   riskAnalysisAnswerKind,
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
@@ -18,38 +20,52 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 export const splitPurposeIntoObjectsSQL = (
-  purpose: Purpose,
+  {
+    id,
+    eserviceId,
+    consumerId,
+    delegationId,
+    suspendedByConsumer,
+    suspendedByProducer,
+    title,
+    description,
+    createdAt,
+    updatedAt,
+    isFreeOfCharge,
+    freeOfChargeReason,
+    riskAnalysisForm,
+    versions,
+    ...rest
+  }: Purpose,
   version: number
 ): PurposeItemsSQL => {
+  void (rest satisfies Record<string, never>);
+
   const purposeSQL: PurposeSQL = {
-    id: purpose.id,
+    id,
     metadataVersion: version,
-    eserviceId: purpose.eserviceId,
-    consumerId: purpose.consumerId,
-    delegationId: purpose.delegationId || null,
+    eserviceId,
+    consumerId,
+    delegationId: delegationId || null,
     suspendedByConsumer:
-      purpose.suspendedByConsumer === undefined
-        ? null
-        : purpose.suspendedByConsumer,
+      suspendedByConsumer === undefined ? null : suspendedByConsumer,
     suspendedByProducer:
-      purpose.suspendedByProducer === undefined
-        ? null
-        : purpose.suspendedByProducer,
-    title: purpose.title,
-    description: purpose.description,
-    createdAt: dateToString(purpose.createdAt),
-    updatedAt: dateToString(purpose.updatedAt),
-    isFreeOfCharge: purpose.isFreeOfCharge,
-    freeOfChargeReason: purpose.freeOfChargeReason || null,
+      suspendedByProducer === undefined ? null : suspendedByProducer,
+    title,
+    description,
+    createdAt: dateToString(createdAt),
+    updatedAt: dateToString(updatedAt),
+    isFreeOfCharge,
+    freeOfChargeReason: freeOfChargeReason || null,
   };
 
   const splitPurposeRiskAnalysisSQL = splitRiskAnalysisFormIntoObjectsSQL(
-    purpose.id,
-    purpose.riskAnalysisForm,
+    id,
+    riskAnalysisForm,
     version
   );
 
-  const { versionsSQL, versionDocumentsSQL } = purpose.versions.reduce(
+  const { versionsSQL, versionDocumentsSQL } = versions.reduce(
     (
       acc: {
         versionsSQL: PurposeVersionSQL[];
@@ -58,11 +74,7 @@ export const splitPurposeIntoObjectsSQL = (
       currentPurposeVersion: PurposeVersion
     ) => {
       const { versionSQL, versionDocumentSQL } =
-        splitPurposeVersionIntoObjectsSQL(
-          purpose.id,
-          currentPurposeVersion,
-          version
-        );
+        splitPurposeVersionIntoObjectsSQL(id, currentPurposeVersion, version);
       return {
         versionsSQL: [...acc.versionsSQL, versionSQL],
         versionDocumentsSQL: [
@@ -86,7 +98,7 @@ export const splitPurposeIntoObjectsSQL = (
   };
 };
 
-export const splitRiskAnalysisFormIntoObjectsSQL = (
+const splitRiskAnalysisFormIntoObjectsSQL = (
   purposeId: PurposeId,
   riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
   metadataVersion: number
@@ -99,37 +111,50 @@ export const splitRiskAnalysisFormIntoObjectsSQL = (
   if (!riskAnalysisForm) {
     return undefined;
   }
+
+  const { id, version, singleAnswers, multiAnswers, riskAnalysisId, ...rest } =
+    riskAnalysisForm;
+  void (rest satisfies Record<string, never>);
+
   const riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
-    id: riskAnalysisForm.id,
+    id,
     metadataVersion,
     purposeId,
-    version: riskAnalysisForm.version,
-    riskAnalysisId: riskAnalysisForm.riskAnalysisId || null,
+    version,
+    riskAnalysisId: riskAnalysisId || null,
   };
 
   const riskAnalysisSingleAnswers: PurposeRiskAnalysisAnswerSQL[] =
-    riskAnalysisForm.singleAnswers.map(
-      (a: RiskAnalysisSingleAnswer): PurposeRiskAnalysisAnswerSQL => ({
-        id: a.id,
-        purposeId,
-        metadataVersion,
-        key: a.key,
-        value: a.value ? [a.value] : [],
-        riskAnalysisFormId: riskAnalysisForm.id,
-        kind: riskAnalysisAnswerKind.single,
-      })
+    singleAnswers.map(
+      ({ id, key, value, ...answerRest }: RiskAnalysisSingleAnswer) => {
+        void (answerRest satisfies Record<string, never>);
+        return {
+          id,
+          purposeId,
+          metadataVersion,
+          key,
+          value: value ? [value] : [],
+          riskAnalysisFormId: id,
+          kind: riskAnalysisAnswerKind.single,
+        };
+      }
     );
 
   const riskAnalysisMultiAnswers: PurposeRiskAnalysisAnswerSQL[] =
-    riskAnalysisForm.multiAnswers.map((a: RiskAnalysisMultiAnswer) => ({
-      id: a.id,
-      purposeId,
-      metadataVersion,
-      key: a.key,
-      value: a.values,
-      riskAnalysisFormId: riskAnalysisForm.id,
-      kind: riskAnalysisAnswerKind.multi,
-    }));
+    multiAnswers.map(
+      ({ id, key, values, ...answerRest }: RiskAnalysisMultiAnswer) => {
+        void (answerRest satisfies Record<string, never>);
+        return {
+          id,
+          purposeId,
+          metadataVersion,
+          key,
+          value: values,
+          riskAnalysisFormId: id,
+          kind: riskAnalysisAnswerKind.multi,
+        };
+      }
+    );
 
   return {
     riskAnalysisFormSQL,
@@ -140,42 +165,73 @@ export const splitRiskAnalysisFormIntoObjectsSQL = (
   };
 };
 
-export const splitPurposeVersionIntoObjectsSQL = (
+const splitPurposeVersionIntoObjectsSQL = (
   purposeId: PurposeId,
-  purposeVersion: PurposeVersion,
+  {
+    id,
+    state,
+    dailyCalls,
+    rejectionReason,
+    createdAt,
+    updatedAt,
+    firstActivationAt,
+    suspendedAt,
+    riskAnalysis,
+    ...rest
+  }: PurposeVersion,
   metadataVersion: number
 ): {
   versionSQL: PurposeVersionSQL;
   versionDocumentSQL: PurposeVersionDocumentSQL | undefined;
 } => {
+  void (rest satisfies Record<string, never>);
+
   const versionSQL: PurposeVersionSQL = {
-    id: purposeVersion.id,
+    id,
     purposeId,
     metadataVersion,
-    state: purposeVersion.state,
-    dailyCalls: purposeVersion.dailyCalls,
-    rejectionReason: purposeVersion.rejectionReason || null,
-    createdAt: dateToString(purposeVersion.createdAt),
-    updatedAt: dateToString(purposeVersion.updatedAt),
-    firstActivationAt: dateToString(purposeVersion.firstActivationAt),
-    suspendedAt: dateToString(purposeVersion.suspendedAt),
+    state,
+    dailyCalls,
+    rejectionReason: rejectionReason || null,
+    createdAt: dateToString(createdAt),
+    updatedAt: dateToString(updatedAt),
+    firstActivationAt: dateToString(firstActivationAt),
+    suspendedAt: dateToString(suspendedAt),
   };
 
-  const versionDocumentSQL: PurposeVersionDocumentSQL | undefined =
-    purposeVersion.riskAnalysis
-      ? {
-          purposeId,
-          metadataVersion,
-          purposeVersionId: purposeVersion.id,
-          id: purposeVersion.riskAnalysis.id,
-          contentType: purposeVersion.riskAnalysis.contentType,
-          path: purposeVersion.riskAnalysis.path,
-          createdAt: dateToString(purposeVersion.riskAnalysis.createdAt),
-        }
-      : undefined;
+  const versionDocumentSQL = riskAnalysisToPurposeVersionDocumentSQL(
+    riskAnalysis,
+    purposeId,
+    id,
+    metadataVersion
+  );
 
   return {
     versionSQL,
     versionDocumentSQL,
+  };
+};
+
+const riskAnalysisToPurposeVersionDocumentSQL = (
+  versionDocument: PurposeVersionDocument | undefined,
+  purposeId: PurposeId,
+  purposeVersionId: PurposeVersionId,
+  metadataVersion: number
+): PurposeVersionDocumentSQL | undefined => {
+  if (!versionDocument) {
+    return undefined;
+  }
+
+  const { id, createdAt, contentType, path, ...rest } = versionDocument;
+  void (rest satisfies Record<string, never>);
+
+  return {
+    id,
+    metadataVersion,
+    purposeId,
+    purposeVersionId,
+    createdAt: dateToString(createdAt),
+    contentType,
+    path,
   };
 };
