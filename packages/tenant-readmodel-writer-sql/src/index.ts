@@ -9,7 +9,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  readModelTenantServiceBuilder,
+  tenantReadModelServiceBuilderSQL,
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
@@ -18,7 +18,7 @@ import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
 import { customReadModelServiceBuilder } from "./customReadModelService.js";
 
 const db = makeDrizzleConnection(config);
-const readModelService = readModelTenantServiceBuilder(db);
+const tenantReadModelService = tenantReadModelServiceBuilderSQL(db);
 const customReadModelService = customReadModelServiceBuilder(db);
 
 async function processMessage({
@@ -39,9 +39,11 @@ async function processMessage({
 
   await match(decodedMessage)
     .with({ event_version: 1 }, (msg) =>
-      handleMessageV1(msg, readModelService, customReadModelService)
+      handleMessageV1(msg, tenantReadModelService, customReadModelService)
     )
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
+    .with({ event_version: 2 }, (msg) =>
+      handleMessageV2(msg, tenantReadModelService)
+    )
     .exhaustive();
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
