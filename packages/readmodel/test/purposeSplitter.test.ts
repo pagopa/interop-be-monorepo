@@ -65,10 +65,10 @@ describe("Purpose splitter", () => {
 
     const {
       purposeSQL,
-      purposeRiskAnalysisFormSQL,
-      purposeRiskAnalysisAnswersSQL,
-      purposeVersionsSQL,
-      purposeVersionDocumentsSQL,
+      riskAnalysisFormSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      versionDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -146,16 +146,12 @@ describe("Purpose splitter", () => {
     };
 
     expect(purposeSQL).toEqual(expectedPurposeSQL);
-    expect(purposeRiskAnalysisFormSQL).toEqual(
-      expectedPurposeRiskAnalysisFormSQL
-    );
-    expect(purposeRiskAnalysisAnswersSQL).toEqual(
+    expect(riskAnalysisFormSQL).toEqual(expectedPurposeRiskAnalysisFormSQL);
+    expect(riskAnalysisAnswersSQL).toEqual(
       expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL)
     );
-    expect(purposeVersionsSQL).toEqual([expectedPurposeVersionSQL]);
-    expect(purposeVersionDocumentsSQL).toEqual([
-      expectedPurposeVersionDocumentSQL,
-    ]);
+    expect(versionsSQL).toEqual([expectedPurposeVersionSQL]);
+    expect(versionDocumentsSQL).toEqual([expectedPurposeVersionDocumentSQL]);
   });
 
   it("should convert an incomplete purpose into purpose SQL objects (undefined -> null)", () => {
@@ -187,10 +183,10 @@ describe("Purpose splitter", () => {
 
     const {
       purposeSQL,
-      purposeRiskAnalysisFormSQL,
-      purposeRiskAnalysisAnswersSQL,
-      purposeVersionsSQL,
-      purposeVersionDocumentsSQL,
+      riskAnalysisFormSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      versionDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -268,15 +264,11 @@ describe("Purpose splitter", () => {
     };
 
     expect(purposeSQL).toEqual(expectedPurposeSQL);
-    expect(purposeRiskAnalysisFormSQL).toEqual(
-      expectedPurposeRiskAnalysisFormSQL
-    );
-    expect(purposeRiskAnalysisAnswersSQL).toEqual(
+    expect(riskAnalysisFormSQL).toEqual(expectedPurposeRiskAnalysisFormSQL);
+    expect(riskAnalysisAnswersSQL).toEqual(
       expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL)
     );
-    expect(purposeVersionsSQL).toEqual([expectedPurposeVersionSQL]);
-    expect(purposeVersionDocumentsSQL).toEqual([
-      expectedPurposeVersionDocumentSQL,
-    ]);
+    expect(versionsSQL).toEqual([expectedPurposeVersionSQL]);
+    expect(versionDocumentsSQL).toEqual([expectedPurposeVersionDocumentSQL]);
   });
 });

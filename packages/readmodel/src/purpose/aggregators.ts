@@ -21,10 +21,10 @@ import {
 } from "pagopa-interop-models";
 import {
   PurposeSQL,
-  PurposeRiskAnalysisFormSQL,
   PurposeRiskAnalysisAnswerSQL,
   PurposeVersionSQL,
   PurposeVersionDocumentSQL,
+  PurposeRiskAnalysisFormSQL,
   PurposeItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
@@ -32,30 +32,30 @@ import { match } from "ts-pattern";
 // TODO: delete one aggregate array version
 export const aggregatePurposeArray = ({
   purposesSQL,
-  purposeRiskAnalysisFormsSQL,
-  purposeRiskAnalysisAnswersSQL,
-  purposeVersionsSQL,
-  purposeVersionDocumentsSQL,
+  riskAnalysisFormsSQL,
+  riskAnalysisAnswersSQL,
+  versionsSQL,
+  versionDocumentsSQL,
 }: {
   purposesSQL: PurposeSQL[];
-  purposeRiskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
-  purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
-  purposeVersionsSQL: PurposeVersionSQL[];
-  purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[];
+  riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
+  versionsSQL: PurposeVersionSQL[];
+  versionDocumentsSQL: PurposeVersionDocumentSQL[];
 }): Array<WithMetadata<Purpose>> =>
   purposesSQL.map((purposeSQL) =>
     aggregatePurpose({
       purposeSQL,
-      purposeRiskAnalysisFormSQL: purposeRiskAnalysisFormsSQL.find(
+      riskAnalysisFormSQL: riskAnalysisFormsSQL.find(
         (formSQL) => formSQL.purposeId === purposeSQL.id
       ),
-      purposeRiskAnalysisAnswersSQL: purposeRiskAnalysisAnswersSQL.filter(
+      riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.filter(
         (answerSQL) => answerSQL.purposeId === purposeSQL.id
       ),
-      purposeVersionsSQL: purposeVersionsSQL.filter(
+      versionsSQL: versionsSQL.filter(
         (versionSQL) => versionSQL.purposeId === purposeSQL.id
       ),
-      purposeVersionDocumentsSQL: purposeVersionDocumentsSQL.filter(
+      versionDocumentsSQL: versionDocumentsSQL.filter(
         (docSQL) => docSQL.purposeId === purposeSQL.id
       ),
     })
@@ -63,39 +63,33 @@ export const aggregatePurposeArray = ({
 
 export const aggregatePurposeArrayWithMaps = ({
   purposesSQL,
-  purposeRiskAnalysisFormsSQL,
-  purposeRiskAnalysisAnswersSQL,
-  purposeVersionsSQL,
-  purposeVersionDocumentsSQL,
+  riskAnalysisFormsSQL,
+  riskAnalysisAnswersSQL,
+  versionsSQL,
+  versionDocumentsSQL,
 }: {
   purposesSQL: PurposeSQL[];
-  purposeRiskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
-  purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
-  purposeVersionsSQL: PurposeVersionSQL[];
-  purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[];
+  riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
+  versionsSQL: PurposeVersionSQL[];
+  versionDocumentsSQL: PurposeVersionDocumentSQL[];
 }): Array<WithMetadata<Purpose>> => {
-  const riskAnalysisFormsSQLByPurposeId = createPurposeSQLPropertyMap(
-    purposeRiskAnalysisFormsSQL
-  );
+  const riskAnalysisFormsSQLByPurposeId =
+    createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
   const riskAnalysisAnswersSQLByPurposeId = createPurposeSQLPropertyMap(
-    purposeRiskAnalysisAnswersSQL
+    riskAnalysisAnswersSQL
   );
-  const versionsSQLByPurposeId =
-    createPurposeSQLPropertyMap(purposeVersionsSQL);
-  const versionDocumentsSQLByPurposeId = createPurposeSQLPropertyMap(
-    purposeVersionDocumentsSQL
-  );
+  const versionsSQLByPurposeId = createPurposeSQLPropertyMap(versionsSQL);
+  const versionDocumentsSQLByPurposeId =
+    createPurposeSQLPropertyMap(versionDocumentsSQL);
   return purposesSQL.map((purposeSQL) => {
     const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
     return aggregatePurpose({
       purposeSQL,
-      purposeRiskAnalysisFormSQL:
-        riskAnalysisFormsSQLByPurposeId.get(purposeId)?.[0],
-      purposeRiskAnalysisAnswersSQL:
-        riskAnalysisAnswersSQLByPurposeId.get(purposeId),
-      purposeVersionsSQL: versionsSQLByPurposeId.get(purposeId) || [],
-      purposeVersionDocumentsSQL:
-        versionDocumentsSQLByPurposeId.get(purposeId) || [],
+      riskAnalysisFormSQL: riskAnalysisFormsSQLByPurposeId.get(purposeId)?.[0],
+      riskAnalysisAnswersSQL: riskAnalysisAnswersSQLByPurposeId.get(purposeId),
+      versionsSQL: versionsSQLByPurposeId.get(purposeId) || [],
+      versionDocumentsSQL: versionDocumentsSQLByPurposeId.get(purposeId) || [],
     });
   });
 };
@@ -115,24 +109,22 @@ const createPurposeSQLPropertyMap = <
     return acc;
   }, new Map<PurposeId, T[]>());
 
-// TODO: ...rest
 export const aggregatePurpose = ({
   purposeSQL,
-  purposeRiskAnalysisFormSQL,
-  purposeRiskAnalysisAnswersSQL,
-  purposeVersionsSQL,
-  purposeVersionDocumentsSQL,
+  riskAnalysisFormSQL,
+  riskAnalysisAnswersSQL,
+  versionsSQL,
+  versionDocumentsSQL,
 }: PurposeItemsSQL): WithMetadata<Purpose> => {
-  const purposeRiskAnalysisForm =
-    purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
-      purposeRiskAnalysisFormSQL,
-      purposeRiskAnalysisAnswersSQL
-    );
+  const riskAnalysisForm = purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
+    riskAnalysisFormSQL,
+    riskAnalysisAnswersSQL
+  );
 
   const documentsByPurposeVersionId: Map<
     PurposeVersionId,
     PurposeVersionDocumentSQL
-  > = purposeVersionDocumentsSQL.reduce(
+  > = versionDocumentsSQL.reduce(
     (acc: Map<PurposeVersionId, PurposeVersionDocumentSQL>, docSQL) => {
       acc.set(unsafeBrandId<PurposeVersionId>(docSQL.purposeVersionId), docSQL);
       return acc;
@@ -140,47 +132,42 @@ export const aggregatePurpose = ({
     new Map()
   );
 
-  const purposeVersions = purposeVersionsSQL.reduce(
-    (acc: PurposeVersion[], purposeVersionSQL) => {
-      const purposeVersionDocumentSQL = documentsByPurposeVersionId.get(
-        unsafeBrandId(purposeVersionSQL.id)
-      );
-      const purposeVersionDocument: PurposeVersionDocument | undefined =
-        purposeVersionDocumentSQL
-          ? {
-              id: unsafeBrandId(purposeVersionDocumentSQL.id),
-              path: purposeVersionDocumentSQL.path,
-              contentType: purposeVersionDocumentSQL.contentType,
-              createdAt: stringToDate(purposeVersionDocumentSQL.createdAt),
-            }
-          : undefined;
+  const versions = versionsSQL.reduce((acc: PurposeVersion[], versionSQL) => {
+    const versionDocumentSQL = documentsByPurposeVersionId.get(
+      unsafeBrandId(versionSQL.id)
+    );
+    const versionDocument: PurposeVersionDocument | undefined =
+      versionDocumentSQL
+        ? {
+            id: unsafeBrandId(versionDocumentSQL.id),
+            path: versionDocumentSQL.path,
+            contentType: versionDocumentSQL.contentType,
+            createdAt: stringToDate(versionDocumentSQL.createdAt),
+          }
+        : undefined;
 
-      const purposeVersion: PurposeVersion = {
-        id: unsafeBrandId(purposeVersionSQL.id),
-        state: PurposeVersionState.parse(purposeVersionSQL.state),
-        dailyCalls: purposeVersionSQL.dailyCalls,
-        createdAt: stringToDate(purposeVersionSQL.createdAt),
-        ...(purposeVersionSQL.rejectionReason
-          ? { rejectionReason: purposeVersionSQL.rejectionReason }
-          : {}),
-        firstActivationAt: stringToDate(purposeVersionSQL.firstActivationAt),
-        ...(purposeVersionSQL.suspendedAt
-          ? { suspendedAt: stringToDate(purposeVersionSQL.suspendedAt) }
-          : {}),
-        ...(purposeVersionSQL.updatedAt
-          ? {
-              updatedAt: stringToDate(purposeVersionSQL.updatedAt),
-            }
-          : {}),
-        ...(purposeVersionDocument
-          ? { riskAnalysis: purposeVersionDocument }
-          : {}),
-      };
+    const version: PurposeVersion = {
+      id: unsafeBrandId(versionSQL.id),
+      state: PurposeVersionState.parse(versionSQL.state),
+      dailyCalls: versionSQL.dailyCalls,
+      createdAt: stringToDate(versionSQL.createdAt),
+      ...(versionSQL.rejectionReason
+        ? { rejectionReason: versionSQL.rejectionReason }
+        : {}),
+      firstActivationAt: stringToDate(versionSQL.firstActivationAt),
+      ...(versionSQL.suspendedAt
+        ? { suspendedAt: stringToDate(versionSQL.suspendedAt) }
+        : {}),
+      ...(versionSQL.updatedAt
+        ? {
+            updatedAt: stringToDate(versionSQL.updatedAt),
+          }
+        : {}),
+      ...(versionDocument ? { riskAnalysis: versionDocument } : {}),
+    };
 
-      return [...acc, purposeVersion];
-    },
-    []
-  );
+    return [...acc, version];
+  }, []);
 
   const purpose: Purpose = {
     id: unsafeBrandId(purposeSQL.id),
@@ -190,10 +177,8 @@ export const aggregatePurpose = ({
     consumerId: unsafeBrandId(purposeSQL.consumerId),
     description: purposeSQL.description,
     isFreeOfCharge: purposeSQL.isFreeOfCharge,
-    versions: purposeVersions,
-    ...(purposeRiskAnalysisForm
-      ? { riskAnalysisForm: purposeRiskAnalysisForm }
-      : {}),
+    versions,
+    ...(riskAnalysisForm ? { riskAnalysisForm } : {}),
     ...(purposeSQL.suspendedByConsumer !== null
       ? {
           suspendedByConsumer: purposeSQL.suspendedByConsumer,
@@ -225,18 +210,17 @@ export const aggregatePurpose = ({
   };
 };
 
-// TODO: improve naming
-export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
-  purposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined,
+const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
+  riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined,
   answers: PurposeRiskAnalysisAnswerSQL[] | undefined
 ): PurposeRiskAnalysisForm | undefined => {
-  if (!purposeRiskAnalysisFormSQL) {
+  if (!riskAnalysisFormSQL) {
     return undefined;
   }
 
   if (!answers) {
     throw genericInternalError(
-      `Purpose risk analysis form with id ${purposeRiskAnalysisFormSQL.id} found without answers`
+      `Purpose risk analysis form with id ${riskAnalysisFormSQL.id} found without answers`
     );
   }
 
@@ -283,14 +267,14 @@ export const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   );
 
   return {
-    id: unsafeBrandId(purposeRiskAnalysisFormSQL.id),
-    version: purposeRiskAnalysisFormSQL.version,
+    id: unsafeBrandId(riskAnalysisFormSQL.id),
+    version: riskAnalysisFormSQL.version,
     singleAnswers,
     multiAnswers,
-    ...(purposeRiskAnalysisFormSQL.riskAnalysisId
+    ...(riskAnalysisFormSQL.riskAnalysisId
       ? {
           riskAnalysisId: unsafeBrandId<RiskAnalysisId>(
-            purposeRiskAnalysisFormSQL.riskAnalysisId
+            riskAnalysisFormSQL.riskAnalysisId
           ),
         }
       : {}),
@@ -356,12 +340,12 @@ export const fromJoinToAggregatorPurpose = (
 
   return {
     purposeSQL,
-    purposeRiskAnalysisFormSQL: purposeRiskAnalysisFormSQL || undefined,
-    purposeRiskAnalysisAnswersSQL:
+    riskAnalysisFormSQL: purposeRiskAnalysisFormSQL || undefined,
+    riskAnalysisAnswersSQL:
       purposeRiskAnalysisAnswersSQL.length > 0
         ? purposeRiskAnalysisAnswersSQL
         : undefined,
-    purposeVersionsSQL,
-    purposeVersionDocumentsSQL,
+    versionsSQL: purposeVersionsSQL,
+    versionDocumentsSQL: purposeVersionDocumentsSQL,
   };
 };

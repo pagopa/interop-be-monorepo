@@ -50,18 +50,18 @@ describe("Purpose aggregator", () => {
 
     const {
       purposeSQL,
-      purposeRiskAnalysisFormSQL,
-      purposeRiskAnalysisAnswersSQL,
-      purposeVersionsSQL,
-      purposeVersionDocumentsSQL,
+      riskAnalysisFormSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      versionDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
       purposeSQL,
-      purposeRiskAnalysisFormSQL,
-      purposeRiskAnalysisAnswersSQL,
-      purposeVersionsSQL,
-      purposeVersionDocumentsSQL,
+      riskAnalysisFormSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      versionDocumentsSQL,
     });
 
     expect(aggregatedPurpose).toMatchObject(purpose);
@@ -80,18 +80,18 @@ describe("Purpose aggregator", () => {
 
     const {
       purposeSQL,
-      purposeRiskAnalysisFormSQL,
-      purposeRiskAnalysisAnswersSQL,
-      purposeVersionsSQL,
-      purposeVersionDocumentsSQL,
+      riskAnalysisFormSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      versionDocumentsSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
       purposeSQL,
-      purposeRiskAnalysisFormSQL,
-      purposeRiskAnalysisAnswersSQL,
-      purposeVersionsSQL,
-      purposeVersionDocumentsSQL,
+      riskAnalysisFormSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      versionDocumentsSQL,
     });
 
     expect(aggregatedPurpose).toMatchObject(purpose);
