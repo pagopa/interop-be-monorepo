@@ -16,26 +16,25 @@ import {
 export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
     async addDelegation(delegation: WithMetadata<Delegation>): Promise<void> {
-      const {
-        delegationSQL,
-        delegationStampsSQL,
-        delegationContractDocumentsSQL,
-      } = splitDelegationIntoObjectsSQL(
-        delegation.data,
-        delegation.metadata.version
-      );
+      const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+        splitDelegationIntoObjectsSQL(
+          delegation.data,
+          delegation.metadata.version
+        );
 
       await db.transaction(async (tx) => {
         await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
 
-        for (const stamps of delegationStampsSQL) {
-          await tx.insert(delegationStampInReadmodelDelegation).values(stamps);
+        for (const stampSQL of stampsSQL) {
+          await tx
+            .insert(delegationStampInReadmodelDelegation)
+            .values(stampSQL);
         }
 
-        for (const doc of delegationContractDocumentsSQL) {
+        for (const docSQL of contractDocumentsSQL) {
           await tx
             .insert(delegationContractDocumentInReadmodelDelegation)
-            .values(doc);
+            .values(docSQL);
         }
       });
     },
