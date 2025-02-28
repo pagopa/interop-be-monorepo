@@ -20,64 +20,38 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 export const aggregateClientSQL = ({
-  clientSQL: {
-    id,
-    metadataVersion,
-    consumerId,
-    name,
-    description,
-    kind,
-    createdAt,
-    ...rest
-  },
+  clientSQL,
   usersSQL,
   purposesSQL,
   keysSQL,
 }: ClientItemsSQL): WithMetadata<Client> => {
-  void (rest satisfies Record<string, never>);
-
   const users: UserId[] = usersSQL.map((u) => unsafeBrandId<UserId>(u.userId));
   const purposes: PurposeId[] = purposesSQL.map((p) =>
     unsafeBrandId<PurposeId>(p.purposeId)
   );
-  const keys: Key[] = keysSQL.map(
-    ({
-      userId,
-      kid,
-      name,
-      encodedPem,
-      algorithm,
-      use,
-      createdAt,
-      ...keyRest
-    }: Omit<ClientKeySQL, "metadataVersion" | "clientId">) => {
-      void (keyRest satisfies Record<string, never>);
-
-      return {
-        userId: unsafeBrandId<UserId>(userId),
-        kid,
-        name,
-        encodedPem,
-        algorithm,
-        use: KeyUse.parse(use),
-        createdAt: stringToDate(createdAt),
-      };
-    }
-  );
+  const keys: Key[] = keysSQL.map((keySQL) => ({
+    userId: unsafeBrandId<UserId>(keySQL.userId),
+    kid: keySQL.kid,
+    name: keySQL.name,
+    encodedPem: keySQL.encodedPem,
+    algorithm: keySQL.algorithm,
+    use: KeyUse.parse(keySQL.use),
+    createdAt: stringToDate(keySQL.createdAt),
+  }));
 
   return {
     data: {
-      id: unsafeBrandId<ClientId>(id),
-      consumerId: unsafeBrandId<TenantId>(consumerId),
-      name,
+      id: unsafeBrandId<ClientId>(clientSQL.id),
+      consumerId: unsafeBrandId<TenantId>(clientSQL.consumerId),
+      name: clientSQL.name,
       purposes,
-      description: description || undefined,
+      description: clientSQL.description || undefined,
       users,
-      kind: ClientKind.parse(kind),
-      createdAt: stringToDate(createdAt),
+      kind: ClientKind.parse(clientSQL.kind),
+      createdAt: stringToDate(clientSQL.createdAt),
       keys,
     },
-    metadata: { version: metadataVersion },
+    metadata: { version: clientSQL.metadataVersion },
   };
 };
 
