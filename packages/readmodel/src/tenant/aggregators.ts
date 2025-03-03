@@ -295,7 +295,52 @@ export const fromJoinToAggregator = (
     feature: TenantFeatureSQL | null;
   }>
 ): TenantItemsSQL => {
-  const tenantSQL = queryRes[0].tenant;
+  const {
+    tenantsSQL,
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
+  } = fromJoinToAggregatorArray(queryRes);
+
+  return {
+    tenantSQL: tenantsSQL[0],
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
+  };
+};
+
+export const fromJoinToAggregatorArray = (
+  queryRes: Array<{
+    tenant: TenantSQL;
+    mail: TenantMailSQL | null;
+    certifiedAttribute: TenantCertifiedAttributeSQL | null;
+    declaredAttribute: TenantDeclaredAttributeSQL | null;
+    verifiedAttribute: TenantVerifiedAttributeSQL | null;
+    verifier: TenantVerifiedAttributeVerifierSQL | null;
+    revoker: TenantVerifiedAttributeRevokerSQL | null;
+    feature: TenantFeatureSQL | null;
+  }>
+): {
+  tenantsSQL: TenantSQL[];
+  mailsSQL: TenantMailSQL[];
+  certifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  declaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  verifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+  featuresSQL: TenantFeatureSQL[];
+} => {
+  const tenantIdSet = new Set<string>();
+  const tenantsSQL: TenantSQL[] = [];
 
   const mailIdSet = new Set<string>();
   const mailsSQL: TenantMailSQL[] = [];
@@ -320,6 +365,12 @@ export const fromJoinToAggregator = (
   const featuresSQL: TenantFeatureSQL[] = [];
 
   queryRes.forEach((row) => {
+    const tenantSQL = row.tenant;
+    if (!tenantIdSet.has(tenantSQL.id)) {
+      tenantIdSet.add(tenantSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      tenantsSQL.push(tenantSQL);
+    }
     const mailSQL = row.mail;
 
     if (mailSQL && !mailIdSet.has(mailSQL.id)) {
@@ -385,7 +436,7 @@ export const fromJoinToAggregator = (
   });
 
   return {
-    tenantSQL,
+    tenantsSQL,
     mailsSQL,
     certifiedAttributesSQL,
     declaredAttributesSQL,
