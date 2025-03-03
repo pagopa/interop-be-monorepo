@@ -43,7 +43,7 @@
     "start:readmodel-writer": "turbo start --concurrency 20 --filter pagopa-interop-*-readmodel-writer",
     "start:ipa-certified-attributes-importer": "turbo start --filter pagopa-interop-ipa-certified-attributes-importer",
     "start:notification-email-sender": "turbo start --filter pagopa-interop-notification-email-sender",
-    "test": "turbo test",
+    "test": "turbo test -- --no-isolate",
     "build": "turbo build",
     "check": "turbo check",
     "lint": "turbo lint -- --cache --cache-strategy content --cache-location ../../.eslintcache",
