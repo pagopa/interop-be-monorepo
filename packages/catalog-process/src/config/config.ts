@@ -7,7 +7,7 @@ import {
   FeatureFlagsConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
-// TEST CHANGE
+// TEST CHANGE Any change
 
 const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(FileManagerConfig)
