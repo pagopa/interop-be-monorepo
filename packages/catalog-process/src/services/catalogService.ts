@@ -815,17 +815,15 @@ export function catalogServiceBuilder(
 
       const updatedEService: EService = {
         ...eservice.data,
-        description: isTemplateInstance
-          ? eservice.data.description
-          : eserviceSeed.description,
         name: updatedName,
-        technology: isTemplateInstance
-          ? eservice.data.technology
-          : updatedTechnology,
-        mode: isTemplateInstance ? eservice.data.mode : updatedMode,
-        riskAnalysis: isTemplateInstance
-          ? eservice.data.riskAnalysis
-          : checkedRiskAnalysis,
+        ...(!isTemplateInstance
+          ? {
+              description: eserviceSeed.description,
+              technology: updatedTechnology,
+              mode: updatedMode,
+              riskAnalysis: checkedRiskAnalysis,
+            }
+          : {}),
         descriptors: interfaceHasToBeDeleted
           ? eservice.data.descriptors.map((d) => ({
               ...d,

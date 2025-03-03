@@ -24,6 +24,7 @@ import {
   eServiceNotFound,
   eServiceDuplicate,
   eserviceNotInDraftState,
+  eServiceNotAnInstance,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -41,6 +42,7 @@ import {
 describe("update eService", () => {
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
+
   it("should write on event-store for the update of an eService (no technology change)", async () => {
     vi.spyOn(fileManager, "delete");
 
@@ -157,6 +159,77 @@ describe("update eService", () => {
     const updatedEService: EService = {
       ...eservice,
       name: updatedName,
+      isSignalHubEnabled,
+      isConsumerDelegable,
+      isClientAccessDelegable: expectedIsClientAccessDelegable,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent.stream_id).toBe(mockEService.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("DraftEServiceUpdated");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(fileManager.delete).not.toHaveBeenCalled();
+  });
+
+  it("should update an eservice template instance correctly ignoring name, description, mode and technology updates", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isConsumerDelegable: false | undefined = randomArrayItem([
+      false,
+      undefined,
+    ]);
+    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const expectedIsClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      isSignalHubEnabled,
+      templateRef: {
+        id: generateId(),
+      },
+      technology: "Soap",
+      mode: "Receive",
+    };
+    await addOneEService(eservice);
+    const returnedEService = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: "eservice new name",
+        description: "eservice new description",
+        technology: "REST",
+        mode: "DELIVER",
+        isSignalHubEnabled,
+        isConsumerDelegable,
+        isClientAccessDelegable,
+      },
+      {
+        authData: getMockAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const updatedEService: EService = {
+      ...eservice,
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable: expectedIsClientAccessDelegable,
@@ -489,6 +562,29 @@ describe("update eService", () => {
         }
       )
     ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw eServiceNotAnInstance if the seed contains an instanceId but the e-service is not a template instance", async () => {
+    await addOneEService(mockEService);
+
+    expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: "eservice new name",
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+          instanceId: "test",
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(eServiceNotAnInstance(mockEService.id));
   });
 
   it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {

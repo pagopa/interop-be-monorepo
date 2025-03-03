@@ -191,7 +191,196 @@ describe("update draft descriptor", () => {
     });
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
   });
+  it("should write on event-store for the update of a template instance draft descriptor ignoring attribute update", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      attributes: {
+        certified: [],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      templateRef: {
+        id: generateId(),
+      },
+    };
 
+    await addOneEService(eservice);
+    const attribute: Attribute = {
+      name: "Attribute name",
+      id: generateId(),
+      kind: "Declared",
+      description: "Attribute Description",
+      creationTime: new Date(),
+    };
+    await addOneAttribute(attribute);
+
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      attributes: {
+        certified: [],
+        declared: [
+          [{ id: attribute.id, explicitAttributeVerification: false }],
+        ],
+        verified: [],
+      },
+    };
+
+    const updatedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          attributes: {
+            certified: [],
+            declared: [],
+            verified: [],
+          },
+        },
+      ],
+    };
+    await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      expectedDescriptorSeed,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+  });
+  it("should write on event-store for the update of a template instance draft descriptor ignoring description update", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      templateRef: {
+        id: generateId(),
+      },
+    };
+
+    await addOneEService(eservice);
+
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      description: "Descriptor Description Update",
+    };
+
+    const updatedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          attributes: {
+            certified: [],
+            declared: [],
+            verified: [],
+          },
+        },
+      ],
+    };
+    await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      expectedDescriptorSeed,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+  });
+  it("should write on event-store for the update of a template instance draft descriptor ignoring voucherLifespan update", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      templateRef: {
+        id: generateId(),
+      },
+    };
+
+    await addOneEService(eservice);
+
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      voucherLifespan: 999,
+    };
+
+    const updatedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          attributes: {
+            certified: [],
+            declared: [],
+            verified: [],
+          },
+        },
+      ],
+    };
+    await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      expectedDescriptorSeed,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+  });
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
