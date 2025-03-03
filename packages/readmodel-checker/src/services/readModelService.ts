@@ -11,6 +11,7 @@ import {
   ProducerKeychain,
   Purpose,
   Tenant,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -71,13 +72,20 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelEServices(): Promise<EService[]> {
+    async getAllReadModelEServices(): Promise<Array<WithMetadata<EService>>> {
       const data = await readModel.eservices.find().toArray();
 
       if (!data) {
         return [];
       } else {
-        const results = z.array(EService).safeParse(data.map((d) => d.data));
+        const results = z
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: EService,
+            })
+          )
+          .safeParse(data.map((d) => d.data));
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse eservice items: results ${JSON.stringify(

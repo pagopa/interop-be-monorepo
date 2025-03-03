@@ -45,10 +45,12 @@ const pool = new Pool({
 });
 const readModelDB = drizzle({ client: pool });
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+// const attributeReadModelServiceSQL =
+//   attributeReadModelServiceBuilderSQL(readModelDB);
 
 function compare<T extends { id: string } | { kid: string }>(
-  collectionItems: T[],
-  postgresItems: T[],
+  collectionItems: Array<WithMetadata<T>>,
+  postgresItems: Array<WithMetadata<T>>,
   schema: string
 ): void {
   if (postgresItems.length === 0) {
@@ -58,12 +60,14 @@ function compare<T extends { id: string } | { kid: string }>(
   }
 
   const allIds = new Set(
-    [...collectionItems, ...postgresItems].map((d) => getIdentificationKey(d))
+    [...collectionItems, ...postgresItems].map((d) =>
+      getIdentificationKey(d.data)
+    )
   );
   const pairs = Array.from(allIds)
     .map((id) => [
-      collectionItems.find((d) => getIdentificationKey(d) === id),
-      postgresItems.find((d) => getIdentificationKey(d) === id),
+      collectionItems.find((d) => getIdentificationKey(d.data) === id),
+      postgresItems.find((d) => getIdentificationKey(d.data) === id),
     ])
     .filter(([a, b]) => !isEqual(a, b));
 
@@ -74,7 +78,7 @@ function compare<T extends { id: string } | { kid: string }>(
       differencesCount++;
       console.warn(
         `Object with id ${getIdentificationKey(
-          itemFromCollection
+          itemFromCollection.data
         )} not found in SQL readmodel`
       );
     }
@@ -82,7 +86,7 @@ function compare<T extends { id: string } | { kid: string }>(
       differencesCount++;
       console.warn(
         `Object with id ${getIdentificationKey(
-          itemFromSQL
+          itemFromSQL.data
         )} not found in collection`
       );
     }
@@ -92,7 +96,7 @@ function compare<T extends { id: string } | { kid: string }>(
         differencesCount++;
         console.warn(
           `Differences in object with id ${getIdentificationKey(
-            itemFromCollection
+            itemFromCollection.data
           )}`
         );
         console.warn(JSON.stringify(objectsDiff, null, 2));
@@ -111,11 +115,16 @@ function compare<T extends { id: string } | { kid: string }>(
 
 async function main(): Promise<void> {
   const eservices = await readModelService.getAllReadModelEServices();
-  const eservicesPostgres = (await readModelServiceSQL.getAllEServices()).map(
-    (e) => e.data
-  );
+  const eservicesPostgres = await readModelServiceSQL.getAllEServices();
 
   compare(eservices, eservicesPostgres, "eservices");
+
+  // TODO
+  // const attributes = await readModelService.getAllReadModelAttributes();
+  // const attributesPostgres =
+  //   await attributeReadModelServiceSQL.getAllAttributes();
+
+  // compare(attributes, attributesPostgres, "attributes");
 }
 
 export function zipDataById<T extends { id: string } | { kid: string }>(
