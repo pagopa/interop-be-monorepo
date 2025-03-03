@@ -41,7 +41,7 @@ import {
   publishEServiceTemplateVersionErrorMapper,
   createEServiceTemplateDocumentErrorMapper,
   getEServiceTemplateDocumentErrorMapper,
-  documentUpdateErrorMapper,
+  updateDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
@@ -507,7 +507,7 @@ const eserviceTemplatesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            documentUpdateErrorMapper,
+            updateDocumentErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

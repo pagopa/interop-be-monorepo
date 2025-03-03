@@ -272,7 +272,7 @@ export const getEServiceTemplateDocumentErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const documentUpdateErrorMapper = (
+export const updateDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
