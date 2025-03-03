@@ -16461,7 +16461,7 @@ paths:
         - eserviceTemplates
       summary: Retrieves Producer EService templates
       description: Retrieves Producer EService templates
-      operationId: getProducerEServices
+      operationId: getProducerEServiceTemplates
       parameters:
         - in: query
           name: q
@@ -16881,7 +16881,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-            type: array
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
