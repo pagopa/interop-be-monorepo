@@ -211,7 +211,7 @@ const eserviceTemplateRouter = (
             emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error publish version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
+            `Error publishing version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
