@@ -46,7 +46,7 @@
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
-    "lint": "turbo lint",
+    "lint": "turbo lint -- --cache --cache-strategy content --cache-location ../../.eslintcache",
     "lint:autofix": "turbo lint:autofix",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
