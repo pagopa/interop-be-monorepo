@@ -161,7 +161,10 @@ export async function handleMessageV2({
             return;
           }
 
-          if (descriptor.state === "ARCHIVED") {
+          if (
+            descriptor.state ===
+            catalogApi.EServiceDescriptorState.Values.ARCHIVED
+          ) {
             return;
           }
 
