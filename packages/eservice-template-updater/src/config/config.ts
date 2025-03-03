@@ -24,18 +24,6 @@ export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
 >;
 
-export const EServiceTemplateProcessServerConfig = z
-  .object({
-    ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    eserviceTemplateUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
-  }));
-
-export type EServiceTemplateProcessServerConfig = z.infer<
-  typeof EServiceTemplateProcessServerConfig
->;
-
 const EServiceTemplateUpdaterConfig = CatalogProcessServerConfig.and(
   EServiceTemplateTopicConfig
 )
