@@ -48,7 +48,7 @@ export const verifyJwtToken = async (
         return callback(invalidClaim("kid"));
       }
 
-      logger.debug(`Getting signing key for kid ${header.kid}`);
+      logger.debug(`Getting public key for kid ${header.kid}`);
 
       // Use an IIFE (Immediately Invoked Function Expression) to handle the asynchronous operations.
       // The IIFE is used to make the `getSecret` callback asynchronous, because the `jwt.verify` function
@@ -63,7 +63,7 @@ export const verifyJwtToken = async (
             logger.debug(`Skip Jwks client: ${error}`);
           }
         }
-        logger.error(`Error getting signing key`);
+        logger.error(`Error getting public key`);
         return callback(jwksSigningKeyError());
       })().catch((error) => callback(error));
     };
