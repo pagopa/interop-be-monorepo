@@ -320,6 +320,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/instances/upgrade:
     post:
       security:
@@ -1467,6 +1473,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /internal/eservices/templates/{eServiceId}/description:
     post:
       parameters:
@@ -1494,6 +1506,12 @@ paths:
           description: E-Service description updated
         "404":
           description: E-Service Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -1532,6 +1550,12 @@ paths:
           description: E-Service descriptor voucher lifespan updated
         "404":
           description: E-Service or descriptor Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -1648,6 +1672,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem" 
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /internal/eservices/templates/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1703,6 +1733,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     delete:
       security:
         - bearerAuth: []
@@ -1740,6 +1776,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
