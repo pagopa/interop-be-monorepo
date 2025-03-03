@@ -909,7 +909,7 @@ const catalogRouter = (
           emptyErrorMapper,
           ctx.logger,
           ctx.correlationId,
-          `Error upgrade eService ${req.params.eServiceId} to the latest version of it's reference template`
+          `Error upgrading eService ${req.params.eServiceId} to the latest version of its reference template`
         );
         return res.status(errorRes.status).send(errorRes);
       }
