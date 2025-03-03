@@ -119,6 +119,7 @@ import {
   assertRequesterCanActAsProducer,
   assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
   verifyRequesterIsConsumerOrDelegateConsumer,
+  purposeIsArchived,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -1289,7 +1290,10 @@ export function purposeServiceBuilder(
         consumerDelegation
       );
 
-      if (purposeIsDraft(purposeToClone.data)) {
+      if (
+        purposeIsDraft(purposeToClone.data) ||
+        purposeIsArchived(purposeToClone.data)
+      ) {
         throw purposeCannotBeCloned(purposeId);
       }
 
