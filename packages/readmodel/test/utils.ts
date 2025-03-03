@@ -1,4 +1,8 @@
-import { RiskAnalysis, riskAnalysisAnswerKind } from "pagopa-interop-models";
+import {
+  RiskAnalysis,
+  riskAnalysisAnswerKind,
+  stringToDate,
+} from "pagopa-interop-models";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
@@ -46,11 +50,8 @@ export const generateRiskAnalysisAnswersSQL = (
     ),
   ]);
 
-// see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#date_time_string_format
-export function dateToCustomISOString(input: Date): string;
-export function dateToCustomISOString(input: Date | undefined): string | null;
-export function dateToCustomISOString(input: Date | undefined): string | null {
-  return input
-    ? input.toISOString().replace("T", " ").replace("Z", "+00")
-    : null;
+export function stringToISOString(input: string): string;
+export function stringToISOString(input: string | null): string | null;
+export function stringToISOString(input: string | null): string | null {
+  return input ? stringToDate(input).toISOString() : null;
 }

@@ -16,7 +16,6 @@ import {
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const retrieveEServiceSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
@@ -26,7 +25,7 @@ export const retrieveEServiceSQL = async (
     .from(eserviceInReadmodelCatalog)
     .where(eq(eserviceInReadmodelCatalog.id, eserviceId))
     .limit(1);
-  return result.shift();
+  return result[0];
 };
 
 export const retrieveDescriptorsSQL = async (
@@ -37,7 +36,6 @@ export const retrieveDescriptorsSQL = async (
     .select()
     .from(eserviceDescriptorInReadmodelCatalog)
     .where(eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId));
-
   return result.length > 0 ? result : undefined;
 };
 

@@ -25,17 +25,13 @@ import {
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
 import {
-  dateToCustomISOString,
-  readModelDB,
-  readModelService,
-} from "./utils.js";
-import {
   retrieveEserviceInterfacesSQL,
   retrieveDescriptorsSQL,
   retrieveEServiceSQL,
   retrieveRejectionReasonsSQL,
   retrieveEserviceDocumentsSQL,
 } from "./eserviceTestReadModelService.js";
+import { readModelDB, readModelService, stringToISOString } from "./utils.js";
 
 describe("E-service queries", () => {
   describe("addEService", () => {
@@ -82,22 +78,51 @@ describe("E-service queries", () => {
         eservice.data.id,
         readModelDB
       );
+      const retrievedAndFormattedEserviceSQL = {
+        ...retrievedEserviceSQL,
+        createdAt: stringToISOString(retrievedEserviceSQL!.createdAt!),
+      };
       const retrievedDescriptorsSQL = await retrieveDescriptorsSQL(
         eservice.data.id,
         readModelDB
+      );
+      const retrievedAndFormattedDescriptorsSQL = retrievedDescriptorsSQL?.map(
+        (descriptor) => ({
+          ...descriptor,
+          createdAt: stringToISOString(descriptor.createdAt),
+          publishedAt: stringToISOString(descriptor.publishedAt),
+          suspendedAt: stringToISOString(descriptor.suspendedAt),
+          deprecatedAt: stringToISOString(descriptor.deprecatedAt),
+          archivedAt: stringToISOString(descriptor.archivedAt),
+        })
       );
       const retrievedRejectionReasons = await retrieveRejectionReasonsSQL(
         eservice.data.id,
         readModelDB
       );
-      const retrievedInterfaces = await retrieveEserviceInterfacesSQL(
-        eservice.data.id,
-        readModelDB
-      );
+      const retrievedAndFormattedRejectionReasons =
+        retrievedRejectionReasons?.map((rejection) => ({
+          ...rejection,
+          rejectedAt: stringToISOString(rejection.rejectedAt),
+        }));
+
       const retrievedDocuments = await retrieveEserviceDocumentsSQL(
         eservice.data.id,
         readModelDB
       );
+      const retrievedAndFormattedDocuments = retrievedDocuments?.map((doc) => ({
+        ...doc,
+        uploadDate: stringToISOString(doc.uploadDate),
+      }));
+
+      const retrievedInterfaces = await retrieveEserviceInterfacesSQL(
+        eservice.data.id,
+        readModelDB
+      );
+      const retrievedAndFormattedInterfaces = retrievedInterfaces?.map((i) => ({
+        ...i,
+        uploadDate: stringToISOString(i.uploadDate),
+      }));
 
       const expectedEserviceSQL: EServiceSQL = {
         name: eservice.data.name,
@@ -106,7 +131,7 @@ describe("E-service queries", () => {
         metadataVersion: eservice.metadata.version,
         producerId: eservice.data.producerId,
         technology: eservice.data.technology,
-        createdAt: dateToCustomISOString(eservice.data.createdAt),
+        createdAt: eservice.data.createdAt.toISOString(),
         mode: eservice.data.mode,
         isSignalHubEnabled: eservice.data.isSignalHubEnabled!,
         isConsumerDelegable: eservice.data.isConsumerDelegable!,
@@ -125,12 +150,12 @@ describe("E-service queries", () => {
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
           dailyCallsTotal: descriptor.dailyCallsTotal,
           agreementApprovalPolicy: descriptor.agreementApprovalPolicy!,
-          createdAt: dateToCustomISOString(descriptor.createdAt),
+          createdAt: descriptor.createdAt.toISOString(),
           serverUrls: descriptor.serverUrls,
-          publishedAt: dateToCustomISOString(descriptor.publishedAt),
-          suspendedAt: dateToCustomISOString(descriptor.suspendedAt),
-          deprecatedAt: dateToCustomISOString(descriptor.deprecatedAt),
-          archivedAt: dateToCustomISOString(descriptor.archivedAt),
+          publishedAt: descriptor.publishedAt!.toISOString(),
+          suspendedAt: descriptor.suspendedAt!.toISOString(),
+          deprecatedAt: descriptor.deprecatedAt!.toISOString(),
+          archivedAt: descriptor.archivedAt!.toISOString(),
         },
       ];
       const expectedRejectionReasons: EServiceDescriptorRejectionReasonSQL[] = [
@@ -139,7 +164,7 @@ describe("E-service queries", () => {
           metadataVersion,
           descriptorId: descriptor.id,
           rejectionReason: rejectionReason.rejectionReason,
-          rejectedAt: dateToCustomISOString(rejectionReason.rejectedAt),
+          rejectedAt: rejectionReason.rejectedAt.toISOString(),
         },
       ];
       const expectedInterfaces: EServiceDescriptorInterfaceSQL[] = [
@@ -153,7 +178,7 @@ describe("E-service queries", () => {
           prettyName: descriptorInterface.prettyName,
           path: descriptorInterface.path,
           checksum: descriptorInterface.checksum,
-          uploadDate: dateToCustomISOString(descriptorInterface.uploadDate),
+          uploadDate: descriptorInterface.uploadDate.toISOString(),
         },
       ];
       const expectedDocuments: EServiceDescriptorDocumentSQL[] = [
@@ -167,15 +192,24 @@ describe("E-service queries", () => {
           prettyName: descriptor.docs[0].prettyName,
           path: descriptor.docs[0].path,
           checksum: descriptor.docs[0].checksum,
-          uploadDate: dateToCustomISOString(descriptor.docs[0].uploadDate),
+          uploadDate: descriptor.docs[0].uploadDate.toISOString(),
         },
       ];
 
-      expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
-      expect(retrievedDescriptorsSQL).toMatchObject(expectedDescriptors);
-      expect(retrievedRejectionReasons).toMatchObject(expectedRejectionReasons);
-      expect(retrievedInterfaces).toMatchObject(expectedInterfaces);
-      expect(retrievedDocuments).toMatchObject(expectedDocuments);
+      expect(retrievedAndFormattedEserviceSQL).toMatchObject(
+        expectedEserviceSQL
+      );
+      expect(retrievedAndFormattedDescriptorsSQL).toMatchObject(
+        expectedDescriptors
+      );
+      expect(retrievedAndFormattedRejectionReasons).toMatchObject(
+        expectedRejectionReasons
+      );
+      expect(retrievedAndFormattedInterfaces).toMatchObject(expectedInterfaces);
+      expect(retrievedAndFormattedDocuments).toMatchObject(expectedDocuments);
+      expect(retrievedAndFormattedEserviceSQL).toMatchObject(
+        expectedEserviceSQL
+      );
     });
 
     it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", async () => {
