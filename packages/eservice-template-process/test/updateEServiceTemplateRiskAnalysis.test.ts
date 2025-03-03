@@ -35,7 +35,7 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   eServiceTemplateNotFound,
   riskAnalysisValidationFailed,
-  templateNotInDraftState,
+  eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
   tenantKindNotFound,
   tenantNotFound,
@@ -269,7 +269,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it("should throw eserviceNotInDraftState if the eservice is not in draft state", async () => {
+  it("should throw eserviceTemplateNotInDraftState if the eservice is not in draft state", async () => {
     const creatorTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
     );
@@ -303,7 +303,9 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateNotInDraftState(eserviceTemplate.id));
+    ).rejects.toThrowError(
+      eserviceTemplateNotInDraftState(eserviceTemplate.id)
+    );
   });
   it("should throw eserviceNotInReceiveMode if the eservice is not in receive mode", async () => {
     const creatorTenantKind: TenantKind = randomArrayItem(

@@ -11,7 +11,6 @@ import {
 import { match } from "ts-pattern";
 import {
   draftEServiceTemplateVersionAlreadyExists,
-  templateNotInDraftState,
   templateNotInReceiveMode,
   tenantKindNotFound,
   eserviceTemplateNotInDraftState,
@@ -35,23 +34,13 @@ export function assertTenantKindExists(
   }
 }
 
-export function assertIsDraftTemplate(template: EServiceTemplate): void {
-  if (
-    template.versions.some(
-      (d) => d.state !== eserviceTemplateVersionState.draft
-    )
-  ) {
-    throw templateNotInDraftState(template.id);
-  }
-}
-
 export function assertIsReceiveTemplate(template: EServiceTemplate): void {
   if (template.mode !== eserviceMode.receive) {
     throw templateNotInReceiveMode(template.id);
   }
 }
 
-export function assertIsDraftEserviceTemplate(
+export function assertIsDraftEServiceTemplate(
   eserviceTemplate: EServiceTemplate
 ): void {
   if (

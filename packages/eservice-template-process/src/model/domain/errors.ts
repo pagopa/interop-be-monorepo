@@ -192,16 +192,6 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
-export function templateNotInDraftState(
-  templateId: EServiceTemplateId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService template ${templateId} is not in draft state`,
-    code: "eserviceTemplateNotInDraftState",
-    title: "EService Template is not in draft state",
-  });
-}
-
 export function templateNotInReceiveMode(
   templateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {

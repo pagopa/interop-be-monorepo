@@ -28,7 +28,7 @@ import {
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import {
   eServiceTemplateNotFound,
-  templateNotInDraftState,
+  eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
 } from "../src/model/domain/errors.js";
 import {
@@ -183,7 +183,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it("should throw eserviceNotInDraftState if the eservice is not in draft state", async () => {
+  it("should throw eserviceTemplateNotInDraftState if the eservice is not in draft state", async () => {
     const requesterId = generateId<TenantId>();
 
     const creatorTenantKind: TenantKind = randomArrayItem(
@@ -221,7 +221,9 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateNotInDraftState(eserviceTemplate.id));
+    ).rejects.toThrowError(
+      eserviceTemplateNotInDraftState(eserviceTemplate.id)
+    );
   });
   it("should throw eserviceNotInReceiveMode if the eservice is not in receive mode", async () => {
     const requesterId = generateId<TenantId>();

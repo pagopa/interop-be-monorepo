@@ -99,10 +99,9 @@ import {
   ReadModelService,
 } from "./readModelService.js";
 import {
-  assertIsDraftTemplate,
   assertIsReceiveTemplate,
   assertTenantKindExists,
-  assertIsDraftEserviceTemplate,
+  assertIsDraftEServiceTemplate,
   assertRequesterEServiceTemplateCreator,
   assertNoDraftEServiceTemplateVersions,
   versionStatesNotAllowingDocumentOperations,
@@ -919,7 +918,7 @@ export function eserviceTemplateServiceBuilder(
 
       const template = await retrieveEServiceTemplate(id, readModelService);
       assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
-      assertIsDraftTemplate(template.data);
+      assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 
       const tenant = await retrieveTenant(
@@ -977,7 +976,7 @@ export function eserviceTemplateServiceBuilder(
         readModelService
       );
       assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
-      assertIsDraftTemplate(template.data);
+      assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 
       const newTemplate: EServiceTemplate = {
@@ -1012,7 +1011,7 @@ export function eserviceTemplateServiceBuilder(
         readModelService
       );
       assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
-      assertIsDraftTemplate(template.data);
+      assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 
       const tenant = await retrieveTenant(
@@ -1270,7 +1269,7 @@ export function eserviceTemplateServiceBuilder(
         authData
       );
 
-      assertIsDraftEserviceTemplate(eserviceTemplate.data);
+      assertIsDraftEServiceTemplate(eserviceTemplate.data);
 
       if (eserviceTemplateSeed.name !== eserviceTemplate.data.name) {
         const eserviceTemplateWithSameName =

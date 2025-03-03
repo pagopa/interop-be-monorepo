@@ -36,7 +36,7 @@ import {
   eserviceTemaplateRiskAnalysisNameDuplicate,
   eServiceTemplateNotFound,
   riskAnalysisValidationFailed,
-  templateNotInDraftState,
+  eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
   tenantKindNotFound,
   tenantNotFound,
@@ -213,7 +213,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it("should throw eserviceNotInDraftState if the eservice is not in draft state", async () => {
+  it("should throw eserviceTemplateNotInDraftState if the eservice is not in draft state", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -240,7 +240,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateNotInDraftState(eserviceTemplate.id));
+    ).rejects.toThrowError(
+      eserviceTemplateNotInDraftState(eserviceTemplate.id)
+    );
   });
   it("should throw eserviceNotInReceiveMode if the eservice is not in receive mode", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
