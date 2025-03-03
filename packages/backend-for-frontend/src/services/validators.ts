@@ -96,7 +96,7 @@ export function verifyRequesterIsProducerOrDelegateProducer(
 ): void {
   if (
     !isRequesterEserviceProducer(requesterId, eservice) &&
-    !isRequesterIsProducerDelegate(
+    !isRequesterProducerDelegate(
       eservice,
       requesterId,
       activeProducerDelegations
@@ -106,7 +106,7 @@ export function verifyRequesterIsProducerOrDelegateProducer(
   }
 }
 
-export function isRequesterIsProducerDelegate(
+export function isRequesterProducerDelegate(
   eservice: catalogApi.EService,
   requesterId: TenantId,
   activeProducerDelegations: delegationApi.Delegation[] | undefined
@@ -114,8 +114,10 @@ export function isRequesterIsProducerDelegate(
   const producerDelegation = activeProducerDelegations?.at(0);
   return (
     producerDelegation?.delegateId === requesterId &&
-    producerDelegation?.kind === "DELEGATED_CONSUMER" &&
-    producerDelegation?.state === "ACTIVE" &&
+    producerDelegation?.delegatorId === eservice.producerId &&
+    producerDelegation?.kind ===
+      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER &&
+    producerDelegation?.state === delegationApi.DelegationState.Values.ACTIVE &&
     producerDelegation?.eserviceId !== eservice.id
   );
 }
@@ -235,7 +237,11 @@ export function verifyExportEligibility(
 }
 
 export function assertIsDraftEservice(eservice: catalogApi.EService): void {
-  if (eservice.descriptors.some((d) => d.state !== "DRAFT")) {
+  if (
+    eservice.descriptors.some(
+      (d) => d.state !== catalogApi.EServiceDescriptorState.Values.DRAFT
+    )
+  ) {
     throw eserviceIsNotDraft(eservice.id);
   }
 }
@@ -245,7 +251,10 @@ export function assertTemplateIsPublished(
   versionId: EServiceTemplateVersionId
 ): void {
   const templateVersion = template.versions.find((v) => v.id === versionId);
-  if (templateVersion?.state !== "PUBLISHED") {
+  if (
+    templateVersion?.state !==
+    eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
+  ) {
     throw eserviceTemplateNotPublished(template.id);
   }
 }
