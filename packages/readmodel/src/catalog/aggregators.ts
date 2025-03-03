@@ -378,7 +378,7 @@ export const fromJoinToAggregatorArray = (
   const descriptorsSQL: EServiceDescriptorSQL[] = [];
 
   const interfaceIdSet = new Set<string>();
-  const interfacesSQL: EServiceDescriptorDocumentSQL[] = [];
+  const interfacesSQL: EServiceDescriptorInterfaceSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
@@ -414,7 +414,7 @@ export const fromJoinToAggregatorArray = (
         descriptorsSQL.push(descriptorSQL);
       }
 
-      const interfaceSQL = row.document;
+      const interfaceSQL = row.interface;
 
       if (interfaceSQL && !interfaceIdSet.has(interfaceSQL.id)) {
         interfaceIdSet.add(interfaceSQL.id);
