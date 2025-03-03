@@ -70,14 +70,8 @@ const eserviceTemplateService = eserviceTemplateServiceBuilder(
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const {
-    ADMIN_ROLE,
-    API_ROLE,
-    SECURITY_ROLE,
-    M2M_ROLE,
-    SUPPORT_ROLE,
-    INTERNAL_ROLE,
-  } = userRoles;
+  const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } =
+    userRoles;
 
   return ctx
     .router(eserviceTemplateApi.processApi.api, {
