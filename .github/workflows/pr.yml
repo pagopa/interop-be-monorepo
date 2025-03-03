@@ -35,7 +35,7 @@ jobs:
         id: cache
         with:
           path: .eslintcache
-          key: ${{ runner.os }}-${{ hashFiles('.eslintcache') }}
+          key: ${{ runner.os }}-${{ github.ref_name }}
       - run: pnpm lint
 
   check:
