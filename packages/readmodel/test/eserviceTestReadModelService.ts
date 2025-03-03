@@ -7,7 +7,9 @@ import {
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
+  EServiceDescriptorInterfaceSQL,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  EServiceDescriptorSQL,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -27,16 +29,19 @@ export const retrieveEServiceSQL = async (
   return result.shift();
 };
 
-export const retrieveDescriptorsSQL = (
+export const retrieveDescriptorsSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-) =>
-  db
+): Promise<EServiceDescriptorSQL[] | undefined> => {
+  const result = await db
     .select()
     .from(eserviceDescriptorInReadmodelCatalog)
     .where(eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId));
 
-export const retrieveEserviceDocumentSQL = (
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveEserviceDocumentsSQL = (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
 ) =>
@@ -47,17 +52,19 @@ export const retrieveEserviceDocumentSQL = (
       eq(eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, eserviceId)
     );
 
-export const retrieveEserviceInterfaceSQL = (
+export const retrieveEserviceInterfacesSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-) =>
-  db
+): Promise<EServiceDescriptorInterfaceSQL[] | undefined> => {
+  const result = await db
     .select()
     .from(eserviceDescriptorInterfaceInReadmodelCatalog)
     .where(
       eq(eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId, eserviceId)
     );
 
+  return result.length > 0 ? result : undefined;
+};
 export const retrieveEserviceAttributesSQL = (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>

@@ -17,17 +17,32 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { diff } from "json-diff";
-import { EServiceSQL } from "pagopa-interop-readmodel-models";
+import {
+  EServiceDescriptorDocumentSQL,
+  EServiceDescriptorInterfaceSQL,
+  EServiceDescriptorRejectionReasonSQL,
+  EServiceDescriptorSQL,
+  EServiceSQL,
+} from "pagopa-interop-readmodel-models";
 import {
   dateToCustomISOString,
   readModelDB,
   readModelService,
 } from "./utils.js";
-import { retrieveEServiceSQL } from "./eserviceTestReadModelService.js";
+import {
+  retrieveEserviceInterfacesSQL,
+  retrieveDescriptorsSQL,
+  retrieveEServiceSQL,
+  retrieveRejectionReasonsSQL,
+  retrieveEserviceDocumentsSQL,
+} from "./eserviceTestReadModelService.js";
 
 describe("E-service queries", () => {
   describe("addEService", () => {
     it.only("should add a complete (*all* fields with values) e-service", async () => {
+      const metadataVersion = 1;
+      const rejectionReason = getMockDescriptorRejectionReason();
+      const descriptorInterface = getMockDocument();
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         attributes: {
@@ -35,9 +50,9 @@ describe("E-service queries", () => {
           declared: [],
           verified: [],
         },
-        interface: getMockDocument(),
+        interface: descriptorInterface,
         docs: [getMockDocument()],
-        rejectionReasons: [getMockDescriptorRejectionReason()],
+        rejectionReasons: [rejectionReason],
         description: "description test",
         publishedAt: new Date(),
         suspendedAt: new Date(),
@@ -58,12 +73,28 @@ describe("E-service queries", () => {
           isClientAccessDelegable: true,
           isConsumerDelegable: true,
         },
-        metadata: { version: 1 },
+        metadata: { version: metadataVersion },
       };
 
       await readModelService.upsertEService(eservice);
 
       const retrievedEserviceSQL = await retrieveEServiceSQL(
+        eservice.data.id,
+        readModelDB
+      );
+      const retrievedDescriptorsSQL = await retrieveDescriptorsSQL(
+        eservice.data.id,
+        readModelDB
+      );
+      const retrievedRejectionReasons = await retrieveRejectionReasonsSQL(
+        eservice.data.id,
+        readModelDB
+      );
+      const retrievedInterfaces = await retrieveEserviceInterfacesSQL(
+        eservice.data.id,
+        readModelDB
+      );
+      const retrievedDocuments = await retrieveEserviceDocumentsSQL(
         eservice.data.id,
         readModelDB
       );
@@ -81,8 +112,70 @@ describe("E-service queries", () => {
         isConsumerDelegable: eservice.data.isConsumerDelegable!,
         isClientAccessDelegable: eservice.data.isClientAccessDelegable!,
       };
+      const expectedDescriptors: EServiceDescriptorSQL[] = [
+        {
+          id: descriptor.id,
+          eserviceId: eservice.data.id,
+          metadataVersion,
+          version: descriptor.version,
+          description: descriptor.description || null,
+          state: descriptor.state,
+          audience: descriptor.audience,
+          voucherLifespan: descriptor.voucherLifespan,
+          dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: descriptor.dailyCallsTotal,
+          agreementApprovalPolicy: descriptor.agreementApprovalPolicy!,
+          createdAt: dateToCustomISOString(descriptor.createdAt),
+          serverUrls: descriptor.serverUrls,
+          publishedAt: dateToCustomISOString(descriptor.publishedAt),
+          suspendedAt: dateToCustomISOString(descriptor.suspendedAt),
+          deprecatedAt: dateToCustomISOString(descriptor.deprecatedAt),
+          archivedAt: dateToCustomISOString(descriptor.archivedAt),
+        },
+      ];
+      const expectedRejectionReasons: EServiceDescriptorRejectionReasonSQL[] = [
+        {
+          eserviceId: eservice.data.id,
+          metadataVersion,
+          descriptorId: descriptor.id,
+          rejectionReason: rejectionReason.rejectionReason,
+          rejectedAt: dateToCustomISOString(rejectionReason.rejectedAt),
+        },
+      ];
+      const expectedInterfaces: EServiceDescriptorInterfaceSQL[] = [
+        {
+          id: descriptorInterface.id,
+          eserviceId: eservice.data.id,
+          metadataVersion,
+          descriptorId: descriptor.id,
+          name: descriptorInterface.name,
+          contentType: descriptorInterface.contentType,
+          prettyName: descriptorInterface.prettyName,
+          path: descriptorInterface.path,
+          checksum: descriptorInterface.checksum,
+          uploadDate: dateToCustomISOString(descriptorInterface.uploadDate),
+        },
+      ];
+      const expectedDocuments: EServiceDescriptorDocumentSQL[] = [
+        {
+          id: descriptor.docs[0].id,
+          eserviceId: eservice.data.id,
+          metadataVersion,
+          descriptorId: descriptor.id,
+          name: descriptor.docs[0].name,
+          contentType: descriptor.docs[0].contentType,
+          prettyName: descriptor.docs[0].prettyName,
+          path: descriptor.docs[0].path,
+          checksum: descriptor.docs[0].checksum,
+          uploadDate: dateToCustomISOString(descriptor.docs[0].uploadDate),
+        },
+      ];
 
       expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
+      expect(retrievedDescriptorsSQL).toMatchObject(expectedDescriptors);
+      expect(retrievedRejectionReasons).toMatchObject(expectedRejectionReasons);
+      expect(retrievedInterfaces).toMatchObject(expectedInterfaces);
+      expect(retrievedDocuments).toMatchObject(expectedDocuments);
     });
 
     it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", async () => {
