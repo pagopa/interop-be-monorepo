@@ -70,9 +70,9 @@ export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
-  const fileManagerConfig = FileManagerConfig.and(S3Config)
-    .and(LoggerConfig)
-    .safeParse(process.env);
+  const fileManagerConfig = FileManagerConfig.and(LoggerConfig).safeParse(
+    process.env
+  );
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
   const awsSESConfig = AWSSesConfig.safeParse(process.env);
@@ -132,14 +132,18 @@ export function setupTestContainersVitestGlobal() {
 
     // Setting up the Minio container if the config is provided
     if (fileManagerConfig.success) {
-      startedMinioContainer = await minioContainer(
-        fileManagerConfig.data
-      ).start();
+      startedMinioContainer = await minioContainer({
+        ...fileManagerConfig.data,
+        s3Bucket: "interop-local-bucket",
+      }).start();
 
       fileManagerConfig.data.s3ServerPort =
         startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
 
-      provide("fileManagerConfig", fileManagerConfig.data);
+      provide("fileManagerConfig", {
+        ...fileManagerConfig.data,
+        s3Bucket: "interop-local-bucket",
+      });
     }
 
     if (emailManagerConfig.success) {
