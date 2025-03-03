@@ -1,21 +1,7 @@
-import {
-  LoggerConfig,
-  ReadModelDbConfig,
-  TokenGenerationReadModelDbConfig,
-} from "pagopa-interop-commons";
+import { LoggerConfig, ReadModelDbConfig } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const ReadModelCheckerConfig = LoggerConfig.and(ReadModelDbConfig)
-  .and(TokenGenerationReadModelDbConfig)
-  .and(
-    z
-      .object({
-        AGREEMENTS_TO_SKIP: z.string(),
-      })
-      .transform((c) => ({
-        agreementsToSkip: c.AGREEMENTS_TO_SKIP.split(","),
-      }))
-  );
+const ReadModelCheckerConfig = LoggerConfig.and(ReadModelDbConfig);
 
 export type ReadModelCheckerConfig = z.infer<typeof ReadModelCheckerConfig>;
 
