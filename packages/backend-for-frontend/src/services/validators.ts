@@ -10,9 +10,7 @@ import {
   delegationKind,
   delegationState,
   EServiceId,
-  EServiceTemplate,
   EServiceTemplateVersionId,
-  eserviceTemplateVersionState,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -26,7 +24,6 @@ import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
   eserviceIsNotDraft,
-  eserviceTemplateNotInPublishedState,
   eserviceTemplateNotPublished,
   invalidEServiceRequester,
   notValidDescriptor,
@@ -234,19 +231,6 @@ export function verifyExportEligibility(
 ): void {
   if (!isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
-}
-
-export function assertIsNotDraftEserviceTemplate(
-  eserviceTemplate: EServiceTemplate
-): void {
-  if (
-    eserviceTemplate.versions.length > 0 &&
-    eserviceTemplate.versions.every(
-      (v) => v.state === eserviceTemplateVersionState.draft
-    )
-  ) {
-    throw eserviceTemplateNotInPublishedState(eserviceTemplate.id);
   }
 }
 

@@ -2,7 +2,6 @@ import { constants } from "http2";
 import {
   ApiError,
   AttributeId,
-  EServiceTemplateId,
   makeApiProblemBuilder,
   parseErrorMessage,
 } from "pagopa-interop-models";
@@ -55,14 +54,13 @@ export const errorCodes = {
   noVersionInEServiceTemplate: "0045",
   eserviceTemplateVersionNotFound: "0046",
   catalogEServiceTemplatePublishedVersionNotFound: "0047",
-  eserviceTemplateNotInPublishedState: "0048",
-  eserviceTemplateNotFound: "0049",
-  eserviceTemplateIsNotPublished: "0050",
-  eserviceTemplateInterfaceNotFound: "0051",
-  eserviceTemplateInterfaceDataNotValid: "0052",
-  tooManyDescriptorForInterfaceWithTemplate: "0053",
-  eserviceDescriptorDraftNotFound: "0054",
-  templateDataNotFound: "0055",
+  eserviceTemplateNotFound: "0048",
+  eserviceTemplateIsNotPublished: "0049",
+  eserviceTemplateInterfaceNotFound: "0050",
+  eserviceTemplateInterfaceDataNotValid: "0051",
+  tooManyDescriptorForInterfaceWithTemplate: "0052",
+  eserviceDescriptorDraftNotFound: "0053",
+  templateDataNotFound: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -502,15 +500,6 @@ export function eserviceTemplateDataNotFound(
   });
 }
 
-export function eserviceTemplateNotInPublishedState(
-  eserviceTemplateId: EServiceTemplateId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService Template ${eserviceTemplateId} is not in published state`,
-    code: "eserviceTemplateNotInPublishedState",
-    title: "EService Template not in published state",
-  });
-}
 export function eserviceIsNotDraft(eserviceId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is not in draft state`,
