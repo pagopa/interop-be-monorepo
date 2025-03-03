@@ -382,7 +382,7 @@ export function eServiceAlreadyUpgraded(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eserviceId} as already the latest version of the template`,
+    detail: `EService ${eserviceId} has already the latest version of the template`,
     code: "eServiceAlreadyUpgraded",
     title: "EService already upgraded",
   });
