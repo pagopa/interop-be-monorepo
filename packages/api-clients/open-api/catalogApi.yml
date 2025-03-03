@@ -106,7 +106,7 @@ paths:
           schema:
             type: boolean
         - in: query
-          name: templateIds
+          name: templatesIds
           description: comma separated sequence of template IDs
           schema:
             type: array

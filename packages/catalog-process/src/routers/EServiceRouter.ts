@@ -127,7 +127,7 @@ const eservicesRouter = (
             mode,
             delegated,
             isConsumerDelegable,
-            templateIds,
+            templatesIds,
             offset,
             limit,
           } = req.query;
@@ -146,7 +146,7 @@ const eservicesRouter = (
               mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
               isConsumerDelegable,
               delegated,
-              templateIds: templateIds.map<EServiceTemplateId>(unsafeBrandId),
+              templatesIds: templatesIds.map<EServiceTemplateId>(unsafeBrandId),
             },
             offset,
             limit,

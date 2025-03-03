@@ -42,7 +42,7 @@ export function toEserviceCatalogProcessQueryParams(
     ...queryParams,
     eservicesIds: [],
     name: queryParams.q,
-    templateIds: [],
+    templatesIds: [],
   };
 }
 

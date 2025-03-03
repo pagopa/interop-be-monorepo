@@ -25,7 +25,7 @@ export type ApiGetEServicesFilters = {
   mode?: EServiceMode;
   isConsumerDelegable?: boolean;
   delegated?: boolean;
-  templateIds: EServiceTemplateId[];
+  templatesIds: EServiceTemplateId[];
 };
 
 export type EServiceDocument = {

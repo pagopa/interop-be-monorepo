@@ -418,7 +418,7 @@ async function getAllEServiceTemplateInstances(
       await catalogProcess.client.getEServices({
         headers,
         queries: {
-          templateIds: [eserviceTemplateId],
+          templatesIds: [eserviceTemplateId],
           offset,
           limit,
         },

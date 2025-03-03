@@ -153,7 +153,7 @@ export function readModelServiceBuilder(
         mode,
         isConsumerDelegable,
         delegated,
-        templateIds,
+        templatesIds,
       } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
@@ -343,10 +343,10 @@ export function readModelServiceBuilder(
         }))
         .otherwise(() => ({}));
 
-      const templateIdsFilter =
-        templateIds.length > 0
+      const templatesIdsFilter =
+        templatesIds.length > 0
           ? {
-              "data.templateRef.id": { $in: templateIds },
+              "data.templateRef.id": { $in: templatesIds },
             }
           : {};
 
@@ -361,7 +361,7 @@ export function readModelServiceBuilder(
         { $match: modeFilter },
         { $match: isConsumerDelegableFilter },
         { $match: delegatedFilter },
-        { $match: templateIdsFilter },
+        { $match: templatesIdsFilter },
         {
           $project: {
             data: 1,
