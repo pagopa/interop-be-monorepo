@@ -46,6 +46,7 @@ export const generateRiskAnalysisAnswersSQL = (
     ),
   ]);
 
+// see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#date_time_string_format
 export function dateToCustomISOString(input: Date): string;
 export function dateToCustomISOString(input: Date | undefined): string | null;
 export function dateToCustomISOString(input: Date | undefined): string | null {
