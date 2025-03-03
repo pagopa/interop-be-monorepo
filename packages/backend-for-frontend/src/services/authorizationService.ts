@@ -18,15 +18,14 @@ import {
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import {
-  TenantId,
-  genericError,
-  invalidClaim,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
-import { missingSelfcareId, tenantLoginNotAllowed } from "../model/errors.js";
+import {
+  missingSelfcareId,
+  missingUserRolesInIdentityToken,
+  tenantLoginNotAllowed,
+} from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 
@@ -73,7 +72,7 @@ export function authorizationServiceBuilder(
     );
 
     if (userRoles.length === 0) {
-      throw genericError("Unable to extract userRoles from claims");
+      throw missingUserRolesInIdentityToken();
     }
 
     return {

@@ -49,6 +49,7 @@ export const errorCodes = {
   clientAssertionPublicKeyNotFound: "0042",
   eserviceDelegated: "0043",
   delegatedEserviceNotExportable: "0044",
+  missingUserRolesInIdentityToken: "0045",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -418,5 +419,13 @@ export function delegatedEserviceNotExportable(
     detail: `Impossibile to export Eservice with a valid delegation for producer ${delegatorId}`,
     code: "delegatedEserviceNotExportable",
     title: "Delegated Eservice is not exportable",
+  });
+}
+
+export function missingUserRolesInIdentityToken(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Unable to extract userRoles from claims",
+    code: "missingUserRolesInIdentityToken",
+    title: "Unable to extract userRoles from claims",
   });
 }
