@@ -107,7 +107,7 @@ export const fromDescriptorRejectionReasonV2 = (
   rejectedAt: bigIntToDate(input.rejectedAt),
 });
 
-export const fromInstanceEServiceTemplateVersionV2 = (
+export const fromEServiceTemplateVersionRefV2 = (
   input: EServiceTemplateVersionRefV2
 ): EServiceTemplateVersionRef => ({
   id: unsafeBrandId(input.id),
@@ -148,7 +148,7 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
       : undefined,
   templateVersionRef:
     input.templateVersionRef != null
-      ? fromInstanceEServiceTemplateVersionV2(input.templateVersionRef)
+      ? fromEServiceTemplateVersionRefV2(input.templateVersionRef)
       : undefined,
 });
 
@@ -186,7 +186,7 @@ export const fromRiskAnalysisV2 = (
   riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
 });
 
-export const fromInstanceEServiceTemplateV2 = (
+export const fromEServiceTemplateRefV2 = (
   input: EServiceTemplateRefV2
 ): EServiceTemplateRef => ({
   id: unsafeBrandId(input.id),
@@ -204,6 +204,6 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   mode: fromEServiceModeV2(input.mode),
   templateRef:
     input.templateRef != null
-      ? fromInstanceEServiceTemplateV2(input.templateRef)
+      ? fromEServiceTemplateRefV2(input.templateRef)
       : undefined,
 });
