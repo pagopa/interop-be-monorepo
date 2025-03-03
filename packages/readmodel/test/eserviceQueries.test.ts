@@ -45,7 +45,7 @@ import {
 } from "./utils.js";
 
 describe("E-service queries", () => {
-  describe("addEService", () => {
+  describe("upsertEService", () => {
     it.only("should add a complete (*all* fields with values) e-service", async () => {
       const metadataVersion = 1;
       const rejectionReason = getMockDescriptorRejectionReason();
