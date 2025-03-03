@@ -440,11 +440,16 @@ export function toBffEServiceTemplateRef(
   descriptor: catalogApi.EServiceDescriptor,
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate
 ): bffApi.EServiceTemplateRef {
+  const templateInterfaceId = eserviceTemplate.versions.find(
+    (v) => v.id === descriptor.templateVersionRef?.id
+  )?.interface?.id;
+
   return {
     templateId: eserviceTemplate.id,
     templateName: eserviceTemplate.name,
     instanceId: eservice.templateRef?.instanceId,
     templateVersionId: descriptor.templateVersionRef?.id,
+    templateInterfaceId,
     interfaceMetadata: descriptor.templateVersionRef?.interfaceMetadata,
   };
 }

@@ -17757,6 +17757,8 @@ components:
           type: string
         instanceId:
           type: string
+        templateInterfaceId:
+          type: string
         interfaceMetadata:
           $ref: "#/components/schemas/CustomizedInterfaceMetadata"
     EServiceDoc:
