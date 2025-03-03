@@ -1811,6 +1811,10 @@ components:
           type: string
           minLength: 5
           maxLength: 60
+        instanceId:
+          type: string
+          minLength: 5
+          maxLength: 60  
         description:
           type: string
           minLength: 10

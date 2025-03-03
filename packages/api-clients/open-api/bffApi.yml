@@ -17231,6 +17231,8 @@ components:
       properties:
         name:
           type: string
+        instanceId:
+          type: string
         description:
           type: string
         technology:

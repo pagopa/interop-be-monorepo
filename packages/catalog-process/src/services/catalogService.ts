@@ -770,22 +770,29 @@ export function catalogServiceBuilder(
 
       assertIsDraftEservice(eservice.data);
 
-      if (eserviceSeed.name !== eservice.data.name) {
-        const eserviceWithSameName =
-          await readModelService.getEServiceByNameAndProducerId({
-            name: eserviceSeed.name,
-            producerId: eservice.data.producerId,
-          });
-        if (eserviceWithSameName !== undefined) {
-          throw eServiceDuplicate(eserviceSeed.name);
-        }
+      const isTemplateInstance = eservice.data.templateRef !== undefined;
+
+      if (eserviceSeed.instanceId && !isTemplateInstance) {
+        throw eServiceNotAnInstance(eserviceId);
+      }
+
+      const updatedName = `${
+        isTemplateInstance ? eservice.data.name : eserviceSeed.name
+      } ${eserviceSeed.instanceId ?? ""}`.trim();
+
+      if (updatedName !== eservice.data.name) {
+        await assertNotDuplicatedEServiceName(
+          updatedName,
+          eservice.data,
+          readModelService
+        );
       }
 
       const updatedTechnology = apiTechnologyToTechnology(
         eserviceSeed.technology
       );
       const interfaceHasToBeDeleted =
-        updatedTechnology !== eservice.data.technology;
+        !isTemplateInstance && updatedTechnology !== eservice.data.technology;
 
       if (interfaceHasToBeDeleted) {
         await Promise.all(
@@ -808,11 +815,17 @@ export function catalogServiceBuilder(
 
       const updatedEService: EService = {
         ...eservice.data,
-        description: eserviceSeed.description,
-        name: eserviceSeed.name,
-        technology: updatedTechnology,
-        mode: updatedMode,
-        riskAnalysis: checkedRiskAnalysis,
+        description: isTemplateInstance
+          ? eservice.data.description
+          : eserviceSeed.description,
+        name: updatedName,
+        technology: isTemplateInstance
+          ? eservice.data.technology
+          : updatedTechnology,
+        mode: isTemplateInstance ? eservice.data.mode : updatedMode,
+        riskAnalysis: isTemplateInstance
+          ? eservice.data.riskAnalysis
+          : checkedRiskAnalysis,
         descriptors: interfaceHasToBeDeleted
           ? eservice.data.descriptors.map((d) => ({
               ...d,
@@ -832,6 +845,12 @@ export function catalogServiceBuilder(
           .with(false, () => false)
           .with(true, () => eserviceSeed.isClientAccessDelegable)
           .exhaustive(),
+        templateRef: eservice.data.templateRef
+          ? {
+              ...eservice.data.templateRef,
+              instanceId: eserviceSeed.instanceId,
+            }
+          : undefined,
       };
 
       const event = toCreateEventEServiceUpdated(
@@ -1299,16 +1318,21 @@ export function catalogServiceBuilder(
         throw inconsistentDailyCalls();
       }
 
-      const parsedAttributes = await parseAndCheckAttributes(
-        seed.attributes,
-        readModelService
-      );
+      const isTemplateInstance = eservice.data.templateRef?.id !== undefined;
+
+      const parsedAttributes = !isTemplateInstance
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : descriptor.attributes;
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
-        description: seed.description,
+        description: !isTemplateInstance
+          ? seed.description
+          : descriptor.description,
         audience: seed.audience,
-        voucherLifespan: seed.voucherLifespan,
+        voucherLifespan: !isTemplateInstance
+          ? seed.voucherLifespan
+          : descriptor.voucherLifespan,
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         state: descriptorState.draft,
         dailyCallsTotal: seed.dailyCallsTotal,
