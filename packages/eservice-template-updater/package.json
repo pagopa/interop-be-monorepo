@@ -2,7 +2,7 @@
     "name": "pagopa-interop-eservice-template-updater",
     "private": true,
     "version": "1.0.0",
-    "description": "PagoPA Interoperability client consumer service that updates clients on purposes updates",
+    "description": "PagoPA Interoperability consumer service that updates eservices on template updates",
     "main": "dist",
     "type": "module",
     "scripts": {
