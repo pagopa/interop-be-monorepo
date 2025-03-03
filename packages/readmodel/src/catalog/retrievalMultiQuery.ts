@@ -10,7 +10,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateBindingInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -89,13 +88,13 @@ export const retrieveEserviceRiskAnalysisAnswersSQL = (
       eq(eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId, eserviceId)
     );
 
-export const retrieveEserviceTemplateBindingSQL = (
-  eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
-) =>
-  db
-    .select()
-    .from(eserviceTemplateBindingInReadmodelCatalog)
-    .where(
-      eq(eserviceTemplateBindingInReadmodelCatalog.eserviceId, eserviceId)
-    );
+// export const retrieveEserviceTemplateBindingSQL = (
+//   eserviceId: EServiceId,
+//   db: ReturnType<typeof drizzle>
+// ) =>
+//   db
+//     .select()
+//     .from(eserviceTemplateBindingInReadmodelCatalog)
+//     .where(
+//       eq(eserviceTemplateBindingInReadmodelCatalog.eserviceId, eserviceId)
+//     );

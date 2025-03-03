@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+
+/*
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { EServiceId } from "pagopa-interop-models";
@@ -68,6 +70,7 @@ Perché usiamo left join e non full join? Esempio: tutti gli attribute se esisto
 Perché usiamo left join e non inner join? Abbiamo ad esempio descriptor senza document, quindi non devono essere ignorati
  */
 
+/*
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const eserviceJoin = async (
   eserviceId: EServiceId,
@@ -454,6 +457,8 @@ export const fromJoinToAggregatorArray = (
     templateBindingSQL: [],
   };
 };
+
+*/
 
 /*
 tenant  -> tenant_mail

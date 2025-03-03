@@ -12,21 +12,8 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   is_signal_hub_enabled BOOLEAN,
   is_consumer_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
-  PRIMARY KEY (id)
-);
-
--- TODO: update with new eservice-template model
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_template_binding (
-  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice(id),
-  metadata_version INTEGER NOT NULL,
-  eservice_template_id UUID,
-  instance_id VARCHAR,
-  name VARCHAR,
-  email VARCHAR,
-  url VARCHAR,
-  terms_and_conditions_url VARCHAR,
-  server_url VARCHAR,
-  PRIMARY KEY (eservice_id, eservice_template_id)
+  PRIMARY KEY (id),
+  CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
@@ -47,7 +34,8 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
   archived_at TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_rejection_reason (
@@ -55,36 +43,53 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_rejection_reaso
   metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
   rejection_reason VARCHAR NOT NULL,
-  rejected_at TIMESTAMP WITH TIME ZONE NOT NULL
+  rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_document(
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_interface (
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor(id) ON DELETE CASCADE,
+  descriptor_id UUID UNIQUE NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
   name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  kind VARCHAR NOT NULL,
-  PRIMARY KEY(id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_attribute(
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_document (
+  id UUID,
+  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
+  name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  checksum VARCHAR NOT NULL,
+  upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_attribute (
   attribute_id UUID NOT NULL,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor(id) ON DELETE CASCADE,
+  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
-  PRIMARY KEY(attribute_id, descriptor_id, group_id)
+  PRIMARY KEY (attribute_id, descriptor_id, group_id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis(
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis (
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
@@ -92,10 +97,11 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis(
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id UUID UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
-  PRIMARY KEY(id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer(
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer (
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
@@ -103,7 +109,8 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer(
   kind VARCHAR NOT NULL,
   key VARCHAR NOT NULL,
   value VARCHAR ARRAY NOT NULL,
-  PRIMARY KEY(id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version)
 );
 
 CREATE INDEX eservice_descriptor_eservice_id_idx ON readmodel_catalog.eservice_descriptor (eservice_id);
