@@ -15,6 +15,7 @@ import {
   templateNotInReceiveMode,
   tenantKindNotFound,
   eserviceTemplateNotInDraftState,
+  inconsistentDailyCalls,
 } from "../model/domain/errors.js";
 
 export function assertRequesterEServiceTemplateCreator(
@@ -87,4 +88,20 @@ export function versionStatesNotAllowingDocumentOperations(
     )
     .with(eserviceTemplateVersionState.deprecated, () => true)
     .exhaustive();
+}
+
+export function assertConsistentDailyCalls({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+}: {
+  dailyCallsPerConsumer?: number;
+  dailyCallsTotal?: number;
+}): void {
+  if (
+    dailyCallsPerConsumer !== undefined &&
+    dailyCallsTotal !== undefined &&
+    dailyCallsPerConsumer > dailyCallsTotal
+  ) {
+    throw inconsistentDailyCalls();
+  }
 }

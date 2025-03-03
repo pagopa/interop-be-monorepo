@@ -49,7 +49,6 @@ import {
   eServiceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
   eserviceTemplateWithoutPublishedVersion,
-  inconsistentDailyCalls,
   missingRiskAnalysis,
   instanceNameConflict,
   notValidEServiceTemplateVersionState,
@@ -107,6 +106,7 @@ import {
   assertRequesterEServiceTemplateCreator,
   assertNoDraftEServiceTemplateVersions,
   versionStatesNotAllowingDocumentOperations,
+  assertConsistentDailyCalls,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -366,13 +366,7 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
-      if (
-        seed.dailyCallsPerConsumer !== undefined &&
-        seed.dailyCallsTotal !== undefined &&
-        seed.dailyCallsPerConsumer > seed.dailyCallsTotal
-      ) {
-        throw inconsistentDailyCalls();
-      }
+      assertConsistentDailyCalls(seed);
 
       const parsedAttributes = await parseAndCheckAttributes(
         seed.attributes,
@@ -803,13 +797,7 @@ export function eserviceTemplateServiceBuilder(
       const dailyCallsTotal =
         seed.dailyCallsTotal ?? eserviceTemplateVersion.dailyCallsTotal;
 
-      if (
-        dailyCallsPerConsumer !== undefined &&
-        dailyCallsTotal !== undefined &&
-        dailyCallsPerConsumer > dailyCallsTotal
-      ) {
-        throw inconsistentDailyCalls();
-      }
+      assertConsistentDailyCalls({ dailyCallsPerConsumer, dailyCallsTotal });
 
       const updatedEserviceTemplateVersion: EServiceTemplateVersion = {
         ...eserviceTemplateVersion,
@@ -1217,15 +1205,7 @@ export function eserviceTemplateServiceBuilder(
         throw eServiceTemplateDuplicate(seed.name);
       }
 
-      const { dailyCallsPerConsumer, dailyCallsTotal } = seed.version;
-
-      if (
-        dailyCallsPerConsumer !== undefined &&
-        dailyCallsTotal !== undefined &&
-        dailyCallsPerConsumer > dailyCallsTotal
-      ) {
-        throw inconsistentDailyCalls();
-      }
+      assertConsistentDailyCalls(seed.version);
 
       const creationDate = new Date();
       const draftVersion: EServiceTemplateVersion = {
@@ -1368,13 +1348,7 @@ export function eserviceTemplateServiceBuilder(
         `Creating new eservice template version for EService template ${eserviceTemplateId}`
       );
 
-      if (
-        seed.dailyCallsPerConsumer &&
-        seed.dailyCallsTotal &&
-        seed.dailyCallsPerConsumer > seed.dailyCallsTotal
-      ) {
-        throw inconsistentDailyCalls();
-      }
+      assertConsistentDailyCalls(seed);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
