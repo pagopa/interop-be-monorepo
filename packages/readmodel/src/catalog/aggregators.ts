@@ -414,7 +414,7 @@ export const fromJoinToAggregatorArray = (
         descriptorsSQL.push(descriptorSQL);
       }
 
-      const interfaceSQL = row.document;
+      const interfaceSQL = row.interface;
 
       if (interfaceSQL && !interfaceIdSet.has(interfaceSQL.id)) {
         interfaceIdSet.add(interfaceSQL.id);
