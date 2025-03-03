@@ -88,8 +88,8 @@ export function readModelServiceBuilderSQL(db: ReturnType<typeof drizzle>) {
       eserviceId: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
       /*
-        eservice ->1 descriptor ->2 document
-                      descriptor ->3 interface
+        eservice ->1 descriptor ->2 interface
+                      descriptor ->3 document
                       descriptor ->4 attribute
                       descriptor ->5 rejection reason
                   ->6 risk analysis ->7 answer
@@ -211,10 +211,10 @@ export function readModelServiceBuilderSQL(db: ReturnType<typeof drizzle>) {
         )
         .leftJoin(
           // 2
-          eserviceDescriptorDocumentInReadmodelCatalog,
+          eserviceDescriptorInterfaceInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
           )
         )
         .leftJoin(
