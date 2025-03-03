@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import {
   bffApi,
   catalogApi,
+  delegationApi,
   eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -700,8 +701,8 @@ export function eserviceTemplateServiceBuilder(
         queries: {
           limit: 1,
           offset: 1,
-          delegationStates: ["ACTIVE"],
-          kind: "DELEGATED_PRODUCER",
+          delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+          kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
           eserviceIds: [eServiceId],
         },
         headers,
