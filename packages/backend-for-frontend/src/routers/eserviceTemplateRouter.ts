@@ -66,7 +66,8 @@ const eserviceTemplateRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          ctx.correlationId
+          ctx.correlationId,
+          "Error creating eservice template"
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -88,7 +89,8 @@ const eserviceTemplateRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          ctx.correlationId
+          ctx.correlationId,
+          `Error retrieving eservice template ${req.params.eServiceTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -108,7 +110,8 @@ const eserviceTemplateRouter = (
           error,
           emptyErrorMapper,
           ctx.logger,
-          ctx.correlationId
+          ctx.correlationId,
+          `Error updating eservice template ${req.params.eServiceTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
