@@ -85,7 +85,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
               data: EService,
             })
           )
-          .safeParse(data.map((d) => d.data));
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse eservice items: results ${JSON.stringify(
