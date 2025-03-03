@@ -87,6 +87,8 @@ import {
   toCreateEventEServiceTemplateVersionDocumentAdded,
   toCreateEventEServiceTemplateVersionInterfaceUpdated,
   toCreateEventEServiceTemplateVersionDocumentUpdated,
+  toCreateEventEServiceTemplateVersionDocumentDeleted,
+  toCreateEventEServiceTemplateVersionInterfaceDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
 import {
@@ -823,7 +825,6 @@ export function eserviceTemplateServiceBuilder(
 
       return updatedEserviceTemplate;
     },
-
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId,
       { authData, logger }: WithLogger<AppContext>
@@ -834,7 +835,6 @@ export function eserviceTemplateServiceBuilder(
         eserviceTemplateId,
         readModelService
       );
-
       return applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
     },
     async deleteEServiceTemplateVersion(
@@ -908,7 +908,6 @@ export function eserviceTemplateServiceBuilder(
         );
       }
     },
-
     async createRiskAnalysis(
       id: EServiceTemplateId,
       createRiskAnalysis: eserviceTemplateApi.EServiceRiskAnalysisSeed,
@@ -1051,7 +1050,6 @@ export function eserviceTemplateServiceBuilder(
 
       await repository.createEvent(event);
     },
-
     async updateEServiceTemplateVersionAttributes(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
@@ -1251,7 +1249,6 @@ export function eserviceTemplateServiceBuilder(
 
       return newEServiceTemplate;
     },
-
     async updateEServiceTemplate(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateSeed: eserviceTemplateApi.UpdateEServiceTemplateSeed,
@@ -1723,6 +1720,83 @@ export function eserviceTemplateServiceBuilder(
 
       await repository.createEvent(event);
       return updatedDocument;
+    },
+    async deleteDocument(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting Document ${documentId} of Version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+
+      const version = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        eserviceTemplate.data
+      );
+
+      if (versionStatesNotAllowingDocumentOperations(version)) {
+        throw notValidEServiceTemplateVersionState(version.id, version.state);
+      }
+
+      const document = retrieveDocument(
+        eserviceTemplateId,
+        version,
+        documentId
+      );
+
+      const isInterface = document.id === version?.interface?.id;
+
+      if (isInterface) {
+        if (version.state !== eserviceTemplateVersionState.draft) {
+          throw notValidEServiceTemplateVersionState(version.id, version.state);
+        }
+      } else {
+        if (version.state === eserviceTemplateVersionState.deprecated) {
+          throw notValidEServiceTemplateVersionState(version.id, version.state);
+        }
+      }
+
+      await fileManager.delete(config.s3Bucket, document.path, logger);
+
+      const updatedEServiceTemplate = replaceEServiceTemplateVersion(
+        eserviceTemplate.data,
+        {
+          ...version,
+          interface: isInterface ? undefined : version.interface,
+          docs: version.docs.filter((doc) => doc.id !== documentId),
+        }
+      );
+
+      const event = isInterface
+        ? toCreateEventEServiceTemplateVersionInterfaceDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            documentId,
+            updatedEServiceTemplate,
+            correlationId
+          )
+        : toCreateEventEServiceTemplateVersionDocumentDeleted(
+            eserviceTemplate.data.id,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            documentId,
+            updatedEServiceTemplate,
+            correlationId
+          );
+
+      await repository.createEvent(event);
     },
   };
 }

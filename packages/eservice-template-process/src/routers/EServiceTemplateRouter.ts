@@ -42,6 +42,7 @@ import {
   createEServiceTemplateDocumentErrorMapper,
   getEServiceTemplateDocumentErrorMapper,
   updateDocumentErrorMapper,
+  deleteDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 import {
   eserviceTemplateToApiEServiceTemplate,
@@ -280,7 +281,7 @@ const eserviceTemplatesRouter = (
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -479,12 +480,32 @@ const eserviceTemplatesRouter = (
     )
     .delete(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(504)
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await eserviceTemplateService.deleteDocument(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.documentId),
+            ctx
+          );
+          return res.status(204);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteDocumentErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     )
     .post(
       "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId/update",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

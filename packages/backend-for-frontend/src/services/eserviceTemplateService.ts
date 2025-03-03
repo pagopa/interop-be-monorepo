@@ -750,6 +750,27 @@ export function eserviceTemplateServiceBuilder(
 
       return { id: resourceId };
     },
+    deleteEServiceTemplateDocumentById: async (
+      eServiceTemplateId: EServiceTemplateId,
+      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      documentId: EServiceDocumentId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Deleting document ${documentId} of version ${eServiceTemplateVersionId} of EServiceTemplate ${eServiceTemplateId}`
+      );
+      await eserviceTemplateClient.deleteEServiceTemplateDocumentById(
+        undefined,
+        {
+          params: {
+            eServiceTemplateId,
+            eServiceTemplateVersionId,
+            documentId,
+          },
+          headers,
+        }
+      );
+    },
   };
 }
 
