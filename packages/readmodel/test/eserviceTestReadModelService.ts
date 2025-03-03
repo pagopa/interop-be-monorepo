@@ -4,15 +4,20 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   eserviceDescriptorAttributeInReadmodelCatalog,
+  EServiceDescriptorAttributeSQL,
   eserviceDescriptorDocumentInReadmodelCatalog,
+  EServiceDescriptorDocumentSQL,
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   EServiceDescriptorInterfaceSQL,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  EServiceRiskAnalysisAnswerSQL,
   eserviceRiskAnalysisInReadmodelCatalog,
+  EServiceRiskAnalysisSQL,
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
 
@@ -39,11 +44,11 @@ export const retrieveDescriptorsSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveEserviceDocumentsSQL = (
+export const retrieveEserviceDocumentsSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-) =>
-  db
+): Promise<EServiceDescriptorDocumentSQL[] | undefined> =>
+  await db
     .select()
     .from(eserviceDescriptorDocumentInReadmodelCatalog)
     .where(
@@ -63,22 +68,26 @@ export const retrieveEserviceInterfacesSQL = async (
 
   return result.length > 0 ? result : undefined;
 };
-export const retrieveEserviceAttributesSQL = (
+
+export const retrieveEserviceAttributesSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-) =>
-  db
+): Promise<EServiceDescriptorAttributeSQL[] | undefined> => {
+  const result = await db
     .select()
     .from(eserviceDescriptorAttributeInReadmodelCatalog)
     .where(
       eq(eserviceDescriptorAttributeInReadmodelCatalog.eserviceId, eserviceId)
     );
 
-export const retrieveRejectionReasonsSQL = (
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveRejectionReasonsSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-) =>
-  db
+): Promise<EServiceDescriptorRejectionReasonSQL[] | undefined> => {
+  const result = await db
     .select()
     .from(eserviceDescriptorRejectionReasonInReadmodelCatalog)
     .where(
@@ -88,25 +97,34 @@ export const retrieveRejectionReasonsSQL = (
       )
     );
 
-export const retrieveEserviceRiskAnalysesSQL = (
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveEserviceRiskAnalysesSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-) =>
-  db
+): Promise<EServiceRiskAnalysisSQL[] | undefined> => {
+  const result = await db
     .select()
     .from(eserviceRiskAnalysisInReadmodelCatalog)
     .where(eq(eserviceRiskAnalysisInReadmodelCatalog.eserviceId, eserviceId));
 
-export const retrieveEserviceRiskAnalysisAnswersSQL = (
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveEserviceRiskAnalysisAnswersSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-) =>
-  db
+): Promise<EServiceRiskAnalysisAnswerSQL[] | undefined> => {
+  const result = await db
     .select()
     .from(eserviceRiskAnalysisAnswerInReadmodelCatalog)
     .where(
       eq(eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId, eserviceId)
     );
+
+  return result.length > 0 ? result : undefined;
+};
 
 // export const retrieveEserviceTemplateBindingSQL = (
 //   eserviceId: EServiceId,

@@ -21,6 +21,7 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
 export const readModelService = readModelServiceBuilder(readModelDB);
 
 afterEach(cleanup);
+
 export const generateRiskAnalysisAnswersSQL = (
   eserviceId: string,
   riskAnalyses: RiskAnalysis[]
