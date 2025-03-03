@@ -2,8 +2,6 @@ import { RiskAnalysis, riskAnalysisAnswerKind } from "pagopa-interop-models";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { readModelServiceBuilder } from "../src/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -47,3 +45,11 @@ export const generateRiskAnalysisAnswersSQL = (
       })
     ),
   ]);
+
+export function dateToCustomISOString(input: Date): string;
+export function dateToCustomISOString(input: Date | undefined): string | null;
+export function dateToCustomISOString(input: Date | undefined): string | null {
+  return input
+    ? input.toISOString().replace("T", " ").replace("Z", "+00")
+    : null;
+}

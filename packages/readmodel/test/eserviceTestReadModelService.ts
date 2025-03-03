@@ -6,22 +6,26 @@ import {
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  EServiceSQL,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const retrieveEServiceSQL = (
+export const retrieveEServiceSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-) =>
-  db
+): Promise<EServiceSQL | undefined> => {
+  const result = await db
     .select()
     .from(eserviceInReadmodelCatalog)
     .where(eq(eserviceInReadmodelCatalog.id, eserviceId))
     .limit(1);
+  return result.shift();
+};
 
 export const retrieveDescriptorsSQL = (
   eserviceId: EServiceId,
@@ -41,6 +45,17 @@ export const retrieveEserviceDocumentSQL = (
     .from(eserviceDescriptorDocumentInReadmodelCatalog)
     .where(
       eq(eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, eserviceId)
+    );
+
+export const retrieveEserviceInterfaceSQL = (
+  eserviceId: EServiceId,
+  db: ReturnType<typeof drizzle>
+) =>
+  db
+    .select()
+    .from(eserviceDescriptorInterfaceInReadmodelCatalog)
+    .where(
+      eq(eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId, eserviceId)
     );
 
 export const retrieveEserviceAttributesSQL = (

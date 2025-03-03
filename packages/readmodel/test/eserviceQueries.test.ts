@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-console */
 import {
   getMockDescriptor,
@@ -16,11 +17,17 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { diff } from "json-diff";
-import { readModelService } from "./utils.js";
+import { EServiceSQL } from "pagopa-interop-readmodel-models";
+import {
+  dateToCustomISOString,
+  readModelDB,
+  readModelService,
+} from "./utils.js";
+import { retrieveEServiceSQL } from "./eserviceTestReadModelService.js";
 
 describe("E-service queries", () => {
   describe("addEService", () => {
-    it("should convert a complete e-service into e-service SQL objects", async () => {
+    it.only("should add a complete (*all* fields with values) e-service", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         attributes: {
@@ -56,28 +63,26 @@ describe("E-service queries", () => {
 
       await readModelService.upsertEService(eservice);
 
-      const retrievedEService = await readModelService.getEServiceById(
-        eservice.data.id
+      const retrievedEserviceSQL = await retrieveEServiceSQL(
+        eservice.data.id,
+        readModelDB
       );
 
-      const resDiff = diff(eservice, retrievedEService, {
-        sort: true,
-      });
+      const expectedEserviceSQL: EServiceSQL = {
+        name: eservice.data.name,
+        description: eservice.data.description,
+        id: eservice.data.id,
+        metadataVersion: eservice.metadata.version,
+        producerId: eservice.data.producerId,
+        technology: eservice.data.technology,
+        createdAt: dateToCustomISOString(eservice.data.createdAt),
+        mode: eservice.data.mode,
+        isSignalHubEnabled: eservice.data.isSignalHubEnabled!,
+        isConsumerDelegable: eservice.data.isConsumerDelegable!,
+        isClientAccessDelegable: eservice.data.isClientAccessDelegable!,
+      };
 
-      if (resDiff) {
-        console.error(resDiff);
-
-        // if it fails use this output, otherwise undefined values are not printed
-        console.log(
-          JSON.stringify(
-            resDiff,
-            (_k, v) => (v === undefined ? "undefined" : v),
-            2
-          )
-        );
-      }
-
-      expect(resDiff).toBeUndefined();
+      expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
     });
 
     it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", async () => {
