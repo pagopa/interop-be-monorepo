@@ -29,9 +29,9 @@ import {
 } from "pagopa-interop-readmodel-models";
 import {
   retrieveEserviceInterfacesSQL,
-  retrieveDescriptorsSQL,
+  retrieveEserviceDescriptorsSQL,
   retrieveEServiceSQL,
-  retrieveRejectionReasonsSQL,
+  retrieveEserviceRejectionReasonsSQL,
   retrieveEserviceDocumentsSQL,
   retrieveEserviceRiskAnalysesSQL,
   retrieveEserviceRiskAnalysisAnswersSQL,
@@ -95,7 +95,7 @@ describe("E-service queries", () => {
         ...retrievedEserviceSQL,
         createdAt: stringToISOString(retrievedEserviceSQL!.createdAt!),
       };
-      const retrievedDescriptorsSQL = await retrieveDescriptorsSQL(
+      const retrievedDescriptorsSQL = await retrieveEserviceDescriptorsSQL(
         eservice.data.id,
         readModelDB
       );
@@ -109,10 +109,11 @@ describe("E-service queries", () => {
           archivedAt: stringToISOString(descriptor.archivedAt),
         })
       );
-      const retrievedRejectionReasons = await retrieveRejectionReasonsSQL(
-        eservice.data.id,
-        readModelDB
-      );
+      const retrievedRejectionReasons =
+        await retrieveEserviceRejectionReasonsSQL(
+          eservice.data.id,
+          readModelDB
+        );
       const retrievedAndFormattedRejectionReasons =
         retrievedRejectionReasons?.map((rejection) => ({
           ...rejection,

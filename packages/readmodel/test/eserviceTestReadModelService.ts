@@ -33,7 +33,7 @@ export const retrieveEServiceSQL = async (
   return result[0];
 };
 
-export const retrieveDescriptorsSQL = async (
+export const retrieveEserviceDescriptorsSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
 ): Promise<EServiceDescriptorSQL[] | undefined> => {
@@ -83,7 +83,7 @@ export const retrieveEserviceAttributesSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveRejectionReasonsSQL = async (
+export const retrieveEserviceRejectionReasonsSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
 ): Promise<EServiceDescriptorRejectionReasonSQL[] | undefined> => {
