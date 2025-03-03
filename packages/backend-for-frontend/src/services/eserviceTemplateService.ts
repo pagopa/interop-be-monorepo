@@ -592,7 +592,7 @@ export function eserviceTemplateServiceBuilder(
         fileManager,
         eserviceTemplate.id,
         apiTechnologyToTechnology(eserviceTemplate.technology),
-        doc.prettyName, // It's correct ???
+        doc.prettyName,
         doc.kind,
         doc.doc,
         documentId,
