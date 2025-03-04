@@ -6,6 +6,7 @@ import {
   Agreement,
   Attribute,
   Client,
+  Delegation,
   EService,
   Purpose,
   Tenant,
@@ -22,6 +23,8 @@ import {
   agreementReadModelServiceBuilderSQL,
   attributeReadModelServiceBuilderSQL,
   catalogReadModelServiceBuilderSQL,
+  delegationReadModelServiceBuilder,
+  purposeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilderSQL,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -50,6 +53,10 @@ export const tenantReadModelServiceSQL =
   tenantReadModelServiceBuilderSQL(readModelDB);
 export const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilderSQL(readModelDB);
+export const purposeReadModelServiceSQL =
+  purposeReadModelServiceBuilderSQL(readModelDB);
+export const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
@@ -81,10 +88,23 @@ export const addOneTenant = async (
   );
 };
 
-export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
+export const addOnePurpose = async (
+  purpose: WithMetadata<Purpose>
+): Promise<void> => {
   await writeInReadmodel(
-    toReadModelPurpose(purpose),
-    readModelRepository.purposes
+    toReadModelPurpose(purpose.data),
+    readModelRepository.purposes,
+    purpose.metadata.version
+  );
+};
+
+export const addOneDelegation = async (
+  delegation: WithMetadata<Delegation>
+): Promise<void> => {
+  await writeInReadmodel(
+    delegation.data,
+    readModelRepository.delegations,
+    delegation.metadata.version
   );
 };
 
