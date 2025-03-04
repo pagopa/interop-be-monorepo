@@ -161,3 +161,8 @@ export type DelegationStampSQL = InferSelectModel<
 export type DelegationContractDocumentSQL = InferSelectModel<
   typeof delegationContractDocumentInReadmodelDelegation
 >;
+export type DelegationItemsSQL = {
+  delegationSQL: DelegationSQL;
+  stampsSQL: DelegationStampSQL[];
+  contractDocumentsSQL: DelegationContractDocumentSQL[];
+};
