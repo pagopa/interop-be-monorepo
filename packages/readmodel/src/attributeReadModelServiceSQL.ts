@@ -5,7 +5,10 @@ import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
 import { Pool } from "pg";
 import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
-import { aggregateAttribute } from "./attribute/aggregators.js";
+import {
+  aggregateAttribute,
+  aggregateAttributeArray,
+} from "./attribute/aggregators.js";
 
 export const makeDrizzleConnection = (
   readModelSQLDbConfig: ReadModelSQLDbConfig
@@ -67,6 +70,11 @@ export function attributeReadModelServiceBuilderSQL(
             lte(attributeInReadmodelAttribute.metadataVersion, version)
           )
         );
+    },
+    async getAllAttributes(): Promise<Array<WithMetadata<Attribute>>> {
+      const res = await db.select().from(attributeInReadmodelAttribute);
+
+      return aggregateAttributeArray(res);
     },
   };
 }
