@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version_document (
-  purpose_id UUID NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
+  purpose_id UUID UNIQUE NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   purpose_version_id UUID NOT NULL REFERENCES readmodel_purpose.purpose_version (id) ON DELETE CASCADE,
   id UUID NOT NULL,
