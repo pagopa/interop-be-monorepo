@@ -19,7 +19,9 @@ import {
 } from "./authorization/producerKeychainAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function producerKeychainReadModelServiceBuilder(
+  db: ReturnType<typeof drizzle>
+) {
   return {
     async addProducerKeychain(
       producerKeychain: WithMetadata<ProducerKeychain>
@@ -117,4 +119,6 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   };
 }
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type ProducerKeychainReadModelService = ReturnType<
+  typeof producerKeychainReadModelServiceBuilder
+>;
