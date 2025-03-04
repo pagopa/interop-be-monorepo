@@ -257,7 +257,7 @@ export function notificationEmailSenderServiceBuilder(
         subject: `Richiesta di fruizione ${agreement.id} attiva`,
         to: [consumerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`,
           producerName: producer.name,
           consumerName: consumer.name,
           eserviceName: eservice.name,
@@ -319,7 +319,7 @@ export function notificationEmailSenderServiceBuilder(
         subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
         to: [consumerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`,
           producerName: producer.name,
           consumerName: consumer.name,
           eserviceName: eservice.name,
@@ -483,7 +483,7 @@ export function notificationEmailSenderServiceBuilder(
         subject,
         to: [consumerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
-          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+          interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
           purposeName: purpose.title,
         }),
       };
@@ -540,7 +540,7 @@ export function notificationEmailSenderServiceBuilder(
             subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
             to: [consumerEmail.address],
             html: templateService.compileHtml(htmlTemplate, {
-              interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/fruizione/catalogo-e-service/${eservice.id}/${descriptor}`,
+              interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`,
               eserviceName: eservice.name,
             }),
           };
