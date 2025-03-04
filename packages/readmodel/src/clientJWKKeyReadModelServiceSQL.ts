@@ -32,12 +32,18 @@ export function clientJWKKeyReadModelServiceBuilder(
       });
     },
     async getClientJWKKeyById(
-      clientId: ClientId
+      clientId: ClientId,
+      kid: string
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
       const queryResult = await db
         .select()
         .from(clientJwkKeyInReadmodelClientJwkKey)
-        .where(eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId))
+        .where(
+          and(
+            eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
+            eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
+          )
+        )
         .limit(1);
 
       if (queryResult.length === 0) {
