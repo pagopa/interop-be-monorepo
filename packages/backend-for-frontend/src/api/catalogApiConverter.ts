@@ -147,6 +147,7 @@ export function toBffCatalogApiDescriptorDoc(
     name: document.name,
     contentType: document.contentType,
     prettyName: document.prettyName,
+    checksum: document.checksum,
   };
 }
 
