@@ -15,7 +15,9 @@ import {
 import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
 import {
   aggregateProducerKeychain,
+  aggregateProducerKeychainArray,
   toProducerKeychainAggregator,
+  toProducerKeychainAggregatorArray,
 } from "./authorization/producerKeychainAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -23,7 +25,7 @@ export function producerKeychainReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async addProducerKeychain(
+    async upsertProducerKeychain(
       producerKeychain: WithMetadata<ProducerKeychain>
     ): Promise<void> {
       const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
@@ -33,6 +35,15 @@ export function producerKeychainReadModelServiceBuilder(
         );
 
       await db.transaction(async (tx) => {
+        await tx
+          .delete(producerKeychainInReadmodelProducerKeychain)
+          .where(
+            eq(
+              producerKeychainInReadmodelProducerKeychain.id,
+              producerKeychain.data.id
+            )
+          );
+
         await tx
           .insert(producerKeychainInReadmodelProducerKeychain)
           .values(producerKeychainSQL);
@@ -58,7 +69,7 @@ export function producerKeychainReadModelServiceBuilder(
     },
     async getProducerKeychainById(
       producerKeychainId: ProducerKeychainId
-    ): Promise<WithMetadata<ProducerKeychain>> {
+    ): Promise<WithMetadata<ProducerKeychain> | undefined> {
       /*
         producer_keychain -> 1 producer_keychain_user
                           -> 2 producer_keychain_eservice
@@ -101,8 +112,13 @@ export function producerKeychainReadModelServiceBuilder(
           )
         );
 
-      const aggregatorInput = toProducerKeychainAggregator(queryResult);
-      return aggregateProducerKeychain(aggregatorInput);
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return aggregateProducerKeychain(
+        toProducerKeychainAggregator(queryResult)
+      );
     },
     async deleteProducerKeychainById(
       producerKeychainId: ProducerKeychainId
@@ -115,6 +131,56 @@ export function producerKeychainReadModelServiceBuilder(
             producerKeychainId
           )
         );
+    },
+    async getAllProducerKeychainById(): Promise<
+      Array<WithMetadata<ProducerKeychain>>
+    > {
+      /*
+        producer_keychain -> 1 producer_keychain_user
+                          -> 2 producer_keychain_eservice
+                          -> 3 producer_keychain_key
+      */
+      const queryResult = await db
+        .select({
+          producerKeychain: producerKeychainInReadmodelProducerKeychain,
+          producerKeychainUser: producerKeychainUserInReadmodelProducerKeychain,
+          producerKeychainEService:
+            producerKeychainEserviceInReadmodelProducerKeychain,
+          producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
+        })
+        .from(producerKeychainEserviceInReadmodelProducerKeychain)
+        .leftJoin(
+          // 1
+          producerKeychainUserInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            clientUserInReadmodelClient.clientId
+          )
+        )
+        .leftJoin(
+          // 2
+          producerKeychainEserviceInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+          )
+        )
+        .leftJoin(
+          // 3
+          producerKeychainKeyInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return new Array<WithMetadata<ProducerKeychain>>();
+      }
+
+      return aggregateProducerKeychainArray(
+        toProducerKeychainAggregatorArray(queryResult)
+      );
     },
   };
 }
