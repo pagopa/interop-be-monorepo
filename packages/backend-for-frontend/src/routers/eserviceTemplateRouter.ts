@@ -552,7 +552,7 @@ const eserviceTemplateRouter = (
         }
       }
     )
-    .get("/eservice/templates/filter/creators", async (req, res) => {
+    .get("/eservices/templates/filter/creators", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       const { offset, limit, q } = req.query;
