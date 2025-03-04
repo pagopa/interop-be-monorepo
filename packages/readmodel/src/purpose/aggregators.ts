@@ -281,7 +281,7 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
   };
 };
 
-export const fromJoinToAggregatorPurpose = (
+export const toPurposeAggregator = (
   queryRes: Array<{
     purpose: PurposeSQL;
     purposeRiskAnalysisForm: PurposeRiskAnalysisFormSQL | null;
@@ -290,7 +290,40 @@ export const fromJoinToAggregatorPurpose = (
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
   }>
 ): PurposeItemsSQL => {
-  const purposeSQL = queryRes[0].purpose;
+  const {
+    purposesSQL,
+    riskAnalysisFormSQL,
+    riskAnalysisAnswersSQL,
+    versionsSQL,
+    versionDocumentsSQL,
+  } = toPurposeAggregatorArray(queryRes);
+  return {
+    purposeSQL: purposesSQL[0],
+    riskAnalysisFormSQL,
+    riskAnalysisAnswersSQL,
+    versionsSQL,
+    versionDocumentsSQL,
+  };
+};
+
+export const toPurposeAggregatorArray = (
+  queryRes: Array<{
+    purpose: PurposeSQL;
+    purposeRiskAnalysisForm: PurposeRiskAnalysisFormSQL | null;
+    purposeRiskAnalysisAnswer: PurposeRiskAnalysisAnswerSQL | null;
+    purposeVersion: PurposeVersionSQL | null;
+    purposeVersionDocument: PurposeVersionDocumentSQL | null;
+  }>
+): {
+  purposesSQL: PurposeSQL[];
+  riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
+  versionsSQL: PurposeVersionSQL[];
+  versionDocumentsSQL: PurposeVersionDocumentSQL[];
+} => {
+  const purposeIdSet = new Set<string>();
+  const purposesSQL: PurposeSQL[] = [];
+
   const purposeRiskAnalysisFormSQL = queryRes[0].purposeRiskAnalysisForm;
 
   const purposeRiskAnalysisAnswerIdSet = new Set<string>();
@@ -303,6 +336,13 @@ export const fromJoinToAggregatorPurpose = (
   const purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[] = [];
 
   queryRes.forEach((row) => {
+    const purposeSQL = row.purpose;
+    if (!purposeIdSet.has(purposeSQL.id)) {
+      purposeIdSet.add(purposeSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      purposesSQL.push(purposeSQL);
+    }
+
     const purposeRiskAnalysisFormSQL = row.purposeRiskAnalysisForm;
 
     if (purposeRiskAnalysisFormSQL) {
@@ -339,7 +379,7 @@ export const fromJoinToAggregatorPurpose = (
   });
 
   return {
-    purposeSQL,
+    purposesSQL,
     riskAnalysisFormSQL: purposeRiskAnalysisFormSQL || undefined,
     riskAnalysisAnswersSQL:
       purposeRiskAnalysisAnswersSQL.length > 0

@@ -11,11 +11,13 @@ import {
 import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import {
   aggregatePurpose,
-  fromJoinToAggregatorPurpose,
+  toPurposeAggregator,
 } from "./purpose/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function agreementReadModelServiceBuilder(
+  db: ReturnType<typeof drizzle>
+) {
   return {
     async addPurpose(purpose: WithMetadata<Purpose>): Promise<void> {
       const {
@@ -103,7 +105,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         );
 
-      const aggregatorInput = fromJoinToAggregatorPurpose(queryResult);
+      const aggregatorInput = toPurposeAggregator(queryResult);
 
       return aggregatePurpose(aggregatorInput);
     },
@@ -115,4 +117,6 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   };
 }
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type AgreementReadModelService = ReturnType<
+  typeof agreementReadModelServiceBuilder
+>;
