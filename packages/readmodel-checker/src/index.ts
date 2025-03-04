@@ -12,6 +12,7 @@ import {
   attributeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilderSQL,
   agreementReadModelServiceBuilderSQL,
+  purposeReadModelServiceBuilderSQL,
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -51,6 +52,8 @@ const attributeReadModelServiceSQL =
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilderSQL(readModelDB);
+const purposeReadModelServiceSQL =
+  purposeReadModelServiceBuilderSQL(readModelDB);
 
 async function main(): Promise<void> {
   // CATALOG
@@ -92,6 +95,16 @@ async function main(): Promise<void> {
     collectionItems: agreements,
     postgresItems: agreementsPostgres,
     schema: "agreements",
+    loggerInstance,
+  });
+
+  // PURPOSE
+  const purposes = await readModelService.getAllReadModelPurposes();
+  const purposesPostgres = await purposeReadModelServiceSQL.getAllPurposes();
+  compare({
+    collectionItems: purposes,
+    postgresItems: purposesPostgres,
+    schema: "purpose",
     loggerInstance,
   });
 }
