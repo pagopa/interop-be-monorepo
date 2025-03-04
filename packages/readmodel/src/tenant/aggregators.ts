@@ -100,14 +100,18 @@ export const aggregateTenant = ({
   const tenant: Tenant = {
     id: unsafeBrandId<TenantId>(tenantSQL.id),
     name: tenantSQL.name,
-    kind: tenantSQL.kind ? TenantKind.parse(tenantSQL.kind) : undefined,
+    ...(tenantSQL.kind ? { kind: TenantKind.parse(tenantSQL.kind) } : {}),
     createdAt: stringToDate(tenantSQL.createdAt),
-    onboardedAt: stringToDate(tenantSQL.onboardedAt),
-    updatedAt: stringToDate(tenantSQL.updatedAt),
-    selfcareId: tenantSQL.selfcareId || undefined,
-    subUnitType: tenantSQL.subUnitType
-      ? TenantUnitType.parse(tenantSQL.subUnitType)
-      : undefined,
+    ...(tenantSQL.onboardedAt
+      ? { onboardedAt: stringToDate(tenantSQL.onboardedAt) }
+      : {}),
+    ...(tenantSQL.updatedAt
+      ? { updatedAt: stringToDate(tenantSQL.updatedAt) }
+      : {}),
+    ...(tenantSQL.selfcareId ? { selfcareId: tenantSQL.selfcareId } : {}),
+    ...(tenantSQL.subUnitType
+      ? { subUnitType: TenantUnitType.parse(tenantSQL.subUnitType) }
+      : {}),
     attributes,
     externalId: {
       origin: tenantSQL.externalIdOrigin,
@@ -171,7 +175,7 @@ export const aggregateTenantArray = ({
 const tenantMailSQLToTenantMail = (mail: TenantMailSQL): TenantMail => ({
   id: mail.id,
   createdAt: stringToDate(mail.createdAt),
-  description: mail.description || undefined,
+  ...(mail.description ? { description: mail.description } : {}),
   kind: TenantMailKind.parse(mail.kind),
   address: mail.address,
 });
@@ -196,9 +200,13 @@ const aggregateTenantAttributes = ({
       assignmentTimestamp: stringToDate(
         certifiedAttributeSQL.assignmentTimestamp
       ),
-      revocationTimestamp: stringToDate(
-        certifiedAttributeSQL.revocationTimestamp
-      ),
+      ...(certifiedAttributeSQL.revocationTimestamp
+        ? {
+            revocationTimestamp: stringToDate(
+              certifiedAttributeSQL.revocationTimestamp
+            ),
+          }
+        : {}),
     }));
 
   const declaredTenantAttributes: DeclaredTenantAttribute[] =
@@ -208,9 +216,13 @@ const aggregateTenantAttributes = ({
       assignmentTimestamp: stringToDate(
         declaredAttributeSQL.assignmentTimestamp
       ),
-      revocationTimestamp: stringToDate(
-        declaredAttributeSQL.revocationTimestamp
-      ),
+      ...(declaredAttributeSQL.revocationTimestamp
+        ? {
+            revocationTimestamp: stringToDate(
+              declaredAttributeSQL.revocationTimestamp
+            ),
+          }
+        : {}),
       ...(declaredAttributeSQL.delegationId
         ? {
             delegationId: unsafeBrandId<DelegationId>(
@@ -232,8 +244,18 @@ const aggregateTenantAttributes = ({
           .map((tenantVerifierSQL) => ({
             id: unsafeBrandId<TenantId>(tenantVerifierSQL.tenantVerifierId),
             verificationDate: stringToDate(tenantVerifierSQL.verificationDate),
-            expirationDate: stringToDate(tenantVerifierSQL.expirationDate),
-            extensionDate: stringToDate(tenantVerifierSQL.extensionDate),
+            ...(tenantVerifierSQL.expirationDate
+              ? {
+                  expirationDate: stringToDate(
+                    tenantVerifierSQL.expirationDate
+                  ),
+                }
+              : {}),
+            ...(tenantVerifierSQL.extensionDate
+              ? {
+                  expirationDate: stringToDate(tenantVerifierSQL.extensionDate),
+                }
+              : {}),
             ...(tenantVerifierSQL.delegationId
               ? {
                   delegationId: unsafeBrandId<DelegationId>(
@@ -253,8 +275,16 @@ const aggregateTenantAttributes = ({
           .map((tenantRevokerSQL) => ({
             id: unsafeBrandId<TenantId>(tenantRevokerSQL.tenantRevokerId),
             verificationDate: stringToDate(tenantRevokerSQL.verificationDate),
-            expirationDate: stringToDate(tenantRevokerSQL.expirationDate),
-            extensionDate: stringToDate(tenantRevokerSQL.extensionDate),
+            ...(tenantRevokerSQL.expirationDate
+              ? {
+                  expirationDate: stringToDate(tenantRevokerSQL.expirationDate),
+                }
+              : {}),
+            ...(tenantRevokerSQL.extensionDate
+              ? {
+                  extensionDate: stringToDate(tenantRevokerSQL.extensionDate),
+                }
+              : {}),
             revocationDate: stringToDate(tenantRevokerSQL.revocationDate),
             ...(tenantRevokerSQL.delegationId
               ? {
