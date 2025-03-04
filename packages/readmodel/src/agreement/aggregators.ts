@@ -257,7 +257,7 @@ const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
     : {}),
 });
 
-export const fromJoinToAggregator = (
+export const toAgreementAggregator = (
   queryRes: Array<{
     agreement: AgreementSQL;
     stamp: AgreementStampSQL | null;
@@ -266,30 +266,75 @@ export const fromJoinToAggregator = (
     contract: AgreementContractSQL | null;
   }>
 ): AgreementItemsSQL => {
-  const agreementSQL = queryRes[0].agreement;
+  const {
+    agreementsSQL,
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractSQL,
+  } = toAgreementAggregatorArray(queryRes);
+
+  return {
+    agreementSQL: agreementsSQL[0],
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractSQL,
+  };
+};
+
+export const toAgreementAggregatorArray = (
+  queryRes: Array<{
+    agreement: AgreementSQL;
+    stamp: AgreementStampSQL | null;
+    attribute: AgreementAttributeSQL | null;
+    consumerDocument: AgreementConsumerDocumentSQL | null;
+    contract: AgreementContractSQL | null;
+  }>
+): {
+  agreementsSQL: AgreementSQL[];
+  stampsSQL: AgreementStampSQL[];
+  attributesSQL: AgreementAttributeSQL[];
+  consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  contractSQL: AgreementContractSQL | null;
+} => {
+  const agrementIdSet = new Set<string>();
+  const agreementsSQL: AgreementSQL[] = [];
+
   const contractSQL = queryRes[0].contract;
 
-  const stampIdSet = new Set<string>();
+  const stampIdSet = new Set<[string, string]>();
   const stampsSQL: AgreementStampSQL[] = [];
 
-  const attributeIdSet = new Set<string>();
+  const attributeIdSet = new Set<[string, string]>();
   const attributesSQL: AgreementAttributeSQL[] = [];
 
   const consumerDocumentIdSet = new Set<string>();
   const consumerDocumentsSQL: AgreementConsumerDocumentSQL[] = [];
 
   queryRes.forEach((row) => {
+    const agreementSQL = row.agreement;
+
+    if (!agrementIdSet.has(agreementSQL.id)) {
+      agrementIdSet.add(agreementSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      agreementsSQL.push(agreementSQL);
+    }
+
     const stampSQL = row.stamp;
-    if (stampSQL && !stampIdSet.has(stampSQL?.kind)) {
-      stampIdSet.add(stampSQL?.kind);
+    if (stampSQL && !stampIdSet.has([stampSQL.agreementId, stampSQL.kind])) {
+      stampIdSet.add([stampSQL.agreementId, stampSQL.kind]);
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(stampSQL);
     }
 
     const attributeSQL = row.attribute;
 
-    if (attributeSQL && !attributeIdSet.has(attributeSQL.attributeId)) {
-      attributeIdSet.add(attributeSQL.attributeId);
+    if (
+      attributeSQL &&
+      !attributeIdSet.has([attributeSQL.agreementId, attributeSQL.attributeId])
+    ) {
+      attributeIdSet.add([attributeSQL.agreementId, attributeSQL.attributeId]);
       // eslint-disable-next-line functional/immutable-data
       attributesSQL.push(attributeSQL);
     }
@@ -303,7 +348,7 @@ export const fromJoinToAggregator = (
   });
 
   return {
-    agreementSQL,
+    agreementsSQL,
     stampsSQL,
     attributesSQL,
     consumerDocumentsSQL,

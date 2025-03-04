@@ -11,11 +11,13 @@ import {
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import {
   aggregateAgreement,
-  fromJoinToAggregator,
+  toAgreementAggregator,
 } from "./agreement/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function agreementReadModelServiceBuilder(
+  db: ReturnType<typeof drizzle>
+) {
   return {
     async addAgreement(agreement: WithMetadata<Agreement>): Promise<void> {
       const {
@@ -109,7 +111,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         return undefined;
       }
 
-      const aggregatorInput = fromJoinToAggregator(queryResult);
+      const aggregatorInput = toAgreementAggregator(queryResult);
 
       return aggregateAgreement(aggregatorInput);
     },
@@ -121,4 +123,6 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   };
 }
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type AgreementReadModelService = ReturnType<
+  typeof agreementReadModelServiceBuilder
+>;
