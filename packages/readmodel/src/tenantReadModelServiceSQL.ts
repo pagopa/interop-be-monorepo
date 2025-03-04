@@ -97,7 +97,7 @@ export function tenantReadModelServiceBuilderSQL(
           mail: tenantMailInReadmodelTenant,
           certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
           declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
-          verifiedAttribute: tenantVerifiedAttributeVerifierInReadmodelTenant,
+          verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
           verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
           revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
           feature: tenantFeatureInReadmodelTenant,
@@ -106,7 +106,7 @@ export function tenantReadModelServiceBuilderSQL(
         .where(eq(tenantInReadmodelTenant.id, tenantId))
         .leftJoin(
           // 1
-          tenantInReadmodelTenant,
+          tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
@@ -179,7 +179,7 @@ export function tenantReadModelServiceBuilderSQL(
           mail: tenantMailInReadmodelTenant,
           certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
           declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
-          verifiedAttribute: tenantVerifiedAttributeVerifierInReadmodelTenant,
+          verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
           verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
           revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
           feature: tenantFeatureInReadmodelTenant,
@@ -187,7 +187,7 @@ export function tenantReadModelServiceBuilderSQL(
         .from(tenantInReadmodelTenant)
         .leftJoin(
           // 1
-          tenantInReadmodelTenant,
+          tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
