@@ -2,7 +2,6 @@ import {
   DelegationId,
   genericInternalError,
   Purpose,
-  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
@@ -29,7 +28,6 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 
-// TODO: delete one aggregate array version
 export const aggregatePurposeArray = ({
   purposesSQL,
   riskAnalysisFormsSQL,
@@ -60,54 +58,6 @@ export const aggregatePurposeArray = ({
       ),
     })
   );
-
-export const aggregatePurposeArrayWithMaps = ({
-  purposesSQL,
-  riskAnalysisFormsSQL,
-  riskAnalysisAnswersSQL,
-  versionsSQL,
-  versionDocumentsSQL,
-}: {
-  purposesSQL: PurposeSQL[];
-  riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
-  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
-  versionsSQL: PurposeVersionSQL[];
-  versionDocumentsSQL: PurposeVersionDocumentSQL[];
-}): Array<WithMetadata<Purpose>> => {
-  const riskAnalysisFormsSQLByPurposeId =
-    createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
-  const riskAnalysisAnswersSQLByPurposeId = createPurposeSQLPropertyMap(
-    riskAnalysisAnswersSQL
-  );
-  const versionsSQLByPurposeId = createPurposeSQLPropertyMap(versionsSQL);
-  const versionDocumentsSQLByPurposeId =
-    createPurposeSQLPropertyMap(versionDocumentsSQL);
-  return purposesSQL.map((purposeSQL) => {
-    const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
-    return aggregatePurpose({
-      purposeSQL,
-      riskAnalysisFormSQL: riskAnalysisFormsSQLByPurposeId.get(purposeId)?.[0],
-      riskAnalysisAnswersSQL: riskAnalysisAnswersSQLByPurposeId.get(purposeId),
-      versionsSQL: versionsSQLByPurposeId.get(purposeId) || [],
-      versionDocumentsSQL: versionDocumentsSQLByPurposeId.get(purposeId) || [],
-    });
-  });
-};
-
-const createPurposeSQLPropertyMap = <
-  T extends
-    | PurposeRiskAnalysisFormSQL
-    | PurposeRiskAnalysisAnswerSQL
-    | PurposeVersionSQL
-    | PurposeVersionDocumentSQL
->(
-  items: T[]
-): Map<PurposeId, T[]> =>
-  items.reduce((acc, item) => {
-    const purposeId = unsafeBrandId<PurposeId>(item.purposeId);
-    acc.set(purposeId, [...(acc.get(purposeId) || []), item]);
-    return acc;
-  }, new Map<PurposeId, T[]>());
 
 export const aggregatePurpose = ({
   purposeSQL,
@@ -278,5 +228,117 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
           ),
         }
       : {}),
+  };
+};
+
+export const toPurposeAggregator = (
+  queryRes: Array<{
+    purpose: PurposeSQL;
+    purposeRiskAnalysisForm: PurposeRiskAnalysisFormSQL | null;
+    purposeRiskAnalysisAnswer: PurposeRiskAnalysisAnswerSQL | null;
+    purposeVersion: PurposeVersionSQL | null;
+    purposeVersionDocument: PurposeVersionDocumentSQL | null;
+  }>
+): PurposeItemsSQL => {
+  const {
+    purposesSQL,
+    riskAnalysisFormsSQL,
+    riskAnalysisAnswersSQL,
+    versionsSQL,
+    versionDocumentsSQL,
+  } = toPurposeAggregatorArray(queryRes);
+  return {
+    purposeSQL: purposesSQL[0],
+    riskAnalysisFormSQL: riskAnalysisFormsSQL[0],
+    riskAnalysisAnswersSQL,
+    versionsSQL,
+    versionDocumentsSQL,
+  };
+};
+
+export const toPurposeAggregatorArray = (
+  queryRes: Array<{
+    purpose: PurposeSQL;
+    purposeRiskAnalysisForm: PurposeRiskAnalysisFormSQL | null;
+    purposeRiskAnalysisAnswer: PurposeRiskAnalysisAnswerSQL | null;
+    purposeVersion: PurposeVersionSQL | null;
+    purposeVersionDocument: PurposeVersionDocumentSQL | null;
+  }>
+): {
+  purposesSQL: PurposeSQL[];
+  riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
+  versionsSQL: PurposeVersionSQL[];
+  versionDocumentsSQL: PurposeVersionDocumentSQL[];
+} => {
+  const purposeIdSet = new Set<string>();
+  const purposesSQL: PurposeSQL[] = [];
+
+  const purposeRiskAnalysisFormIdSet = new Set<string>();
+  const purposeRiskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[] = [];
+
+  const purposeRiskAnalysisAnswerIdSet = new Set<string>();
+  const purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] = [];
+
+  const purposeVersionIdSet = new Set<string>();
+  const purposeVersionsSQL: PurposeVersionSQL[] = [];
+
+  const purposeVersionDocumentIdSet = new Set<string>();
+  const purposeVersionDocumentsSQL: PurposeVersionDocumentSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const purposeSQL = row.purpose;
+    if (!purposeIdSet.has(purposeSQL.id)) {
+      purposeIdSet.add(purposeSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      purposesSQL.push(purposeSQL);
+    }
+
+    const purposeRiskAnalysisFormSQL = row.purposeRiskAnalysisForm;
+
+    if (purposeRiskAnalysisFormSQL) {
+      if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormSQL.id)) {
+        purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        purposeRiskAnalysisFormsSQL.push(purposeRiskAnalysisFormSQL);
+      }
+
+      const purposeRiskAnalysisAnswerSQL = row.purposeRiskAnalysisAnswer;
+      if (
+        purposeRiskAnalysisAnswerSQL &&
+        !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerSQL.id)
+      ) {
+        purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        purposeRiskAnalysisAnswersSQL.push(purposeRiskAnalysisAnswerSQL);
+      }
+    }
+
+    const purposeVersionSQL = row.purposeVersion;
+    if (purposeVersionSQL) {
+      if (!purposeVersionIdSet.has(purposeVersionSQL.id)) {
+        purposeVersionIdSet.add(purposeVersionSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        purposeVersionsSQL.push(purposeVersionSQL);
+      }
+
+      const purposeVersionDocumentSQL = row.purposeVersionDocument;
+      if (
+        purposeVersionDocumentSQL &&
+        !purposeVersionDocumentIdSet.has(purposeVersionDocumentSQL.id)
+      ) {
+        purposeVersionDocumentIdSet.add(purposeVersionDocumentSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        purposeVersionDocumentsSQL.push(purposeVersionDocumentSQL);
+      }
+    }
+  });
+
+  return {
+    purposesSQL,
+    riskAnalysisFormsSQL: purposeRiskAnalysisFormsSQL,
+    riskAnalysisAnswersSQL: purposeRiskAnalysisAnswersSQL,
+    versionsSQL: purposeVersionsSQL,
+    versionDocumentsSQL: purposeVersionDocumentsSQL,
   };
 };
