@@ -39,7 +39,7 @@ export const correctInstitutionEventField = {
 
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
-  internalIstitutionID: "b730fbb7-fffe-4090-a3ea-53ee7e07a4b9",
+  institutionId: "b730fbb7-fffe-4090-a3ea-53ee7e07a4b9",
   product: interopProductName,
   state: "ACTIVE",
   fileName: "",
@@ -76,7 +76,7 @@ export const selfcareUpsertTenantSeed = {
     origin: correctEventPayload.institution.origin,
     value: correctEventPayload.institution.originId,
   },
-  selfcareId: correctEventPayload.internalIstitutionID,
+  selfcareId: correctEventPayload.institutionId,
   name: correctEventPayload.institution.description,
 };
 
