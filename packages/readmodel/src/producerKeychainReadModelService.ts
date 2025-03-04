@@ -15,7 +15,7 @@ import {
 import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
 import {
   aggregateProducerKeychain,
-  fromJoinToAggregator,
+  toProducerKeychainAggregator,
 } from "./authorization/producerKeychainAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -101,7 +101,7 @@ export function producerKeychainReadModelServiceBuilder(
           )
         );
 
-      const aggregatorInput = fromJoinToAggregator(queryResult);
+      const aggregatorInput = toProducerKeychainAggregator(queryResult);
       return aggregateProducerKeychain(aggregatorInput);
     },
     async deleteProducerKeychainById(

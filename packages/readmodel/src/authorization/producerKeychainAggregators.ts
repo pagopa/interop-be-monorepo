@@ -77,7 +77,7 @@ export const aggregateProducerKeychainArray = ({
     })
   );
 
-export const fromJoinToAggregator = (
+export const toProducerKeychainAggregator = (
   queryRes: Array<{
     producerKeychain: ProducerKeychainSQL;
     user: ProducerKeychainUserSQL | null;
@@ -85,7 +85,31 @@ export const fromJoinToAggregator = (
     key: ProducerKeychainKeySQL | null;
   }>
 ): ProducerKeychainItemsSQL => {
-  const producerKeychainSQL = queryRes[0].producerKeychain;
+  const { producerKeychainsSQL, usersSQL, eservicesSQL, keysSQL } =
+    toProducerKeychainAggregatorArray(queryRes);
+  return {
+    producerKeychainSQL: producerKeychainsSQL[0],
+    usersSQL,
+    eservicesSQL,
+    keysSQL,
+  };
+};
+
+export const toProducerKeychainAggregatorArray = (
+  queryRes: Array<{
+    producerKeychain: ProducerKeychainSQL;
+    user: ProducerKeychainUserSQL | null;
+    eservice: ProducerKeychainEServiceSQL | null;
+    key: ProducerKeychainKeySQL | null;
+  }>
+): {
+  producerKeychainsSQL: ProducerKeychainSQL[];
+  usersSQL: ProducerKeychainUserSQL[];
+  eservicesSQL: ProducerKeychainEServiceSQL[];
+  keysSQL: ProducerKeychainKeySQL[];
+} => {
+  const producerKeychainIdSet = new Set<string>();
+  const producerKeychainsSQL: ProducerKeychainSQL[] = [];
 
   const userIdSet = new Set<[string, string]>();
   const usersSQL: ProducerKeychainUserSQL[] = [];
@@ -97,6 +121,13 @@ export const fromJoinToAggregator = (
   const keysSQL: ProducerKeychainKeySQL[] = [];
 
   queryRes.forEach((row) => {
+    const producerKeychain = row.producerKeychain;
+    if (!producerKeychainIdSet.has(producerKeychain.id)) {
+      producerKeychainIdSet.add(producerKeychain.id);
+      // eslint-disable-next-line functional/immutable-data
+      producerKeychainsSQL.push(producerKeychain);
+    }
+
     const producerKeychainUserSQL = row.user;
     if (
       producerKeychainUserSQL &&
@@ -147,7 +178,7 @@ export const fromJoinToAggregator = (
   });
 
   return {
-    producerKeychainSQL,
+    producerKeychainsSQL,
     usersSQL,
     eservicesSQL,
     keysSQL,
