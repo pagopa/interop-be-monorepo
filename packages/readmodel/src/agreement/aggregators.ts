@@ -31,19 +31,19 @@ import {
 import { match } from "ts-pattern";
 
 export const aggregateAgreementArray = ({
-  agreementSQL,
+  agreementsSQL,
   stampsSQL,
   consumerDocumentsSQL,
   contractSQL,
   attributesSQL,
 }: {
-  agreementSQL: AgreementSQL[];
+  agreementsSQL: AgreementSQL[];
   stampsSQL: AgreementStampSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractSQL: AgreementContractSQL | null;
   attributesSQL: AgreementAttributeSQL[];
 }): Array<WithMetadata<Agreement>> =>
-  agreementSQL.map((agreementSQL) =>
+  agreementsSQL.map((agreementSQL) =>
     aggregateAgreement({
       agreementSQL,
       stampsSQL: stampsSQL.filter(
@@ -256,3 +256,111 @@ const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
       }
     : {}),
 });
+
+export const toAgreementAggregator = (
+  queryRes: Array<{
+    agreement: AgreementSQL;
+    stamp: AgreementStampSQL | null;
+    attribute: AgreementAttributeSQL | null;
+    consumerDocument: AgreementConsumerDocumentSQL | null;
+    contract: AgreementContractSQL | null;
+  }>
+): AgreementItemsSQL => {
+  const {
+    agreementsSQL,
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractSQL,
+  } = toAgreementAggregatorArray(queryRes);
+
+  return {
+    agreementSQL: agreementsSQL[0],
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractSQL,
+  };
+};
+
+export const toAgreementAggregatorArray = (
+  queryRes: Array<{
+    agreement: AgreementSQL;
+    stamp: AgreementStampSQL | null;
+    attribute: AgreementAttributeSQL | null;
+    consumerDocument: AgreementConsumerDocumentSQL | null;
+    contract: AgreementContractSQL | null;
+  }>
+): {
+  agreementsSQL: AgreementSQL[];
+  stampsSQL: AgreementStampSQL[];
+  attributesSQL: AgreementAttributeSQL[];
+  consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  contractSQL: AgreementContractSQL | null;
+} => {
+  const agreementIdSet = new Set<string>();
+  const agreementsSQL: AgreementSQL[] = [];
+
+  const contractSQL = queryRes?.length ? queryRes[0].contract : null;
+
+  const stampIdSet = new Set<string>();
+  const stampsSQL: AgreementStampSQL[] = [];
+
+  const attributeIdSet = new Set<string>();
+  const attributesSQL: AgreementAttributeSQL[] = [];
+
+  const consumerDocumentIdSet = new Set<string>();
+  const consumerDocumentsSQL: AgreementConsumerDocumentSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const agreementSQL = row.agreement;
+
+    if (!agreementIdSet.has(agreementSQL.id)) {
+      agreementIdSet.add(agreementSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      agreementsSQL.push(agreementSQL);
+    }
+
+    const stampSQL = row.stamp;
+    if (
+      stampSQL &&
+      !stampIdSet.has(uniqueKey([stampSQL.agreementId, stampSQL.kind]))
+    ) {
+      stampIdSet.add(uniqueKey([stampSQL.agreementId, stampSQL.kind]));
+      // eslint-disable-next-line functional/immutable-data
+      stampsSQL.push(stampSQL);
+    }
+
+    const attributeSQL = row.attribute;
+
+    if (
+      attributeSQL &&
+      !attributeIdSet.has(
+        uniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
+      )
+    ) {
+      attributeIdSet.add(
+        uniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
+      );
+      // eslint-disable-next-line functional/immutable-data
+      attributesSQL.push(attributeSQL);
+    }
+
+    const documentSQL = row.consumerDocument;
+    if (documentSQL && !consumerDocumentIdSet.has(documentSQL.id)) {
+      consumerDocumentIdSet.add(documentSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      consumerDocumentsSQL.push(documentSQL);
+    }
+  });
+
+  return {
+    agreementsSQL,
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractSQL,
+  };
+};
+
+const uniqueKey = (ids: string[]): string => ids.join("#");
