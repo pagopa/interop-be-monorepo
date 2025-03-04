@@ -194,7 +194,7 @@ export const toDelegationAggregatorArray = (
   const delegationIdSet = new Set<string>();
   const delegationsSQL: DelegationSQL[] = [];
 
-  const delegationStampsIdSet = new Set<[string, string]>();
+  const delegationStampsIdSet = new Set<string>();
   const stampsSQL: DelegationStampSQL[] = [];
 
   const delegationContractDocumentsIdSet = new Set<string>();
@@ -211,15 +211,13 @@ export const toDelegationAggregatorArray = (
     const delegationStamp = row.delegationStamp;
     if (
       delegationStamp &&
-      !delegationStampsIdSet.has([
-        delegationStamp.delegationId,
-        delegationStamp.kind,
-      ])
+      !delegationStampsIdSet.has(
+        uniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+      )
     ) {
-      delegationStampsIdSet.add([
-        delegationStamp.delegationId,
-        delegationStamp.kind,
-      ]);
+      delegationStampsIdSet.add(
+        uniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+      );
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(delegationStamp);
     }
@@ -241,3 +239,4 @@ export const toDelegationAggregatorArray = (
     contractDocumentsSQL,
   };
 };
+const uniqueKey = (ids: string[]): string => ids.join("#");
