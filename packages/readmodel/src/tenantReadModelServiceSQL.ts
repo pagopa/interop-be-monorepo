@@ -82,7 +82,9 @@ export function tenantReadModelServiceBuilderSQL(
         }
       });
     },
-    async getTenantById(tenantId: TenantId): Promise<WithMetadata<Tenant>> {
+    async getTenantById(
+      tenantId: TenantId
+    ): Promise<WithMetadata<Tenant> | undefined> {
       /*
       tenant  ->1 tenant_mail
 				      ->2 tenant_certified_attribute
@@ -157,6 +159,10 @@ export function tenantReadModelServiceBuilderSQL(
             tenantFeatureInReadmodelTenant.tenantId
           )
         );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
 
       const aggregatorInput = toTenantAggregator(queryResult);
 
