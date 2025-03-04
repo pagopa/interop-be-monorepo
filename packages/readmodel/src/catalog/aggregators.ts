@@ -178,9 +178,11 @@ EServiceItemsSQL): WithMetadata<EService> => {
     descriptors,
     riskAnalysis,
     mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
-    isClientAccessDelegable: eserviceSQL.isClientAccessDelegable || undefined,
-    isConsumerDelegable: eserviceSQL.isConsumerDelegable || undefined,
-    isSignalHubEnabled: eserviceSQL.isSignalHubEnabled || undefined,
+    ...(eserviceSQL.isClientAccessDelegable
+      ? { isClientAccessDelegable: true }
+      : {}),
+    ...(eserviceSQL.isConsumerDelegable ? { isConsumerDelegable: true } : {}),
+    ...(eserviceSQL.isSignalHubEnabled ? { isSignalHubEnabled: true } : {}),
   };
   return {
     data: eservice,
@@ -383,7 +385,7 @@ export const toEServiceAggregatorArray = (
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
 
-  const attributeIdSet = new Set<[string, string, number]>();
+  const attributeIdSet = new Set<string>();
   const attributesSQL: EServiceDescriptorAttributeSQL[] = [];
 
   const riskAnalysisIdSet = new Set<string>();
@@ -392,7 +394,7 @@ export const toEServiceAggregatorArray = (
   const riskAnalysisAnswerIdSet = new Set<string>();
   const riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] = [];
 
-  const rejectionReasonsSet = new Set<[string, string]>();
+  const rejectionReasonsSet = new Set<string>();
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -433,34 +435,39 @@ export const toEServiceAggregatorArray = (
       const attributeSQL = row.attribute;
       if (
         attributeSQL &&
-        !attributeIdSet.has([
-          attributeSQL.attributeId,
-          attributeSQL.descriptorId,
-          attributeSQL.groupId,
-        ])
+        !attributeIdSet.has(
+          [
+            attributeSQL.attributeId,
+            attributeSQL.descriptorId,
+            attributeSQL.groupId,
+          ].join("#")
+        )
       ) {
-        attributeIdSet.add([
-          attributeSQL.attributeId,
-          attributeSQL.descriptorId,
-          attributeSQL.groupId,
-        ]);
+        attributeIdSet.add(
+          [
+            attributeSQL.attributeId,
+            attributeSQL.descriptorId,
+            attributeSQL.groupId,
+          ].join("#")
+        );
         // eslint-disable-next-line functional/immutable-data
         attributesSQL.push(attributeSQL);
       }
 
-      // TODO: the set should have a unique PK: descriptorId + rejectionReason + rejectedAt
       const rejectionReasonSQL = row.rejection;
       if (
         rejectionReasonSQL &&
-        !rejectionReasonsSet.has([
-          rejectionReasonSQL.descriptorId,
-          rejectionReasonSQL.rejectedAt,
-        ])
+        !rejectionReasonsSet.has(
+          [rejectionReasonSQL.descriptorId, rejectionReasonSQL.rejectedAt].join(
+            "#"
+          )
+        )
       ) {
-        rejectionReasonsSet.add([
-          rejectionReasonSQL.descriptorId,
-          rejectionReasonSQL.rejectedAt,
-        ]);
+        rejectionReasonsSet.add(
+          [rejectionReasonSQL.descriptorId, rejectionReasonSQL.rejectedAt].join(
+            "#"
+          )
+        );
         // eslint-disable-next-line functional/immutable-data
         rejectionReasonsSQL.push(rejectionReasonSQL);
       }
