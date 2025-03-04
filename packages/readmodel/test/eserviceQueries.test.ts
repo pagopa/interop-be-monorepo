@@ -385,8 +385,57 @@ describe("E-service queries", () => {
   });
 
   describe("deleteEServiceById", () => {
-    it("delete one eservice", () => {
-      expect(1).toBe(1);
+    it("delete one eservice", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        attributes: {
+          certified: [[getMockEServiceAttribute()]],
+          declared: [],
+          verified: [],
+        },
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+        rejectionReasons: [getMockDescriptorRejectionReason()],
+      };
+      const eservice: WithMetadata<EService> = {
+        data: {
+          ...getMockEService(),
+          descriptors: [descriptor],
+          riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+        },
+        metadata: { version: 1 },
+      };
+      await readModelService.upsertEService(eservice);
+      await readModelService.deleteEServiceById(eservice.data.id);
+
+      const [
+        eserviceSQL,
+        descriptorsSQL,
+        docsSQL,
+        interfacesSQL,
+        attributesSQL,
+        rejectionReasonsSQL,
+        riskAnalysisSQL,
+        riskAnalysisAnswersSQL,
+      ] = await Promise.all([
+        retrieveEServiceSQL(eservice.data.id, readModelDB),
+        retrieveEserviceDescriptorsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceDocumentsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceInterfacesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceAttributesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRejectionReasonsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRiskAnalysesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRiskAnalysisAnswersSQL(eservice.data.id, readModelDB),
+      ]);
+
+      expect(eserviceSQL).toBeUndefined();
+      expect(descriptorsSQL).toBeUndefined();
+      expect(docsSQL).toBeUndefined();
+      expect(interfacesSQL).toBeUndefined();
+      expect(attributesSQL).toBeUndefined();
+      expect(rejectionReasonsSQL).toBeUndefined();
+      expect(riskAnalysisSQL).toBeUndefined();
+      expect(riskAnalysisAnswersSQL).toBeUndefined();
     });
   });
 });
