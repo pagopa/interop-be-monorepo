@@ -15,9 +15,7 @@ import {
 } from "./purpose/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function agreementReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
     async addPurpose(purpose: WithMetadata<Purpose>): Promise<void> {
       const {
@@ -117,6 +115,6 @@ export function agreementReadModelServiceBuilder(
   };
 }
 
-export type AgreementReadModelService = ReturnType<
-  typeof agreementReadModelServiceBuilder
+export type PurposeReadModelService = ReturnType<
+  typeof purposeReadModelServiceBuilder
 >;
