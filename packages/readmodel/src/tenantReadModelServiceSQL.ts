@@ -84,7 +84,9 @@ export function tenantReadModelServiceBuilderSQL(
         }
       });
     },
-    async getTenantById(tenantId: TenantId): Promise<WithMetadata<Tenant>> {
+    async getTenantById(
+      tenantId: TenantId
+    ): Promise<WithMetadata<Tenant> | undefined> {
       /*
       tenant  ->1 tenant_mail
 				      ->2 tenant_certified_attribute
@@ -160,9 +162,11 @@ export function tenantReadModelServiceBuilderSQL(
           )
         );
 
-      const aggregatorInput = toTenantAggregator(queryResult);
+      if (queryResult.length === 0) {
+        return undefined;
+      }
 
-      return aggregateTenant(aggregatorInput);
+      return aggregateTenant(toTenantAggregator(queryResult));
     },
     async deleteTenantById(tenantId: TenantId, version: number): Promise<void> {
       await db
@@ -181,7 +185,7 @@ export function tenantReadModelServiceBuilderSQL(
           mail: tenantMailInReadmodelTenant,
           certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
           declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
-          verifiedAttribute: tenantVerifiedAttributeVerifierInReadmodelTenant,
+          verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
           verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
           revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
           feature: tenantFeatureInReadmodelTenant,
@@ -189,7 +193,7 @@ export function tenantReadModelServiceBuilderSQL(
         .from(tenantInReadmodelTenant)
         .leftJoin(
           // 1
-          tenantInReadmodelTenant,
+          tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
@@ -241,9 +245,7 @@ export function tenantReadModelServiceBuilderSQL(
           )
         );
 
-      const aggregatorInput = toTenantAggregatorArray(queryResult);
-
-      return aggregateTenantArray(aggregatorInput);
+      return aggregateTenantArray(toTenantAggregatorArray(queryResult));
     },
   };
 }
