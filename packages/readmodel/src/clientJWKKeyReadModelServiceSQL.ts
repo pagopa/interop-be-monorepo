@@ -6,7 +6,9 @@ import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySpl
 import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function clientJWKKeyReadModelServiceBuilder(
+  db: ReturnType<typeof drizzle>
+) {
   return {
     async addClientJWKKey(
       clientJWKKey: WithMetadata<ClientJWKKey>
@@ -39,4 +41,6 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   };
 }
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type ClientJWKKeyReadModelService = ReturnType<
+  typeof clientJWKKeyReadModelServiceBuilder
+>;
