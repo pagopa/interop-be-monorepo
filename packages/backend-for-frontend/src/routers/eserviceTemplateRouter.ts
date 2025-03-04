@@ -636,15 +636,14 @@ const eserviceTemplateRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const doc =
-            await eserviceTemplateService.updateEServiceTemplateDocumentById(
-              unsafeBrandId(req.params.eServiceTemplateId),
-              unsafeBrandId(req.params.eServiceTemplateVersionId),
-              unsafeBrandId(req.params.documentId),
-              req.body,
-              ctx
-            );
-          return res.status(200).send(bffApi.EServiceDoc.parse(doc));
+          await eserviceTemplateService.updateEServiceTemplateDocumentById(
+            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.documentId),
+            req.body,
+            ctx
+          );
+          return res.status(204);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

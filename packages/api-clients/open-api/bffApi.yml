@@ -16981,12 +16981,8 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateEServiceTemplateVersionDocumentSeed"
       responses:
-        "200":
+        "204":
           description: EService Descriptor updated.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EServiceDoc"
           headers:
             "X-Rate-Limit-Limit":
               schema:
