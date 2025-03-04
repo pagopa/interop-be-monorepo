@@ -83,7 +83,7 @@ describe("sendPurposeVersionRejectedEmail", () => {
       subject: `Rifiuto della finalità da parte dell'erogatore`,
       to: [consumerEmail.address],
       html: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
-        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
         purposeName: purpose.title,
       }),
     };
@@ -150,7 +150,7 @@ describe("sendPurposeVersionRejectedEmail", () => {
       subject: `Rifiuto richiesta di adeguamento stime di carico`,
       to: [consumerEmail.address],
       html: templateService.compileHtml(aboveTheThresholdEmailTemplate, {
-        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/finalita/${purpose.id}`,
         purposeName: purpose.title,
       }),
     };
