@@ -67,6 +67,7 @@ import {
   toCompactProducerDescriptor,
   apiTechnologyToTechnology,
   toBffEServiceTemplateRef,
+  toBffEServiceTemplateInstance,
 } from "../api/catalogApiConverter.js";
 import { ConfigurationEservice } from "../model/types.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
@@ -1497,6 +1498,70 @@ export function catalogServiceBuilder(
       return {
         id: eService.id,
         descriptorId: eService.descriptors[0].id,
+      };
+    },
+    getEServiceTemplateInstances: async (
+      eServiceTemplateId: EServiceTemplateId,
+      producerName: string | undefined,
+      states: bffApi.EServiceDescriptorState[],
+      offset: number,
+      limit: number,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.EServiceTemplateInstances> => {
+      logger.info(
+        `Retrieving EService template ${eServiceTemplateId} instances with state=${states} producerName=${producerName} offset=${offset} limit=${limit}`
+      );
+
+      const tenants = producerName
+        ? await getAllFromPaginated((offset, limit) =>
+            tenantProcessClient.tenant.getTenants({
+              queries: {
+                name: producerName,
+                offset,
+                limit,
+              },
+              headers,
+            })
+          )
+        : [];
+
+      const tenantsMap = new Map(tenants.map((t) => [t.id, t]));
+      const tentantsIds = Array.from(tenantsMap.keys());
+
+      const { results, totalCount } = await catalogProcessClient.getEServices({
+        headers,
+        queries: {
+          producersIds: tentantsIds,
+          states,
+          offset,
+          limit,
+        },
+      });
+
+      const enhanceTemplateInstance = async (
+        eservice: catalogApi.EService
+      ): Promise<bffApi.EServiceTemplateInstance> => {
+        const producer =
+          tenantsMap.get(eservice.producerId) ??
+          (await tenantProcessClient.tenant.getTenant({
+            headers,
+            params: {
+              id: eservice.producerId,
+            },
+          }));
+
+        tenantsMap.set(eservice.producerId, producer);
+
+        return toBffEServiceTemplateInstance(eservice, producer);
+      };
+
+      return {
+        results: await Promise.all(results.map(enhanceTemplateInstance)),
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
       };
     },
   };
