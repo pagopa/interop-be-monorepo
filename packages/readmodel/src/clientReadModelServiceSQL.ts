@@ -16,7 +16,9 @@ import {
 } from "./authorization/clientAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function clientReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function clientReadModelServiceBuilderSQL(
+  db: ReturnType<typeof drizzle>
+) {
   return {
     async upsertClient(client: WithMetadata<Client>): Promise<void> {
       const { clientSQL, usersSQL, purposesSQL, keysSQL } =
@@ -122,6 +124,6 @@ export function clientReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   };
 }
 
-export type ClientReadModelService = ReturnType<
-  typeof clientReadModelServiceBuilder
+export type ClientReadModelServiceSQL = ReturnType<
+  typeof clientReadModelServiceBuilderSQL
 >;
