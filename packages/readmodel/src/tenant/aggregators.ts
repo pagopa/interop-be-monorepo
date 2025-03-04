@@ -244,8 +244,18 @@ const aggregateTenantAttributes = ({
           .map((tenantVerifierSQL) => ({
             id: unsafeBrandId<TenantId>(tenantVerifierSQL.tenantVerifierId),
             verificationDate: stringToDate(tenantVerifierSQL.verificationDate),
-            expirationDate: stringToDate(tenantVerifierSQL.expirationDate),
-            extensionDate: stringToDate(tenantVerifierSQL.extensionDate),
+            ...(tenantVerifierSQL.expirationDate
+              ? {
+                  expirationDate: stringToDate(
+                    tenantVerifierSQL.expirationDate
+                  ),
+                }
+              : {}),
+            ...(tenantVerifierSQL.extensionDate
+              ? {
+                  expirationDate: stringToDate(tenantVerifierSQL.extensionDate),
+                }
+              : {}),
             ...(tenantVerifierSQL.delegationId
               ? {
                   delegationId: unsafeBrandId<DelegationId>(
