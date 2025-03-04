@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/tenantConsumerServiceV1.js";
 import { toTenantV1 } from "./converterV1.js";
-import { tenants } from "./utils.js";
 
 describe("Integration tests", async () => {
   describe("Events V1", async () => {
