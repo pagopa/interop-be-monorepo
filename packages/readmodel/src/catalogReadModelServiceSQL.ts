@@ -178,9 +178,7 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         return undefined;
       }
 
-      const aggregatorInput = toEServiceAggregator(queryResult);
-
-      return aggregateEservice(aggregatorInput);
+      return aggregateEservice(toEServiceAggregator(queryResult));
     },
     async deleteEServiceById(eserviceId: EServiceId): Promise<void> {
       await db
@@ -266,8 +264,7 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       //   )
       // );
 
-      const aggregatorInput = toEServiceAggregatorArray(queryResult);
-      return aggregateEserviceArray(aggregatorInput);
+      return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
     },
   };
 }
