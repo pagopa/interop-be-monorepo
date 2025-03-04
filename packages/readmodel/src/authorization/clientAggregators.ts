@@ -120,7 +120,7 @@ export const toClientAggregatorArray = (
 
   queryRes.forEach((row) => {
     const clientSQL = row.client;
-    if (clientSQL && !clientIdSet.has(clientSQL.id)) {
+    if (!clientIdSet.has(clientSQL.id)) {
       clientIdSet.add(clientSQL.id);
       // eslint-disable-next-line functional/immutable-data
       clientsSQL.push(clientSQL);
