@@ -353,7 +353,7 @@ export function purposeCannotBeUpdated(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} cannot be updated`,
+    detail: `Archived purpose ${purposeId} cannot be updated`,
     code: "purposeCannotBeUpdated",
     title: "Purpose cannot be updated",
   });
