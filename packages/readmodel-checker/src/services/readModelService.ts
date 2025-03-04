@@ -249,14 +249,21 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelProducerJWKKey(): Promise<ProducerJWKKey[]> {
+    async getAllReadModelProducerJWKKeys(): Promise<
+      Array<WithMetadata<ProducerJWKKey>>
+    > {
       const data = await readModel.producerKeys.find().toArray();
 
       if (!data) {
         return [];
       } else {
         const results = z
-          .array(ProducerJWKKey)
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: ProducerJWKKey,
+            })
+          )
           .safeParse(data.map((d) => d.data));
         if (!results.success) {
           throw genericInternalError(
