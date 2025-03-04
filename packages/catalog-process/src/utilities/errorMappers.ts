@@ -54,7 +54,11 @@ export const updateEServiceErrorMapper = (
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("eserviceNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "eserviceNotInDraftState",
+      "templateInstanceNotAllowed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceInstanceErrorMapper = (
