@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { FileManager, Logger } from "pagopa-interop-commons";
+import { stringify } from "csv-stringify/sync";
 import { config } from "../config/config.js";
 import { toPublicEService } from "../models/converters.js";
 import { getAllAttributesIds, getAllTenantsIds } from "../utils/utils.js";
-import { PublicEService } from "../models/models.js";
+import { FlattenedPublicEService, PublicEService } from "../models/models.js";
 import { readModelServiceBuilder } from "./readModelService.js";
 
 export function dtdCatalogExporterServiceBuilder({
@@ -42,39 +43,41 @@ export function dtdCatalogExporterServiceBuilder({
     );
   };
 
-  const convertToCSV = (publicEServices: PublicEService[]) => {
-    const headers = [
+  const convertToCSV = (publicEServices: PublicEService[]): string => {
+    const records: FlattenedPublicEService[] = publicEServices.map(
+      (service) => ({
+        id: service.id,
+        name: service.name,
+        description: service.description,
+        technology: service.technology,
+        producerId: service.producerId,
+        producerName: service.producerName,
+        producerExternalId: service.producerExternalId,
+        attributes: JSON.stringify(service.attributes),
+        activeDescriptorId: service.activeDescriptor.id,
+        activeDescriptorState: service.activeDescriptor.state,
+        activeDescriptorVersion: service.activeDescriptor.version,
+      })
+    );
+
+    const columns: Array<keyof FlattenedPublicEService> = [
       "id",
       "name",
       "description",
       "technology",
       "producerId",
       "producerName",
+      "producerExternalId",
       "attributes",
       "activeDescriptorId",
       "activeDescriptorState",
       "activeDescriptorVersion",
-    ].join(",");
+    ];
 
-    const rows = publicEServices.map((service) =>
-      [
-        service.id,
-        `"${service.name.replace(/"/g, '""')}"`,
-        `"${service.description.replace(/"/g, '""') || ""}"`,
-        service.technology,
-        service.producerId,
-        `"${service.producerName.replace(/"/g, '""')}"`,
-        `"${JSON.stringify(service.attributes).replace(/"/g, '""')}"`,
-        service.activeDescriptor.id,
-        service.activeDescriptor.state,
-        service.activeDescriptor.version,
-      ].join(",")
-    );
-
-    return [headers, ...rows].join("\n");
+    return stringify(records, { header: true, columns });
   };
 
-  const convertToJSON = (publicEServices: PublicEService[]) =>
+  const convertToJSON = (publicEServices: PublicEService[]): string =>
     JSON.stringify(publicEServices);
 
   return {

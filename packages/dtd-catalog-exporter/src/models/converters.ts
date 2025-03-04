@@ -34,6 +34,7 @@ export function toPublicEService(
     technology: eservice.technology.toUpperCase() as "REST" | "SOAP",
     producerId: producer.id,
     producerName: producer.name,
+    producerExternalId: producer.externalId.value,
     attributes: toPublicAttributes(activeDescriptor.attributes, attributesMap),
     activeDescriptor: {
       id: activeDescriptor.id,
