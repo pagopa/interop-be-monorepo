@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_mail (
   kind VARCHAR NOT NULL,
   address VARCHAR NOT NULL,
   description VARCHAR NULL,
-  created_at  WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
 );
