@@ -164,9 +164,7 @@ export function tenantReadModelServiceBuilderSQL(
         return undefined;
       }
 
-      const aggregatorInput = toTenantAggregator(queryResult);
-
-      return aggregateTenant(aggregatorInput);
+      return aggregateTenant(toTenantAggregator(queryResult));
     },
     async deleteTenantById(tenantId: TenantId, version: number): Promise<void> {
       await db
@@ -245,9 +243,7 @@ export function tenantReadModelServiceBuilderSQL(
           )
         );
 
-      const aggregatorInput = toTenantAggregatorArray(queryResult);
-
-      return aggregateTenantArray(aggregatorInput);
+      return aggregateTenantArray(toTenantAggregatorArray(queryResult));
     },
   };
 }
