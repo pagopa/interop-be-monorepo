@@ -43,14 +43,16 @@ const pool = new Pool({
 
 const readModelDB = drizzle({ client: pool });
 
-const readModelServiceSQL = catalogReadModelServiceBuilderSQL(readModelDB);
+const catalogReadModelServiceSQL =
+  catalogReadModelServiceBuilderSQL(readModelDB);
 const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilderSQL(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(readModelDB);
 
 async function main(): Promise<void> {
+  // CATALOG
   const eservices = await readModelService.getAllReadModelEServices();
-  const eservicesPostgres = await readModelServiceSQL.getAllEServices();
+  const eservicesPostgres = await catalogReadModelServiceSQL.getAllEServices();
 
   compare({
     collectionItems: eservices,
@@ -59,6 +61,7 @@ async function main(): Promise<void> {
     loggerInstance,
   });
 
+  // ATTRIBUTE
   const attributes = await readModelService.getAllReadModelAttributes();
   const attributesPostgres =
     await attributeReadModelServiceSQL.getAllAttributes();
@@ -70,6 +73,7 @@ async function main(): Promise<void> {
     loggerInstance,
   });
 
+  // TENANT
   const tenants = await readModelService.getAllReadModelTenants();
   const tenantsPostgres = await tenantReadModelServiceSQL.getAllTenants();
 
