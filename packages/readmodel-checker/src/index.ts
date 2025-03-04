@@ -7,7 +7,7 @@ import {
   ReadModelRepository,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
-import { readModelServiceBuilderSQL } from "pagopa-interop-readmodel";
+import { catalogReadModelServiceBuilderSQL } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { readModelServiceBuilder } from "./services/readModelService.js";
@@ -37,7 +37,7 @@ const pool = new Pool({
   ssl: config.readModelSQLDbUseSSL,
 });
 const readModelDB = drizzle({ client: pool });
-const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+const readModelServiceSQL = catalogReadModelServiceBuilderSQL(readModelDB);
 // const attributeReadModelServiceSQL =
 //   attributeReadModelServiceBuilderSQL(readModelDB);
 

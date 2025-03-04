@@ -20,7 +20,9 @@ import {
 } from "./catalog/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function catalogReadModelServiceBuilderSQL(
+  db: ReturnType<typeof drizzle>
+) {
   return {
     async upsertEService(eservice: WithMetadata<EService>): Promise<void> {
       const {
@@ -272,6 +274,6 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   };
 }
 
-export type CatalogReadModelService = ReturnType<
-  typeof catalogReadModelServiceBuilder
+export type CatalogReadModelServiceSQL = ReturnType<
+  typeof catalogReadModelServiceBuilderSQL
 >;

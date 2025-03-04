@@ -16,7 +16,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
-import { readModelServiceBuilderSQL } from "pagopa-interop-readmodel";
+import { catalogReadModelServiceBuilderSQL } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const config = inject("tokenGenerationReadModelConfig");
@@ -36,7 +36,7 @@ afterEach(cleanup);
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const eserviceReadModelServiceSQL =
-  readModelServiceBuilderSQL(readModelDB);
+  catalogReadModelServiceBuilderSQL(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>

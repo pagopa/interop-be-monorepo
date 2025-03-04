@@ -1,2 +1,2 @@
-export * from "./readModelServiceSQL.js";
+export * from "./catalogReadModelServiceSQL.js";
 export * from "./attributeReadModelServiceSQL.js";
