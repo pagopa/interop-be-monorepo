@@ -26,8 +26,8 @@ export function customReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           .where(
             and(
               eq(tenantMailInReadmodelTenant.id, tenantMailId),
-              eq(tenantInReadmodelTenant.id, tenantId),
-              lte(tenantInReadmodelTenant.metadataVersion, version)
+              eq(tenantMailInReadmodelTenant.tenantId, tenantId),
+              lte(tenantMailInReadmodelTenant.metadataVersion, version)
             )
           );
 
