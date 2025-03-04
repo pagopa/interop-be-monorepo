@@ -42,10 +42,18 @@ export function clientJWKKeyReadModelServiceBuilder(
 
       return aggregateClientJWKKey(queryResult[0]);
     },
-    async deleteClientJWKKeyById(clientId: ClientId): Promise<void> {
+    async deleteClientJWKKeyById(
+      clientId: ClientId,
+      kid: string
+    ): Promise<void> {
       await db
         .delete(clientJwkKeyInReadmodelClientJwkKey)
-        .where(eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId));
+        .where(
+          and(
+            eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
+            eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
+          )
+        );
     },
   };
 }
