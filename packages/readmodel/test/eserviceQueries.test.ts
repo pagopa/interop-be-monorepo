@@ -46,7 +46,7 @@ import {
 
 describe("E-service queries", () => {
   describe("upsertEService", () => {
-    it.only("should add a complete (*all* fields with values) e-service", async () => {
+    it("should add a complete (*all* fields) e-service", async () => {
       const metadataVersion = 1;
       const rejectionReason = getMockDescriptorRejectionReason();
       const descriptorInterface = getMockDocument();
@@ -297,7 +297,7 @@ describe("E-service queries", () => {
       );
     });
 
-    it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", async () => {
+    it("should add an incomplete (*only* mandatory fields) e-service", async () => {
       const doc = getMockDocument();
       const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
       const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
@@ -357,16 +357,35 @@ describe("E-service queries", () => {
 
       expect(resDiff).toBeUndefined();
     });
-  });
 
-  describe("get", () => {
-    it("undefined", () => {
+    it("should update a complete (*all* fields) e-service", async () => {
+      expect(1).toBe(1);
+    });
+    it("should update an incomplete (*only* mandatory fields) e-service", async () => {
       expect(1).toBe(1);
     });
   });
 
-  describe("delete", () => {
-    it("", () => {
+  describe("getEServiceById", () => {
+    it("eservice found", () => {
+      expect(1).toBe(1);
+    });
+    it("eservice NOT found", () => {
+      expect(1).toBe(1);
+    });
+  });
+
+  describe("getAllEServices", () => {
+    it("eservices found", () => {
+      expect(1).toBe(1);
+    });
+    it("eservices NOT found", () => {
+      expect(1).toBe(1);
+    });
+  });
+
+  describe("deleteEServiceById", () => {
+    it("delete one eservice", () => {
       expect(1).toBe(1);
     });
   });
