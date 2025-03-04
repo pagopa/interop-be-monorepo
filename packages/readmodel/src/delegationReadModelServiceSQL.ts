@@ -9,7 +9,9 @@ import {
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import {
   aggregateDelegation,
+  aggregateDelegationsArray,
   toDelegationAggregator,
+  toDelegationAggregatorArray,
 } from "./delegation/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -17,7 +19,9 @@ export function delegationReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async addDelegation(delegation: WithMetadata<Delegation>): Promise<void> {
+    async upsertDelegation(
+      delegation: WithMetadata<Delegation>
+    ): Promise<void> {
       const { delegationSQL, stampsSQL, contractDocumentsSQL } =
         splitDelegationIntoObjectsSQL(
           delegation.data,
@@ -25,6 +29,10 @@ export function delegationReadModelServiceBuilder(
         );
 
       await db.transaction(async (tx) => {
+        await tx
+          .delete(delegationInReadmodelDelegation)
+          .where(eq(delegationInReadmodelDelegation.id, delegation.data.id));
+
         await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
 
         for (const stampSQL of stampsSQL) {
@@ -42,7 +50,7 @@ export function delegationReadModelServiceBuilder(
     },
     async getDelegationById(
       delegationId: DelegationId
-    ): Promise<WithMetadata<Delegation>> {
+    ): Promise<WithMetadata<Delegation> | undefined> {
       /*
         delegation -> 1 delegation_stamp
                   -> 2 delegation_contract_document
@@ -73,14 +81,46 @@ export function delegationReadModelServiceBuilder(
           )
         );
 
-      const aggregatorInput = toDelegationAggregator(queryResult);
+      if (queryResult.length === 0) {
+        return undefined;
+      }
 
-      return aggregateDelegation(aggregatorInput);
+      return aggregateDelegation(toDelegationAggregator(queryResult));
     },
     async deleteDelegationById(delegationId: DelegationId): Promise<void> {
       await db
         .delete(delegationInReadmodelDelegation)
         .where(eq(delegationInReadmodelDelegation.id, delegationId));
+    },
+    async getAllDelegations(): Promise<Array<WithMetadata<Delegation>>> {
+      const queryResult = await db
+        .select({
+          delegation: delegationInReadmodelDelegation,
+          delegationStamp: delegationStampInReadmodelDelegation,
+          delegationContractDocument:
+            delegationContractDocumentInReadmodelDelegation,
+        })
+        .from(delegationInReadmodelDelegation)
+        .leftJoin(
+          // 1
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          // 2
+          delegationContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        );
+
+      return aggregateDelegationsArray(
+        toDelegationAggregatorArray(queryResult)
+      );
     },
   };
 }
