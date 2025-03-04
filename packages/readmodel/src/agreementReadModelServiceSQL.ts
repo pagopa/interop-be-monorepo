@@ -19,7 +19,7 @@ export function agreementReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async addAgreement(agreement: WithMetadata<Agreement>): Promise<void> {
+    async upsertAgreement(agreement: WithMetadata<Agreement>): Promise<void> {
       const {
         agreementSQL,
         stampsSQL,
@@ -32,6 +32,10 @@ export function agreementReadModelServiceBuilder(
       );
 
       await db.transaction(async (tx) => {
+        await tx
+          .delete(agreementInReadmodelAgreement)
+          .where(eq(agreementInReadmodelAgreement.id, agreement.data.id));
+
         await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
 
         for (const stampSQL of stampsSQL) {
