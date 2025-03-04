@@ -41,20 +41,23 @@ export const retrieveEserviceDescriptorsSQL = async (
     .select()
     .from(eserviceDescriptorInReadmodelCatalog)
     .where(eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId));
+
   return result.length > 0 ? result : undefined;
 };
 
 export const retrieveEserviceDocumentsSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
-): Promise<EServiceDescriptorDocumentSQL[] | undefined> =>
-  await db
+): Promise<EServiceDescriptorDocumentSQL[] | undefined> => {
+  const result = await db
     .select()
     .from(eserviceDescriptorDocumentInReadmodelCatalog)
     .where(
       eq(eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, eserviceId)
     );
 
+  return result.length > 0 ? result : undefined;
+};
 export const retrieveEserviceInterfacesSQL = async (
   eserviceId: EServiceId,
   db: ReturnType<typeof drizzle>
