@@ -7,7 +7,6 @@ import {
   bffApi,
   catalogApi,
   delegationApi,
-  eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -210,23 +209,6 @@ const enhanceProducerEService = (
           }
         : undefined,
   };
-};
-
-export const retrieveEserviceTemplate = async (
-  eservice: catalogApi.EService,
-  eserviceTemplateProcessClient: EServiceTemplateProcessClient,
-  headers: Headers
-): Promise<eserviceTemplateApi.EServiceTemplate | undefined> => {
-  const eServiceTemplateId = eservice.templateRef?.id;
-
-  return eServiceTemplateId
-    ? await eserviceTemplateProcessClient.getEServiceTemplateById({
-        headers,
-        params: {
-          eServiceTemplateId,
-        },
-      })
-    : undefined;
 };
 
 export const retrieveEserviceDescriptor = (
