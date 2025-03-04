@@ -219,7 +219,6 @@ export const bffGetCatalogEServiceTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "tenantNotFound",
       "catalogEServiceTemplatePublishedVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
@@ -235,16 +234,16 @@ export const addEServiceInterfceByTemplateErrorMapper = (
       "eserviceTemplateInterfaceDataNotValid",
       "invalidInterfaceContentTypeDetected",
       "invalidInterfaceFileDetected",
+      "templateDataNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("invalidEserviceRequester", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
-      "templateDataNotFound",
       "eserviceTemplateInterfaceNotFound",
       "eserviceTemplateNotFound",
       "eserviceTemplateVersionNotFound",
       "eserviceDescriptorDraftNotFound",
       "interfaceExtractingInfoError",
+      "invalidEserviceRequester",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
