@@ -311,7 +311,7 @@ export const attributesSQLtoAttributes = (
   return Array.from(attributesMap.values());
 };
 
-export const fromJoinToAggregator = (
+export const toEServiceAggregator = (
   queryRes: Array<{
     eservice: EServiceSQL;
     descriptor: EServiceDescriptorSQL | null;
@@ -333,7 +333,7 @@ export const fromJoinToAggregator = (
     documentsSQL,
     attributesSQL,
     rejectionReasonsSQL,
-  } = fromJoinToAggregatorArray(queryRes);
+  } = toEServiceAggregatorArray(queryRes);
 
   return {
     eserviceSQL: eservicesSQL[0],
@@ -348,7 +348,7 @@ export const fromJoinToAggregator = (
   };
 };
 
-export const fromJoinToAggregatorArray = (
+export const toEServiceAggregatorArray = (
   queryRes: Array<{
     eservice: EServiceSQL;
     descriptor: EServiceDescriptorSQL | null;
