@@ -385,11 +385,16 @@ export function catalogServiceBuilder(
         },
       });
 
-      const eserviceTemplate = await retrieveEserviceTemplate(
-        eservice,
-        eserviceTemplateProcessClient,
-        headers
-      );
+      const eServiceTemplateId = eservice.templateRef?.id;
+
+      const eserviceTemplate = eServiceTemplateId
+        ? await eserviceTemplateProcessClient.getEServiceTemplateById({
+            headers,
+            params: {
+              eServiceTemplateId,
+            },
+          })
+        : undefined;
 
       return {
         id: descriptor.id,

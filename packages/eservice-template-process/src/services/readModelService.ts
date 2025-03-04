@@ -69,7 +69,7 @@ async function getTenant(
   filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
-    projection: { data: true, metadata: true },
+    projection: { data: true },
   });
 
   if (!data) {

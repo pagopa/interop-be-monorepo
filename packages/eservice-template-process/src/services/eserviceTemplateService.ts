@@ -1678,7 +1678,7 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
-      const updatedDocument = {
+      const updatedDocument: Document = {
         ...document,
         prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
       };
