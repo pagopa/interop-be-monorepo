@@ -132,7 +132,7 @@ export function producerKeychainReadModelServiceBuilder(
           )
         );
     },
-    async getAllProducerKeychainById(): Promise<
+    async getAllProducerKeychains(): Promise<
       Array<WithMetadata<ProducerKeychain>>
     > {
       /*
@@ -173,10 +173,6 @@ export function producerKeychainReadModelServiceBuilder(
             producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
           )
         );
-
-      if (queryResult.length === 0) {
-        return new Array<WithMetadata<ProducerKeychain>>();
-      }
 
       return aggregateProducerKeychainArray(
         toProducerKeychainAggregatorArray(queryResult)
