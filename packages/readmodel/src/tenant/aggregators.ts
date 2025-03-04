@@ -143,46 +143,30 @@ export const aggregateTenantArray = ({
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
   featuresSQL: TenantFeatureSQL[];
 }): Array<WithMetadata<Tenant>> =>
-  tenantsSQL.map((tenantSQL) => {
-    const mailsSQLOfCurrentTenant = mailsSQL.filter(
-      (mailSQL) => mailSQL.tenantId === tenantSQL.id
-    );
-
-    const certifiedAttributesSQLOfCurrentTenant = certifiedAttributesSQL.filter(
-      (attr) => attr.tenantId === tenantSQL.id
-    );
-
-    const declaredAttributesSQLOfCurrentTenant = declaredAttributesSQL.filter(
-      (attr) => attr.tenantId === tenantSQL.id
-    );
-
-    const verifiedAttributesSQLOfCurrentTenant = verifiedAttributesSQL.filter(
-      (attr) => attr.tenantId === tenantSQL.id
-    );
-
-    const verifiersSQLOfCurrentTenant = verifiedAttributeVerifiersSQL.filter(
-      (verifier) => verifier.tenantId === tenantSQL.id
-    );
-
-    const revokersSQLOfCurrentTenant = verifiedAttributeRevokersSQL.filter(
-      (revoker) => revoker.tenantId === tenantSQL.id
-    );
-
-    const featuresSQLOfCurrentTenant = featuresSQL.filter(
-      (feature) => feature.tenantId === tenantSQL.id
-    );
-
-    return aggregateTenant({
+  tenantsSQL.map((tenantSQL) =>
+    aggregateTenant({
       tenantSQL,
-      mailsSQL: mailsSQLOfCurrentTenant,
-      certifiedAttributesSQL: certifiedAttributesSQLOfCurrentTenant,
-      declaredAttributesSQL: declaredAttributesSQLOfCurrentTenant,
-      verifiedAttributesSQL: verifiedAttributesSQLOfCurrentTenant,
-      verifiedAttributeVerifiersSQL: verifiersSQLOfCurrentTenant,
-      verifiedAttributeRevokersSQL: revokersSQLOfCurrentTenant,
-      featuresSQL: featuresSQLOfCurrentTenant,
-    });
-  });
+      mailsSQL: mailsSQL.filter((mailSQL) => mailSQL.tenantId === tenantSQL.id),
+      certifiedAttributesSQL: certifiedAttributesSQL.filter(
+        (attr) => attr.tenantId === tenantSQL.id
+      ),
+      declaredAttributesSQL: declaredAttributesSQL.filter(
+        (attr) => attr.tenantId === tenantSQL.id
+      ),
+      verifiedAttributesSQL: verifiedAttributesSQL.filter(
+        (attr) => attr.tenantId === tenantSQL.id
+      ),
+      verifiedAttributeVerifiersSQL: verifiedAttributeVerifiersSQL.filter(
+        (verifier) => verifier.tenantId === tenantSQL.id
+      ),
+      verifiedAttributeRevokersSQL: verifiedAttributeRevokersSQL.filter(
+        (revoker) => revoker.tenantId === tenantSQL.id
+      ),
+      featuresSQL: featuresSQL.filter(
+        (feature) => feature.tenantId === tenantSQL.id
+      ),
+    })
+  );
 
 const tenantMailSQLToTenantMail = (mail: TenantMailSQL): TenantMail => ({
   id: mail.id,
