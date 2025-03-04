@@ -7,3 +7,4 @@ export * from "./clientReadModelServiceSQL.js";
 export * from "./clientJWKKeyReadModelServiceSQL.js";
 export * from "./producerKeychainReadModelService.js";
 export * from "./producerJWKKeyReadModelService.js";
+export * from "./delegationReadModelServiceSQL.js";

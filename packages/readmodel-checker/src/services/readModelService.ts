@@ -168,7 +168,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelDelegation(): Promise<
+    async getAllReadModelDelegations(): Promise<
       Array<WithMetadata<Delegation>>
     > {
       const data = await readModel.delegations.find().toArray();
