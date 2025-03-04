@@ -33,6 +33,7 @@
     "axios": "1.7.4",
     "dotenv-flow": "4.1.0",
     "express": "4.20.0",
+    "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-models": "workspace:*",

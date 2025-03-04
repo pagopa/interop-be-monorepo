@@ -5,6 +5,8 @@ import {
   EventStoreConfig,
   S3Config,
   FeatureFlagsConfig,
+  KafkaProducerConfig,
+  ApplicationAuditProducerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -25,7 +27,9 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
           .map((origin) => origin.trim())
           .filter(Boolean),
       }))
-  );
+  )
+  .and(KafkaProducerConfig)
+  .and(ApplicationAuditProducerConfig);
 
 export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 

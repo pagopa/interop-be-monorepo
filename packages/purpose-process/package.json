@@ -39,6 +39,7 @@
     "handlebars": "4.7.8",
     "mongodb": "6.7.0",
     "openapi-zod-client": "1.18.1",
+    "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-models": "workspace:*",
