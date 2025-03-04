@@ -23,6 +23,7 @@ export function zipDataById<T extends { id: string } | { kid: string }>(
   ]);
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function compare<T extends { id: string } | { kid: string }>({
   collectionItems,
   postgresItems,
@@ -47,19 +48,19 @@ export function compare<T extends { id: string } | { kid: string }>({
       getIdentificationKey(d.data)
     )
   );
-  const pairs = Array.from(allIds)
-    .map((id) => [
-      collectionItems.find((d) => getIdentificationKey(d.data) === id),
-      postgresItems.find((d) => getIdentificationKey(d.data) === id),
-    ])
-    .filter(([a, b]) => !isEqual(a, b));
+  const pairs = Array.from(allIds).map((id) => [
+    collectionItems.find((d) => getIdentificationKey(d.data) === id),
+    postgresItems.find((d) => getIdentificationKey(d.data) === id),
+  ]);
+
+  const pairsWithDifferences = pairs.filter(([a, b]) => !isEqual(a, b));
 
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
-  pairs.forEach(([itemFromCollection, itemFromSQL]) => {
+  pairsWithDifferences.forEach(([itemFromCollection, itemFromSQL]) => {
     if (itemFromCollection && !itemFromSQL) {
       differencesCount++;
-      console.warn(
+      console.log(
         `Object with id ${getIdentificationKey(
           itemFromCollection.data
         )} not found in SQL readmodel`
@@ -67,32 +68,38 @@ export function compare<T extends { id: string } | { kid: string }>({
     }
     if (!itemFromCollection && itemFromSQL) {
       differencesCount++;
-      console.warn(
+      console.log(
         `Object with id ${getIdentificationKey(
           itemFromSQL.data
         )} not found in collection`
       );
     }
     if (itemFromCollection && itemFromSQL) {
-      const objectsDiff = diff(itemFromCollection, itemFromSQL, { sort: true });
+      const objectsDiff = diff(itemFromSQL, itemFromCollection, {
+        sort: true,
+      });
       if (objectsDiff) {
         differencesCount++;
-        console.warn(
+        console.log(
           `Differences in object with id ${getIdentificationKey(
             itemFromCollection.data
           )}`
         );
-        console.warn(JSON.stringify(objectsDiff, null, 2));
+        console.log(
+          JSON.stringify(
+            objectsDiff,
+            (_k, v) => (v === undefined ? "undefined" : v), // this is needed to print differences in fields that are undefined
+            2
+          )
+        );
       }
     }
   });
 
   if (differencesCount > 0) {
-    loggerInstance.error(
-      `Differences count for ${schema}: ${differencesCount}`
-    );
+    console.log(`Differences count for ${schema}: ${differencesCount}`);
   } else {
-    loggerInstance.info(`No differences found for ${schema}`);
+    console.info(`No differences found for ${schema}`);
   }
 
   return differencesCount;
