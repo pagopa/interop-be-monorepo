@@ -6,6 +6,7 @@ import {
   tooManyRequestsError,
 } from "pagopa-interop-models";
 import { ExpressContext, fromAppContext } from "../context/context.js";
+import { assertHasTokenTypeIn } from "../auth/authData.js";
 import { RateLimiter } from "./rateLimiterModel.js";
 import { rateLimiterHeadersFromStatus } from "./rateLimiterUtils.js";
 
@@ -16,6 +17,8 @@ export function rateLimiterMiddleware(
 ): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
     const ctx = fromAppContext(req.ctx);
+
+    assertHasTokenTypeIn(ctx.authData, ["m2m", "ui"]);
 
     if (!ctx.authData?.organizationId) {
       const errorRes = makeApiProblem(
