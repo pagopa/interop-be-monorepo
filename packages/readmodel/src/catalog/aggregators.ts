@@ -86,27 +86,26 @@ export const aggregateDescriptor = ({
     rejectedAt: stringToDate(rejectionReason.rejectedAt),
   }));
 
-  const rejectionReasons =
-    rejectionReasonsArray.length > 0 ? rejectionReasonsArray : undefined;
-
-  // const rejectionReasons = rejectionReasonsSQL.map((rejectionReason) => ({
-  //   rejectionReason: rejectionReason.rejectionReason,
-  //   rejectedAt: stringToDate(rejectionReason.rejectedAt),
-  // }));
   return {
     id: unsafeBrandId<DescriptorId>(descriptorSQL.id),
     version: descriptorSQL.version,
-    description: descriptorSQL.description || undefined,
-    interface: parsedInterface,
+    ...(descriptorSQL.description
+      ? { description: descriptorSQL.description }
+      : {}),
+    ...(parsedInterface ? { interface: parsedInterface } : {}),
     docs: documentsSQL.map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
     audience: descriptorSQL.audience,
     voucherLifespan: descriptorSQL.voucherLifespan,
     dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
-    agreementApprovalPolicy: descriptorSQL.agreementApprovalPolicy
-      ? AgreementApprovalPolicy.parse(descriptorSQL.agreementApprovalPolicy)
-      : undefined, // TODO use safeParse?
+    ...(descriptorSQL.agreementApprovalPolicy
+      ? {
+          agreementApprovalPolicy: AgreementApprovalPolicy.parse(
+            descriptorSQL.agreementApprovalPolicy
+          ),
+        }
+      : {}), // TODO use safeParse?
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
     ...(descriptorSQL.publishedAt
@@ -126,7 +125,9 @@ export const aggregateDescriptor = ({
       declared: declaredAttributes,
       verified: verifiedAttributes,
     },
-    rejectionReasons,
+    ...(rejectionReasonsArray.length > 0
+      ? { rejectionReasons: rejectionReasonsArray }
+      : {}),
   };
 };
 
@@ -178,9 +179,15 @@ EServiceItemsSQL): WithMetadata<EService> => {
     descriptors,
     riskAnalysis,
     mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
-    isClientAccessDelegable: eserviceSQL.isClientAccessDelegable || undefined,
-    isConsumerDelegable: eserviceSQL.isConsumerDelegable || undefined,
-    isSignalHubEnabled: eserviceSQL.isSignalHubEnabled || undefined,
+    ...(eserviceSQL.isClientAccessDelegable
+      ? { isClientAccessDelegable: eserviceSQL.isClientAccessDelegable }
+      : {}),
+    ...(eserviceSQL.isConsumerDelegable
+      ? { isConsumerDelegable: eserviceSQL.isConsumerDelegable }
+      : {}),
+    ...(eserviceSQL.isSignalHubEnabled
+      ? { isSignalHubEnabled: eserviceSQL.isSignalHubEnabled }
+      : {}),
   };
   return {
     data: eservice,

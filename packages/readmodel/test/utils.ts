@@ -2,9 +2,7 @@ import { RiskAnalysis, riskAnalysisAnswerKind } from "pagopa-interop-models";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { readModelServiceBuilder } from "../src/readModelServiceSQL.js";
+import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -16,7 +14,7 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
   inject("readModelSQLConfig")
 );
 
-export const readModelService = readModelServiceBuilder(readModelDB);
+export const readModelService = readModelServiceBuilderSQL(readModelDB);
 
 afterEach(cleanup);
 export const generateRiskAnalysisAnswersSQL = (
