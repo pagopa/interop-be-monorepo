@@ -74,6 +74,7 @@ import {
   delegationState,
   delegationKind,
   DescriptorRejectionReason,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -342,6 +343,15 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
+});
+
+export const getMockAgreementDocument = (): AgreementDocument => ({
+  id: generateId(),
+  name: "fileName",
+  prettyName: "prettyName",
+  contentType: "json",
+  path: "filePath",
+  createdAt: new Date(),
 });
 
 export const getMockClient = (): Client => ({
