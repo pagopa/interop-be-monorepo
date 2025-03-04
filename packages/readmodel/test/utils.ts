@@ -1,8 +1,12 @@
-import { RiskAnalysis, riskAnalysisAnswerKind } from "pagopa-interop-models";
+import {
+  RiskAnalysis,
+  riskAnalysisAnswerKind,
+  stringToDate,
+} from "pagopa-interop-models";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
-import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
+import { catalogReadModelServiceBuilder } from "../src/catalogReadModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -14,9 +18,10 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
   inject("readModelSQLConfig")
 );
 
-export const readModelService = readModelServiceBuilderSQL(readModelDB);
+export const readModelService = catalogReadModelServiceBuilder(readModelDB);
 
 afterEach(cleanup);
+
 export const generateRiskAnalysisAnswersSQL = (
   eserviceId: string,
   riskAnalyses: RiskAnalysis[]
@@ -45,3 +50,9 @@ export const generateRiskAnalysisAnswersSQL = (
       })
     ),
   ]);
+
+export function stringToISOString(input: string): string;
+export function stringToISOString(input: string | null): string | null;
+export function stringToISOString(input: string | null): string | null {
+  return input ? stringToDate(input).toISOString() : null;
+}

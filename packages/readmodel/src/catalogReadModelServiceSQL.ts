@@ -15,12 +15,12 @@ import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import {
   aggregateEservice,
   aggregateEserviceArray,
-  fromJoinToAggregator,
-  fromJoinToAggregatorArray,
+  toEServiceAggregator,
+  toEServiceAggregatorArray,
 } from "./catalog/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilderSQL(db: ReturnType<typeof drizzle>) {
+export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
     async upsertEService(eservice: WithMetadata<EService>): Promise<void> {
       const {
@@ -178,7 +178,7 @@ export function readModelServiceBuilderSQL(db: ReturnType<typeof drizzle>) {
         return undefined;
       }
 
-      const aggregatorInput = fromJoinToAggregator(queryResult);
+      const aggregatorInput = toEServiceAggregator(queryResult);
 
       return aggregateEservice(aggregatorInput);
     },
@@ -266,10 +266,12 @@ export function readModelServiceBuilderSQL(db: ReturnType<typeof drizzle>) {
       //   )
       // );
 
-      const aggregatorInput = fromJoinToAggregatorArray(queryResult);
+      const aggregatorInput = toEServiceAggregatorArray(queryResult);
       return aggregateEserviceArray(aggregatorInput);
     },
   };
 }
 
-export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
+export type CatalogReadModelService = ReturnType<
+  typeof catalogReadModelServiceBuilder
+>;
