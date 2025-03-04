@@ -18,7 +18,6 @@ const {
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
-      "descriptorNotFound",
       "eserviceRiskNotFound",
       "eserviceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
@@ -207,3 +206,49 @@ const delegationNotFoundErrorMapper = (error: ApiError<ErrorCodes>): number =>
 
 export const getDelegationByIdErrorMapper = delegationNotFoundErrorMapper;
 export const getDelegationsErrorMapper = delegationNotFoundErrorMapper;
+
+export const bffGetEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const bffGetCatalogEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "catalogEServiceTemplatePublishedVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addEServiceInterfceByTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateIsNotPublished",
+      "eserviceIsNotDraft",
+      "eserviceTemplateInterfaceDataNotValid",
+      "invalidInterfaceContentTypeDetected",
+      "invalidInterfaceFileDetected",
+      "templateDataNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "eserviceTemplateInterfaceNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
+      "eserviceDescriptorDraftNotFound",
+      "interfaceExtractingInfoError",
+      "invalidEserviceRequester",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "eServiceNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

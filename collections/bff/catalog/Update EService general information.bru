@@ -1,7 +1,7 @@
 meta {
   name: Update EService general information
   type: http
-  seq: 1
+  seq: 19
 }
 
 put {
@@ -33,7 +33,7 @@ body:json {
 
 script:pre-request {
     const random = Math.round(Math.random() * 10000)
-
+  
     bru.setVar("randomName",`test name ${random}`)
     bru.setVar("randomCode",random)
 }

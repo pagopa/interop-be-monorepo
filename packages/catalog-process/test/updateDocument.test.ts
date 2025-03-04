@@ -15,6 +15,8 @@ import {
   Document,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -23,6 +25,7 @@ import {
   notValidDescriptorState,
   eServiceDocumentNotFound,
   prettyNameDuplicate,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -385,5 +388,34 @@ describe("update Document", () => {
     ).rejects.toThrowError(
       prettyNameDuplicate(document1.prettyName.toLowerCase(), descriptor.id)
     );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.draft,
+      docs: [mockDocument],
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+    expect(
+      catalogService.updateDocument(
+        eService.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        {
+          authData: getMockAuthData(eService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

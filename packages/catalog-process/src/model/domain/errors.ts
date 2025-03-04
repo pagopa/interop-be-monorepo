@@ -5,6 +5,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  EServiceTemplateId,
   RiskAnalysisId,
   TenantId,
   makeApiProblemBuilder,
@@ -39,6 +40,11 @@ export const errorCodes = {
   inconsistentAttributesSeedGroupsCount: "0026",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
   unchangedAttributes: "0028",
+  eServiceTemplateNotFound: "0029",
+  eServiceTemplateWithoutPublishedVersion: "0030",
+  templateInstanceNotAllowed: "0031",
+  eServiceNotAnInstance: "0032",
+  eServiceAlreadyUpgraded: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -329,5 +335,55 @@ export function invalidEServiceFlags(
     detail: `EService ${eserviceId} flags are not valid`,
     code: "invalidEServiceFlags",
     title: "Invalid EService flags",
+  });
+}
+
+export function eServiceTemplateNotFound(
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eServiceTemplateId} not found`,
+    code: "eServiceTemplateNotFound",
+    title: "EService template not found",
+  });
+}
+
+export function eServiceTemplateWithoutPublishedVersion(
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eServiceTemplateId} does not have a published version`,
+    code: "eServiceTemplateWithoutPublishedVersion",
+    title: "EService template without published version",
+  });
+}
+
+export function templateInstanceNotAllowed(
+  eServiceTemplateId: EServiceTemplateId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eServiceTemplateId} must not have a templateId`,
+    code: "templateInstanceNotAllowed",
+    title: "TemplateId must be undefined",
+  });
+}
+
+export function eServiceNotAnInstance(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not an instance of a template`,
+    code: "eServiceNotAnInstance",
+    title: "EService is not an instance",
+  });
+}
+
+export function eServiceAlreadyUpgraded(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} has already the latest version of the template`,
+    code: "eServiceAlreadyUpgraded",
+    title: "EService already upgraded",
   });
 }

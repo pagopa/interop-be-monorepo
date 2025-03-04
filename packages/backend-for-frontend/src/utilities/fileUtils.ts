@@ -224,3 +224,39 @@ export async function calculateChecksum(stream: Readable): Promise<string> {
     });
   });
 }
+
+export async function cloneEServiceDocument({
+  doc,
+  documentsContainer,
+  documentsPath,
+  fileManager,
+  logger,
+}: {
+  doc: catalogApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> {
+  const clonedDocumentId = crypto.randomUUID();
+
+  const clonedPath = await fileManager.copy(
+    documentsContainer,
+    doc.path,
+    documentsPath,
+    clonedDocumentId,
+    doc.name,
+    logger
+  );
+
+  return {
+    documentId: clonedDocumentId,
+    kind: "DOCUMENT",
+    contentType: doc.contentType,
+    prettyName: doc.prettyName,
+    fileName: doc.name,
+    filePath: clonedPath,
+    checksum: doc.checksum,
+    serverUrls: [],
+  };
+}

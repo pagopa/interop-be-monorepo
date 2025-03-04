@@ -1,0 +1,47 @@
+meta {
+  name: Create EService Instance From Template
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-bff}}/eservices/templates/:templateId/instances
+  body: json
+  auth: none
+}
+
+params:path {
+  templateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "instanceId": "{{uuid}}"
+  }
+}
+
+script:pre-request {
+  const { v4 } = require('uuid');
+  bru.setVar("randomUuid", v4() );
+}
+
+docs {
+  This endpoint creates a new EService instance from an existing template.
+  
+  Request body fields:
+  - instanceId: (Optional) Custom identifier for the new instance
+  
+  Returns a CreatedEServiceDescriptor object with status 200 on success containing:
+  - id: ID of the created EService
+  - descriptorId: ID of the first descriptor
+  
+  Possible errors:
+  - 400: Bad request (invalid input)
+  - 404: Template not found
+  - 500: Internal server error
+}

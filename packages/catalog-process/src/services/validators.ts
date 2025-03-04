@@ -18,10 +18,12 @@ import {
   descriptorState,
   eserviceMode,
   operationForbidden,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
+  eServiceDuplicate,
   eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -30,6 +32,7 @@ import {
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
+  templateInstanceNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -250,4 +253,29 @@ export function assertDocumentDeletableDescriptorState(
       throw notValidDescriptorState(descriptor.id, descriptor.state);
     })
     .exhaustive();
+}
+
+export async function assertNotDuplicatedEServiceName(
+  name: string,
+  eservice: EService,
+  readModelService: ReadModelService
+): Promise<void> {
+  if (name !== eservice.name) {
+    const eserviceWithSameName =
+      await readModelService.getEServiceByNameAndProducerId({
+        name,
+        producerId: eservice.producerId,
+      });
+    if (eserviceWithSameName !== undefined) {
+      throw eServiceDuplicate(name);
+    }
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  templateId: EServiceTemplateId | undefined
+): void {
+  if (templateId !== undefined) {
+    throw templateInstanceNotAllowed(templateId);
+  }
 }
