@@ -94,7 +94,7 @@ describe("sendAgreementRejectedEmail", () => {
       subject: `Richiesta di fruizione per ${eservice.name} rifiutata`,
       to: [consumerEmail.address],
       html: templateService.compileHtml(rejectEmailTemplate, {
-        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`,
         producerName: producer.name,
         consumerName: consumer.name,
         eserviceName: eservice.name,
