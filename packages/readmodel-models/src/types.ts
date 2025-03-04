@@ -149,6 +149,13 @@ export type PurposeRiskAnalysisFormSQL = InferSelectModel<
 export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
   typeof purposeRiskAnalysisAnswerInReadmodelPurpose
 >;
+export type PurposeItemsSQL = {
+  purposeSQL: PurposeSQL;
+  riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
+  versionsSQL: PurposeVersionSQL[];
+  versionDocumentsSQL: PurposeVersionDocumentSQL[];
+};
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
 export type ClientUserSQL = InferSelectModel<
