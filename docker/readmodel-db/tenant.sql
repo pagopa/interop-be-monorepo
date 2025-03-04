@@ -99,5 +99,6 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_feature (
   kind VARCHAR NOT NULL,
   certifier_id VARCHAR,
   availability_timestamp TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (tenant_id, kind),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
 );
