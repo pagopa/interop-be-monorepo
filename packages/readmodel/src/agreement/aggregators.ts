@@ -301,7 +301,7 @@ export const toAgreementAggregatorArray = (
   const agreementIdSet = new Set<string>();
   const agreementsSQL: AgreementSQL[] = [];
 
-  const contractSQL = queryRes[0].contract;
+  const contractSQL = queryRes?.length ? queryRes[0].contract : null;
 
   const stampIdSet = new Set<string>();
   const stampsSQL: AgreementStampSQL[] = [];
