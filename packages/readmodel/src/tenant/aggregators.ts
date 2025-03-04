@@ -1,0 +1,490 @@
+import {
+  AttributeId,
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  DelegationId,
+  genericInternalError,
+  stringToDate,
+  Tenant,
+  TenantAttribute,
+  tenantAttributeType,
+  TenantFeature,
+  TenantFeatureCertifier,
+  TenantFeatureDelegatedConsumer,
+  TenantFeatureDelegatedProducer,
+  tenantFeatureType,
+  TenantId,
+  TenantKind,
+  TenantMail,
+  TenantMailKind,
+  TenantRevoker,
+  TenantUnitType,
+  TenantVerifier,
+  unsafeBrandId,
+  VerifiedTenantAttribute,
+  WithMetadata,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import {
+  TenantCertifiedAttributeSQL,
+  TenantDeclaredAttributeSQL,
+  TenantFeatureSQL,
+  TenantItemsSQL,
+  TenantMailSQL,
+  TenantSQL,
+  TenantVerifiedAttributeRevokerSQL,
+  TenantVerifiedAttributeSQL,
+  TenantVerifiedAttributeVerifierSQL,
+} from "pagopa-interop-readmodel-models";
+
+export const aggregateTenant = ({
+  tenantSQL,
+  mailsSQL,
+  certifiedAttributesSQL,
+  declaredAttributesSQL,
+  verifiedAttributesSQL,
+  verifiedAttributeVerifiersSQL,
+  verifiedAttributeRevokersSQL,
+  featuresSQL,
+}: TenantItemsSQL): WithMetadata<Tenant> => {
+  const mails = mailsSQL.map(tenantMailSQLToTenantMail);
+
+  const attributes = aggregateTenantAttributes({
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+  });
+
+  const features: TenantFeature[] = featuresSQL.map((feature) =>
+    match(feature.kind)
+      .with(tenantFeatureType.persistentCertifier, () => {
+        if (!feature.certifierId) {
+          throw genericInternalError(
+            "certifierId can't be missing in certifier feature"
+          );
+        }
+        return {
+          type: tenantFeatureType.persistentCertifier,
+          certifierId: feature.certifierId,
+        } satisfies TenantFeatureCertifier;
+      })
+      .with(tenantFeatureType.delegatedProducer, () => {
+        if (!feature.availabilityTimestamp) {
+          throw genericInternalError(
+            "availabilityTimestamp can't be missing in delegatedProducer feature"
+          );
+        }
+        return {
+          type: tenantFeatureType.delegatedProducer,
+          availabilityTimestamp: stringToDate(feature.availabilityTimestamp),
+        } satisfies TenantFeatureDelegatedProducer;
+      })
+      .with(tenantFeatureType.delegatedConsumer, () => {
+        if (!feature.availabilityTimestamp) {
+          throw genericInternalError(
+            "availabilityTimestamp can't be missing in delegatedConsumer feature"
+          );
+        }
+        return {
+          type: tenantFeatureType.delegatedConsumer,
+          availabilityTimestamp: stringToDate(feature.availabilityTimestamp),
+        } satisfies TenantFeatureDelegatedConsumer;
+      })
+      .otherwise(() => {
+        throw genericInternalError("Unexpected tenant feature");
+      })
+  );
+
+  const tenant: Tenant = {
+    id: unsafeBrandId<TenantId>(tenantSQL.id),
+    name: tenantSQL.name,
+    kind: tenantSQL.kind ? TenantKind.parse(tenantSQL.kind) : undefined,
+    createdAt: stringToDate(tenantSQL.createdAt),
+    onboardedAt: stringToDate(tenantSQL.onboardedAt),
+    updatedAt: stringToDate(tenantSQL.updatedAt),
+    selfcareId: tenantSQL.selfcareId || undefined,
+    subUnitType: tenantSQL.subUnitType
+      ? TenantUnitType.parse(tenantSQL.subUnitType)
+      : undefined,
+    attributes,
+    externalId: {
+      origin: tenantSQL.externalIdOrigin,
+      value: tenantSQL.externalIdValue,
+    },
+    features,
+    mails,
+  };
+  return {
+    data: tenant,
+    metadata: {
+      version: tenantSQL.metadataVersion,
+    },
+  };
+};
+
+export const aggregateTenantArray = ({
+  tenantsSQL,
+  mailsSQL,
+  certifiedAttributesSQL,
+  declaredAttributesSQL,
+  verifiedAttributesSQL,
+  verifiedAttributeVerifiersSQL,
+  verifiedAttributeRevokersSQL,
+  featuresSQL,
+}: {
+  tenantsSQL: TenantSQL[];
+  mailsSQL: TenantMailSQL[];
+  certifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  declaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  verifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+  featuresSQL: TenantFeatureSQL[];
+}): Array<WithMetadata<Tenant>> =>
+  tenantsSQL.map((tenantSQL) =>
+    aggregateTenant({
+      tenantSQL,
+      mailsSQL: mailsSQL.filter((mailSQL) => mailSQL.tenantId === tenantSQL.id),
+      certifiedAttributesSQL: certifiedAttributesSQL.filter(
+        (attr) => attr.tenantId === tenantSQL.id
+      ),
+      declaredAttributesSQL: declaredAttributesSQL.filter(
+        (attr) => attr.tenantId === tenantSQL.id
+      ),
+      verifiedAttributesSQL: verifiedAttributesSQL.filter(
+        (attr) => attr.tenantId === tenantSQL.id
+      ),
+      verifiedAttributeVerifiersSQL: verifiedAttributeVerifiersSQL.filter(
+        (verifier) => verifier.tenantId === tenantSQL.id
+      ),
+      verifiedAttributeRevokersSQL: verifiedAttributeRevokersSQL.filter(
+        (revoker) => revoker.tenantId === tenantSQL.id
+      ),
+      featuresSQL: featuresSQL.filter(
+        (feature) => feature.tenantId === tenantSQL.id
+      ),
+    })
+  );
+
+const tenantMailSQLToTenantMail = (mail: TenantMailSQL): TenantMail => ({
+  id: mail.id,
+  createdAt: stringToDate(mail.createdAt),
+  description: mail.description || undefined,
+  kind: TenantMailKind.parse(mail.kind),
+  address: mail.address,
+});
+
+const aggregateTenantAttributes = ({
+  certifiedAttributesSQL,
+  declaredAttributesSQL,
+  verifiedAttributesSQL,
+  verifiedAttributeVerifiersSQL,
+  verifiedAttributeRevokersSQL,
+}: {
+  certifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  declaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  verifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+}): TenantAttribute[] => {
+  const certifiedTenantAttributes: CertifiedTenantAttribute[] =
+    certifiedAttributesSQL.map((certifiedAttributeSQL) => ({
+      id: unsafeBrandId<AttributeId>(certifiedAttributeSQL.attributeId),
+      type: tenantAttributeType.CERTIFIED,
+      assignmentTimestamp: stringToDate(
+        certifiedAttributeSQL.assignmentTimestamp
+      ),
+      revocationTimestamp: stringToDate(
+        certifiedAttributeSQL.revocationTimestamp
+      ),
+    }));
+
+  const declaredTenantAttributes: DeclaredTenantAttribute[] =
+    declaredAttributesSQL.map((declaredAttributeSQL) => ({
+      id: unsafeBrandId<AttributeId>(declaredAttributeSQL.attributeId),
+      type: tenantAttributeType.DECLARED,
+      assignmentTimestamp: stringToDate(
+        declaredAttributeSQL.assignmentTimestamp
+      ),
+      revocationTimestamp: stringToDate(
+        declaredAttributeSQL.revocationTimestamp
+      ),
+      ...(declaredAttributeSQL.delegationId
+        ? {
+            delegationId: unsafeBrandId<DelegationId>(
+              declaredAttributeSQL.delegationId
+            ),
+          }
+        : {}),
+    }));
+
+  const verifiedTenantAttributes: VerifiedTenantAttribute[] =
+    verifiedAttributesSQL.map((currentVerifiedAttributeSQL) => {
+      const verifiersOfCurrentAttribute: TenantVerifier[] =
+        verifiedAttributeVerifiersSQL
+          .filter(
+            (attr) =>
+              attr.tenantVerifiedAttributeId ===
+              currentVerifiedAttributeSQL.attributeId
+          )
+          .map((tenantVerifierSQL) => ({
+            id: unsafeBrandId<TenantId>(tenantVerifierSQL.tenantVerifierId),
+            verificationDate: stringToDate(tenantVerifierSQL.verificationDate),
+            expirationDate: stringToDate(tenantVerifierSQL.expirationDate),
+            extensionDate: stringToDate(tenantVerifierSQL.extensionDate),
+            ...(tenantVerifierSQL.delegationId
+              ? {
+                  delegationId: unsafeBrandId<DelegationId>(
+                    tenantVerifierSQL.delegationId
+                  ),
+                }
+              : {}),
+          }));
+
+      const revokersOfCurrentAttribute: TenantRevoker[] =
+        verifiedAttributeRevokersSQL
+          .filter(
+            (attr) =>
+              attr.tenantVerifiedAttributeId ===
+              currentVerifiedAttributeSQL.attributeId
+          )
+          .map((tenantRevokerSQL) => ({
+            id: unsafeBrandId<TenantId>(tenantRevokerSQL.tenantRevokerId),
+            verificationDate: stringToDate(tenantRevokerSQL.verificationDate),
+            expirationDate: stringToDate(tenantRevokerSQL.expirationDate),
+            extensionDate: stringToDate(tenantRevokerSQL.extensionDate),
+            revocationDate: stringToDate(tenantRevokerSQL.revocationDate),
+            ...(tenantRevokerSQL.delegationId
+              ? {
+                  delegationId: unsafeBrandId<DelegationId>(
+                    tenantRevokerSQL.delegationId
+                  ),
+                }
+              : {}),
+          }));
+
+      return {
+        id: unsafeBrandId<AttributeId>(currentVerifiedAttributeSQL.attributeId),
+        type: tenantAttributeType.VERIFIED,
+        assignmentTimestamp: stringToDate(
+          currentVerifiedAttributeSQL.assignmentTimestamp
+        ),
+        verifiedBy: verifiersOfCurrentAttribute,
+        revokedBy: revokersOfCurrentAttribute,
+      };
+    });
+
+  return [
+    ...certifiedTenantAttributes,
+    ...declaredTenantAttributes,
+    ...verifiedTenantAttributes,
+  ];
+};
+
+export const toTenantAggregator = (
+  queryRes: Array<{
+    tenant: TenantSQL;
+    mail: TenantMailSQL | null;
+    certifiedAttribute: TenantCertifiedAttributeSQL | null;
+    declaredAttribute: TenantDeclaredAttributeSQL | null;
+    verifiedAttribute: TenantVerifiedAttributeSQL | null;
+    verifier: TenantVerifiedAttributeVerifierSQL | null;
+    revoker: TenantVerifiedAttributeRevokerSQL | null;
+    feature: TenantFeatureSQL | null;
+  }>
+): TenantItemsSQL => {
+  const {
+    tenantsSQL,
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
+  } = toTenantAggregatorArray(queryRes);
+
+  return {
+    tenantSQL: tenantsSQL[0],
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
+  };
+};
+
+export const toTenantAggregatorArray = (
+  queryRes: Array<{
+    tenant: TenantSQL;
+    mail: TenantMailSQL | null;
+    certifiedAttribute: TenantCertifiedAttributeSQL | null;
+    declaredAttribute: TenantDeclaredAttributeSQL | null;
+    verifiedAttribute: TenantVerifiedAttributeSQL | null;
+    verifier: TenantVerifiedAttributeVerifierSQL | null;
+    revoker: TenantVerifiedAttributeRevokerSQL | null;
+    feature: TenantFeatureSQL | null;
+  }>
+): {
+  tenantsSQL: TenantSQL[];
+  mailsSQL: TenantMailSQL[];
+  certifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  declaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  verifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+  featuresSQL: TenantFeatureSQL[];
+} => {
+  const tenantIdSet = new Set<string>();
+  const tenantsSQL: TenantSQL[] = [];
+
+  const mailIdSet = new Set<string>();
+  const mailsSQL: TenantMailSQL[] = [];
+
+  const certifiedAttributeIdSet = new Set<[string, string]>();
+  const certifiedAttributesSQL: TenantCertifiedAttributeSQL[] = [];
+
+  const declaredAttributeIdSet = new Set<[string, string]>();
+  const declaredAttributesSQL: TenantDeclaredAttributeSQL[] = [];
+
+  const verifiedAttributeIdSet = new Set<[string, string]>();
+  const verifiedAttributesSQL: TenantVerifiedAttributeSQL[] = [];
+
+  const verifiersIdSet = new Set<[string, string, string]>();
+  const verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
+    [];
+
+  const revokersIdSet = new Set<[string, string, string]>();
+  const verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] = [];
+
+  const featureIdSet = new Set<[string, string]>();
+  const featuresSQL: TenantFeatureSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const tenantSQL = row.tenant;
+    if (!tenantIdSet.has(tenantSQL.id)) {
+      tenantIdSet.add(tenantSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      tenantsSQL.push(tenantSQL);
+    }
+    const mailSQL = row.mail;
+
+    if (mailSQL && !mailIdSet.has(mailSQL.id)) {
+      mailIdSet.add(mailSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      mailsSQL.push(mailSQL);
+    }
+
+    const certifiedAttributeSQL = row.certifiedAttribute;
+
+    if (
+      certifiedAttributeSQL &&
+      !certifiedAttributeIdSet.has([
+        certifiedAttributeSQL.attributeId,
+        certifiedAttributeSQL.tenantId,
+      ])
+    ) {
+      certifiedAttributeIdSet.add([
+        certifiedAttributeSQL.attributeId,
+        certifiedAttributeSQL.tenantId,
+      ]);
+      // eslint-disable-next-line functional/immutable-data
+      certifiedAttributesSQL.push(certifiedAttributeSQL);
+    }
+
+    const declaredAttributeSQL = row.declaredAttribute;
+
+    if (
+      declaredAttributeSQL &&
+      !declaredAttributeIdSet.has([
+        declaredAttributeSQL.attributeId,
+        declaredAttributeSQL.tenantId,
+      ])
+    ) {
+      declaredAttributeIdSet.add([
+        declaredAttributeSQL.attributeId,
+        declaredAttributeSQL.tenantId,
+      ]);
+      // eslint-disable-next-line functional/immutable-data
+      declaredAttributesSQL.push(declaredAttributeSQL);
+    }
+
+    const verifiedAttributeSQL = row.verifiedAttribute;
+
+    if (verifiedAttributeSQL) {
+      if (
+        !verifiedAttributeIdSet.has([
+          verifiedAttributeSQL.attributeId,
+          verifiedAttributeSQL.tenantId,
+        ])
+      ) {
+        verifiedAttributeIdSet.add([
+          verifiedAttributeSQL.attributeId,
+          verifiedAttributeSQL.tenantId,
+        ]);
+        // eslint-disable-next-line functional/immutable-data
+        verifiedAttributesSQL.push(verifiedAttributeSQL);
+      }
+
+      const verifier = row.verifier;
+
+      if (
+        verifier &&
+        !verifiersIdSet.has([
+          verifier.tenantVerifierId,
+          verifier.tenantVerifiedAttributeId,
+          verifier.tenantId,
+        ])
+      ) {
+        verifiersIdSet.add([
+          verifier.tenantVerifierId,
+          verifier.tenantVerifiedAttributeId,
+          verifier.tenantId,
+        ]);
+        // eslint-disable-next-line functional/immutable-data
+        verifiedAttributeVerifiersSQL.push(verifier);
+      }
+
+      const revoker = row.revoker;
+
+      if (
+        revoker &&
+        !revokersIdSet.has([
+          revoker.tenantRevokerId,
+          revoker.tenantVerifiedAttributeId,
+          revoker.tenantId,
+        ])
+      ) {
+        revokersIdSet.add([
+          revoker.tenantRevokerId,
+          revoker.tenantVerifiedAttributeId,
+          revoker.tenantId,
+        ]);
+        // eslint-disable-next-line functional/immutable-data
+        verifiedAttributeRevokersSQL.push(revoker);
+      }
+    }
+
+    const feature = row.feature;
+    if (feature && !featureIdSet.has([feature.tenantId, feature.kind])) {
+      featureIdSet.add([feature.tenantId, feature.kind]);
+      // eslint-disable-next-line functional/immutable-data
+      featuresSQL.push(feature);
+    }
+  });
+
+  return {
+    tenantsSQL,
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
+  };
+};
