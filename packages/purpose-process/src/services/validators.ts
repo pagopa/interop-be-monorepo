@@ -62,6 +62,9 @@ export const isRiskAnalysisFormValid = (
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
 
+export const purposeIsArchived = (purpose: Purpose): boolean =>
+  !purpose.versions.some((v) => v.state !== purposeVersionState.archived);
+
 export const isDeletableVersion = (
   purposeVersion: PurposeVersion,
   purpose: Purpose

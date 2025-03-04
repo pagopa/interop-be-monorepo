@@ -69,6 +69,7 @@ import {
   unchangedDailyCalls,
   organizationNotAllowed,
   puroposeDelegationNotFound,
+  purposeCannotBeUpdated,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -119,6 +120,7 @@ import {
   assertRequesterCanActAsProducer,
   assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
   verifyRequesterIsConsumerOrDelegateConsumer,
+  purposeIsArchived,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -762,6 +764,10 @@ export function purposeServiceBuilder(
       logger.info(`Creating Version for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+
+      if (purposeIsArchived(purpose.data)) {
+        throw purposeCannotBeUpdated(purposeId);
+      }
 
       assertRequesterCanActAsConsumer(
         purpose.data,

@@ -45,6 +45,7 @@ export const errorCodes = {
   organizationIsNotTheDelegatedConsumer: "0027",
   organizationIsNotTheDelegatedProducer: "0028",
   purposeDelegationNotFound: "0029",
+  purposeCannotBeUpdated: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -345,5 +346,15 @@ export function puroposeDelegationNotFound(
     detail: `Delegation ${delegationId} not found for delegated purpose ${purposeId}`,
     code: "purposeDelegationNotFound",
     title: "Purpose delegation not found",
+  });
+}
+
+export function purposeCannotBeUpdated(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} cannot be updated`,
+    code: "purposeCannotBeUpdated",
+    title: "Purpose cannot be updated",
   });
 }
