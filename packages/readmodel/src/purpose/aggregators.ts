@@ -28,7 +28,6 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 
-// TODO: delete one aggregate array version
 export const aggregatePurposeArray = ({
   purposesSQL,
   riskAnalysisFormsSQL,
@@ -243,14 +242,14 @@ export const toPurposeAggregator = (
 ): PurposeItemsSQL => {
   const {
     purposesSQL,
-    riskAnalysisFormSQL,
+    riskAnalysisFormsSQL,
     riskAnalysisAnswersSQL,
     versionsSQL,
     versionDocumentsSQL,
   } = toPurposeAggregatorArray(queryRes);
   return {
     purposeSQL: purposesSQL[0],
-    riskAnalysisFormSQL,
+    riskAnalysisFormSQL: riskAnalysisFormsSQL[0],
     riskAnalysisAnswersSQL,
     versionsSQL,
     versionDocumentsSQL,
@@ -267,15 +266,16 @@ export const toPurposeAggregatorArray = (
   }>
 ): {
   purposesSQL: PurposeSQL[];
-  riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
-  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
+  riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
 } => {
   const purposeIdSet = new Set<string>();
   const purposesSQL: PurposeSQL[] = [];
 
-  const purposeRiskAnalysisFormSQL = queryRes[0].purposeRiskAnalysisForm;
+  const purposeRiskAnalysisFormIdSet = new Set<string>();
+  const purposeRiskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[] = [];
 
   const purposeRiskAnalysisAnswerIdSet = new Set<string>();
   const purposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] = [];
@@ -297,8 +297,13 @@ export const toPurposeAggregatorArray = (
     const purposeRiskAnalysisFormSQL = row.purposeRiskAnalysisForm;
 
     if (purposeRiskAnalysisFormSQL) {
-      const purposeRiskAnalysisAnswerSQL = row.purposeRiskAnalysisAnswer;
+      if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormSQL.id)) {
+        purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        purposeRiskAnalysisFormsSQL.push(purposeRiskAnalysisFormSQL);
+      }
 
+      const purposeRiskAnalysisAnswerSQL = row.purposeRiskAnalysisAnswer;
       if (
         purposeRiskAnalysisAnswerSQL &&
         !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerSQL.id)
@@ -331,11 +336,8 @@ export const toPurposeAggregatorArray = (
 
   return {
     purposesSQL,
-    riskAnalysisFormSQL: purposeRiskAnalysisFormSQL || undefined,
-    riskAnalysisAnswersSQL:
-      purposeRiskAnalysisAnswersSQL.length > 0
-        ? purposeRiskAnalysisAnswersSQL
-        : undefined,
+    riskAnalysisFormsSQL: purposeRiskAnalysisFormsSQL,
+    riskAnalysisAnswersSQL: purposeRiskAnalysisAnswersSQL,
     versionsSQL: purposeVersionsSQL,
     versionDocumentsSQL: purposeVersionDocumentsSQL,
   };
