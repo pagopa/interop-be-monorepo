@@ -48,6 +48,7 @@ import {
   TenantId,
   unsafeBrandId,
   WithMetadata,
+  EServiceTemplateVersionId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -542,6 +543,7 @@ async function innerUploadDocument(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
+  templateVersionId: EServiceTemplateVersionId | undefined,
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
 ): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
@@ -584,10 +586,10 @@ async function innerUploadDocument(
   };
 
   const templateData: EServiceTemplateVersionRef | undefined =
-    documentSeed.templateVersionRef
+    documentSeed.interfaceTemplateMetadata && templateVersionId
       ? {
-          ...documentSeed.templateVersionRef,
-          id: unsafeBrandId(documentSeed.templateVersionRef.id),
+          ...documentSeed,
+          id: templateVersionId,
         }
       : undefined;
 
@@ -919,6 +921,7 @@ export function catalogServiceBuilder(
         eservice,
         descriptorId,
         document,
+        undefined,
         readModelService,
         ctx
       );
@@ -2812,8 +2815,8 @@ export function catalogServiceBuilder(
             contentType: doc.contentType,
             checksum: doc.checksum,
             serverUrls: [], // not used in case of kind == "DOCUMENT"
-            templateVersionRef: { id: publishedVersion.id },
           },
+          publishedVersion.id,
           readModelService,
           ctx
         );

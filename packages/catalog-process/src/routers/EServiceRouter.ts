@@ -1146,6 +1146,13 @@ const eservicesRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/instances/interface",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (_req, _res) => {
+        throw new Error("Not implemented");
+      }
     );
 
   return eservicesRouter;

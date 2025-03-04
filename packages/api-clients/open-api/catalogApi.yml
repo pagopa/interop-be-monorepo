@@ -982,6 +982,77 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/instances/interface:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Add e-service interface for provided template
+      operationId: addEServiceInterfaceDocumentByTemplateId
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the eservice descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the eservice's api data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EserviceInterfaceTemplatePayload"
+      responses:
+        "200":
+          description: EService Interface Document uploaded
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/riskAnalysis:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1671,7 +1742,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem" 
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -2042,8 +2113,8 @@ components:
           type: array
           items:
             type: string
-        templateVersionRef:
-          $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        interfaceTemplateMetadata:
+          $ref: "#/components/schemas/CustomizedInterfaceMetadata"
     UpdateEServiceDescriptorDocumentSeed:
       required:
         - prettyName
@@ -2481,6 +2552,33 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
+    EserviceInterfaceTemplatePayload:
+      type: object
+      additionalProperties: false
+      description: contains eservice api custom data to add on interface document provided by template
+      properties:
+        contactName:
+          type: string
+        email:
+          type: string
+          format: email
+        contactUrl:
+          type: string
+          format: uri
+        termsAndConditionsUrl:
+          type: string
+          format: uri
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+      required:
+        - contactName
+        - email
+        - contactUrl
+        - termsAndConditionsUrl
+        - serverUrls
     Attribute:
       type: object
       additionalProperties: false

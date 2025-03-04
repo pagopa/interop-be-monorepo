@@ -15,7 +15,6 @@ import { FileManager, Logger, WithLogger } from "pagopa-interop-commons";
 import {
   ApiError,
   EServiceDocumentId,
-  EServiceTemplateVersionId,
   Technology,
   descriptorState,
   genericError,
@@ -342,7 +341,6 @@ export async function handleEServiceDocumentProcessing(
 // eslint-disable-next-line max-params
 export async function createOpenApiInterfaceByTemplate(
   eservice: catalogApi.EService,
-  eserviceTemplateVersionId: EServiceTemplateVersionId,
   eserviceTemplateInterface: eserviceTemplateApi.EServiceDoc,
   eserviceInstanceInterfaceData: bffApi.EserviceInterfaceTemplatePayload,
   bucket: string,
@@ -380,22 +378,31 @@ export async function createOpenApiInterfaceByTemplate(
     documentId,
     config.eserviceDocumentsContainer,
     config.eserviceDocumentsPath,
-    async (
-      path: string,
-      serverUrls: string[],
-      checksum: string
-    ): Promise<catalogApi.EServiceDoc["id"]> => {
-      const documentPath = await fileManager.storeBytes(
-        {
-          bucket,
-          path,
-          resourceId: documentId,
-          name: eserviceTemplateInterface.name,
-          content: await fileToBuffer(updatedInterfaceFile),
-        },
-        logger
-      );
+    async (): Promise<catalogApi.EServiceDoc["id"]> => {
+      // const documentPath = await fileManager.storeBytes(
+      //   {
+      //     bucket,
+      //     path,
+      //     resourceId: documentId,
+      //     name: eserviceTemplateInterface.name,
+      //     content: await fileToBuffer(updatedInterfaceFile),
+      //   },
+      //   logger
+      // );
 
+      const updatedEservice =
+        await catalogProcessClient.addEServiceInterfaceDocumentByTemplateId(
+          eserviceInstanceInterfaceData,
+          {
+            headers,
+            params: {
+              eServiceId: eservice.id,
+              descriptorId: descriptor.id,
+            },
+          }
+        );
+
+      /*
       const { id } = await catalogProcessClient.createEServiceDocument(
         {
           documentId,
@@ -406,16 +413,13 @@ export async function createOpenApiInterfaceByTemplate(
           contentType: eserviceTemplateInterface.contentType,
           checksum,
           serverUrls,
-          templateVersionRef: {
-            id: eserviceTemplateVersionId,
-            interfaceMetadata: {
-              name: eserviceInstanceInterfaceData.contactName,
-              email: eserviceInstanceInterfaceData.email,
-              url: eserviceInstanceInterfaceData.contactUrl,
-              termsAndConditionsUrl:
-                eserviceInstanceInterfaceData.termsAndConditionsUrl,
-              serverUrls: eserviceInstanceInterfaceData.serverUrls,
-            },
+          interfaceTemplateMetadata: {
+            name: eserviceInstanceInterfaceData.contactName,
+            email: eserviceInstanceInterfaceData.email,
+            url: eserviceInstanceInterfaceData.contactUrl,
+            termsAndConditionsUrl:
+              eserviceInstanceInterfaceData.termsAndConditionsUrl,
+            serverUrls: eserviceInstanceInterfaceData.serverUrls,
           },
         },
         {
@@ -426,8 +430,9 @@ export async function createOpenApiInterfaceByTemplate(
           },
         }
       );
+      */
 
-      return id;
+      return updatedEservice.id;
     },
     logger
   );
@@ -497,7 +502,7 @@ function retrieveDraftDescriptor(
   return draftDescriptor;
 }
 
-async function fileToBuffer(file: File): Promise<Buffer> {
+export async function fileToBuffer(file: File): Promise<Buffer> {
   const arrayBuffer = await file.arrayBuffer();
   return Buffer.from(arrayBuffer);
 }
