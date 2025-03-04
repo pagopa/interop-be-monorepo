@@ -1,0 +1,30 @@
+meta {
+  name: Update EService Instance general information
+  type: http
+  seq: 19
+}
+
+put {
+  url: {{host-bff}}/eservices/:eServiceId/instances
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "isSignalHubEnabled": true,
+    "isConsumerDelegable": true,
+    "isClientAccessDelegable": false,
+    "instanceId": ""
+  }
+}
+
