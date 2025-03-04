@@ -131,7 +131,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
               data: Attribute,
             })
           )
-          .safeParse(data.map((d) => d.data));
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse attribute items: results ${JSON.stringify(
@@ -156,7 +156,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
               data: Tenant,
             })
           )
-          .safeParse(data.map((d) => d.data));
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse eservice items: results ${JSON.stringify(

@@ -2,7 +2,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { Descriptor, EService, WithMetadata } from "pagopa-interop-models";

@@ -8,15 +8,21 @@ import {
   Client,
   EService,
   Purpose,
+  Tenant,
   toReadModelAgreement,
   toReadModelAttribute,
   toReadModelClient,
   toReadModelEService,
   toReadModelPurpose,
+  toReadModelTenant,
   WithMetadata,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
-import { catalogReadModelServiceBuilderSQL } from "pagopa-interop-readmodel";
+import {
+  attributeReadModelServiceBuilderSQL,
+  catalogReadModelServiceBuilderSQL,
+  tenantReadModelServiceBuilderSQL,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const config = inject("tokenGenerationReadModelConfig");
@@ -37,6 +43,12 @@ afterEach(cleanup);
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const eserviceReadModelServiceSQL =
   catalogReadModelServiceBuilderSQL(readModelDB);
+// const catalogReadModelServiceSQL =
+// catalogReadModelServiceBuilderSQL(readModelDB);
+export const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilderSQL(readModelDB);
+export const tenantReadModelServiceSQL =
+  tenantReadModelServiceBuilderSQL(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
@@ -48,10 +60,23 @@ export const addOneEService = async (
   );
 };
 
-export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+export const addOneAttribute = async (
+  attribute: WithMetadata<Attribute>
+): Promise<void> => {
   await writeInReadmodel(
-    toReadModelAttribute(attribute),
-    readModelRepository.attributes
+    toReadModelAttribute(attribute.data),
+    readModelRepository.attributes,
+    attribute.metadata.version
+  );
+};
+
+export const addOneTenant = async (
+  tenant: WithMetadata<Tenant>
+): Promise<void> => {
+  await writeInReadmodel(
+    toReadModelTenant(tenant.data),
+    readModelRepository.tenants,
+    tenant.metadata.version
   );
 };
 
