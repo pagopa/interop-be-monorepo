@@ -13,7 +13,9 @@ import {
 } from "./delegation/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function delegationReadModelServiceBuilder(
+  db: ReturnType<typeof drizzle>
+) {
   return {
     async addDelegation(delegation: WithMetadata<Delegation>): Promise<void> {
       const { delegationSQL, stampsSQL, contractDocumentsSQL } =
@@ -83,4 +85,6 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   };
 }
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type DelegationReadModelService = ReturnType<
+  typeof delegationReadModelServiceBuilder
+>;
