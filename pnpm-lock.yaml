@@ -2300,7 +2300,7 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/eservice-template-updater:
+  packages/eservice-template-instances-updater:
     dependencies:
       '@protobuf-ts/runtime':
         specifier: 2.9.4

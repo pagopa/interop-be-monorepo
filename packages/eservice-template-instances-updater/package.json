@@ -1,5 +1,5 @@
 {
-    "name": "pagopa-interop-eservice-template-updater",
+    "name": "pagopa-interop-eservice-template-instances-updater",
     "private": true,
     "version": "1.0.0",
     "description": "PagoPA Interoperability consumer service that updates eservices on template updates",

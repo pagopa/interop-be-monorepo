@@ -8,7 +8,7 @@ import {
 import { runConsumer } from "kafka-iam-auth";
 import { EServiceTemplateEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { handleMessageV2 } from "./eserviceTemplateUpdaterConsumerServiceV2.js";
+import { handleMessageV2 } from "./eserviceTemplateInstancesUpdaterConsumerServiceV2.js";
 import { config } from "./config/config.js";
 
 const refreshableToken = new RefreshableInteropToken(

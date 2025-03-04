@@ -127,7 +127,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     mockInstancesToUpdate();
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await handleMessageV2({
@@ -187,7 +187,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     mockInstancesToUpdate();
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await handleMessageV2({
@@ -304,7 +304,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     ]);
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await handleMessageV2({
@@ -413,7 +413,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     ]);
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await handleMessageV2({
@@ -543,7 +543,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     copyDocumentFn.mockResolvedValue(clonedPath);
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await handleMessageV2({
@@ -673,7 +673,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     ]);
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await handleMessageV2({
@@ -797,7 +797,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     ]);
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await handleMessageV2({
@@ -873,7 +873,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     };
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await handleMessageV2({
@@ -908,7 +908,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     };
 
     const { handleMessageV2 } = await import(
-      "../src/eserviceTemplateUpdaterConsumerServiceV2.js"
+      "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
     );
 
     await expect(
