@@ -31,7 +31,7 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       await db.transaction(async (tx) => {
         await tx
           .delete(purposeInReadmodelPurpose)
-          .where(eq(purposeInReadmodelPurpose.id, purposeSQL.id));
+          .where(eq(purposeInReadmodelPurpose.id, purpose.data.id));
 
         await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
 
