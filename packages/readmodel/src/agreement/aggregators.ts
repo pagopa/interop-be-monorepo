@@ -31,19 +31,19 @@ import {
 import { match } from "ts-pattern";
 
 export const aggregateAgreementArray = ({
-  agreementSQL,
+  agreementsSQL,
   stampsSQL,
   consumerDocumentsSQL,
   contractSQL,
   attributesSQL,
 }: {
-  agreementSQL: AgreementSQL[];
+  agreementsSQL: AgreementSQL[];
   stampsSQL: AgreementStampSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractSQL: AgreementContractSQL | null;
   attributesSQL: AgreementAttributeSQL[];
 }): Array<WithMetadata<Agreement>> =>
-  agreementSQL.map((agreementSQL) =>
+  agreementsSQL.map((agreementSQL) =>
     aggregateAgreement({
       agreementSQL,
       stampsSQL: stampsSQL.filter(
@@ -298,7 +298,7 @@ export const toAgreementAggregatorArray = (
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractSQL: AgreementContractSQL | null;
 } => {
-  const agrementIdSet = new Set<string>();
+  const agreementIdSet = new Set<string>();
   const agreementsSQL: AgreementSQL[] = [];
 
   const contractSQL = queryRes[0].contract;
@@ -315,8 +315,8 @@ export const toAgreementAggregatorArray = (
   queryRes.forEach((row) => {
     const agreementSQL = row.agreement;
 
-    if (!agrementIdSet.has(agreementSQL.id)) {
-      agrementIdSet.add(agreementSQL.id);
+    if (!agreementIdSet.has(agreementSQL.id)) {
+      agreementIdSet.add(agreementSQL.id);
       // eslint-disable-next-line functional/immutable-data
       agreementsSQL.push(agreementSQL);
     }
