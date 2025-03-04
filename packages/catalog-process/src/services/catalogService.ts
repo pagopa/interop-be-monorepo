@@ -764,6 +764,7 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
+      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
 
       assertIsDraftEservice(eservice.data);
 
@@ -817,6 +818,72 @@ export function catalogServiceBuilder(
               serverUrls: [],
             }))
           : eservice.data.descriptors,
+        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+          ? isTenantInSignalHubWhitelist(
+              authData.organizationId,
+              eservice.data.isSignalHubEnabled
+            )
+          : eservice.data.isSignalHubEnabled,
+        isConsumerDelegable: eserviceSeed.isConsumerDelegable,
+        isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
+          .with(P.nullish, () => undefined)
+          .with(false, () => false)
+          .with(true, () => eserviceSeed.isClientAccessDelegable)
+          .exhaustive(),
+      };
+
+      const event = toCreateEventEServiceUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        updatedEService,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+
+    async updateEServiceInstance(
+      eserviceId: EServiceId,
+      eserviceSeed: catalogApi.UpdateEServiceInstanceSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId} Instance`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      if (eservice.data.templateRef === undefined) {
+        throw eServiceNotAnInstance(eserviceId);
+      }
+
+      assertIsDraftEservice(eservice.data);
+
+      const newName = `${eservice.data.name
+        .replace(eservice.data.templateRef?.instanceId ?? "", "")
+        .trim()} ${eserviceSeed.instanceId ?? ""}`.trim();
+
+      const eserviceWithSameName =
+        await readModelService.getEServiceByNameAndProducerId({
+          name: newName,
+          producerId: eservice.data.producerId,
+        });
+      if (eserviceWithSameName !== undefined) {
+        throw eServiceDuplicate(newName);
+      }
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        name: newName,
+        templateRef: {
+          id: eservice.data.templateRef.id,
+          instanceId: eserviceSeed.instanceId,
+        },
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,

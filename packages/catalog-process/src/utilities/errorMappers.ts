@@ -57,6 +57,20 @@ export const updateEServiceErrorMapper = (
     .with("eserviceNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateEServiceInstanceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "eserviceNotInDraftState",
+      "eServiceNotAnInstance",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deleteEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
