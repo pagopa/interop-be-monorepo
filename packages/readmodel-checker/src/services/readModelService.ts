@@ -18,13 +18,20 @@ import { z } from "zod";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(readModel: ReadModelRepository) {
   return {
-    async getAllReadModelPurposes(): Promise<Purpose[]> {
+    async getAllReadModelPurposes(): Promise<Array<WithMetadata<Purpose>>> {
       const data = await readModel.purposes.find().toArray();
 
       if (!data) {
         return [];
       } else {
-        const results = z.array(Purpose).safeParse(data.map((d) => d.data));
+        const results = z
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: Purpose,
+            })
+          )
+          .safeParse(data.map((d) => d.data));
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse purpose items: results ${JSON.stringify(
@@ -36,13 +43,20 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelAgreements(): Promise<Agreement[]> {
+    async getAllReadModelAgreements(): Promise<Array<WithMetadata<Agreement>>> {
       const data = await readModel.agreements.find().toArray();
 
       if (!data) {
         return [];
       } else {
-        const results = z.array(Agreement).safeParse(data.map((d) => d.data));
+        const results = z
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: Agreement,
+            })
+          )
+          .safeParse(data.map((d) => d.data));
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse agreement items: results ${JSON.stringify(
@@ -54,13 +68,20 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelClients(): Promise<Client[]> {
+    async getAllReadModelClients(): Promise<Array<WithMetadata<Client>>> {
       const data = await readModel.clients.find().toArray();
 
       if (!data) {
         return [];
       } else {
-        const results = z.array(Client).safeParse(data.map((d) => d.data));
+        const results = z
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: Client,
+            })
+          )
+          .safeParse(data.map((d) => d.data));
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse client items: results ${JSON.stringify(
@@ -147,13 +168,22 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelDelegation(): Promise<Delegation[]> {
+    async getAllReadModelDelegation(): Promise<
+      Array<WithMetadata<Delegation>>
+    > {
       const data = await readModel.delegations.find().toArray();
 
       if (!data) {
         return [];
       } else {
-        const results = z.array(Delegation).safeParse(data.map((d) => d.data));
+        const results = z
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: Delegation,
+            })
+          )
+          .safeParse(data.map((d) => d.data));
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse delegation items: results ${JSON.stringify(
