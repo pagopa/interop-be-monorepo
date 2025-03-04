@@ -97,13 +97,20 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelAttributes(): Promise<Attribute[]> {
+    async getAllReadModelAttributes(): Promise<Array<WithMetadata<Attribute>>> {
       const data = await readModel.attributes.find().toArray();
 
       if (!data) {
         return [];
       } else {
-        const results = z.array(Attribute).safeParse(data.map((d) => d.data));
+        const results = z
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: Attribute,
+            })
+          )
+          .safeParse(data.map((d) => d.data));
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse attribute items: results ${JSON.stringify(
