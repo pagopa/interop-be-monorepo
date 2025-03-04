@@ -1369,6 +1369,7 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
+      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -1402,6 +1403,71 @@ export function catalogServiceBuilder(
             seed.agreementApprovalPolicy
           ),
         attributes: parsedAttributes,
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event = toCreateEventEServiceDraftDescriptorUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        descriptorId,
+        updatedEService,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+
+    async updateDraftDescriptorInstance(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorInstanceSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(
+        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId} Instance`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      if (eservice.data.templateRef === undefined) {
+        throw eServiceNotAnInstance(eserviceId);
+      }
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      //  Descriptor in state WaitingForApproval can be updated
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
+      }
+
+      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+        throw inconsistentDailyCalls();
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        audience: seed.audience,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        state: descriptorState.draft,
+        dailyCallsTotal: seed.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
       };
 
       const updatedEService = replaceDescriptor(

@@ -198,6 +198,26 @@ export const updateDraftDescriptorErrorMapper = (
       "notValidDescriptor",
       "inconsistentDailyCalls",
       "attributeNotFound",
+      "templateInstanceNotAllowed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateDraftDescriptorInstanceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "notValidDescriptor",
+      "inconsistentDailyCalls",
+      "attributeNotFound",
+      "eServiceNotAnInstance",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
