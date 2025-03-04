@@ -62,7 +62,6 @@ export const aggregateDelegation = ({
   const revocationContractDocumentSQL = contractDocumentsSQL.find(
     (contractDoc) => contractDoc.kind === delegationContractKind.revocation
   );
-
   const revocationContract: DelegationContractDocument | undefined =
     revocationContractDocumentSQL
       ? delegationContractDocumentSQLToDelegationContractDocument(
@@ -163,3 +162,81 @@ const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({
   who: unsafeBrandId<UserId>(stampSQL.who),
   when: stringToDate(stampSQL.when),
 });
+
+export const toDelegationAggregator = (
+  queryRes: Array<{
+    delegation: DelegationSQL;
+    delegationStamp: DelegationStampSQL | null;
+    delegationContractDocument: DelegationContractDocumentSQL | null;
+  }>
+): DelegationItemsSQL => {
+  const { delegationsSQL, stampsSQL, contractDocumentsSQL } =
+    toDelegationAggregatorArray(queryRes);
+
+  return {
+    delegationSQL: delegationsSQL[0],
+    stampsSQL,
+    contractDocumentsSQL,
+  };
+};
+
+export const toDelegationAggregatorArray = (
+  queryRes: Array<{
+    delegation: DelegationSQL;
+    delegationStamp: DelegationStampSQL | null;
+    delegationContractDocument: DelegationContractDocumentSQL | null;
+  }>
+): {
+  delegationsSQL: DelegationSQL[];
+  stampsSQL: DelegationStampSQL[];
+  contractDocumentsSQL: DelegationContractDocumentSQL[];
+} => {
+  const delegationIdSet = new Set<string>();
+  const delegationsSQL: DelegationSQL[] = [];
+
+  const delegationStampsIdSet = new Set<string>();
+  const stampsSQL: DelegationStampSQL[] = [];
+
+  const delegationContractDocumentsIdSet = new Set<string>();
+  const contractDocumentsSQL: DelegationContractDocumentSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const delegationSQL = row.delegation;
+    if (!delegationIdSet.has(delegationSQL.id)) {
+      delegationIdSet.add(delegationSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      delegationsSQL.push(delegationSQL);
+    }
+
+    const delegationStamp = row.delegationStamp;
+    if (
+      delegationStamp &&
+      !delegationStampsIdSet.has(
+        uniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+      )
+    ) {
+      delegationStampsIdSet.add(
+        uniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+      );
+      // eslint-disable-next-line functional/immutable-data
+      stampsSQL.push(delegationStamp);
+    }
+
+    const delegationContractDocumentSQL = row.delegationContractDocument;
+    if (
+      delegationContractDocumentSQL &&
+      !delegationContractDocumentsIdSet.has(delegationContractDocumentSQL.id)
+    ) {
+      delegationContractDocumentsIdSet.add(delegationContractDocumentSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      contractDocumentsSQL.push(delegationContractDocumentSQL);
+    }
+  });
+
+  return {
+    delegationsSQL,
+    stampsSQL,
+    contractDocumentsSQL,
+  };
+};
+const uniqueKey = (ids: string[]): string => ids.join("#");
