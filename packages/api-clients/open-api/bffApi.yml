@@ -17815,7 +17815,7 @@ components:
         templateInterfaceId:
           type: string
         interfaceMetadata:
-          $ref: "#/components/schemas/CustomizedInterfaceMetadata"
+          $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -18136,7 +18136,7 @@ components:
           type: array
           items:
             type: string
-    CustomizedInterfaceMetadata:
+    TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
       required:

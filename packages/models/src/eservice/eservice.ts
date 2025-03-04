@@ -73,7 +73,7 @@ export type DescriptorRejectionReason = z.infer<
   typeof DescriptorRejectionReason
 >;
 
-export const CustomizedInterfaceMetadata = z.object({
+export const TemplateInstanceInterfaceMetadata = z.object({
   name: z.string(),
   email: z.string(),
   url: z.string(),
@@ -81,13 +81,13 @@ export const CustomizedInterfaceMetadata = z.object({
   serverUrls: z.array(z.string()),
 });
 
-export type CustomizedInterfaceMetadata = z.infer<
-  typeof CustomizedInterfaceMetadata
+export type TemplateInstanceInterfaceMetadata = z.infer<
+  typeof TemplateInstanceInterfaceMetadata
 >;
 
 export const EServiceTemplateVersionRef = z.object({
   id: EServiceTemplateVersionId,
-  interfaceMetadata: CustomizedInterfaceMetadata.optional(),
+  interfaceMetadata: TemplateInstanceInterfaceMetadata.optional(),
 });
 
 export type EServiceTemplateVersionRef = z.infer<

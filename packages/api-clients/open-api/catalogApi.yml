@@ -2195,8 +2195,8 @@ components:
           format: uuid
         interfaceMetadata:
           required: false
-          $ref: "#/components/schemas/CustomizedInterfaceMetadata"
-    CustomizedInterfaceMetadata:
+          $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
+    TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
       required:
@@ -2481,7 +2481,6 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
-
     Attribute:
       type: object
       additionalProperties: false

@@ -92,7 +92,7 @@ message EServiceDescriptorV2 {
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
 }
 
-message CustomizedInterfaceMetadataV2 {
+message TemplateInstanceInterfaceMetadataV2 {
   string name = 1;
   string email = 2;
   string url = 3;
@@ -102,7 +102,7 @@ message CustomizedInterfaceMetadataV2 {
 
 message EServiceTemplateVersionRefV2 {
   string id = 1;
-  optional CustomizedInterfaceMetadataV2 interfaceMetadata = 2;
+  optional TemplateInstanceInterfaceMetadataV2 interfaceMetadata = 2;
 }
 
 message EServiceDocumentV2 {
