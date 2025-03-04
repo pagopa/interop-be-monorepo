@@ -46,8 +46,7 @@ export function clientJWKKeyReadModelServiceBuilder(
             eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
             eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
           )
-        )
-        .limit(1);
+        );
 
       if (queryResult.length === 0) {
         return undefined;
