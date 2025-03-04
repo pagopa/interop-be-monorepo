@@ -169,6 +169,9 @@ async function createNewAttributes(
   );
 
   for (const attribute of newAttributes) {
+    loggerInstance.info(
+      `Creating attribute ${attribute.origin}/${attribute.code}`
+    );
     await client.createInternalCertifiedAttribute(attribute, {
       headers,
     });
@@ -420,6 +423,8 @@ try {
   loggerInstance.info("Getting registry data");
 
   const registryData = await getRegistryData();
+
+  loggerInstance.info("Getting Plaform data");
 
   const attributes = await readModelService.getAttributes();
   const tenants = await readModelService.getIPATenants();

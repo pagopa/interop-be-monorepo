@@ -27,6 +27,7 @@ export const TEST_REDIS_IMAGE = "redis:7.2.5-alpine3.20";
 export const TEST_REDIS_PORT = 6379;
 
 export const TEST_NODE_IMAGE = "node:20";
+export const TEST_AWS_SES_VERSION = "2.4";
 export const TEST_AWS_SES_PORT = 8021;
 
 /**
@@ -159,6 +160,6 @@ export const awsSESContainer = (): GenericContainer =>
   new GenericContainer(TEST_NODE_IMAGE)
     .withEntrypoint(["bash", "-c"])
     .withCommand([
-      `npm install -g aws-ses-v2-local; aws-ses-v2-local --port=${TEST_AWS_SES_PORT} --host=0.0.0.0`,
+      `npm install -g aws-ses-v2-local@${TEST_AWS_SES_VERSION}; aws-ses-v2-local --port=${TEST_AWS_SES_PORT} --host=0.0.0.0`,
     ])
     .withExposedPorts(TEST_AWS_SES_PORT);

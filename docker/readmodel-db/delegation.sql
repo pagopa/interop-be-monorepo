@@ -36,5 +36,6 @@ CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_contract_document (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation (id, metadata_version)
+  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation (id, metadata_version),
+  CONSTRAINT delegation_contract_document_delegation_id_kind_unique UNIQUE (delegation_id, kind)
 );
