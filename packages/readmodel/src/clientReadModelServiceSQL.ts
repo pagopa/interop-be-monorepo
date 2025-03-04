@@ -10,11 +10,11 @@ import {
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
   aggregateClient,
-  fromJoinToAggregatorClient,
+  toClientAggregatorArray,
 } from "./authorization/clientAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function clientReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
     async addClient(client: WithMetadata<Client>): Promise<void> {
       const { clientSQL, usersSQL, purposesSQL, keysSQL } =
@@ -70,7 +70,7 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         );
 
-      const aggregatorInput = fromJoinToAggregatorClient(queryResult);
+      const aggregatorInput = toClientAggregatorArray(queryResult);
 
       return aggregateClient(aggregatorInput);
     },
@@ -82,4 +82,6 @@ export function readModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   };
 }
 
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type ClientReadModelService = ReturnType<
+  typeof clientReadModelServiceBuilder
+>;

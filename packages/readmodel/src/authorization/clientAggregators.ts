@@ -75,7 +75,7 @@ export const aggregateClientArray = ({
     })
   );
 
-export const fromJoinToAggregatorClient = (
+export const toClientAggregator = (
   queryRes: Array<{
     client: ClientSQL;
     clientUser: ClientUserSQL | null;
@@ -83,7 +83,31 @@ export const fromJoinToAggregatorClient = (
     clientKey: ClientKeySQL | null;
   }>
 ): ClientItemsSQL => {
-  const clientSQL = queryRes[0].client;
+  const { clientsSQL, usersSQL, purposesSQL, keysSQL } =
+    toClientAggregatorArray(queryRes);
+  return {
+    clientSQL: clientsSQL[0],
+    usersSQL,
+    purposesSQL,
+    keysSQL,
+  };
+};
+
+export const toClientAggregatorArray = (
+  queryRes: Array<{
+    client: ClientSQL;
+    clientUser: ClientUserSQL | null;
+    clientPurpose: ClientPurposeSQL | null;
+    clientKey: ClientKeySQL | null;
+  }>
+): {
+  clientsSQL: ClientSQL[];
+  usersSQL: ClientUserSQL[];
+  purposesSQL: ClientPurposeSQL[];
+  keysSQL: ClientKeySQL[];
+} => {
+  const clientIdSet = new Set<string>();
+  const clientsSQL: ClientSQL[] = [];
 
   const userIdSet = new Set<[string, string]>();
   const usersSQL: ClientUserSQL[] = [];
@@ -95,6 +119,13 @@ export const fromJoinToAggregatorClient = (
   const keysSQL: ClientKeySQL[] = [];
 
   queryRes.forEach((row) => {
+    const clientSQL = row.client;
+    if (clientSQL && !clientIdSet.has(clientSQL.id)) {
+      clientIdSet.add(clientSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      clientsSQL.push(clientSQL);
+    }
+
     const userSQL = row.clientUser;
     if (userSQL && !userIdSet.has([userSQL.clientId, userSQL.userId])) {
       userIdSet.add([userSQL.clientId, userSQL.userId]);
@@ -121,7 +152,7 @@ export const fromJoinToAggregatorClient = (
   });
 
   return {
-    clientSQL,
+    clientsSQL,
     usersSQL,
     purposesSQL,
     keysSQL,
