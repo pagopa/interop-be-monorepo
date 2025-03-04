@@ -163,15 +163,36 @@ const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({
   when: stringToDate(stampSQL.when),
 });
 
-// TODO: improve naming
-export const fromJoinToAggregatorDelegation = (
+export const toDelegationAggregator = (
   queryRes: Array<{
     delegation: DelegationSQL;
     delegationStamp: DelegationStampSQL | null;
     delegationContractDocument: DelegationContractDocumentSQL | null;
   }>
 ): DelegationItemsSQL => {
-  const delegationSQL = queryRes[0].delegation;
+  const { delegationsSQL, stampsSQL, contractDocumentsSQL } =
+    toDelegationAggregatorArray(queryRes);
+
+  return {
+    delegationSQL: delegationsSQL[0],
+    stampsSQL,
+    contractDocumentsSQL,
+  };
+};
+
+export const toDelegationAggregatorArray = (
+  queryRes: Array<{
+    delegation: DelegationSQL;
+    delegationStamp: DelegationStampSQL | null;
+    delegationContractDocument: DelegationContractDocumentSQL | null;
+  }>
+): {
+  delegationsSQL: DelegationSQL[];
+  stampsSQL: DelegationStampSQL[];
+  contractDocumentsSQL: DelegationContractDocumentSQL[];
+} => {
+  const delegationIdSet = new Set<string>();
+  const delegationsSQL: DelegationSQL[] = [];
 
   const delegationStampsIdSet = new Set<[string, string]>();
   const stampsSQL: DelegationStampSQL[] = [];
@@ -180,8 +201,14 @@ export const fromJoinToAggregatorDelegation = (
   const contractDocumentsSQL: DelegationContractDocumentSQL[] = [];
 
   queryRes.forEach((row) => {
-    const delegationStamp = row.delegationStamp;
+    const delegationSQL = row.delegation;
+    if (!delegationIdSet.has(delegationSQL.id)) {
+      delegationIdSet.add(delegationSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      delegationsSQL.push(delegationSQL);
+    }
 
+    const delegationStamp = row.delegationStamp;
     if (
       delegationStamp &&
       !delegationStampsIdSet.has([
@@ -209,7 +236,7 @@ export const fromJoinToAggregatorDelegation = (
   });
 
   return {
-    delegationSQL,
+    delegationsSQL,
     stampsSQL,
     contractDocumentsSQL,
   };

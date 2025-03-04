@@ -9,7 +9,7 @@ import {
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import {
   aggregateDelegation,
-  fromJoinToAggregatorDelegation,
+  toDelegationAggregator,
 } from "./delegation/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -73,7 +73,7 @@ export function delegationReadModelServiceBuilder(
           )
         );
 
-      const aggregatorInput = fromJoinToAggregatorDelegation(queryResult);
+      const aggregatorInput = toDelegationAggregator(queryResult);
 
       return aggregateDelegation(aggregatorInput);
     },
