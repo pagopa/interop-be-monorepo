@@ -17,6 +17,7 @@ import {
   generateId,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
@@ -24,6 +25,7 @@ import {
   eServiceNotFound,
   eServiceNameDuplicate,
   eserviceNotInDraftState,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -674,5 +676,41 @@ describe("update eService", () => {
         }
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
+  });
+
+  it("should throw templateInstanceNotAllowed if the eservice is an instance of a template", async () => {
+    const templateId: EServiceTemplateId = generateId();
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: mockDocument,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      templateRef: {
+        id: templateId,
+        instanceId: undefined,
+      },
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: "eservice new name",
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
   });
 });

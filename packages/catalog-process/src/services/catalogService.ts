@@ -862,19 +862,26 @@ export function catalogServiceBuilder(
         throw eServiceNotAnInstance(eserviceId);
       }
 
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateRef.id,
+        readModelService
+      );
+
       assertIsDraftEservice(eservice.data);
 
-      const newName = `${eservice.data.name
-        .replace(eservice.data.templateRef?.instanceId ?? "", "")
-        .trim()} ${eserviceSeed.instanceId ?? ""}`.trim();
+      const newName = `${template.name} ${
+        eserviceSeed.instanceId ?? ""
+      }`.trim();
 
-      const eserviceWithSameName =
-        await readModelService.getEServiceByNameAndProducerId({
-          name: newName,
-          producerId: eservice.data.producerId,
-        });
-      if (eserviceWithSameName !== undefined) {
-        throw eServiceDuplicate(newName);
+      if (newName !== eservice.data.name) {
+        const eserviceWithSameName =
+          await readModelService.getEServiceByNameAndProducerId({
+            name: newName,
+            producerId: eservice.data.producerId,
+          });
+        if (eserviceWithSameName !== undefined) {
+          throw eServiceDuplicate(newName);
+        }
       }
 
       const updatedEService: EService = {
