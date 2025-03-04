@@ -15,6 +15,7 @@ import {
   purposeReadModelServiceBuilderSQL,
   clientReadModelServiceBuilderSQL,
   clientJWKKeyReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -59,6 +60,8 @@ const purposeReadModelServiceSQL =
 const clientReadModelServiceSQL = clientReadModelServiceBuilderSQL(readModelDB);
 const clientKeyReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 async function main(): Promise<void> {
   // CATALOG
@@ -130,6 +133,18 @@ async function main(): Promise<void> {
     collectionItems: keys,
     postgresItems: keysPostgres,
     schema: "JWKkey",
+    loggerInstance,
+  });
+
+  // PRODUCER KEYCHAIN
+  const producerKeychains =
+    await readModelService.getAllReadModelProducerKeychains();
+  const producerKeychainsPostgres =
+    await producerKeychainReadModelServiceSQL.getAllProducerKeychains();
+  compare({
+    collectionItems: producerKeychains,
+    postgresItems: producerKeychainsPostgres,
+    schema: "producer keychain",
     loggerInstance,
   });
 }

@@ -195,15 +195,22 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelProducerKeychains(): Promise<ProducerKeychain[]> {
+    async getAllReadModelProducerKeychains(): Promise<
+      Array<WithMetadata<ProducerKeychain>>
+    > {
       const data = await readModel.producerKeychains.find().toArray();
 
       if (!data) {
         return [];
       } else {
         const results = z
-          .array(ProducerKeychain)
-          .safeParse(data.map((d) => d.data));
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: ProducerKeychain,
+            })
+          )
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse producer keychain items: results ${JSON.stringify(
