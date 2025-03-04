@@ -43,12 +43,12 @@ export const dtdCatalogExporterService = dtdCatalogExporterServiceBuilder({
   loggerInstance: genericLogger,
 });
 
-export const getExportDtdPublicCatalogResult = async (): Promise<
+export const getExportDtdPublicCatalogFromJsonResult = async (): Promise<
   PublicEService[]
 > => {
   const data = await fileManager.get(
     config.s3Bucket,
-    `${config.dtdCatalogStoragePath}/${config.dtdCatalogFilename}`,
+    `${config.dtdCatalogStoragePath}/${config.dtdCatalogJsonFilename}`,
     genericLogger
   );
 

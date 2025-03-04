@@ -47,13 +47,29 @@ const PublicEServiceDescriptor = z.object({
 export type PublicEServiceDescriptor = z.infer<typeof PublicEServiceDescriptor>;
 
 export const PublicEService = z.object({
+  id: z.string(),
   activeDescriptor: PublicEServiceDescriptor,
   technology: z.enum(["REST", "SOAP"]),
   producerName: z.string(),
   producerId: z.string(),
-  id: z.string(),
+  producerExternalId: z.string(),
   name: z.string(),
   description: z.string(),
   attributes: PublicEServiceAttributes,
 });
 export type PublicEService = z.infer<typeof PublicEService>;
+
+export const FlattenedPublicEService = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  technology: z.enum(["REST", "SOAP"]),
+  producerId: z.string(),
+  producerName: z.string(),
+  producerExternalId: z.string(),
+  attributes: z.string(),
+  activeDescriptorId: z.string(),
+  activeDescriptorState: z.enum(["PUBLISHED", "SUSPENDED"]),
+  activeDescriptorVersion: z.string(),
+});
+export type FlattenedPublicEService = z.infer<typeof FlattenedPublicEService>;
