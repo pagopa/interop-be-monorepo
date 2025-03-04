@@ -10,7 +10,7 @@ import {
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
   aggregateClient,
-  toClientAggregatorArray,
+  toClientAggregator,
 } from "./authorization/clientAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -70,7 +70,7 @@ export function clientReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         );
 
-      const aggregatorInput = toClientAggregatorArray(queryResult);
+      const aggregatorInput = toClientAggregator(queryResult);
 
       return aggregateClient(aggregatorInput);
     },
