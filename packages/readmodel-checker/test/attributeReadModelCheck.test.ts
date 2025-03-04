@@ -9,7 +9,7 @@ import {
   readModelService,
 } from "./utils.js";
 
-describe("Check readmodels", () => {
+describe("Check attribute readmodels", () => {
   it("should return -1 if the postgres schema is empty", async () => {
     const attribute = getMockAttribute();
 
