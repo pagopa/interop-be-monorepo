@@ -215,15 +215,22 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelClientJWKKey(): Promise<ClientJWKKey[]> {
+    async getAllReadModelClientJWKKey(): Promise<
+      Array<WithMetadata<ClientJWKKey>>
+    > {
       const data = await readModel.keys.find().toArray();
 
       if (!data) {
         return [];
       } else {
         const results = z
-          .array(ClientJWKKey)
-          .safeParse(data.map((d) => d.data));
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: ClientJWKKey,
+            })
+          )
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse client jwk key items: results ${JSON.stringify(

@@ -14,6 +14,7 @@ import {
   agreementReadModelServiceBuilderSQL,
   purposeReadModelServiceBuilderSQL,
   clientReadModelServiceBuilderSQL,
+  clientJWKKeyReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -56,6 +57,8 @@ const agreementReadModelServiceSQL =
 const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilderSQL(readModelDB);
 const clientReadModelServiceSQL = clientReadModelServiceBuilderSQL(readModelDB);
+const clientKeyReadModelServiceSQL =
+  clientJWKKeyReadModelServiceBuilder(readModelDB);
 
 async function main(): Promise<void> {
   // CATALOG
@@ -117,6 +120,16 @@ async function main(): Promise<void> {
     collectionItems: clients,
     postgresItems: clientsPostgres,
     schema: "client",
+    loggerInstance,
+  });
+
+  // CLIENT JWK KEY
+  const keys = await readModelService.getAllReadModelClientJWKKey();
+  const keysPostgres = await clientKeyReadModelServiceSQL.getAllClientJWKKeys();
+  compare({
+    collectionItems: keys,
+    postgresItems: keysPostgres,
+    schema: "JWKkey",
     loggerInstance,
   });
 }
