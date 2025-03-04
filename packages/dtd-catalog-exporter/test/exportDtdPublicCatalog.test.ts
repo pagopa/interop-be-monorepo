@@ -60,6 +60,7 @@ describe("exportDtdPublicCatalog", () => {
       technology: eserviceMock.technology.toUpperCase(),
       producerId: producerMock.id,
       producerName: producerMock.name,
+      producerExternalId: producerMock.externalId.value,
       id: eserviceMock.id,
       name: eserviceMock.name,
       description: eserviceMock.description,
