@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { getMockTenant, writeInReadmodel } from "pagopa-interop-commons-test";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   SelfcareMappingCreatedV1,
   Tenant,
@@ -14,6 +14,10 @@ import {
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/tenantConsumerServiceV1.js";
 import { toTenantV1 } from "./converterV1.js";
+import {
+  customReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+} from "./utils.js";
 
 describe("Integration tests", async () => {
   describe("Events V1", async () => {
@@ -32,11 +36,15 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, tenants);
+      await handleMessageV1(
+        message,
+        tenantReadModelServiceSQL,
+        customReadModelServiceSQL
+      );
 
-      const retrievedTenant = await tenants.findOne({
-        "data.id": mockTenant.id,
-      });
+      const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
+        mockTenant.id
+      );
 
       expect(retrievedTenant?.data).toEqual(
         toReadModelTenant({
@@ -48,7 +56,10 @@ describe("Integration tests", async () => {
     });
 
     it("TenantDeleted", async () => {
-      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+      await tenantReadModelServiceSQL.upsertTenant({
+        data: mockTenant,
+        metadata: { version: 1 },
+      });
 
       const payload: TenantDeletedV1 = {
         tenantId: mockTenant.id,
@@ -62,17 +73,23 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, tenants);
+      await handleMessageV1(
+        message,
+        tenantReadModelServiceSQL,
+        customReadModelServiceSQL
+      );
 
-      const retrievedTenant = await tenants.findOne({
-        "data.id": mockTenant.id,
-      });
-
+      const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
+        mockTenant.id
+      );
       expect(retrievedTenant?.data).toBeUndefined();
     });
 
     it("TenantUpdated", async () => {
-      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+      await tenantReadModelServiceSQL.upsertTenant({
+        data: mockTenant,
+        metadata: { version: 1 },
+      });
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -90,11 +107,15 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, tenants);
+      await handleMessageV1(
+        message,
+        tenantReadModelServiceSQL,
+        customReadModelServiceSQL
+      );
 
-      const retrievedTenant = await tenants.findOne({
-        "data.id": mockTenant.id,
-      });
+      const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
+        mockTenant.id
+      );
 
       expect(retrievedTenant?.data).toEqual(
         toReadModelTenant({
@@ -109,7 +130,10 @@ describe("Integration tests", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
-      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+      await tenantReadModelServiceSQL.upsertTenant({
+        data: mockTenant,
+        metadata: { version: 1 },
+      });
 
       const selfcareId = generateId();
 
@@ -130,11 +154,15 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, tenants);
+      await handleMessageV1(
+        message,
+        tenantReadModelServiceSQL,
+        customReadModelServiceSQL
+      );
 
-      const retrievedTenant = await tenants.findOne({
-        "data.id": mockTenant.id,
-      });
+      const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
+        mockTenant.id
+      );
 
       expect(retrievedTenant?.data).toEqual(toReadModelTenant(updatedTenant));
       expect(retrievedTenant?.metadata).toEqual({ version: 2 });
@@ -143,7 +171,10 @@ describe("Integration tests", async () => {
     });
 
     it("TenantMailAdded", async () => {
-      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+      await tenantReadModelServiceSQL.upsertTenant({
+        data: mockTenant,
+        metadata: { version: 1 },
+      });
 
       const mailId = generateId();
       const updatedTenant: Tenant = {
@@ -172,11 +203,15 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, tenants);
+      await handleMessageV1(
+        message,
+        tenantReadModelServiceSQL,
+        customReadModelServiceSQL
+      );
 
-      const retrievedTenant = await tenants.findOne({
-        "data.id": mockTenant.id,
-      });
+      const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
+        mockTenant.id
+      );
 
       expect(retrievedTenant?.data).toEqual(
         toReadModelTenant({
@@ -200,7 +235,10 @@ describe("Integration tests", async () => {
           },
         ],
       };
-      await writeInReadmodel(toReadModelTenant(tenantWithMail), tenants);
+      await tenantReadModelServiceSQL.upsertTenant({
+        data: tenantWithMail,
+        metadata: { version: 1 },
+      });
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -219,11 +257,15 @@ describe("Integration tests", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessageV1(message, tenants);
+      await handleMessageV1(
+        message,
+        tenantReadModelServiceSQL,
+        customReadModelServiceSQL
+      );
 
-      const retrievedTenant = await tenants.findOne({
-        "data.id": mockTenant.id,
-      });
+      const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
+        mockTenant.id
+      );
 
       expect(retrievedTenant?.data).toEqual(toReadModelTenant(updatedTenant));
       expect(retrievedTenant?.metadata).toEqual({ version: 2 });
