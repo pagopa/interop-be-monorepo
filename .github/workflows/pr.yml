@@ -12,9 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
-        with:
-          node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
@@ -27,6 +24,9 @@ jobs:
           key: ${{ runner.os }}-turbo-${{ github.sha }}-check-formatting
           restore-keys: |
             ${{ runner.os }}-turbo-
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version-file: ./package.json
       - run: pnpm format:check
 
   lint:
@@ -34,12 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
-        with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: true
       - name: Cache turbo build setup
         uses: actions/cache@v4
         with:
@@ -49,6 +43,12 @@ jobs:
           key: ${{ runner.os }}-turbo-${{ github.sha }}-lint
           restore-keys: |
             ${{ runner.os }}-turbo-
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: true
       - run: pnpm lint
 
   check:
@@ -56,9 +56,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
-        with:
-          node-version-file: ./package.json
       - name: Cache turbo build setup
         uses: actions/cache@v4
         with:
@@ -68,6 +65,9 @@ jobs:
           key: ${{ runner.os }}-turbo-${{ github.sha }}-check
           restore-keys: |
             ${{ runner.os }}-turbo-
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
@@ -78,18 +78,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
-        with:
-          node-version-file: ./package.json
       - name: Cache turbo build setup
         uses: actions/cache@v4
         with:
           path: |
             .turbo
             packages/**/.turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}-test
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
