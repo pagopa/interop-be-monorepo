@@ -3,7 +3,6 @@ import {
   getMockPurposeVersion,
   getMockPurpose,
   decodeProtobufPayload,
-  getMockAuthData,
   getMockDelegation,
   getRandomAuthData,
 } from "pagopa-interop-commons-test";
@@ -120,7 +119,7 @@ describe("rejectPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
-    const delegate = getMockAuthData();
+    const delegate = getRandomAuthData();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
@@ -266,7 +265,7 @@ describe("rejectPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
-    const producerDelegate = getMockAuthData();
+    const producerDelegate = getRandomAuthData();
     const producerDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
@@ -429,7 +428,7 @@ describe("rejectPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
-    const delegate = getMockAuthData();
+    const delegate = getRandomAuthData();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
@@ -472,7 +471,7 @@ describe("rejectPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
-    const delegate = getMockAuthData();
+    const delegate = getRandomAuthData();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
@@ -482,7 +481,7 @@ describe("rejectPurposeVersion", () => {
 
     await addOneDelegation(delegation);
 
-    const randomCaller = getMockAuthData();
+    const randomCaller = getRandomAuthData();
 
     expect(
       purposeService.rejectPurposeVersion(
@@ -521,7 +520,7 @@ describe("rejectPurposeVersion", () => {
       await addOnePurpose(mockPurpose);
       await addOneEService(mockEService);
 
-      const delegate = getMockAuthData();
+      const delegate = getRandomAuthData();
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,

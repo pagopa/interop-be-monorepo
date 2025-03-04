@@ -2,6 +2,7 @@
 import {
   getMockEService,
   getMockTenant,
+  getRandomAuthData,
   randomArrayItem,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
@@ -41,8 +42,12 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       await purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion,
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       });
 
     expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -63,8 +68,12 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       await purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion,
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       });
 
     expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -78,24 +87,32 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: randomId,
         riskAnalysisVersion: "1.0",
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       })
     ).rejects.toThrowError(eserviceNotFound(randomId));
   });
   it("should throw tenantNotFound if the tenant doesn't exist", async () => {
     const mockEservice = { ...getMockEService(), mode: eserviceMode.deliver };
-    const randomId = generateId<TenantId>();
+    const randomTenantId = generateId<TenantId>();
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
 
     expect(
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion: "1.0",
-        organizationId: randomId,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(randomTenantId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       })
-    ).rejects.toThrowError(tenantNotFound(randomId));
+    ).rejects.toThrowError(tenantNotFound(randomTenantId));
   });
   it("should throw tenantKindNotFound if the tenant kind is undefined", async () => {
     const mockEservice = { ...getMockEService(), mode: eserviceMode.deliver };
@@ -110,8 +127,12 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion: "1.0",
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
@@ -130,8 +151,12 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion: wrongRiskAnalysisVersion,
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       })
     ).rejects.toThrowError(
       riskAnalysisConfigVersionNotFound(
