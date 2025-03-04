@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   getMockCertifiedTenantAttribute,
@@ -138,11 +139,9 @@ describe("Tenant splitters", () => {
         kind: tenantKind.PA,
         selfcareId,
         createdAt: tenant.createdAt.toISOString(),
-        updatedAt: tenant.updatedAt ? tenant.updatedAt.toISOString() : null,
+        updatedAt: tenant.updatedAt!.toISOString(),
         name: tenant.name,
-        onboardedAt: tenant.onboardedAt
-          ? tenant.onboardedAt.toISOString()
-          : null,
+        onboardedAt: tenant.onboardedAt!.toISOString(),
         subUnitType: tenantUnitType.AOO,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
@@ -164,9 +163,8 @@ describe("Tenant splitters", () => {
         attributeId: tenantCertifiedAttribute.id,
         assignmentTimestamp:
           tenantCertifiedAttribute.assignmentTimestamp.toISOString(),
-        revocationTimestamp: tenantCertifiedAttribute.revocationTimestamp
-          ? tenantCertifiedAttribute.revocationTimestamp.toISOString()
-          : null,
+        revocationTimestamp:
+          tenantCertifiedAttribute.revocationTimestamp!.toISOString(),
       };
 
       const expectedTenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
@@ -175,9 +173,8 @@ describe("Tenant splitters", () => {
         attributeId: tenantDeclaredAttribute.id,
         assignmentTimestamp:
           tenantDeclaredAttribute.assignmentTimestamp.toISOString(),
-        revocationTimestamp: tenantDeclaredAttribute.revocationTimestamp
-          ? tenantDeclaredAttribute.revocationTimestamp.toISOString()
-          : null,
+        revocationTimestamp:
+          tenantDeclaredAttribute.revocationTimestamp!.toISOString(),
         delegationId,
       };
 
@@ -196,12 +193,8 @@ describe("Tenant splitters", () => {
         delegationId,
         tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
         verificationDate: tenantVerifier.verificationDate.toISOString(),
-        expirationDate: tenantVerifier.expirationDate
-          ? tenantVerifier.expirationDate.toISOString()
-          : null,
-        extensionDate: tenantVerifier.extensionDate
-          ? tenantVerifier.extensionDate.toISOString()
-          : null,
+        expirationDate: tenantVerifier.expirationDate!.toISOString(),
+        extensionDate: tenantVerifier.extensionDate!.toISOString(),
       };
 
       const expectedTenantRevokerSQL: TenantVerifiedAttributeRevokerSQL = {
@@ -211,12 +204,8 @@ describe("Tenant splitters", () => {
         delegationId,
         tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
         verificationDate: tenantRevoker.verificationDate.toISOString(),
-        expirationDate: tenantRevoker.expirationDate
-          ? tenantRevoker.expirationDate.toISOString()
-          : null,
-        extensionDate: tenantRevoker.extensionDate
-          ? tenantRevoker.extensionDate.toISOString()
-          : null,
+        expirationDate: tenantRevoker.expirationDate!.toISOString(),
+        extensionDate: tenantRevoker.extensionDate!.toISOString(),
         revocationDate: tenantRevoker.revocationDate.toISOString(),
       };
 
@@ -313,12 +302,12 @@ describe("Tenant splitters", () => {
         certifierId: generateId(),
       };
 
-      const TenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer = {
+      const tenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer = {
         type: tenantFeatureType.delegatedConsumer,
         availabilityTimestamp: new Date(),
       };
 
-      const TenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer = {
+      const tenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer = {
         type: tenantFeatureType.delegatedProducer,
         availabilityTimestamp: new Date(),
       };
@@ -344,8 +333,8 @@ describe("Tenant splitters", () => {
         ],
         features: [
           tenantFeatureCertifier,
-          TenantFeatureDelegatedConsumer,
-          TenantFeatureDelegatedProducer,
+          tenantFeatureDelegatedConsumer,
+          tenantFeatureDelegatedProducer,
         ],
       };
 
@@ -365,10 +354,10 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         kind: null,
         selfcareId,
-        createdAt: new Date().toISOString(),
+        createdAt: tenant.createdAt.toISOString(),
         updatedAt: null,
         name: tenant.name,
-        onboardedAt: new Date().toISOString(),
+        onboardedAt: tenant.onboardedAt!.toISOString(),
         subUnitType: null,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
@@ -388,7 +377,8 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         tenantId: tenant.id,
         attributeId: tenantCertifiedAttribute.id,
-        assignmentTimestamp: new Date().toISOString(),
+        assignmentTimestamp:
+          tenantCertifiedAttribute.assignmentTimestamp.toISOString(),
         revocationTimestamp: null,
       };
 
@@ -396,7 +386,8 @@ describe("Tenant splitters", () => {
         tenantId: tenant.id,
         metadataVersion: 1,
         attributeId: tenantDeclaredAttribute.id,
-        assignmentTimestamp: new Date().toISOString(),
+        assignmentTimestamp:
+          tenantDeclaredAttribute.assignmentTimestamp.toISOString(),
         revocationTimestamp: null,
         delegationId,
       };
@@ -405,7 +396,8 @@ describe("Tenant splitters", () => {
         tenantId: tenant.id,
         metadataVersion: 1,
         attributeId: tenantVerifiedAttribute.id,
-        assignmentTimestamp: new Date().toISOString(),
+        assignmentTimestamp:
+          tenantVerifiedAttribute.assignmentTimestamp.toISOString(),
       };
 
       const expectedTenantVerifierSQL: TenantVerifiedAttributeVerifierSQL = {
@@ -414,7 +406,7 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         delegationId,
         tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
-        verificationDate: new Date().toISOString(),
+        verificationDate: tenantVerifier.verificationDate.toISOString(),
         expirationDate: null,
         extensionDate: null,
       };
@@ -425,10 +417,10 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         delegationId,
         tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
-        verificationDate: new Date().toISOString(),
+        verificationDate: tenantRevoker.verificationDate.toISOString(),
         expirationDate: null,
         extensionDate: null,
-        revocationDate: new Date().toISOString(),
+        revocationDate: tenantRevoker.revocationDate.toISOString(),
       };
 
       const expectedTenantFeatureCertifierSQL: TenantFeatureSQL = {
@@ -443,14 +435,16 @@ describe("Tenant splitters", () => {
         metadataVersion: 1,
         kind: tenantFeatureType.delegatedConsumer,
         certifierId: null,
-        availabilityTimestamp: new Date().toISOString(),
+        availabilityTimestamp:
+          tenantFeatureDelegatedConsumer.availabilityTimestamp.toISOString(),
       };
       const expectedTenantFeatureDelegatedProducerSQL: TenantFeatureSQL = {
         tenantId: tenant.id,
         metadataVersion: 1,
         kind: tenantFeatureType.delegatedProducer,
         certifierId: null,
-        availabilityTimestamp: new Date().toISOString(),
+        availabilityTimestamp:
+          tenantFeatureDelegatedProducer.availabilityTimestamp.toISOString(),
       };
 
       expect(tenantSQL).toEqual(expectedTenantSQL);
