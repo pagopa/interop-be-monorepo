@@ -436,19 +436,19 @@ export const toEServiceAggregatorArray = (
       if (
         attributeSQL &&
         !attributeIdSet.has(
-          [
+          uniqueKey([
             attributeSQL.attributeId,
             attributeSQL.descriptorId,
-            attributeSQL.groupId,
-          ].join("#")
+            attributeSQL.groupId.toString(),
+          ])
         )
       ) {
         attributeIdSet.add(
-          [
+          uniqueKey([
             attributeSQL.attributeId,
             attributeSQL.descriptorId,
-            attributeSQL.groupId,
-          ].join("#")
+            attributeSQL.groupId.toString(),
+          ])
         );
         // eslint-disable-next-line functional/immutable-data
         attributesSQL.push(attributeSQL);
@@ -458,15 +458,17 @@ export const toEServiceAggregatorArray = (
       if (
         rejectionReasonSQL &&
         !rejectionReasonsSet.has(
-          [rejectionReasonSQL.descriptorId, rejectionReasonSQL.rejectedAt].join(
-            "#"
-          )
+          uniqueKey([
+            rejectionReasonSQL.descriptorId,
+            rejectionReasonSQL.rejectedAt,
+          ])
         )
       ) {
         rejectionReasonsSet.add(
-          [rejectionReasonSQL.descriptorId, rejectionReasonSQL.rejectedAt].join(
-            "#"
-          )
+          uniqueKey([
+            rejectionReasonSQL.descriptorId,
+            rejectionReasonSQL.rejectedAt,
+          ])
         );
         // eslint-disable-next-line functional/immutable-data
         rejectionReasonsSQL.push(rejectionReasonSQL);
@@ -505,3 +507,5 @@ export const toEServiceAggregatorArray = (
     // templateBindingSQL: [],
   };
 };
+
+const uniqueKey = (ids: string[]): string => ids.join("#");
