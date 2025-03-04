@@ -118,7 +118,7 @@ async function main(): Promise<void> {
   compare({
     collectionItems: purposes,
     postgresItems: purposesPostgres,
-    schema: "purpose",
+    schema: "purposes",
     loggerInstance,
   });
 
@@ -128,7 +128,7 @@ async function main(): Promise<void> {
   compare({
     collectionItems: clients,
     postgresItems: clientsPostgres,
-    schema: "client",
+    schema: "clients",
     loggerInstance,
   });
 
@@ -138,7 +138,7 @@ async function main(): Promise<void> {
   compare({
     collectionItems: keys,
     postgresItems: keysPostgres,
-    schema: "JWKkey",
+    schema: "JWKkeys",
     loggerInstance,
   });
 
@@ -150,7 +150,7 @@ async function main(): Promise<void> {
   compare({
     collectionItems: producerKeychains,
     postgresItems: producerKeychainsPostgres,
-    schema: "producer keychain",
+    schema: "producer keychains",
     loggerInstance,
   });
 
@@ -161,7 +161,7 @@ async function main(): Promise<void> {
   compare({
     collectionItems: producerKeys,
     postgresItems: producerKeysPostgres,
-    schema: "producer keychain JWKkey",
+    schema: "producer keychain JWKkeys",
     loggerInstance,
   });
 
@@ -172,7 +172,7 @@ async function main(): Promise<void> {
   compare({
     collectionItems: delegations,
     postgresItems: delegationsPostgres,
-    schema: "delegation",
+    schema: "delegations",
     loggerInstance,
   });
 }
