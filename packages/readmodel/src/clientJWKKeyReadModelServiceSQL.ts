@@ -3,7 +3,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { ClientId, ClientJWKKey, WithMetadata } from "pagopa-interop-models";
 import { clientJwkKeyInReadmodelClientJwkKey } from "pagopa-interop-readmodel-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
-import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
+import {
+  aggregateClientJWKKey,
+  aggregateClientJWKKeyArray,
+} from "./authorization/clientJWKKeyAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientJWKKeyReadModelServiceBuilder(
@@ -64,6 +67,13 @@ export function clientJWKKeyReadModelServiceBuilder(
             eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
           )
         );
+    },
+    async getAllClientJWKKeys(): Promise<Array<WithMetadata<ClientJWKKey>>> {
+      const queryResult = await db
+        .select()
+        .from(clientJwkKeyInReadmodelClientJwkKey);
+
+      return aggregateClientJWKKeyArray(queryResult);
     },
   };
 }
