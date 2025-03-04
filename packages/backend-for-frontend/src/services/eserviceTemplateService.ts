@@ -44,7 +44,6 @@ import {
   eserviceTemplateInterfaceNotFound,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
-  noVersionInEServiceTemplate,
   tenantNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
@@ -52,7 +51,6 @@ import {
   createOpenApiInterfaceByTemplate,
   verifyAndCreateDocument,
 } from "../utilities/eserviceDocumentUtils.js";
-import { cloneEServiceDocument } from "../utilities/fileUtils.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 import { retrieveEserviceDescriptor } from "./catalogService.js";
 import {
@@ -484,51 +482,9 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Creating new version for EService template ${eServiceTemplateId}`
       );
-      const eServiceTemplate =
-        await eserviceTemplateClient.getEServiceTemplateById({
-          params: { eServiceTemplateId },
-          headers,
-        });
-
-      if (eServiceTemplate.versions.length === 0) {
-        throw noVersionInEServiceTemplate(eServiceTemplateId);
-      }
-
-      const retrieveLatestEServiceTemplateVersion = (
-        versions: eserviceTemplateApi.EServiceTemplateVersion[]
-      ): eserviceTemplateApi.EServiceTemplateVersion =>
-        versions.reduce(
-          (latestVersions, curr) =>
-            curr.version > latestVersions.version ? curr : latestVersions,
-          versions[0]
-        );
-
-      const previousVersion = retrieveLatestEServiceTemplateVersion(
-        eServiceTemplate.versions
-      );
-
-      const clonedDocumentsCalls = previousVersion.docs.map((doc) =>
-        cloneEServiceDocument({
-          doc,
-          documentsContainer: config.eserviceTemplateDocumentsContainer,
-          documentsPath: config.eserviceTemplateDocumentsPath,
-          fileManager,
-          logger,
-        })
-      );
-
-      const clonedDocuments = await Promise.all(clonedDocumentsCalls);
 
       const { id } = await eserviceTemplateClient.createEServiceTemplateVersion(
-        {
-          description: previousVersion.description,
-          voucherLifespan: previousVersion.voucherLifespan,
-          dailyCallsPerConsumer: previousVersion.dailyCallsPerConsumer,
-          dailyCallsTotal: previousVersion.dailyCallsTotal,
-          agreementApprovalPolicy: previousVersion.agreementApprovalPolicy,
-          attributes: previousVersion.attributes,
-          docs: clonedDocuments,
-        },
+        undefined,
         {
           headers,
           params: {

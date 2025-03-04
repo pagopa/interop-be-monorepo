@@ -15,6 +15,7 @@ import {
   tenantKindNotFound,
   eserviceTemplateNotInDraftState,
   inconsistentDailyCalls,
+  eserviceTemplateWithoutPublishedVersion,
 } from "../model/domain/errors.js";
 
 export function assertRequesterEServiceTemplateCreator(
@@ -92,5 +93,19 @@ export function assertConsistentDailyCalls({
     dailyCallsPerConsumer > dailyCallsTotal
   ) {
     throw inconsistentDailyCalls();
+  }
+}
+
+export function assertPublishedEServiceTemplate(
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (
+    !eserviceTemplate.versions.some(
+      (v) =>
+        v.state === eserviceTemplateVersionState.published ||
+        v.state === eserviceTemplateVersionState.suspended
+    )
+  ) {
+    throw eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id);
   }
 }

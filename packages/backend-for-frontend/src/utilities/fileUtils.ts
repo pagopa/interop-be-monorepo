@@ -5,7 +5,7 @@ import path from "path";
 import { Readable } from "stream";
 import crypto from "crypto";
 import AdmZip from "adm-zip";
-import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { DescriptorId, genericError } from "pagopa-interop-models";
 import { missingInterface } from "../model/errors.js";
@@ -232,15 +232,12 @@ export async function cloneEServiceDocument({
   fileManager,
   logger,
 }: {
-  doc: eserviceTemplateApi.EServiceDoc | catalogApi.EServiceDoc;
+  doc: catalogApi.EServiceDoc;
   documentsContainer: string;
   documentsPath: string;
   fileManager: FileManager;
   logger: Logger;
-}): Promise<
-  | eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed
-  | catalogApi.CreateEServiceDescriptorDocumentSeed
-> {
+}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> {
   const clonedDocumentId = crypto.randomUUID();
 
   const clonedPath = await fileManager.copy(

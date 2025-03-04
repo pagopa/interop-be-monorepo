@@ -232,7 +232,6 @@ const eserviceTemplatesRouter = (
           const eserviceTemplateVersion =
             await eserviceTemplateService.createEServiceTemplateVersion(
               unsafeBrandId(req.params.eServiceTemplateId),
-              req.body,
               ctx
             );
           return res

@@ -15,7 +15,6 @@ import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  createEServiceTemplateVersionErrorMapper,
   bffGetCatalogEServiceTemplateErrorMapper,
   bffGetEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -535,15 +534,16 @@ const eserviceTemplateRouter = (
         const { eServiceTemplateId } = req.params;
 
         try {
-          await eserviceTemplateService.createEServiceTemplateVersion(
-            unsafeBrandId(eServiceTemplateId),
-            ctx
-          );
-          return res.status(204).send();
+          const { id } =
+            await eserviceTemplateService.createEServiceTemplateVersion(
+              unsafeBrandId(eServiceTemplateId),
+              ctx
+            );
+          return res.status(200).send(bffApi.CreatedResource.parse({ id }));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createEServiceTemplateVersionErrorMapper,
+            emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error creating new eservice template ${eServiceTemplateId} version`
