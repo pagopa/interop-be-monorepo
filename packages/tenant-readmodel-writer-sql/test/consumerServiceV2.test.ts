@@ -3,7 +3,6 @@ import {
   getMockDeclaredTenantAttribute,
   getMockTenant,
   getMockTenantMail,
-  getMockVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test/index.js";
 import {
   TenantEventEnvelopeV2,
@@ -29,6 +28,10 @@ import {
   tenantUnitType,
   MaintenanceTenantUpdatedV2,
   DeclaredTenantAttribute,
+  tenantFeatureType,
+  VerifiedTenantAttribute,
+  tenantAttributeType,
+  CertifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/tenantConsumerServiceV2.js";
@@ -144,22 +147,32 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("TenantCertifiedAttributeRevoked", async () => {
-    const certifiedAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: new Date(),
+    const certifiedAttribute: CertifiedTenantAttribute = {
+      type: tenantAttributeType.CERTIFIED,
+      id: generateId(),
+      assignmentTimestamp: new Date(),
     };
-
-    const updatedTenant: Tenant = {
+    const tenantWithCertifiedAttribute: Tenant = {
       ...mockTenant,
       attributes: [certifiedAttribute],
     };
     await tenantReadModelServiceSQL.upsertTenant({
-      data: updatedTenant,
+      data: tenantWithCertifiedAttribute,
       metadata: { version: 1 },
     });
 
+    const revokedCertifiedAttribute: CertifiedTenantAttribute = {
+      ...certifiedAttribute,
+      revocationTimestamp: new Date(),
+    };
+
+    const tenantWithRevokedCertifiedAttribute: Tenant = {
+      ...tenantWithCertifiedAttribute,
+      attributes: [revokedCertifiedAttribute],
+    };
+
     const payload: TenantCertifiedAttributeRevokedV2 = {
-      tenant: toTenantV2(mockTenant),
+      tenant: toTenantV2(tenantWithRevokedCertifiedAttribute),
       attributeId: certifiedAttribute.id,
     };
 
@@ -176,7 +189,10 @@ describe("Tenant Events V2", async () => {
       mockTenant.id
     );
 
-    expect(retrievedTenant?.data.attributes).toHaveLength(0);
+    expect(retrievedTenant?.data).toEqual(tenantWithRevokedCertifiedAttribute);
+    expect(retrievedTenant?.metadata).toEqual({
+      version: 2,
+    });
   });
   it("TenantDeclaredAttributeAssigned", async () => {
     await tenantReadModelServiceSQL.upsertTenant({
@@ -253,15 +269,32 @@ describe("Tenant Events V2", async () => {
     expect(retrievedTenant?.data.attributes).toHaveLength(0);
   });
   it("TenantVerifiedAttributeAssigned", async () => {
+    const verifier: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: tenantFeatureType.persistentCertifier,
+          certifierId: "certifier-id",
+        },
+      ],
+    };
+
+    await tenantReadModelServiceSQL.upsertTenant({
+      data: verifier,
+      metadata: { version: 1 },
+    });
+
     await tenantReadModelServiceSQL.upsertTenant({
       data: mockTenant,
       metadata: { version: 1 },
     });
 
-    const verifiedAttribute = {
-      ...getMockVerifiedTenantAttribute(),
+    const verifiedAttribute: VerifiedTenantAttribute = {
+      id: generateId(),
       assignmentTimestamp: new Date(),
-      revocationTimestamp: undefined,
+      verifiedBy: [{ id: verifier.id, verificationDate: new Date() }],
+      revokedBy: [],
+      type: tenantAttributeType.VERIFIED,
     };
 
     const updatedTenant: Tenant = {
@@ -292,22 +325,59 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("TenantVerifiedAttributeRevoked", async () => {
-    const verifiedAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      revocationTimestamp: new Date(),
+    const revoker: Tenant = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: tenantFeatureType.persistentCertifier,
+          certifierId: "certifier-id",
+        },
+      ],
     };
 
-    const updatedTenant: Tenant = {
-      ...mockTenant,
-      attributes: [verifiedAttribute],
+    const verifiedAttribute: VerifiedTenantAttribute = {
+      id: generateId(),
+      assignmentTimestamp: new Date(),
+      verifiedBy: [{ id: revoker.id, verificationDate: new Date() }],
+      revokedBy: [],
+      type: tenantAttributeType.VERIFIED,
     };
+
     await tenantReadModelServiceSQL.upsertTenant({
-      data: updatedTenant,
+      data: revoker,
       metadata: { version: 1 },
     });
 
+    const tenantWithVerifiedAttribute: Tenant = {
+      ...mockTenant,
+      attributes: [verifiedAttribute],
+    };
+
+    await tenantReadModelServiceSQL.upsertTenant({
+      data: tenantWithVerifiedAttribute,
+      metadata: { version: 1 },
+    });
+
+    const revokedAttribute: VerifiedTenantAttribute = {
+      ...verifiedAttribute,
+      verifiedBy: [],
+      revokedBy: [
+        {
+          id: revoker.id,
+          verificationDate: new Date(),
+          revocationDate: new Date(),
+        },
+      ],
+      type: tenantAttributeType.VERIFIED,
+    };
+
+    const tenantWithRevokedVerifiedAttribute: Tenant = {
+      ...tenantWithVerifiedAttribute,
+      attributes: [revokedAttribute],
+    };
+
     const payload: TenantVerifiedAttributeRevokedV2 = {
-      tenant: toTenantV2(mockTenant),
+      tenant: toTenantV2(tenantWithRevokedVerifiedAttribute),
       attributeId: verifiedAttribute.id,
     };
 
@@ -324,40 +394,56 @@ describe("Tenant Events V2", async () => {
       mockTenant.id
     );
 
-    expect(retrievedTenant?.data.attributes).toHaveLength(0);
+    expect(retrievedTenant?.data).toEqual(tenantWithRevokedVerifiedAttribute);
+    expect(retrievedTenant?.metadata).toEqual({
+      version: 2,
+    });
   });
   it("TenantVerifiedAttributeExpirationUpdated", async () => {
-    const verifiedAttribute = {
-      ...getMockVerifiedTenantAttribute(),
+    const verifier: Tenant = getMockTenant();
+
+    const verifiedAttribute: VerifiedTenantAttribute = {
+      id: generateId(),
+      assignmentTimestamp: new Date(),
+      verifiedBy: [{ id: verifier.id, verificationDate: new Date() }],
+      revokedBy: [],
+      type: tenantAttributeType.VERIFIED,
     };
 
-    const tenant: Tenant = {
+    await tenantReadModelServiceSQL.upsertTenant({
+      data: verifier,
+      metadata: { version: 1 },
+    });
+
+    const tenantWithVerifiedAttribute: Tenant = {
       ...mockTenant,
       attributes: [verifiedAttribute],
     };
 
     await tenantReadModelServiceSQL.upsertTenant({
-      data: tenant,
+      data: tenantWithVerifiedAttribute,
       metadata: { version: 1 },
     });
 
-    const updatedTenant: Tenant = {
-      ...mockTenant,
-      attributes: [
+    const attributeWithUpdatedExpiration: VerifiedTenantAttribute = {
+      ...verifiedAttribute,
+      verifiedBy: [
         {
-          ...verifiedAttribute,
-          verifiedBy: [
-            {
-              ...verifiedAttribute.verifiedBy[0],
-              expirationDate: new Date(),
-            },
-          ],
+          id: verifier.id,
+          verificationDate: new Date(),
+          expirationDate: new Date(),
         },
       ],
+      type: tenantAttributeType.VERIFIED,
+    };
+
+    const tenantWithUpdatedVerifiedAttribute: Tenant = {
+      ...tenantWithVerifiedAttribute,
+      attributes: [attributeWithUpdatedExpiration],
     };
 
     const payload: TenantVerifiedAttributeExpirationUpdatedV2 = {
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV2(tenantWithUpdatedVerifiedAttribute),
       attributeId: verifiedAttribute.id,
     };
 
@@ -374,43 +460,56 @@ describe("Tenant Events V2", async () => {
       mockTenant.id
     );
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
+    expect(retrievedTenant?.data).toEqual(tenantWithUpdatedVerifiedAttribute);
     expect(retrievedTenant?.metadata).toEqual({
       version: 2,
     });
   });
   it("TenantVerifiedAttributeExtensionUpdated", async () => {
-    const verifiedAttribute = {
-      ...getMockVerifiedTenantAttribute(),
+    const verifier: Tenant = getMockTenant();
+
+    const verifiedAttribute: VerifiedTenantAttribute = {
+      id: generateId(),
+      assignmentTimestamp: new Date(),
+      verifiedBy: [{ id: verifier.id, verificationDate: new Date() }],
+      revokedBy: [],
+      type: tenantAttributeType.VERIFIED,
     };
 
-    const tenant: Tenant = {
+    await tenantReadModelServiceSQL.upsertTenant({
+      data: verifier,
+      metadata: { version: 1 },
+    });
+
+    const tenantWithVerifiedAttribute: Tenant = {
       ...mockTenant,
       attributes: [verifiedAttribute],
     };
 
     await tenantReadModelServiceSQL.upsertTenant({
-      data: tenant,
+      data: tenantWithVerifiedAttribute,
       metadata: { version: 1 },
     });
 
-    const updatedTenant: Tenant = {
-      ...mockTenant,
-      attributes: [
+    const attributeWithUpdatedExtensionDate: VerifiedTenantAttribute = {
+      ...verifiedAttribute,
+      verifiedBy: [
         {
-          ...verifiedAttribute,
-          verifiedBy: [
-            {
-              ...verifiedAttribute.verifiedBy[0],
-              extensionDate: new Date(),
-            },
-          ],
+          id: verifier.id,
+          verificationDate: new Date(),
+          expirationDate: new Date(),
         },
       ],
+      type: tenantAttributeType.VERIFIED,
+    };
+
+    const tenantWithExtendedVerifiedAttribute: Tenant = {
+      ...tenantWithVerifiedAttribute,
+      attributes: [attributeWithUpdatedExtensionDate],
     };
 
     const payload: TenantVerifiedAttributeExtensionUpdatedV2 = {
-      tenant: toTenantV2(updatedTenant),
+      tenant: toTenantV2(tenantWithExtendedVerifiedAttribute),
       attributeId: verifiedAttribute.id,
     };
 
@@ -427,7 +526,7 @@ describe("Tenant Events V2", async () => {
       mockTenant.id
     );
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
+    expect(retrievedTenant?.data).toEqual(tenantWithExtendedVerifiedAttribute);
     expect(retrievedTenant?.metadata).toEqual({
       version: 2,
     });
@@ -570,7 +669,7 @@ describe("Tenant Events V2", async () => {
       mockTenant.id
     );
 
-    expect(retrievedTenant).toBeNull();
+    expect(retrievedTenant).toBeUndefined();
   });
   it("MaintenanceTenantUpdated", async () => {
     const mail = getMockTenantMail();

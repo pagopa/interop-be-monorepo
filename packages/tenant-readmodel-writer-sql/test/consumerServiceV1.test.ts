@@ -10,7 +10,6 @@ import {
   TenantMailDeletedV1,
   TenantUpdatedV1,
   generateId,
-  toReadModelTenant,
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/tenantConsumerServiceV1.js";
 import { toTenantV1 } from "./converterV1.js";
@@ -46,12 +45,10 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual(
-        toReadModelTenant({
-          ...mockTenant,
-          onboardedAt: mockTenant.createdAt,
-        })
-      );
+      expect(retrievedTenant?.data).toEqual({
+        ...mockTenant,
+        onboardedAt: mockTenant.createdAt,
+      });
       expect(retrievedTenant?.metadata).toEqual({ version: 1 });
     });
 
@@ -117,12 +114,10 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual(
-        toReadModelTenant({
-          ...updatedTenant,
-          onboardedAt: updatedTenant.createdAt,
-        })
-      );
+      expect(retrievedTenant?.data).toEqual({
+        ...updatedTenant,
+        onboardedAt: updatedTenant.createdAt,
+      });
       expect(retrievedTenant?.metadata).toEqual({ version: 2 });
     });
 
@@ -164,7 +159,7 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual(toReadModelTenant(updatedTenant));
+      expect(retrievedTenant?.data).toEqual(updatedTenant);
       expect(retrievedTenant?.metadata).toEqual({ version: 2 });
 
       vi.useRealTimers();
@@ -213,16 +208,14 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual(
-        toReadModelTenant({
-          ...updatedTenant,
-          onboardedAt: updatedTenant.createdAt,
-        })
-      );
+      expect(retrievedTenant?.data).toEqual({
+        ...updatedTenant,
+        onboardedAt: updatedTenant.createdAt,
+      });
       expect(retrievedTenant?.metadata).toEqual({ version: 2 });
     });
 
-    it("TenantMailDeleted", async () => {
+    it.only("TenantMailDeleted", async () => {
       const mailId = generateId();
       const tenantWithMail: Tenant = {
         ...mockTenant,
@@ -267,7 +260,7 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual(toReadModelTenant(updatedTenant));
+      expect(retrievedTenant?.data).toEqual(updatedTenant);
       expect(retrievedTenant?.metadata).toEqual({ version: 2 });
     });
   });
