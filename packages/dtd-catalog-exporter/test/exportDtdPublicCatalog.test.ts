@@ -47,7 +47,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneAttribute(attribute2Mock);
     await addOneAttribute(attribute3Mock);
 
-    await dtdCatalogExporterService.exportDtdPublicCatalog();
+    await dtdCatalogExporterService.exportDtdData();
     const result = await getExportDtdPublicCatalogResult();
 
     expect(result.length).toBe(1);
@@ -113,7 +113,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneEService(eserviceWithNoActiveDescriptorMock);
     await addOneTenant(producerMock);
 
-    await dtdCatalogExporterService.exportDtdPublicCatalog();
+    await dtdCatalogExporterService.exportDtdData();
     const result = await getExportDtdPublicCatalogResult();
 
     expect(result.length).toBe(1);
@@ -134,7 +134,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneEService(eserviceMock);
 
     await expect(async () => {
-      await dtdCatalogExporterService.exportDtdPublicCatalog();
+      await dtdCatalogExporterService.exportDtdData();
     }).rejects.toThrowError(
       genericError(`Producer for e-service ${eserviceMock.id} not found`)
     );
@@ -165,7 +165,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneTenant(producerMock);
 
     await expect(async () => {
-      await dtdCatalogExporterService.exportDtdPublicCatalog();
+      await dtdCatalogExporterService.exportDtdData();
     }).rejects.toThrowError(
       genericError(`Attribute with id ${attributeMock.id} not found`)
     );
