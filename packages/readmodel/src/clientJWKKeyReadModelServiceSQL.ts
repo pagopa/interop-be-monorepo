@@ -24,11 +24,15 @@ export function clientJWKKeyReadModelServiceBuilder(
         await tx
           .delete(clientJwkKeyInReadmodelClientJwkKey)
           .where(
-            eq(
-              clientJwkKeyInReadmodelClientJwkKey.clientId,
-              clientJWKKey.data.clientId
+            and(
+              eq(
+                clientJwkKeyInReadmodelClientJwkKey.clientId,
+                clientJWKKey.data.clientId
+              ),
+              eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.data.kid)
             )
           );
+
         await tx
           .insert(clientJwkKeyInReadmodelClientJwkKey)
           .values(clientJWKKeySQL);
