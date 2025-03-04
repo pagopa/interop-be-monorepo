@@ -24,7 +24,7 @@ jobs:
           path: |
             .turbo
             packages/**/.turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.sha }}-check-formatting
           restore-keys: |
             ${{ runner.os }}-turbo-
       - run: pnpm format:check
@@ -46,7 +46,7 @@ jobs:
           path: |
             .turbo
             packages/**/.turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.sha }}-lint
           restore-keys: |
             ${{ runner.os }}-turbo-
       - run: pnpm lint
@@ -65,7 +65,7 @@ jobs:
           path: |
             .turbo
             packages/**/.turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.sha }}-check
           restore-keys: |
             ${{ runner.os }}-turbo-
       - uses: pnpm/action-setup@v4
@@ -87,7 +87,7 @@ jobs:
           path: |
             .turbo
             packages/**/.turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.sha }}-test
           restore-keys: |
             ${{ runner.os }}-turbo-
       - uses: pnpm/action-setup@v4
