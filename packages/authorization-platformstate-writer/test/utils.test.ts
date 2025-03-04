@@ -1122,7 +1122,7 @@ describe("utils", () => {
           kid: "kid",
           purposeId: generateId<PurposeId>(),
         }),
-        consumerId: generateId(),
+        consumerId: generateId<TenantId>(),
         clientKind: clientKindTokenGenStates.consumer,
         publicKey: "publicKey",
         GSIPK_clientId: generateId<ClientId>(),
