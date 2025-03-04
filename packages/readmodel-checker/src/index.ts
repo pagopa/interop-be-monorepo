@@ -11,6 +11,7 @@ import {
   catalogReadModelServiceBuilderSQL,
   attributeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilderSQL,
+  agreementReadModelServiceBuilderSQL,
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -48,12 +49,13 @@ const catalogReadModelServiceSQL =
 const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilderSQL(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilderSQL(readModelDB);
 
 async function main(): Promise<void> {
   // CATALOG
   const eservices = await readModelService.getAllReadModelEServices();
   const eservicesPostgres = await catalogReadModelServiceSQL.getAllEServices();
-
   compare({
     collectionItems: eservices,
     postgresItems: eservicesPostgres,
@@ -65,7 +67,6 @@ async function main(): Promise<void> {
   const attributes = await readModelService.getAllReadModelAttributes();
   const attributesPostgres =
     await attributeReadModelServiceSQL.getAllAttributes();
-
   compare({
     collectionItems: attributes,
     postgresItems: attributesPostgres,
@@ -76,11 +77,21 @@ async function main(): Promise<void> {
   // TENANT
   const tenants = await readModelService.getAllReadModelTenants();
   const tenantsPostgres = await tenantReadModelServiceSQL.getAllTenants();
-
   compare({
     collectionItems: tenants,
     postgresItems: tenantsPostgres,
     schema: "tenants",
+    loggerInstance,
+  });
+
+  // AGREEMENT
+  const agreements = await readModelService.getAllReadModelAgreements();
+  const agreementsPostgres =
+    await agreementReadModelServiceSQL.getAllAgreements();
+  compare({
+    collectionItems: agreements,
+    postgresItems: agreementsPostgres,
+    schema: "agreements",
     loggerInstance,
   });
 }
