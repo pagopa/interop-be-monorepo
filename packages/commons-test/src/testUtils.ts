@@ -74,6 +74,7 @@ import {
   delegationState,
   delegationKind,
   DescriptorRejectionReason,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -263,8 +264,6 @@ export const getMockAttribute = (
   kind,
   description: "attribute description",
   creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
 });
 
 export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
@@ -284,12 +283,7 @@ export const getMockPurposeVersion = (
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
-  riskAnalysis: {
-    id: generateId(),
-    contentType: "json",
-    path: "path",
-    createdAt: new Date(),
-  },
+  riskAnalysis: getMockPurposeVersionDocument(),
   dailyCalls: 10,
   createdAt: new Date(),
   ...(state !== purposeVersionState.draft
@@ -346,6 +340,15 @@ export const getMockDocument = (): Document => ({
   uploadDate: new Date(),
 });
 
+export const getMockAgreementDocument = (): AgreementDocument => ({
+  id: generateId(),
+  name: "fileName",
+  prettyName: "prettyName",
+  contentType: "json",
+  path: "filePath",
+  createdAt: new Date(),
+});
+
 export const getMockClient = (): Client => ({
   id: generateId(),
   consumerId: generateId(),
@@ -398,8 +401,8 @@ export const getMockDelegation = ({
   eserviceId = generateId<EServiceId>(),
   state = "WaitingForApproval",
   submitterId = generateId<UserId>(),
-  activationContract = undefined,
-  revocationContract = undefined,
+  activationContract,
+  revocationContract,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -420,8 +423,8 @@ export const getMockDelegation = ({
     eserviceId,
     createdAt: creationTime,
     state,
-    activationContract,
-    revocationContract,
+    ...(activationContract ? { activationContract } : {}),
+    ...(revocationContract ? { revocationContract } : {}),
     kind,
     stamps: {
       submission: {

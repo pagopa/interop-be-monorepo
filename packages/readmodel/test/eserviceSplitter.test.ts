@@ -17,6 +17,7 @@ import { describe, it, expect } from "vitest";
 import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
+  EServiceDescriptorInterfaceSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
   EServiceRiskAnalysisAnswerSQL,
@@ -161,7 +162,7 @@ describe("E-service splitter", () => {
       uploadDate: doc.uploadDate.toISOString(),
     };
 
-    const expectedInterfaceDocSQL: EServiceDescriptorDocumentSQL = {
+    const expectedInterfaceDocSQL: EServiceDescriptorInterfaceSQL = {
       ...interfaceDoc,
       metadataVersion: 1,
       eserviceId: eservice.id,
