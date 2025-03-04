@@ -593,9 +593,7 @@ async function innerUploadDocument(
 
   const updateTemplateRef = templateData
     ? isInterface
-      ? {
-          ...templateData,
-        }
+      ? templateData
       : {
           id: templateData.id,
         }
