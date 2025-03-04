@@ -303,10 +303,10 @@ export const toAgreementAggregatorArray = (
 
   const contractSQL = queryRes[0].contract;
 
-  const stampIdSet = new Set<[string, string]>();
+  const stampIdSet = new Set<string>();
   const stampsSQL: AgreementStampSQL[] = [];
 
-  const attributeIdSet = new Set<[string, string]>();
+  const attributeIdSet = new Set<string>();
   const attributesSQL: AgreementAttributeSQL[] = [];
 
   const consumerDocumentIdSet = new Set<string>();
@@ -322,8 +322,11 @@ export const toAgreementAggregatorArray = (
     }
 
     const stampSQL = row.stamp;
-    if (stampSQL && !stampIdSet.has([stampSQL.agreementId, stampSQL.kind])) {
-      stampIdSet.add([stampSQL.agreementId, stampSQL.kind]);
+    if (
+      stampSQL &&
+      !stampIdSet.has(uniqueKey([stampSQL.agreementId, stampSQL.kind]))
+    ) {
+      stampIdSet.add(uniqueKey([stampSQL.agreementId, stampSQL.kind]));
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(stampSQL);
     }
@@ -332,9 +335,13 @@ export const toAgreementAggregatorArray = (
 
     if (
       attributeSQL &&
-      !attributeIdSet.has([attributeSQL.agreementId, attributeSQL.attributeId])
+      !attributeIdSet.has(
+        uniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
+      )
     ) {
-      attributeIdSet.add([attributeSQL.agreementId, attributeSQL.attributeId]);
+      attributeIdSet.add(
+        uniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
+      );
       // eslint-disable-next-line functional/immutable-data
       attributesSQL.push(attributeSQL);
     }
@@ -355,3 +362,5 @@ export const toAgreementAggregatorArray = (
     contractSQL,
   };
 };
+
+const uniqueKey = (ids: string[]): string => ids.join("#");
