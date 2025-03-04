@@ -102,7 +102,7 @@ describe("sendAgreementActivatedEmail", () => {
       subject: `Richiesta di fruizione ${agreement.id} attiva`,
       to: [consumerEmail.address],
       html: templateService.compileHtml(activationNotificationEmailTemplate, {
-        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/richieste/${agreement.id}`,
+        interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`,
         producerName: producer.name,
         consumerName: consumer.name,
         eserviceName: eservice.name,
