@@ -111,13 +111,12 @@ export function agreementReadModelServiceBuilder(
             agreementContractInReadmodelAgreement.agreementId
           )
         );
+
       if (queryResult.length === 0) {
         return undefined;
       }
 
-      const aggregatorInput = toAgreementAggregator(queryResult);
-
-      return aggregateAgreement(aggregatorInput);
+      return aggregateAgreement(toAgreementAggregator(queryResult));
     },
     async deleteAgreementById(agreementId: AgreementId): Promise<void> {
       await db
