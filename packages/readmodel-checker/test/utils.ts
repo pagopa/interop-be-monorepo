@@ -19,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
+  agreementReadModelServiceBuilderSQL,
   attributeReadModelServiceBuilderSQL,
   catalogReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilderSQL,
@@ -43,12 +44,12 @@ afterEach(cleanup);
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const eserviceReadModelServiceSQL =
   catalogReadModelServiceBuilderSQL(readModelDB);
-// const catalogReadModelServiceSQL =
-// catalogReadModelServiceBuilderSQL(readModelDB);
 export const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilderSQL(readModelDB);
 export const tenantReadModelServiceSQL =
   tenantReadModelServiceBuilderSQL(readModelDB);
+export const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilderSQL(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
@@ -87,10 +88,13 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   );
 };
 
-export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
+export const addOneAgreement = async (
+  agreement: WithMetadata<Agreement>
+): Promise<void> => {
   await writeInReadmodel(
-    toReadModelAgreement(agreement),
-    readModelRepository.agreements
+    toReadModelAgreement(agreement.data),
+    readModelRepository.agreements,
+    agreement.metadata.version
   );
 };
 

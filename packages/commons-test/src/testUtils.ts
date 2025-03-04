@@ -248,11 +248,18 @@ export const getMockAgreement = (
   consumerId: TenantId = generateId<TenantId>(),
   state: AgreementState = agreementState.draft
 ): Agreement => ({
-  ...generateMock(Agreement),
+  id: generateId(),
   eserviceId,
   consumerId,
   state,
   stamps: getMockAgreementStamps(),
+  createdAt: new Date(),
+  descriptorId: generateId(),
+  producerId: generateId(),
+  verifiedAttributes: [],
+  certifiedAttributes: [],
+  declaredAttributes: [],
+  consumerDocuments: [],
 });
 
 export const getMockAttribute = (

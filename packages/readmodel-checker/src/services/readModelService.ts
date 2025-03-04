@@ -56,7 +56,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
               data: Agreement,
             })
           )
-          .safeParse(data.map((d) => d.data));
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse agreement items: results ${JSON.stringify(
