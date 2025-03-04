@@ -11,7 +11,7 @@ import {
   addOneEService,
   addOneTenant,
   dtdCatalogExporterService,
-  getExportDtdPublicCatalogResult,
+  getExportDtdPublicCatalogFromJsonResult,
 } from "./utils.js";
 
 describe("exportDtdPublicCatalog", () => {
@@ -48,7 +48,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneAttribute(attribute3Mock);
 
     await dtdCatalogExporterService.exportDtdData();
-    const result = await getExportDtdPublicCatalogResult();
+    const result = await getExportDtdPublicCatalogFromJsonResult();
 
     expect(result.length).toBe(1);
     expect(result[0]).toEqual({
@@ -114,7 +114,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneTenant(producerMock);
 
     await dtdCatalogExporterService.exportDtdData();
-    const result = await getExportDtdPublicCatalogResult();
+    const result = await getExportDtdPublicCatalogFromJsonResult();
 
     expect(result.length).toBe(1);
     expect(
