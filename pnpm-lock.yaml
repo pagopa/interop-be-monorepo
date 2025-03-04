@@ -20,13 +20,13 @@ importers:
 
   packages/agreement-lifecycle:
     dependencies:
-      '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
     devDependencies:
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -2162,9 +2162,6 @@ importers:
 
   packages/event-migration:
     dependencies:
-      '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
       connection-string:
         specifier: 4.4.0
         version: 4.4.0
@@ -2205,6 +2202,9 @@ importers:
       '@types/lodash.isequal':
         specifier: 4.5.8
         version: 4.5.8
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -2422,9 +2422,6 @@ importers:
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
-      '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2435,6 +2432,9 @@ importers:
         specifier: 3.3.0
         version: 3.3.0(zod@3.23.8)
     devDependencies:
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
       eslint:
         specifier: 8.57.0
         version: 8.57.0
