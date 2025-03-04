@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_mail (
   kind VARCHAR NOT NULL,
   address VARCHAR NOT NULL,
   description VARCHAR NULL,
-  created_at TIMESTAMP NOT NULL,
+  created_at  WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
 );
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_declared_attribute (
   attribute_id UUID,
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  assignment_timestamp TIMESTAMP NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
   delegation_id UUID,
   PRIMARY KEY (attribute_id, tenant_id)
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute (
   attribute_id UUID,
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  assignment_timestamp TIMESTAMP NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (attribute_id, tenant_id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
 );
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
-  revocation_date TIMESTAMP NOT NULL,
+  revocation_date TIMESTAMP WITH TIME ZONE NOT NULL,
   delegation_id UUID,
   PRIMARY KEY (
     tenant_revoker_id,
