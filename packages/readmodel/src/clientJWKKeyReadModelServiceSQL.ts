@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { ClientId, ClientJWKKey, WithMetadata } from "pagopa-interop-models";
 import { clientJwkKeyInReadmodelClientJwkKey } from "pagopa-interop-readmodel-models";
@@ -10,17 +10,26 @@ export function clientJWKKeyReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async addClientJWKKey(
+    async upsertClientJWKKey(
       clientJWKKey: WithMetadata<ClientJWKKey>
     ): Promise<void> {
       const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
         clientJWKKey.data,
         clientJWKKey.metadata.version
       );
-
-      await db
-        .insert(clientJwkKeyInReadmodelClientJwkKey)
-        .values(clientJWKKeySQL);
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(clientJwkKeyInReadmodelClientJwkKey)
+          .where(
+            eq(
+              clientJwkKeyInReadmodelClientJwkKey.clientId,
+              clientJWKKey.data.clientId
+            )
+          );
+        await tx
+          .insert(clientJwkKeyInReadmodelClientJwkKey)
+          .values(clientJWKKeySQL);
+      });
     },
     async getClientJWKKeyById(
       clientId: ClientId
