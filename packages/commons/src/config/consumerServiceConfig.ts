@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { KafkaConfig } from "./kafkaConfig.js";
-import { ReadModelDbConfig } from "./readmodelDbConfig.js";
 import { TokenGenerationReadModelDbConfig } from "./tokenGenerationReadmodelDbConfig.js";
+import { ReadModelSQLDbConfig } from "./readmodelSQLDbConfig.js";
+import { ReadModelDbConfig } from "./readmodelDbConfig.js";
 
 export const KafkaConsumerConfig = KafkaConfig.and(
   z
@@ -40,6 +41,10 @@ export type KafkaBatchConsumerConfig = z.infer<typeof KafkaBatchConsumerConfig>;
 
 export const ReadModelWriterConfig = KafkaConsumerConfig.and(ReadModelDbConfig);
 export type ReadModelWriterConfig = z.infer<typeof ReadModelWriterConfig>;
+
+export const ReadModelWriterConfigSQL =
+  KafkaConsumerConfig.and(ReadModelSQLDbConfig);
+export type ReadModelWriterConfigSQL = z.infer<typeof ReadModelWriterConfigSQL>;
 
 export const PlatformStateWriterConfig = KafkaConsumerConfig.and(
   TokenGenerationReadModelDbConfig
