@@ -7,10 +7,13 @@ import {
   ReadModelRepository,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
-import { catalogReadModelServiceBuilderSQL } from "pagopa-interop-readmodel";
+import {
+  catalogReadModelServiceBuilderSQL,
+  attributeReadModelServiceBuilderSQL,
+  tenantReadModelServiceBuilderSQL,
+} from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { attributeReadModelServiceBuilderSQL } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { compare } from "./utils.js";
 
@@ -37,10 +40,13 @@ const pool = new Pool({
   password: config.readModelSQLDbPassword,
   ssl: config.readModelSQLDbUseSSL,
 });
+
 const readModelDB = drizzle({ client: pool });
+
 const readModelServiceSQL = catalogReadModelServiceBuilderSQL(readModelDB);
 const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilderSQL(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(readModelDB);
 
 async function main(): Promise<void> {
   const eservices = await readModelService.getAllReadModelEServices();
@@ -61,6 +67,16 @@ async function main(): Promise<void> {
     collectionItems: attributes,
     postgresItems: attributesPostgres,
     schema: "attributes",
+    loggerInstance,
+  });
+
+  const tenants = await readModelService.getAllReadModelTenants();
+  const tenantsPostgres = await tenantReadModelServiceSQL.getAllTenants();
+
+  compare({
+    collectionItems: tenants,
+    postgresItems: tenantsPostgres,
+    schema: "tenants",
     loggerInstance,
   });
 }

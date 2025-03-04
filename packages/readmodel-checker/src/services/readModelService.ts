@@ -122,13 +122,20 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
       }
     },
 
-    async getAllReadModelTenants(): Promise<Tenant[]> {
+    async getAllReadModelTenants(): Promise<Array<WithMetadata<Tenant>>> {
       const data = await readModel.tenants.find().toArray();
 
       if (!data) {
         return [];
       } else {
-        const results = z.array(Tenant).safeParse(data.map((d) => d.data));
+        const results = z
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: Tenant,
+            })
+          )
+          .safeParse(data.map((d) => d.data));
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse eservice items: results ${JSON.stringify(
