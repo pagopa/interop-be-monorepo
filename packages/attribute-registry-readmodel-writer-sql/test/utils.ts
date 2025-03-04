@@ -1,6 +1,6 @@
 import { inject, afterEach } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { readModelServiceBuilderSQL } from "pagopa-interop-readmodel";
+import { attributeReadModelServiceBuilderSQL } from "pagopa-interop-readmodel";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -14,4 +14,5 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
 
 afterEach(cleanup);
 
-export const readModelService = readModelServiceBuilderSQL(readModelDB);
+export const attributeReadModelService =
+  attributeReadModelServiceBuilderSQL(readModelDB);

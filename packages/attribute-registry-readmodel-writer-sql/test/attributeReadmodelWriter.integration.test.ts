@@ -13,7 +13,7 @@ import {
   toAttributeV1,
 } from "pagopa-interop-models";
 import { handleMessage } from "../src/attributeRegistryConsumerService.js";
-import { readModelService } from "./utils.js";
+import { attributeReadModelService } from "./utils.js";
 
 describe("database test", async () => {
   describe("Events V1", () => {
@@ -36,11 +36,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, readModelService);
+      await handleMessage(message, attributeReadModelService);
 
-      const retrievedAttribute = await readModelService.getAttributeById(
-        certifiedAttribute.id
-      );
+      const retrievedAttribute =
+        await attributeReadModelService.getAttributeById(certifiedAttribute.id);
       expect(retrievedAttribute).toMatchObject({
         data: certifiedAttribute,
         metadata: { version: 1 },
@@ -64,11 +63,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, readModelService);
+      await handleMessage(message, attributeReadModelService);
 
-      const retrievedAttribute = await readModelService.getAttributeById(
-        declaredAttribute.id
-      );
+      const retrievedAttribute =
+        await attributeReadModelService.getAttributeById(declaredAttribute.id);
 
       expect(retrievedAttribute?.data).toEqual(declaredAttribute);
       expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
@@ -91,11 +89,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, readModelService);
+      await handleMessage(message, attributeReadModelService);
 
-      const retrievedAttribute = await readModelService.getAttributeById(
-        verifiedAttribute.id
-      );
+      const retrievedAttribute =
+        await attributeReadModelService.getAttributeById(verifiedAttribute.id);
 
       expect(retrievedAttribute?.data).toEqual(verifiedAttribute);
       expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
@@ -106,7 +103,7 @@ describe("database test", async () => {
         ...getMockAttribute(),
         kind: attributeKind.verified,
       };
-      await readModelService.upsertAttribute({
+      await attributeReadModelService.upsertAttribute({
         data: certifiedAttribute,
         metadata: { version: 0 },
       });
@@ -123,11 +120,10 @@ describe("database test", async () => {
         data: payload,
         log_date: new Date(),
       };
-      await handleMessage(message, readModelService);
+      await handleMessage(message, attributeReadModelService);
 
-      const retrievedAttribute = await readModelService.getAttributeById(
-        certifiedAttribute.id
-      );
+      const retrievedAttribute =
+        await attributeReadModelService.getAttributeById(certifiedAttribute.id);
 
       expect(retrievedAttribute).toBeUndefined();
     });
