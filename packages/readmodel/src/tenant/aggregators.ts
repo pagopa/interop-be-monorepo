@@ -283,7 +283,7 @@ const aggregateTenantAttributes = ({
   ];
 };
 
-export const fromJoinToAggregator = (
+export const toTenantAggregator = (
   queryRes: Array<{
     tenant: TenantSQL;
     mail: TenantMailSQL | null;
@@ -304,7 +304,7 @@ export const fromJoinToAggregator = (
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
-  } = fromJoinToAggregatorArray(queryRes);
+  } = toTenantAggregatorArray(queryRes);
 
   return {
     tenantSQL: tenantsSQL[0],
@@ -318,7 +318,7 @@ export const fromJoinToAggregator = (
   };
 };
 
-export const fromJoinToAggregatorArray = (
+export const toTenantAggregatorArray = (
   queryRes: Array<{
     tenant: TenantSQL;
     mail: TenantMailSQL | null;

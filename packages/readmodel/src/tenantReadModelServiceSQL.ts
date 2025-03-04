@@ -12,7 +12,7 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
-import { aggregateTenant, fromJoinToAggregator } from "./tenant/aggregators.js";
+import { aggregateTenant, toTenantAggregator } from "./tenant/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantReadModelServiceBuilderSQL(
@@ -153,7 +153,7 @@ export function tenantReadModelServiceBuilderSQL(
           )
         );
 
-      const aggregatorInput = fromJoinToAggregator(queryResult);
+      const aggregatorInput = toTenantAggregator(queryResult);
 
       return aggregateTenant(aggregatorInput);
     },
