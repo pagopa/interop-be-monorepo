@@ -11,6 +11,8 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
+import { Pool } from "pg";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import {
   aggregateTenant,
@@ -251,3 +253,22 @@ export function tenantReadModelServiceBuilderSQL(
 export type TenantReadModelServiceSQL = ReturnType<
   typeof tenantReadModelServiceBuilderSQL
 >;
+
+export type DrizzleReturnType = ReturnType<typeof drizzle>;
+export type TransactionType = Parameters<
+  Parameters<DrizzleReturnType["transaction"]>[0]
+>[0];
+
+export const makeDrizzleConnection = (
+  readModelSQLDbConfig: ReadModelSQLDbConfig
+): ReturnType<typeof drizzle> => {
+  const pool = new Pool({
+    host: readModelSQLDbConfig.readModelSQLDbHost,
+    port: readModelSQLDbConfig.readModelSQLDbPort,
+    database: readModelSQLDbConfig.readModelSQLDbName,
+    user: readModelSQLDbConfig.readModelSQLDbUsername,
+    password: readModelSQLDbConfig.readModelSQLDbPassword,
+    ssl: readModelSQLDbConfig.readModelSQLDbUseSSL,
+  });
+  return drizzle({ client: pool });
+};
