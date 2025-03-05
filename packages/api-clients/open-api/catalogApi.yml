@@ -276,14 +276,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/instances:
+  /templates/eservices/{eServiceId}:
     put:
       security:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates e-service instance general information
-      operationId: updateEServiceInstanceById
+      summary: Updates e-service template instance general information
+      operationId: updateEServiceTemplateInstanceById
       parameters:
         - name: eServiceId
           in: path
@@ -297,7 +297,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceInstanceSeed"
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceSeed"
       responses:
         "200":
           description: E-Service updated
@@ -1908,7 +1908,7 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-    UpdateEServiceInstanceSeed:
+    UpdateEServiceTemplateInstanceSeed:
       type: object
       additionalProperties: false
       properties:

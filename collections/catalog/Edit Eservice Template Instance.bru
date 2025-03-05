@@ -1,11 +1,11 @@
 meta {
-  name: Edit Eservice Instance
+  name: Edit Eservice template instance
   type: http
   seq: 21
 }
 
 put {
-  url: {{host-catalog}}/eservices/:eserviceId/instances
+  url: {{host-catalog}}/templates/eservices/:eserviceId
   body: json
   auth: none
 }

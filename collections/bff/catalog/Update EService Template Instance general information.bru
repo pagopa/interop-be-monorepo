@@ -1,11 +1,11 @@
 meta {
-  name: Update EService Instance general information
+  name: Update EService template instance general information
   type: http
   seq: 19
 }
 
 put {
-  url: {{host-bff}}/eservices/:eServiceId/instances
+  url: {{host-bff}}/templates/eservices/:eServiceId
   body: json
   auth: none
 }

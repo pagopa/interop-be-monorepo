@@ -33,6 +33,7 @@ import {
   riskAnalysisValidationFailed,
   tenantKindNotFound,
   templateInstanceNotAllowed,
+  eServiceNotAnInstance,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -278,5 +279,15 @@ export function assertEServiceNotTemplateInstance(
 ): void {
   if (templateId !== undefined) {
     throw templateInstanceNotAllowed(eserviceId, templateId);
+  }
+}
+
+export function assertEServiceIsTemplateInstance(
+  eservice: EService
+): asserts eservice is EService & {
+  templateRef: NonNullable<EService["templateRef"]>;
+} {
+  if (eservice.templateRef === undefined) {
+    throw eServiceNotAnInstance(eservice.id);
   }
 }

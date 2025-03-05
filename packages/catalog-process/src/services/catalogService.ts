@@ -150,6 +150,7 @@ import {
   isDescriptorUpdatable,
   isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
+  assertEServiceIsTemplateInstance,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -843,12 +844,12 @@ export function catalogServiceBuilder(
       return updatedEService;
     },
 
-    async updateEServiceInstance(
+    async updateEServiceTemplateInstance(
       eserviceId: EServiceId,
-      eserviceSeed: catalogApi.UpdateEServiceInstanceSeed,
+      eserviceSeed: catalogApi.UpdateEServiceTemplateInstanceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
-      logger.info(`Updating EService ${eserviceId} Instance`);
+      logger.info(`Updating EService ${eserviceId} template instance`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       await assertRequesterIsDelegateProducerOrProducer(
@@ -858,9 +859,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      if (eservice.data.templateRef === undefined) {
-        throw eServiceNotAnInstance(eserviceId);
-      }
+      assertEServiceIsTemplateInstance(eservice.data);
 
       const template = await retrieveEServiceTemplate(
         eservice.data.templateRef.id,
