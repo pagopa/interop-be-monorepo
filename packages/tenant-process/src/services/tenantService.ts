@@ -320,6 +320,7 @@ export function tenantServiceBuilder(
           ...existingTenant.data,
           kind: tenantKind,
           selfcareId: tenantSeed.selfcareId,
+          onboardedAt: new Date(tenantSeed.onboardedAt),
           updatedAt: new Date(),
         };
 
