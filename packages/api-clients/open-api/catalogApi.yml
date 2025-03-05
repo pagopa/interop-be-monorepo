@@ -581,14 +581,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/instances:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}:
     put:
       security:
         - bearerAuth: []
       tags:
         - process
-      summary: Updates a draft descriptor for an eservice instance
-      operationId: updateDraftDescriptorInstance
+      summary: Updates a draft descriptor for an eservice template instance
+      operationId: updateDraftDescriptorTemplateInstance
       parameters:
         - name: eServiceId
           in: path
@@ -607,7 +607,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorInstanceSeed"
+              $ref: "#/components/schemas/UpdateEServiceDescriptorTemplateInstanceSeed"
         required: true
       responses:
         "200":
@@ -2089,7 +2089,7 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
-    UpdateEServiceDescriptorInstanceSeed:
+    UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
         - dailyCallsPerConsumer

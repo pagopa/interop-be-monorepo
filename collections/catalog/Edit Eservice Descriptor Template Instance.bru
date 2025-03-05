@@ -1,11 +1,11 @@
 meta {
-  name: Edit Eservice Descriptor Instance
+  name: Edit Eservice template instance Descriptor
   type: http
   seq: 17
 }
 
 put {
-  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/instances
+  url: {{host-catalog}}/templates/eservices/:eserviceId/descriptors/:descriptorId
   body: json
   auth: none
 }

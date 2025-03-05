@@ -1,11 +1,11 @@
 meta {
-  name: Updates a draft descriptor instance
+  name: Updates a eservice template instance draft descriptor 
   type: http
   seq: 34
 }
 
 put {
-  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/instances
+  url: {{host-bff}}/templates/eservices/:eServiceId/descriptors/:descriptorId
   body: json
   auth: none
 }

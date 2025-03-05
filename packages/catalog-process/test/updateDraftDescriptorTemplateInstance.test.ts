@@ -71,7 +71,7 @@ describe("update draft descriptor instance", () => {
     };
     await addOneAttribute(attribute);
 
-    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorInstanceSeed =
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed =
       {
         ...buildUpdateDescriptorSeed(descriptor),
         dailyCallsTotal: 200,
@@ -86,7 +86,7 @@ describe("update draft descriptor instance", () => {
         },
       ],
     };
-    await catalogService.updateDraftDescriptorInstance(
+    await catalogService.updateDraftDescriptorTemplateInstance(
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
@@ -146,7 +146,7 @@ describe("update draft descriptor instance", () => {
     };
     await addOneAttribute(attribute);
 
-    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorInstanceSeed =
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed =
       {
         ...buildUpdateDescriptorSeed(descriptor),
         dailyCallsTotal: 200,
@@ -161,7 +161,7 @@ describe("update draft descriptor instance", () => {
         },
       ],
     };
-    await catalogService.updateDraftDescriptorInstance(
+    await catalogService.updateDraftDescriptorTemplateInstance(
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
@@ -193,7 +193,7 @@ describe("update draft descriptor instance", () => {
       state: descriptorState.published,
     };
     expect(
-      catalogService.updateDraftDescriptorInstance(
+      catalogService.updateDraftDescriptorTemplateInstance(
         mockEService.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
@@ -224,7 +224,7 @@ describe("update draft descriptor instance", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateDraftDescriptorInstance(
+      catalogService.updateDraftDescriptorTemplateInstance(
         mockEService.id,
         mockDescriptor.id,
         buildUpdateDescriptorSeed(mockDescriptor),
@@ -268,7 +268,7 @@ describe("update draft descriptor instance", () => {
       await addOneEService(eservice);
 
       expect(
-        catalogService.updateDraftDescriptorInstance(
+        catalogService.updateDraftDescriptorTemplateInstance(
           eservice.id,
           descriptor.id,
           buildUpdateDescriptorSeed(descriptor),
@@ -310,7 +310,7 @@ describe("update draft descriptor instance", () => {
       dailyCallsTotal: 200,
     };
     expect(
-      catalogService.updateDraftDescriptorInstance(
+      catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
@@ -357,7 +357,7 @@ describe("update draft descriptor instance", () => {
       dailyCallsTotal: 200,
     };
     expect(
-      catalogService.updateDraftDescriptorInstance(
+      catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
@@ -397,7 +397,7 @@ describe("update draft descriptor instance", () => {
       dailyCallsTotal: 50,
     };
     expect(
-      catalogService.updateDraftDescriptorInstance(
+      catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
@@ -432,7 +432,7 @@ describe("update draft descriptor instance", () => {
     };
 
     expect(
-      catalogService.updateDraftDescriptorInstance(
+      catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
         descriptorSeed,

@@ -2963,7 +2963,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/instances:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     put:
@@ -2971,8 +2971,8 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Updates a draft descriptor instances
-      operationId: updateDraftDescriptorInstance
+      summary: Updates an eservice template draft descriptor
+      operationId: updateDraftDescriptorTemplateInstance
       parameters:
         - name: eServiceId
           in: path
@@ -2993,7 +2993,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceDescriptorInstanceSeed"
+              $ref: "#/components/schemas/UpdateEServiceDescriptorTemplateInstanceSeed"
         required: true
       responses:
         "200":
@@ -3034,6 +3034,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        
         "404":
           description: Not found
           headers:
@@ -17596,7 +17616,7 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/DescriptorAttributesSeed"
-    UpdateEServiceDescriptorInstanceSeed:
+    UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
         - dailyCallsPerConsumer

@@ -203,7 +203,7 @@ export const updateDraftDescriptorErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const updateDraftDescriptorInstanceErrorMapper = (
+export const updateDraftDescriptorTemplateInstanceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

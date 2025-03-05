@@ -1055,25 +1055,26 @@ export function catalogServiceBuilder(
       );
       return { id };
     },
-    updateDraftDescriptorInstance: async (
+    updateDraftDescriptorTemplateInstance: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
-      updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorInstanceSeed,
+      updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorTemplateInstanceSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
       logger.info(
-        `Updating draft descriptor ${descriptorId} of EService ${eServiceId} instance`
+        `Updating draft descriptor ${descriptorId} of EService ${eServiceId} template instance`
       );
-      const { id } = await catalogProcessClient.updateDraftDescriptorInstance(
-        updateEServiceDescriptorSeed,
-        {
-          headers,
-          params: {
-            descriptorId,
-            eServiceId,
-          },
-        }
-      );
+      const { id } =
+        await catalogProcessClient.updateDraftDescriptorTemplateInstance(
+          updateEServiceDescriptorSeed,
+          {
+            headers,
+            params: {
+              descriptorId,
+              eServiceId,
+            },
+          }
+        );
       return { id };
     },
     deleteEServiceDocumentById: async (

@@ -1422,14 +1422,14 @@ export function catalogServiceBuilder(
       return updatedEService;
     },
 
-    async updateDraftDescriptorInstance(
+    async updateDraftDescriptorTemplateInstance(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: catalogApi.UpdateEServiceDescriptorInstanceSeed,
+      seed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
-        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId} Instance`
+        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId} template instance`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -1440,9 +1440,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      if (eservice.data.templateRef === undefined) {
-        throw eServiceNotAnInstance(eserviceId);
-      }
+      assertEServiceIsTemplateInstance(eservice.data);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 

@@ -287,12 +287,12 @@ const catalogRouter = (
       }
     )
     .put(
-      "/eservices/:eServiceId/descriptors/:descriptorId/instances",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const createdResource =
-            await catalogService.updateDraftDescriptorInstance(
+            await catalogService.updateDraftDescriptorTemplateInstance(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
@@ -309,9 +309,9 @@ const catalogRouter = (
             ctx.correlationId,
             `Error updating draft descriptor ${
               req.params.descriptorId
-            } on service ${
+            } on eservice ${
               req.params.eServiceId
-            } instance with seed: ${JSON.stringify(req.body)}`
+            } template instance with seed: ${JSON.stringify(req.body)}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

@@ -70,7 +70,7 @@ import {
   upgradeEServiceInstanceErrorMapper,
   createEServiceInstanceFromTemplateErrorMapper,
   updateEServiceTemplateInstanceErrorMapper,
-  updateDraftDescriptorInstanceErrorMapper,
+  updateDraftDescriptorTemplateInstanceErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -583,14 +583,14 @@ const eservicesRouter = (
       }
     )
     .put(
-      "/eservices/:eServiceId/descriptors/:descriptorId/instances",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedEService =
-            await catalogService.updateDraftDescriptorInstance(
+            await catalogService.updateDraftDescriptorTemplateInstance(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
@@ -604,7 +604,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateDraftDescriptorInstanceErrorMapper,
+            updateDraftDescriptorTemplateInstanceErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
