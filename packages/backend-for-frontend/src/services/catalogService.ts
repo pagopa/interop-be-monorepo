@@ -1532,6 +1532,7 @@ export function catalogServiceBuilder(
         headers,
         queries: {
           producersIds: tentantsIds,
+          templatesIds: [eServiceTemplateId],
           states,
           offset,
           limit,

@@ -273,9 +273,10 @@ export async function assertNotDuplicatedEServiceName(
 }
 
 export function assertEServiceNotTemplateInstance(
+  eserviceId: EServiceId,
   templateId: EServiceTemplateId | undefined
 ): void {
   if (templateId !== undefined) {
-    throw templateInstanceNotAllowed(templateId);
+    throw templateInstanceNotAllowed(eserviceId, templateId);
   }
 }

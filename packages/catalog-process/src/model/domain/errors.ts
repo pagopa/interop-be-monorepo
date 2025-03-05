@@ -359,10 +359,11 @@ export function eServiceTemplateWithoutPublishedVersion(
 }
 
 export function templateInstanceNotAllowed(
+  eserviceId: EServiceId,
   eServiceTemplateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService Template ${eServiceTemplateId} must not have a templateId`,
+    detail: `Operation not allowed on EService ${eserviceId} instance of template ${eServiceTemplateId}`,
     code: "templateInstanceNotAllowed",
     title: "TemplateId must be undefined",
   });

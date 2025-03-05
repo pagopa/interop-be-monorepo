@@ -427,7 +427,7 @@ function isTenantInSignalHubWhitelist(
 async function innerCreateEService(
   seed: {
     eServiceSeed: catalogApi.EServiceSeed;
-    eServiceTemplateReferences?: EServiceTemplateReferences;
+    eServiceTemplateReferences: EServiceTemplateReferences | undefined;
   },
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
@@ -735,13 +735,12 @@ export function catalogServiceBuilder(
 
     async createEService(
       seed: catalogApi.EServiceSeed,
-      ctx: WithLogger<AppContext>,
-      eServiceTemplateReferences?: EServiceTemplateReferences
+      ctx: WithLogger<AppContext>
     ): Promise<EService> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
       const { eService, events } = await innerCreateEService(
-        { eServiceSeed: seed, eServiceTemplateReferences },
+        { eServiceSeed: seed, eServiceTemplateReferences: undefined },
         readModelService,
         ctx
       );
