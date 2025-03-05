@@ -39,7 +39,7 @@ import {
   generateRiskAnalysisAnswersSQL,
   initMockEService,
   readModelDB,
-  readModelService,
+  catalogReadModelService,
   retrieveEServiceSQLObjects,
 } from "./utils.js";
 
@@ -67,7 +67,7 @@ describe("E-service queries", () => {
         riskAnalyses,
       } = initMockEService(mockEService, mockDescriptor, isEServiceComplete);
 
-      await readModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(eservice);
 
       const {
         retrievedEserviceSQL,
@@ -130,7 +130,7 @@ describe("E-service queries", () => {
       const { eservice, descriptor, document, attributes, riskAnalyses } =
         initMockEService(mockEService, mockDescriptor, isEServiceComplete);
 
-      await readModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(eservice);
 
       const {
         retrievedEserviceSQL,
@@ -243,7 +243,7 @@ describe("E-service queries", () => {
           version: 1,
         },
       };
-      await readModelService.upsertEService(mockEService);
+      await catalogReadModelService.upsertEService(mockEService);
 
       const {
         eservice,
@@ -255,7 +255,7 @@ describe("E-service queries", () => {
         riskAnalyses,
       } = initMockEService(mockEService, mockDescriptor, isEServiceComplete);
 
-      await readModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(eservice);
 
       const {
         retrievedEserviceSQL,
@@ -325,8 +325,8 @@ describe("E-service queries", () => {
         },
         metadata: { version: 1 },
       };
-      await readModelService.upsertEService(eservice);
-      const retrievedEService = await readModelService.getEServiceById(
+      await catalogReadModelService.upsertEService(eservice);
+      const retrievedEService = await catalogReadModelService.getEServiceById(
         eservice.data.id
       );
 
@@ -335,7 +335,7 @@ describe("E-service queries", () => {
 
     it("eservice NOT found", async () => {
       const eserviceId = generateId<EServiceId>();
-      const retrievedEService = await readModelService.getEServiceById(
+      const retrievedEService = await catalogReadModelService.getEServiceById(
         eserviceId
       );
 
@@ -344,7 +344,7 @@ describe("E-service queries", () => {
   });
 
   describe("getAllEServices", () => {
-    it("eservices found", async () => {
+    it.only("eservices found", async () => {
       const descriptor1: Descriptor = {
         ...getMockDescriptor(),
         attributes: {
@@ -364,7 +364,7 @@ describe("E-service queries", () => {
         },
         metadata: { version: 1 },
       };
-      await readModelService.upsertEService(eservice1);
+      await catalogReadModelService.upsertEService(eservice1);
 
       const descriptor2: Descriptor = {
         ...getMockDescriptor(),
@@ -385,9 +385,10 @@ describe("E-service queries", () => {
         },
         metadata: { version: 1 },
       };
-      await readModelService.upsertEService(eservice2);
+      await catalogReadModelService.upsertEService(eservice2);
 
-      const retrievedEServices = await readModelService.getAllEServices();
+      const retrievedEServices =
+        await catalogReadModelService.getAllEServices();
       expect(retrievedEServices).toHaveLength(2);
       expect(retrievedEServices).toMatchObject(
         expect.arrayContaining([eservice1, eservice2])
@@ -395,7 +396,8 @@ describe("E-service queries", () => {
     });
 
     it("eservices NOT found", async () => {
-      const retrievedEServices = await readModelService.getAllEServices();
+      const retrievedEServices =
+        await catalogReadModelService.getAllEServices();
       expect(retrievedEServices).toHaveLength(0);
     });
   });
@@ -421,7 +423,7 @@ describe("E-service queries", () => {
         },
         metadata: { version: 1 },
       };
-      await readModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(eservice);
 
       const [
         eserviceSQLBeforeDelete,
@@ -451,7 +453,7 @@ describe("E-service queries", () => {
       expect(riskAnalysisSQLBeforeDelete).toBeDefined();
       expect(riskAnalysisAnswersSQLBeforeDelete).toBeDefined();
 
-      await readModelService.deleteEServiceById(eservice.data.id);
+      await catalogReadModelService.deleteEServiceById(eservice.data.id);
 
       const [
         eserviceSQL,

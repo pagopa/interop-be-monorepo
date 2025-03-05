@@ -53,9 +53,10 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
   inject("readModelSQLConfig")
 );
 
-export const readModelService = catalogReadModelServiceBuilder(readModelDB);
-
 afterEach(cleanup);
+
+export const catalogReadModelService =
+  catalogReadModelServiceBuilder(readModelDB);
 
 export const generateRiskAnalysisAnswersSQL = (
   eserviceId: string,
