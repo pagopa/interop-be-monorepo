@@ -132,9 +132,12 @@ export function setupTestContainersVitestGlobal() {
 
     // Setting up the Minio container if the config is provided
     if (fileManagerConfig.success) {
+      const s3Bucket =
+        fileManagerConfig.data.s3Bucket ?? "interop-local-bucket";
+
       startedMinioContainer = await minioContainer({
         ...fileManagerConfig.data,
-        s3Bucket: "interop-local-bucket",
+        s3Bucket,
       }).start();
 
       fileManagerConfig.data.s3ServerPort =
@@ -142,7 +145,7 @@ export function setupTestContainersVitestGlobal() {
 
       provide("fileManagerConfig", {
         ...fileManagerConfig.data,
-        s3Bucket: fileManagerConfig.data.s3Bucket ?? "interop-local-bucket",
+        s3Bucket,
       });
     }
 

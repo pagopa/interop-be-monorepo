@@ -16618,7 +16618,7 @@ paths:
         - bearerAuth: []
       tags:
         - eserviceTemplates
-      summary: Adds a mew version to the specified e-service template
+      summary: Adds a new version to the specified e-service template
       operationId: createEServiceTemplateVersion
       parameters:
         - name: eServiceTemplateId
