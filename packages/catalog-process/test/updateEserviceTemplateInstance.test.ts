@@ -73,20 +73,21 @@ describe("update eService Instance", () => {
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
-    const returnedEService = await catalogService.updateEServiceInstance(
-      mockEService.id,
-      {
-        isSignalHubEnabled,
-        isConsumerDelegable,
-        isClientAccessDelegable,
-      },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    const returnedEService =
+      await catalogService.updateEServiceTemplateInstance(
+        mockEService.id,
+        {
+          isSignalHubEnabled,
+          isConsumerDelegable,
+          isClientAccessDelegable,
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
 
     const updatedEService: EService = {
       ...eservice,
@@ -141,20 +142,21 @@ describe("update eService Instance", () => {
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
 
-    const returnedEService = await catalogService.updateEServiceInstance(
-      mockEService.id,
-      {
-        isSignalHubEnabled,
-        isConsumerDelegable,
-        isClientAccessDelegable,
-      },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    const returnedEService =
+      await catalogService.updateEServiceTemplateInstance(
+        mockEService.id,
+        {
+          isSignalHubEnabled,
+          isConsumerDelegable,
+          isClientAccessDelegable,
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
 
     const updatedEService: EService = {
       ...eservice,
@@ -199,18 +201,19 @@ describe("update eService Instance", () => {
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
 
-    const returnedEService = await catalogService.updateEServiceInstance(
-      eservice.id,
-      {
-        instanceId: "test 2",
-      },
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    const returnedEService =
+      await catalogService.updateEServiceTemplateInstance(
+        eservice.id,
+        {
+          instanceId: "test 2",
+        },
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
 
     const updatedEService: EService = {
       ...eservice,
@@ -258,18 +261,19 @@ describe("update eService Instance", () => {
     });
     await addOneDelegation(delegation);
 
-    const returnedEService = await catalogService.updateEServiceInstance(
-      mockEService.id,
-      {
-        instanceId: "test 2",
-      },
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    const returnedEService =
+      await catalogService.updateEServiceTemplateInstance(
+        mockEService.id,
+        {
+          instanceId: "test 2",
+        },
+        {
+          authData: getMockAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
 
     const updatedEService: EService = {
       ...mockEService,
@@ -299,7 +303,7 @@ describe("update eService Instance", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     expect(
-      catalogService.updateEServiceInstance(
+      catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
           instanceId: "test",
@@ -326,7 +330,7 @@ describe("update eService Instance", () => {
     });
 
     expect(
-      catalogService.updateEServiceInstance(
+      catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
           instanceId: "test",
@@ -360,7 +364,7 @@ describe("update eService Instance", () => {
     await addOneDelegation(delegation);
 
     expect(
-      catalogService.updateEServiceInstance(
+      catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
           instanceId: "test",
@@ -396,7 +400,7 @@ describe("update eService Instance", () => {
     await addOneEService(eservice2);
 
     expect(
-      catalogService.updateEServiceInstance(
+      catalogService.updateEServiceTemplateInstance(
         eservice1.id,
         {
           instanceId: "test",
@@ -437,7 +441,7 @@ describe("update eService Instance", () => {
 
       await addOneEService(eservice);
       expect(
-        catalogService.updateEServiceInstance(
+        catalogService.updateEServiceTemplateInstance(
           eservice.id,
           {
             instanceId: "test",
@@ -467,7 +471,7 @@ describe("update eService Instance", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateEServiceInstance(
+      catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
           instanceId: "test",
