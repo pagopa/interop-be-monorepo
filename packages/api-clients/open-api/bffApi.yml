@@ -15236,7 +15236,7 @@ paths:
         - bearerAuth: []
       tags:
         - eserviceTemplates
-      summary: Update an e-service template audience description
+      summary: Update an e-service template description
       operationId: updateEServiceTemplateTemplateDescription
       parameters:
         - name: eServiceTemplateId
@@ -15247,7 +15247,7 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: A payload containing the new audience description
+        description: A payload containing the new description
         required: true
         content:
           application/json:
@@ -15255,7 +15255,7 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
       responses:
         "204":
-          description: EService template audience description updated
+          description: EService template description updated
           headers:
             "X-Rate-Limit-Limit":
               schema:

@@ -913,7 +913,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service published template audience description
+      summary: Update an e-service published template description
       operationId: updateEServiceTemplateTemplateDescription
       parameters:
         - name: eServiceTemplateId
@@ -932,7 +932,7 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
       responses:
         "200":
-          description: EService template audience description updated
+          description: EService template description updated
           content:
             application/json:
               schema:

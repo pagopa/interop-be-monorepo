@@ -285,7 +285,7 @@ const eserviceTemplateRouter = (
             emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error updating eservice template ${eServiceTemplateId} audience description`
+            `Error updating eservice template ${eServiceTemplateId} description`
           );
           return res.status(errorRes.status).send(errorRes);
         }

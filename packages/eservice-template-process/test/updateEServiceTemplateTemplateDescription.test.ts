@@ -28,7 +28,7 @@ import {
 } from "./utils.js";
 
 describe("updateEServiceTemplateTemplateDescription", () => {
-  it("should write on event-store for the update of the eService template audience description", async () => {
+  it("should write on event-store for the update of the eService template description", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -39,8 +39,7 @@ describe("updateEServiceTemplateTemplateDescription", () => {
       versions: [eserviceTemplateVersion],
     };
     await addOneEServiceTemplate(eserviceTemplate);
-    const updatedTemplateDescription =
-      "eservice template new audience description";
+    const updatedTemplateDescription = "eservice template new description";
     const returnedEServiceTemplate =
       await eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
@@ -82,7 +81,7 @@ describe("updateEServiceTemplateTemplateDescription", () => {
     expect(
       eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
-        "eservice template new audience description",
+        "eservice template new description",
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
@@ -98,7 +97,7 @@ describe("updateEServiceTemplateTemplateDescription", () => {
     expect(
       eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
-        "eservice template new audience description",
+        "eservice template new description",
         {
           authData: getMockAuthData(),
           correlationId: generateId(),
@@ -114,7 +113,7 @@ describe("updateEServiceTemplateTemplateDescription", () => {
     expect(
       eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
-        "eservice template new audience description",
+        "eservice template new description",
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
@@ -140,7 +139,7 @@ describe("updateEServiceTemplateTemplateDescription", () => {
     expect(
       eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
-        "eservice template new audience description",
+        "eservice template new description",
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
