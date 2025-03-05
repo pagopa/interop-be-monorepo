@@ -6,8 +6,10 @@ import {
   Agreement,
   Attribute,
   Client,
+  ClientJWKKey,
   Delegation,
   EService,
+  ProducerJWKKey,
   ProducerKeychain,
   Purpose,
   Tenant,
@@ -25,8 +27,10 @@ import {
   agreementReadModelServiceBuilderSQL,
   attributeReadModelServiceBuilderSQL,
   catalogReadModelServiceBuilderSQL,
+  clientJWKKeyReadModelServiceBuilder,
   clientReadModelServiceBuilderSQL,
   delegationReadModelServiceBuilder,
+  producerJWKKeyreadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilderSQL,
@@ -65,6 +69,10 @@ export const clientReadModelServiceSQL =
   clientReadModelServiceBuilderSQL(readModelDB);
 export const producerKeychainReadModelServiceSQL =
   producerKeychainReadModelServiceBuilder(readModelDB);
+export const clientKeysReadModelServiceSQL =
+  clientJWKKeyReadModelServiceBuilder(readModelDB);
+export const producerKeychainKeyReadModelServiceSQL =
+  producerJWKKeyreadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
@@ -143,5 +151,25 @@ export const addOneProducerKeychain = async (
     toReadModelProducerKeychain(producerKeychain.data),
     readModelRepository.producerKeychains,
     producerKeychain.metadata.version
+  );
+};
+
+export const addOneClientJWKKey = async (
+  clientJWKKey: WithMetadata<ClientJWKKey>
+): Promise<void> => {
+  await writeInReadmodel(
+    clientJWKKey.data,
+    readModelRepository.keys,
+    clientJWKKey.metadata.version
+  );
+};
+
+export const addOneProducerJWKKey = async (
+  producerJWKKey: WithMetadata<ProducerJWKKey>
+): Promise<void> => {
+  await writeInReadmodel(
+    producerJWKKey.data,
+    readModelRepository.producerKeys,
+    producerJWKKey.metadata.version
   );
 };
