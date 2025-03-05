@@ -10,7 +10,7 @@ import {
 } from "./utils.js";
 
 describe("Check agreement readmodels", () => {
-  it.skip("should return -1 if the postgres schema is empty", async () => {
+  it("should return -1 if the postgres schema is empty", async () => {
     const agreement = getMockAgreement();
 
     await addOneAgreement({
