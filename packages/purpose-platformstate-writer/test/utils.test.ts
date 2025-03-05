@@ -467,6 +467,7 @@ describe("utils tests", async () => {
           purposeId: purpose.id,
           purposeState: itemState.inactive,
           purposeVersionId: purpose.versions[0].id,
+          purposeConsumerId: purpose.consumerId,
           logger: genericLogger,
         })
       ).resolves.not.toThrowError();
@@ -523,6 +524,7 @@ describe("utils tests", async () => {
         purposeId: purpose.id,
         purposeState: itemState.active,
         purposeVersionId: newPurposeVersionId,
+        purposeConsumerId: purpose.consumerId,
         logger: genericLogger,
       });
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
@@ -531,6 +533,7 @@ describe("utils tests", async () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: newPurposeVersionId,
           updatedAt: new Date().toISOString(),
@@ -538,6 +541,7 @@ describe("utils tests", async () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: newPurposeVersionId,
           updatedAt: new Date().toISOString(),
@@ -656,6 +660,7 @@ describe("utils tests", async () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: newPurposeVersionId,
@@ -663,6 +668,7 @@ describe("utils tests", async () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: newPurposeVersionId,
@@ -775,6 +781,7 @@ describe("utils tests", async () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           GSIPK_eserviceId_descriptorId,
           purposeState: itemState.active,
           purposeVersionId: newPurposeVersionId,
@@ -785,6 +792,7 @@ describe("utils tests", async () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           GSIPK_eserviceId_descriptorId,
           purposeState: itemState.active,
           purposeVersionId: newPurposeVersionId,
@@ -924,6 +932,7 @@ describe("utils tests", async () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
@@ -938,6 +947,7 @@ describe("utils tests", async () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
