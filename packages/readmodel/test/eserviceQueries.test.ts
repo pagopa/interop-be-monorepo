@@ -20,8 +20,6 @@ import { describe, it, expect } from "vitest";
 import {
   EServiceSQL,
   EServiceDescriptorSQL,
-  EServiceDescriptorRejectionReasonSQL,
-  EServiceDescriptorInterfaceSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorAttributeSQL,
   EServiceRiskAnalysisSQL,
@@ -37,11 +35,12 @@ import {
   retrieveEserviceAttributesSQL,
 } from "./eserviceTestReadModelService.js";
 import {
+  generateCompleteExpectedEServiceSQLObjects,
   generateRiskAnalysisAnswersSQL,
   initMockEService,
   readModelDB,
   readModelService,
-  retrieveAllEServiceSQLObjects,
+  retrieveEServiceSQLObjects,
 } from "./utils.js";
 
 describe("E-service queries", () => {
@@ -79,105 +78,26 @@ describe("E-service queries", () => {
         retrievedAttributesSQL,
         retrievedRiskAnalysesSQL,
         retrievedRiskAnalysisAnswersSQL,
-      } = await retrieveAllEServiceSQLObjects(eservice, isEServiceComplete);
+      } = await retrieveEServiceSQLObjects(eservice, isEServiceComplete);
 
-      const expectedEserviceSQL: EServiceSQL = {
-        name: eservice.data.name,
-        description: eservice.data.description,
-        id: eservice.data.id,
-        metadataVersion: eservice.metadata.version,
-        producerId: eservice.data.producerId,
-        technology: eservice.data.technology,
-        createdAt: eservice.data.createdAt.toISOString(),
-        mode: eservice.data.mode,
-        isSignalHubEnabled: eservice.data.isSignalHubEnabled!,
-        isConsumerDelegable: eservice.data.isConsumerDelegable!,
-        isClientAccessDelegable: eservice.data.isClientAccessDelegable!,
-      };
-      const expectedDescriptorsSQL: EServiceDescriptorSQL[] = [
-        {
-          id: descriptor.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          version: descriptor.version,
-          state: descriptor.state,
-          audience: descriptor.audience,
-          voucherLifespan: descriptor.voucherLifespan,
-          dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-          dailyCallsTotal: descriptor.dailyCallsTotal,
-          createdAt: descriptor.createdAt.toISOString(),
-          serverUrls: descriptor.serverUrls,
-          agreementApprovalPolicy: descriptor.agreementApprovalPolicy!,
-          description: descriptor.description!,
-          publishedAt: descriptor.publishedAt!.toISOString(),
-          suspendedAt: descriptor.suspendedAt!.toISOString(),
-          deprecatedAt: descriptor.deprecatedAt!.toISOString(),
-          archivedAt: descriptor.archivedAt!.toISOString(),
-        },
-      ];
-      const expectedRejectionReasonsSQL:
-        | EServiceDescriptorRejectionReasonSQL[] = [
-        {
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          descriptorId: descriptor.id,
-          rejectionReason: rejectionReason!.rejectionReason,
-          rejectedAt: rejectionReason!.rejectedAt.toISOString(),
-        },
-      ];
-      const expectedInterfacesSQL: EServiceDescriptorInterfaceSQL[] = [
-        {
-          id: descriptorInterface!.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          descriptorId: descriptor.id,
-          name: descriptorInterface!.name,
-          contentType: descriptorInterface!.contentType,
-          prettyName: descriptorInterface!.prettyName,
-          path: descriptorInterface!.path,
-          checksum: descriptorInterface!.checksum,
-          uploadDate: descriptorInterface!.uploadDate.toISOString(),
-        },
-      ];
-      const expectedDocumentsSQL: EServiceDescriptorDocumentSQL[] = [
-        {
-          id: document.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          descriptorId: descriptor.id,
-          name: document.name,
-          contentType: document.contentType,
-          prettyName: document.prettyName,
-          path: document.path,
-          checksum: document.checksum,
-          uploadDate: document.uploadDate.toISOString(),
-        },
-      ];
-      const expectedAttributesSQL: EServiceDescriptorAttributeSQL[] =
-        attributes.map((attribute, idx) => ({
-          attributeId: attribute.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          descriptorId: descriptor.id,
-          explicitAttributeVerification:
-            attribute.explicitAttributeVerification,
-          kind: attributeKind.certified,
-          groupId: idx,
-        }));
-      const expectedRiskAnalysesSQL: EServiceRiskAnalysisSQL[] =
-        riskAnalyses.map((riskAnalysis) => ({
-          id: riskAnalysis.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          name: riskAnalysis.name,
-          createdAt: riskAnalysis.createdAt.toISOString(),
-          riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
-          riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
-        }));
-      const expectedRiskAnalysisAnswersSQL = generateRiskAnalysisAnswersSQL(
-        eservice.data.id,
-        riskAnalyses
-      );
+      const {
+        expectedEserviceSQL,
+        expectedDescriptorsSQL,
+        expectedRejectionReasonsSQL,
+        expectedInterfacesSQL,
+        expectedDocumentsSQL,
+        expectedAttributesSQL,
+        expectedRiskAnalysesSQL,
+        expectedRiskAnalysisAnswersSQL,
+      } = generateCompleteExpectedEServiceSQLObjects({
+        eservice,
+        descriptor,
+        rejectionReason: rejectionReason!,
+        descriptorInterface: descriptorInterface!,
+        document,
+        attributes,
+        riskAnalyses,
+      });
 
       expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
       expect(retrievedDescriptorsSQL).toMatchObject(expectedDescriptorsSQL);
@@ -221,7 +141,7 @@ describe("E-service queries", () => {
         retrievedAttributesSQL,
         retrievedRiskAnalysesSQL,
         retrievedRiskAnalysisAnswersSQL,
-      } = await retrieveAllEServiceSQLObjects(eservice, isEServiceComplete);
+      } = await retrieveEServiceSQLObjects(eservice, isEServiceComplete);
 
       const expectedEserviceSQL: EServiceSQL = {
         name: eservice.data.name,
@@ -236,7 +156,6 @@ describe("E-service queries", () => {
         isConsumerDelegable: null,
         isClientAccessDelegable: null,
       };
-
       const expectedDescriptorsSQL: EServiceDescriptorSQL[] = [
         {
           id: descriptor.id,
@@ -347,106 +266,26 @@ describe("E-service queries", () => {
         retrievedAttributesSQL,
         retrievedRiskAnalysesSQL,
         retrievedRiskAnalysisAnswersSQL,
-      } = await retrieveAllEServiceSQLObjects(eservice, isEServiceComplete);
+      } = await retrieveEServiceSQLObjects(eservice, isEServiceComplete);
 
-      const expectedEserviceSQL: EServiceSQL = {
-        name: eservice.data.name,
-        description: eservice.data.description,
-        id: eservice.data.id,
-        metadataVersion: eservice.metadata.version,
-        producerId: eservice.data.producerId,
-        technology: eservice.data.technology,
-        createdAt: eservice.data.createdAt.toISOString(),
-        mode: eservice.data.mode,
-        isSignalHubEnabled: eservice.data.isSignalHubEnabled!,
-        isConsumerDelegable: eservice.data.isConsumerDelegable!,
-        isClientAccessDelegable: eservice.data.isClientAccessDelegable!,
-      };
-
-      const expectedDescriptorsSQL: EServiceDescriptorSQL[] = [
-        {
-          id: descriptor.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          version: descriptor.version,
-          state: descriptor.state,
-          audience: descriptor.audience,
-          voucherLifespan: descriptor.voucherLifespan,
-          dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-          dailyCallsTotal: descriptor.dailyCallsTotal,
-          createdAt: descriptor.createdAt.toISOString(),
-          serverUrls: descriptor.serverUrls,
-          agreementApprovalPolicy: descriptor.agreementApprovalPolicy!,
-          description: descriptor.description!,
-          publishedAt: descriptor.publishedAt!.toISOString(),
-          suspendedAt: descriptor.suspendedAt!.toISOString(),
-          deprecatedAt: descriptor.deprecatedAt!.toISOString(),
-          archivedAt: descriptor.archivedAt!.toISOString(),
-        },
-      ];
-      const expectedRejectionReasonsSQL:
-        | EServiceDescriptorRejectionReasonSQL[] = [
-        {
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          descriptorId: descriptor.id,
-          rejectionReason: rejectionReason!.rejectionReason,
-          rejectedAt: rejectionReason!.rejectedAt.toISOString(),
-        },
-      ];
-      const expectedInterfacesSQL: EServiceDescriptorInterfaceSQL[] = [
-        {
-          id: descriptorInterface!.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          descriptorId: descriptor.id,
-          name: descriptorInterface!.name,
-          contentType: descriptorInterface!.contentType,
-          prettyName: descriptorInterface!.prettyName,
-          path: descriptorInterface!.path,
-          checksum: descriptorInterface!.checksum,
-          uploadDate: descriptorInterface!.uploadDate.toISOString(),
-        },
-      ];
-      const expectedDocumentsSQL: EServiceDescriptorDocumentSQL[] = [
-        {
-          id: document.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          descriptorId: descriptor.id,
-          name: document.name,
-          contentType: document.contentType,
-          prettyName: document.prettyName,
-          path: document.path,
-          checksum: document.checksum,
-          uploadDate: document.uploadDate.toISOString(),
-        },
-      ];
-      const expectedAttributesSQL: EServiceDescriptorAttributeSQL[] =
-        attributes.map((attribute, idx) => ({
-          attributeId: attribute.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          descriptorId: descriptor.id,
-          explicitAttributeVerification:
-            attribute.explicitAttributeVerification,
-          kind: attributeKind.certified,
-          groupId: idx,
-        }));
-      const expectedRiskAnalysesSQL: EServiceRiskAnalysisSQL[] =
-        riskAnalyses.map((riskAnalysis) => ({
-          id: riskAnalysis.id,
-          eserviceId: eservice.data.id,
-          metadataVersion: eservice.metadata.version,
-          name: riskAnalysis.name,
-          createdAt: riskAnalysis.createdAt.toISOString(),
-          riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
-          riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
-        }));
-      const expectedRiskAnalysisAnswersSQL = generateRiskAnalysisAnswersSQL(
-        eservice.data.id,
-        riskAnalyses
-      );
+      const {
+        expectedEserviceSQL,
+        expectedDescriptorsSQL,
+        expectedRejectionReasonsSQL,
+        expectedInterfacesSQL,
+        expectedDocumentsSQL,
+        expectedAttributesSQL,
+        expectedRiskAnalysesSQL,
+        expectedRiskAnalysisAnswersSQL,
+      } = generateCompleteExpectedEServiceSQLObjects({
+        eservice,
+        descriptor,
+        rejectionReason: rejectionReason!,
+        descriptorInterface: descriptorInterface!,
+        document,
+        attributes,
+        riskAnalyses,
+      });
 
       expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
       expect(retrievedDescriptorsSQL).toMatchObject(expectedDescriptorsSQL);

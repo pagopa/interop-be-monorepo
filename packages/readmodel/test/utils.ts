@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   agreementApprovalPolicy,
+  attributeKind,
   Descriptor,
   DescriptorRejectionReason,
   Document,
@@ -166,7 +167,7 @@ export const initMockEService = (
   };
 };
 
-export const retrieveAllEServiceSQLObjects = async (
+export const retrieveEServiceSQLObjects = async (
   eservice: WithMetadata<EService>,
   isEServiceComplete: boolean
 ): Promise<{
@@ -260,5 +261,140 @@ export const retrieveAllEServiceSQLObjects = async (
     retrievedRejectionReasonsSQL: retrievedAndFormattedRejectionReasonsSQL,
     retrievedRiskAnalysesSQL: retrievedAndFormattedRiskAnalysesSQL,
     retrievedRiskAnalysisAnswersSQL,
+  };
+};
+
+export const generateCompleteExpectedEServiceSQLObjects = ({
+  eservice,
+  descriptor,
+  rejectionReason,
+  descriptorInterface,
+  document,
+  attributes,
+  riskAnalyses,
+}: {
+  eservice: WithMetadata<EService>;
+  descriptor: Descriptor;
+  rejectionReason: DescriptorRejectionReason;
+  descriptorInterface: Document;
+  document: Document;
+  attributes: EServiceAttribute[];
+  riskAnalyses: RiskAnalysis[];
+}): {
+  expectedEserviceSQL: EServiceSQL;
+  expectedDescriptorsSQL: EServiceDescriptorSQL[];
+  expectedRejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  expectedInterfacesSQL: EServiceDescriptorInterfaceSQL[];
+  expectedDocumentsSQL: EServiceDescriptorDocumentSQL[];
+  expectedAttributesSQL: EServiceDescriptorAttributeSQL[];
+  expectedRiskAnalysesSQL: EServiceRiskAnalysisSQL[];
+  expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+} => {
+  const expectedEserviceSQL: EServiceSQL = {
+    name: eservice.data.name,
+    description: eservice.data.description,
+    id: eservice.data.id,
+    metadataVersion: eservice.metadata.version,
+    producerId: eservice.data.producerId,
+    technology: eservice.data.technology,
+    createdAt: eservice.data.createdAt.toISOString(),
+    mode: eservice.data.mode,
+    isSignalHubEnabled: eservice.data.isSignalHubEnabled!,
+    isConsumerDelegable: eservice.data.isConsumerDelegable!,
+    isClientAccessDelegable: eservice.data.isClientAccessDelegable!,
+  };
+  const expectedDescriptorsSQL: EServiceDescriptorSQL[] = [
+    {
+      id: descriptor.id,
+      eserviceId: eservice.data.id,
+      metadataVersion: eservice.metadata.version,
+      version: descriptor.version,
+      state: descriptor.state,
+      audience: descriptor.audience,
+      voucherLifespan: descriptor.voucherLifespan,
+      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+      dailyCallsTotal: descriptor.dailyCallsTotal,
+      createdAt: descriptor.createdAt.toISOString(),
+      serverUrls: descriptor.serverUrls,
+      agreementApprovalPolicy: descriptor.agreementApprovalPolicy!,
+      description: descriptor.description!,
+      publishedAt: descriptor.publishedAt!.toISOString(),
+      suspendedAt: descriptor.suspendedAt!.toISOString(),
+      deprecatedAt: descriptor.deprecatedAt!.toISOString(),
+      archivedAt: descriptor.archivedAt!.toISOString(),
+    },
+  ];
+  const expectedRejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [
+    {
+      eserviceId: eservice.data.id,
+      metadataVersion: eservice.metadata.version,
+      descriptorId: descriptor.id,
+      rejectionReason: rejectionReason.rejectionReason,
+      rejectedAt: rejectionReason.rejectedAt.toISOString(),
+    },
+  ];
+  const expectedInterfacesSQL: EServiceDescriptorInterfaceSQL[] = [
+    {
+      id: descriptorInterface.id,
+      eserviceId: eservice.data.id,
+      metadataVersion: eservice.metadata.version,
+      descriptorId: descriptor.id,
+      name: descriptorInterface.name,
+      contentType: descriptorInterface.contentType,
+      prettyName: descriptorInterface.prettyName,
+      path: descriptorInterface.path,
+      checksum: descriptorInterface.checksum,
+      uploadDate: descriptorInterface.uploadDate.toISOString(),
+    },
+  ];
+  const expectedDocumentsSQL: EServiceDescriptorDocumentSQL[] = [
+    {
+      id: document.id,
+      eserviceId: eservice.data.id,
+      metadataVersion: eservice.metadata.version,
+      descriptorId: descriptor.id,
+      name: document.name,
+      contentType: document.contentType,
+      prettyName: document.prettyName,
+      path: document.path,
+      checksum: document.checksum,
+      uploadDate: document.uploadDate.toISOString(),
+    },
+  ];
+  const expectedAttributesSQL: EServiceDescriptorAttributeSQL[] =
+    attributes.map((attribute, idx) => ({
+      attributeId: attribute.id,
+      eserviceId: eservice.data.id,
+      metadataVersion: eservice.metadata.version,
+      descriptorId: descriptor.id,
+      explicitAttributeVerification: attribute.explicitAttributeVerification,
+      kind: attributeKind.certified,
+      groupId: idx,
+    }));
+  const expectedRiskAnalysesSQL: EServiceRiskAnalysisSQL[] = riskAnalyses.map(
+    (riskAnalysis) => ({
+      id: riskAnalysis.id,
+      eserviceId: eservice.data.id,
+      metadataVersion: eservice.metadata.version,
+      name: riskAnalysis.name,
+      createdAt: riskAnalysis.createdAt.toISOString(),
+      riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
+      riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
+    })
+  );
+  const expectedRiskAnalysisAnswersSQL = generateRiskAnalysisAnswersSQL(
+    eservice.data.id,
+    riskAnalyses
+  );
+
+  return {
+    expectedEserviceSQL,
+    expectedDescriptorsSQL,
+    expectedRejectionReasonsSQL,
+    expectedInterfacesSQL,
+    expectedDocumentsSQL,
+    expectedAttributesSQL,
+    expectedRiskAnalysesSQL,
+    expectedRiskAnalysisAnswersSQL,
   };
 };
