@@ -70,8 +70,12 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Attribute>> {
       const condition = and(
-        inArray(attributeInReadmodelAttribute.kind, kinds),
-        ilike(attributeInReadmodelAttribute.name, `%${name}%`),
+        kinds.length > 0
+          ? inArray(attributeInReadmodelAttribute.kind, kinds)
+          : undefined,
+        name
+          ? ilike(attributeInReadmodelAttribute.name, `%${name}%`)
+          : undefined,
         origin ? ilike(attributeInReadmodelAttribute.origin, origin) : undefined
       );
       const res = await readModelDB
@@ -115,6 +119,10 @@ export function readModelServiceBuilderSQL(
           )
         );
 
+      if (res.length === 0) {
+        return undefined; // TODO move into aggregator?
+      }
+
       return aggregateAttribute(res[0]);
     },
 
@@ -141,6 +149,10 @@ export function readModelServiceBuilderSQL(
           )
         );
 
+      if (res.length === 0) {
+        return undefined; // TODO move into aggregator?
+      }
+
       return aggregateAttribute(res[0]);
     },
 
@@ -163,6 +175,10 @@ export function readModelServiceBuilderSQL(
             )
           )
         );
+
+      if (res.length === 0) {
+        return undefined; // TODO move into aggregator?
+      }
 
       return aggregateAttribute(res[0]);
     },
