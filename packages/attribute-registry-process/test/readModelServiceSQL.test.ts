@@ -209,7 +209,7 @@ describe("readModelService", () => {
       expect(result.results).toEqual([]);
     });
   });
-  describe.only("getAttributeById", () => {
+  describe("getAttributeById", () => {
     it("should get the attribute if it exists", async () => {
       const attribute = await attributeRegistryService.getAttributeById(
         attribute1.id,
