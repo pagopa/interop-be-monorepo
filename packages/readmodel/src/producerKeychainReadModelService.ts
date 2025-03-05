@@ -6,7 +6,6 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
-  clientUserInReadmodelClient,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
   producerKeychainKeyInReadmodelProducerKeychain,
@@ -83,7 +82,7 @@ export function producerKeychainReadModelServiceBuilder(
             producerKeychainEserviceInReadmodelProducerKeychain,
           producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
         })
-        .from(producerKeychainEserviceInReadmodelProducerKeychain)
+        .from(producerKeychainInReadmodelProducerKeychain)
         .where(
           eq(producerKeychainInReadmodelProducerKeychain.id, producerKeychainId)
         )
@@ -92,7 +91,7 @@ export function producerKeychainReadModelServiceBuilder(
           producerKeychainUserInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
-            clientUserInReadmodelClient.clientId
+            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
           )
         )
         .leftJoin(
@@ -148,13 +147,13 @@ export function producerKeychainReadModelServiceBuilder(
             producerKeychainEserviceInReadmodelProducerKeychain,
           producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
         })
-        .from(producerKeychainEserviceInReadmodelProducerKeychain)
+        .from(producerKeychainInReadmodelProducerKeychain)
         .leftJoin(
           // 1
           producerKeychainUserInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
-            clientUserInReadmodelClient.clientId
+            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
           )
         )
         .leftJoin(
