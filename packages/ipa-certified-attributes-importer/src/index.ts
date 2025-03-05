@@ -431,6 +431,8 @@ try {
 
   const tenantUpsertData = getTenantUpsertData(registryData, tenants);
 
+  loggerInstance.info("Creating new attributes");
+
   const newAttributes = getNewAttributes(
     registryData,
     tenantUpsertData,
@@ -441,6 +443,8 @@ try {
   const headers = getInteropHeaders({ token, correlationId });
   await createNewAttributes(newAttributes, readModelService, headers);
 
+  loggerInstance.info("Assignin new attributes");
+
   const attributesToAssign = await getAttributesToAssign(
     tenants,
     attributes,
@@ -448,6 +452,8 @@ try {
   );
 
   await assignNewAttributes(attributesToAssign, headers);
+
+  loggerInstance.info("Revoking attributes");
 
   const attributesToRevoke = await getAttributesToRevoke(
     tenantUpsertData,
@@ -461,3 +467,8 @@ try {
 } catch (error) {
   loggerInstance.error(error);
 }
+
+process.exit(0);
+// process.exit() should not be required.
+// however, something in this script hangs on exit.
+// TODO figure out why and remove this workaround.
