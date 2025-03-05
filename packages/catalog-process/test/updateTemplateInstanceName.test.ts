@@ -12,6 +12,7 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
+  eServiceDuplicate,
   eServiceNameDuplicate,
 } from "../src/model/domain/errors.js";
 import {
@@ -40,12 +41,16 @@ describe("updateTemplateInstanceName", () => {
 
     const updatedName = "eservice new name";
 
-    await catalogService.updateTemplateInstanceName(eservice.id, updatedName, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.internalUpdateTemplateInstanceName(
+      eservice.id,
+      updatedName,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
 
     const updatedEService: EService = {
       ...eservice,
@@ -84,12 +89,16 @@ describe("updateTemplateInstanceName", () => {
 
     const updatedName = "eservice new name";
 
-    await catalogService.updateTemplateInstanceName(eservice.id, updatedName, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.internalUpdateTemplateInstanceName(
+      eservice.id,
+      updatedName,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
 
     const updatedEService: EService = {
       ...eservice,
@@ -129,12 +138,16 @@ describe("updateTemplateInstanceName", () => {
 
     await addOneEService(eservice);
 
-    await catalogService.updateTemplateInstanceName(eservice.id, updatedName, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.internalUpdateTemplateInstanceName(
+      eservice.id,
+      updatedName,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).not.toMatchObject({
@@ -147,7 +160,7 @@ describe("updateTemplateInstanceName", () => {
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
     await expect(
-      catalogService.updateTemplateInstanceName(
+      catalogService.internalUpdateTemplateInstanceName(
         eservice.id,
         "eservice new name",
         {
@@ -159,7 +172,7 @@ describe("updateTemplateInstanceName", () => {
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
-  it("should throw eServiceNameDuplicate is there is another eservice with the same name by the same producer", async () => {
+  it("should throw eServiceNameDuplicate if there is another eservice with the same name by the same producer", async () => {
     const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -184,12 +197,16 @@ describe("updateTemplateInstanceName", () => {
 
     const updatedName = duplicateName;
     await expect(
-      catalogService.updateTemplateInstanceName(eservice.id, updatedName, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.internalUpdateTemplateInstanceName(
+        eservice.id,
+        updatedName,
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(eServiceNameDuplicate(duplicateName));
   });
 });

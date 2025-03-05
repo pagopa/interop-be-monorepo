@@ -1041,7 +1041,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceName(
+          await catalogService.internalUpdateTemplateInstanceName(
             unsafeBrandId(req.params.eServiceId),
             req.body.name,
             ctx
@@ -1065,7 +1065,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceDescription(
+          await catalogService.internalUpdateTemplateInstanceDescription(
             unsafeBrandId(req.params.eServiceId),
             req.body.description,
             ctx
@@ -1089,7 +1089,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceDescriptorVoucherLifespan(
+          await catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body.voucherLifespan,
@@ -1114,7 +1114,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceDescriptorAttributes(
+          await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1139,7 +1139,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.createTemplateInstanceDescriptorDocument(
+          await catalogService.internalCreateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1164,7 +1164,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.deleteTemplateInstanceDescriptorDocument(
+          await catalogService.internalDeleteTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,

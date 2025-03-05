@@ -2484,7 +2484,7 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
-    async updateTemplateInstanceName(
+    async internalUpdateTemplateInstanceName(
       eserviceId: EServiceId,
       newName: string,
       { correlationId, logger }: WithLogger<AppContext>
@@ -2519,7 +2519,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async updateTemplateInstanceDescription(
+    async internalUpdateTemplateInstanceDescription(
       eserviceId: EServiceId,
       description: string,
       { correlationId, logger }: WithLogger<AppContext>
@@ -2543,7 +2543,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async updateTemplateInstanceDescriptorVoucherLifespan(
+    async internalUpdateTemplateInstanceDescriptorVoucherLifespan(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       voucherLifespan: number,
@@ -2574,7 +2574,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async updateTemplateInstanceDescriptorAttributes(
+    async internalUpdateTemplateInstanceDescriptorAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.AttributesSeed,
@@ -2623,7 +2623,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async createTemplateInstanceDescriptorDocument(
+    async internalCreateTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: catalogApi.CreateEServiceDescriptorDocumentSeed,
@@ -2679,7 +2679,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async deleteTemplateInstanceDescriptorDocument(
+    async internalDeleteTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
