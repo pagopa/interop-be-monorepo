@@ -305,6 +305,35 @@ describe("E-service queries", () => {
         metadata: { version: 1 },
       };
       await readModelService.upsertEService(eservice);
+
+      const [
+        eserviceSQLBeforeDelete,
+        descriptorsSQLBeforeDelete,
+        docsSQLBeforeDelete,
+        interfacesSQLBeforeDelete,
+        attributesSQLBeforeDelete,
+        rejectionReasonsSQLBeforeDelete,
+        riskAnalysisSQLBeforeDelete,
+        riskAnalysisAnswersSQLBeforeDelete,
+      ] = await Promise.all([
+        retrieveEServiceSQL(eservice.data.id, readModelDB),
+        retrieveEserviceDescriptorsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceDocumentsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceInterfacesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceAttributesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRejectionReasonsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRiskAnalysesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRiskAnalysisAnswersSQL(eservice.data.id, readModelDB),
+      ]);
+      expect(eserviceSQLBeforeDelete).toBeDefined();
+      expect(descriptorsSQLBeforeDelete).toBeDefined();
+      expect(docsSQLBeforeDelete).toBeDefined();
+      expect(interfacesSQLBeforeDelete).toBeDefined();
+      expect(attributesSQLBeforeDelete).toBeDefined();
+      expect(rejectionReasonsSQLBeforeDelete).toBeDefined();
+      expect(riskAnalysisSQLBeforeDelete).toBeDefined();
+      expect(riskAnalysisAnswersSQLBeforeDelete).toBeDefined();
+
       await readModelService.deleteEServiceById(eservice.data.id);
 
       const [
