@@ -80,9 +80,9 @@ export const aggregateProducerKeychainArray = ({
 export const toProducerKeychainAggregator = (
   queryRes: Array<{
     producerKeychain: ProducerKeychainSQL;
-    user: ProducerKeychainUserSQL | null;
-    eservice: ProducerKeychainEServiceSQL | null;
-    key: ProducerKeychainKeySQL | null;
+    producerKeychainUser: ProducerKeychainUserSQL | null;
+    producerKeychainEService: ProducerKeychainEServiceSQL | null;
+    producerKeychainKey: ProducerKeychainKeySQL | null;
   }>
 ): ProducerKeychainItemsSQL => {
   const { producerKeychainsSQL, usersSQL, eservicesSQL, keysSQL } =
@@ -98,9 +98,9 @@ export const toProducerKeychainAggregator = (
 export const toProducerKeychainAggregatorArray = (
   queryRes: Array<{
     producerKeychain: ProducerKeychainSQL;
-    user: ProducerKeychainUserSQL | null;
-    eservice: ProducerKeychainEServiceSQL | null;
-    key: ProducerKeychainKeySQL | null;
+    producerKeychainUser: ProducerKeychainUserSQL | null;
+    producerKeychainEService: ProducerKeychainEServiceSQL | null;
+    producerKeychainKey: ProducerKeychainKeySQL | null;
   }>
 ): {
   producerKeychainsSQL: ProducerKeychainSQL[];
@@ -128,7 +128,7 @@ export const toProducerKeychainAggregatorArray = (
       producerKeychainsSQL.push(producerKeychain);
     }
 
-    const producerKeychainUserSQL = row.user;
+    const producerKeychainUserSQL = row.producerKeychainUser;
     if (
       producerKeychainUserSQL &&
       !userIdSet.has(
@@ -148,7 +148,7 @@ export const toProducerKeychainAggregatorArray = (
       usersSQL.push(producerKeychainUserSQL);
     }
 
-    const producerKeychainEserviceSQL = row.eservice;
+    const producerKeychainEserviceSQL = row.producerKeychainEService;
     if (
       producerKeychainEserviceSQL &&
       !eserviceIdSet.has(
@@ -168,7 +168,7 @@ export const toProducerKeychainAggregatorArray = (
       eservicesSQL.push(producerKeychainEserviceSQL);
     }
 
-    const producerKeychainKeySQL = row.key;
+    const producerKeychainKeySQL = row.producerKeychainKey;
     if (
       producerKeychainKeySQL &&
       !keyIdSet.has(
