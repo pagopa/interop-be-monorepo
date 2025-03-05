@@ -1,9 +1,6 @@
 import { constants } from "http2";
 import { randomUUID } from "crypto";
-import {
-  ZodiosRouterContextRequestHandler,
-  zodiosContext,
-} from "@zodios/express";
+import { zodiosContext } from "@zodios/express";
 import { z } from "zod";
 import {
   CorrelationId,
@@ -11,6 +8,7 @@ import {
   missingHeader,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import express from "express";
 import { AuthData } from "../auth/authData.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
@@ -34,12 +32,11 @@ export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
 
 const makeApiProblem = makeApiProblemBuilder({});
 
-export const contextMiddleware =
-  (
-    serviceName: string,
-    readCorrelationIdFromHeader: boolean = true
-  ): ZodiosRouterContextRequestHandler<ExpressContext> =>
-  async (req, res, next): Promise<unknown> => {
+export function contextMiddleware(
+  serviceName: string,
+  readCorrelationIdFromHeader: boolean = true
+): express.RequestHandler {
+  return (req: express.Request & { ctx?: AppContext }, res, next) => {
     const setCtx = (correlationId: string): void => {
       // eslint-disable-next-line functional/immutable-data
       req.ctx = {
@@ -68,3 +65,4 @@ export const contextMiddleware =
 
     return next();
   };
+}

@@ -63,7 +63,8 @@ export type FileManager = {
 };
 
 export function initFileManager(
-  config: FileManagerConfig & LoggerConfig
+  config: FileManagerConfig & LoggerConfig,
+  maxSockets?: number
 ): FileManager {
   const s3ClientConfig: S3ClientConfig = {
     endpoint: config.s3CustomServer
@@ -71,6 +72,10 @@ export function initFileManager(
       : undefined,
     forcePathStyle: config.s3CustomServer,
     logger: config.logLevel === "debug" ? console : undefined,
+    requestHandler: {
+      requestTimeout: 3_000,
+      httpsAgent: { maxSockets: maxSockets ?? 50 },
+    },
   };
   const client = new S3Client(s3ClientConfig);
 

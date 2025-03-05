@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import * as express from "express";
+import express from "express";
 import { AppContext } from "../context/context.js";
 import { LoggerMetadata, logger } from "./index.js";
 
 export function loggerMiddleware(serviceName: string): express.RequestHandler {
-  return (req, res, next): void => {
+  return (req: express.Request & { ctx?: AppContext }, res, next) => {
     res.on("finish", () => {
-      const context = (req as express.Request & { ctx?: AppContext }).ctx;
+      const context = req.ctx;
 
       const loggerMetadata: LoggerMetadata = {
         serviceName,
