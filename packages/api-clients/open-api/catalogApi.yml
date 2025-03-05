@@ -2181,7 +2181,7 @@ components:
         id:
           type: string
           format: uuid
-        instanceId:
+        instanceName:
           type: string
           format: uuid
     EServiceTemplateVersionRef:
@@ -2607,7 +2607,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceId:
+        instanceName:
           type: string
         isSignalHubEnabled:
           type: boolean

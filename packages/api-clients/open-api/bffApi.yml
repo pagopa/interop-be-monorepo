@@ -15228,7 +15228,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/audienceDescription/update:
+  /eservices/templates/{eServiceTemplateId}/templateDescription/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -15237,7 +15237,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update an e-service template audience description
-      operationId: updateEServiceTemplateAudienceDescription
+      operationId: updateEServiceTemplateTemplateDescription
       parameters:
         - name: eServiceTemplateId
           in: path
@@ -17810,7 +17810,7 @@ components:
           format: uuid
         templateName:
           type: string
-        instanceId:
+        instanceName:
           type: string
         templateInterfaceId:
           type: string
@@ -19998,7 +19998,7 @@ components:
         - id
         - creator
         - name
-        - audienceDescription
+        - templateDescription
         - eserviceDescription
         - technology
         - versions
@@ -20012,7 +20012,7 @@ components:
           $ref: "#/components/schemas/CompactOrganization"
         name:
           type: string
-        audienceDescription:
+        templateDescription:
           type: string
         eserviceDescription:
           type: string
@@ -20116,7 +20116,7 @@ components:
       additionalProperties: false
       required:
         - name
-        - audienceDescription
+        - templateDescription
         - eserviceDescription
         - technology
         - mode
@@ -20125,7 +20125,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        audienceDescription:
+        templateDescription:
           type: string
           minLength: 10
           maxLength: 250
@@ -20144,7 +20144,7 @@ components:
       additionalProperties: false
       required:
         - name
-        - audienceDescription
+        - templateDescription
         - eserviceDescription
         - technology
         - mode
@@ -20154,7 +20154,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        audienceDescription:
+        templateDescription:
           type: string
           minLength: 10
           maxLength: 250
@@ -20174,7 +20174,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceId:
+        instanceName:
           type: string
         isSignalHubEnabled:
           type: boolean
@@ -20235,7 +20235,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
-        instanceId:
+        instanceName:
           type: string
     EServiceTemplateInstances:
       type: object

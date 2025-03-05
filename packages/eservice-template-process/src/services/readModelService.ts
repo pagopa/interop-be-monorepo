@@ -180,7 +180,7 @@ function getTemplateInstancesFilter(
       $project: {
         id: "$data.id",
         name: "$data.name",
-        instanceId: "$data.instanceId",
+        instanceName: "$data.instanceName",
         producerId: "$data.producerId",
         producerName: "$data.producerName",
         state: "$data.latestVersion.state",
@@ -367,7 +367,7 @@ export function readModelServiceBuilder({
       const instances = await eservices
         .aggregate(aggregationPipeline, { allowDiskUse: true })
         .map((data) => ({
-          name: data.instanceId ? `${newName} ${data.instanceId}` : newName,
+          name: data.instanceName ? `${newName} ${data.instanceName}` : newName,
           producerId: data.producerId,
         }))
         .toArray();

@@ -25,7 +25,7 @@ import {
   activateEServiceTemplateVersionErrorMapper,
   suspendEServiceTemplateVersionErrorMapper,
   updateEServiceTemplateNameErrorMapper,
-  updateEServiceTemplateAudienceDescriptionErrorMapper,
+  updateEServiceTemplateTemplateDescriptionErrorMapper,
   updateEServiceTemplateEServiceDescriptionErrorMapper,
   updateEServiceTemplateVersionQuotasErrorMapper,
   updateEServiceTemplateVersionAttributesErrorMapper,
@@ -602,14 +602,14 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/audienceDescription/update",
+      "/eservices/templates/:eServiceTemplateId/templateDescription/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedEServiceTemplate =
-            await eserviceTemplateService.updateEServiceTemplateAudienceDescription(
+            await eserviceTemplateService.updateEServiceTemplateTemplateDescription(
               unsafeBrandId(req.params.eServiceTemplateId),
               req.body.description,
               ctx
@@ -624,7 +624,7 @@ const eserviceTemplatesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateEServiceTemplateAudienceDescriptionErrorMapper,
+            updateEServiceTemplateTemplateDescriptionErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

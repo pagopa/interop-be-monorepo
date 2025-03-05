@@ -50,7 +50,7 @@ export const EServiceTemplate = z.object({
   id: EServiceTemplateId,
   creatorId: TenantId,
   name: z.string(),
-  audienceDescription: z.string(),
+  templateDescription: z.string(),
   eserviceDescription: z.string(),
   technology: Technology,
   versions: z.array(EServiceTemplateVersion),

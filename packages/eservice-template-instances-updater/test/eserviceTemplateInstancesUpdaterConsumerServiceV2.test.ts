@@ -845,7 +845,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
   it.each([
     "EServiceTemplateAdded",
-    "EServiceTemplateAudienceDescriptionUpdated",
+    "EServiceTemplateTemplateDescriptionUpdated",
     "EServiceTemplateDeleted",
     "EServiceTemplateDraftUpdated",
     "EServiceTemplateDraftVersionDeleted",

@@ -14,7 +14,7 @@ import {
   eserviceTemplateVersionState,
   EServiceTemplate,
   toEServiceTemplateV2,
-  EServiceTemplateAudienceDescriptionUpdatedV2,
+  EServiceTemplateTemplateDescriptionUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -27,7 +27,7 @@ import {
   readLastEserviceTemplateEvent,
 } from "./utils.js";
 
-describe("updateEServiceTemplateAudienceDescription", () => {
+describe("updateEServiceTemplateTemplateDescription", () => {
   it("should write on event-store for the update of the eService template audience description", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -39,12 +39,12 @@ describe("updateEServiceTemplateAudienceDescription", () => {
       versions: [eserviceTemplateVersion],
     };
     await addOneEServiceTemplate(eserviceTemplate);
-    const updatedAudienceDescription =
+    const updatedTemplateDescription =
       "eservice template new audience description";
     const returnedEServiceTemplate =
-      await eserviceTemplateService.updateEServiceTemplateAudienceDescription(
+      await eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
-        updatedAudienceDescription,
+        updatedTemplateDescription,
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
@@ -54,7 +54,7 @@ describe("updateEServiceTemplateAudienceDescription", () => {
       );
     const updatedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
-      audienceDescription: updatedAudienceDescription,
+      templateDescription: updatedTemplateDescription,
     };
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -62,11 +62,11 @@ describe("updateEServiceTemplateAudienceDescription", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eserviceTemplate.id,
       version: "1",
-      type: "EServiceTemplateAudienceDescriptionUpdated",
+      type: "EServiceTemplateTemplateDescriptionUpdated",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceTemplateAudienceDescriptionUpdatedV2,
+      messageType: EServiceTemplateTemplateDescriptionUpdatedV2,
       payload: writtenEvent.data,
     });
     expect(writtenPayload.eserviceTemplate).toEqual(
@@ -80,7 +80,7 @@ describe("updateEServiceTemplateAudienceDescription", () => {
   it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
     expect(
-      eserviceTemplateService.updateEServiceTemplateAudienceDescription(
+      eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
         "eservice template new audience description",
         {
@@ -96,7 +96,7 @@ describe("updateEServiceTemplateAudienceDescription", () => {
     const eserviceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateAudienceDescription(
+      eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
         "eservice template new audience description",
         {
@@ -112,7 +112,7 @@ describe("updateEServiceTemplateAudienceDescription", () => {
     const eserviceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateAudienceDescription(
+      eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
         "eservice template new audience description",
         {
@@ -138,7 +138,7 @@ describe("updateEServiceTemplateAudienceDescription", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateAudienceDescription(
+      eserviceTemplateService.updateEServiceTemplateTemplateDescription(
         eserviceTemplate.id,
         "eservice template new audience description",
         {

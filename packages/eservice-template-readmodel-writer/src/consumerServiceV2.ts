@@ -21,7 +21,7 @@ export async function handleMessageV2(
     .with(
       { type: "EServiceTemplateVersionActivated" },
       { type: "EServiceTemplateAdded" },
-      { type: "EServiceTemplateAudienceDescriptionUpdated" },
+      { type: "EServiceTemplateTemplateDescriptionUpdated" },
       { type: "EServiceTemplateEServiceDescriptionUpdated" },
       { type: "EServiceTemplateDraftVersionDeleted" },
       { type: "EServiceTemplateDraftVersionUpdated" },

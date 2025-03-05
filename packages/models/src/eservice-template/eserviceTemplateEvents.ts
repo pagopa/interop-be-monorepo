@@ -4,7 +4,7 @@ import { match } from "ts-pattern";
 import {
   EServiceTemplateVersionActivatedV2,
   EServiceTemplateAddedV2,
-  EServiceTemplateAudienceDescriptionUpdatedV2,
+  EServiceTemplateTemplateDescriptionUpdatedV2,
   EServiceTemplateEServiceDescriptionUpdatedV2,
   EServiceTemplateDeletedV2,
   EServiceTemplateDraftVersionDeletedV2,
@@ -112,8 +112,8 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceTemplateAudienceDescriptionUpdated"),
-    data: protobufDecoder(EServiceTemplateAudienceDescriptionUpdatedV2),
+    type: z.literal("EServiceTemplateTemplateDescriptionUpdated"),
+    data: protobufDecoder(EServiceTemplateTemplateDescriptionUpdatedV2),
   }),
   z.object({
     type: z.literal("EServiceTemplateEServiceDescriptionUpdated"),
@@ -159,8 +159,8 @@ export function eserviceTemplateEventToBinaryDataV2(
     .with({ type: "EServiceTemplateAdded" }, ({ data }) =>
       EServiceTemplateAddedV2.toBinary(data)
     )
-    .with({ type: "EServiceTemplateAudienceDescriptionUpdated" }, ({ data }) =>
-      EServiceTemplateAudienceDescriptionUpdatedV2.toBinary(data)
+    .with({ type: "EServiceTemplateTemplateDescriptionUpdated" }, ({ data }) =>
+      EServiceTemplateTemplateDescriptionUpdatedV2.toBinary(data)
     )
     .with({ type: "EServiceTemplateEServiceDescriptionUpdated" }, ({ data }) =>
       EServiceTemplateEServiceDescriptionUpdatedV2.toBinary(data)

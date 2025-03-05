@@ -201,7 +201,7 @@ describe("update EService template", () => {
         eserviceTemplate.id,
         {
           name: eserviceTemplate.name,
-          audienceDescription: eserviceTemplate.audienceDescription,
+          templateDescription: eserviceTemplate.templateDescription,
           eserviceDescription: eserviceTemplate.eserviceDescription,
           technology: "REST",
           mode: "DELIVER",
@@ -328,7 +328,7 @@ describe("update EService template", () => {
         eserviceTemplate1.id,
         {
           name: "ESERVICE NAME ALREADY IN USE",
-          audienceDescription: eserviceTemplate1.audienceDescription,
+          templateDescription: eserviceTemplate1.templateDescription,
           eserviceDescription: eserviceTemplate1.eserviceDescription,
           technology: "REST",
           mode: "DELIVER",

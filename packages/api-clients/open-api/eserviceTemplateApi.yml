@@ -905,7 +905,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/audienceDescription/update:
+  /eservices/templates/{eServiceTemplateId}/templateDescription/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -914,7 +914,7 @@ paths:
       tags:
         - process
       summary: Update an e-service published template audience description
-      operationId: updateEServiceTemplateAudienceDescription
+      operationId: updateEServiceTemplateTemplateDescription
       parameters:
         - name: eServiceTemplateId
           in: path
@@ -1190,7 +1190,7 @@ components:
       additionalProperties: false
       required:
         - name
-        - audienceDescription
+        - templateDescription
         - eserviceDescription
         - technology
         - mode
@@ -1200,7 +1200,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        audienceDescription:
+        templateDescription:
           type: string
           minLength: 10
           maxLength: 250
@@ -1221,7 +1221,7 @@ components:
       additionalProperties: false
       required:
         - name
-        - audienceDescription
+        - templateDescription
         - eserviceDescription
         - technology
         - mode
@@ -1230,7 +1230,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        audienceDescription:
+        templateDescription:
           type: string
           minLength: 10
           maxLength: 250
@@ -1444,7 +1444,7 @@ components:
         - id
         - creatorId
         - name
-        - audienceDescription
+        - templateDescription
         - eserviceDescription
         - technology
         - versions
@@ -1459,7 +1459,7 @@ components:
           format: uuid
         name:
           type: string
-        audienceDescription:
+        templateDescription:
           type: string
         eserviceDescription:
           type: string

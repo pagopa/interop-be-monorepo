@@ -185,7 +185,7 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
-    updateEServiceTemplateAudienceDescription: async (
+    updateEServiceTemplateTemplateDescription: async (
       eServiceTemplateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateDescriptionUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -193,7 +193,7 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating EService template ${eServiceTemplateId} audience description`
       );
-      await eserviceTemplateClient.updateEServiceTemplateAudienceDescription(
+      await eserviceTemplateClient.updateEServiceTemplateTemplateDescription(
         seed,
         {
           headers,

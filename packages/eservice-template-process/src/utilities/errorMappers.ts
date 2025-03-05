@@ -80,7 +80,7 @@ export const updateEServiceTemplateNameErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const updateEServiceTemplateAudienceDescriptionErrorMapper = (
+export const updateEServiceTemplateTemplateDescriptionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

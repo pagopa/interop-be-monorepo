@@ -86,7 +86,7 @@ message EServiceTemplateNameUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
 }
 
-message EServiceTemplateAudienceDescriptionUpdatedV2 {
+message EServiceTemplateTemplateDescriptionUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
 }
 

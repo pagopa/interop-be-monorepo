@@ -70,7 +70,7 @@ import {
   toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
   toCreateEventEServiceTemplateDraftVersionUpdated,
-  toCreateEventEServiceTemplateAudienceDescriptionUpdated,
+  toCreateEventEServiceTemplateTemplateDescriptionUpdated,
   toCreateEventEServiceTemplateEServiceDescriptionUpdated,
   toCreateEventEServiceTemplateVersionQuotasUpdated,
   toCreateEventEServiceTemplateVersionAttributesUpdated,
@@ -668,9 +668,9 @@ export function eserviceTemplateServiceBuilder(
       );
       return updatedEserviceTemplate;
     },
-    async updateEServiceTemplateAudienceDescription(
+    async updateEServiceTemplateTemplateDescription(
       eserviceTemplateId: EServiceTemplateId,
-      audienceDescription: string,
+      templateDescription: string,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EServiceTemplate> {
       logger.info(
@@ -690,10 +690,10 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEserviceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
-        audienceDescription,
+        templateDescription,
       };
       await repository.createEvent(
-        toCreateEventEServiceTemplateAudienceDescriptionUpdated(
+        toCreateEventEServiceTemplateTemplateDescriptionUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
@@ -1213,7 +1213,7 @@ export function eserviceTemplateServiceBuilder(
         id: generateId(),
         creatorId: authData.organizationId,
         name: seed.name,
-        audienceDescription: seed.audienceDescription,
+        templateDescription: seed.templateDescription,
         eserviceDescription: seed.eserviceDescription,
         technology: apiTechnologyToTechnology(seed.technology),
         versions: [draftVersion],
@@ -1294,7 +1294,7 @@ export function eserviceTemplateServiceBuilder(
       const updatedEServiceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         name: eserviceTemplateSeed.name,
-        audienceDescription: eserviceTemplateSeed.audienceDescription,
+        templateDescription: eserviceTemplateSeed.templateDescription,
         eserviceDescription: eserviceTemplateSeed.eserviceDescription,
         technology: updatedTechnology,
         mode: updatedMode,

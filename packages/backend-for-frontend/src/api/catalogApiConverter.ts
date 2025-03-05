@@ -409,7 +409,7 @@ export function toBffEServiceTemplateInstance(
       ? toCompactDescriptor(activeDescriptor)
       : undefined,
     descriptors: eservice.descriptors.map(toCompactDescriptor),
-    instanceId: eservice.templateRef?.instanceId,
+    instanceName: eservice.templateRef?.instanceName,
   };
 }
 
@@ -447,7 +447,7 @@ export function toBffEServiceTemplateRef(
   return {
     templateId: eserviceTemplate.id,
     templateName: eserviceTemplate.name,
-    instanceId: eservice.templateRef?.instanceId,
+    instanceName: eservice.templateRef?.instanceName,
     templateVersionId: descriptor.templateVersionRef?.id,
     templateInterfaceId,
     interfaceMetadata: descriptor.templateVersionRef?.interfaceMetadata,

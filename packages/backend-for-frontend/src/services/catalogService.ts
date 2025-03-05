@@ -1483,7 +1483,7 @@ export function catalogServiceBuilder(
     ): Promise<bffApi.CreatedEServiceDescriptor> => {
       logger.info(
         `Creating EService from template ${templateId} ${
-          seed.instanceId ? `with instanceId ${seed.instanceId}` : ""
+          seed.instanceName ? `with instanceName ${seed.instanceName}` : ""
         }`
       );
 

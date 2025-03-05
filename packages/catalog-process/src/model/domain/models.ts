@@ -46,7 +46,7 @@ export type EServiceDocument = {
 export type EServiceTemplateReferences = {
   readonly templateId: EServiceTemplateId;
   readonly templateVersionId: EServiceTemplateVersionId;
-  readonly instanceId?: string;
+  readonly instanceName?: string;
 };
 
 export const consumer = z.object({
