@@ -36,7 +36,7 @@
       "outputs": ["src/gen"]
     },
     "test": {
-      "dependsOn": ["generate-model", "build"]
+      "dependsOn": ["build"]
     },
     "lint": {
       "dependsOn": ["build", "^lint"],
