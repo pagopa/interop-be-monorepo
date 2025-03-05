@@ -14,8 +14,10 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  getMockDescriptor,
   getMockDescriptorRejectionReason,
   getMockDocument,
+  getMockEService,
   getMockEServiceAttribute,
   getMockValidRiskAnalysis,
   setupTestContainersVitest,
@@ -58,6 +60,12 @@ afterEach(cleanup);
 export const catalogReadModelService =
   catalogReadModelServiceBuilder(readModelDB);
 
+export function stringToISOString(input: string): string;
+export function stringToISOString(input: string | null): string | null;
+export function stringToISOString(input: string | null): string | null {
+  return input ? stringToDate(input).toISOString() : null;
+}
+
 export const generateRiskAnalysisAnswersSQL = (
   eserviceId: string,
   riskAnalyses: RiskAnalysis[]
@@ -87,17 +95,10 @@ export const generateRiskAnalysisAnswersSQL = (
     ),
   ]);
 
-export function stringToISOString(input: string): string;
-export function stringToISOString(input: string | null): string | null;
-export function stringToISOString(input: string | null): string | null {
-  return input ? stringToDate(input).toISOString() : null;
-}
-
 export const initMockEService = (
-  mockEService: WithMetadata<EService>,
-  mockDescriptor: Descriptor,
   isEServiceComplete: boolean
 ): {
+  eserviceBeforeUpdate: WithMetadata<EService>;
   eservice: WithMetadata<EService>;
   descriptor: Descriptor;
   rejectionReason: DescriptorRejectionReason | undefined;
@@ -110,8 +111,9 @@ export const initMockEService = (
   const descriptorInterface = getMockDocument();
   const descriptorDocument = getMockDocument();
   const attributes = [getMockEServiceAttribute(), getMockEServiceAttribute()];
+  const descriptorBeforeUpdate = getMockDescriptor();
   const descriptor: Descriptor = {
-    ...mockDescriptor,
+    ...descriptorBeforeUpdate,
     attributes: {
       certified: [[attributes[0]], [attributes[1]]],
       declared: [],
@@ -141,10 +143,19 @@ export const initMockEService = (
     getMockValidRiskAnalysis(tenantKind.PA),
     getMockValidRiskAnalysis(tenantKind.PRIVATE),
   ];
-  const eservice: WithMetadata<EService> = {
-    ...mockEService,
+  const eserviceBeforeUpdate: WithMetadata<EService> = {
     data: {
-      ...mockEService.data,
+      ...getMockEService(),
+      descriptors: [descriptorBeforeUpdate],
+    },
+    metadata: {
+      version: 1,
+    },
+  };
+  const eservice: WithMetadata<EService> = {
+    ...eserviceBeforeUpdate,
+    data: {
+      ...eserviceBeforeUpdate.data,
       descriptors: [descriptor],
       riskAnalysis: riskAnalyses,
       ...(isEServiceComplete
@@ -158,6 +169,7 @@ export const initMockEService = (
   };
 
   return {
+    eserviceBeforeUpdate,
     eservice,
     descriptor,
     rejectionReason: isEServiceComplete ? rejectionReason : undefined,
