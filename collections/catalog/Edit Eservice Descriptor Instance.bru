@@ -1,0 +1,32 @@
+meta {
+  name: Edit Eservice Descriptor Instance
+  type: http
+  seq: 17
+}
+
+put {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/instances
+  body: json
+  auth: none
+}
+
+params:path {
+  descriptorId: {{descriptorId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "audience": [
+          "string"
+      ],
+      "dailyCallsPerConsumer": 100,
+      "dailyCallsTotal": 100,
+      "agreementApprovalPolicy": "AUTOMATIC",
+  }
+}

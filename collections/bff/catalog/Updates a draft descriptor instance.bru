@@ -1,0 +1,33 @@
+meta {
+  name: Updates a draft descriptor instance
+  type: http
+  seq: 34
+}
+
+put {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/instances
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: <uuid>
+  descriptorId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+  x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "audience": [
+      "<string>",
+      "<string>"
+    ],
+    "dailyCallsPerConsumer": "<integer>",
+    "dailyCallsTotal": "<integer>",
+    "agreementApprovalPolicy": "MANUAL",
+  }
+}
