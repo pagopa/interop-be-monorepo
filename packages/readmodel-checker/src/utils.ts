@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { diff } from "json-diff";
 import isEqual from "lodash.isequal";
 import { Logger } from "pagopa-interop-commons";
@@ -60,7 +59,7 @@ export function compare<T extends { id: string } | { kid: string }>({
   pairsWithDifferences.forEach(([itemFromCollection, itemFromSQL]) => {
     if (itemFromCollection && !itemFromSQL) {
       differencesCount++;
-      console.log(
+      loggerInstance.warn(
         `Object with id ${getIdentificationKey(
           itemFromCollection.data
         )} not found in SQL readmodel`
@@ -68,7 +67,7 @@ export function compare<T extends { id: string } | { kid: string }>({
     }
     if (!itemFromCollection && itemFromSQL) {
       differencesCount++;
-      console.log(
+      loggerInstance.warn(
         `Object with id ${getIdentificationKey(
           itemFromSQL.data
         )} not found in collection`
@@ -80,12 +79,12 @@ export function compare<T extends { id: string } | { kid: string }>({
       });
       if (objectsDiff) {
         differencesCount++;
-        console.log(
+        loggerInstance.warn(
           `Differences in object with id ${getIdentificationKey(
             itemFromCollection.data
           )}`
         );
-        console.log(
+        loggerInstance.warn(
           JSON.stringify(
             objectsDiff,
             (_k, v) => (v === undefined ? "undefined" : v), // this is needed to print differences in fields that are undefined
@@ -97,9 +96,9 @@ export function compare<T extends { id: string } | { kid: string }>({
   });
 
   if (differencesCount > 0) {
-    console.log(`Differences count for ${schema}: ${differencesCount}`);
+    loggerInstance.warn(`Differences count for ${schema}: ${differencesCount}`);
   } else {
-    console.info(`No differences found for ${schema}`);
+    loggerInstance.info(`No differences found for ${schema}`);
   }
 
   return differencesCount;
