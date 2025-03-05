@@ -8,12 +8,14 @@ import {
   Client,
   Delegation,
   EService,
+  ProducerKeychain,
   Purpose,
   Tenant,
   toReadModelAgreement,
   toReadModelAttribute,
   toReadModelClient,
   toReadModelEService,
+  toReadModelProducerKeychain,
   toReadModelPurpose,
   toReadModelTenant,
   WithMetadata,
@@ -25,6 +27,7 @@ import {
   catalogReadModelServiceBuilderSQL,
   clientReadModelServiceBuilderSQL,
   delegationReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilderSQL,
 } from "pagopa-interop-readmodel";
@@ -60,6 +63,8 @@ export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 export const clientReadModelServiceSQL =
   clientReadModelServiceBuilderSQL(readModelDB);
+export const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
@@ -128,5 +133,15 @@ export const addOneClient = async (
     toReadModelClient(client.data),
     readModelRepository.clients,
     client.metadata.version
+  );
+};
+
+export const addOneProducerKeychain = async (
+  producerKeychain: WithMetadata<ProducerKeychain>
+): Promise<void> => {
+  await writeInReadmodel(
+    toReadModelProducerKeychain(producerKeychain.data),
+    readModelRepository.producerKeychains,
+    producerKeychain.metadata.version
   );
 };
