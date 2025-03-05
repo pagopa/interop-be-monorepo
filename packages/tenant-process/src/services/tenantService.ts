@@ -320,7 +320,6 @@ export function tenantServiceBuilder(
           ...existingTenant.data,
           kind: tenantKind,
           selfcareId: tenantSeed.selfcareId,
-          onboardedAt: new Date(tenantSeed.onboardedAt),
           updatedAt: new Date(),
         };
 
@@ -1303,14 +1302,6 @@ export function tenantServiceBuilder(
         ...tenantWithNewAttributes,
         kind: tenantKind,
       };
-
-      const toObject = (obj: Object) =>{
-        return JSON.parse(JSON.stringify(obj, (_, value) =>
-            typeof value === 'bigint'
-                ? value.toString()
-                : value // return everything else unchanged
-        ));
-    }
 
       if (existingTenant.data.kind !== tenantKind) {
         const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
