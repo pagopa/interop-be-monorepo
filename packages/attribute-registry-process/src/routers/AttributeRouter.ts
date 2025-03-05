@@ -14,6 +14,7 @@ import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   attributeReadModelServiceBuilderSQL,
+  makeDrizzleConnection,
   tenantReadModelServiceBuilderSQL,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -35,7 +36,7 @@ import {
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const db = makeDrizzleConnection(); // TODO
+const db = makeDrizzleConnection(config);
 const attributeReadModelServiceSQL = attributeReadModelServiceBuilderSQL(db);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(db);
 
