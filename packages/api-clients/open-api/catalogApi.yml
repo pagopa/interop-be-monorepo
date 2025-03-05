@@ -1593,12 +1593,8 @@ paths:
             schema:
               $ref: "#/components/schemas/AttributesSeed"
       responses:
-        "200":
+        "204":
           description: EService descriptor attributes updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EService"
         "403":
           description: Forbidden
           content:
@@ -1654,12 +1650,8 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
       responses:
-        "200":
+        "204":
           description: EService Document created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
