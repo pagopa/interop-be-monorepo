@@ -2623,6 +2623,21 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+        templateRef:
+          $ref: "#/components/schemas/EServiceTemplateRef"
+          required: false
+    EServiceTemplateRef:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+        instanceId:
+          type: string
+          format: uuid
     EServiceAttributes:
       description: the attributes set associated to the EService
       properties:

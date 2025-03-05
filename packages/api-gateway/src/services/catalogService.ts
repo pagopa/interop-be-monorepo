@@ -259,5 +259,6 @@ export async function enhanceEservice(
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
+    templateRef: eservice.templateRef,
   };
 }
