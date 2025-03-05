@@ -1,12 +1,7 @@
-import { getMockKey } from "pagopa-interop-commons-test";
+import { getMockProducerKKey } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
-import { genericLogger, keyToProducerJWKKey } from "pagopa-interop-commons";
-import {
-  ProducerKeychainId,
-  ProducerJWKKey,
-  WithMetadata,
-  generateId,
-} from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
+import { ProducerJWKKey, WithMetadata } from "pagopa-interop-models";
 import { compare } from "../src/utils.js";
 import {
   addOneProducerJWKKey,
@@ -16,10 +11,7 @@ import {
 
 describe("Check producerKeychain key readmodels", () => {
   it("should return -1 if the postgres schema is empty", async () => {
-    const jwkKey = keyToProducerJWKKey(
-      getMockKey(),
-      generateId<ProducerKeychainId>()
-    );
+    const jwkKey = getMockProducerKKey();
 
     await addOneProducerJWKKey({
       data: jwkKey,
@@ -43,10 +35,7 @@ describe("Check producerKeychain key readmodels", () => {
   });
 
   it("should detect no differences if all the items are equal", async () => {
-    const jwkKey = keyToProducerJWKKey(
-      getMockKey(),
-      generateId<ProducerKeychainId>()
-    );
+    const jwkKey = getMockProducerKKey();
 
     await addOneProducerJWKKey({
       data: jwkKey,
@@ -75,15 +64,8 @@ describe("Check producerKeychain key readmodels", () => {
   });
 
   it("should detect differences if the postgres item is not present", async () => {
-    const jwkKey = keyToProducerJWKKey(
-      getMockKey(),
-      generateId<ProducerKeychainId>()
-    );
-
-    const jwkKey2 = keyToProducerJWKKey(
-      getMockKey(),
-      generateId<ProducerKeychainId>()
-    );
+    const jwkKey = getMockProducerKKey();
+    const jwkKey2 = getMockProducerKKey();
 
     await addOneProducerJWKKey({
       data: jwkKey,
@@ -117,23 +99,11 @@ describe("Check producerKeychain key readmodels", () => {
   });
 
   it("should detect differences if the collection item is not present", async () => {
-    const jwkKey1 = keyToProducerJWKKey(
-      getMockKey(),
-      generateId<ProducerKeychainId>()
-    );
-
-    const jwkKey2 = keyToProducerJWKKey(
-      getMockKey(),
-      generateId<ProducerKeychainId>()
-    );
+    const jwkKey1 = getMockProducerKKey();
+    const jwkKey2 = getMockProducerKKey();
 
     await addOneProducerJWKKey({
       data: jwkKey2,
-      metadata: { version: 1 },
-    });
-
-    await addOneProducerJWKKey({
-      data: jwkKey1,
       metadata: { version: 1 },
     });
 
@@ -164,12 +134,12 @@ describe("Check producerKeychain key readmodels", () => {
 
   it("should detect differences if the items are different", async () => {
     const producerKeychainKey1: WithMetadata<ProducerJWKKey> = {
-      data: keyToProducerJWKKey(getMockKey(), generateId<ProducerKeychainId>()),
+      data: getMockProducerKKey(),
       metadata: { version: 1 },
     };
 
     const producerKeychainKey1ForSQL: WithMetadata<ProducerJWKKey> = {
-      data: keyToProducerJWKKey(getMockKey(), generateId<ProducerKeychainId>()),
+      data: { ...producerKeychainKey1.data, alg: "wrong-alg" },
       metadata: producerKeychainKey1.metadata,
     };
 
@@ -197,7 +167,7 @@ describe("Check producerKeychain key readmodels", () => {
 
   it("should detect differences if the items are equal but the version is different", async () => {
     const producerKeychainKey1: WithMetadata<ProducerJWKKey> = {
-      data: keyToProducerJWKKey(getMockKey(), generateId<ProducerKeychainId>()),
+      data: getMockProducerKKey(),
       metadata: { version: 1 },
     };
 

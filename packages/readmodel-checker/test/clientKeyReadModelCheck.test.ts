@@ -1,12 +1,7 @@
-import { getMockKey } from "pagopa-interop-commons-test";
+import { getMockClientJWKKey } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
-import { genericLogger, keyToClientJWKKey } from "pagopa-interop-commons";
-import {
-  ClientId,
-  ClientJWKKey,
-  WithMetadata,
-  generateId,
-} from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
+import { ClientJWKKey, WithMetadata } from "pagopa-interop-models";
 import { compare } from "../src/utils.js";
 import {
   addOneClientJWKKey,
@@ -16,7 +11,7 @@ import {
 
 describe("Check client key readmodels", () => {
   it("should return -1 if the postgres schema is empty", async () => {
-    const jwkKey = keyToClientJWKKey(getMockKey(), generateId<ClientId>());
+    const jwkKey = getMockClientJWKKey();
 
     await addOneClientJWKKey({
       data: jwkKey,
@@ -39,7 +34,7 @@ describe("Check client key readmodels", () => {
   });
 
   it("should detect no differences if all the items are equal", async () => {
-    const jwkKey = keyToClientJWKKey(getMockKey(), generateId<ClientId>());
+    const jwkKey = getMockClientJWKKey();
 
     await addOneClientJWKKey({
       data: jwkKey,
@@ -67,9 +62,9 @@ describe("Check client key readmodels", () => {
   });
 
   it("should detect differences if the postgres item is not present", async () => {
-    const jwkKey = keyToClientJWKKey(getMockKey(), generateId<ClientId>());
+    const jwkKey = getMockClientJWKKey();
 
-    const jwkKey2 = keyToClientJWKKey(getMockKey(), generateId<ClientId>());
+    const jwkKey2 = getMockClientJWKKey();
 
     await addOneClientJWKKey({
       data: jwkKey,
@@ -102,14 +97,8 @@ describe("Check client key readmodels", () => {
   });
 
   it("should detect differences if the collection item is not present", async () => {
-    const jwkKey1 = keyToClientJWKKey(getMockKey(), generateId<ClientId>());
-
-    const jwkKey2 = keyToClientJWKKey(getMockKey(), generateId<ClientId>());
-
-    await addOneClientJWKKey({
-      data: jwkKey2,
-      metadata: { version: 1 },
-    });
+    const jwkKey1 = getMockClientJWKKey();
+    const jwkKey2 = getMockClientJWKKey();
 
     await addOneClientJWKKey({
       data: jwkKey1,
@@ -142,12 +131,11 @@ describe("Check client key readmodels", () => {
 
   it("should detect differences if the items are different", async () => {
     const clientKey1: WithMetadata<ClientJWKKey> = {
-      data: keyToClientJWKKey(getMockKey(), generateId<ClientId>()),
+      data: getMockClientJWKKey(),
       metadata: { version: 1 },
     };
-
     const clientKey1ForSQL: WithMetadata<ClientJWKKey> = {
-      data: keyToClientJWKKey(getMockKey(), generateId<ClientId>()),
+      data: { ...clientKey1.data, alg: "wrong-alg" },
       metadata: clientKey1.metadata,
     };
 
@@ -172,10 +160,9 @@ describe("Check client key readmodels", () => {
 
   it("should detect differences if the items are equal but the version is different", async () => {
     const clientKey1: WithMetadata<ClientJWKKey> = {
-      data: keyToClientJWKKey(getMockKey(), generateId<ClientId>()),
+      data: getMockClientJWKKey(),
       metadata: { version: 1 },
     };
-
     const clientKey1ForSQL: WithMetadata<ClientJWKKey> = {
       data: clientKey1.data,
       metadata: { version: 3 },

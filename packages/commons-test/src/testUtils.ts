@@ -75,8 +75,16 @@ import {
   delegationKind,
   DescriptorRejectionReason,
   AgreementDocument,
+  ClientJWKKey,
+  ProducerJWKKey,
+  ProducerKeychainId,
 } from "pagopa-interop-models";
-import { AuthData, dateToSeconds } from "pagopa-interop-commons";
+import {
+  AuthData,
+  dateToSeconds,
+  keyToClientJWKKey,
+  keyToProducerJWKKey,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
@@ -388,6 +396,36 @@ export const getMockKey = (): Key => ({
   algorithm: "",
   use: keyUse.sig,
 });
+
+export const getMockClientJWKKey = (): ClientJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToClientJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    generateId<ClientId>()
+  );
+};
+
+export const getMockProducerKKey = (): ProducerJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToProducerJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    generateId<ProducerKeychainId>()
+  );
+};
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
