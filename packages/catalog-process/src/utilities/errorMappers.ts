@@ -24,7 +24,7 @@ export const createEServiceErrorMapper = (
 ): number =>
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
-    .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceInstanceFromTemplateErrorMapper = (
@@ -35,13 +35,13 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
     .with(
       "notValidDescriptor",
       "inconsistentDailyCalls",
+      "eServiceTemplateWithoutPublishedVersion",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "eServiceTemplateWithoutPublishedVersion",
       "interfaceAlreadyExists",
-      "prettyNameDuplicate",
-      "eServiceDuplicate",
+      "documentPrettyNameDuplicate",
+      "eServiceNameDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
@@ -52,7 +52,7 @@ export const updateEServiceErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("eserviceNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -80,7 +80,7 @@ export const documentCreateErrorMapper = (
       "interfaceAlreadyExists",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("prettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with(
       "templateInstanceNotAllowed",
       "operationForbidden",
@@ -127,7 +127,7 @@ export const documentUpdateErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
-    .with("prettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with(
       "templateInstanceNotAllowed",
       "operationForbidden",
@@ -260,7 +260,7 @@ export const cloneEServiceByDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with(
       "templateInstanceNotAllowed",
       "operationForbidden",
@@ -378,7 +378,7 @@ export const updateEServiceNameErrorMapper = (
     )
     .with(
       "eserviceWithoutValidDescriptors",
-      "eServiceDuplicate",
+      "eServiceNameDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -431,7 +431,6 @@ export const upgradeEServiceInstanceErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
-      "eServiceTemplateNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
@@ -440,6 +439,7 @@ export const upgradeEServiceInstanceErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("eServiceTemplateNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTemplateInstanceNameErrorMapper = (

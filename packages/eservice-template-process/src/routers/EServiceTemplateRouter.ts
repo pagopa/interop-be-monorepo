@@ -125,7 +125,13 @@ const eserviceTemplatesRouter = (
             })
           );
         } catch (error) {
-          return res.status(500).send();
+          const errorRes = makeApiProblem(
+            error,
+            () => 500,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )

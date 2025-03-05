@@ -18,7 +18,7 @@ export const errorCodes = {
   eServiceDocumentNotFound: "0004",
   eServiceNotFound: "0005",
   draftDescriptorAlreadyExists: "0006",
-  eServiceDuplicate: "007",
+  eServiceNameDuplicate: "007",
   originNotCompliant: "0008",
   attributeNotFound: "0009",
   inconsistentDailyCalls: "0010",
@@ -31,7 +31,7 @@ export const errorCodes = {
   eServiceRiskAnalysisNotFound: "0017",
   eServiceRiskAnalysisIsRequired: "0018",
   riskAnalysisNotValid: "0019",
-  prettyNameDuplicate: "0020",
+  documentPrettyNameDuplicate: "0020",
   riskAnalysisDuplicated: "0021",
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
@@ -45,6 +45,7 @@ export const errorCodes = {
   templateInstanceNotAllowed: "0031",
   eServiceNotAnInstance: "0032",
   eServiceAlreadyUpgraded: "0033",
+  invalidDescriptorVersion: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -59,10 +60,12 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceDuplicate(eserviceName: string): ApiError<ErrorCodes> {
+export function eServiceNameDuplicate(
+  eserviceName: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `An EService with name ${eserviceName} already exists`,
-    code: "eServiceDuplicate",
+    code: "eServiceNameDuplicate",
     title: "Duplicated service name",
   });
 }
@@ -137,7 +140,7 @@ export function invalidDescriptorVersion(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: details,
-    code: "notValidDescriptor",
+    code: "invalidDescriptorVersion",
     title: "Version is not a valid descriptor version",
   });
 }
@@ -253,13 +256,13 @@ export function riskAnalysisNotValid(): ApiError<ErrorCodes> {
   });
 }
 
-export function prettyNameDuplicate(
+export function documentPrettyNameDuplicate(
   prettyName: string,
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `A document with prettyName ${prettyName} already exists in descriptor ${descriptorId}`,
-    code: "prettyNameDuplicate",
+    code: "documentPrettyNameDuplicate",
     title: "Duplicated prettyName",
   });
 }

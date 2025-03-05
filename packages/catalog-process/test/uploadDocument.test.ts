@@ -26,7 +26,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   interfaceAlreadyExists,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
   templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
@@ -364,7 +364,7 @@ describe("upload Document", () => {
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document: Document = {
       ...getMockDocument(),
       prettyName: "TEST",
@@ -396,7 +396,10 @@ describe("upload Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document.prettyName.toLowerCase(), descriptor.id)
+      documentPrettyNameDuplicate(
+        document.prettyName.toLowerCase(),
+        descriptor.id
+      )
     );
   });
   it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
@@ -425,7 +428,7 @@ describe("upload Document", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
   it("should write on event-store for the upload of a document when descriptor state is DRAFT and save interface with templateref data", async () => {
     const templateVersionId: EServiceTemplateVersionId = generateId();

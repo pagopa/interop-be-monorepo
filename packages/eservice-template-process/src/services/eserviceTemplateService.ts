@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import {
   AppContext,
   AuthData,
@@ -63,7 +61,7 @@ import {
   eserviceTemaplateRiskAnalysisNameDuplicate,
   missingTemplateVersionInterface,
   interfaceAlreadyExists,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
 } from "../model/domain/errors.js";
 import {
   toCreateEventEServiceTemplateVersionActivated,
@@ -1502,7 +1500,7 @@ export function eserviceTemplateServiceBuilder(
             d.prettyName.toLowerCase() === document.prettyName.toLowerCase()
         )
       ) {
-        throw prettyNameDuplicate(document.prettyName, version.id);
+        throw documentPrettyNameDuplicate(document.prettyName, version.id);
       }
 
       if (
@@ -1643,7 +1641,7 @@ export function eserviceTemplateServiceBuilder(
               apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
         )
       ) {
-        throw prettyNameDuplicate(
+        throw documentPrettyNameDuplicate(
           apiEServiceDescriptorDocumentUpdateSeed.prettyName,
           version.id
         );

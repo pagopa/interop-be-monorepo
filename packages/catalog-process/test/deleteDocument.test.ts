@@ -535,6 +535,6 @@ describe("delete Document", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });

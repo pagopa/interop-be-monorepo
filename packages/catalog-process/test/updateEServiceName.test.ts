@@ -22,7 +22,7 @@ import { expect, describe, it } from "vitest";
 import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
@@ -195,7 +195,7 @@ describe("update eService name on published eservice", () => {
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
-  it("should throw eserviceDuplicate is there is another eservice with the same name by the same producer", async () => {
+  it("should throw eServiceNameDuplicate is there is another eservice with the same name by the same producer", async () => {
     const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -226,7 +226,7 @@ describe("update eService name on published eservice", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(eServiceDuplicate(duplicateName));
+    ).rejects.toThrowError(eServiceNameDuplicate(duplicateName));
   });
   it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
@@ -247,6 +247,6 @@ describe("update eService name on published eservice", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });
