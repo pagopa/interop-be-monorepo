@@ -70,9 +70,9 @@ export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
-  const fileManagerConfig = FileManagerConfig.and(LoggerConfig).safeParse(
-    process.env
-  );
+  const fileManagerConfig = FileManagerConfig.and(LoggerConfig)
+    .and(S3Config.optional())
+    .safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
   const awsSESConfig = AWSSesConfig.safeParse(process.env);
@@ -142,7 +142,7 @@ export function setupTestContainersVitestGlobal() {
 
       provide("fileManagerConfig", {
         ...fileManagerConfig.data,
-        s3Bucket: "interop-local-bucket",
+        s3Bucket: fileManagerConfig.data.s3Bucket ?? "interop-local-bucket",
       });
     }
 
