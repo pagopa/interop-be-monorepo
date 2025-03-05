@@ -23,6 +23,7 @@ import {
   agreementReadModelServiceBuilderSQL,
   attributeReadModelServiceBuilderSQL,
   catalogReadModelServiceBuilderSQL,
+  clientReadModelServiceBuilderSQL,
   delegationReadModelServiceBuilder,
   purposeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilderSQL,
@@ -57,6 +58,8 @@ export const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilderSQL(readModelDB);
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
+export const clientReadModelServiceSQL =
+  clientReadModelServiceBuilderSQL(readModelDB);
 
 export const addOneEService = async (
   eservice: WithMetadata<EService>
@@ -118,9 +121,12 @@ export const addOneAgreement = async (
   );
 };
 
-export const addOneClient = async (client: Client): Promise<void> => {
+export const addOneClient = async (
+  client: WithMetadata<Client>
+): Promise<void> => {
   await writeInReadmodel(
-    toReadModelClient(client),
-    readModelRepository.clients
+    toReadModelClient(client.data),
+    readModelRepository.clients,
+    client.metadata.version
   );
 };
