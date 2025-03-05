@@ -2719,7 +2719,7 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateTemplateInstanceDescriptorDocument(
+    async innerUpdateTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,

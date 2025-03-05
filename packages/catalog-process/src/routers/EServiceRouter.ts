@@ -1189,7 +1189,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceDescriptorDocument(
+          await catalogService.innerUpdateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
