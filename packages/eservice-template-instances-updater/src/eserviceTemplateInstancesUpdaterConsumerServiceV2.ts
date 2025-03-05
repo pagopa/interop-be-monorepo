@@ -2,6 +2,9 @@
 import { randomUUID } from "crypto";
 import {
   CorrelationId,
+  Descriptor,
+  descriptorState,
+  EService,
   EServiceTemplateEventEnvelope,
   EServiceTemplateV2,
   EServiceTemplateVersionV2,
@@ -13,7 +16,6 @@ import {
 import { match } from "ts-pattern";
 import {
   FileManager,
-  getAllFromPaginated,
   getInteropHeaders,
   InteropHeaders,
   Logger,
@@ -23,6 +25,7 @@ import {
 import { catalogApi } from "pagopa-interop-api-clients";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
+import { ReadModelService } from "./readModelService.js";
 
 const { catalogProcess } = getInteropBeClients();
 
@@ -31,12 +34,14 @@ export async function handleMessageV2({
   refreshableToken,
   partition,
   offset,
+  readModelService,
   fileManager,
 }: {
   decodedKafkaMessage: EServiceTemplateEventEnvelope;
   refreshableToken: RefreshableInteropToken;
   partition: number;
   offset: string;
+  readModelService: ReadModelService;
   fileManager: FileManager;
 }): Promise<void> {
   const correlationId = decodedKafkaMessage.correlation_id
@@ -63,6 +68,7 @@ export async function handleMessageV2({
         msg,
         refreshableToken,
         correlationId,
+        readModelService,
         async (instance, headers) => {
           await catalogProcess.client.updateTemplateInstanceName(
             { name: newName },
@@ -85,6 +91,7 @@ export async function handleMessageV2({
           msg,
           refreshableToken,
           correlationId,
+          readModelService,
           async (instance, headers) => {
             await catalogProcess.client.updateTemplateInstanceDescription(
               { description: newDescription },
@@ -110,6 +117,7 @@ export async function handleMessageV2({
         msg,
         refreshableToken,
         correlationId,
+        readModelService,
         async (instance, descriptor, headers) => {
           await catalogProcess.client.updateTemplateInstanceDescriptorAttributes(
             attributes,
@@ -131,6 +139,7 @@ export async function handleMessageV2({
         msg,
         refreshableToken,
         correlationId,
+        readModelService,
         async (instance, descriptor, headers) => {
           await catalogProcess.client.updateTemplateInstanceDescriptorVoucherLifespan(
             { voucherLifespan: eserviceTemplateVersion.voucherLifespan },
@@ -152,6 +161,7 @@ export async function handleMessageV2({
         msg,
         refreshableToken,
         correlationId,
+        readModelService,
         async (instance, descriptor, headers) => {
           const alreadyHasDoc = descriptor?.docs.some(
             (d) => d.checksum === docToAddToInstances.checksum
@@ -161,10 +171,7 @@ export async function handleMessageV2({
             return;
           }
 
-          if (
-            descriptor.state ===
-            catalogApi.EServiceDescriptorState.Values.ARCHIVED
-          ) {
+          if (descriptor.state === descriptorState.archived) {
             return;
           }
 
@@ -203,6 +210,7 @@ export async function handleMessageV2({
         msg,
         refreshableToken,
         correlationId,
+        readModelService,
         async (instance, descriptor, headers) => {
           const docToUpdate = descriptor?.docs.find(
             (d) => d.checksum === updatedEServiceTemplateDoc.checksum
@@ -233,6 +241,7 @@ export async function handleMessageV2({
         msg,
         refreshableToken,
         correlationId,
+        readModelService,
         async (instance, descriptor, headers) => {
           const docToDelete = descriptor?.docs.find(
             (d) =>
@@ -333,9 +342,10 @@ async function commitUpdateToInstanceDescriptors(
   },
   refreshableToken: RefreshableInteropToken,
   correlationId: CorrelationId,
+  readModelService: ReadModelService,
   action: (
-    eservice: catalogApi.EService,
-    descriptor: catalogApi.EServiceDescriptor,
+    eservice: EService,
+    descriptor: Descriptor,
     headers: InteropHeaders
   ) => Promise<void>
 ): Promise<void> {
@@ -343,6 +353,7 @@ async function commitUpdateToInstanceDescriptors(
     msg,
     refreshableToken,
     correlationId,
+    readModelService,
     async (instance, headers) => {
       const instanceDescriptor = instance.descriptors.find(
         (d) => d.templateVersionRef?.id === msg.data.eserviceTemplateVersionId
@@ -359,10 +370,8 @@ async function commitUpdateToInstances(
   msg: EServiceTemplateEventEnvelope,
   refreshableToken: RefreshableInteropToken,
   correlationId: CorrelationId,
-  action: (
-    eservice: catalogApi.EService,
-    headers: InteropHeaders
-  ) => Promise<void>
+  readModelService: ReadModelService,
+  action: (eservice: EService, headers: InteropHeaders) => Promise<void>
 ): Promise<void> {
   const token = (await refreshableToken.get()).serialized;
   const headers = getInteropHeaders({
@@ -370,9 +379,8 @@ async function commitUpdateToInstances(
     correlationId,
   });
 
-  const instances = await getAllEServiceTemplateInstances(
-    getTemplateFromEvent(msg).id,
-    headers
+  const instances = await readModelService.getEServiceTemplateInstances(
+    getTemplateFromEvent(msg).id
   );
 
   const chunkSize = 10;
@@ -410,21 +418,4 @@ async function cloneDocument(
     checksum: doc.checksum,
     serverUrls: [],
   };
-}
-
-async function getAllEServiceTemplateInstances(
-  eserviceTemplateId: string,
-  headers: InteropHeaders
-): Promise<catalogApi.EService[]> {
-  return await getAllFromPaginated<catalogApi.EService>(
-    async (offset, limit) =>
-      await catalogProcess.client.getEServices({
-        headers,
-        queries: {
-          templatesIds: [eserviceTemplateId],
-          offset,
-          limit,
-        },
-      })
-  );
 }
