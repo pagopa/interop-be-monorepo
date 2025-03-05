@@ -31,7 +31,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
               data: Purpose,
             })
           )
-          .safeParse(data.map((d) => d.data));
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse purpose items: results ${JSON.stringify(
@@ -81,7 +81,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
               data: Client,
             })
           )
-          .safeParse(data.map((d) => d.data));
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse client items: results ${JSON.stringify(
@@ -183,7 +183,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
               data: Delegation,
             })
           )
-          .safeParse(data.map((d) => d.data));
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse delegation items: results ${JSON.stringify(
@@ -264,7 +264,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
               data: ProducerJWKKey,
             })
           )
-          .safeParse(data.map((d) => d.data));
+          .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse producer keychain jwk key items: results ${JSON.stringify(
