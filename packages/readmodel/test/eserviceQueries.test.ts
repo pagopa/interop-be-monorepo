@@ -94,7 +94,6 @@ describe("E-service queries", () => {
         isConsumerDelegable: eservice.data.isConsumerDelegable!,
         isClientAccessDelegable: eservice.data.isClientAccessDelegable!,
       };
-
       const expectedDescriptorsSQL: EServiceDescriptorSQL[] = [
         {
           id: descriptor.id,
