@@ -9,9 +9,6 @@ import {
   CommonErrorCodes,
   EService,
   EServiceId,
-  eserviceInterfaceAllowedFileType,
-  EserviceInterfaceAllowedFileType,
-  EserviceRestInterfaceType,
   genericError,
   interfaceExtractingInfoError,
   invalidInterfaceContentTypeDetected,
@@ -24,6 +21,30 @@ import { match, P } from "ts-pattern";
 import YAML from "yaml";
 import { z, ZodError } from "zod";
 import { calculateChecksum, FileManager, Logger } from "../index.js";
+
+export const eserviceInterfaceAllowedFileType = {
+  json: "json",
+  yaml: "yaml",
+  wsdl: "wsdl",
+  xml: "xml",
+} as const;
+export const EserviceInterfaceAllowedFileType = z.enum([
+  Object.values(eserviceInterfaceAllowedFileType)[0],
+  ...Object.values(eserviceInterfaceAllowedFileType).slice(1),
+]);
+export type EserviceInterfaceAllowedFileType = z.infer<
+  typeof EserviceInterfaceAllowedFileType
+>;
+
+export type EserviceRestInterfaceType = Extract<
+  EserviceInterfaceAllowedFileType,
+  "json" | "yaml"
+>;
+
+export type EserviceSoapInterfaceType = Extract<
+  EserviceInterfaceAllowedFileType,
+  "wsdl" | "xml"
+>;
 
 const Wsdl = z.object({
   definitions: z.object({
