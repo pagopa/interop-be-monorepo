@@ -5,7 +5,7 @@ import {
   jwtDecodingError,
   jwksSigningKeyError,
 } from "pagopa-interop-models";
-import { JWTConfig, Logger } from "../index.js";
+import { buildJwksClients, JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
 export const decodeJwtToken = (
@@ -68,7 +68,6 @@ const getKey = async (
 
 export const verifyJwtToken = async (
   jwtToken: string,
-  jwksClients: jwksClient.JwksClient[],
   config: JWTConfig,
   logger: Logger
 ): Promise<boolean> => {
@@ -81,6 +80,7 @@ export const verifyJwtToken = async (
       return Promise.resolve(false);
     }
 
+    const jwksClients = buildJwksClients(config);
     const secret: Secret = await getKey(jwksClients, jwtHeader.kid, logger);
 
     return new Promise((resolve) => {

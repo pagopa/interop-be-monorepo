@@ -52,7 +52,9 @@ export function readModelServiceBuilder(
           ExportedEService.parse({
             ...data,
             descriptors: data.descriptors.filter(
-              (descriptor) => descriptor.state !== "Draft"
+              (descriptor) =>
+                descriptor.state !== "Draft" &&
+                descriptor.state !== "WaitingForApproval"
             ),
           })
         )

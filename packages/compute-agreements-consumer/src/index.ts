@@ -65,7 +65,7 @@ async function processMessage({
           );
           const token = (await refreshableToken.get()).serialized;
 
-          await agreementProcessClient.computeAgreementsByAttribute(
+          await agreementProcessClient.internalComputeAgreementsByAttribute(
             {
               attributeId: unsafeBrandId(attributeId),
               consumer: toApiCompactTenant(fromTenantV2(tenant)),
@@ -92,9 +92,14 @@ async function processMessage({
           "TenantVerifiedAttributeExpirationUpdated",
           "TenantKindUpdated",
           "MaintenanceTenantDeleted",
+          "MaintenanceTenantUpdated",
           "TenantMailDeleted",
           "TenantMailAdded",
-          "MaintenanceTenantPromotedToCertifier"
+          "MaintenanceTenantPromotedToCertifier",
+          "TenantDelegatedProducerFeatureAdded",
+          "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved"
         ),
       },
       () => Promise.resolve()

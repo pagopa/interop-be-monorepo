@@ -13,7 +13,7 @@ import {
   eserviceMode,
   technology,
 } from "pagopa-interop-models";
-import { CatalogAttributeValueV1 } from "../../gen/v1/events.js";
+import { CatalogAttributeValueV1 } from "../../protobuf-models/v1/events.js";
 import {
   CatalogDescriptorV1Notification,
   CatalogDocumentV1Notification,
@@ -42,6 +42,8 @@ export const toCatalogDescriptorStateV1 = (input: DescriptorState): string => {
       return "Suspended";
     case descriptorState.archived:
       return "Archived";
+    case descriptorState.waitingForApproval:
+      return "WaitingForApproval";
   }
 };
 

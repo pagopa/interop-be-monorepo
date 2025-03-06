@@ -32,6 +32,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
+import { addDays } from "date-fns";
 import {
   addOneAgreement,
   addOneEService,
@@ -89,7 +90,7 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableActiveAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         invalidCertifiedAttribute.id,
         consumer,
         {
@@ -139,7 +140,7 @@ describe("compute Agreements state by attribute", () => {
 
         await addOneAgreement(updatableDraftOrPendingAgreement);
 
-        await agreementService.computeAgreementsStateByAttribute(
+        await agreementService.internalComputeAgreementsStateByAttribute(
           invalidCertifiedAttribute.id,
           consumer,
           {
@@ -194,7 +195,7 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableSuspendedAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         invalidCertifiedAttribute.id,
         consumer,
         {
@@ -259,7 +260,7 @@ describe("compute Agreements state by attribute", () => {
         {
           id: producerId,
           verificationDate: new Date(),
-          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+          extensionDate: addDays(new Date(), 30),
         },
       ],
     };
@@ -301,7 +302,7 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableSuspendedAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         randomArrayItem([
           tenantCertifiedAttribute.id,
           tenantDeclaredAttribute.id,
@@ -357,7 +358,7 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableMissingCertAttributesAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         randomArrayItem([
           tenantCertifiedAttribute.id,
           tenantDeclaredAttribute.id,
@@ -415,7 +416,7 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableSuspendedAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         randomArrayItem([
           tenantCertifiedAttribute.id,
           tenantDeclaredAttribute.id,
@@ -538,7 +539,7 @@ describe("compute Agreements state by attribute", () => {
     await addOneAgreement(updatableAgreement2);
     await addOneAgreement(nonUpdatableAgreement);
 
-    await agreementService.computeAgreementsStateByAttribute(
+    await agreementService.internalComputeAgreementsStateByAttribute(
       invalidCertifiedAttribute.id,
       consumer,
       {

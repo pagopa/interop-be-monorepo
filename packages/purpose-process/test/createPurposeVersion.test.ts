@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import path from "path";
+import { fileURLToPath } from "url";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   readLastEventByStreamId,
@@ -12,7 +15,9 @@ import {
   getMockPurposeVersion,
   getMockPurpose,
   getMockValidRiskAnalysisForm,
-  writeInReadmodel,
+  getMockDelegation,
+  getRandomAuthData,
+  addSomeRandomDelegations,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -25,30 +30,38 @@ import {
   Agreement,
   agreementState,
   PurposeVersion,
-  toReadModelEService,
   eserviceMode,
-  toReadModelAgreement,
   NewPurposeVersionActivatedV2,
   NewPurposeVersionWaitingForApprovalV2,
-  toReadModelTenant,
+  delegationKind,
+  delegationState,
+  TenantId,
+  tenantKind,
+  DelegationId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { genericLogger, getIpaCode } from "pagopa-interop-commons";
 import {
   agreementNotFound,
   eserviceNotFound,
   missingRiskAnalysis,
   organizationIsNotTheConsumer,
-  organizationNotAllowed,
+  organizationIsNotTheDelegatedConsumer,
+  puroposeDelegationNotFound,
   tenantKindNotFound,
   tenantNotFound,
   unchangedDailyCalls,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
+import { RiskAnalysisDocumentPDFPayload } from "../src/model/domain/models.js";
 import {
-  agreements,
-  eservices,
+  addOneAgreement,
+  addOneDelegation,
+  addOneEService,
+  addOneTenant,
+  fileManager,
+  pdfGenerator,
   postgresDB,
   purposeService,
-  tenants,
 } from "./utils.js";
 import { addOnePurpose } from "./utils.js";
 
@@ -115,21 +128,172 @@ describe("createPurposeVersion", () => {
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls increased and <= threshold)", async () => {
-    await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    vi.spyOn(pdfGenerator, "generate");
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion({
-      purposeId: mockPurpose.id,
-      seed: {
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
         dailyCalls: 24,
       },
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: "24",
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerIpaCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerIpaCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: undefined,
+      producerDelegateName: undefined,
+      producerDelegateIpaCode: undefined,
+      consumerDelegationId: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
+    };
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      expectedPdfPayload
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockPurpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "NewPurposeVersionActivated",
+      event_version: 2,
     });
+
+    const expectedPurposeVersion: PurposeVersion = {
+      id: returnedPurposeVersion.id,
+      createdAt: new Date(),
+      firstActivationAt: new Date(),
+      state: purposeVersionState.active,
+      dailyCalls: 24,
+      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+    };
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      versions: [
+        {
+          ...mockPurposeVersion,
+          state: purposeVersionState.archived,
+          updatedAt: new Date(),
+        },
+        expectedPurposeVersion,
+      ],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: NewPurposeVersionActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+  });
+
+  it("should write on event-store for the creation of a new purpose version (daily calls increased and <= threshold) (with producer delegation)", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
+    const delegate = getMockTenant();
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      delegatorId: mockProducer.id,
+      delegateId: delegate.id,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(mockPurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneTenant(delegate);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
+        dailyCalls: 24,
+      },
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: "24",
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerIpaCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerIpaCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: producerDelegation.id,
+      producerDelegateName: delegate.name,
+      producerDelegateIpaCode: delegate.externalId.value,
+      consumerDelegationId: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
+    };
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      expectedPdfPayload
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -176,21 +340,60 @@ describe("createPurposeVersion", () => {
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls decreased and <= threshold)", async () => {
-    await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    vi.spyOn(pdfGenerator, "generate");
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion({
-      purposeId: mockPurpose.id,
-      seed: {
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
         dailyCalls: 4,
       },
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: "4",
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerIpaCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerIpaCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: undefined,
+      producerDelegateName: undefined,
+      producerDelegateIpaCode: undefined,
+      consumerDelegationId: undefined,
+      consumerDelegateName: undefined,
+      consumerDelegateIpaCode: undefined,
+    };
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      expectedPdfPayload
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -244,20 +447,23 @@ describe("createPurposeVersion", () => {
     const eservice = { ...mockEService, descriptors: [descriptor] };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(eservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(eservice);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion({
-      purposeId: mockPurpose.id,
-      seed: {
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      mockPurpose.id,
+      {
         dailyCalls: 30,
       },
-      organizationId: mockPurpose.consumerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -297,44 +503,335 @@ describe("createPurposeVersion", () => {
     );
   });
 
+  it("should succeed when requester is Consumer Delegate and the creation of a new purpose version is successful", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+    const consumerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const purpose: Purpose = {
+      ...mockPurpose,
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: purpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: consumerDelegate.id,
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(purpose);
+    await addOneDelegation(delegation);
+    await addSomeRandomDelegations(purpose, addOneDelegation);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+    await addOneTenant(consumerDelegate);
+
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      purpose.id,
+      {
+        dailyCalls: 24,
+      },
+      {
+        authData: getRandomAuthData(consumerDelegate.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: returnedPurposeVersion.dailyCalls.toString(),
+      answers: expect.any(String),
+      eServiceName: mockEService.name,
+      producerName: mockProducer.name,
+      producerIpaCode: getIpaCode(mockProducer),
+      consumerName: mockConsumer.name,
+      consumerIpaCode: getIpaCode(mockConsumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: undefined,
+      producerDelegateName: undefined,
+      producerDelegateIpaCode: undefined,
+      consumerDelegationId: delegation.id,
+      consumerDelegateName: consumerDelegate.name,
+      consumerDelegateIpaCode: consumerDelegate.externalId.value,
+    };
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      expectedPdfPayload
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+
+    const writtenEvent = await readLastEventByStreamId(
+      purpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "1",
+      type: "NewPurposeVersionActivated",
+      event_version: 2,
+    });
+
+    const expectedPurposeVersion: PurposeVersion = {
+      id: returnedPurposeVersion.id,
+      createdAt: new Date(),
+      firstActivationAt: new Date(),
+      state: purposeVersionState.active,
+      dailyCalls: 24,
+      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+    };
+
+    const expectedPurpose: Purpose = {
+      ...purpose,
+      versions: [
+        {
+          ...mockPurposeVersion,
+          state: purposeVersionState.archived,
+          updatedAt: new Date(),
+        },
+        expectedPurposeVersion,
+      ],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: NewPurposeVersionActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+  });
+
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the creation of a new purpose version is successful", async () => {
+    vi.spyOn(pdfGenerator, "generate");
+
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const producerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+    const consumerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      descriptors: [mockEServiceDescriptor],
+    };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      descriptorId: mockEServiceDescriptor.id,
+      state: agreementState.active,
+    };
+    const delegatePurpose: Purpose = {
+      ...mockPurpose,
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
+      state: delegationState.active,
+    });
+
+    const consumerDelegation = getMockDelegation({
+      id: delegatePurpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producerDelegate);
+    await addOneTenant(producer);
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    await addOnePurpose(delegatePurpose);
+    await addOneDelegation(producerDelegation);
+    await addOneDelegation(consumerDelegation);
+    await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
+
+    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+      delegatePurpose.id,
+      {
+        dailyCalls: 24,
+      },
+      {
+        authData: getRandomAuthData(consumerDelegate.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      }
+    );
+
+    const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
+      dailyCalls: returnedPurposeVersion.dailyCalls.toString(),
+      answers: expect.any(String),
+      eServiceName: eservice.name,
+      producerName: producer.name,
+      producerIpaCode: getIpaCode(producer),
+      consumerName: consumer.name,
+      consumerIpaCode: getIpaCode(consumer),
+      freeOfCharge: expect.any(String),
+      freeOfChargeReason: expect.any(String),
+      date: expect.stringMatching(/^\d{2}\/\d{2}\/\d{4}$/),
+      eServiceMode: "Eroga",
+      producerDelegationId: producerDelegation.id,
+      producerDelegateName: producerDelegate.name,
+      producerDelegateIpaCode: producerDelegate.externalId.value,
+      consumerDelegationId: consumerDelegation.id,
+      consumerDelegateName: consumerDelegate.name,
+      consumerDelegateIpaCode: consumerDelegate.externalId.value,
+    };
+
+    expect(pdfGenerator.generate).toBeCalledWith(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../src",
+        "resources/templates/documents",
+        "riskAnalysisTemplate.html"
+      ),
+      expectedPdfPayload
+    );
+
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+
+    const writtenEvent = await readLastEventByStreamId(
+      delegatePurpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: delegatePurpose.id,
+      version: "1",
+      type: "NewPurposeVersionActivated",
+      event_version: 2,
+    });
+
+    const expectedPurposeVersion: PurposeVersion = {
+      id: returnedPurposeVersion.id,
+      createdAt: new Date(),
+      firstActivationAt: new Date(),
+      state: purposeVersionState.active,
+      dailyCalls: 24,
+      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+    };
+
+    const expectedPurpose: Purpose = {
+      ...delegatePurpose,
+      versions: [
+        {
+          ...mockPurposeVersion,
+          state: purposeVersionState.archived,
+          updatedAt: new Date(),
+        },
+        expectedPurposeVersion,
+      ],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: NewPurposeVersionActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+  });
+
   it("should throw unchangedDailyCalls if the new request daily calls are the same of the previous version", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(
       async () =>
-        await purposeService.createPurposeVersion({
-          purposeId: mockPurpose.id,
-          seed: {
+        await purposeService.createPurposeVersion(
+          mockPurpose.id,
+          {
             dailyCalls: mockPurposeVersion.dailyCalls,
           },
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+          {
+            authData: getRandomAuthData(mockPurpose.consumerId),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        )
     ).rejects.toThrowError(unchangedDailyCalls(mockPurpose.id));
   });
 
-  it("should throw organizationIsNotTheConsumer if the caller is not the consumer", async () => {
+  it("should throw organizationIsNotTheConsumer if the caller is the producer", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 1000,
         },
-        organizationId: mockEService.producerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(
       organizationIsNotTheConsumer(mockEService.producerId)
     );
@@ -342,64 +839,71 @@ describe("createPurposeVersion", () => {
 
   it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
-    // await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
 
-  it("should throw organizationNotAllowed if the caller is neither the producer or the consumer of the purpose", async () => {
+  it("should throw organizationIsNotTheConsumer if the caller is not the consumer", async () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
-    await writeInReadmodel(toReadModelTenant(anotherTenant), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+    await addOneTenant(anotherTenant);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: anotherTenant.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
-    }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
+        {
+          authData: getRandomAuthData(anotherTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(organizationIsNotTheConsumer(anotherTenant.id));
   });
 
   it("should throw agreementNotFound if the caller has no agreement associated with the purpose in the read model", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    // await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(
       agreementNotFound(mockEService.id, mockConsumer.id)
     );
@@ -418,21 +922,24 @@ describe("createPurposeVersion", () => {
       const agreement: Agreement = { ...mockAgreement, state };
 
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-      await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-      await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+      await addOneEService(mockEService);
+      await addOneAgreement(agreement);
+      await addOneTenant(mockConsumer);
+      await addOneTenant(mockProducer);
 
       expect(async () => {
-        await purposeService.createPurposeVersion({
-          purposeId: mockPurpose.id,
-          seed: {
+        await purposeService.createPurposeVersion(
+          mockPurpose.id,
+          {
             dailyCalls: 20,
           },
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+          {
+            authData: getRandomAuthData(mockPurpose.consumerId),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          }
+        );
       }).rejects.toThrowError(
         agreementNotFound(mockEService.id, mockConsumer.id)
       );
@@ -441,41 +948,45 @@ describe("createPurposeVersion", () => {
 
   it("should throw tenantNotFound if the purpose consumer is not found in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    // await writeInReadmodel(mockConsumer, tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
 
   it("should throw tenantNotFound if the purpose producer is not found in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    // await writeInReadmodel(mockProducer, tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantNotFound(mockProducer.id));
   });
 
@@ -487,21 +998,24 @@ describe("createPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(eservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(consumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(eservice);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(consumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
 
@@ -513,21 +1027,24 @@ describe("createPurposeVersion", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(eservice), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(producer), tenants);
+    await addOneEService(eservice);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(producer);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
 
@@ -538,21 +1055,191 @@ describe("createPurposeVersion", () => {
     };
 
     await addOnePurpose(purpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
-    await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
-    await writeInReadmodel(toReadModelTenant(mockConsumer), tenants);
-    await writeInReadmodel(toReadModelTenant(mockProducer), tenants);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
 
     expect(async () => {
-      await purposeService.createPurposeVersion({
-        purposeId: mockPurpose.id,
-        seed: {
+      await purposeService.createPurposeVersion(
+        purpose.id,
+        {
           dailyCalls: 20,
         },
-        organizationId: mockPurpose.consumerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+        {
+          authData: getRandomAuthData(mockPurpose.consumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
+  });
+  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is creating a purpose version for a purpose created by the delegate", async () => {
+    const authData = getRandomAuthData();
+    const purpose = {
+      ...mockPurpose,
+      consumerId: authData.organizationId,
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: purpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: purpose.eserviceId,
+      delegatorId: purpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(purpose);
+    await addOneDelegation(delegation);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    expect(async () => {
+      await purposeService.createPurposeVersion(
+        purpose.id,
+        {
+          dailyCalls: 20,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
+  });
+  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is creating a purpose version for a purpose created by a delegate, but the delegation cannot be found", async () => {
+    const authData = getRandomAuthData();
+    const mockEService = getMockEService();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      delegationId: generateId<DelegationId>(),
+      consumerId: authData.organizationId,
+    };
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    expect(async () => {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
+          dailyCalls: 20,
+        },
+        {
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      puroposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
+    );
+  });
+
+  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+    const delegatePurpose: Purpose = {
+      ...getMockPurpose(),
+      consumerId: mockConsumer.id,
+      delegationId: undefined,
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: delegatePurpose.eserviceId,
+      delegatorId: delegatePurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(delegatePurpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    expect(async () => {
+      await purposeService.createPurposeVersion(
+        delegatePurpose.id,
+        {
+          dailyCalls: 20,
+        },
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(
+      organizationIsNotTheConsumer(delegation.delegateId)
+    );
+  });
+  it("should throw organizationIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [mockPurposeVersion],
+      delegationId: generateId<DelegationId>(),
+    };
+
+    const delegation = getMockDelegation({
+      id: generateId<DelegationId>(),
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    const purposeDelegation = getMockDelegation({
+      id: mockPurpose.delegationId,
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: mockPurpose.eserviceId,
+      delegatorId: mockPurpose.consumerId,
+      delegateId: generateId<TenantId>(),
+      state: delegationState.active,
+    });
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+    await addOneDelegation(delegation);
+    await addOneDelegation(purposeDelegation);
+
+    expect(async () => {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
+          dailyCalls: 20,
+        },
+        {
+          authData: getRandomAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(
+      organizationIsNotTheDelegatedConsumer(
+        delegation.delegateId,
+        mockPurpose.delegationId
+      )
+    );
   });
 });
