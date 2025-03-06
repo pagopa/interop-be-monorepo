@@ -20283,12 +20283,15 @@ components:
       required:
         - id
         - name
+        - mode
       properties:
         id:
           type: string
           format: uuid
         name:
           type: string
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
         activeVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
         draftVersion:

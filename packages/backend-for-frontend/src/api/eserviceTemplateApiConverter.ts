@@ -82,6 +82,7 @@ export function toBffProducerEServiceTemplate(
   return {
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
+    mode: eserviceTemplate.mode,
     activeVersion,
     draftVersion,
   };
