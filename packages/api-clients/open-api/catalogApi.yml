@@ -2114,33 +2114,7 @@ components:
           items:
             type: string
         interfaceTemplateMetadata:
-          $ref: "#/components/schemas/CustomizedInterfaceMetadata"
-    CustomizedInterfaceMetadata:
-      type: object
-      additionalProperties: false
-      required:
-        - name
-        - email
-        - url
-        - termsAndConditionsUrl
-        - serverUrls
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-          format: email
-        url:
-          type: string
-          format: uri
-        termsAndConditionsUrl:
-          type: string
-          format: uri
-        serverUrls:
-          type: array
-          items:
-            type: string
-            format: uri
+          $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
     UpdateEServiceDescriptorDocumentSeed:
       required:
         - prettyName
