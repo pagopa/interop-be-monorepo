@@ -1,24 +1,25 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  ExpressContext,
-  userRoles,
-  ZodiosContext,
   authorizationMiddleware,
-  ReadModelRepository,
+  ExpressContext,
+  fromAppContext,
   initDB,
   initFileManager,
+  ReadModelRepository,
+  userRoles,
+  ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import {
-  unsafeBrandId,
-  EServiceId,
-  TenantId,
   AttributeId,
+  EServiceId,
   EServiceTemplateId,
+  TenantId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { config } from "../config/config.js";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -29,47 +30,46 @@ import {
   documentToApiDocument,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
-import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   activateDescriptorErrorMapper,
+  addEServiceInterfceByTemplateErrorMapper,
+  approveDelegatedEServiceDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
   cloneEServiceByDescriptorErrorMapper,
   createDescriptorErrorMapper,
   createEServiceErrorMapper,
+  createEServiceInstanceFromTemplateErrorMapper,
   createRiskAnalysisErrorMapper,
+  createTemplateInstanceDescriptorDocumentErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
   deleteRiskAnalysisErrorMapper,
+  deleteTemplateInstanceDescriptorDocumentErrorMapper,
   documentCreateErrorMapper,
   documentDeleteErrorMapper,
   documentGetErrorMapper,
   documentUpdateErrorMapper,
   getEServiceErrorMapper,
   publishDescriptorErrorMapper,
+  rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
+  updateDescriptorAttributesErrorMapper,
   updateDescriptorErrorMapper,
   updateDraftDescriptorErrorMapper,
   updateEServiceDescriptionErrorMapper,
   updateEServiceErrorMapper,
-  updateRiskAnalysisErrorMapper,
-  updateDescriptorAttributesErrorMapper,
-  updateEServiceNameErrorMapper,
-  approveDelegatedEServiceDescriptorErrorMapper,
-  rejectDelegatedEServiceDescriptorErrorMapper,
   updateEServiceFlagsErrorMapper,
-  updateTemplateInstanceNameErrorMapper,
+  updateEServiceNameErrorMapper,
+  updateRiskAnalysisErrorMapper,
   updateTemplateInstanceDescriptionErrorMapper,
-  updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
   updateTemplateInstanceDescriptorAttributesErrorMapper,
-  createTemplateInstanceDescriptorDocumentErrorMapper,
   updateTemplateInstanceDescriptorDocumentErrorMapper,
-  deleteTemplateInstanceDescriptorDocumentErrorMapper,
+  updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
+  updateTemplateInstanceNameErrorMapper,
   upgradeEServiceInstanceErrorMapper,
-  createEServiceInstanceFromTemplateErrorMapper,
-  addEServiceInterfceByTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -1155,7 +1155,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.addEserviceInterfaceByTemplate(
+          await catalogService.addEServiceTemplateInstanceInterface(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,

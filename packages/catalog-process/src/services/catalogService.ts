@@ -10,13 +10,13 @@ import {
   FileManager,
   formatDateddMMyyyyHHmmss,
   hasPermission,
+  interpolateOpenApiSpec,
   Logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
-  WithLogger,
   verifyAndCreateDocument,
-  interpolateOpenApiSpec,
+  WithLogger,
 } from "pagopa-interop-commons";
 import {
   agreementState,
@@ -37,9 +37,11 @@ import {
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
+  eserviceMode,
   EServiceTemplate,
   EServiceTemplateId,
-  eserviceMode,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionId,
   EServiceTemplateVersionRef,
   eserviceTemplateVersionState,
   generateId,
@@ -51,8 +53,6 @@ import {
   TenantId,
   unsafeBrandId,
   WithMetadata,
-  EServiceTemplateVersionId,
-  EServiceTemplateVersion,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -68,12 +68,13 @@ import {
   attributeNotFound,
   audienceCannotBeEmpty,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
+  documentPrettyNameDuplicate,
   eServiceAlreadyUpgraded,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
-  eServiceNameDuplicate,
   eserviceInterfaceDataNotValid,
+  eServiceNameDuplicate,
   eServiceNotAnInstance,
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
@@ -87,7 +88,6 @@ import {
   invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
-  documentPrettyNameDuplicate,
   riskAnalysisDuplicated,
   tenantNotFound,
   unchangedAttributes,
@@ -141,6 +141,7 @@ import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDocumentDeletableDescriptorState,
+  assertEServiceNotTemplateInstance,
   assertHasNoDraftOrWaitingForApprovalDescriptor,
   assertInterfaceDeletableDescriptorState,
   assertIsDraftEservice,
@@ -150,7 +151,6 @@ import {
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
-  assertEServiceNotTemplateInstance,
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
@@ -2896,7 +2896,7 @@ export function catalogServiceBuilder(
 
       return lastEService;
     },
-    async addEserviceInterfaceByTemplate(
+    async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
       eserviceInstanceInterfaceData: catalogApi.EserviceInterfaceTemplatePayload,
