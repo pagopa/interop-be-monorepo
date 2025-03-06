@@ -2966,7 +2966,7 @@ paths:
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-    put:
+    post:
       security:
         - bearerAuth: []
       tags:

@@ -286,7 +286,7 @@ const catalogRouter = (
         }
       }
     )
-    .put(
+    .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);

@@ -582,7 +582,7 @@ const eservicesRouter = (
         }
       }
     )
-    .put(
+    .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
