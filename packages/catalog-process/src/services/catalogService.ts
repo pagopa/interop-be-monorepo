@@ -323,7 +323,12 @@ const evaluateEServiceTemplateVersionRef = (
       ? {
           ...templateRef,
           interfaceMetadata: {
-            ...documentSeed.interfaceTemplateMetadata,
+            contactEmail: documentSeed.interfaceTemplateMetadata.email,
+            contactName: documentSeed.interfaceTemplateMetadata.name,
+            contactUrl: documentSeed.interfaceTemplateMetadata.url,
+            termsAndConditionsUrl:
+              documentSeed.interfaceTemplateMetadata.termsAndConditionsUrl,
+            serverUrls: documentSeed.interfaceTemplateMetadata.serverUrls,
           },
         }
       : templateRef;
@@ -2899,7 +2904,7 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       const { logger, authData } = ctx;
       logger.info(
-        `Adding interface by template to EService ${eServiceId} with descriptor ${descriptorId}`
+        `Adding interface to EService template instance ${eServiceId} with descriptor ${descriptorId}`
       );
 
       const eserviceWithMetadata = await retrieveEService(

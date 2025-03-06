@@ -991,7 +991,7 @@ paths:
       tags:
         - process
       summary: Add EService template instance interface
-      operationId: addEServiceInterfaceDocumentByTemplateId
+      operationId: addEServiceTemplateInstanceInterface
       parameters:
         - name: eServiceId
           in: path

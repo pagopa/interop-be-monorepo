@@ -635,7 +635,7 @@ export function eserviceTemplateServiceBuilder(
       { headers }: WithLogger<BffAppContext>
     ): Promise<CreatedResource> => {
       const { id } =
-        await catalogProcessClient.addEServiceInterfaceDocumentByTemplateId(
+        await catalogProcessClient.addEServiceTemplateInstanceInterface(
           eserviceInstanceInterfaceData,
           {
             headers,

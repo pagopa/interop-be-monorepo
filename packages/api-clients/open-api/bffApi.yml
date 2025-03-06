@@ -3434,7 +3434,7 @@ paths:
       tags:
         - eservices
       summary: Add e-service interface for provided template
-      operationId: addEServiceInterfaceDocumentByTemplateId
+      operationId: addEServiceTemplateInstanceInterface
       parameters:
         - name: eServiceId
           in: path

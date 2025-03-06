@@ -914,7 +914,7 @@ const catalogRouter = (
       }
     })
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/instances/interface",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {

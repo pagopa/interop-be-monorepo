@@ -1149,7 +1149,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/instances/interface",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);

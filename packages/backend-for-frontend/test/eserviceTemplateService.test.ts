@@ -63,7 +63,7 @@ function getEserviceTemplateServiceMock(
     createEServiceDocument: vi.fn().mockResolvedValue({
       id: generateId<EServiceDocumentId>(),
     }),
-    addEServiceInterfaceDocumentByTemplateId: vi.fn().mockResolvedValue({
+    addEServiceTemplateInstanceInterface: vi.fn().mockResolvedValue({
       id: generateId<EServiceDocumentId>(),
     }),
   } as unknown as CatalogProcessClient;
