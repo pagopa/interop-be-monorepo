@@ -1297,6 +1297,15 @@ export function catalogServiceBuilder(
         eserviceId
       );
 
+      const eserviceTemplate = eservice.templateRef
+        ? await eserviceTemplateProcessClient.getEServiceTemplateById({
+            headers,
+            params: {
+              eServiceTemplateId: eservice.templateRef.id,
+            },
+          })
+        : undefined;
+
       const zipFolderName = `${eservice.id}_${descriptorId}`;
       const zipFile = await createDescriptorDocumentZipFile(
         bffConfig.eserviceDocumentsContainer,
@@ -1304,7 +1313,8 @@ export function catalogServiceBuilder(
         logger,
         zipFolderName,
         eservice,
-        descriptorId
+        descriptorId,
+        eserviceTemplate
       );
 
       const zipFilePath = `${bffConfig.exportEservicePath}/${requesterId}`;

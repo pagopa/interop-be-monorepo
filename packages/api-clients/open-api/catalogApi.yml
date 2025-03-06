@@ -2374,6 +2374,9 @@ components:
         instanceLabel:
           type: string
           format: uuid
+        templateVersionId:
+          type: string
+          format: uuid
     EServiceTemplateVersionRef:
       type: object
       additionalProperties: false

@@ -3,13 +3,14 @@
 /* eslint-disable max-params */
 import path from "path";
 import AdmZip from "adm-zip";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { DescriptorId, genericError } from "pagopa-interop-models";
 import { missingInterface } from "../model/errors.js";
 import { verifyExportEligibility } from "../services/validators.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
 import { ConfigurationEservice } from "../model/types.js";
+import { toBffEServiceTemplateRef } from "../api/catalogApiConverter.js";
 
 /*
   FileDocumentsRegistry is a map that contains the following information:
@@ -71,7 +72,8 @@ export function buildFileDocumentRegistry(
 export function buildJsonConfig(
   fileDocumentRegistry: FileDocumentsRegistry,
   eservice: catalogApi.EService,
-  descriptor: catalogApi.EServiceDescriptor
+  descriptor: catalogApi.EServiceDescriptor,
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate | undefined
 ): ConfigurationEservice {
   return {
     name: eservice.name,
@@ -117,6 +119,9 @@ export function buildJsonConfig(
         })),
       },
     })),
+    templateRef:
+      eserviceTemplate &&
+      toBffEServiceTemplateRef(eservice, descriptor, eserviceTemplate),
   };
 }
 
@@ -145,7 +150,8 @@ export async function createDescriptorDocumentZipFile(
   logger: Logger,
   zipFolderName: string,
   eservice: catalogApi.EService,
-  descriptorId: DescriptorId
+  descriptorId: DescriptorId,
+  eserviceTemplate: eserviceTemplateApi.EServiceTemplate | undefined
 ): Promise<Uint8Array> {
   const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
   verifyExportEligibility(descriptor);
@@ -159,7 +165,8 @@ export async function createDescriptorDocumentZipFile(
   const configuration = buildJsonConfig(
     fileDocumentRegistry,
     eservice,
-    descriptor
+    descriptor,
+    eserviceTemplate
   );
 
   const zip = new AdmZip();

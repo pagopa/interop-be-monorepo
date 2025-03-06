@@ -210,5 +210,6 @@ export const ConfigurationEservice = z.object({
   isSignalHubEnabled: z.boolean().optional(),
   isConsumerDelegable: z.boolean().optional(),
   isClientAccessDelegable: z.boolean().optional(),
+  templateRef: bffApi.EServiceTemplateRef.optional(),
 });
 export type ConfigurationEservice = z.infer<typeof ConfigurationEservice>;
