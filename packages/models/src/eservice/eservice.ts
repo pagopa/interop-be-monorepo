@@ -74,9 +74,9 @@ export type DescriptorRejectionReason = z.infer<
 >;
 
 export const TemplateInstanceInterfaceMetadata = z.object({
-  name: z.string(),
-  email: z.string(),
-  url: z.string(),
+  contactName: z.string(),
+  contactEmail: z.string(),
+  contactUrl: z.string(),
   termsAndConditionsUrl: z.string(),
   serverUrls: z.array(z.string()),
 });
@@ -153,3 +153,27 @@ export const EService = z.object({
 });
 
 export type EService = z.infer<typeof EService>;
+
+export const eserviceInterfaceAllowedFileType = {
+  json: "json",
+  yaml: "yaml",
+  wsdl: "wsdl",
+  xml: "xml",
+} as const;
+export const EserviceInterfaceAllowedFileType = z.enum([
+  Object.values(eserviceInterfaceAllowedFileType)[0],
+  ...Object.values(eserviceInterfaceAllowedFileType).slice(1),
+]);
+export type EserviceInterfaceAllowedFileType = z.infer<
+  typeof EserviceInterfaceAllowedFileType
+>;
+
+export type EserviceRestInterfaceType = Extract<
+  EserviceInterfaceAllowedFileType,
+  "json" | "yaml"
+>;
+
+export type EserviceSoapInterfaceType = Extract<
+  EserviceInterfaceAllowedFileType,
+  "wsdl" | "xml"
+>;

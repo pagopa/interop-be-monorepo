@@ -88,7 +88,7 @@ app.use(
   delegationRouter(zodiosCtx, clients, fileManager),
   producerDelegationRouter(zodiosCtx, clients, fileManager),
   consumerDelegationRouter(zodiosCtx, clients, fileManager),
-  eserviceTemplateRouter(zodiosCtx, clients, fileManager, config)
+  eserviceTemplateRouter(zodiosCtx, clients, fileManager)
 );
 
 export default app;

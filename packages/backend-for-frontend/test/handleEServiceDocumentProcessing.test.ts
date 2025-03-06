@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
 import { bffApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
-import { ZodError } from "zod";
-import { handleEServiceDocumentProcessing } from "../src/utilities/eserviceDocumentUtils.js";
 import {
+  generateId,
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
-} from "../src/model/errors.js";
+} from "pagopa-interop-models";
+import { ZodError } from "zod";
+import { extractEServiceUrlsFrom } from "pagopa-interop-commons";
 
-describe("handleEServiceDocumentProcessing", () => {
+describe("extractEServiceUrlsFrom", () => {
   const eserviceId = generateId();
   const mockDoc: bffApi.createEServiceDocument_Body = {
     doc: {
@@ -24,8 +24,9 @@ describe("handleEServiceDocumentProcessing", () => {
   } as unknown as bffApi.createEServiceDocument_Body;
 
   it("should process REST interface with OpenAPI 3.0", async () => {
-    const result = await handleEServiceDocumentProcessing(
-      mockDoc,
+    const result = await extractEServiceUrlsFrom(
+      mockDoc.doc,
+      "INTERFACE",
       "Rest",
       "test-eServiceId"
     );
@@ -39,7 +40,12 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(unsupportedDoc, "Rest", eserviceId)
+      extractEServiceUrlsFrom(
+        unsupportedDoc.doc,
+        "INTERFACE",
+        "Rest",
+        eserviceId
+      )
     ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
   });
 
@@ -63,8 +69,9 @@ describe("handleEServiceDocumentProcessing", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await handleEServiceDocumentProcessing(
-      soapDoc,
+    const result = await extractEServiceUrlsFrom(
+      soapDoc.doc,
+      "INTERFACE",
       "Soap",
       eserviceId
     );
@@ -77,8 +84,9 @@ describe("handleEServiceDocumentProcessing", () => {
       kind: "DOCUMENT",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await handleEServiceDocumentProcessing(
-      documentDoc,
+    const result = await extractEServiceUrlsFrom(
+      documentDoc.doc,
+      "DOCUMENT",
       "Rest",
       eserviceId
     );
@@ -108,8 +116,9 @@ describe("handleEServiceDocumentProcessing", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await handleEServiceDocumentProcessing(
-      soapDoc,
+    const result = await extractEServiceUrlsFrom(
+      soapDoc.doc,
+      "INTERFACE",
       "Soap",
       eserviceId
     );
@@ -137,8 +146,9 @@ describe("handleEServiceDocumentProcessing", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await handleEServiceDocumentProcessing(
-      soapDoc,
+    const result = await extractEServiceUrlsFrom(
+      soapDoc.doc,
+      "INTERFACE",
       "Soap",
       eserviceId
     );
@@ -165,7 +175,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(soapDoc, "Soap", eserviceId)
+      extractEServiceUrlsFrom(soapDoc.doc, "INTERFACE", "Soap", eserviceId)
     ).rejects.toThrow(ZodError);
   });
 
@@ -189,7 +199,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(soapDoc, "Soap", eserviceId)
+      extractEServiceUrlsFrom(soapDoc.doc, "INTERFACE", "Soap", eserviceId)
     ).rejects.toThrow(ZodError);
   });
 
@@ -208,8 +218,9 @@ describe("handleEServiceDocumentProcessing", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await handleEServiceDocumentProcessing(
-      swaggerDoc,
+    const result = await extractEServiceUrlsFrom(
+      swaggerDoc.doc,
+      "INTERFACE",
       "Rest",
       eserviceId
     );
@@ -231,7 +242,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(invalidDoc, "Rest", eserviceId)
+      extractEServiceUrlsFrom(invalidDoc.doc, "INTERFACE", "Rest", eserviceId)
     ).rejects.toThrow(openapiVersionNotRecognized("1.0"));
   });
 
@@ -245,7 +256,7 @@ describe("handleEServiceDocumentProcessing", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      handleEServiceDocumentProcessing(invalidDoc, "Rest", eserviceId)
+      extractEServiceUrlsFrom(invalidDoc.doc, "INTERFACE", "Rest", eserviceId)
     ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
   });
 
@@ -262,8 +273,9 @@ describe("handleEServiceDocumentProcessing", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await handleEServiceDocumentProcessing(
-      yamlDoc,
+    const result = await extractEServiceUrlsFrom(
+      yamlDoc.doc,
+      "INTERFACE",
       "Rest",
       eserviceId
     );

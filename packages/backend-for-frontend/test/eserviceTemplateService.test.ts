@@ -20,15 +20,10 @@ import {
   getMockEServiceTemplateVersion,
   getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
-import {
-  catalogApi,
-  delegationApi,
-  eserviceTemplateApi,
-} from "pagopa-interop-api-clients";
+import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   AttributeProcessClient,
   CatalogProcessClient,
-  DelegationProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -54,8 +49,7 @@ async function readBufferFromFile(
 
 function getEserviceTemplateServiceMock(
   mockEservice: catalogApi.EService,
-  mockEserviceTemplate: eserviceTemplateApi.EServiceTemplate,
-  mockDelegation?: delegationApi.Delegation
+  mockEserviceTemplate: eserviceTemplateApi.EServiceTemplate
 ): EServiceTemplateService {
   const tenantProcessClient = {} as unknown as TenantProcessClient;
   const attributeProcessClient = {} as unknown as AttributeProcessClient;
@@ -69,22 +63,17 @@ function getEserviceTemplateServiceMock(
     createEServiceDocument: vi.fn().mockResolvedValue({
       id: generateId<EServiceDocumentId>(),
     }),
+    addEServiceInterfaceDocumentByTemplateId: vi.fn().mockResolvedValue({
+      id: generateId<EServiceDocumentId>(),
+    }),
   } as unknown as CatalogProcessClient;
-
-  const delegationProcessClient = {
-    delegation: {
-      getDelegations: vi.fn().mockResolvedValue(mockDelegation),
-    },
-  } as unknown as DelegationProcessClient;
 
   return createEServiceTemplateService(
     eserviceProcessTemplateClient,
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
-    delegationProcessClient,
-    fileManager,
-    config
+    fileManager
   );
 }
 
@@ -174,22 +163,7 @@ describe("E-service Template Service BFF ", () => {
           toEserviceTemplateProcessMock(
             eserviceTemplate,
             eserviceTemplateVersion
-          ),
-          {
-            id: generateId(),
-            delegatorId: eservice.producerId,
-            delegateId: authData.organizationId,
-            eserviceId: eservice.id,
-            state: "ACTIVE",
-            kind: "DELEGATED_PRODUCER",
-            createdAt: new Date().toISOString(),
-            stamps: {
-              submission: {
-                who: authData.organizationId,
-                when: new Date().toISOString(),
-              },
-            },
-          }
+          )
         );
 
         const requestPayload = {
