@@ -9,9 +9,15 @@ import {
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import {
+  attributeReadModelServiceBuilderSQL,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilderSQL,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,
@@ -29,9 +35,25 @@ import {
   getAttributeByOriginAndCodeErrorMapper,
   getAttributesByNameErrorMapper,
 } from "../utilities/errorMappers.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
+
+const db = makeDrizzleConnection(config);
+const attributeReadModelServiceSQL = attributeReadModelServiceBuilderSQL(db);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(db);
 
 const readModelRepository = ReadModelRepository.init(config);
-const readModelService = readModelServiceBuilder(readModelRepository);
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  attributeReadModelServiceSQL,
+  tenantReadModelServiceSQL
+);
+
+const readModelService =
+  config.featureFlagSQL && ReadModelSQLDbConfig.safeParse(process.env).success
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 const attributeRegistryService = attributeRegistryServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
