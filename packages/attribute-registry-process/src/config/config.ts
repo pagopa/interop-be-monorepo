@@ -17,7 +17,7 @@ const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
     }))
   )
   .and(FeatureFlagSQL)
-  .and(ReadModelSQLDbConfig);
+  .and(ReadModelSQLDbConfig.optional());
 
 export type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;
 

@@ -9,6 +9,7 @@ import {
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -48,9 +49,10 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   tenantReadModelServiceSQL
 );
 
-const readModelService = config.featureFlagSQL
-  ? readModelServiceSQL
-  : oldReadModelService;
+const readModelService =
+  config.featureFlagSQL && ReadModelSQLDbConfig.safeParse(process.env).success
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const attributeRegistryService = attributeRegistryServiceBuilder(
   initDB({
