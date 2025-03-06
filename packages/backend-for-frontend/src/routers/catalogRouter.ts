@@ -183,7 +183,7 @@ const catalogRouter = (
         }
       }
     )
-    .post("/eservices/templates/:templateId/instances", async (req, res) => {
+    .post("/templates/:templateId/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const response =
@@ -949,7 +949,7 @@ const catalogRouter = (
         }
       }
     )
-    .post("/eservices/:eServiceId/instances/upgrade", async (req, res) => {
+    .post("/templates/eservices/:eServiceId/upgrade", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await catalogService.upgradeEServiceInstance(

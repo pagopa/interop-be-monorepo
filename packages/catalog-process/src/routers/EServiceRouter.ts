@@ -189,7 +189,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:templateId/instances",
+      "/templates/:templateId/eservices",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1008,7 +1008,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/instances/upgrade",
+      "/templates/eservices/:eServiceId/upgrade",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);

@@ -317,7 +317,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{templateId}/instances:
+  /templates/{templateId}/eservices:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -367,7 +367,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/instances/upgrade:
+  /templates/eservices/{eServiceId}/upgrade:
     post:
       security:
         - bearerAuth: []
