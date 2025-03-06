@@ -3425,7 +3425,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 
-  /eservices/{eServiceId}/descriptors/{descriptorId}/instances/interface:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:

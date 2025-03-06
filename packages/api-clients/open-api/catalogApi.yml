@@ -982,7 +982,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/instances/interface:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -990,7 +990,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Add e-service interface for provided template
+      summary: Add EService template instance interface
       operationId: addEServiceInterfaceDocumentByTemplateId
       parameters:
         - name: eServiceId

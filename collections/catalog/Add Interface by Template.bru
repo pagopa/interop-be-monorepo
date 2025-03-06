@@ -6,7 +6,7 @@ meta {
 }
 
 post {
-  url: {{host-bff}}/template/eservices/:eServiceId/descriptors/:descriptorId/interface:
+  url: {{host-catalog}}/templates/eservices/:eServiceId/descriptors/:descriptorId/interface:
   body: multipartForm
   auth: none
 }
@@ -15,6 +15,7 @@ params:path {
   eServiceId: {{eserviceId}}
   descriptorId: {{descriptorId}}
 }
+
 
 headers {
   Authorization: {{JWT}}
