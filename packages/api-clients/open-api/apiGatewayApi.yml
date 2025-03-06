@@ -2628,7 +2628,7 @@ components:
           required: false
     EServiceTemplateRef:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       required:
         - templateId
       properties:
@@ -2636,6 +2636,9 @@ components:
           type: string
           format: uuid
         instanceLabel:
+          type: string
+          format: uuid
+        templateVersionId:
           type: string
           format: uuid
         templateVersionId:
