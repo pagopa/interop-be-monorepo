@@ -651,7 +651,10 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
     id: uuid().primaryKey().notNull(),
     contentType: varchar("content_type").notNull(),
     path: varchar().notNull(),
-    createdAt: timestamp("created_at", { mode: "string" }).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     foreignKey({
@@ -714,7 +717,10 @@ export const tenantMailInReadmodelTenant = readmodelTenant.table(
     kind: varchar().notNull(),
     address: varchar().notNull(),
     description: varchar(),
-    createdAt: timestamp("created_at", { mode: "string" }).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
   },
   (table) => [
     foreignKey({
@@ -883,6 +889,7 @@ export const tenantVerifiedAttributeInReadmodelTenant = readmodelTenant.table(
     tenantId: uuid("tenant_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     assignmentTimestamp: timestamp("assignment_timestamp", {
+      withTimezone: true,
       mode: "string",
     }).notNull(),
   },
@@ -1036,6 +1043,7 @@ export const tenantDeclaredAttributeInReadmodelTenant = readmodelTenant.table(
     tenantId: uuid("tenant_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     assignmentTimestamp: timestamp("assignment_timestamp", {
+      withTimezone: true,
       mode: "string",
     }).notNull(),
     revocationTimestamp: timestamp("revocation_timestamp", {
@@ -1294,6 +1302,7 @@ export const tenantVerifiedAttributeRevokerInReadmodelTenant =
         mode: "string",
       }),
       revocationDate: timestamp("revocation_date", {
+        withTimezone: true,
         mode: "string",
       }).notNull(),
       delegationId: uuid("delegation_id"),
