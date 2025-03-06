@@ -1315,7 +1315,6 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      // Descriptor in state WaitingForApproval can be deleted
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(descriptorId, descriptor.state);
       }
@@ -1373,7 +1372,6 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      //  Descriptor in state WaitingForApproval can be updated
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptorId,
@@ -1444,7 +1442,6 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      //  Descriptor in state WaitingForApproval can be updated
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptorId,
@@ -1504,7 +1501,6 @@ export function catalogServiceBuilder(
       assertRequesterCanPublish(producerDelegation, eservice.data, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      // Descriptor in state WaitingForApproval can be published
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptor.id,
