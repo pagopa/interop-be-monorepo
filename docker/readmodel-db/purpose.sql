@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version_document (
   id UUID NOT NULL,
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
-  created_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
 );
