@@ -9,7 +9,6 @@ import {
   EventStoreConfig,
   FileManager,
   FileManagerConfig,
-  LoggerConfig,
   RateLimiter,
   ReadModelDbConfig,
   ReadModelRepository,
@@ -64,7 +63,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
+  fileManagerConfig?: FileManagerConfig & S3Config
 ): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -74,7 +73,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest
 ): Promise<{
   readModelRepository: ReadModelRepository;
@@ -86,7 +85,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
@@ -102,7 +101,7 @@ export function setupTestContainersVitest(
 export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   redisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
@@ -115,8 +114,6 @@ export async function setupTestContainersVitest(
   redisRateLimiter?: RateLimiter;
   cleanup: () => Promise<void>;
 }> {
-  const s3OriginalBucket = fileManagerConfig?.s3Bucket;
-
   let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
@@ -142,7 +139,7 @@ export async function setupTestContainersVitest(
   }
 
   if (fileManagerConfig) {
-    fileManager = initFileManager(fileManagerConfig);
+    fileManager = initFileManager({ ...fileManagerConfig, logLevel: "warn" });
   }
 
   if (emailManagerConfig) {
@@ -204,7 +201,10 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE eservice_template.events RESTART IDENTITY"
       );
 
-      if (s3OriginalBucket && fileManagerConfig && fileManager) {
+      if (fileManagerConfig && fileManager) {
+        const s3OriginalBucket =
+          fileManagerConfig?.s3Bucket ?? "interop-local-bucket";
+
         const files = await fileManager.listFiles(
           s3OriginalBucket,
           genericLogger

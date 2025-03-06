@@ -17734,6 +17734,9 @@ components:
         archivedAt:
           type: string
           format: date-time
+        suspendedAt:
+          type: string
+          format: date-time
         rejectionReasons:
           type: array
           items:
@@ -17824,6 +17827,7 @@ components:
         - name
         - contentType
         - prettyName
+        - checksum
       properties:
         id:
           type: string
@@ -17833,6 +17837,8 @@ components:
         contentType:
           type: string
         prettyName:
+          type: string
+        checksum:
           type: string
     UpdateEServiceDescriptorDocumentSeed:
       type: object
@@ -20277,12 +20283,15 @@ components:
       required:
         - id
         - name
+        - mode
       properties:
         id:
           type: string
           format: uuid
         name:
           type: string
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
         activeVersion:
           $ref: "#/components/schemas/CompactEServiceTemplateVersion"
         draftVersion:
