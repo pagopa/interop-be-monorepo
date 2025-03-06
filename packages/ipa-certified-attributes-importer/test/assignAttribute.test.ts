@@ -2,7 +2,11 @@
 import { randomUUID } from "crypto";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { TenantSeed, getAttributesToAssign } from "../src/index.js";
+import { genericLogger } from "pagopa-interop-commons";
+import {
+  TenantSeed,
+  getAttributesToAssign,
+} from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { attributes } from "./expectation.js";
 
 describe("GetAttributesToAssign", async () => {
@@ -63,7 +67,8 @@ describe("GetAttributesToAssign", async () => {
     const attributesToAssign = await getAttributesToAssign(
       ipaTenants,
       platformAttributes,
-      tenantSeed
+      tenantSeed,
+      genericLogger
     );
 
     expect(attributesToAssign).toEqual([
@@ -163,7 +168,8 @@ describe("GetAttributesToAssign", async () => {
     const attributesToAssign = await getAttributesToAssign(
       ipaTenants,
       platformAttributes,
-      tenantSeed
+      tenantSeed,
+      genericLogger
     );
 
     expect(attributesToAssign).toEqual([
