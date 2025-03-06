@@ -69,6 +69,7 @@ import {
   deleteTemplateInstanceDescriptorDocumentErrorMapper,
   upgradeEServiceInstanceErrorMapper,
   createEServiceInstanceFromTemplateErrorMapper,
+  addEServiceInterfceByTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -1150,8 +1151,26 @@ const eservicesRouter = (
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/instances/interface",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (_req, _res) => {
-        throw new Error("Not implemented");
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.addEserviceInterfaceByTemplate(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addEServiceInterfceByTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
     );
 

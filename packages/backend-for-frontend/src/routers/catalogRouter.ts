@@ -20,6 +20,7 @@ import { catalogServiceBuilder } from "../services/catalogService.js";
 import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
+  addEServiceInterfceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
   createEServiceDocumentErrorMapper,
   emptyErrorMapper,
@@ -928,7 +929,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            addEServiceInterfceByTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error adding interface for eService ${req.params.eServiceId}`

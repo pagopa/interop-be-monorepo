@@ -516,3 +516,20 @@ export const updateTemplateInstanceDescriptorDocumentErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addEServiceInterfceByTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateInterfaceDataNotValid",
+      "invalidInterfaceContentTypeDetected",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "eserviceTemplateInterfaceNotFound",
+      "interfaceExtractingInfoError",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
