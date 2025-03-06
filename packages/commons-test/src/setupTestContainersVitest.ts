@@ -9,7 +9,6 @@ import {
   EventStoreConfig,
   FileManager,
   FileManagerConfig,
-  LoggerConfig,
   RateLimiter,
   ReadModelDbConfig,
   ReadModelRepository,
@@ -64,7 +63,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
+  fileManagerConfig?: FileManagerConfig & S3Config
 ): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -74,7 +73,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest
 ): Promise<{
   readModelRepository: ReadModelRepository;
@@ -86,7 +85,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
@@ -102,7 +101,7 @@ export function setupTestContainersVitest(
 export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   redisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
@@ -140,7 +139,7 @@ export async function setupTestContainersVitest(
   }
 
   if (fileManagerConfig) {
-    fileManager = initFileManager(fileManagerConfig);
+    fileManager = initFileManager({ ...fileManagerConfig, logLevel: "warn" });
   }
 
   if (emailManagerConfig) {
