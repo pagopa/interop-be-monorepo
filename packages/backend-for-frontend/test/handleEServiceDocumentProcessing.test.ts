@@ -25,7 +25,8 @@ describe("extractEServiceUrlsFrom", () => {
 
   it("should process REST interface with OpenAPI 3.0", async () => {
     const result = await extractEServiceUrlsFrom(
-      mockDoc,
+      mockDoc.doc,
+      "INTERFACE",
       "Rest",
       "test-eServiceId"
     );
@@ -39,7 +40,12 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      extractEServiceUrlsFrom(unsupportedDoc, "Rest", eserviceId)
+      extractEServiceUrlsFrom(
+        unsupportedDoc.doc,
+        "INTERFACE",
+        "Rest",
+        eserviceId
+      )
     ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
   });
 
@@ -63,7 +69,12 @@ describe("extractEServiceUrlsFrom", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await extractEServiceUrlsFrom(soapDoc, "Soap", eserviceId);
+    const result = await extractEServiceUrlsFrom(
+      soapDoc.doc,
+      "INTERFACE",
+      "Soap",
+      eserviceId
+    );
     expect(result).toEqual(["http://example.com"]);
   });
 
@@ -74,7 +85,8 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     const result = await extractEServiceUrlsFrom(
-      documentDoc,
+      documentDoc.doc,
+      "DOCUMENT",
       "Rest",
       eserviceId
     );
@@ -104,7 +116,12 @@ describe("extractEServiceUrlsFrom", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await extractEServiceUrlsFrom(soapDoc, "Soap", eserviceId);
+    const result = await extractEServiceUrlsFrom(
+      soapDoc.doc,
+      "INTERFACE",
+      "Soap",
+      eserviceId
+    );
     expect(result).toEqual(["http://example1.com", "http://example2.com"]);
   });
 
@@ -129,7 +146,12 @@ describe("extractEServiceUrlsFrom", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await extractEServiceUrlsFrom(soapDoc, "Soap", eserviceId);
+    const result = await extractEServiceUrlsFrom(
+      soapDoc.doc,
+      "INTERFACE",
+      "Soap",
+      eserviceId
+    );
     expect(result).toEqual(["http://example.com"]);
   });
 
@@ -153,7 +175,7 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      extractEServiceUrlsFrom(soapDoc, "Soap", eserviceId)
+      extractEServiceUrlsFrom(soapDoc.doc, "INTERFACE", "Soap", eserviceId)
     ).rejects.toThrow(ZodError);
   });
 
@@ -177,7 +199,7 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      extractEServiceUrlsFrom(soapDoc, "Soap", eserviceId)
+      extractEServiceUrlsFrom(soapDoc.doc, "INTERFACE", "Soap", eserviceId)
     ).rejects.toThrow(ZodError);
   });
 
@@ -197,7 +219,8 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     const result = await extractEServiceUrlsFrom(
-      swaggerDoc,
+      swaggerDoc.doc,
+      "INTERFACE",
       "Rest",
       eserviceId
     );
@@ -219,7 +242,7 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      extractEServiceUrlsFrom(invalidDoc, "Rest", eserviceId)
+      extractEServiceUrlsFrom(invalidDoc.doc, "INTERFACE", "Rest", eserviceId)
     ).rejects.toThrow(openapiVersionNotRecognized("1.0"));
   });
 
@@ -233,7 +256,7 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as bffApi.createEServiceDocument_Body;
 
     await expect(
-      extractEServiceUrlsFrom(invalidDoc, "Rest", eserviceId)
+      extractEServiceUrlsFrom(invalidDoc.doc, "INTERFACE", "Rest", eserviceId)
     ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
   });
 
@@ -250,7 +273,12 @@ describe("extractEServiceUrlsFrom", () => {
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
 
-    const result = await extractEServiceUrlsFrom(yamlDoc, "Rest", eserviceId);
+    const result = await extractEServiceUrlsFrom(
+      yamlDoc.doc,
+      "INTERFACE",
+      "Rest",
+      eserviceId
+    );
     expect(result).toEqual(["http://example.com"]);
   });
 });

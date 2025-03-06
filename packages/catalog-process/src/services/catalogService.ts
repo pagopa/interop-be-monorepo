@@ -587,7 +587,7 @@ async function innerCreateEService(
 }
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
-async function innerUploadDocument(
+async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
@@ -965,14 +965,15 @@ export function catalogServiceBuilder(
         eservice.data.templateRef?.id
       );
 
-      const { eService: updatedEService, event } = await innerUploadDocument(
-        eservice,
-        descriptorId,
-        document,
-        undefined,
-        readModelService,
-        ctx
-      );
+      const { eService: updatedEService, event } =
+        await innerAddDocumentToEserviceEvent(
+          eservice,
+          descriptorId,
+          document,
+          undefined,
+          readModelService,
+          ctx
+        );
 
       await repository.createEvent(event);
 
@@ -2851,7 +2852,7 @@ export function catalogServiceBuilder(
           doc.name,
           ctx.logger
         );
-        const { eService, event } = await innerUploadDocument(
+        const { eService, event } = await innerAddDocumentToEserviceEvent(
           { data: lastEService, metadata: { version: index + 1 } },
           createdEService.descriptors[0].id,
           {
@@ -2994,7 +2995,7 @@ export async function createOpenApiInterfaceByTemplate(
       contentType,
       checksum
     ) =>
-      await innerUploadDocument(
+      await innerAddDocumentToEserviceEvent(
         eserviceWithMetadata,
         descriptorId,
         {

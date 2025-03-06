@@ -8,7 +8,6 @@ import {
   EServiceTemplate,
   EServiceTemplateVersion,
 } from "pagopa-interop-models";
-import { BffProcessConfig } from "../src/config/config.js";
 import {
   EServiceTemplateService,
   eserviceTemplateServiceBuilder,
@@ -16,7 +15,6 @@ import {
 import {
   AttributeProcessClient,
   CatalogProcessClient,
-  DelegationProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -35,19 +33,14 @@ export const createEServiceTeamplateService = (
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
   catalogProcessClient: CatalogProcessClient,
-  delegationProcessClient: DelegationProcessClient,
-  fileManager: FileManager,
-  config: BffProcessConfig
-  // eslint-disable-next-line max-params
+  fileManager: FileManager
 ): EServiceTemplateService =>
   eserviceTemplateServiceBuilder(
     eserviceProcessTemplateClient,
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
-    delegationProcessClient,
-    fileManager,
-    config
+    fileManager
   );
 
 export const toEserviceTemplateProcessMock = (
