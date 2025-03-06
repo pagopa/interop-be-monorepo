@@ -261,7 +261,7 @@ export async function enhanceEservice(
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     templateRef: eservice.templateRef
       ? {
-          id: eservice.templateRef.id,
+          templateId: eservice.templateRef.id,
           instanceId: eservice.templateRef.instanceId,
           templateVersionId: latestValidDescriptor.templateVersionRef?.id,
         }

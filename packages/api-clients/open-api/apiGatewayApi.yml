@@ -2628,14 +2628,17 @@ components:
           required: false
     EServiceTemplateRef:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       required:
-        - id
+        - templateId
       properties:
-        id:
+        templateId:
           type: string
           format: uuid
         instanceId:
+          type: string
+          format: uuid
+        templateVersionId:
           type: string
           format: uuid
     EServiceAttributes:
