@@ -619,7 +619,7 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating document ${documentId} of version ${eServiceTemplateVersionId} of EServiceTemplate ${eServiceTemplateId}`
       );
-      const { id, name, contentType, prettyName } =
+      const { id, name, contentType, prettyName, checksum } =
         await eserviceTemplateClient.updateEServiceTemplateDocumentById(
           updateEServiceTemplateVersionDocumentSeed,
           {
@@ -632,7 +632,7 @@ export function eserviceTemplateServiceBuilder(
           }
         );
 
-      return { id, name, contentType, prettyName };
+      return { id, name, contentType, prettyName, checksum };
     },
     addEserviceInterfaceByTemplate: async (
       eServiceId: EServiceId,
