@@ -28,7 +28,9 @@ export async function handleMessageV1(
       async (msg) => {
         const eserviceV1 = msg.data.eservice;
         if (!eserviceV1) {
-          throw genericInternalError("");
+          throw genericInternalError(
+            "eservice can't be missing in event message"
+          );
         }
 
         return await customReadModeService.upsertEService({
@@ -114,7 +116,7 @@ export async function handleMessageV1(
 
         if (!descriptorV1) {
           throw genericInternalError(
-            "descrptor can't be missing in event message"
+            "descriptor can't be missing in event message"
           );
         }
 
