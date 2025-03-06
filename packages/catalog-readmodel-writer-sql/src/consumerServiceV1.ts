@@ -54,6 +54,9 @@ export async function handleMessageV1(
           "document can't be missing in event message"
         );
       }
+
+      // important: this doesn't handle interface update
+
       await customReadModeService.upsertDocument({
         eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
         descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
@@ -96,7 +99,7 @@ export async function handleMessageV1(
       }
     })
     .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
-      await customReadModeService.deleteDocument({
+      await customReadModeService.deleteDocumentOrInterface({
         eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
         descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
         documentId: unsafeBrandId<EServiceDocumentId>(msg.data.documentId),

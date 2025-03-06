@@ -174,7 +174,7 @@ export function customReadModelServiceBuilder(
       );
     },
 
-    async deleteDocument({
+    async deleteDocumentOrInterface({
       eserviceId,
       descriptorId,
       documentId,
