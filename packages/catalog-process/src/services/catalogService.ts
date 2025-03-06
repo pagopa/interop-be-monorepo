@@ -307,6 +307,30 @@ const getTemplateDataFromEservice = (
   };
 };
 
+const evaluateEServiceTemplateVersionRef = (
+  templateVersionId: EServiceTemplateVersionId | undefined,
+  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
+): EServiceTemplateVersionRef | undefined => {
+  if (!templateVersionId) {
+    return undefined;
+  }
+
+  const templateRef = { id: templateVersionId };
+  const isInterface = documentSeed.kind === "INTERFACE";
+
+  const updateTemplateRef: EServiceTemplateVersionRef | undefined =
+    isInterface && documentSeed.interfaceTemplateMetadata
+      ? {
+          ...templateRef,
+          interfaceMetadata: {
+            ...documentSeed.interfaceTemplateMetadata,
+          },
+        }
+      : templateRef;
+
+  return updateTemplateRef;
+};
+
 const updateDescriptorState = (
   descriptor: Descriptor,
   newState: DescriptorState
@@ -633,21 +657,10 @@ async function innerAddDocumentToEserviceEvent(
     uploadDate: new Date(),
   };
 
-  const templateData: EServiceTemplateVersionRef | undefined =
-    documentSeed.interfaceTemplateMetadata && templateVersionId
-      ? {
-          ...documentSeed,
-          id: templateVersionId,
-        }
-      : undefined;
-
-  const updateTemplateRef = templateData
-    ? isInterface
-      ? templateData
-      : {
-          id: templateData.id,
-        }
-    : undefined;
+  const templateVersionRef = evaluateEServiceTemplateVersionRef(
+    templateVersionId,
+    documentSeed
+  );
 
   const updatedEService: EService = {
     ...eService.data,
@@ -655,7 +668,7 @@ async function innerAddDocumentToEserviceEvent(
       d.id === descriptorId
         ? {
             ...d,
-            templateVersionRef: updateTemplateRef,
+            templateVersionRef,
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
             serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
