@@ -178,9 +178,11 @@ EServiceItemsSQL): WithMetadata<EService> => {
     descriptors,
     riskAnalysis,
     mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
-    isClientAccessDelegable: eserviceSQL.isClientAccessDelegable || undefined,
-    isConsumerDelegable: eserviceSQL.isConsumerDelegable || undefined,
-    isSignalHubEnabled: eserviceSQL.isSignalHubEnabled || undefined,
+    ...(eserviceSQL.isClientAccessDelegable
+      ? { isClientAccessDelegable: true }
+      : {}),
+    ...(eserviceSQL.isConsumerDelegable ? { isConsumerDelegable: true } : {}),
+    ...(eserviceSQL.isSignalHubEnabled ? { isSignalHubEnabled: true } : {}),
   };
   return {
     data: eservice,
@@ -310,3 +312,200 @@ export const attributesSQLtoAttributes = (
 
   return Array.from(attributesMap.values());
 };
+
+export const toEServiceAggregator = (
+  queryRes: Array<{
+    eservice: EServiceSQL;
+    descriptor: EServiceDescriptorSQL | null;
+    interface: EServiceDescriptorInterfaceSQL | null;
+    document: EServiceDescriptorDocumentSQL | null;
+    attribute: EServiceDescriptorAttributeSQL | null;
+    rejection: EServiceDescriptorRejectionReasonSQL | null;
+    riskAnalysis: EServiceRiskAnalysisSQL | null;
+    riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
+    // templateBinding: EServiceTemplateBindingSQL | null;
+  }>
+): EServiceItemsSQL => {
+  const {
+    eservicesSQL,
+    riskAnalysesSQL,
+    riskAnalysisAnswersSQL,
+    descriptorsSQL,
+    interfacesSQL,
+    documentsSQL,
+    attributesSQL,
+    rejectionReasonsSQL,
+  } = toEServiceAggregatorArray(queryRes);
+
+  return {
+    eserviceSQL: eservicesSQL[0],
+    descriptorsSQL,
+    interfacesSQL,
+    documentsSQL,
+    attributesSQL,
+    riskAnalysesSQL,
+    riskAnalysisAnswersSQL,
+    rejectionReasonsSQL,
+    // templateBindingSQL: [],
+  };
+};
+
+export const toEServiceAggregatorArray = (
+  queryRes: Array<{
+    eservice: EServiceSQL;
+    descriptor: EServiceDescriptorSQL | null;
+    interface: EServiceDescriptorInterfaceSQL | null;
+    document: EServiceDescriptorDocumentSQL | null;
+    attribute: EServiceDescriptorAttributeSQL | null;
+    rejection: EServiceDescriptorRejectionReasonSQL | null;
+    riskAnalysis: EServiceRiskAnalysisSQL | null;
+    riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
+    // templateBinding: EServiceTemplateBindingSQL | null;
+  }>
+): {
+  eservicesSQL: EServiceSQL[];
+  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  // templateBindingSQL: EServiceTemplateBindingSQL[];
+} => {
+  const eserviceIdSet = new Set<string>();
+  const eservicesSQL: EServiceSQL[] = [];
+
+  const descriptorIdSet = new Set<string>();
+  const descriptorsSQL: EServiceDescriptorSQL[] = [];
+
+  const interfaceIdSet = new Set<string>();
+  const interfacesSQL: EServiceDescriptorDocumentSQL[] = [];
+
+  const documentIdSet = new Set<string>();
+  const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
+
+  const attributeIdSet = new Set<string>();
+  const attributesSQL: EServiceDescriptorAttributeSQL[] = [];
+
+  const riskAnalysisIdSet = new Set<string>();
+  const riskAnalysesSQL: EServiceRiskAnalysisSQL[] = [];
+
+  const riskAnalysisAnswerIdSet = new Set<string>();
+  const riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] = [];
+
+  const rejectionReasonsSet = new Set<string>();
+  const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
+
+  // eslint-disable-next-line sonarjs/cognitive-complexity
+  queryRes.forEach((row) => {
+    const eserviceSQL = row.eservice;
+
+    if (!eserviceIdSet.has(eserviceSQL.id)) {
+      eserviceIdSet.add(eserviceSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      eservicesSQL.push(eserviceSQL);
+    }
+
+    const descriptorSQL = row.descriptor;
+
+    if (descriptorSQL) {
+      if (!descriptorIdSet.has(descriptorSQL.id)) {
+        descriptorIdSet.add(descriptorSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        descriptorsSQL.push(descriptorSQL);
+      }
+
+      const interfaceSQL = row.interface;
+
+      if (interfaceSQL && !interfaceIdSet.has(interfaceSQL.id)) {
+        interfaceIdSet.add(interfaceSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        interfacesSQL.push(interfaceSQL);
+      }
+
+      const documentSQL = row.document;
+
+      if (documentSQL && !documentIdSet.has(documentSQL.id)) {
+        documentIdSet.add(documentSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        documentsSQL.push(documentSQL);
+      }
+
+      const attributeSQL = row.attribute;
+      if (
+        attributeSQL &&
+        !attributeIdSet.has(
+          uniqueKey([
+            attributeSQL.attributeId,
+            attributeSQL.descriptorId,
+            attributeSQL.groupId.toString(),
+          ])
+        )
+      ) {
+        attributeIdSet.add(
+          uniqueKey([
+            attributeSQL.attributeId,
+            attributeSQL.descriptorId,
+            attributeSQL.groupId.toString(),
+          ])
+        );
+        // eslint-disable-next-line functional/immutable-data
+        attributesSQL.push(attributeSQL);
+      }
+
+      const rejectionReasonSQL = row.rejection;
+      if (
+        rejectionReasonSQL &&
+        !rejectionReasonsSet.has(
+          uniqueKey([
+            rejectionReasonSQL.descriptorId,
+            rejectionReasonSQL.rejectedAt,
+          ])
+        )
+      ) {
+        rejectionReasonsSet.add(
+          uniqueKey([
+            rejectionReasonSQL.descriptorId,
+            rejectionReasonSQL.rejectedAt,
+          ])
+        );
+        // eslint-disable-next-line functional/immutable-data
+        rejectionReasonsSQL.push(rejectionReasonSQL);
+      }
+    }
+
+    const riskAnalysisSQL = row.riskAnalysis;
+    if (riskAnalysisSQL) {
+      if (!riskAnalysisIdSet.has(riskAnalysisSQL.id)) {
+        riskAnalysisIdSet.add(riskAnalysisSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        riskAnalysesSQL.push(riskAnalysisSQL);
+      }
+
+      const riskAnalysisAnswerSQL = row.riskAnalysisAnswer;
+      if (
+        riskAnalysisAnswerSQL &&
+        !riskAnalysisAnswerIdSet.has(riskAnalysisAnswerSQL.id)
+      ) {
+        riskAnalysisAnswerIdSet.add(riskAnalysisAnswerSQL.id);
+        // eslint-disable-next-line functional/immutable-data
+        riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
+      }
+    }
+  });
+
+  return {
+    eservicesSQL,
+    descriptorsSQL,
+    interfacesSQL,
+    documentsSQL,
+    attributesSQL,
+    riskAnalysesSQL,
+    riskAnalysisAnswersSQL,
+    rejectionReasonsSQL,
+    // templateBindingSQL: [],
+  };
+};
+
+const uniqueKey = (ids: string[]): string => ids.join("#");
