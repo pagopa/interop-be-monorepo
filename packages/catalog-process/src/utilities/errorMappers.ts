@@ -66,7 +66,7 @@ export const updateEServiceTemplateInstanceErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceNotInDraftState",

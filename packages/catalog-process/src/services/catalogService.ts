@@ -765,7 +765,10 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       assertIsDraftEservice(eservice.data);
 
@@ -879,7 +882,7 @@ export function catalogServiceBuilder(
             producerId: eservice.data.producerId,
           });
         if (eserviceWithSameName !== undefined) {
-          throw eServiceDuplicate(newName);
+          throw eServiceNameDuplicate(newName);
         }
       }
 

@@ -22,7 +22,7 @@ import { expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
 import {
   eServiceNotFound,
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   eserviceNotInDraftState,
   eServiceNotAnInstance,
 } from "../src/model/domain/errors.js";
@@ -412,7 +412,7 @@ describe("update eService Instance", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(eServiceDuplicate(`${template.name} test`));
+    ).rejects.toThrowError(eServiceNameDuplicate(`${template.name} test`));
   });
 
   it.each([
