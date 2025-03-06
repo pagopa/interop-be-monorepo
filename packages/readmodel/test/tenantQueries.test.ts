@@ -170,8 +170,146 @@ describe("Tenant Queries", () => {
     });
   });
   describe("Get all Tenants", () => {
-    it.skip("should get all tenants", () => {
-      expect(1).toEqual(0);
+    it("should get all tenants", async () => {
+      const tenantForVerifying: WithMetadata<Tenant> = {
+        data: {
+          ...getMockTenant(),
+        },
+        metadata: { version: 1 },
+      };
+      const tenantForRevoking: WithMetadata<Tenant> = {
+        data: {
+          ...getMockTenant(),
+        },
+        metadata: { version: 1 },
+      };
+      const delegationId = generateId<DelegationId>();
+      const tenantVerifier: TenantVerifier = {
+        id: tenantForVerifying.data.id,
+        verificationDate: new Date(),
+        expirationDate: new Date(),
+        extensionDate: new Date(),
+        delegationId,
+      };
+      const tenantRevoker: TenantRevoker = {
+        id: tenantForRevoking.data.id,
+        verificationDate: new Date(),
+        revocationDate: new Date(),
+        expirationDate: new Date(),
+        extensionDate: new Date(),
+        delegationId,
+      };
+
+      const tenantMail: TenantMail = {
+        ...getMockTenantMail(),
+        description: "mail description",
+      };
+      const tenantCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        assignmentTimestamp: new Date(),
+        revocationTimestamp: new Date(),
+      };
+
+      const tenantDeclaredAttribute: DeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        assignmentTimestamp: new Date(),
+        revocationTimestamp: new Date(),
+        delegationId,
+      };
+
+      const tenantVerifiedAttribute: VerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(),
+        verifiedBy: [tenantVerifier],
+        revokedBy: [tenantRevoker],
+        assignmentTimestamp: new Date(),
+      };
+
+      const tenantFeatureCertifier: TenantFeatureCertifier = {
+        type: tenantFeatureType.persistentCertifier,
+        certifierId: generateId(),
+      };
+
+      const tenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer = {
+        type: tenantFeatureType.delegatedConsumer,
+        availabilityTimestamp: new Date(),
+      };
+
+      const tenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer = {
+        type: tenantFeatureType.delegatedProducer,
+        availabilityTimestamp: new Date(),
+      };
+
+      const selfcareId = generateId();
+
+      const externalId: ExternalId = {
+        origin: "IPA",
+        value: generateId(),
+      };
+      const tenant1: WithMetadata<Tenant> = {
+        data: {
+          ...getMockTenant(),
+          selfcareId,
+          kind: tenantKind.PA,
+          subUnitType: tenantUnitType.AOO,
+          externalId,
+          updatedAt: new Date(),
+          mails: [tenantMail],
+          attributes: [
+            tenantCertifiedAttribute,
+            tenantDeclaredAttribute,
+            tenantVerifiedAttribute,
+          ],
+          features: [
+            tenantFeatureDelegatedProducer,
+            tenantFeatureDelegatedConsumer,
+            tenantFeatureCertifier,
+          ],
+        },
+        metadata: { version: 1 },
+      };
+      const tenantMail2: TenantMail = {
+        ...getMockTenantMail(),
+        description: "mail description",
+      };
+      const tenant2: WithMetadata<Tenant> = {
+        data: {
+          ...getMockTenant(),
+          selfcareId,
+          kind: tenantKind.PA,
+          subUnitType: tenantUnitType.AOO,
+          externalId,
+          updatedAt: new Date(),
+          mails: [tenantMail2],
+          attributes: [
+            tenantCertifiedAttribute,
+            tenantDeclaredAttribute,
+            tenantVerifiedAttribute,
+          ],
+          features: [
+            tenantFeatureDelegatedProducer,
+            tenantFeatureDelegatedConsumer,
+            tenantFeatureCertifier,
+          ],
+        },
+        metadata: { version: 1 },
+      };
+
+      await tenantReadModelService.upsertTenant(tenantForVerifying);
+      await tenantReadModelService.upsertTenant(tenantForRevoking);
+      await tenantReadModelService.upsertTenant(tenant1);
+      await tenantReadModelService.upsertTenant(tenant2);
+
+      const retrievedTenants = await tenantReadModelService.getAllTenants();
+
+      expect(retrievedTenants).toHaveLength(4);
+      expect(retrievedTenants).toEqual(
+        expect.arrayContaining([
+          tenant1,
+          tenant2,
+          tenantForVerifying,
+          tenantForRevoking,
+        ])
+      );
     });
     it("should *not* get any tenants", async () => {
       const retrievedTenants = await tenantReadModelService.getAllTenants();
