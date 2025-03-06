@@ -1,7 +1,9 @@
 import { inject, afterEach } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
+import { customReadModelServiceBuilder } from "../src/readModelService.js";
 
-export const { cleanup, readModelRepository } = await setupTestContainersVitest(
+export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
@@ -13,4 +15,9 @@ export const { cleanup, readModelRepository } = await setupTestContainersVitest(
 
 afterEach(cleanup);
 
-export const eservices = readModelRepository.eservices;
+export const catalogReadModelService =
+  catalogReadModelServiceBuilder(readModelDB);
+export const readModelService = customReadModelServiceBuilder(
+  readModelDB,
+  catalogReadModelService
+);
