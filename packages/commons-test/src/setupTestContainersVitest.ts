@@ -115,8 +115,6 @@ export async function setupTestContainersVitest(
   redisRateLimiter?: RateLimiter;
   cleanup: () => Promise<void>;
 }> {
-  const s3OriginalBucket = fileManagerConfig?.s3Bucket;
-
   let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
@@ -204,7 +202,10 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE eservice_template.events RESTART IDENTITY"
       );
 
-      if (s3OriginalBucket && fileManagerConfig && fileManager) {
+      if (fileManagerConfig && fileManager) {
+        const s3OriginalBucket =
+          fileManagerConfig?.s3Bucket ?? "interop-local-bucket";
+
         const files = await fileManager.listFiles(
           s3OriginalBucket,
           genericLogger
