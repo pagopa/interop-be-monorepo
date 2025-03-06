@@ -17819,6 +17819,8 @@ components:
           type: string
         interfaceMetadata:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
+        isNewTemplateVersionAvailable:
+          type: boolean
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -18454,6 +18456,8 @@ components:
           $ref: "#/components/schemas/CompactProducerDescriptor"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        isNewTemplateVersionAvailable:
+          type: boolean
     ProducerEServices:
       type: object
       additionalProperties: false
