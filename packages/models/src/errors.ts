@@ -193,6 +193,10 @@ const errorCodes = {
   badBearerToken: "10007",
   invalidKeyLength: "10003",
   notAnRSAKey: "10004",
+  invalidEserviceInterfaceFileDetected: "10005",
+  openapiVersionNotRecognized: "10006",
+  interfaceExtractingInfoError: "10007",
+  invalidInterfaceContentTypeDetected: "10008",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -438,5 +442,45 @@ export function notAnRSAKey(): ApiError<CommonErrorCodes> {
     detail: `Provided key is not an RSA key`,
     code: "notAnRSAKey",
     title: "Not an RSA key",
+  });
+}
+
+export function invalidInterfaceFileDetected(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService or EserveiceTemplate with ID ${resourceId} is invalid`,
+    code: "invalidEserviceInterfaceFileDetected",
+    title: "Invalid interface file detected",
+  });
+}
+
+export function openapiVersionNotRecognized(
+  version: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `OpenAPI version not recognized - ${version}`,
+    code: "openapiVersionNotRecognized",
+    title: "OpenAPI version not recognized",
+  });
+}
+
+export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting info from interface file`,
+    code: "interfaceExtractingInfoError",
+    title: "Error extracting info from interface file",
+  });
+}
+
+export function invalidInterfaceContentTypeDetected(
+  eServiceId: string,
+  contentType: string,
+  technology: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
+    code: "invalidInterfaceContentTypeDetected",
+    title: "Invalid content type detected",
   });
 }

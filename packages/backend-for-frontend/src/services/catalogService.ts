@@ -15,6 +15,8 @@ import {
   createPollingByCondition,
   formatDateyyyyMMddThhmmss,
   getAllFromPaginated,
+  verifyAndCreateDocument,
+  verifyAndCreateImportedDoc,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -47,10 +49,6 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import {
-  verifyAndCreateDocument,
-  verifyAndCreateImportedDoc,
-} from "../utilities/eserviceDocumentUtils.js";
 import {
   cloneEServiceDocument,
   createDescriptorDocumentZipFile,
@@ -564,23 +562,32 @@ export function catalogServiceBuilder(
 
       await verifyAndCreateDocument(
         fileManager,
-        eService.id,
+        unsafeBrandId(eService.id),
         apiTechnologyToTechnology(eService.technology),
-        doc.prettyName,
         doc.kind,
         doc.doc,
         documentId,
         config.eserviceDocumentsContainer,
         config.eserviceDocumentsPath,
-        async (filePath, serverUrls, checksum) => {
+        doc.prettyName,
+        async (
+          documentId,
+          fileName,
+          filePath,
+          prettyName,
+          kind,
+          serverUrls,
+          contentType,
+          checksum
+        ) => {
           await catalogProcessClient.createEServiceDocument(
             {
               documentId,
-              prettyName: doc.prettyName,
-              fileName: doc.doc.name,
+              prettyName,
+              fileName,
               filePath,
-              kind: doc.kind,
-              contentType: doc.doc.type,
+              kind,
+              contentType,
               checksum,
               serverUrls,
             },
@@ -1372,17 +1379,49 @@ export function catalogServiceBuilder(
         await pollEServiceById((result) => result.riskAnalysis.length > 0);
       }
 
+      const createEserviceDocumentRequest = async (
+        documentId: string,
+        fileName: string,
+        filePath: string,
+        prettyName: string,
+        kind: "INTERFACE" | "DOCUMENT",
+        serverUrls: string[],
+        contentType: string,
+        checksum: string
+      ) =>
+        await catalogProcessClient.createEServiceDocument(
+          {
+            documentId,
+            prettyName,
+            fileName,
+            filePath,
+            kind,
+            contentType,
+            checksum,
+            serverUrls,
+          },
+          {
+            headers: context.headers,
+            params: {
+              eServiceId: eservice.id,
+              descriptorId: descriptor.id,
+            },
+          }
+        );
+
       const descriptor = eservice.descriptors[0];
       if (descriptorInterface) {
         await verifyAndCreateImportedDoc(
-          catalogProcessClient,
           fileManager,
-          eservice,
-          descriptor,
+          unsafeBrandId(eservice.id),
+          apiTechnologyToTechnology(eservice.technology),
           entriesMap,
           descriptorInterface,
           "INTERFACE",
-          context
+          createEserviceDocumentRequest,
+          config.eserviceDocumentsContainer,
+          config.eserviceDocumentsPath,
+          context.logger
         );
       }
       await pollEServiceById((result) =>
@@ -1393,14 +1432,16 @@ export function catalogServiceBuilder(
 
       for (const doc of importedEservice.descriptor.docs) {
         await verifyAndCreateImportedDoc(
-          catalogProcessClient,
           fileManager,
-          eservice,
-          descriptor,
+          unsafeBrandId(eservice.id),
+          apiTechnologyToTechnology(eservice.technology),
           entriesMap,
           doc,
           "DOCUMENT",
-          context
+          createEserviceDocumentRequest,
+          config.eserviceDocumentsContainer,
+          config.eserviceDocumentsPath,
+          context.logger
         );
         await pollEServiceById((result) =>
           result.descriptors.some(

@@ -153,3 +153,27 @@ export const EService = z.object({
 });
 
 export type EService = z.infer<typeof EService>;
+
+export const eserviceInterfaceAllowedFileType = {
+  json: "json",
+  yaml: "yaml",
+  wsdl: "wsdl",
+  xml: "xml",
+} as const;
+export const EserviceInterfaceAllowedFileType = z.enum([
+  Object.values(eserviceInterfaceAllowedFileType)[0],
+  ...Object.values(eserviceInterfaceAllowedFileType).slice(1),
+]);
+export type EserviceInterfaceAllowedFileType = z.infer<
+  typeof EserviceInterfaceAllowedFileType
+>;
+
+export type EserviceRestInterfaceType = Omit<
+  EserviceInterfaceAllowedFileType,
+  "wsdl" | "xml"
+>;
+
+export type EserviceSoapInterfaceType = Omit<
+  EserviceInterfaceAllowedFileType,
+  "json" | "yaml"
+>;

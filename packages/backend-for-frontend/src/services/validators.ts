@@ -2,15 +2,12 @@ import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle
 import {
   agreementApi,
   catalogApi,
-  delegationApi,
-  eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   delegationKind,
   delegationState,
   EServiceId,
-  EServiceTemplateVersionId,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -24,7 +21,6 @@ import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
   eserviceIsNotDraft,
-  eserviceTemplateNotPublished,
   invalidEServiceRequester,
   notValidDescriptor,
 } from "../model/errors.js";
@@ -87,39 +83,6 @@ export function assertRequesterIsProducer(
   if (!isRequesterEserviceProducer(requesterId, eservice)) {
     throw invalidEServiceRequester(eservice.id, requesterId);
   }
-}
-
-export function verifyRequesterIsProducerOrDelegateProducer(
-  requesterId: TenantId,
-  eservice: catalogApi.EService,
-  activeProducerDelegations: delegationApi.Delegation[] | undefined
-): void {
-  if (
-    !isRequesterEserviceProducer(requesterId, eservice) &&
-    !isRequesterProducerDelegate(
-      eservice,
-      requesterId,
-      activeProducerDelegations
-    )
-  ) {
-    throw invalidEServiceRequester(eservice.id, requesterId);
-  }
-}
-
-export function isRequesterProducerDelegate(
-  eservice: catalogApi.EService,
-  requesterId: TenantId,
-  activeProducerDelegations: delegationApi.Delegation[] | undefined
-): boolean {
-  const producerDelegation = activeProducerDelegations?.at(0);
-  return (
-    producerDelegation?.delegateId === requesterId &&
-    producerDelegation?.delegatorId === eservice.producerId &&
-    producerDelegation?.kind ===
-      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER &&
-    producerDelegation?.state === delegationApi.DelegationState.Values.ACTIVE &&
-    producerDelegation?.eserviceId !== eservice.id
-  );
 }
 
 export async function assertRequesterCanActAsProducer(
@@ -243,18 +206,5 @@ export function assertIsDraftEservice(eservice: catalogApi.EService): void {
     )
   ) {
     throw eserviceIsNotDraft(eservice.id);
-  }
-}
-
-export function assertTemplateIsPublished(
-  template: eserviceTemplateApi.EServiceTemplate,
-  versionId: EServiceTemplateVersionId
-): void {
-  const templateVersion = template.versions.find((v) => v.id === versionId);
-  if (
-    templateVersion?.state !==
-    eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
-  ) {
-    throw eserviceTemplateNotPublished(template.id);
   }
 }

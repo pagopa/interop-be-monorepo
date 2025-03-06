@@ -62,9 +62,7 @@ const catalogRouter = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
-    delegationProcessClient,
-    fileManager,
-    config
+    fileManager
   );
 
   catalogRouter
