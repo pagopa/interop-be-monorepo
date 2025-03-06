@@ -84,6 +84,7 @@ export async function handleMessageV1(
           descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
           descriptorInterface: fromDocumentV1(documentV1),
           metadataVersion: msg.version,
+          serverUrls: msg.data.serverUrls,
         });
       } else {
         await customReadModeService.upsertDocument({

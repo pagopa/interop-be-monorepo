@@ -115,10 +115,12 @@ export function customReadModelServiceBuilder(
       descriptorId,
       descriptorInterface,
       metadataVersion,
+      serverUrls,
     }: {
       eserviceId: EServiceId;
       descriptorId: DescriptorId;
       descriptorInterface: Document;
+      serverUrls: string[];
       metadataVersion: number;
     }): Promise<void> {
       const interfaceSQL = documentToDocumentSQL(
@@ -159,6 +161,18 @@ export function customReadModelServiceBuilder(
           .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
           .values(interfaceSQL);
 
+        await tx
+          .update(eserviceDescriptorInReadmodelCatalog)
+          .set({ serverUrls })
+          .where(
+            and(
+              eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
+              lte(
+                eserviceDescriptorInReadmodelCatalog.metadataVersion,
+                metadataVersion
+              )
+            )
+          );
         // TODO serverUrls
       });
     },

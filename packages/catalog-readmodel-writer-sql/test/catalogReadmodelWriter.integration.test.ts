@@ -390,14 +390,22 @@ describe("database test", async () => {
           data: eservice,
           metadata: { version: 1 },
         });
+
+        const updatedServerUrls = ["updated.pagopa.it"];
         const updatedEService: EService = {
           ...eservice,
-          descriptors: [{ ...draftDescriptor, interface: descriptorInterface }],
+          descriptors: [
+            {
+              ...draftDescriptor,
+              interface: descriptorInterface,
+              serverUrls: updatedServerUrls,
+            },
+          ],
         };
         const payload: EServiceDocumentAddedV1 = {
           eserviceId: eservice.id,
           descriptorId: draftDescriptor.id,
-          serverUrls: ["pagopa.it"],
+          serverUrls: updatedServerUrls,
           document: toDocumentV1(descriptorInterface),
           isInterface: true,
         };
