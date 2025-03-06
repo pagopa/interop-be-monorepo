@@ -136,6 +136,7 @@ export async function handleMessageV2(
             purposeId: purpose.id,
             purposeState,
             purposeVersionId,
+            purposeConsumerId: purpose.consumerId,
             logger,
           });
         }
@@ -160,6 +161,7 @@ export async function handleMessageV2(
           purposeId: purpose.id,
           purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
           purposeVersionId: unsafeBrandId(msg.data.versionId),
+          purposeConsumerId: purpose.consumerId,
           logger,
         });
       }
