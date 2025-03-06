@@ -173,7 +173,6 @@ export function customReadModelServiceBuilder(
               )
             )
           );
-        // TODO serverUrls
       });
     },
 
