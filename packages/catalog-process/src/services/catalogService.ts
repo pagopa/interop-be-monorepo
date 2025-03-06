@@ -1368,7 +1368,10 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 

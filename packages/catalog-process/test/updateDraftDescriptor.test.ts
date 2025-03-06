@@ -586,6 +586,8 @@ describe("update draft descriptor", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateInstanceNotAllowed(template.id));
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(eservice.id, template.id)
+    );
   });
 });
