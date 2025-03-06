@@ -53,7 +53,6 @@ import {
   generateId,
   technology,
   toEServiceV2,
-  toReadModelEService,
 } from "pagopa-interop-models";
 import { format } from "date-fns";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
@@ -84,7 +83,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(mockEService),
+        data: mockEService,
         metadata: { version: 1 },
       });
     });
@@ -124,7 +123,7 @@ describe("database test", async () => {
         clonedEService.id
       );
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(clonedEService),
+        data: clonedEService,
         metadata: { version: 1 },
       });
     });
@@ -157,7 +156,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -192,7 +191,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -251,9 +250,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -295,7 +292,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -346,9 +343,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -421,9 +416,7 @@ describe("database test", async () => {
           mockEService.id
         );
 
-        expect(retrievedEservice?.data).toEqual(
-          toReadModelEService(updatedEService)
-        );
+        expect(retrievedEservice?.data).toEqual(updatedEService);
         expect(retrievedEservice?.metadata).toEqual({ version: 2 });
       });
 
@@ -469,9 +462,7 @@ describe("database test", async () => {
           mockEService.id
         );
 
-        expect(retrievedEservice?.data).toEqual(
-          toReadModelEService(updatedEService)
-        );
+        expect(retrievedEservice?.data).toEqual(updatedEService);
         expect(retrievedEservice?.metadata).toEqual({ version: 2 });
       });
     });
@@ -520,9 +511,7 @@ describe("database test", async () => {
           mockEService.id
         );
 
-        expect(retrievedEservice?.data).toEqual(
-          toReadModelEService(updatedEService)
-        );
+        expect(retrievedEservice?.data).toEqual(updatedEService);
         expect(retrievedEservice?.metadata).toEqual({ version: 2 });
       });
 
@@ -567,9 +556,7 @@ describe("database test", async () => {
           mockEService.id
         );
 
-        expect(retrievedEservice?.data).toEqual(
-          toReadModelEService(updatedEService)
-        );
+        expect(retrievedEservice?.data).toEqual(updatedEService);
         expect(retrievedEservice?.metadata).toEqual({ version: 2 });
       });
     });
@@ -611,9 +598,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -660,9 +645,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -702,7 +685,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -755,7 +738,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(mockEService),
+        data: mockEService,
         metadata: { version: 1 },
       });
     });
@@ -787,7 +770,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -823,6 +806,12 @@ describe("database test", async () => {
         descriptors: [
           {
             ...sourceDescriptor,
+            id: generateId(),
+            interface: {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              ...sourceDescriptor.interface!,
+              id: generateId(),
+            },
             publishedAt: undefined,
             state: descriptorState.draft,
           },
@@ -848,9 +837,7 @@ describe("database test", async () => {
         clonedEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(clonedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(clonedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 1 });
     });
 
@@ -890,9 +877,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -933,7 +918,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -979,9 +964,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1028,9 +1011,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1079,9 +1060,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1128,9 +1107,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1176,9 +1153,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1225,9 +1200,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1269,9 +1242,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1314,9 +1285,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1363,9 +1332,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1412,9 +1379,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1460,9 +1425,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1506,9 +1469,7 @@ describe("database test", async () => {
         mockEService.id
       );
 
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
 
@@ -1541,7 +1502,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -1595,7 +1556,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -1635,7 +1596,7 @@ describe("database test", async () => {
       );
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(updatedEService),
+        data: updatedEService,
         metadata: { version: 2 },
       });
     });
@@ -1676,9 +1637,7 @@ describe("database test", async () => {
       const retrievedEservice = await catalogReadModelService.getEServiceById(
         mockEService.id
       );
-      expect(retrievedEservice?.data).toEqual(
-        toReadModelEService(updatedEService)
-      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
   });
