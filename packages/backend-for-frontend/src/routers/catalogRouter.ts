@@ -603,7 +603,7 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .put("/templates/eservices/:eServiceId", async (req, res) => {
+    .post("/templates/eservices/:eServiceId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const createdResource =

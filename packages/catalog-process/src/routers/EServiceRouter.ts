@@ -273,7 +273,7 @@ const eservicesRouter = (
         }
       }
     )
-    .put(
+    .post(
       "/templates/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
