@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 import { randomUUID } from "crypto";
 import { Readable } from "stream";
 import SwaggerParser from "@apidevtools/swagger-parser";
@@ -12,6 +11,7 @@ import {
   EServiceId,
   eserviceInterfaceAllowedFileType,
   EserviceInterfaceAllowedFileType,
+  EserviceRestInterfaceType,
   genericError,
   interfaceExtractingInfoError,
   invalidInterfaceContentTypeDetected,
@@ -69,16 +69,13 @@ const getInterfaceFileType = (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const parseOpenApi = (
   // Temporary type workaround to avoid Wsdl and Xml
-  fileType: Omit<EserviceInterfaceAllowedFileType, "wsdl" | "xml">,
-  file: string,
-  eServiceId: string
+  fileType: EserviceRestInterfaceType,
+  file: string
 ) =>
   match(fileType)
     .with("json", () => JSON.parse(file))
     .with("yaml", () => YAML.parse(file))
-    .otherwise(() => {
-      throw invalidInterfaceFileDetected(eServiceId);
-    });
+    .exhaustive();
 
 const retrieveServerUrlsOpenApiV2 = (
   openApi: Record<string, unknown>
@@ -111,11 +108,10 @@ const retriesceServerUrlsOpenApiV3 = (
 };
 
 const processRestInterface = (
-  fileType: "json" | "yaml",
-  file: string,
-  eServiceId: string
+  fileType: EserviceRestInterfaceType,
+  file: string
 ): string[] => {
-  const openApi = parseOpenApi(fileType, file, eServiceId);
+  const openApi = parseOpenApi(fileType, file);
   const { data: version, error } = z.string().safeParse(openApi.openapi);
 
   if (error) {
@@ -186,12 +182,13 @@ export const interpolateOpenApiSpec = async (
     .with(
       eserviceInterfaceAllowedFileType.json,
       eserviceInterfaceAllowedFileType.yaml,
-      (fileType) => parseOpenApi(fileType, file, eservice.id)
+      (fileType) => parseOpenApi(fileType, file)
     )
     .otherwise(() => {
       throw invalidInterfaceFileDetected(eservice.id);
     });
 
+  /* eslint-disable functional/immutable-data */
   openApiObject.info.termsOfService =
     eserviceInstanceInterfaceData.termsAndConditionsUrl;
   openApiObject.info.contact = {
@@ -204,6 +201,7 @@ export const interpolateOpenApiSpec = async (
       url,
     })
   );
+  /* eslint-enable */
 
   try {
     await SwaggerParser.validate(openApiObject);
@@ -236,7 +234,7 @@ export const extractEServiceUrlsFrom = async (
           technology: technology.rest,
           fileType: P.union("json", "yaml"),
         },
-        (f) => processRestInterface(f.fileType, fileContent, resourceId)
+        (f) => processRestInterface(f.fileType, fileContent)
       )
       .with(
         {

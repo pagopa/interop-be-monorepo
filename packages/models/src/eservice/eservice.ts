@@ -168,12 +168,12 @@ export type EserviceInterfaceAllowedFileType = z.infer<
   typeof EserviceInterfaceAllowedFileType
 >;
 
-export type EserviceRestInterfaceType = Omit<
-  EserviceInterfaceAllowedFileType,
-  "wsdl" | "xml"
->;
-
-export type EserviceSoapInterfaceType = Omit<
+export type EserviceRestInterfaceType = Extract<
   EserviceInterfaceAllowedFileType,
   "json" | "yaml"
+>;
+
+export type EserviceSoapInterfaceType = Extract<
+  EserviceInterfaceAllowedFileType,
+  "wsdl" | "xml"
 >;
