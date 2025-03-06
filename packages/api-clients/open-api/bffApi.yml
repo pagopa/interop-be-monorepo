@@ -2971,7 +2971,7 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Updates an eservice template draft descriptor
+      summary: Updates an eservice template instance draft descriptor
       operationId: updateDraftDescriptorTemplateInstance
       parameters:
         - name: eServiceId
