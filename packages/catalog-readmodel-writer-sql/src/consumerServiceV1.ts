@@ -77,12 +77,22 @@ export async function handleMessageV1(
           "document can't be missing in event message"
         );
       }
-      await customReadModeService.upsertDocument({
-        eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-        descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
-        document: fromDocumentV1(documentV1),
-        metadataVersion: msg.version,
-      });
+
+      if (msg.data.isInterface) {
+        await customReadModeService.upsertInterface({
+          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          descriptorInterface: fromDocumentV1(documentV1),
+          metadataVersion: msg.version,
+        });
+      } else {
+        await customReadModeService.upsertDocument({
+          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          document: fromDocumentV1(documentV1),
+          metadataVersion: msg.version,
+        });
+      }
     })
     .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
       await customReadModeService.deleteDocument({

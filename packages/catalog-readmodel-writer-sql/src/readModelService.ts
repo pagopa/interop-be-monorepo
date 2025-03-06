@@ -55,7 +55,7 @@ export function customReadModelServiceBuilder(
             )
           );
 
-        await updateESserviceVersionInEServiceTable(
+        await updateEServiceVersionInEServiceTable(
           tx,
           eserviceId,
           metadataVersion
@@ -82,10 +82,17 @@ export function customReadModelServiceBuilder(
       );
 
       await db.transaction(async (tx) => {
+        await updateEServiceVersionInEServiceTable(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
+
         await tx
           .delete(eserviceDescriptorDocumentInReadmodelCatalog)
           .where(
             and(
+              eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id),
               eq(
                 eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
                 eserviceId
@@ -94,7 +101,6 @@ export function customReadModelServiceBuilder(
                 eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
                 descriptorId
               ),
-              eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id),
               lte(
                 eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
                 metadataVersion
@@ -105,12 +111,6 @@ export function customReadModelServiceBuilder(
         await tx
           .insert(eserviceDescriptorDocumentInReadmodelCatalog)
           .values(documentSQL);
-
-        await updateESserviceVersionInEServiceTable(
-          tx,
-          eserviceId,
-          metadataVersion
-        );
       });
     },
 
@@ -133,6 +133,12 @@ export function customReadModelServiceBuilder(
       );
 
       await db.transaction(async (tx) => {
+        await updateEServiceVersionInEServiceTable(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
+
         await tx
           .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
           .where(
@@ -160,12 +166,6 @@ export function customReadModelServiceBuilder(
           .values(interfaceSQL);
 
         // TODO serverUrls
-
-        await updateESserviceVersionInEServiceTable(
-          tx,
-          eserviceId,
-          metadataVersion
-        );
       });
     },
 
@@ -204,10 +204,9 @@ export function customReadModelServiceBuilder(
           );
 
         if (interfaceDeletion.rowCount === 1) {
-          // TODO tests if serverUrls is actually set to undefined
           await tx
             .update(eserviceDescriptorInReadmodelCatalog)
-            .set({ serverUrls: undefined })
+            .set({ serverUrls: [] })
             .where(
               and(
                 eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
@@ -231,7 +230,7 @@ export function customReadModelServiceBuilder(
             );
         }
 
-        await updateESserviceVersionInEServiceTable(
+        await updateEServiceVersionInEServiceTable(
           tx,
           eserviceId,
           metadataVersion
@@ -261,13 +260,22 @@ export function customReadModelServiceBuilder(
       );
 
       await db.transaction(async (tx) => {
+        await updateEServiceVersionInEServiceTable(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
+
         await tx
           .delete(eserviceDescriptorInReadmodelCatalog)
           .where(
             and(
               eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id),
               eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
-              lte(eserviceInReadmodelCatalog.metadataVersion, metadataVersion)
+              lte(
+                eserviceDescriptorInReadmodelCatalog.metadataVersion,
+                metadataVersion
+              )
             )
           );
 
@@ -298,12 +306,6 @@ export function customReadModelServiceBuilder(
             .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
             .values(rejectionReasonSQL);
         }
-
-        await updateESserviceVersionInEServiceTable(
-          tx,
-          eserviceId,
-          metadataVersion
-        );
       });
     },
   };
@@ -314,7 +316,7 @@ export type TransactionType = Parameters<
   Parameters<DrizzleReturnType["transaction"]>[0]
 >[0];
 
-const updateESserviceVersionInEServiceTable = async (
+const updateEServiceVersionInEServiceTable = async (
   tx: TransactionType,
   eserviceId: EServiceId,
   newVersion: number
