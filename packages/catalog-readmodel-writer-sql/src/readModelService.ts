@@ -42,18 +42,16 @@ export function customReadModelServiceBuilder(
       metadataVersion: number;
     }): Promise<void> {
       await db.transaction(async (tx) => {
-        await tx
-          .delete(eserviceDescriptorInReadmodelCatalog)
-          .where(
-            and(
-              eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
-              eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
-              lte(
-                eserviceDescriptorInReadmodelCatalog.metadataVersion,
-                metadataVersion
-              )
+        await tx.delete(eserviceDescriptorInReadmodelCatalog).where(
+          and(
+            eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
+            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId), // TODO redundant?
+            lte(
+              eserviceDescriptorInReadmodelCatalog.metadataVersion,
+              metadataVersion
             )
-          );
+          )
+        );
 
         await updateEServiceVersionInEServiceTable(
           tx,
@@ -88,25 +86,23 @@ export function customReadModelServiceBuilder(
           metadataVersion
         );
 
-        await tx
-          .delete(eserviceDescriptorDocumentInReadmodelCatalog)
-          .where(
-            and(
-              eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id),
-              eq(
-                eserviceDescriptorDocumentInReadmodelCatalog.eserviceId,
-                eserviceId
-              ),
-              eq(
-                eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
-                descriptorId
-              ),
-              lte(
-                eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
-                metadataVersion
-              )
+        await tx.delete(eserviceDescriptorDocumentInReadmodelCatalog).where(
+          and(
+            eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id),
+            eq(
+              eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, // TODO redundant?
+              eserviceId
+            ),
+            eq(
+              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId, // TODO redundant?
+              descriptorId
+            ),
+            lte(
+              eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
+              metadataVersion
             )
-          );
+          )
+        );
 
         await tx
           .insert(eserviceDescriptorDocumentInReadmodelCatalog)
@@ -139,28 +135,26 @@ export function customReadModelServiceBuilder(
           metadataVersion
         );
 
-        await tx
-          .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
-          .where(
-            and(
-              eq(
-                eserviceDescriptorInterfaceInReadmodelCatalog.id,
-                descriptorInterface.id
-              ),
-              eq(
-                eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId,
-                descriptorId
-              ),
-              eq(
-                eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId,
-                eserviceId
-              ),
-              lte(
-                eserviceDescriptorInterfaceInReadmodelCatalog.metadataVersion,
-                metadataVersion
-              )
+        await tx.delete(eserviceDescriptorInterfaceInReadmodelCatalog).where(
+          and(
+            eq(
+              eserviceDescriptorInterfaceInReadmodelCatalog.id,
+              descriptorInterface.id
+            ),
+            eq(
+              eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId, // TODO redundant?
+              descriptorId
+            ),
+            eq(
+              eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId, // TODO redundant?
+              eserviceId
+            ),
+            lte(
+              eserviceDescriptorInterfaceInReadmodelCatalog.metadataVersion,
+              metadataVersion
             )
-          );
+          )
+        );
         await tx
           .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
           .values(interfaceSQL);
@@ -266,18 +260,16 @@ export function customReadModelServiceBuilder(
           metadataVersion
         );
 
-        await tx
-          .delete(eserviceDescriptorInReadmodelCatalog)
-          .where(
-            and(
-              eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id),
-              eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
-              lte(
-                eserviceDescriptorInReadmodelCatalog.metadataVersion,
-                metadataVersion
-              )
+        await tx.delete(eserviceDescriptorInReadmodelCatalog).where(
+          and(
+            eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id),
+            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId), // TODO redundant?
+            lte(
+              eserviceDescriptorInReadmodelCatalog.metadataVersion,
+              metadataVersion
             )
-          );
+          )
+        );
 
         await tx
           .insert(eserviceDescriptorInReadmodelCatalog)
