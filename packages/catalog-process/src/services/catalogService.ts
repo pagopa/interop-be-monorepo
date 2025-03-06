@@ -3034,60 +3034,6 @@ export async function createOpenApiInterfaceByTemplate(
         ctx
       ),
     ctx.logger
-
-    /*
-    const documentPath = await fileManager.storeBytes(
-      {
-        bucket,
-        path,
-        resourceId: documentId,
-        name: eserviceTemplateInterface.name,
-        content: await fileToBuffer(updatedInterfaceFile),
-      },
-      logger
-    );
-
-    const updatedEservice =
-      await catalogProcessClient.addEServiceInterfaceDocumentByTemplateId(
-        eserviceInstanceInterfaceData,
-        {
-          headers,
-          params: {
-            eServiceId: eservice.id,
-            descriptorId: descriptor.id,
-          },
-        }
-      );
-
-    
-      const { id } = await catalogProcessClient.createEServiceDocument(
-        {
-          documentId,
-          prettyName: eserviceTemplateInterface.prettyName,
-          fileName: eserviceTemplateInterface.name,
-          filePath: documentPath,
-          kind: "INTERFACE",
-          contentType: eserviceTemplateInterface.contentType,
-          checksum,
-          serverUrls,
-          interfaceTemplateMetadata: {
-            name: eserviceInstanceInterfaceData.contactName,
-            email: eserviceInstanceInterfaceData.email,
-            url: eserviceInstanceInterfaceData.contactUrl,
-            termsAndConditionsUrl:
-              eserviceInstanceInterfaceData.termsAndConditionsUrl,
-            serverUrls: eserviceInstanceInterfaceData.serverUrls,
-          },
-        },
-        {
-          headers,
-          params: {
-            eServiceId: eservice.id,
-            descriptorId: descriptor.id,
-          },
-        }
-      );
-      */
   );
 }
 
