@@ -160,19 +160,7 @@ export function customReadModelServiceBuilder(
         await tx
           .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
           .values(interfaceSQL);
-
-        await tx
-          .update(eserviceDescriptorInReadmodelCatalog)
-          .set({ serverUrls })
-          .where(
-            and(
-              eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
-              lte(
-                eserviceDescriptorInReadmodelCatalog.metadataVersion,
-                metadataVersion
-              )
-            )
-          );
+        await setServerUrls({ tx, descriptorId, serverUrls, metadataVersion });
       });
     },
 
@@ -211,18 +199,12 @@ export function customReadModelServiceBuilder(
           );
 
         if (interfaceDeletion.rowCount === 1) {
-          await tx
-            .update(eserviceDescriptorInReadmodelCatalog)
-            .set({ serverUrls: [] })
-            .where(
-              and(
-                eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
-                lte(
-                  eserviceDescriptorInReadmodelCatalog.metadataVersion,
-                  metadataVersion
-                )
-              )
-            );
+          await setServerUrls({
+            tx,
+            descriptorId,
+            serverUrls: [],
+            metadataVersion,
+          });
         } else {
           await tx
             .delete(eserviceDescriptorDocumentInReadmodelCatalog)
@@ -333,6 +315,31 @@ const updateEServiceVersionInEServiceTable = async (
       and(
         eq(eserviceInReadmodelCatalog.id, eserviceId),
         lte(eserviceInReadmodelCatalog.metadataVersion, newVersion)
+      )
+    );
+};
+
+const setServerUrls = async ({
+  tx,
+  serverUrls,
+  descriptorId,
+  metadataVersion,
+}: {
+  tx: TransactionType;
+  serverUrls: string[];
+  descriptorId: DescriptorId;
+  metadataVersion: number;
+}): Promise<void> => {
+  await tx
+    .update(eserviceDescriptorInReadmodelCatalog)
+    .set({ serverUrls })
+    .where(
+      and(
+        eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
+        lte(
+          eserviceDescriptorInReadmodelCatalog.metadataVersion,
+          metadataVersion
+        )
       )
     );
 };
