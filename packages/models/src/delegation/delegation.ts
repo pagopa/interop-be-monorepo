@@ -72,8 +72,8 @@ export const Delegation = z.object({
 });
 export type Delegation = z.infer<typeof Delegation>;
 
-export const DelegationStampKind = DelegationStamps.keyof();
-export type DelegationStampKind = z.infer<typeof DelegationStampKind>;
+export const delegationStampKind = DelegationStamps.keyof();
+export type DelegationStampKind = z.infer<typeof delegationStampKind>;
 
 export const delegationContractKind = {
   activation: "activation",
