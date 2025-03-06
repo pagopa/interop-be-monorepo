@@ -551,7 +551,9 @@ describe("update eService", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(eServiceNameDuplicate("ESERVICE NAME ALREADY IN USE"));
+    ).rejects.toThrowError(
+      eServiceNameDuplicate("ESERVICE NAME ALREADY IN USE")
+    );
   });
 
   it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {

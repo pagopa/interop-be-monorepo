@@ -406,7 +406,9 @@ describe("create eservice", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(eServiceNameDuplicate(mockEService.name.toLowerCase()));
+    ).rejects.toThrowError(
+      eServiceNameDuplicate(mockEService.name.toLowerCase())
+    );
   });
 
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
