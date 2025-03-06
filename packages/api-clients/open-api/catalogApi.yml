@@ -276,6 +276,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Updates e-service template instance general information
+      operationId: updateEServiceTemplateInstanceById
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: An E-Service update seed containing the possible updatable fields
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceSeed"
+      responses:
+        "200":
+          description: E-Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "404":
+          description: E-Service not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/templates/{templateId}/instances:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1671,7 +1712,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem" 
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -1867,6 +1908,18 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+    UpdateEServiceTemplateInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        instanceId:
+          type: string
     DescriptorSeedForEServiceCreation:
       required:
         - audience

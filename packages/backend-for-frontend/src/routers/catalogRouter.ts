@@ -603,6 +603,29 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/templates/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource =
+          await catalogService.updateEServiceTemplateInstanceById(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+        return res
+          .status(200)
+          .send(bffApi.CreatedResource.parse(createdResource));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error updating EService ${req.params.eServiceId} template instance`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {

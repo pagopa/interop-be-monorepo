@@ -3451,7 +3451,7 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: A payload containing the eservice's api data  
+        description: A payload containing the eservice's api data
         required: true
         content:
           application/json:
@@ -4089,6 +4089,125 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Updates EService template instance general information
+      operationId: updateEServiceTemplateInstanceById
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: An E-Service update seed containing the possible updatable fields
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceSeed"
+      responses:
+        "200":
+          description: E-Service updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "404":
+          description: E-Service not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
           headers:
@@ -5308,7 +5427,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  
+
   /eservices/{eServiceId}/instances/upgrade:
     post:
       security:
@@ -5453,7 +5572,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  
+
   "/producers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -14671,7 +14790,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  
+
   /eservices/templates:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -17298,6 +17417,18 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
+    UpdateEServiceTemplateInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        instanceId:
+          type: string
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -17742,7 +17873,7 @@ components:
           items:
             $ref: "#/components/schemas/DescriptorRejectionReason"
         templateRef:
-            $ref: "#/components/schemas/EServiceTemplateRef"
+          $ref: "#/components/schemas/EServiceTemplateRef"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -20446,7 +20577,7 @@ components:
       description: contains eservice api custom data to add on interface document provided by template
       properties:
         contactName:
-            type: string
+          type: string
         email:
           type: string
           format: email
@@ -20459,7 +20590,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: string        
+            type: string
             format: uri
       required:
         - contactName

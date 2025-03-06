@@ -533,6 +533,28 @@ export function catalogServiceBuilder(
       );
       return { id };
     },
+    updateEServiceTemplateInstanceById: async (
+      eServiceId: EServiceId,
+      updateEServiceSeed: bffApi.UpdateEServiceTemplateInstanceSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Updating EService ${eServiceId} template instance with seed ${JSON.stringify(
+          updateEServiceSeed
+        )}`
+      );
+      const { id } =
+        await catalogProcessClient.updateEServiceTemplateInstanceById(
+          updateEServiceSeed,
+          {
+            headers,
+            params: {
+              eServiceId,
+            },
+          }
+        );
+      return { id };
+    },
     deleteEService: async (
       eServiceId: EServiceId,
       { headers, logger }: WithLogger<BffAppContext>
