@@ -22,7 +22,7 @@ import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
 import {
   eServiceNotFound,
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   eserviceNotInDraftState,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
@@ -520,7 +520,7 @@ describe("update eService", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceDuplicate if the updated name is already in use, case insensitive", async () => {
+  it("should throw eServiceNameDuplicate if the updated name is already in use, case insensitive", async () => {
     const eservice1: EService = {
       ...mockEService,
       id: generateId(),
@@ -551,7 +551,9 @@ describe("update eService", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(eServiceDuplicate("ESERVICE NAME ALREADY IN USE"));
+    ).rejects.toThrowError(
+      eServiceNameDuplicate("ESERVICE NAME ALREADY IN USE")
+    );
   });
 
   it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {

@@ -258,6 +258,6 @@ describe("update eService description", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });

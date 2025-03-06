@@ -67,7 +67,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   eServiceNotAnInstance,
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
@@ -80,7 +80,7 @@ import {
   invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
   riskAnalysisDuplicated,
   tenantNotFound,
   unchangedAttributes,
@@ -427,7 +427,7 @@ function isTenantInSignalHubWhitelist(
 async function innerCreateEService(
   seed: {
     eServiceSeed: catalogApi.EServiceSeed;
-    eServiceTemplateReferences?: EServiceTemplateReferences;
+    eServiceTemplateReferences: EServiceTemplateReferences | undefined;
   },
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
@@ -442,7 +442,7 @@ async function innerCreateEService(
       producerId: authData.organizationId,
     });
   if (eserviceWithSameName) {
-    throw eServiceDuplicate(seed.eServiceSeed.name);
+    throw eServiceNameDuplicate(seed.eServiceSeed.name);
   }
 
   const creationDate = new Date();
@@ -569,7 +569,7 @@ async function innerUploadDocument(
         d.prettyName.toLowerCase() === documentSeed.prettyName.toLowerCase()
     )
   ) {
-    throw prettyNameDuplicate(documentSeed.prettyName, descriptor.id);
+    throw documentPrettyNameDuplicate(documentSeed.prettyName, descriptor.id);
   }
 
   const isInterface = documentSeed.kind === "INTERFACE";
@@ -735,13 +735,12 @@ export function catalogServiceBuilder(
 
     async createEService(
       seed: catalogApi.EServiceSeed,
-      ctx: WithLogger<AppContext>,
-      eServiceTemplateReferences?: EServiceTemplateReferences
+      ctx: WithLogger<AppContext>
     ): Promise<EService> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
       const { eService, events } = await innerCreateEService(
-        { eServiceSeed: seed, eServiceTemplateReferences },
+        { eServiceSeed: seed, eServiceTemplateReferences: undefined },
         readModelService,
         ctx
       );
@@ -775,7 +774,7 @@ export function catalogServiceBuilder(
             producerId: eservice.data.producerId,
           });
         if (eserviceWithSameName !== undefined) {
-          throw eServiceDuplicate(eserviceSeed.name);
+          throw eServiceNameDuplicate(eserviceSeed.name);
         }
       }
 
@@ -909,12 +908,15 @@ export function catalogServiceBuilder(
         } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
 
-      const eService = await retrieveEService(eserviceId, readModelService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eService.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       const { eService: updatedEService, event } = await innerUploadDocument(
-        eService,
+        eservice,
         descriptorId,
         document,
         readModelService,
@@ -938,7 +940,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1013,7 +1018,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1038,7 +1046,7 @@ export function catalogServiceBuilder(
               apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
         )
       ) {
-        throw prettyNameDuplicate(
+        throw documentPrettyNameDuplicate(
           apiEServiceDescriptorDocumentUpdateSeed.prettyName,
           descriptor.id
         );
@@ -1100,7 +1108,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1543,7 +1554,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
       await assertNoExistingProducerDelegationInActiveOrPendingState(
@@ -1561,7 +1575,7 @@ export function catalogServiceBuilder(
           producerId: eservice.data.producerId,
         })
       ) {
-        throw eServiceDuplicate(clonedEServiceName);
+        throw eServiceNameDuplicate(clonedEServiceName);
       }
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1700,7 +1714,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1758,7 +1775,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1825,7 +1845,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1898,7 +1921,10 @@ export function catalogServiceBuilder(
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1936,7 +1962,10 @@ export function catalogServiceBuilder(
       logger.info(`Updating EService ${eserviceId} description`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -2126,8 +2155,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
-
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
@@ -2261,7 +2292,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(eservice.data.templateRef?.id);
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,

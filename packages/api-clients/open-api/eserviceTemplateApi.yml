@@ -93,6 +93,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplates"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []

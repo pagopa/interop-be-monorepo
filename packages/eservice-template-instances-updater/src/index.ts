@@ -3,6 +3,7 @@ import {
   decodeKafkaMessage,
   initFileManager,
   InteropTokenGenerator,
+  ReadModelRepository,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -10,9 +11,14 @@ import { EServiceTemplateEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV2 } from "./eserviceTemplateInstancesUpdaterConsumerServiceV2.js";
 import { config } from "./config/config.js";
+import { readModelServiceBuilder } from "./readModelService.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
+);
+
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
 );
 
 await refreshableToken.init();
@@ -34,6 +40,7 @@ async function processMessage({
         refreshableToken,
         partition,
         offset: message.offset,
+        readModelService,
         fileManager,
       })
     )

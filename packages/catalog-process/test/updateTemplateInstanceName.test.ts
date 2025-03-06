@@ -12,7 +12,7 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
-  eServiceDuplicate,
+  eServiceNameDuplicate,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -159,7 +159,7 @@ describe("updateTemplateInstanceName", () => {
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
-  it("should throw eserviceDuplicate is there is another eservice with the same name by the same producer", async () => {
+  it("should throw eServiceNameDuplicate is there is another eservice with the same name by the same producer", async () => {
     const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -190,6 +190,6 @@ describe("updateTemplateInstanceName", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(eServiceDuplicate(duplicateName));
+    ).rejects.toThrowError(eServiceNameDuplicate(duplicateName));
   });
 });

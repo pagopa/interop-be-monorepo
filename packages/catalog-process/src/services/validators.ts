@@ -23,7 +23,7 @@ import {
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -267,15 +267,16 @@ export async function assertNotDuplicatedEServiceName(
         producerId: eservice.producerId,
       });
     if (eserviceWithSameName !== undefined) {
-      throw eServiceDuplicate(name);
+      throw eServiceNameDuplicate(name);
     }
   }
 }
 
 export function assertEServiceNotTemplateInstance(
+  eserviceId: EServiceId,
   templateId: EServiceTemplateId | undefined
 ): void {
   if (templateId !== undefined) {
-    throw templateInstanceNotAllowed(templateId);
+    throw templateInstanceNotAllowed(eserviceId, templateId);
   }
 }

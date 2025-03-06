@@ -31,12 +31,11 @@ export const errorCodes = {
   missingRiskAnalysis: "0019",
   instanceNameConflict: "0020",
   interfaceAlreadyExists: "0021",
-  prettyNameDuplicate: "0022",
+  documentPrettyNameDuplicate: "0022",
   checksumDuplicate: "0023",
-  invalidEServiceTemplateVersion: "0024",
-  draftEServiceTemplateVersionAlreadyExists: "0025",
-  eServiceDocumentNotFound: "0026",
-  eserviceTemplateDocumentNotFound: "0027",
+  draftEServiceTemplateVersionAlreadyExists: "0024",
+  eServiceDocumentNotFound: "0025",
+  eserviceTemplateDocumentNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -212,16 +211,6 @@ export function eserviceTemplateNotInDraftState(
   });
 }
 
-export function invalidEServiceTemplateVersion(
-  details: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: details,
-    code: "invalidEServiceTemplateVersion",
-    title: "Version is not a valid e-service template version",
-  });
-}
-
 export function draftEServiceTemplateVersionAlreadyExists(
   eserviceTemplateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {
@@ -273,13 +262,13 @@ export function interfaceAlreadyExists(
   });
 }
 
-export function prettyNameDuplicate(
+export function documentPrettyNameDuplicate(
   prettyName: string,
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `A document with prettyName ${prettyName} already exists in version ${eserviceTemplateVersionId}`,
-    code: "prettyNameDuplicate",
+    code: "documentPrettyNameDuplicate",
     title: "Duplicated prettyName",
   });
 }

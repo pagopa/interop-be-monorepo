@@ -650,6 +650,8 @@ describe("update descriptor", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(mockEService.id, templateId)
+    );
   });
 });
