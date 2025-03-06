@@ -29,12 +29,28 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { tenantReadModelService } from "./utils.js";
+import { initMockTenant, tenantReadModelService } from "./utils.js";
 
 describe("Tenant Queries", () => {
   describe("Upsert Tenant", () => {
-    it.skip("should add a complete (*all* fields) tenant", () => {
-      expect(1).toEqual(0);
+    it.skip("should add a complete (*all* fields) tenant", async () => {
+      // const isTenantComplete = true;
+      const {
+        tenant,
+        tenantForVerifying,
+        tenantForRevoking,
+        tenantMail,
+        tenantCertifiedAttribute,
+        tenantDeclaredAttribute,
+        tenantVerifiedAttribute,
+        tenantFeatureCertifier,
+        tenantFeatureDelegatedConsumer,
+        tenantFeatureDelegatedProducer,
+      } = initMockTenant();
+
+      await tenantReadModelService.upsertTenant(tenantForVerifying);
+      await tenantReadModelService.upsertTenant(tenantForRevoking);
+      await tenantReadModelService.upsertTenant(tenant);
     });
     it.skip("should add an incomplete (*only* mandatory fields) tenant", () => {
       expect(1).toEqual(0);
