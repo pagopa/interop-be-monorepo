@@ -1,7 +1,8 @@
 /* eslint-disable functional/immutable-data */
+import { randomUUID } from "crypto";
+import { Readable } from "stream";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import AdmZip from "adm-zip";
-import { randomUUID } from "crypto";
 import { XMLParser } from "fast-xml-parser";
 import mime from "mime";
 import {
@@ -19,7 +20,6 @@ import {
   technology,
   Technology,
 } from "pagopa-interop-models";
-import { Readable } from "stream";
 import { match, P } from "ts-pattern";
 import YAML from "yaml";
 import { z, ZodError } from "zod";
