@@ -2297,18 +2297,18 @@ components:
       type: object
       additionalProperties: false
       required:
-        - name
-        - email
-        - url
+        - contactName
+        - contactEmail
+        - contactUrl
         - termsAndConditionsUrl
         - serverUrls
       properties:
-        name:
+        contactName:
           type: string
-        email:
+        contactEmail:
           type: string
           format: email
-        url:
+        contactUrl:
           type: string
           format: uri
         termsAndConditionsUrl:

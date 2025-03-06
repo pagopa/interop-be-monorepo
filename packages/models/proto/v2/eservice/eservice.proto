@@ -93,9 +93,9 @@ message EServiceDescriptorV2 {
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
-  string name = 1;
-  string email = 2;
-  string url = 3;
+  string contactName = 1;
+  string contactEmail = 2;
+  string contactUrl = 3;
   string termsAndConditionsUrl = 4;
   repeated string serverUrls = 5;
 }

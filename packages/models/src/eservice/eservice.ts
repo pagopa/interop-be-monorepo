@@ -74,9 +74,9 @@ export type DescriptorRejectionReason = z.infer<
 >;
 
 export const TemplateInstanceInterfaceMetadata = z.object({
-  name: z.string(),
-  email: z.string(),
-  url: z.string(),
+  contactName: z.string(),
+  contactEmail: z.string(),
+  contactUrl: z.string(),
   termsAndConditionsUrl: z.string(),
   serverUrls: z.array(z.string()),
 });
