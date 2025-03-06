@@ -314,6 +314,7 @@ export function catalogServiceBuilder(
         publishedAt: descriptor.publishedAt,
         deprecatedAt: descriptor.deprecatedAt,
         archivedAt: descriptor.archivedAt,
+        suspendedAt: descriptor.suspendedAt,
       };
     },
     getProducerEServiceDetails: async (
@@ -981,20 +982,17 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating document ${documentId} of descriptor ${descriptorId} of EService ${eServiceId}`
       );
-      const { id, name, contentType, prettyName } =
-        await catalogProcessClient.updateEServiceDocumentById(
-          updateEServiceDescriptorDocumentSeed,
-          {
-            params: {
-              eServiceId,
-              descriptorId,
-              documentId,
-            },
-            headers,
-          }
-        );
-
-      return { id, name, contentType, prettyName };
+      return await catalogProcessClient.updateEServiceDocumentById(
+        updateEServiceDescriptorDocumentSeed,
+        {
+          params: {
+            eServiceId,
+            descriptorId,
+            documentId,
+          },
+          headers,
+        }
+      );
     },
     exportEServiceDescriptor: async (
       eserviceId: EServiceId,
