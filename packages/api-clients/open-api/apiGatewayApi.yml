@@ -2628,7 +2628,7 @@ components:
           required: false
     EServiceTemplateRef:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       required:
         - templateId
       properties:
