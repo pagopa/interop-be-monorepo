@@ -28,6 +28,7 @@ async function processMessage({
     eventType: msg.type,
     eventVersion: msg.event_version,
     streamId: msg.stream_id,
+    eventVersionForStreamId: msg.version,
     correlationId: msg.correlation_id
       ? unsafeBrandId<CorrelationId>(msg.correlation_id)
       : generateId<CorrelationId>(),

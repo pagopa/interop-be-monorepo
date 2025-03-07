@@ -30,6 +30,7 @@ async function processMessage(payload: EachMessagePayload): Promise<void> {
     eventType: decodedMsg.type,
     eventVersion: decodedMsg.event_version,
     streamId: decodedMsg.stream_id,
+    eventVersionForStreamId: decodedMsg.version,
     correlationId,
   });
 
