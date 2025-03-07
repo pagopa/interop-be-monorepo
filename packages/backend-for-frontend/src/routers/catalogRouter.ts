@@ -286,6 +286,37 @@ const catalogRouter = (
         }
       }
     )
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const createdResource =
+            await catalogService.updateDraftDescriptorTemplateInstance(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(bffApi.CreatedResource.parse(createdResource));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating draft descriptor ${
+              req.params.descriptorId
+            } on eservice ${
+              req.params.eServiceId
+            } template instance with seed: ${JSON.stringify(req.body)}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/eservices/:eServiceId/descriptors", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
@@ -599,6 +630,29 @@ const catalogRouter = (
           ctx.logger,
           ctx.correlationId,
           `Error updating EService ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/templates/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const createdResource =
+          await catalogService.updateEServiceTemplateInstanceById(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+        return res
+          .status(200)
+          .send(bffApi.CreatedResource.parse(createdResource));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error updating EService ${req.params.eServiceId} template instance`
         );
         return res.status(errorRes.status).send(errorRes);
       }

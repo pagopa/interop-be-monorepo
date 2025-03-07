@@ -571,6 +571,28 @@ export function catalogServiceBuilder(
       );
       return { id };
     },
+    updateEServiceTemplateInstanceById: async (
+      eServiceId: EServiceId,
+      updateEServiceSeed: bffApi.UpdateEServiceTemplateInstanceSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Updating EService ${eServiceId} template instance with seed ${JSON.stringify(
+          updateEServiceSeed
+        )}`
+      );
+      const { id } =
+        await catalogProcessClient.updateEServiceTemplateInstanceById(
+          updateEServiceSeed,
+          {
+            headers,
+            params: {
+              eServiceId,
+            },
+          }
+        );
+      return { id };
+    },
     deleteEService: async (
       eServiceId: EServiceId,
       { headers, logger }: WithLogger<BffAppContext>
@@ -1090,6 +1112,28 @@ export function catalogServiceBuilder(
           },
         }
       );
+      return { id };
+    },
+    updateDraftDescriptorTemplateInstance: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      updateEServiceDescriptorSeed: bffApi.UpdateEServiceDescriptorTemplateInstanceSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Updating draft descriptor ${descriptorId} of EService ${eServiceId} template instance`
+      );
+      const { id } =
+        await catalogProcessClient.updateDraftDescriptorTemplateInstance(
+          updateEServiceDescriptorSeed,
+          {
+            headers,
+            params: {
+              descriptorId,
+              eServiceId,
+            },
+          }
+        );
       return { id };
     },
     deleteEServiceDocumentById: async (

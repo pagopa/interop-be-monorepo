@@ -24,8 +24,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   inconsistentDailyCalls,
-  attributeNotFound,
-  templateInstanceNotAllowed,
+  eServiceNotAnInstance,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -41,11 +40,13 @@ import {
   addOneEServiceTemplate,
 } from "./utils.js";
 
-describe("update draft descriptor", () => {
+describe("update draft descriptor instance", () => {
   const mockDescriptor = getMockDescriptor();
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
-  it("should write on event-store for the update of a draft descriptor", async () => {
+  it("should write on event-store for the update of a draft descriptor instance", async () => {
+    const template = getMockEServiceTemplate();
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -53,7 +54,13 @@ describe("update draft descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateRef: {
+        id: template.id,
+        instanceId: "test",
+      },
     };
+    await addOneEServiceTemplate(template);
     await addOneEService(eservice);
     const attribute: Attribute = {
       name: "Attribute name",
@@ -64,17 +71,11 @@ describe("update draft descriptor", () => {
     };
     await addOneAttribute(attribute);
 
-    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
-      ...buildUpdateDescriptorSeed(descriptor),
-      dailyCallsTotal: 200,
-      attributes: {
-        certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
-        verified: [],
-      },
-    };
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed =
+      {
+        ...buildUpdateDescriptorSeed(descriptor),
+        dailyCallsTotal: 200,
+      };
 
     const updatedEService: EService = {
       ...eservice,
@@ -82,17 +83,10 @@ describe("update draft descriptor", () => {
         {
           ...descriptor,
           dailyCallsTotal: 200,
-          attributes: {
-            certified: [],
-            declared: [
-              [{ id: attribute.id, explicitAttributeVerification: false }],
-            ],
-            verified: [],
-          },
         },
       ],
     };
-    await catalogService.updateDraftDescriptor(
+    await catalogService.updateDraftDescriptorTemplateInstance(
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
@@ -116,7 +110,9 @@ describe("update draft descriptor", () => {
     });
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
   });
-  it("should write on event-store for the update of a draft descriptor (delegate)", async () => {
+  it("should write on event-store for the update of a draft descriptor instance (delegate)", async () => {
+    const template = getMockEServiceTemplate();
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -124,15 +120,23 @@ describe("update draft descriptor", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateRef: {
+        id: template.id,
+        instanceId: "test",
+      },
     };
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: eservice.id,
       state: delegationState.active,
     });
 
-    await addOneEService(eservice);
     await addOneDelegation(delegation);
+
     const attribute: Attribute = {
       name: "Attribute name",
       id: generateId(),
@@ -142,17 +146,11 @@ describe("update draft descriptor", () => {
     };
     await addOneAttribute(attribute);
 
-    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
-      ...buildUpdateDescriptorSeed(descriptor),
-      dailyCallsTotal: 200,
-      attributes: {
-        certified: [],
-        declared: [
-          [{ id: attribute.id, explicitAttributeVerification: false }],
-        ],
-        verified: [],
-      },
-    };
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed =
+      {
+        ...buildUpdateDescriptorSeed(descriptor),
+        dailyCallsTotal: 200,
+      };
 
     const updatedEService: EService = {
       ...eservice,
@@ -160,17 +158,10 @@ describe("update draft descriptor", () => {
         {
           ...descriptor,
           dailyCallsTotal: 200,
-          attributes: {
-            certified: [],
-            declared: [
-              [{ id: attribute.id, explicitAttributeVerification: false }],
-            ],
-            verified: [],
-          },
         },
       ],
     };
-    await catalogService.updateDraftDescriptor(
+    await catalogService.updateDraftDescriptorTemplateInstance(
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
@@ -202,7 +193,7 @@ describe("update draft descriptor", () => {
       state: descriptorState.published,
     };
     expect(
-      catalogService.updateDraftDescriptor(
+      catalogService.updateDraftDescriptorTemplateInstance(
         mockEService.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
@@ -217,14 +208,23 @@ describe("update draft descriptor", () => {
   });
 
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+    const template = getMockEServiceTemplate();
+
     const eservice: EService = {
       ...mockEService,
       descriptors: [],
+      name: `${template.name} test`,
+      templateRef: {
+        id: template.id,
+        instanceId: "test",
+      },
     };
+
+    await addOneEServiceTemplate(template);
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateDraftDescriptor(
+      catalogService.updateDraftDescriptorTemplateInstance(
         mockEService.id,
         mockDescriptor.id,
         buildUpdateDescriptorSeed(mockDescriptor),
@@ -240,131 +240,69 @@ describe("update draft descriptor", () => {
     );
   });
 
-  it("should throw notValidDescriptorState if the descriptor is in published state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.published,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
+  it.each([
+    descriptorState.published,
+    descriptorState.deprecated,
+    descriptorState.suspended,
+    descriptorState.archived,
+  ] as const)(
+    "should throw notValidDescriptorState if the descriptor is in %s state",
+    async (descriptorState) => {
+      const template = getMockEServiceTemplate();
 
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      notValidDescriptorState(mockDescriptor.id, descriptorState.published)
-    );
-  });
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: descriptorState,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+        name: `${template.name} test`,
+        templateRef: {
+          id: template.id,
+          instanceId: "test",
+        },
+      };
+      await addOneEServiceTemplate(template);
+      await addOneEService(eservice);
 
-  it("should throw notValidDescriptorState if the descriptor is in deprecated state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.deprecated,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      notValidDescriptorState(mockDescriptor.id, descriptorState.deprecated)
-    );
-  });
-
-  it("should throw notValidDescriptorState if the descriptor is in suspended state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.suspended,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      notValidDescriptorState(mockDescriptor.id, descriptorState.suspended)
-    );
-  });
-
-  it("should throw notValidDescriptorState if the descriptor is in archived state", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.archived,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      notValidDescriptorState(mockDescriptor.id, descriptorState.archived)
-    );
-  });
+      expect(
+        catalogService.updateDraftDescriptorTemplateInstance(
+          eservice.id,
+          descriptor.id,
+          buildUpdateDescriptorSeed(descriptor),
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: generateId(),
+            serviceName: "",
+            logger: genericLogger,
+          }
+        )
+      ).rejects.toThrowError(
+        notValidDescriptorState(mockDescriptor.id, descriptorState)
+      );
+    }
+  );
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
+    const template = getMockEServiceTemplate();
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
+      interface: mockDocument,
       state: descriptorState.draft,
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateRef: {
+        id: template.id,
+        instanceId: "test",
+      },
     };
+    await addOneEServiceTemplate(template);
     await addOneEService(eservice);
 
     const expectedDescriptor = {
@@ -372,7 +310,7 @@ describe("update draft descriptor", () => {
       dailyCallsTotal: 200,
     };
     expect(
-      catalogService.updateDraftDescriptor(
+      catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
@@ -387,14 +325,24 @@ describe("update draft descriptor", () => {
   });
 
   it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const template = getMockEServiceTemplate();
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
+      interface: mockDocument,
       state: descriptorState.draft,
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateRef: {
+        id: template.id,
+        instanceId: "test",
+      },
     };
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -402,7 +350,6 @@ describe("update draft descriptor", () => {
       state: delegationState.active,
     });
 
-    await addOneEService(eservice);
     await addOneDelegation(delegation);
 
     const expectedDescriptor = {
@@ -410,7 +357,7 @@ describe("update draft descriptor", () => {
       dailyCallsTotal: 200,
     };
     expect(
-      catalogService.updateDraftDescriptor(
+      catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
@@ -425,14 +372,23 @@ describe("update draft descriptor", () => {
   });
 
   it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+    const template = getMockEServiceTemplate();
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
+      interface: mockDocument,
       state: descriptorState.draft,
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateRef: {
+        id: template.id,
+        instanceId: "test",
+      },
     };
+    await addOneEServiceTemplate(template);
     await addOneEService(eservice);
 
     const expectedDescriptor: Descriptor = {
@@ -441,7 +397,7 @@ describe("update draft descriptor", () => {
       dailyCallsTotal: 50,
     };
     expect(
-      catalogService.updateDraftDescriptor(
+      catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
@@ -455,7 +411,7 @@ describe("update draft descriptor", () => {
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
 
-  it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
+  it("should throw eServiceNotAnInstance if the eservice is not a template instance", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -471,40 +427,12 @@ describe("update draft descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const attribute: Attribute = {
-      name: "Attribute name",
-      id: generateId(),
-      kind: "Declared",
-      description: "Attribute Description",
-      creationTime: new Date(),
-    };
-    await addOneAttribute(attribute);
-    const notExistingId1 = generateId();
-    const notExistingId2 = generateId();
-
     const descriptorSeed = {
       ...buildUpdateDescriptorSeed(mockDescriptor),
-      attributes: {
-        certified: [],
-        declared: [
-          [
-            { id: attribute.id, explicitAttributeVerification: false },
-            {
-              id: notExistingId1,
-              explicitAttributeVerification: false,
-            },
-            {
-              id: notExistingId2,
-              explicitAttributeVerification: false,
-            },
-          ],
-        ],
-        verified: [],
-      },
     };
 
     expect(
-      catalogService.updateDraftDescriptor(
+      catalogService.updateDraftDescriptorTemplateInstance(
         eservice.id,
         descriptor.id,
         descriptorSeed,
@@ -515,79 +443,6 @@ describe("update draft descriptor", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(attributeNotFound(notExistingId1));
-  });
-
-  it("should throw templateInstanceNotAllowed if the eservice is a template instance", async () => {
-    const template = getMockEServiceTemplate();
-
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-      attributes: {
-        certified: [],
-        declared: [],
-        verified: [],
-      },
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-      name: template.name,
-      templateRef: {
-        id: template.id,
-        instanceId: undefined,
-      },
-    };
-    await addOneEServiceTemplate(template);
-    await addOneEService(eservice);
-
-    const attribute: Attribute = {
-      name: "Attribute name",
-      id: generateId(),
-      kind: "Declared",
-      description: "Attribute Description",
-      creationTime: new Date(),
-    };
-    await addOneAttribute(attribute);
-    const notExistingId1 = generateId();
-    const notExistingId2 = generateId();
-
-    const descriptorSeed = {
-      ...buildUpdateDescriptorSeed(mockDescriptor),
-      attributes: {
-        certified: [],
-        declared: [
-          [
-            { id: attribute.id, explicitAttributeVerification: false },
-            {
-              id: notExistingId1,
-              explicitAttributeVerification: false,
-            },
-            {
-              id: notExistingId2,
-              explicitAttributeVerification: false,
-            },
-          ],
-        ],
-        verified: [],
-      },
-    };
-
-    expect(
-      catalogService.updateDraftDescriptor(
-        eservice.id,
-        descriptor.id,
-        descriptorSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(
-      templateInstanceNotAllowed(eservice.id, template.id)
-    );
+    ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
   });
 });
