@@ -113,7 +113,11 @@ export async function applicationAuditMiddleware(
   const producer = await initProducer(config, config.applicationAuditTopic);
 
   return async (req, res, next): Promise<void> => {
-    if (req.path !== "/session/tokens") {
+    if (
+      !config.endpointsWithoutAudit ||
+      (config.endpointsWithoutAudit &&
+        !config.endpointsWithoutAudit.includes(req.path)) // TODO path contains the parameter, so how to match the string?
+    ) {
       const context = (req as Request & { ctx?: AppContext }).ctx;
       const requestTimestamp = Date.now();
 
