@@ -1315,7 +1315,6 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      // Descriptor in state WaitingForApproval can be deleted
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(descriptorId, descriptor.state);
       }
@@ -1369,10 +1368,13 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateRef?.id
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      //  Descriptor in state WaitingForApproval can be updated
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptorId,
@@ -1421,6 +1423,68 @@ export function catalogServiceBuilder(
       return updatedEService;
     },
 
+    async updateDraftDescriptorTemplateInstance(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(
+        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId} template instance`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceIsTemplateInstance(eservice.data);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptorState(
+          descriptorId,
+          descriptor.state.toString()
+        );
+      }
+
+      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+        throw inconsistentDailyCalls();
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        audience: seed.audience,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        state: descriptorState.draft,
+        dailyCallsTotal: seed.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event = toCreateEventEServiceDraftDescriptorUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        descriptorId,
+        updatedEService,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1440,7 +1504,6 @@ export function catalogServiceBuilder(
       assertRequesterCanPublish(producerDelegation, eservice.data, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      // Descriptor in state WaitingForApproval can be published
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptorState(
           descriptor.id,
