@@ -1530,7 +1530,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/templates/{eServiceId}/name:
+  /internal/templates/eservices/{eServiceId}/name/update:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1567,7 +1567,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/templates/{eServiceId}/description:
+  /internal/templates/eservices/{eServiceId}/description/update:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1604,7 +1604,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/templates/{eServiceId}/descriptors/{descriptorId}/voucherLifespan:
+  /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/voucherLifespan/update:
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1648,7 +1648,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/templates/{eServiceId}/descriptors/{descriptorId}/attributes:
+  /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1711,7 +1711,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/templates/{eServiceId}/descriptors/{descriptorId}/documents:
+  /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1766,7 +1766,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/eservices/templates/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
+  /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
