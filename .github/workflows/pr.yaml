@@ -72,6 +72,7 @@ jobs:
         run: |
           PACKAGES=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+
   docker_build:
     name: Build
     needs: [find_dockerfiles]
