@@ -402,7 +402,7 @@ export function catalogServiceBuilder(
         ? await eserviceTemplateProcessClient.getEServiceTemplateById({
             headers,
             params: {
-              eServiceTemplateId,
+              templateId: eServiceTemplateId,
             },
           })
         : undefined;
