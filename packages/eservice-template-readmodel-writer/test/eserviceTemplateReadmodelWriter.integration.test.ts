@@ -98,7 +98,7 @@ describe("database test", async () => {
 
       const updatedEServiceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
-        audienceDescription: "updated description",
+        intendedTarget: "updated description",
       };
 
       const payload: EServiceTemplateDraftUpdatedV2 = {

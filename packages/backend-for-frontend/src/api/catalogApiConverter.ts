@@ -409,7 +409,7 @@ export function toBffEServiceTemplateInstance(
       ? toCompactDescriptor(activeDescriptor)
       : undefined,
     descriptors: eservice.descriptors.map(toCompactDescriptor),
-    instanceId: eservice.templateRef?.instanceId,
+    instanceLabel: eservice.templateRef?.instanceLabel,
   };
 }
 

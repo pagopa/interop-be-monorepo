@@ -190,7 +190,7 @@ export const fromEServiceTemplateRefV2 = (
   input: EServiceTemplateRefV2
 ): EServiceTemplateRef => ({
   id: unsafeBrandId(input.id),
-  instanceId: input.instanceId,
+  instanceLabel: input.instanceLabel,
 });
 
 export const fromEServiceV2 = (input: EServiceV2): EService => ({

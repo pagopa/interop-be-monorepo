@@ -57,7 +57,7 @@ describe("update draft descriptor instance", () => {
       name: `${template.name} test`,
       templateRef: {
         id: template.id,
-        instanceId: "test",
+        instanceLabel: "test",
       },
     };
     await addOneEServiceTemplate(template);
@@ -123,7 +123,7 @@ describe("update draft descriptor instance", () => {
       name: `${template.name} test`,
       templateRef: {
         id: template.id,
-        instanceId: "test",
+        instanceLabel: "test",
       },
     };
     await addOneEServiceTemplate(template);
@@ -216,7 +216,7 @@ describe("update draft descriptor instance", () => {
       name: `${template.name} test`,
       templateRef: {
         id: template.id,
-        instanceId: "test",
+        instanceLabel: "test",
       },
     };
 
@@ -261,7 +261,7 @@ describe("update draft descriptor instance", () => {
         name: `${template.name} test`,
         templateRef: {
           id: template.id,
-          instanceId: "test",
+          instanceLabel: "test",
         },
       };
       await addOneEServiceTemplate(template);
@@ -299,7 +299,7 @@ describe("update draft descriptor instance", () => {
       name: `${template.name} test`,
       templateRef: {
         id: template.id,
-        instanceId: "test",
+        instanceLabel: "test",
       },
     };
     await addOneEServiceTemplate(template);
@@ -338,7 +338,7 @@ describe("update draft descriptor instance", () => {
       name: `${template.name} test`,
       templateRef: {
         id: template.id,
-        instanceId: "test",
+        instanceLabel: "test",
       },
     };
     await addOneEServiceTemplate(template);
@@ -385,7 +385,7 @@ describe("update draft descriptor instance", () => {
       name: `${template.name} test`,
       templateRef: {
         id: template.id,
-        instanceId: "test",
+        instanceLabel: "test",
       },
     };
     await addOneEServiceTemplate(template);

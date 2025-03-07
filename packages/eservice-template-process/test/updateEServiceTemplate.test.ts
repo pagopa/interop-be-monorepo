@@ -201,8 +201,8 @@ describe("update EService template", () => {
         eserviceTemplate.id,
         {
           name: eserviceTemplate.name,
-          audienceDescription: eserviceTemplate.audienceDescription,
-          eserviceDescription: eserviceTemplate.eserviceDescription,
+          intendedTarget: eserviceTemplate.intendedTarget,
+          description: eserviceTemplate.description,
           technology: "REST",
           mode: "DELIVER",
           isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
@@ -328,8 +328,8 @@ describe("update EService template", () => {
         eserviceTemplate1.id,
         {
           name: "ESERVICE NAME ALREADY IN USE",
-          audienceDescription: eserviceTemplate1.audienceDescription,
-          eserviceDescription: eserviceTemplate1.eserviceDescription,
+          intendedTarget: eserviceTemplate1.intendedTarget,
+          description: eserviceTemplate1.description,
           technology: "REST",
           mode: "DELIVER",
         },

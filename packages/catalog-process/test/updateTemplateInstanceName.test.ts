@@ -25,7 +25,7 @@ import {
 } from "./utils.js";
 
 describe("updateTemplateInstanceName", () => {
-  it("should write on event-store for the internal update of the eService name without instanceId", async () => {
+  it("should write on event-store for the internal update of the eService name without instanceLabel", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -68,7 +68,7 @@ describe("updateTemplateInstanceName", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
   });
 
-  it("should write on event-store for the internal update of the eService name with instanceId", async () => {
+  it("should write on event-store for the internal update of the eService name with instanceLabel", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -77,7 +77,7 @@ describe("updateTemplateInstanceName", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      templateRef: { id: generateId(), instanceId: "test" },
+      templateRef: { id: generateId(), instanceLabel: "test" },
     };
 
     await addOneEService(eservice);
@@ -123,7 +123,7 @@ describe("updateTemplateInstanceName", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      templateRef: { id: generateId(), instanceId: "test" },
+      templateRef: { id: generateId(), instanceLabel: "test" },
       name: `${updatedName} test`,
     };
 

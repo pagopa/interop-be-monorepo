@@ -434,7 +434,7 @@ export function catalogServiceBuilder(
         templateRef: eserviceTemplate && {
           templateId: eserviceTemplate.id,
           templateName: eserviceTemplate.name,
-          instanceId: eservice.templateRef?.instanceId,
+          instanceLabel: eservice.templateRef?.instanceLabel,
           templateVersionId: descriptor.templateVersionRef?.id,
           templateInterfaceId: eserviceTemplate.versions.find(
             (v) => v.id === descriptor.templateVersionRef?.id
@@ -1584,7 +1584,7 @@ export function catalogServiceBuilder(
     ): Promise<bffApi.CreatedEServiceDescriptor> => {
       logger.info(
         `Creating EService from template ${templateId} ${
-          seed.instanceId ? `with instanceId ${seed.instanceId}` : ""
+          seed.instanceLabel ? `with instanceLabel ${seed.instanceLabel}` : ""
         }`
       );
 

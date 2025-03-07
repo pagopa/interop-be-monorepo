@@ -1965,7 +1965,7 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceId:
+        instanceLabel:
           type: string
     DescriptorSeedForEServiceCreation:
       required:
@@ -2308,7 +2308,7 @@ components:
         id:
           type: string
           format: uuid
-        instanceId:
+        instanceLabel:
           type: string
           format: uuid
     EServiceTemplateVersionRef:
@@ -2734,7 +2734,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceId:
+        instanceLabel:
           type: string
         isSignalHubEnabled:
           type: boolean

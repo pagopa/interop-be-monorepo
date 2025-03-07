@@ -42,7 +42,7 @@ import {
 describe("update eService Instance", () => {
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
-  it("should write on event-store for the update of an eService (without changing instanceId)", async () => {
+  it("should write on event-store for the update of an eService (without changing instanceLabel)", async () => {
     config.featureFlagSignalhubWhitelist = true;
     config.signalhubWhitelistProducer = [mockEService.producerId];
 
@@ -68,7 +68,7 @@ describe("update eService Instance", () => {
       isSignalHubEnabled,
       templateRef: {
         id: template.id,
-        instanceId: undefined,
+        instanceLabel: undefined,
       },
     };
     await addOneEServiceTemplate(template);
@@ -136,7 +136,7 @@ describe("update eService Instance", () => {
       isSignalHubEnabled,
       templateRef: {
         id: template.id,
-        instanceId: undefined,
+        instanceLabel: undefined,
       },
     };
     await addOneEServiceTemplate(template);
@@ -179,7 +179,7 @@ describe("update eService Instance", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
-  it("should write on event-store for the update of an eService (instanceId changed)", async () => {
+  it("should write on event-store for the update of an eService (instanceLabel changed)", async () => {
     config.featureFlagSignalhubWhitelist = true;
     config.signalhubWhitelistProducer = [mockEService.producerId];
 
@@ -195,7 +195,7 @@ describe("update eService Instance", () => {
       descriptors: [descriptor],
       templateRef: {
         id: template.id,
-        instanceId: "test",
+        instanceLabel: "test",
       },
     };
     await addOneEServiceTemplate(template);
@@ -205,7 +205,7 @@ describe("update eService Instance", () => {
       await catalogService.updateEServiceTemplateInstance(
         eservice.id,
         {
-          instanceId: "test 2",
+          instanceLabel: "test 2",
         },
         {
           authData: getMockAuthData(eservice.producerId),
@@ -220,7 +220,7 @@ describe("update eService Instance", () => {
       name: `${template.name} test 2`,
       templateRef: {
         id: template.id,
-        instanceId: "test 2",
+        instanceLabel: "test 2",
       },
     };
 
@@ -256,7 +256,7 @@ describe("update eService Instance", () => {
       name: `${template.name} test`,
       templateRef: {
         id: template.id,
-        instanceId: "test",
+        instanceLabel: "test",
       },
     });
     await addOneDelegation(delegation);
@@ -265,7 +265,7 @@ describe("update eService Instance", () => {
       await catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
-          instanceId: "test 2",
+          instanceLabel: "test 2",
         },
         {
           authData: getMockAuthData(delegation.delegateId),
@@ -281,7 +281,7 @@ describe("update eService Instance", () => {
       isSignalHubEnabled: false,
       templateRef: {
         id: template.id,
-        instanceId: "test 2",
+        instanceLabel: "test 2",
       },
     };
 
@@ -306,7 +306,7 @@ describe("update eService Instance", () => {
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
-          instanceId: "test",
+          instanceLabel: "test",
         },
         {
           authData: getMockAuthData(mockEService.producerId),
@@ -333,7 +333,7 @@ describe("update eService Instance", () => {
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
-          instanceId: "test",
+          instanceLabel: "test",
         },
         {
           authData: getMockAuthData(),
@@ -367,7 +367,7 @@ describe("update eService Instance", () => {
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
-          instanceId: "test",
+          instanceLabel: "test",
         },
         {
           authData: getMockAuthData(mockEService.producerId),
@@ -403,7 +403,7 @@ describe("update eService Instance", () => {
       catalogService.updateEServiceTemplateInstance(
         eservice1.id,
         {
-          instanceId: "test",
+          instanceLabel: "test",
         },
         {
           authData: getMockAuthData(eservice1.producerId),
@@ -444,7 +444,7 @@ describe("update eService Instance", () => {
         catalogService.updateEServiceTemplateInstance(
           eservice.id,
           {
-            instanceId: "test",
+            instanceLabel: "test",
           },
           {
             authData: getMockAuthData(eservice.producerId),
@@ -474,7 +474,7 @@ describe("update eService Instance", () => {
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
-          instanceId: "test",
+          instanceLabel: "test",
         },
         {
           authData: getMockAuthData(mockEService.producerId),
