@@ -5,6 +5,7 @@ import {
   AppContext,
   ApplicationAuditProducerConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 export enum Phase {
   BEGIN_REQUEST = "BEGIN_REQUEST",
@@ -45,7 +46,7 @@ export interface ApplicationAuditEndRequest {
   executionTimeMs: number;
 }
 
-export interface ApplicationAuditEndRequestCustomAuthServer {
+export interface ApplicationAuditEndRequestAuthServer {
   correlationId: string;
   service: string;
   serviceVersion: string;
@@ -58,13 +59,13 @@ export interface ApplicationAuditEndRequestCustomAuthServer {
   uptimeSeconds: number;
   timestamp: number;
   amazonTraceId?: string;
-  organizationId: string;
+  organizationId?: string;
   clientId?: string;
   httpResponseStatus: number;
   executionTimeMs: number;
 }
 
-export interface ApplicationAuditEndRequestCustomBFF {
+export interface ApplicationAuditEndRequestSessionTokenExchange {
   correlationId: string;
   service: string;
   serviceVersion: string;
@@ -83,6 +84,28 @@ export interface ApplicationAuditEndRequestCustomBFF {
   executionTimeMs: number;
 }
 
+export function parseAmznTraceIdHeader(req: Request): string | undefined {
+  const parsed = z
+    .object({ "x-amzn-trace-id": z.string() })
+    .safeParse(req.headers);
+
+  if (parsed.success) {
+    return parsed.data["x-amzn-trace-id"];
+  }
+  return undefined;
+}
+
+export function parseForwardedForHeader(req: Request): string | undefined {
+  const parsed = z
+    .object({ "x-forwarded-for": z.string() })
+    .safeParse(req.headers);
+
+  if (parsed.success) {
+    return parsed.data["x-forwarded-for"];
+  }
+  return undefined;
+}
+
 export async function applicationAuditMiddleware(
   serviceName: string,
   config: ApplicationAuditProducerConfig
@@ -96,37 +119,47 @@ export async function applicationAuditMiddleware(
 
       const correlationId = context?.correlationId;
       const organizationId = context?.authData.organizationId;
+      const amznTraceId = parseAmznTraceIdHeader(req);
+      const forwardedFor = parseForwardedForHeader(req);
       if (!correlationId) {
-        throw genericInternalError("TODO: error or non-null assertion?");
+        throw genericInternalError(
+          "Failed to retrieve correlationId from context"
+        );
       }
 
       if (!organizationId) {
-        throw genericInternalError("TODO: error or non-null assertion?");
+        throw genericInternalError(
+          "Failed to retrieve organizationId from context"
+        );
+      }
+
+      if (!amznTraceId) {
+        throw genericInternalError("The amznTraceId header is missing");
+      }
+
+      if (!forwardedFor) {
+        throw genericInternalError("The forwardedFor header is missing");
       }
 
       const initialAudit: ApplicationAuditBeginRequest = {
         correlationId,
         service: serviceName,
         serviceVersion: config.serviceVersion,
-        /*
-          req.path:  /eservices/
-          req.url:  /eservices/?offset=0&limit=1
-         */
-        endpoint: req.path, // TODO req.path or req.url?
+        endpoint: req.path,
         httpMethod: req.method,
         phase: Phase.BEGIN_REQUEST,
-        requesterIpAddress: "TODO",
+        requesterIpAddress: forwardedFor,
         nodeIp: config.nodeIp,
         podName: config.podName,
-        uptimeSeconds: process.uptime(), // TODO how many decimal digits?
+        uptimeSeconds: Math.round(process.uptime()),
         timestamp: requestTimestamp,
-        amazonTraceId: config.amazonTraceId,
+        amazonTraceId: amznTraceId,
       };
 
       await producer.send({
         messages: [
           {
-            key: "TODO",
+            key: correlationId,
             value: JSON.stringify(initialAudit),
           },
         ],
@@ -139,23 +172,23 @@ export async function applicationAuditMiddleware(
           correlationId,
           service: serviceName,
           serviceVersion: config.serviceVersion,
-          endpoint: req.path,
+          endpoint: req.route.path,
           httpMethod: req.method,
           executionTimeMs: endTimestamp - requestTimestamp,
           organizationId,
           phase: Phase.END_REQUEST,
           httpResponseStatus: res.statusCode,
-          requesterIpAddress: "TODO",
+          requesterIpAddress: forwardedFor,
           nodeIp: config.nodeIp,
           podName: config.podName,
-          uptimeSeconds: process.uptime(),
+          uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
-          amazonTraceId: config.amazonTraceId,
+          amazonTraceId: amznTraceId,
         };
         await producer.send({
           messages: [
             {
-              key: "TODO",
+              key: correlationId,
               value: JSON.stringify(finalAudit),
             },
           ],
