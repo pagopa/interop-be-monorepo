@@ -17,7 +17,7 @@ export type InstitutionEvent = z.infer<typeof InstitutionEvent>;
 
 export const InstitutionEventPayload = z.object({
   id: z.string(),
-  internalIstitutionID: z.string().trim().min(1), // Selfcare ID
+  institutionId: z.string().trim().min(1), // Selfcare ID
   product: z.string().trim().min(1),
   onboardingTokenId: z.string(),
   institution: InstitutionEvent,
