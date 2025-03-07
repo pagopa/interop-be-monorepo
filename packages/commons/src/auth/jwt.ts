@@ -104,9 +104,3 @@ export const verifyJwtToken = async (
     return Promise.resolve(false);
   }
 };
-
-export const hasPermission = (
-  permissions: string[],
-  authData: AuthData
-): boolean =>
-  authData.userRoles.some((role: string) => permissions.includes(role));
