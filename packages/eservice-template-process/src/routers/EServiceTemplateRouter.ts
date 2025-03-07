@@ -79,7 +79,7 @@ const eserviceTemplatesRouter = (
       validationErrorHandler: zodiosValidationErrorToApiProblem,
     })
     .get(
-      "/eservices/templates",
+      "/templates",
       authorizationMiddleware([
         ADMIN_ROLE,
         API_ROLE,
@@ -136,7 +136,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates",
+      "/templates",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -163,7 +163,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .get(
-      "/eservices/templates/:eServiceTemplateId",
+      "/templates/:templateId",
       authorizationMiddleware([
         ADMIN_ROLE,
         API_ROLE,
@@ -177,7 +177,7 @@ const eserviceTemplatesRouter = (
         try {
           const eserviceTemplate =
             await eserviceTemplateService.getEServiceTemplateById(
-              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.templateId),
               ctx
             );
           return res
@@ -199,14 +199,14 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId",
+      "/templates/:templateId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplate(
-              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.templateId),
               req.body,
               ctx
             );
@@ -229,7 +229,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions",
+      "/templates/:templateId/versions",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -237,7 +237,7 @@ const eserviceTemplatesRouter = (
         try {
           const eserviceTemplateVersion =
             await eserviceTemplateService.createEServiceTemplateVersion(
-              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.templateId),
               ctx
             );
           return res
@@ -261,15 +261,15 @@ const eserviceTemplatesRouter = (
       }
     )
     .delete(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      "/templates/:templateId/versions/:templateVersionId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.deleteEServiceTemplateVersion(
-            unsafeBrandId(req.params.eServiceTemplateId),
-            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.templateVersionId),
             ctx
           );
           return res.status(204).send();
@@ -285,7 +285,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId",
+      "/templates/:templateId/versions/:templateVersionId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -293,8 +293,8 @@ const eserviceTemplatesRouter = (
         try {
           const eserviceTemplate =
             await eserviceTemplateService.updateDraftTemplateVersion(
-              unsafeBrandId(req.params.eServiceTemplateId),
-              unsafeBrandId(req.params.eServiceTemplateVersionId),
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
               req.body,
               ctx
             );
@@ -317,15 +317,15 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/publish",
+      "/templates/:templateId/versions/:templateVersionId/publish",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.publishEServiceTemplateVersion(
-            unsafeBrandId(req.params.eServiceTemplateId),
-            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.templateVersionId),
             ctx
           );
           return res.status(204).send();
@@ -341,15 +341,15 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/suspend",
+      "/templates/:templateId/versions/:templateVersionId/suspend",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.suspendEServiceTemplateVersion(
-            unsafeBrandId(req.params.eServiceTemplateId),
-            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.templateVersionId),
             ctx
           );
           return res.status(204).send();
@@ -365,15 +365,15 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/activate",
+      "/templates/:templateId/versions/:templateVersionId/activate",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.activateEServiceTemplateVersion(
-            unsafeBrandId(req.params.eServiceTemplateId),
-            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.templateVersionId),
             ctx
           );
           return res.status(204).send();
@@ -389,7 +389,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/quotas/update",
+      "/templates/:templateId/versions/:templateVersionId/quotas/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -397,8 +397,8 @@ const eserviceTemplatesRouter = (
         try {
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplateVersionQuotas(
-              unsafeBrandId(req.params.eServiceTemplateId),
-              unsafeBrandId(req.params.eServiceTemplateVersionId),
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
               req.body,
               ctx
             );
@@ -421,15 +421,15 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents",
+      "/templates/:templateId/versions/:templateVersionId/documents",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const updatedEServiceTemplate =
             await eserviceTemplateService.createEServiceTemplateDocument(
-              unsafeBrandId(req.params.eServiceTemplateId),
-              unsafeBrandId(req.params.eServiceTemplateVersionId),
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
               req.body,
               ctx
             );
@@ -452,21 +452,18 @@ const eserviceTemplatesRouter = (
       }
     )
     .get(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId",
+      "/templates/:templateId/versions/:templateVersionId/documents/:documentId",
       authorizationMiddleware([API_ROLE, ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { eServiceTemplateId, eServiceTemplateVersionId, documentId } =
-            req.params;
+          const { templateId, templateVersionId, documentId } = req.params;
 
           const eServiceTemplateDocument =
             await eserviceTemplateService.getEServiceTemplateDocument(
               {
-                eServiceTemplateId: unsafeBrandId(eServiceTemplateId),
-                eServiceTemplateVersionId: unsafeBrandId(
-                  eServiceTemplateVersionId
-                ),
+                eServiceTemplateId: unsafeBrandId(templateId),
+                eServiceTemplateVersionId: unsafeBrandId(templateVersionId),
                 eServiceDocumentId: unsafeBrandId(documentId),
               },
               ctx
@@ -484,15 +481,15 @@ const eserviceTemplatesRouter = (
       }
     )
     .delete(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId",
+      "/templates/:templateId/versions/:templateVersionId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.deleteDocument(
-            unsafeBrandId(req.params.eServiceTemplateId),
-            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.templateVersionId),
             unsafeBrandId(req.params.documentId),
             ctx
           );
@@ -509,15 +506,15 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId/update",
+      "/templates/:templateId/versions/:templateVersionId/documents/:documentId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.updateDocument(
-            unsafeBrandId(req.params.eServiceTemplateId),
-            unsafeBrandId(req.params.eServiceTemplateVersionId),
+            unsafeBrandId(req.params.templateId),
+            unsafeBrandId(req.params.templateVersionId),
             unsafeBrandId(req.params.documentId),
             req.body,
             ctx
@@ -535,14 +532,14 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/riskAnalysis",
+      "/templates/:templateId/riskAnalysis",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.createRiskAnalysis(
-            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.templateId),
             req.body,
             ctx
           );
@@ -559,14 +556,14 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+      "/templates/:templateId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.updateRiskAnalysis(
-            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.templateId),
             unsafeBrandId(req.params.riskAnalysisId),
             req.body,
             ctx
@@ -584,14 +581,14 @@ const eserviceTemplatesRouter = (
       }
     )
     .delete(
-      "/eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId",
+      "/templates/:templateId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           await eserviceTemplateService.deleteRiskAnalysis(
-            unsafeBrandId(req.params.eServiceTemplateId),
+            unsafeBrandId(req.params.templateId),
             unsafeBrandId(req.params.riskAnalysisId),
             ctx
           );
@@ -608,7 +605,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/intendedTarget/update",
+      "/templates/:templateId/intendedTarget/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -616,7 +613,7 @@ const eserviceTemplatesRouter = (
         try {
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceIntendedTarget(
-              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.templateId),
               req.body.description,
               ctx
             );
@@ -639,7 +636,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/description/update",
+      "/templates/:templateId/description/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -647,7 +644,7 @@ const eserviceTemplatesRouter = (
         try {
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplateDescription(
-              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.templateId),
               req.body.description,
               ctx
             );
@@ -670,14 +667,14 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/name/update",
+      "/templates/:templateId/name/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplateName(
-              unsafeBrandId(req.params.eServiceTemplateId),
+              unsafeBrandId(req.params.templateId),
               req.body.name,
               ctx
             );
@@ -700,15 +697,15 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/attributes/update",
+      "/templates/:templateId/versions/:templateVersionId/attributes/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplateVersionAttributes(
-              unsafeBrandId(req.params.eServiceTemplateId),
-              unsafeBrandId(req.params.eServiceTemplateVersionId),
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
               req.body,
               ctx
             );
@@ -731,7 +728,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .get(
-      "/eservices/templates/creators",
+      "/templates/creators",
       authorizationMiddleware([
         ADMIN_ROLE,
         API_ROLE,

@@ -79,194 +79,194 @@ export function eserviceTemplateServiceBuilder(
       });
     },
     updateEServiceTemplate: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      logger.info(`Updating EService template with id ${eServiceTemplateId}`);
+      logger.info(`Updating EService template with id ${templateId}`);
       await eserviceTemplateClient.updateEServiceTemplate(seed, {
         headers,
         params: {
-          eServiceTemplateId,
+          templateId,
         },
       });
     },
     updateDraftTemplateVersion: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       seed: bffApi.UpdateEServiceTemplateVersionSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Updating draft version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+        `Updating draft version ${templateVersionId} of EService template ${templateId}`
       );
       await eserviceTemplateClient.updateDraftTemplateVersion(seed, {
         headers,
         params: {
-          eServiceTemplateId,
-          eServiceTemplateVersionId,
+          templateId,
+          templateVersionId,
         },
       });
     },
     suspendEServiceTemplateVersion: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Suspending version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+        `Suspending version ${templateVersionId} of EService template ${templateId}`
       );
       await eserviceTemplateClient.suspendTemplateVersion(undefined, {
         headers,
         params: {
-          eServiceTemplateId,
-          eServiceTemplateVersionId,
+          templateId,
+          templateVersionId,
         },
       });
     },
     activateEServiceTemplateVersion: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Activating version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+        `Activating version ${templateVersionId} of EService template ${templateId}`
       );
       await eserviceTemplateClient.activateTemplateVersion(undefined, {
         headers,
         params: {
-          eServiceTemplateId,
-          eServiceTemplateVersionId,
+          templateId,
+          templateVersionId,
         },
       });
     },
     publishEServiceTemplateVersion: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Publishing version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+        `Publishing version ${templateVersionId} of EService template ${templateId}`
       );
       await eserviceTemplateClient.publishTemplateVersion(undefined, {
         headers,
         params: {
-          eServiceTemplateId,
-          eServiceTemplateVersionId,
+          templateId,
+          templateVersionId,
         },
       });
     },
     deleteEServiceTemplateVersion: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Deleting version ${eServiceTemplateVersionId} of EService template ${eServiceTemplateId}`
+        `Deleting version ${templateVersionId} of EService template ${templateId}`
       );
       await eserviceTemplateClient.deleteDraftTemplateVersion(undefined, {
         headers,
         params: {
-          eServiceTemplateId,
-          eServiceTemplateVersionId,
+          templateId,
+          templateVersionId,
         },
       });
     },
     updateEServiceTemplateName: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateNameUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      logger.info(`Updating EService template ${eServiceTemplateId} name`);
+      logger.info(`Updating EService template ${templateId} name`);
       await eserviceTemplateClient.updateEServiceTemplateName(seed, {
         headers,
         params: {
-          eServiceTemplateId,
+          templateId,
         },
       });
     },
     updateEServiceIntendedTarget: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateDescriptionUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Updating EService template ${eServiceTemplateId} intended target description`
+        `Updating EService template ${templateId} intended target description`
       );
       await eserviceTemplateClient.updateEServiceIntendedTarget(seed, {
         headers,
         params: {
-          eServiceTemplateId,
+          templateId,
         },
       });
     },
     updateEServiceTemplateDescription: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateDescriptionUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Updating EService template ${eServiceTemplateId} e-service description`
+        `Updating EService template ${templateId} e-service description`
       );
       await eserviceTemplateClient.updateEServiceTemplateDescription(seed, {
         headers,
         params: {
-          eServiceTemplateId,
+          templateId,
         },
       });
     },
     updateEServiceTemplateVersionQuotas: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       seed: bffApi.EServiceTemplateVersionQuotasUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Updating EService template ${eServiceTemplateId} version ${eServiceTemplateVersionId} quotas`
+        `Updating EService template ${templateId} version ${templateVersionId} quotas`
       );
       await eserviceTemplateClient.updateTemplateVersionQuotas(seed, {
         headers,
         params: {
-          eServiceTemplateId,
-          eServiceTemplateVersionId,
+          templateId,
+          templateVersionId,
         },
       });
     },
     updateEServiceTemplateVersionAttributes: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       seed: bffApi.DescriptorAttributesSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Updating EService template ${eServiceTemplateId} version ${eServiceTemplateVersionId} attributes`
+        `Updating EService template ${templateId} version ${templateVersionId} attributes`
       );
       await eserviceTemplateClient.updateTemplateVersionAttributes(seed, {
         headers,
         params: {
-          eServiceTemplateId,
-          eServiceTemplateVersionId,
+          templateId,
+          templateVersionId,
         },
       });
     },
     getEServiceTemplateVersion: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.EServiceTemplateVersionDetails> => {
       logger.info(
-        `Retrieving EService template version for eServiceTemplateId = ${eServiceTemplateId}, eServiceTemplateVersionId = ${eServiceTemplateVersionId}`
+        `Retrieving EService template version for templateId = ${templateId}, templateVersionId = ${templateVersionId}`
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(
-        eServiceTemplateId,
+        templateId,
         eserviceTemplateClient,
         headers
       );
 
       const eserviceTemplateVersion = retrieveEServiceTemplateVersion(
         eserviceTemplate,
-        eServiceTemplateVersionId
+        templateVersionId
       );
 
       const eserviceTemplateVersionAttributeIds = getAttributeIds(
@@ -314,17 +314,17 @@ export function eserviceTemplateServiceBuilder(
       };
     },
     getEServiceTemplate: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.EServiceTemplateDetails> => {
       logger.info(
-        `Retrieving EService template for eServiceTemplateId = ${eServiceTemplateId}`
+        `Retrieving EService template for templateId = ${templateId}`
       );
 
       const eserviceTemplate: eserviceTemplateApi.EServiceTemplate =
         await eserviceTemplateClient.getEServiceTemplateById({
           params: {
-            eServiceTemplateId,
+            templateId,
           },
           headers,
         });
@@ -419,70 +419,66 @@ export function eserviceTemplateServiceBuilder(
       };
     },
     createEServiceTemplateEServiceRiskAnalysis: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       seed: bffApi.EServiceRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
-      logger.info(
-        `Creating EService template ${eServiceTemplateId} risk analysis`
-      );
+      logger.info(`Creating EService template ${templateId} risk analysis`);
       await eserviceTemplateClient.createEServiceTemplateRiskAnalysis(seed, {
         headers,
         params: {
-          eServiceTemplateId,
+          templateId,
         },
       });
     },
     updateEServiceTemplateEServiceRiskAnalysis: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
       seed: bffApi.EServiceRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Updating EService template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+        `Updating EService template ${templateId} risk analysis ${riskAnalysisId}`
       );
       await eserviceTemplateClient.updateEServiceTemplateRiskAnalysis(seed, {
         headers,
         params: {
-          eServiceTemplateId,
+          templateId,
           riskAnalysisId,
         },
       });
     },
     deleteEServiceTemplateEServiceRiskAnalysis: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Deleting EService template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
+        `Deleting EService template ${templateId} risk analysis ${riskAnalysisId}`
       );
       await eserviceTemplateClient.deleteEServiceTemplateRiskAnalysis(
         undefined,
         {
           headers,
           params: {
-            eServiceTemplateId,
+            templateId,
             riskAnalysisId,
           },
         }
       );
     },
     createEServiceTemplateVersion: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
-      logger.info(
-        `Creating new version for EService template ${eServiceTemplateId}`
-      );
+      logger.info(`Creating new version for EService template ${templateId}`);
 
       const { id } = await eserviceTemplateClient.createEServiceTemplateVersion(
         undefined,
         {
           headers,
           params: {
-            eServiceTemplateId,
+            templateId,
           },
         }
       );
@@ -518,24 +514,21 @@ export function eserviceTemplateServiceBuilder(
       };
     },
     createEServiceTemplateDocument: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       doc: bffApi.createEServiceDocument_Body,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> => {
       ctx.logger.info(
-        `Creating EService Template Document for EService template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
+        `Creating EService Template Document for EService template ${templateId} and Version ${templateVersionId}`
       );
       const eserviceTemplate =
         await eserviceTemplateClient.getEServiceTemplateById({
-          params: { eServiceTemplateId },
+          params: { templateId },
           headers: ctx.headers,
         });
 
-      retrieveEServiceTemplateVersion(
-        eserviceTemplate,
-        eServiceTemplateVersionId
-      );
+      retrieveEServiceTemplateVersion(eserviceTemplate, templateVersionId);
 
       const documentId = randomUUID();
 
@@ -564,8 +557,8 @@ export function eserviceTemplateServiceBuilder(
             {
               headers: ctx.headers,
               params: {
-                eServiceTemplateId: eserviceTemplate.id,
-                eServiceTemplateVersionId,
+                templateId: eserviceTemplate.id,
+                templateVersionId,
               },
             }
           );
@@ -576,19 +569,19 @@ export function eserviceTemplateServiceBuilder(
       return { id: documentId };
     },
     getEServiceTemplateDocument: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       documentId: EServiceDocumentId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<{ contentType: string; document: Buffer }> => {
       logger.info(
-        `Retrieving EService Template Document for EService template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId} and Document ${documentId}`
+        `Retrieving EService Template Document for EService template ${templateId} and Version ${templateVersionId} and Document ${documentId}`
       );
       const { path, contentType } =
         await eserviceTemplateClient.getEServiceTemplateDocumentById({
           params: {
-            eServiceTemplateId,
-            eServiceTemplateVersionId,
+            templateId,
+            templateVersionId,
             documentId,
           },
           headers,
@@ -604,22 +597,22 @@ export function eserviceTemplateServiceBuilder(
     },
 
     updateEServiceTemplateDocumentById: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       documentId: EServiceDocumentId,
       updateEServiceTemplateVersionDocumentSeed: bffApi.UpdateEServiceTemplateVersionDocumentSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.EServiceDoc> => {
       logger.info(
-        `Updating document ${documentId} of version ${eServiceTemplateVersionId} of EServiceTemplate ${eServiceTemplateId}`
+        `Updating document ${documentId} of version ${templateVersionId} of EServiceTemplate ${templateId}`
       );
       const { id, name, contentType, prettyName, checksum } =
         await eserviceTemplateClient.updateEServiceTemplateDocumentById(
           updateEServiceTemplateVersionDocumentSeed,
           {
             params: {
-              eServiceTemplateId,
-              eServiceTemplateVersionId,
+              templateId,
+              templateVersionId,
               documentId,
             },
             headers,
@@ -701,20 +694,20 @@ export function eserviceTemplateServiceBuilder(
       return { id: resourceId };
     },
     deleteEServiceTemplateDocumentById: async (
-      eServiceTemplateId: EServiceTemplateId,
-      eServiceTemplateVersionId: EServiceTemplateVersionId,
+      templateId: EServiceTemplateId,
+      templateVersionId: EServiceTemplateVersionId,
       documentId: EServiceDocumentId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Deleting document ${documentId} of version ${eServiceTemplateVersionId} of EServiceTemplate ${eServiceTemplateId}`
+        `Deleting document ${documentId} of version ${templateVersionId} of EServiceTemplate ${templateId}`
       );
       await eserviceTemplateClient.deleteEServiceTemplateDocumentById(
         undefined,
         {
           params: {
-            eServiceTemplateId,
-            eServiceTemplateVersionId,
+            templateId,
+            templateVersionId,
             documentId,
           },
           headers,
@@ -760,21 +753,21 @@ async function getTenantsFromEServiceTemplates(
   return new Map(tenants.map((t) => [t.id, t]));
 }
 export const retrieveEServiceTemplate = async (
-  eServiceTemplateId: string,
+  templateId: string,
   eserviceTemplateClient: EServiceTemplateProcessClient,
   headers: BffAppContext["headers"]
 ): Promise<eserviceTemplateApi.EServiceTemplate> => {
   const eserviceTemplate = await eserviceTemplateClient.getEServiceTemplateById(
     {
       params: {
-        eServiceTemplateId,
+        templateId,
       },
       headers,
     }
   );
 
   if (!eserviceTemplate) {
-    throw eserviceTemplateNotFound(eServiceTemplateId);
+    throw eserviceTemplateNotFound(templateId);
   }
   return eserviceTemplate;
 };
