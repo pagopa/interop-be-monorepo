@@ -87,35 +87,32 @@ export async function handleMessageV2({
         updateTemplateInstanceName
       );
     })
-    .with(
-      { type: "EServiceTemplateEServiceDescriptionUpdated" },
-      async (msg) => {
-        const newDescription = getTemplateFromEvent(msg).eserviceDescription;
+    .with({ type: "EServiceTemplateDescriptionUpdated" }, async (msg) => {
+      const newDescription = getTemplateFromEvent(msg).description;
 
-        const updateTemplateEServiceDescription = async (
-          instance: EService,
-          headers: InteropHeaders
-        ): Promise<void> => {
-          await catalogProcess.client.updateTemplateInstanceDescription(
-            { description: newDescription },
-            {
-              params: {
-                eServiceId: instance.id,
-              },
-              headers,
-            }
-          );
-        };
-
-        await commitUpdateToTemplateInstances(
-          msg,
-          refreshableToken,
-          correlationId,
-          readModelService,
-          updateTemplateEServiceDescription
+      const updateTemplateEServiceDescription = async (
+        instance: EService,
+        headers: InteropHeaders
+      ): Promise<void> => {
+        await catalogProcess.client.updateTemplateInstanceDescription(
+          { description: newDescription },
+          {
+            params: {
+              eServiceId: instance.id,
+            },
+            headers,
+          }
         );
-      }
-    )
+      };
+
+      await commitUpdateToTemplateInstances(
+        msg,
+        refreshableToken,
+        correlationId,
+        readModelService,
+        updateTemplateEServiceDescription
+      );
+    })
     .with({ type: "EServiceTemplateVersionAttributesUpdated" }, async (msg) => {
       const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
 
@@ -346,7 +343,7 @@ export async function handleMessageV2({
     })
     .with(
       { type: "EServiceTemplateAdded" },
-      { type: "EServiceTemplateAudienceDescriptionUpdated" },
+      { type: "EServiceIntendedTargetUpdated" },
       { type: "EServiceTemplateDeleted" },
       { type: "EServiceTemplateDraftUpdated" },
       { type: "EServiceTemplateDraftVersionDeleted" },

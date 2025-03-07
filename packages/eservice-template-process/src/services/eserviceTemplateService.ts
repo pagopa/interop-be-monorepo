@@ -68,8 +68,8 @@ import {
   toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
   toCreateEventEServiceTemplateDraftVersionUpdated,
-  toCreateEventEServiceTemplateAudienceDescriptionUpdated,
-  toCreateEventEServiceTemplateEServiceDescriptionUpdated,
+  toCreateEventEServiceIntendedTargetUpdated,
+  toCreateEventEServiceTemplateDescriptionUpdated,
   toCreateEventEServiceTemplateVersionQuotasUpdated,
   toCreateEventEServiceTemplateVersionAttributesUpdated,
   toCreateEventEServiceTemplateRiskAnalysisAdded,
@@ -666,13 +666,13 @@ export function eserviceTemplateServiceBuilder(
       );
       return updatedEserviceTemplate;
     },
-    async updateEServiceTemplateAudienceDescription(
+    async updateEServiceIntendedTarget(
       eserviceTemplateId: EServiceTemplateId,
-      audienceDescription: string,
+      intendedTarget: string,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EServiceTemplate> {
       logger.info(
-        `Updating audience description of EService template ${eserviceTemplateId}`
+        `Updating intended target description of EService template ${eserviceTemplateId}`
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -688,10 +688,10 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEserviceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
-        audienceDescription,
+        intendedTarget,
       };
       await repository.createEvent(
-        toCreateEventEServiceTemplateAudienceDescriptionUpdated(
+        toCreateEventEServiceIntendedTargetUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
@@ -701,9 +701,9 @@ export function eserviceTemplateServiceBuilder(
       return updatedEserviceTemplate;
     },
 
-    async updateEServiceTemplateEServiceDescription(
+    async updateEServiceTemplateDescription(
       eserviceTemplateId: EServiceTemplateId,
-      eserviceDescription: string,
+      description: string,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EServiceTemplate> {
       logger.info(
@@ -723,10 +723,10 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEserviceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
-        eserviceDescription,
+        description,
       };
       await repository.createEvent(
-        toCreateEventEServiceTemplateEServiceDescriptionUpdated(
+        toCreateEventEServiceTemplateDescriptionUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
@@ -1211,8 +1211,8 @@ export function eserviceTemplateServiceBuilder(
         id: generateId(),
         creatorId: authData.organizationId,
         name: seed.name,
-        audienceDescription: seed.audienceDescription,
-        eserviceDescription: seed.eserviceDescription,
+        intendedTarget: seed.intendedTarget,
+        description: seed.description,
         technology: apiTechnologyToTechnology(seed.technology),
         versions: [draftVersion],
         mode: apiEServiceModeToEServiceMode(seed.mode),
@@ -1292,8 +1292,8 @@ export function eserviceTemplateServiceBuilder(
       const updatedEServiceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         name: eserviceTemplateSeed.name,
-        audienceDescription: eserviceTemplateSeed.audienceDescription,
-        eserviceDescription: eserviceTemplateSeed.eserviceDescription,
+        intendedTarget: eserviceTemplateSeed.intendedTarget,
+        description: eserviceTemplateSeed.description,
         technology: updatedTechnology,
         mode: updatedMode,
         riskAnalysis: checkedRiskAnalysis,

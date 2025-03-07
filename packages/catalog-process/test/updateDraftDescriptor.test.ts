@@ -536,7 +536,7 @@ describe("update draft descriptor", () => {
       name: template.name,
       templateRef: {
         id: template.id,
-        instanceId: undefined,
+        instanceLabel: undefined,
       },
     };
     await addOneEServiceTemplate(template);

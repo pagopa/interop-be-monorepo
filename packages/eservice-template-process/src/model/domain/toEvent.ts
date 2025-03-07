@@ -331,7 +331,7 @@ export const toCreateEventEServiceTemplateNameUpdated = (
   correlationId,
 });
 
-export const toCreateEventEServiceTemplateAudienceDescriptionUpdated = (
+export const toCreateEventEServiceIntendedTargetUpdated = (
   streamId: string,
   version: number,
   eserviceTemplate: EServiceTemplate,
@@ -340,7 +340,7 @@ export const toCreateEventEServiceTemplateAudienceDescriptionUpdated = (
   streamId,
   version,
   event: {
-    type: "EServiceTemplateAudienceDescriptionUpdated",
+    type: "EServiceIntendedTargetUpdated",
     event_version: 2,
     data: {
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
@@ -349,7 +349,7 @@ export const toCreateEventEServiceTemplateAudienceDescriptionUpdated = (
   correlationId,
 });
 
-export const toCreateEventEServiceTemplateEServiceDescriptionUpdated = (
+export const toCreateEventEServiceTemplateDescriptionUpdated = (
   streamId: string,
   version: number,
   eserviceTemplate: EServiceTemplate,
@@ -358,7 +358,7 @@ export const toCreateEventEServiceTemplateEServiceDescriptionUpdated = (
   streamId,
   version,
   event: {
-    type: "EServiceTemplateEServiceDescriptionUpdated",
+    type: "EServiceTemplateDescriptionUpdated",
     event_version: 2,
     data: {
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),

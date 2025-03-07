@@ -267,13 +267,13 @@ const eserviceTemplateRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/audienceDescription/update",
+      "/eservices/templates/:eServiceTemplateId/intendedTarget/update",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         const { eServiceTemplateId } = req.params;
 
         try {
-          await eserviceTemplateService.updateEServiceTemplateAudienceDescription(
+          await eserviceTemplateService.updateEServiceIntendedTarget(
             unsafeBrandId(eServiceTemplateId),
             req.body,
             ctx
@@ -285,20 +285,20 @@ const eserviceTemplateRouter = (
             emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error updating eservice template ${eServiceTemplateId} audience description`
+            `Error updating eservice template ${eServiceTemplateId} description`
           );
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/eserviceDescription/update",
+      "/eservices/templates/:eServiceTemplateId/description/update",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         const { eServiceTemplateId } = req.params;
 
         try {
-          await eserviceTemplateService.updateEServiceTemplateEServiceDescription(
+          await eserviceTemplateService.updateEServiceTemplateDescription(
             unsafeBrandId(eServiceTemplateId),
             req.body,
             ctx

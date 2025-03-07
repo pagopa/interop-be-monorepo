@@ -473,7 +473,7 @@ async function innerCreateEService(
     templateRef: seed.eServiceTemplateReferences
       ? {
           id: seed.eServiceTemplateReferences.templateId,
-          instanceId: seed.eServiceTemplateReferences.instanceId,
+          instanceLabel: seed.eServiceTemplateReferences.instanceLabel,
         }
       : undefined,
   };
@@ -872,7 +872,7 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
 
       const newName = `${template.name} ${
-        eserviceSeed.instanceId ?? ""
+        eserviceSeed.instanceLabel ?? ""
       }`.trim();
 
       if (newName !== eservice.data.name) {
@@ -891,7 +891,7 @@ export function catalogServiceBuilder(
         name: newName,
         templateRef: {
           id: eservice.data.templateRef.id,
-          instanceId: eserviceSeed.instanceId,
+          instanceLabel: eserviceSeed.instanceLabel,
         },
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
           ? isTenantInSignalHubWhitelist(
@@ -2493,8 +2493,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const instanceId = eservice.data.templateRef?.instanceId;
-      const updatedName = instanceId ? `${newName} ${instanceId}` : newName;
+      const instanceLabel = eservice.data.templateRef?.instanceLabel;
+      const updatedName = instanceLabel
+        ? `${newName} ${instanceLabel}`
+        : newName;
 
       if (updatedName === eservice.data.name) {
         return;
@@ -2895,8 +2897,8 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           eServiceSeed: {
-            name: `${template.name} ${seed.instanceId ?? ""}`.trim(),
-            description: template.eserviceDescription,
+            name: `${template.name} ${seed.instanceLabel ?? ""}`.trim(),
+            description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
             descriptor: {
@@ -2919,7 +2921,7 @@ export function catalogServiceBuilder(
           eServiceTemplateReferences: {
             templateId: template.id,
             templateVersionId: publishedVersion.id,
-            instanceId: seed.instanceId,
+            instanceLabel: seed.instanceLabel,
           },
         },
         readModelService,

@@ -690,7 +690,7 @@ describe("update eService", () => {
       descriptors: [descriptor],
       templateRef: {
         id: templateId,
-        instanceId: undefined,
+        instanceLabel: undefined,
       },
     };
     await addOneEService(eservice);
