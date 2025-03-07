@@ -1584,7 +1584,7 @@ export function catalogServiceBuilder(
     ): Promise<bffApi.CreatedEServiceDescriptor> => {
       logger.info(
         `Creating EService from template ${templateId} ${
-          seed.instanceName ? `with instanceName ${seed.instanceName}` : ""
+          seed.instanceLabel ? `with instanceLabel ${seed.instanceLabel}` : ""
         }`
       );
 

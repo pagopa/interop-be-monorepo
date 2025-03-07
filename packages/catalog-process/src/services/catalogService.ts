@@ -473,7 +473,7 @@ async function innerCreateEService(
     templateRef: seed.eServiceTemplateReferences
       ? {
           id: seed.eServiceTemplateReferences.templateId,
-          instanceName: seed.eServiceTemplateReferences.instanceName,
+          instanceLabel: seed.eServiceTemplateReferences.instanceLabel,
         }
       : undefined,
   };
@@ -2493,8 +2493,10 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const instanceName = eservice.data.templateRef?.instanceName;
-      const updatedName = instanceName ? `${newName} ${instanceName}` : newName;
+      const instanceLabel = eservice.data.templateRef?.instanceLabel;
+      const updatedName = instanceLabel
+        ? `${newName} ${instanceLabel}`
+        : newName;
 
       if (updatedName === eservice.data.name) {
         return;
@@ -2895,7 +2897,7 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           eServiceSeed: {
-            name: `${template.name} ${seed.instanceName ?? ""}`.trim(),
+            name: `${template.name} ${seed.instanceLabel ?? ""}`.trim(),
             description: template.eserviceDescription,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -2919,7 +2921,7 @@ export function catalogServiceBuilder(
           eServiceTemplateReferences: {
             templateId: template.id,
             templateVersionId: publishedVersion.id,
-            instanceName: seed.instanceName,
+            instanceLabel: seed.instanceLabel,
           },
         },
         readModelService,

@@ -18077,7 +18077,7 @@ components:
           format: uuid
         templateName:
           type: string
-        instanceName:
+        instanceLabel:
           type: string
         templateInterfaceId:
           type: string
@@ -20448,7 +20448,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceName:
+        instanceLabel:
           type: string
         isSignalHubEnabled:
           type: boolean
@@ -20509,7 +20509,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
-        instanceName:
+        instanceLabel:
           type: string
     EServiceTemplateInstances:
       type: object

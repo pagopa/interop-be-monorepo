@@ -130,7 +130,7 @@ export type EServiceMode = z.infer<typeof EServiceMode>;
 
 export const EServiceTemplateRef = z.object({
   id: EServiceTemplateId,
-  instanceName: z.string().optional(),
+  instanceLabel: z.string().optional(),
 });
 
 export type EServiceTemplateRef = z.infer<typeof EServiceTemplateRef>;
