@@ -18,7 +18,14 @@ headers {
 body:json {
   {
     "description": "prova",
-    "name": "myattr",
-    "code": "1616"
+    "name": "{{randomName}}",
+    "code": "{{randomCode}}"
   }
+}
+
+script:pre-request {
+  const randomCode = Math.round(Math.random() * 10000)
+  
+  bru.setVar("randomCode", randomCode)
+  bru.setVar("randomName", `test name ${randomCode}`)
 }
