@@ -51,7 +51,7 @@ export const EServiceTemplate = z.object({
   creatorId: TenantId,
   name: z.string(),
   templateDescription: z.string(),
-  eserviceDescription: z.string(),
+  description: z.string(),
   technology: Technology,
   versions: z.array(EServiceTemplateVersion),
   createdAt: z.coerce.date(),

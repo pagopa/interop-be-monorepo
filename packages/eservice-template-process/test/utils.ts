@@ -127,7 +127,7 @@ export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (
 ): eserviceTemplateApi.UpdateEServiceTemplateSeed => ({
   name: eserviceTemplate.name,
   templateDescription: eserviceTemplate.templateDescription,
-  eserviceDescription: eserviceTemplate.eserviceDescription,
+  description: eserviceTemplate.description,
   technology: technologyToApiTechnology(eserviceTemplate.technology),
   mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,

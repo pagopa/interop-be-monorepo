@@ -2898,7 +2898,7 @@ export function catalogServiceBuilder(
         {
           eServiceSeed: {
             name: `${template.name} ${seed.instanceLabel ?? ""}`.trim(),
-            description: template.eserviceDescription,
+            description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
             descriptor: {

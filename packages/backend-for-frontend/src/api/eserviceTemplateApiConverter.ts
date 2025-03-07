@@ -26,7 +26,7 @@ export function toBffEServiceTemplateDetails(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     templateDescription: eserviceTemplate.templateDescription,
-    eserviceDescription: eserviceTemplate.eserviceDescription,
+    description: eserviceTemplate.description,
     technology: eserviceTemplate.technology,
     creator: toBffCompactOrganization(creator),
     mode: eserviceTemplate.mode,

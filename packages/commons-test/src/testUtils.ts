@@ -722,7 +722,7 @@ export const getMockEServiceTemplate = (
   creatorId,
   name: "eService template name",
   templateDescription: "eService template description",
-  eserviceDescription: "eService template eservice description",
+  description: "eService template description",
   createdAt: new Date(),
   technology: technology.rest,
   versions,

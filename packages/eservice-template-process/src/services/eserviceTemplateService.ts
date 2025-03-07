@@ -69,7 +69,7 @@ import {
   toCreateEventEServiceTemplateNameUpdated,
   toCreateEventEServiceTemplateDraftVersionUpdated,
   toCreateEventEServiceTemplateTemplateDescriptionUpdated,
-  toCreateEventEServiceTemplateEServiceDescriptionUpdated,
+  toCreateEventEServiceTemplateDescriptionUpdated,
   toCreateEventEServiceTemplateVersionQuotasUpdated,
   toCreateEventEServiceTemplateVersionAttributesUpdated,
   toCreateEventEServiceTemplateRiskAnalysisAdded,
@@ -701,9 +701,9 @@ export function eserviceTemplateServiceBuilder(
       return updatedEserviceTemplate;
     },
 
-    async updateEServiceTemplateEServiceDescription(
+    async updateEServiceTemplateDescription(
       eserviceTemplateId: EServiceTemplateId,
-      eserviceDescription: string,
+      description: string,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EServiceTemplate> {
       logger.info(
@@ -723,10 +723,10 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEserviceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
-        eserviceDescription,
+        description,
       };
       await repository.createEvent(
-        toCreateEventEServiceTemplateEServiceDescriptionUpdated(
+        toCreateEventEServiceTemplateDescriptionUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
@@ -1212,7 +1212,7 @@ export function eserviceTemplateServiceBuilder(
         creatorId: authData.organizationId,
         name: seed.name,
         templateDescription: seed.templateDescription,
-        eserviceDescription: seed.eserviceDescription,
+        description: seed.description,
         technology: apiTechnologyToTechnology(seed.technology),
         versions: [draftVersion],
         mode: apiEServiceModeToEServiceMode(seed.mode),
@@ -1293,7 +1293,7 @@ export function eserviceTemplateServiceBuilder(
         ...eserviceTemplate.data,
         name: eserviceTemplateSeed.name,
         templateDescription: eserviceTemplateSeed.templateDescription,
-        eserviceDescription: eserviceTemplateSeed.eserviceDescription,
+        description: eserviceTemplateSeed.description,
         technology: updatedTechnology,
         mode: updatedMode,
         riskAnalysis: checkedRiskAnalysis,

@@ -17,7 +17,7 @@ import {
   Document,
   EService,
   EServiceTemplate,
-  EServiceTemplateEServiceDescriptionUpdatedV2,
+  EServiceTemplateDescriptionUpdatedV2,
   EServiceTemplateEventEnvelope,
   EServiceTemplateNameUpdatedV2,
   EServiceTemplateVersion,
@@ -174,7 +174,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
   });
 
   it("The consumer should call the updateTemplateInstanceDescription route on EServiceTemplateVersionAttributesUpdated event", async () => {
-    const payload: EServiceTemplateEServiceDescriptionUpdatedV2 = {
+    const payload: EServiceTemplateDescriptionUpdatedV2 = {
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
     };
 
@@ -182,7 +182,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       sequence_num: 1,
       stream_id: eserviceTemplate.id,
       version: 2,
-      type: "EServiceTemplateEServiceDescriptionUpdated",
+      type: "EServiceTemplateDescriptionUpdated",
       event_version: 2,
       data: payload,
       log_date: new Date(),
@@ -208,7 +208,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
     expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledTimes(3);
     expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
-      { description: eserviceTemplate.eserviceDescription },
+      { description: eserviceTemplate.description },
       {
         params: {
           eServiceId: instanceToUpdate1.id,
@@ -217,7 +217,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       }
     );
     expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
-      { description: eserviceTemplate.eserviceDescription },
+      { description: eserviceTemplate.description },
       {
         params: {
           eServiceId: instanceToUpdate2.id,
@@ -226,7 +226,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       }
     );
     expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
-      { description: eserviceTemplate.eserviceDescription },
+      { description: eserviceTemplate.description },
       {
         params: {
           eServiceId: instanceToUpdate3.id,

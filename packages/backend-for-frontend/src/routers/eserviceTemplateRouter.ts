@@ -292,13 +292,13 @@ const eserviceTemplateRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/eserviceDescription/update",
+      "/eservices/templates/:eServiceTemplateId/description/update",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         const { eServiceTemplateId } = req.params;
 
         try {
-          await eserviceTemplateService.updateEServiceTemplateEServiceDescription(
+          await eserviceTemplateService.updateEServiceTemplateDescription(
             unsafeBrandId(eServiceTemplateId),
             req.body,
             ctx

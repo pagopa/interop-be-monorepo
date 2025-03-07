@@ -367,7 +367,9 @@ export function readModelServiceBuilder({
       const instances = await eservices
         .aggregate(aggregationPipeline, { allowDiskUse: true })
         .map((data) => ({
-          name: data.instanceLabel ? `${newName} ${data.instanceLabel}` : newName,
+          name: data.instanceLabel
+            ? `${newName} ${data.instanceLabel}`
+            : newName,
           producerId: data.producerId,
         }))
         .toArray();

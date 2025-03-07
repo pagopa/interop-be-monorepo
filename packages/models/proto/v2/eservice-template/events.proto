@@ -90,7 +90,7 @@ message EServiceTemplateTemplateDescriptionUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
 }
 
-message EServiceTemplateEServiceDescriptionUpdatedV2 {
+message EServiceTemplateDescriptionUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
 }
 

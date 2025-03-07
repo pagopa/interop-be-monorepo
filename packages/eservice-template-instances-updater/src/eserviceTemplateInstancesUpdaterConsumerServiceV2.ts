@@ -82,30 +82,27 @@ export async function handleMessageV2({
         }
       );
     })
-    .with(
-      { type: "EServiceTemplateEServiceDescriptionUpdated" },
-      async (msg) => {
-        const newDescription = getTemplateFromEvent(msg).eserviceDescription;
+    .with({ type: "EServiceTemplateDescriptionUpdated" }, async (msg) => {
+      const newDescription = getTemplateFromEvent(msg).description;
 
-        await commitUpdateToInstances(
-          msg,
-          refreshableToken,
-          correlationId,
-          readModelService,
-          async (instance, headers) => {
-            await catalogProcess.client.updateTemplateInstanceDescription(
-              { description: newDescription },
-              {
-                params: {
-                  eServiceId: instance.id,
-                },
-                headers,
-              }
-            );
-          }
-        );
-      }
-    )
+      await commitUpdateToInstances(
+        msg,
+        refreshableToken,
+        correlationId,
+        readModelService,
+        async (instance, headers) => {
+          await catalogProcess.client.updateTemplateInstanceDescription(
+            { description: newDescription },
+            {
+              params: {
+                eServiceId: instance.id,
+              },
+              headers,
+            }
+          );
+        }
+      );
+    })
     .with({ type: "EServiceTemplateVersionAttributesUpdated" }, async (msg) => {
       const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
 

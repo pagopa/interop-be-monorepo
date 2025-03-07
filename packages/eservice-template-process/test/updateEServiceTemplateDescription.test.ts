@@ -14,7 +14,7 @@ import {
   eserviceTemplateVersionState,
   EServiceTemplate,
   toEServiceTemplateV2,
-  EServiceTemplateEServiceDescriptionUpdatedV2,
+  EServiceTemplateDescriptionUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -27,8 +27,8 @@ import {
   readLastEserviceTemplateEvent,
 } from "./utils.js";
 
-describe("updateEServiceTemplateEServiceDescription", () => {
-  it("should write on event-store for the update of the eService template e-service description", async () => {
+describe("updateEServiceTemplateDescription", () => {
+  it("should write on event-store for the update of the eService template description", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -39,12 +39,11 @@ describe("updateEServiceTemplateEServiceDescription", () => {
       versions: [eserviceTemplateVersion],
     };
     await addOneEServiceTemplate(eserviceTemplate);
-    const updatedEServiceDescription =
-      "eservice template new eservice description";
+    const updatedDescription = "eservice template new eservice description";
     const returnedEServiceTemplate =
-      await eserviceTemplateService.updateEServiceTemplateEServiceDescription(
+      await eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
-        updatedEServiceDescription,
+        updatedDescription,
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
@@ -54,7 +53,7 @@ describe("updateEServiceTemplateEServiceDescription", () => {
       );
     const updatedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
-      eserviceDescription: updatedEServiceDescription,
+      description: updatedDescription,
     };
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -62,11 +61,11 @@ describe("updateEServiceTemplateEServiceDescription", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eserviceTemplate.id,
       version: "1",
-      type: "EServiceTemplateEServiceDescriptionUpdated",
+      type: "EServiceTemplateDescriptionUpdated",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceTemplateEServiceDescriptionUpdatedV2,
+      messageType: EServiceTemplateDescriptionUpdatedV2,
       payload: writtenEvent.data,
     });
     expect(writtenPayload.eserviceTemplate).toEqual(
@@ -80,7 +79,7 @@ describe("updateEServiceTemplateEServiceDescription", () => {
   it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
     expect(
-      eserviceTemplateService.updateEServiceTemplateEServiceDescription(
+      eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         "eservice template new eservice description",
         {
@@ -96,7 +95,7 @@ describe("updateEServiceTemplateEServiceDescription", () => {
     const eserviceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateEServiceDescription(
+      eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         "eservice template new eservice description",
         {
@@ -112,7 +111,7 @@ describe("updateEServiceTemplateEServiceDescription", () => {
     const eserviceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateEServiceDescription(
+      eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         "eservice template new eservice description",
         {
@@ -138,7 +137,7 @@ describe("updateEServiceTemplateEServiceDescription", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateEServiceDescription(
+      eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         "eservice template new eservice description",
         {

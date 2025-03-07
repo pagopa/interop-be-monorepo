@@ -349,7 +349,7 @@ export const toCreateEventEServiceTemplateTemplateDescriptionUpdated = (
   correlationId,
 });
 
-export const toCreateEventEServiceTemplateEServiceDescriptionUpdated = (
+export const toCreateEventEServiceTemplateDescriptionUpdated = (
   streamId: string,
   version: number,
   eserviceTemplate: EServiceTemplate,
@@ -358,7 +358,7 @@ export const toCreateEventEServiceTemplateEServiceDescriptionUpdated = (
   streamId,
   version,
   event: {
-    type: "EServiceTemplateEServiceDescriptionUpdated",
+    type: "EServiceTemplateDescriptionUpdated",
     event_version: 2,
     data: {
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),

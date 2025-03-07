@@ -103,7 +103,7 @@ describe("create eService from template", () => {
 
     const expectedEService: EService = {
       ...mockEService,
-      description: eServiceTemplate.eserviceDescription,
+      description: eServiceTemplate.description,
       name: eServiceTemplate.name,
       createdAt: eService.createdAt,
       id: eService.id,
@@ -118,7 +118,7 @@ describe("create eService from template", () => {
 
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
-      description: eServiceTemplate.eserviceDescription,
+      description: eServiceTemplate.description,
       name: eServiceTemplate.name,
       createdAt: new Date(),
       id: eService.id,
@@ -207,7 +207,7 @@ describe("create eService from template", () => {
 
     const expectedEService: EService = {
       ...mockEService,
-      description: eServiceTemplate.eserviceDescription,
+      description: eServiceTemplate.description,
       name: `${eServiceTemplate.name} ${instanceLabel}`,
       createdAt: eService.createdAt,
       id: eService.id,
@@ -220,7 +220,7 @@ describe("create eService from template", () => {
 
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
-      description: eServiceTemplate.eserviceDescription,
+      description: eServiceTemplate.description,
       name: `${eServiceTemplate.name} ${instanceLabel}`,
       createdAt: new Date(),
       id: eService.id,
@@ -396,7 +396,7 @@ describe("create eService from template", () => {
 
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
-      description: eServiceTemplate.eserviceDescription,
+      description: eServiceTemplate.description,
       name: eServiceTemplate.name,
       createdAt: new Date(),
       id: eService.id,

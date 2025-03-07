@@ -34,7 +34,7 @@ message EServiceTemplateV2 {
   string creatorId = 2;
   string name = 3;
   string templateDescription = 4;
-  string eserviceDescription = 5;
+  string description = 5;
   eservice.v2.EServiceTechnologyV2 technology = 6;
   repeated EServiceTemplateVersionV2 versions = 7;
   int64 createdAt = 8;

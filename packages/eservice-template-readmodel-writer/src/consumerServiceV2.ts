@@ -22,7 +22,7 @@ export async function handleMessageV2(
       { type: "EServiceTemplateVersionActivated" },
       { type: "EServiceTemplateAdded" },
       { type: "EServiceTemplateTemplateDescriptionUpdated" },
-      { type: "EServiceTemplateEServiceDescriptionUpdated" },
+      { type: "EServiceTemplateDescriptionUpdated" },
       { type: "EServiceTemplateDraftVersionDeleted" },
       { type: "EServiceTemplateDraftVersionUpdated" },
       { type: "EServiceTemplateDraftUpdated" },

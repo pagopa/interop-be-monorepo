@@ -150,7 +150,7 @@ export const eserviceTemplateToApiEServiceTemplate = (
   creatorId: eserviceTemplate.creatorId,
   name: eserviceTemplate.name,
   templateDescription: eserviceTemplate.templateDescription,
-  eserviceDescription: eserviceTemplate.eserviceDescription,
+  description: eserviceTemplate.description,
   technology: technologyToApiTechnology(eserviceTemplate.technology),
   mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
   riskAnalysis: eserviceTemplate.riskAnalysis.map((riskAnalysis) => ({

@@ -15555,7 +15555,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/eserviceDescription/update:
+  /eservices/templates/{eServiceTemplateId}/description/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -15564,7 +15564,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update an e-service template e-service description
-      operationId: updateEServiceTemplateEServiceDescription
+      operationId: updateEServiceTemplateDescription
       parameters:
         - name: eServiceTemplateId
           in: path
@@ -20273,7 +20273,7 @@ components:
         - creator
         - name
         - templateDescription
-        - eserviceDescription
+        - description
         - technology
         - versions
         - riskAnalysis
@@ -20288,7 +20288,7 @@ components:
           type: string
         templateDescription:
           type: string
-        eserviceDescription:
+        description:
           type: string
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
@@ -20391,7 +20391,7 @@ components:
       required:
         - name
         - templateDescription
-        - eserviceDescription
+        - description
         - technology
         - mode
       properties:
@@ -20403,7 +20403,7 @@ components:
           type: string
           minLength: 10
           maxLength: 250
-        eserviceDescription:
+        description:
           type: string
           minLength: 10
           maxLength: 250
@@ -20419,7 +20419,7 @@ components:
       required:
         - name
         - templateDescription
-        - eserviceDescription
+        - description
         - technology
         - mode
         - version
@@ -20432,7 +20432,7 @@ components:
           type: string
           minLength: 10
           maxLength: 250
-        eserviceDescription:
+        description:
           type: string
           minLength: 10
           maxLength: 250

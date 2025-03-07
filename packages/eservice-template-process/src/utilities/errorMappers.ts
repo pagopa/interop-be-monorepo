@@ -92,7 +92,7 @@ export const updateEServiceTemplateTemplateDescriptionErrorMapper = (
     .with("eserviceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const updateEServiceTemplateEServiceDescriptionErrorMapper = (
+export const updateEServiceTemplateDescriptionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
