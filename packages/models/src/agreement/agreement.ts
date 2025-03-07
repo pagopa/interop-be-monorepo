@@ -56,6 +56,9 @@ export const AgreementStamps = z.object({
 });
 export type AgreementStamps = z.infer<typeof AgreementStamps>;
 
+export const agreementStampKind = AgreementStamps.keyof();
+export type AgreementStampKind = z.infer<typeof agreementStampKind>;
+
 export const Agreement = z.object({
   id: AgreementId,
   eserviceId: EServiceId,
