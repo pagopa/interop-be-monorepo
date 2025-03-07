@@ -11,7 +11,7 @@ import {
   addOneEService,
   addOneTenant,
   dtdCatalogExporterService,
-  getExportDtdPublicCatalogResult,
+  getExportDtdPublicCatalogFromJsonResult,
 } from "./utils.js";
 
 describe("exportDtdPublicCatalog", () => {
@@ -47,8 +47,8 @@ describe("exportDtdPublicCatalog", () => {
     await addOneAttribute(attribute2Mock);
     await addOneAttribute(attribute3Mock);
 
-    await dtdCatalogExporterService.exportDtdPublicCatalog();
-    const result = await getExportDtdPublicCatalogResult();
+    await dtdCatalogExporterService.exportDtdData();
+    const result = await getExportDtdPublicCatalogFromJsonResult();
 
     expect(result.length).toBe(1);
     expect(result[0]).toEqual({
@@ -60,6 +60,7 @@ describe("exportDtdPublicCatalog", () => {
       technology: eserviceMock.technology.toUpperCase(),
       producerId: producerMock.id,
       producerName: producerMock.name,
+      producerExternalId: producerMock.externalId.value,
       id: eserviceMock.id,
       name: eserviceMock.name,
       description: eserviceMock.description,
@@ -113,8 +114,8 @@ describe("exportDtdPublicCatalog", () => {
     await addOneEService(eserviceWithNoActiveDescriptorMock);
     await addOneTenant(producerMock);
 
-    await dtdCatalogExporterService.exportDtdPublicCatalog();
-    const result = await getExportDtdPublicCatalogResult();
+    await dtdCatalogExporterService.exportDtdData();
+    const result = await getExportDtdPublicCatalogFromJsonResult();
 
     expect(result.length).toBe(1);
     expect(
@@ -134,7 +135,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneEService(eserviceMock);
 
     await expect(async () => {
-      await dtdCatalogExporterService.exportDtdPublicCatalog();
+      await dtdCatalogExporterService.exportDtdData();
     }).rejects.toThrowError(
       genericError(`Producer for e-service ${eserviceMock.id} not found`)
     );
@@ -165,7 +166,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneTenant(producerMock);
 
     await expect(async () => {
-      await dtdCatalogExporterService.exportDtdPublicCatalog();
+      await dtdCatalogExporterService.exportDtdData();
     }).rejects.toThrowError(
       genericError(`Attribute with id ${attributeMock.id} not found`)
     );

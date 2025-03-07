@@ -15,7 +15,7 @@ await dtdCatalogExporterServiceBuilder({
     serviceName: "dtd-catalog-exporter",
     correlationId: generateId<CorrelationId>(),
   }),
-}).exportDtdPublicCatalog();
+}).exportDtdData();
 
 process.exit(0);
 // process.exit() should not be required.
