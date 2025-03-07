@@ -11,12 +11,9 @@ import {
   Key,
   KeyV1,
   makeGSIPKClientIdPurposeId,
-  makeGSIPKConsumerIdEServiceId,
-  makeGSIPKEServiceIdDescriptorId,
   makeGSIPKClientIdKid,
   makePlatformStatesClientPK,
   makeTokenGenerationStatesClientKidPK,
-  makeTokenGenerationStatesClientKidPurposePK,
   missingKafkaMessageDataError,
   PlatformStatesClientEntry,
   PurposeId,
@@ -132,63 +129,18 @@ export async function handleMessageV1(
                       logger
                     );
 
-                  const tokenClientKidPurposePK =
-                    makeTokenGenerationStatesClientKidPurposePK({
-                      clientId,
+                  const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+                    createTokenGenStatesConsumerClient({
+                      consumerId: clientEntry.clientConsumerId,
                       kid,
+                      publicKey: pem,
+                      clientId,
                       purposeId,
+                      purposeEntry,
+                      agreementEntry,
+                      catalogEntry,
                     });
 
-                  const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
-                    {
-                      PK: tokenClientKidPurposePK,
-                      consumerId: platformClientEntry.clientConsumerId,
-                      clientKind: clientKindTokenGenStates.consumer,
-                      publicKey: pem,
-                      updatedAt: new Date().toISOString(),
-                      GSIPK_clientId: clientId,
-                      GSIPK_clientId_kid: makeGSIPKClientIdKid({
-                        clientId,
-                        kid,
-                      }),
-                      GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-                        clientId,
-                        purposeId,
-                      }),
-                      GSIPK_purposeId: purposeId,
-                      ...(purposeEntry
-                        ? {
-                            GSIPK_consumerId_eserviceId:
-                              makeGSIPKConsumerIdEServiceId({
-                                consumerId:
-                                  platformClientEntry.clientConsumerId,
-                                eserviceId: purposeEntry.purposeEserviceId,
-                              }),
-                            purposeState: purposeEntry.state,
-                            purposeVersionId: purposeEntry.purposeVersionId,
-                          }
-                        : {}),
-                      ...(purposeEntry && agreementEntry
-                        ? {
-                            agreementId: agreementEntry.agreementId,
-                            agreementState: agreementEntry.state,
-                            GSIPK_eserviceId_descriptorId:
-                              makeGSIPKEServiceIdDescriptorId({
-                                eserviceId: purposeEntry.purposeEserviceId,
-                                descriptorId:
-                                  agreementEntry.agreementDescriptorId,
-                              }),
-                          }
-                        : {}),
-                      ...(catalogEntry
-                        ? {
-                            descriptorState: catalogEntry.state,
-                            descriptorAudience: catalogEntry.descriptorAudience,
-                            descriptorVoucherLifespan:
-                              catalogEntry.descriptorVoucherLifespan,
-                          }
-                        : {}),
-                    };
                   await upsertTokenGenStatesConsumerClient(
                     tokenGenStatesConsumerClient,
                     dynamoDBClient,
