@@ -68,7 +68,7 @@ import {
   toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
   toCreateEventEServiceTemplateDraftVersionUpdated,
-  toCreateEventEServiceTemplateTemplateDescriptionUpdated,
+  toCreateEventEServiceIntendedTargetUpdated,
   toCreateEventEServiceTemplateDescriptionUpdated,
   toCreateEventEServiceTemplateVersionQuotasUpdated,
   toCreateEventEServiceTemplateVersionAttributesUpdated,
@@ -666,9 +666,9 @@ export function eserviceTemplateServiceBuilder(
       );
       return updatedEserviceTemplate;
     },
-    async updateEServiceTemplateTemplateDescription(
+    async updateEServiceIntendedTarget(
       eserviceTemplateId: EServiceTemplateId,
-      templateDescription: string,
+      intendedTarget: string,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EServiceTemplate> {
       logger.info(
@@ -688,10 +688,10 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEserviceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
-        templateDescription,
+        intendedTarget,
       };
       await repository.createEvent(
-        toCreateEventEServiceTemplateTemplateDescriptionUpdated(
+        toCreateEventEServiceIntendedTargetUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
@@ -1211,7 +1211,7 @@ export function eserviceTemplateServiceBuilder(
         id: generateId(),
         creatorId: authData.organizationId,
         name: seed.name,
-        templateDescription: seed.templateDescription,
+        intendedTarget: seed.intendedTarget,
         description: seed.description,
         technology: apiTechnologyToTechnology(seed.technology),
         versions: [draftVersion],
@@ -1292,7 +1292,7 @@ export function eserviceTemplateServiceBuilder(
       const updatedEServiceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
         name: eserviceTemplateSeed.name,
-        templateDescription: eserviceTemplateSeed.templateDescription,
+        intendedTarget: eserviceTemplateSeed.intendedTarget,
         description: eserviceTemplateSeed.description,
         technology: updatedTechnology,
         mode: updatedMode,

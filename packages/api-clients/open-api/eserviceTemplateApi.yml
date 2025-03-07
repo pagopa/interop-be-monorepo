@@ -911,7 +911,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/templateDescription/update:
+  /eservices/templates/{eServiceTemplateId}/intendedTarget/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -920,7 +920,7 @@ paths:
       tags:
         - process
       summary: Update an e-service published template description
-      operationId: updateEServiceTemplateTemplateDescription
+      operationId: updateEServiceIntendedTarget
       parameters:
         - name: eServiceTemplateId
           in: path
@@ -1196,7 +1196,7 @@ components:
       additionalProperties: false
       required:
         - name
-        - templateDescription
+        - intendedTarget
         - description
         - technology
         - mode
@@ -1206,7 +1206,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        templateDescription:
+        intendedTarget:
           type: string
           minLength: 10
           maxLength: 250
@@ -1227,7 +1227,7 @@ components:
       additionalProperties: false
       required:
         - name
-        - templateDescription
+        - intendedTarget
         - description
         - technology
         - mode
@@ -1236,7 +1236,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        templateDescription:
+        intendedTarget:
           type: string
           minLength: 10
           maxLength: 250
@@ -1450,7 +1450,7 @@ components:
         - id
         - creatorId
         - name
-        - templateDescription
+        - intendedTarget
         - description
         - technology
         - versions
@@ -1465,7 +1465,7 @@ components:
           format: uuid
         name:
           type: string
-        templateDescription:
+        intendedTarget:
           type: string
         description:
           type: string

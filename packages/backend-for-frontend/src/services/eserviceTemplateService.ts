@@ -185,7 +185,7 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
-    updateEServiceTemplateTemplateDescription: async (
+    updateEServiceIntendedTarget: async (
       eServiceTemplateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateDescriptionUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -193,15 +193,12 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating EService template ${eServiceTemplateId} description`
       );
-      await eserviceTemplateClient.updateEServiceTemplateTemplateDescription(
-        seed,
-        {
-          headers,
-          params: {
-            eServiceTemplateId,
-          },
-        }
-      );
+      await eserviceTemplateClient.updateEServiceIntendedTarget(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+        },
+      });
     },
     updateEServiceTemplateDescription: async (
       eServiceTemplateId: EServiceTemplateId,

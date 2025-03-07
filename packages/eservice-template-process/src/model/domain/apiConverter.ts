@@ -149,7 +149,7 @@ export const eserviceTemplateToApiEServiceTemplate = (
   id: eserviceTemplate.id,
   creatorId: eserviceTemplate.creatorId,
   name: eserviceTemplate.name,
-  templateDescription: eserviceTemplate.templateDescription,
+  intendedTarget: eserviceTemplate.intendedTarget,
   description: eserviceTemplate.description,
   technology: technologyToApiTechnology(eserviceTemplate.technology),
   mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),

@@ -15457,7 +15457,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/templateDescription/update:
+  /eservices/templates/{eServiceTemplateId}/intendedTarget/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -15466,7 +15466,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update an e-service template description
-      operationId: updateEServiceTemplateTemplateDescription
+      operationId: updateEServiceIntendedTarget
       parameters:
         - name: eServiceTemplateId
           in: path
@@ -20272,7 +20272,7 @@ components:
         - id
         - creator
         - name
-        - templateDescription
+        - intendedTarget
         - description
         - technology
         - versions
@@ -20286,7 +20286,7 @@ components:
           $ref: "#/components/schemas/CompactOrganization"
         name:
           type: string
-        templateDescription:
+        intendedTarget:
           type: string
         description:
           type: string
@@ -20390,7 +20390,7 @@ components:
       additionalProperties: false
       required:
         - name
-        - templateDescription
+        - intendedTarget
         - description
         - technology
         - mode
@@ -20399,7 +20399,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        templateDescription:
+        intendedTarget:
           type: string
           minLength: 10
           maxLength: 250
@@ -20418,7 +20418,7 @@ components:
       additionalProperties: false
       required:
         - name
-        - templateDescription
+        - intendedTarget
         - description
         - technology
         - mode
@@ -20428,7 +20428,7 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        templateDescription:
+        intendedTarget:
           type: string
           minLength: 10
           maxLength: 250

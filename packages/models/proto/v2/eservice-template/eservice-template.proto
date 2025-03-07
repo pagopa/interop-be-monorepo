@@ -33,7 +33,7 @@ message EServiceTemplateV2 {
   string id = 1;
   string creatorId = 2;
   string name = 3;
-  string templateDescription = 4;
+  string intendedTarget = 4;
   string description = 5;
   eservice.v2.EServiceTechnologyV2 technology = 6;
   repeated EServiceTemplateVersionV2 versions = 7;
