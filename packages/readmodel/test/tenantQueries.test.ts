@@ -111,8 +111,8 @@ describe("Tenant Queries", () => {
       expect(retrievedVerifiedAttributeRevokersSQL).toMatchObject(
         expectedVerifiedAttributeRevokersSQL
       );
-      expect(retrievedFeaturesSQL).toMatchObject(
-        expect.arrayContaining(expectedFeaturesSQL)
+      expect(retrievedFeaturesSQL?.sort(sortFeatures)).toMatchObject(
+        expect.arrayContaining(expectedFeaturesSQL.sort(sortFeatures))
       );
     });
     it("should add an incomplete (*only* mandatory fields) tenant", async () => {
@@ -187,7 +187,7 @@ describe("Tenant Queries", () => {
         expectedVerifiedAttributeRevokersSQL
       );
       expect(retrievedFeaturesSQL?.sort(sortFeatures)).toMatchObject(
-        expect.arrayContaining(expectedFeaturesSQL.sort(sortFeatures))
+        expectedFeaturesSQL.sort(sortFeatures)
       );
     });
     it("should update a complete (*all* fields) tenant", async () => {
@@ -445,8 +445,64 @@ describe("Tenant Queries", () => {
     });
   });
   describe("Delete a Tenant", () => {
-    it.skip("should delete a tenant from a tenantId", () => {
-      expect(1).toEqual(0);
+    it("should delete a tenant from a tenantId", async () => {
+      const isTenantComplete = false;
+      const { tenant, tenantForVerifying, tenantForRevoking } =
+        initMockTenant(isTenantComplete);
+
+      await tenantReadModelService.upsertTenant(tenantForVerifying);
+      await tenantReadModelService.upsertTenant(tenantForRevoking);
+      await tenantReadModelService.upsertTenant(tenant);
+
+      const {
+        retrievedTenantSQL: beforeDeletedRetrievedTenantSQL,
+        retrievedMailsSQL: beforeDeletedRetrievedMailsSQL,
+        retrievedCertifiedAttributesSQL:
+          beforeDeletedRetrievedCertifiedAttributesSQL,
+        retrievedDeclaredAttributesSQL:
+          beforeDeletedRetrievedDeclaredAttributesSQL,
+        retrievedVerifiedAttributesSQL:
+          beforeDeletedRetrievedVerifiedAttributesSQL,
+        retrievedVerifiedAttributeVerifiersSQL:
+          beforeDeletedRetrievedVerifiedAttributeVerifiersSQL,
+        retrievedVerifiedAttributeRevokersSQL:
+          beforeDeletedRetrievedVerifiedAttributeRevokersSQL,
+        retrievedFeaturesSQL: beforeDeletedRetrievedFeaturesSQL,
+      } = await retrieveTenantSQLObjects(tenant, isTenantComplete);
+
+      expect(beforeDeletedRetrievedTenantSQL).toBeDefined();
+      expect(beforeDeletedRetrievedMailsSQL).toBeDefined();
+      expect(beforeDeletedRetrievedCertifiedAttributesSQL).toBeDefined();
+      expect(beforeDeletedRetrievedDeclaredAttributesSQL).toBeDefined();
+      expect(beforeDeletedRetrievedVerifiedAttributesSQL).toBeDefined();
+      expect(beforeDeletedRetrievedVerifiedAttributeVerifiersSQL).toBeDefined();
+      expect(beforeDeletedRetrievedVerifiedAttributeRevokersSQL).toBeDefined();
+      expect(beforeDeletedRetrievedFeaturesSQL).toBeDefined();
+
+      await tenantReadModelService.deleteTenantById(
+        tenant.data.id,
+        tenant.metadata.version
+      );
+
+      const {
+        retrievedTenantSQL,
+        retrievedMailsSQL,
+        retrievedCertifiedAttributesSQL,
+        retrievedDeclaredAttributesSQL,
+        retrievedVerifiedAttributesSQL,
+        retrievedVerifiedAttributeVerifiersSQL,
+        retrievedVerifiedAttributeRevokersSQL,
+        retrievedFeaturesSQL,
+      } = await retrieveTenantSQLObjects(tenant, isTenantComplete);
+
+      expect(retrievedTenantSQL).toBeUndefined();
+      expect(retrievedMailsSQL).toBeUndefined();
+      expect(retrievedCertifiedAttributesSQL).toBeUndefined();
+      expect(retrievedDeclaredAttributesSQL).toBeUndefined();
+      expect(retrievedVerifiedAttributesSQL).toBeUndefined();
+      expect(retrievedVerifiedAttributeVerifiersSQL).toBeUndefined();
+      expect(retrievedVerifiedAttributeRevokersSQL).toBeUndefined();
+      expect(retrievedFeaturesSQL).toBeUndefined();
     });
   });
 });

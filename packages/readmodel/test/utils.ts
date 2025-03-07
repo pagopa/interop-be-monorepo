@@ -34,7 +34,6 @@ import {
   stringToDate,
   Tenant,
   tenantAttributeType,
-  TenantFeature,
   TenantFeatureCertifier,
   TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
