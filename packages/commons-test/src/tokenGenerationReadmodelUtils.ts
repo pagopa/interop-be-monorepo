@@ -98,9 +98,13 @@ export const writeTokenGenStatesConsumerClient = async (
       updatedAt: {
         S: tokenGenStatesEntry.updatedAt,
       },
-      consumerId: {
-        S: tokenGenStatesEntry.consumerId,
-      },
+      ...(tokenGenStatesEntry.consumerId
+        ? {
+            consumerId: {
+              S: tokenGenStatesEntry.consumerId,
+            },
+          }
+        : {}),
       ...(tokenGenStatesEntry.agreementId
         ? {
             agreementId: {
