@@ -6,6 +6,7 @@ import {
   rateLimiterMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
+import { applicationAuditMiddleware } from "pagopa-interop-application-audit";
 import healthRouter from "./routers/healthRouter.js";
 import apiGatewayRouter from "./routers/apiGatewayRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -32,7 +33,7 @@ const redisRateLimiter = await initRedisRateLimiter({
 app.disable("x-powered-by");
 
 app.use(loggerMiddleware(serviceName));
-
+app.use(await applicationAuditMiddleware(serviceName, config));
 app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
