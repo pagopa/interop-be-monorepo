@@ -50,6 +50,13 @@ import {
   EServiceDescriptorRejectedByDelegatorV2,
   EServiceDescriptorAttributesUpdatedV2,
   EServiceNameUpdatedV2,
+  EServiceNameUpdatedByTemplateUpdateV2,
+  EServiceDescriptionUpdatedByTemplateUpdateV2,
+  EServiceDescriptorQuotasUpdatedByTemplateUpdateV2,
+  EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
+  EServiceDescriptorDocumentAddedByTemplateUpdateV2,
+  EServiceDescriptorDocumentUpdatedByTemplateUpdateV2,
+  EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -200,6 +207,37 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceNameUpdated" }, ({ data }) =>
       EServiceNameUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceNameUpdatedByTemplateUpdate" }, ({ data }) =>
+      EServiceNameUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with({ type: "EServiceDescriptionUpdatedByTemplateUpdate" }, ({ data }) =>
+      EServiceDescriptionUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorQuotasUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorAttributesUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorDocumentAddedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorDocumentUpdatedByTemplateUpdateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
+      ({ data }) =>
+        EServiceDescriptorDocumentDeletedByTemplateUpdateV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -433,6 +471,43 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceNameUpdated"),
     data: protobufDecoder(EServiceNameUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceNameUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServiceNameUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptionUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptionUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorQuotasUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptorQuotasUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAttributesUpdatedByTemplateUpdate"),
+    data: protobufDecoder(
+      EServiceDescriptorAttributesUpdatedByTemplateUpdateV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorDocumentAddedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptorDocumentAddedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorDocumentUpdatedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptorDocumentUpdatedByTemplateUpdateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorDocumentDeletedByTemplateUpdate"),
+    data: protobufDecoder(EServiceDescriptorDocumentDeletedByTemplateUpdateV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;

@@ -1,0 +1,29 @@
+meta {
+  name: Edit Eservice template instance
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{host-catalog}}/templates/eservices/:eserviceId
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "isSignalHubEnabled": true,
+    "isConsumerDelegable": true,
+    "isClientAccessDelegable": false,
+    "instanceLabel": ""
+  }
+}

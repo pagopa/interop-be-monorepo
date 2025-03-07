@@ -291,6 +291,13 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorSubmittedByDelegate" },
       { type: "EServiceDescriptorAttributesUpdated" },
       { type: "EServiceNameUpdated" },
+      { type: "EServiceNameUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
       () => Promise.resolve()
     )
     .exhaustive();

@@ -13,6 +13,8 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -24,7 +26,8 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   interfaceAlreadyExists,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -361,7 +364,7 @@ describe("upload Document", () => {
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document: Document = {
       ...getMockDocument(),
       prettyName: "TEST",
@@ -393,7 +396,114 @@ describe("upload Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document.prettyName.toLowerCase(), descriptor.id)
+      documentPrettyNameDuplicate(
+        document.prettyName.toLowerCase(),
+        descriptor.id
+      )
     );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+    expect(
+      catalogService.uploadDocument(
+        eService.id,
+        descriptor.id,
+        {
+          ...buildDocumentSeed(),
+        },
+        {
+          authData: getMockAuthData(eService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
+  it("should write on event-store for the upload of a document when descriptor state is DRAFT and save interface with templateref data", async () => {
+    const templateVersionId: EServiceTemplateVersionId = generateId();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.draft),
+      serverUrls: [],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const templateEserviceTemplateVersionRef = {
+      id: templateVersionId,
+      interfaceMetadata: {
+        name: "templateVersionName",
+        email: "mailTest@example.com",
+        url: "http://example.com",
+        termsAndConditionsUrl: "http://example.com",
+        serverUrls: ["http://example2.com", "http://example3.com"],
+      },
+    };
+    const interfaceSeed = {
+      ...buildInterfaceSeed(),
+      templateVersionRef: templateEserviceTemplateVersionRef,
+    };
+
+    const returnedEService = await catalogService.uploadDocument(
+      eservice.id,
+      descriptor.id,
+      interfaceSeed,
+      {
+        authData: getMockAuthData(eservice.producerId),
+        correlationId: generateId(),
+        serviceName: "",
+        logger: genericLogger,
+      }
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorInterfaceDeletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedEservice = toEServiceV2({
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          templateVersionRef: templateEserviceTemplateVersionRef,
+          interface: {
+            ...mockDocument,
+            id: unsafeBrandId(
+              writtenPayload.eservice!.descriptors[0]!.interface!.id
+            ),
+            checksum:
+              writtenPayload.eservice!.descriptors[0]!.interface!.checksum,
+            uploadDate: new Date(
+              writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
+            ),
+          },
+          serverUrls: ["pagopa.it"],
+        },
+      ],
+    });
+
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(writtenPayload.eservice).toEqual(expectedEservice);
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 });

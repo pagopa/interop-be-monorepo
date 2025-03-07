@@ -1,0 +1,26 @@
+meta {
+  name: Update EService Template Intended Target
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{host-catalog}}/eservices/templates/:eserviceTemplateId/intendedTarget/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "description": "Test EService Intended target",
+  }
+}

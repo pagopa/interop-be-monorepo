@@ -15,6 +15,8 @@ import {
   Document,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -22,7 +24,8 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   eServiceDocumentNotFound,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -349,7 +352,7 @@ describe("update Document", () => {
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document1: Document = {
       ...getMockDocument(),
       prettyName: "TEST A",
@@ -383,7 +386,39 @@ describe("update Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document1.prettyName.toLowerCase(), descriptor.id)
+      documentPrettyNameDuplicate(
+        document1.prettyName.toLowerCase(),
+        descriptor.id
+      )
     );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.draft,
+      docs: [mockDocument],
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+    expect(
+      catalogService.updateDocument(
+        eService.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        {
+          authData: getMockAuthData(eService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });

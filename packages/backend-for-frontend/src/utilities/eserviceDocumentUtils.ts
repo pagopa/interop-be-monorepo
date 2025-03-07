@@ -1,27 +1,60 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { Readable } from "node:stream";
 import { randomUUID } from "crypto";
+import { Readable } from "node:stream";
+import SwaggerParser from "@apidevtools/swagger-parser";
 import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
 import mime from "mime";
-import { bffApi, catalogApi } from "pagopa-interop-api-clients";
-import { FileManager, WithLogger } from "pagopa-interop-commons";
-import { ApiError, genericError } from "pagopa-interop-models";
+import {
+  bffApi,
+  catalogApi,
+  eserviceTemplateApi,
+} from "pagopa-interop-api-clients";
+import { FileManager, Logger, WithLogger } from "pagopa-interop-commons";
+import {
+  ApiError,
+  EServiceDocumentId,
+  EServiceTemplateVersionId,
+  Technology,
+  descriptorState,
+  genericError,
+  technology,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import YAML from "yaml";
 import { ZodError, z } from "zod";
+import {
+  apiDescriptorStateToDescriptorState,
+  apiTechnologyToTechnology,
+} from "../api/catalogApiConverter.js";
+import { CatalogProcessClient } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   ErrorCodes,
+  eserviceDescriptorDraftNotFound,
+  eserviceInterfaceDataNotValid,
   interfaceExtractingInfoError,
   invalidInterfaceContentTypeDetected,
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
 } from "../model/errors.js";
-import { CatalogProcessClient } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
 import { ConfigurationDoc } from "../model/types.js";
+import { BffAppContext } from "../utilities/context.js";
 import { calculateChecksum } from "./fileUtils.js";
+
+export const allowedFileType = {
+  json: "json",
+  yaml: "yaml",
+  wsdl: "wsdl",
+  xml: "xml",
+} as const;
+export const AllowedFileType = z.enum([
+  Object.values(allowedFileType)[0],
+  ...Object.values(allowedFileType).slice(1),
+]);
+export type AllowedFileType = z.infer<typeof AllowedFileType>;
 
 const Wsdl = z.object({
   definitions: z.object({
@@ -45,74 +78,58 @@ const Wsdl = z.object({
 });
 
 // eslint-disable-next-line max-params
-export async function verifyAndCreateEServiceDocument(
-  catalogProcessClient: CatalogProcessClient,
+export async function verifyAndCreateDocument<T>(
   fileManager: FileManager,
-  eService: catalogApi.EService,
-  doc: bffApi.createEServiceDocument_Body,
-  descriptorId: string,
+  id: string,
+  technology: Technology,
+  prettyName: string,
+  kind: "INTERFACE" | "DOCUMENT",
+  doc: File,
   documentId: string,
-  ctx: WithLogger<BffAppContext>
-): Promise<void> {
-  const contentType = doc.doc.type;
+  documentContainer: string,
+  documentPath: string,
+  createDocumentHandler: (
+    path: string,
+    serverUrls: string[],
+    checksum: string
+  ) => Promise<T>,
+  logger: Logger
+): Promise<T> {
+  const contentType = doc.type;
   if (!contentType) {
-    throw invalidInterfaceContentTypeDetected(
-      eService.id,
-      "invalid",
-      eService.technology
-    );
+    throw invalidInterfaceContentTypeDetected(id, "invalid", technology);
   }
 
   const serverUrls = await handleEServiceDocumentProcessing(
-    doc,
-    eService.technology,
-    eService.id
+    {
+      prettyName,
+      kind,
+      doc,
+    },
+    technology,
+    id
   );
   const filePath = await fileManager.storeBytes(
     {
-      bucket: config.eserviceDocumentsContainer,
-      path: config.eserviceDocumentsPath,
+      bucket: documentContainer,
+      path: documentPath,
       resourceId: documentId,
-      name: doc.doc.name,
-      content: Buffer.from(await doc.doc.arrayBuffer()),
+      name: doc.name,
+      content: Buffer.from(await doc.arrayBuffer()),
     },
-    ctx.logger
+    logger
   );
 
-  const checksum = await calculateChecksum(Readable.from(doc.doc.stream()));
+  const checksum = await calculateChecksum(Readable.from(doc.stream()));
   try {
-    await catalogProcessClient.createEServiceDocument(
-      {
-        documentId,
-        prettyName: doc.prettyName,
-        fileName: doc.doc.name,
-        filePath,
-        kind: doc.kind,
-        contentType,
-        checksum,
-        serverUrls,
-      },
-      {
-        headers: ctx.headers,
-        params: {
-          eServiceId: eService.id,
-          descriptorId,
-        },
-      }
-    );
+    return await createDocumentHandler(filePath, serverUrls, checksum);
   } catch (error) {
-    await fileManager.delete(
-      config.eserviceDocumentsContainer,
-      filePath,
-      ctx.logger
-    );
+    await fileManager.delete(documentContainer, filePath, logger);
     throw error;
   }
 }
 
-const getFileType = (
-  name: string
-): "json" | "yaml" | "wsdl" | "xml" | undefined =>
+const getFileType = (name: string): AllowedFileType | undefined =>
   match(name.toLowerCase())
     .with(P.string.endsWith("json"), () => "json" as const)
     .with(
@@ -125,18 +142,16 @@ const getFileType = (
     .otherwise(() => undefined);
 
 function parseOpenApi(
-  fileType: "json" | "yaml",
+  fileType: Omit<AllowedFileType, "wsdl" | "xml">,
   file: string,
   eServiceId: string
 ) {
-  try {
-    return match(fileType)
-      .with("json", () => JSON.parse(file))
-      .with("yaml", () => YAML.parse(file))
-      .exhaustive();
-  } catch (error) {
-    throw invalidInterfaceFileDetected(eServiceId);
-  }
+  return match(fileType)
+    .with("json", () => JSON.parse(file))
+    .with("yaml", () => YAML.parse(file))
+    .otherwise(() => {
+      throw invalidInterfaceFileDetected(eServiceId);
+    });
 }
 
 export const verifyAndCreateImportedDoc = async (
@@ -161,18 +176,40 @@ export const verifyAndCreateImportedDoc = async (
     type: mimeType,
   });
 
-  await verifyAndCreateEServiceDocument(
-    catalogProcessClient,
+  const documentId = randomUUID();
+
+  await verifyAndCreateDocument(
     fileManager,
-    eservice,
-    {
-      prettyName: doc.prettyName,
-      doc: file,
-      kind: docType,
+    eservice.id,
+    apiTechnologyToTechnology(eservice.technology),
+    doc.prettyName,
+    docType,
+    file,
+    documentId,
+    config.eserviceDocumentsContainer,
+    config.eserviceDocumentsPath,
+    async (filePath, serverUrls, checksum) => {
+      await catalogProcessClient.createEServiceDocument(
+        {
+          documentId,
+          prettyName: doc.prettyName,
+          fileName: file.name,
+          filePath,
+          kind: docType,
+          contentType: file.type,
+          checksum,
+          serverUrls,
+        },
+        {
+          headers: context.headers,
+          params: {
+            eServiceId: eservice.id,
+            descriptorId: descriptor.id,
+          },
+        }
+      );
     },
-    descriptor.id,
-    randomUUID(),
-    context
+    context.logger
   );
 };
 
@@ -256,20 +293,20 @@ function processSoapInterface(file: string) {
 
 export async function handleEServiceDocumentProcessing(
   doc: bffApi.createEServiceDocument_Body,
-  technology: catalogApi.EServiceTechnology,
+  tech: Technology,
   eServiceId: string
 ) {
   const file = await doc.doc.text();
   try {
     return match({
       fileType: getFileType(doc.doc.name),
-      technology,
+      technology: tech,
       kind: doc.kind,
     })
       .with(
         {
           kind: "INTERFACE",
-          technology: "REST",
+          technology: technology.rest,
           fileType: P.union("json", "yaml"),
         },
         (f) => processRestInterface(f.fileType, file, eServiceId)
@@ -277,7 +314,7 @@ export async function handleEServiceDocumentProcessing(
       .with(
         {
           kind: "INTERFACE",
-          technology: "SOAP",
+          technology: technology.soap,
           fileType: P.union("xml", "wsdl"),
         },
         () => processSoapInterface(file)
@@ -300,4 +337,167 @@ export async function handleEServiceDocumentProcessing(
       )
       .otherwise(() => invalidInterfaceFileDetected(eServiceId));
   }
+}
+
+// eslint-disable-next-line max-params
+export async function createOpenApiInterfaceByTemplate(
+  eservice: catalogApi.EService,
+  eserviceTemplateVersionId: EServiceTemplateVersionId,
+  eserviceTemplateInterface: eserviceTemplateApi.EServiceDoc,
+  eserviceInstanceInterfaceData: bffApi.EserviceInterfaceTemplatePayload,
+  bucket: string,
+  fileManager: FileManager,
+  catalogProcessClient: CatalogProcessClient,
+  { logger, headers }: WithLogger<BffAppContext>
+): Promise<catalogApi.EServiceDoc["id"]> {
+  const interfaceTemplate = await fileManager.get(
+    bucket,
+    eserviceTemplateInterface.path,
+    logger
+  );
+
+  if (eserviceInstanceInterfaceData.serverUrls.length < 1) {
+    throw eserviceInterfaceDataNotValid();
+  }
+
+  const documentId = unsafeBrandId<EServiceDocumentId>(randomUUID());
+  const updatedInterfaceFile = await interpolateOpenApiSpec(
+    eservice,
+    Buffer.from(interfaceTemplate).toString(),
+    eserviceTemplateInterface,
+    eserviceInstanceInterfaceData
+  );
+
+  const descriptor = retrieveDraftDescriptor(eservice);
+
+  return await verifyAndCreateDocument<catalogApi.EServiceDoc["id"]>(
+    fileManager,
+    eservice.id,
+    apiTechnologyToTechnology(eservice.technology),
+    eserviceTemplateInterface.name,
+    "INTERFACE",
+    updatedInterfaceFile,
+    documentId,
+    config.eserviceDocumentsContainer,
+    config.eserviceDocumentsPath,
+    async (
+      path: string,
+      serverUrls: string[],
+      checksum: string
+    ): Promise<catalogApi.EServiceDoc["id"]> => {
+      const documentPath = await fileManager.storeBytes(
+        {
+          bucket,
+          path,
+          resourceId: documentId,
+          name: eserviceTemplateInterface.name,
+          content: await fileToBuffer(updatedInterfaceFile),
+        },
+        logger
+      );
+
+      const { id } = await catalogProcessClient.createEServiceDocument(
+        {
+          documentId,
+          prettyName: eserviceTemplateInterface.prettyName,
+          fileName: eserviceTemplateInterface.name,
+          filePath: documentPath,
+          kind: "INTERFACE",
+          contentType: eserviceTemplateInterface.contentType,
+          checksum,
+          serverUrls,
+          templateVersionRef: {
+            id: eserviceTemplateVersionId,
+            interfaceMetadata: {
+              name: eserviceInstanceInterfaceData.contactName,
+              email: eserviceInstanceInterfaceData.email,
+              url: eserviceInstanceInterfaceData.contactUrl,
+              termsAndConditionsUrl:
+                eserviceInstanceInterfaceData.termsAndConditionsUrl,
+              serverUrls: eserviceInstanceInterfaceData.serverUrls,
+            },
+          },
+        },
+        {
+          headers,
+          params: {
+            eServiceId: eservice.id,
+            descriptorId: descriptor.id,
+          },
+        }
+      );
+
+      return id;
+    },
+    logger
+  );
+}
+
+async function interpolateOpenApiSpec(
+  eservice: catalogApi.EService,
+  file: string,
+  eserviceTemplateInterface: eserviceTemplateApi.EServiceDoc,
+  eserviceInstanceInterfaceData: bffApi.EserviceInterfaceTemplatePayload
+): Promise<File> {
+  const fileType = getFileType(eserviceTemplateInterface.name);
+  if (!fileType) {
+    throw invalidInterfaceContentTypeDetected(
+      eservice.id,
+      eserviceTemplateInterface.contentType,
+      eservice.technology
+    );
+  }
+
+  const openApiObject = match(fileType)
+    .with("json", "yaml", () => parseOpenApi(fileType, file, eservice.id))
+    .otherwise(() => {
+      throw invalidInterfaceFileDetected(eservice.id);
+    });
+
+  openApiObject.info.contact = {
+    name: eserviceInstanceInterfaceData.contactName,
+    email: eserviceInstanceInterfaceData.email,
+    url: eserviceInstanceInterfaceData.contactUrl,
+  };
+
+  openApiObject.info.termsOfService =
+    eserviceInstanceInterfaceData.termsAndConditionsUrl;
+
+  openApiObject.servers = eserviceInstanceInterfaceData.serverUrls.map(
+    (url) => ({
+      url,
+    })
+  );
+
+  try {
+    await SwaggerParser.validate(openApiObject);
+    const updatedInterface = Buffer.from(JSON.stringify(openApiObject));
+
+    return new File([updatedInterface], eserviceTemplateInterface.name, {
+      type: eserviceTemplateInterface.contentType,
+    });
+  } catch (errors) {
+    throw invalidInterfaceFileDetected(eservice.id);
+  }
+}
+
+function retrieveDraftDescriptor(
+  eservice: catalogApi.EService
+): catalogApi.EServiceDescriptor {
+  const draftDescriptor = eservice.descriptors.find(
+    (descriptor) =>
+      apiDescriptorStateToDescriptorState(descriptor.state) ===
+      descriptorState.draft
+  );
+
+  if (!draftDescriptor) {
+    throw eserviceDescriptorDraftNotFound(eservice.id);
+  }
+
+  return draftDescriptor;
+}
+
+async function fileToBuffer(file: File): Promise<Buffer> {
+  const arrayBuffer = await file.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }

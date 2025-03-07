@@ -17,6 +17,8 @@ import {
   AttributeId,
   delegationKind,
   delegationState,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
@@ -28,6 +30,7 @@ import {
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
   notValidDescriptorState,
   unchangedAttributes,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -613,6 +616,42 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id
       )
+    );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      attributes: {
+        certified: validMockDescriptorCertifiedAttributes,
+        verified: validMockDescriptorVerifiedAttributes,
+        declared: [],
+      },
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      templateRef: { id: templateId },
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        validMockDescriptorAttributeSeed,
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(mockEService.id, templateId)
     );
   });
 });

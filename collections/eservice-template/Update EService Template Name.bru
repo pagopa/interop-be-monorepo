@@ -1,0 +1,26 @@
+meta {
+  name: Update EService Template Name
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{host-catalog}}/eservices/templates/:eserviceTemplateId/name/update
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "name": "Test EService Template Name",
+  }
+}

@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package eservice.template.v2;
+
+import "v2/eservice/eservice.proto";
+
+enum EServiceTemplateVersionStateV2 {
+  DRAFT = 0;
+  PUBLISHED = 1;
+  DEPRECATED = 2;
+  SUSPENDED = 3;
+}
+
+message EServiceTemplateVersionV2 {
+  string id = 1;
+  int64 version = 2;
+  optional string description = 3;
+  repeated eservice.v2.EServiceDocumentV2 docs = 4;
+  EServiceTemplateVersionStateV2 state = 5;
+  optional eservice.v2.EServiceDocumentV2 interface = 6;
+  int32 voucherLifespan = 7;
+  optional int32 dailyCallsPerConsumer = 8;
+  optional int32 dailyCallsTotal = 9;
+  optional eservice.v2.AgreementApprovalPolicyV2 agreementApprovalPolicy = 10;
+  eservice.v2.EServiceAttributesV2 attributes = 11;
+  int64 createdAt = 12;
+  optional int64 publishedAt = 13;
+  optional int64 suspendedAt = 14;
+  optional int64 deprecatedAt = 15;
+}
+
+message EServiceTemplateV2 {
+  string id = 1;
+  string creatorId = 2;
+  string name = 3;
+  string intendedTarget = 4;
+  string description = 5;
+  eservice.v2.EServiceTechnologyV2 technology = 6;
+  repeated EServiceTemplateVersionV2 versions = 7;
+  int64 createdAt = 8;
+  repeated eservice.v2.EServiceRiskAnalysisV2 riskAnalysis = 9;
+  eservice.v2.EServiceModeV2 mode = 10;
+  optional bool isSignalHubEnabled = 11;
+}
