@@ -872,7 +872,7 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
 
       const newName = `${template.name} ${
-        eserviceSeed.instanceId ?? ""
+        eserviceSeed.instanceLabel ?? ""
       }`.trim();
 
       if (newName !== eservice.data.name) {
@@ -891,7 +891,7 @@ export function catalogServiceBuilder(
         name: newName,
         templateRef: {
           id: eservice.data.templateRef.id,
-          instanceId: eserviceSeed.instanceId,
+          instanceLabel: eserviceSeed.instanceLabel,
         },
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
           ? isTenantInSignalHubWhitelist(

@@ -17537,7 +17537,7 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceId:
+        instanceLabel:
           type: string
     EServiceSeed:
       type: object

@@ -1965,7 +1965,7 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceId:
+        instanceLabel:
           type: string
     DescriptorSeedForEServiceCreation:
       required:
