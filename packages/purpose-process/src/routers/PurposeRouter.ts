@@ -382,7 +382,7 @@ const purposeRouter = (
     )
     .get(
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
