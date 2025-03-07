@@ -1013,7 +1013,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EserviceInterfaceTemplatePayload"
+              $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
       responses:
         "200":
           description: EService Interface Document uploaded
@@ -2552,33 +2552,6 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
-    EserviceInterfaceTemplatePayload:
-      type: object
-      additionalProperties: false
-      description: contains eservice api custom data to add on interface document provided by template
-      properties:
-        contactName:
-          type: string
-        email:
-          type: string
-          format: email
-        contactUrl:
-          type: string
-          format: uri
-        termsAndConditionsUrl:
-          type: string
-          format: uri
-        serverUrls:
-          type: array
-          items:
-            type: string
-            format: uri
-      required:
-        - contactName
-        - email
-        - contactUrl
-        - termsAndConditionsUrl
-        - serverUrls
     Attribute:
       type: object
       additionalProperties: false

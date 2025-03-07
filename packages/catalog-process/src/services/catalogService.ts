@@ -323,12 +323,7 @@ const evaluateEServiceTemplateVersionRef = (
       ? {
           ...templateRef,
           interfaceMetadata: {
-            contactEmail: documentSeed.interfaceTemplateMetadata.email,
-            contactName: documentSeed.interfaceTemplateMetadata.name,
-            contactUrl: documentSeed.interfaceTemplateMetadata.url,
-            termsAndConditionsUrl:
-              documentSeed.interfaceTemplateMetadata.termsAndConditionsUrl,
-            serverUrls: documentSeed.interfaceTemplateMetadata.serverUrls,
+            ...documentSeed.interfaceTemplateMetadata,
           },
         }
       : templateRef;
@@ -2899,7 +2894,7 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
-      eserviceInstanceInterfaceData: catalogApi.EserviceInterfaceTemplatePayload,
+      eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
       ctx: WithLogger<AppContext>
     ): Promise<EService> {
       const { logger, authData } = ctx;
@@ -2968,7 +2963,7 @@ export async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  eserviceInstanceInterfaceData: catalogApi.EserviceInterfaceTemplatePayload,
+  eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
   bucket: string,
   fileManager: FileManager,
   readModelService: ReadModelService,
@@ -3025,14 +3020,7 @@ export async function createOpenApiInterfaceByTemplate(
           contentType,
           checksum,
           serverUrls,
-          interfaceTemplateMetadata: {
-            name: eserviceInstanceInterfaceData.contactName,
-            email: eserviceInstanceInterfaceData.email,
-            url: eserviceInstanceInterfaceData.contactUrl,
-            termsAndConditionsUrl:
-              eserviceInstanceInterfaceData.termsAndConditionsUrl,
-            serverUrls: eserviceInstanceInterfaceData.serverUrls,
-          },
+          interfaceTemplateMetadata: eserviceInstanceInterfaceData,
         },
         undefined,
         readModelService,

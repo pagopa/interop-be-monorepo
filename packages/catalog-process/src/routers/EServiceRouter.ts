@@ -35,7 +35,7 @@ import { catalogServiceBuilder } from "../services/catalogService.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   activateDescriptorErrorMapper,
-  addEServiceInterfceByTemplateErrorMapper,
+  addEServiceTemplateInstanceInterfaceErrorMapper,
   approveDelegatedEServiceDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
   cloneEServiceByDescriptorErrorMapper,
@@ -1165,7 +1165,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addEServiceInterfceByTemplateErrorMapper,
+            addEServiceTemplateInstanceInterfaceErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

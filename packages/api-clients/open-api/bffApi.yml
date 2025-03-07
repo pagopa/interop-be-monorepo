@@ -3433,7 +3433,7 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Add e-service interface for provided template
+      summary: Add EService template instance interface
       operationId: addEServiceTemplateInstanceInterface
       parameters:
         - name: eServiceId
@@ -3456,7 +3456,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EserviceInterfaceTemplatePayload"
+              $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
       responses:
         "200":
           description: EService Interface Document uploaded
@@ -20431,33 +20431,6 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-    EserviceInterfaceTemplatePayload:
-      type: object
-      additionalProperties: false
-      description: contains eservice api custom data to add on interface document provided by template
-      properties:
-        contactName:
-          type: string
-        email:
-          type: string
-          format: email
-        contactUrl:
-          type: string
-          format: uri
-        termsAndConditionsUrl:
-          type: string
-          format: uri
-        serverUrls:
-          type: array
-          items:
-            type: string
-            format: uri
-      required:
-        - contactName
-        - email
-        - contactUrl
-        - termsAndConditionsUrl
-        - serverUrls
     ProblemError:
       properties:
         code:

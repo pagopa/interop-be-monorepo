@@ -631,7 +631,7 @@ export function eserviceTemplateServiceBuilder(
     addEserviceInterfaceByTemplate: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
-      eserviceInstanceInterfaceData: bffApi.EserviceInterfaceTemplatePayload,
+      eserviceInstanceInterfaceData: bffApi.TemplateInstanceInterfaceMetadata,
       { headers }: WithLogger<BffAppContext>
     ): Promise<CreatedResource> => {
       const { id } =

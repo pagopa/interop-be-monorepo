@@ -192,7 +192,7 @@ export const interpolateOpenApiSpec = async (
   },
   eserviceInstanceInterfaceData: {
     contactName: string;
-    email: string;
+    contactEmail: string;
     contactUrl: string;
     termsAndConditionsUrl: string;
     serverUrls: string[];
@@ -214,7 +214,7 @@ export const interpolateOpenApiSpec = async (
     eserviceInstanceInterfaceData.termsAndConditionsUrl;
   openApiObject.info.contact = {
     name: eserviceInstanceInterfaceData.contactName,
-    email: eserviceInstanceInterfaceData.email,
+    email: eserviceInstanceInterfaceData.contactEmail,
     url: eserviceInstanceInterfaceData.contactUrl,
   };
   openApiObject.servers = eserviceInstanceInterfaceData.serverUrls.map(
