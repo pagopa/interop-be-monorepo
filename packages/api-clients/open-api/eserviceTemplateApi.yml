@@ -919,7 +919,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service published template description
+      summary: Update a published e-service template intended target description
       operationId: updateEServiceIntendedTarget
       parameters:
         - name: eServiceTemplateId
@@ -969,7 +969,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service published template e-service description
+      summary: Update a published e-service template description
       operationId: updateEServiceTemplateDescription
       parameters:
         - name: eServiceTemplateId

@@ -15465,7 +15465,7 @@ paths:
         - bearerAuth: []
       tags:
         - eserviceTemplates
-      summary: Update an e-service template description
+      summary: Update an e-service template intended target description
       operationId: updateEServiceIntendedTarget
       parameters:
         - name: eServiceTemplateId
