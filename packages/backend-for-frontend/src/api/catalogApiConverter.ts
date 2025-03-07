@@ -5,7 +5,6 @@ import {
   attributeRegistryApi,
   bffApi,
   catalogApi,
-  eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import {
@@ -434,23 +433,4 @@ export function apiDescriptorStateToDescriptorState(
     .with("ARCHIVED", () => descriptorState.archived)
     .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
     .exhaustive();
-}
-
-export function toBffEServiceTemplateRef(
-  eservice: catalogApi.EService,
-  descriptor: catalogApi.EServiceDescriptor,
-  eserviceTemplate: eserviceTemplateApi.EServiceTemplate
-): bffApi.EServiceTemplateRef {
-  const templateInterfaceId = eserviceTemplate.versions.find(
-    (v) => v.id === descriptor.templateVersionRef?.id
-  )?.interface?.id;
-
-  return {
-    templateId: eserviceTemplate.id,
-    templateName: eserviceTemplate.name,
-    instanceName: eservice.templateRef?.instanceName,
-    templateVersionId: descriptor.templateVersionRef?.id,
-    templateInterfaceId,
-    interfaceMetadata: descriptor.templateVersionRef?.interfaceMetadata,
-  };
 }
