@@ -12,7 +12,6 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
-  eServiceDuplicate,
   eServiceNameDuplicate,
 } from "../src/model/domain/errors.js";
 import {
