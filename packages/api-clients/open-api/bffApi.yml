@@ -15484,7 +15484,7 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
       responses:
         "204":
-          description: EService template description updated
+          description: EService template intended target description updated
           headers:
             "X-Rate-Limit-Limit":
               schema:

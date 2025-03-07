@@ -672,7 +672,7 @@ export function eserviceTemplateServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EServiceTemplate> {
       logger.info(
-        `Updating description of EService template ${eserviceTemplateId}`
+        `Updating intended target description of EService template ${eserviceTemplateId}`
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(

@@ -191,7 +191,7 @@ export function eserviceTemplateServiceBuilder(
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Updating EService template ${eServiceTemplateId} description`
+        `Updating EService template ${eServiceTemplateId} intended target description`
       );
       await eserviceTemplateClient.updateEServiceIntendedTarget(seed, {
         headers,
