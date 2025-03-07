@@ -101,6 +101,7 @@ import {
   assertRequesterDelegationsAllowedOrigin,
   getTenantKind,
   isFeatureAssigned,
+  assertCertificationIsAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -489,6 +490,11 @@ export function tenantServiceBuilder(
       }
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      assertCertificationIsAllowed(
+        requesterTenant.data.id,
+        targetTenant.data.id
+      );
 
       const tenantWithNewAttribute = assignCertifiedAttribute({
         targetTenant: targetTenant.data,
