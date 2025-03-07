@@ -34,6 +34,7 @@ import {
   stringToDate,
   Tenant,
   tenantAttributeType,
+  TenantFeature,
   TenantFeatureCertifier,
   TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
@@ -202,7 +203,7 @@ export const initMockTenant = (
   const tenant: WithMetadata<Tenant> = {
     ...tenantBeforeUpdate,
     data: {
-      ...getMockTenant(),
+      ...tenantBeforeUpdate.data,
       externalId,
       mails: tenantMails,
       attributes: [
@@ -225,7 +226,6 @@ export const initMockTenant = (
           }
         : {}),
     },
-    metadata: { version: 1 },
   };
   if (!isTenantComplete) {
     // eslint-disable-next-line fp/no-delete

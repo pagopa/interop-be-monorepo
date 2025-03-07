@@ -190,108 +190,89 @@ describe("Tenant Queries", () => {
         expect.arrayContaining(expectedFeaturesSQL.sort(sortFeatures))
       );
     });
-    it.skip("should update a complete (*all* fields) tenant", () => {
-      expect(1).toEqual(0);
+    it("should update a complete (*all* fields) tenant", async () => {
+      const isTenantComplete = true;
+      const {
+        tenantBeforeUpdate,
+        tenant,
+        tenantForVerifying,
+        tenantForRevoking,
+        tenantMails,
+        tenantCertifiedAttribute,
+        tenantDeclaredAttribute,
+        tenantVerifiedAttribute,
+        tenantVerifier,
+        tenantRevoker,
+        tenantFeatureCertifier,
+        tenantFeatureDelegatedConsumer,
+        tenantFeatureDelegatedProducer,
+      } = initMockTenant(isTenantComplete);
+
+      await tenantReadModelService.upsertTenant(tenantForVerifying);
+      await tenantReadModelService.upsertTenant(tenantForRevoking);
+      await tenantReadModelService.upsertTenant(tenantBeforeUpdate);
+      await tenantReadModelService.upsertTenant(tenant);
+
+      const {
+        retrievedTenantSQL,
+        retrievedMailsSQL,
+        retrievedCertifiedAttributesSQL,
+        retrievedDeclaredAttributesSQL,
+        retrievedVerifiedAttributesSQL,
+        retrievedVerifiedAttributeVerifiersSQL,
+        retrievedVerifiedAttributeRevokersSQL,
+        retrievedFeaturesSQL,
+      } = await retrieveTenantSQLObjects(tenant, isTenantComplete);
+
+      const {
+        expectedTenantSQL,
+        expectedMailsSQL,
+        expectedCertifiedAttributesSQL,
+        expectedDeclaredAttributesSQL,
+        expectedVerifiedAttributesSQL,
+        expectedVerifiedAttributeVerifiersSQL,
+        expectedVerifiedAttributeRevokersSQL,
+        expectedFeaturesSQL,
+      } = generateCompleteExpectedTenantSQLObjects({
+        tenant,
+        tenantMails,
+        tenantCertifiedAttribute,
+        tenantDeclaredAttribute,
+        tenantVerifiedAttribute,
+        tenantVerifier,
+        tenantRevoker,
+        tenantFeatureCertifier,
+        tenantFeatureDelegatedConsumer,
+        tenantFeatureDelegatedProducer,
+      });
+
+      expect(retrievedTenantSQL).toMatchObject(expectedTenantSQL);
+      expect(retrievedMailsSQL).toMatchObject(expectedMailsSQL);
+      expect(retrievedCertifiedAttributesSQL).toMatchObject(
+        expectedCertifiedAttributesSQL
+      );
+      expect(retrievedDeclaredAttributesSQL).toMatchObject(
+        expectedDeclaredAttributesSQL
+      );
+      expect(retrievedVerifiedAttributesSQL).toMatchObject(
+        expectedVerifiedAttributesSQL
+      );
+      expect(retrievedVerifiedAttributeVerifiersSQL).toMatchObject(
+        expectedVerifiedAttributeVerifiersSQL
+      );
+      expect(retrievedVerifiedAttributeRevokersSQL).toMatchObject(
+        expectedVerifiedAttributeRevokersSQL
+      );
+      expect(retrievedFeaturesSQL?.sort(sortFeatures)).toMatchObject(
+        expectedFeaturesSQL.sort(sortFeatures)
+      );
     });
   });
   describe("Get a Tenant", () => {
     it("should get a tenant from a tenantId", async () => {
-      const tenantForVerifying: WithMetadata<Tenant> = {
-        data: {
-          ...getMockTenant(),
-        },
-        metadata: { version: 1 },
-      };
-      const tenantForRevoking: WithMetadata<Tenant> = {
-        data: {
-          ...getMockTenant(),
-        },
-        metadata: { version: 1 },
-      };
-      const delegationId = generateId<DelegationId>();
-      const tenantVerifier: TenantVerifier = {
-        id: tenantForVerifying.data.id,
-        verificationDate: new Date(),
-        expirationDate: new Date(),
-        extensionDate: new Date(),
-        delegationId,
-      };
-      const tenantRevoker: TenantRevoker = {
-        id: tenantForRevoking.data.id,
-        verificationDate: new Date(),
-        revocationDate: new Date(),
-        expirationDate: new Date(),
-        extensionDate: new Date(),
-        delegationId,
-      };
-
-      const tenantMail: TenantMail = {
-        ...getMockTenantMail(),
-        description: "mail description",
-      };
-      const tenantCertifiedAttribute: CertifiedTenantAttribute = {
-        ...getMockCertifiedTenantAttribute(),
-        assignmentTimestamp: new Date(),
-        revocationTimestamp: new Date(),
-      };
-
-      const tenantDeclaredAttribute: DeclaredTenantAttribute = {
-        ...getMockDeclaredTenantAttribute(),
-        assignmentTimestamp: new Date(),
-        revocationTimestamp: new Date(),
-        delegationId,
-      };
-
-      const tenantVerifiedAttribute: VerifiedTenantAttribute = {
-        ...getMockVerifiedTenantAttribute(),
-        verifiedBy: [tenantVerifier],
-        revokedBy: [tenantRevoker],
-        assignmentTimestamp: new Date(),
-      };
-
-      const tenantFeatureCertifier: TenantFeatureCertifier = {
-        type: tenantFeatureType.persistentCertifier,
-        certifierId: generateId(),
-      };
-
-      const tenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer = {
-        type: tenantFeatureType.delegatedConsumer,
-        availabilityTimestamp: new Date(),
-      };
-
-      const tenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer = {
-        type: tenantFeatureType.delegatedProducer,
-        availabilityTimestamp: new Date(),
-      };
-
-      const selfcareId = generateId();
-
-      const externalId: ExternalId = {
-        origin: "IPA",
-        value: generateId(),
-      };
-      const tenant: WithMetadata<Tenant> = {
-        data: {
-          ...getMockTenant(),
-          selfcareId,
-          kind: tenantKind.PA,
-          subUnitType: tenantUnitType.AOO,
-          externalId,
-          updatedAt: new Date(),
-          mails: [tenantMail],
-          attributes: [
-            tenantCertifiedAttribute,
-            tenantDeclaredAttribute,
-            tenantVerifiedAttribute,
-          ],
-          features: [
-            tenantFeatureDelegatedProducer,
-            tenantFeatureDelegatedConsumer,
-            tenantFeatureCertifier,
-          ],
-        },
-        metadata: { version: 1 },
-      };
+      const isTenantComplete = true;
+      const { tenant, tenantForVerifying, tenantForRevoking } =
+        initMockTenant(isTenantComplete);
 
       await tenantReadModelService.upsertTenant(tenantForVerifying);
       await tenantReadModelService.upsertTenant(tenantForRevoking);
@@ -452,16 +433,9 @@ describe("Tenant Queries", () => {
 
       const retrievedTenants = await tenantReadModelService.getAllTenants();
 
-      expect(retrievedTenants).toHaveLength(4);
-      // TODO: check for equality
-      // how to sort array of tenants?
-      // how to sort tenant.features?
-
       expect(retrievedTenants.sort(sortTenants)).toMatchObject(
-        expect.arrayContaining(
-          [tenant1, tenant2, tenantForVerifying, tenantForRevoking].sort(
-            sortTenants
-          )
+        [tenant1, tenant2, tenantForVerifying, tenantForRevoking].sort(
+          sortTenants
         )
       );
     });
