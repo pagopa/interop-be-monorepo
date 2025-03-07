@@ -64,43 +64,53 @@ export async function handleMessageV2({
     .with({ type: "EServiceTemplateNameUpdated" }, async (msg) => {
       const newName = getTemplateFromEvent(msg).name;
 
-      await commitUpdateToInstances(
+      const updateTemplateInstanceName = async (
+        instance: EService,
+        headers: InteropHeaders
+      ): Promise<void> => {
+        await catalogProcess.client.updateTemplateInstanceName(
+          { name: newName },
+          {
+            params: {
+              eServiceId: instance.id,
+            },
+            headers,
+          }
+        );
+      };
+
+      await commitUpdateToTemplateInstances(
         msg,
         refreshableToken,
         correlationId,
         readModelService,
-        async (instance, headers) => {
-          await catalogProcess.client.updateTemplateInstanceName(
-            { name: newName },
-            {
-              params: {
-                eServiceId: instance.id,
-              },
-              headers,
-            }
-          );
-        }
+        updateTemplateInstanceName
       );
     })
     .with({ type: "EServiceTemplateDescriptionUpdated" }, async (msg) => {
       const newDescription = getTemplateFromEvent(msg).description;
 
-      await commitUpdateToInstances(
+      const updateTemplateEServiceDescription = async (
+        instance: EService,
+        headers: InteropHeaders
+      ): Promise<void> => {
+        await catalogProcess.client.updateTemplateInstanceDescription(
+          { description: newDescription },
+          {
+            params: {
+              eServiceId: instance.id,
+            },
+            headers,
+          }
+        );
+      };
+
+      await commitUpdateToTemplateInstances(
         msg,
         refreshableToken,
         correlationId,
         readModelService,
-        async (instance, headers) => {
-          await catalogProcess.client.updateTemplateInstanceDescription(
-            { description: newDescription },
-            {
-              params: {
-                eServiceId: instance.id,
-              },
-              headers,
-            }
-          );
-        }
+        updateTemplateEServiceDescription
       );
     })
     .with({ type: "EServiceTemplateVersionAttributesUpdated" }, async (msg) => {
@@ -110,12 +120,16 @@ export async function handleMessageV2({
         eserviceTemplateVersion
       ).attributes;
 
-      await commitUpdateToInstanceDescriptors(
-        msg,
-        refreshableToken,
-        correlationId,
-        readModelService,
-        async (instance, descriptor, headers) => {
+      const updateTemplateInstanceDescriptorAttributes = async (
+        instance: EService,
+        headers: InteropHeaders
+      ): Promise<void> => {
+        const descriptor = retrieveTemplateInstanceDescriptor(
+          instance,
+          eserviceTemplateVersion.id
+        );
+
+        if (descriptor) {
           await catalogProcess.client.updateTemplateInstanceDescriptorAttributes(
             attributes,
             {
@@ -127,17 +141,29 @@ export async function handleMessageV2({
             }
           );
         }
+      };
+
+      await commitUpdateToTemplateInstances(
+        msg,
+        refreshableToken,
+        correlationId,
+        readModelService,
+        updateTemplateInstanceDescriptorAttributes
       );
     })
     .with({ type: "EServiceTemplateVersionQuotasUpdated" }, async (msg) => {
       const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
 
-      await commitUpdateToInstanceDescriptors(
-        msg,
-        refreshableToken,
-        correlationId,
-        readModelService,
-        async (instance, descriptor, headers) => {
+      const updateTemplateInstanceDescriptorVoucherLifespan = async (
+        instance: EService,
+        headers: InteropHeaders
+      ): Promise<void> => {
+        const descriptor = retrieveTemplateInstanceDescriptor(
+          instance,
+          eserviceTemplateVersion.id
+        );
+
+        if (descriptor) {
           await catalogProcess.client.updateTemplateInstanceDescriptorVoucherLifespan(
             { voucherLifespan: eserviceTemplateVersion.voucherLifespan },
             {
@@ -149,120 +175,170 @@ export async function handleMessageV2({
             }
           );
         }
+      };
+
+      await commitUpdateToTemplateInstances(
+        msg,
+        refreshableToken,
+        correlationId,
+        readModelService,
+        updateTemplateInstanceDescriptorVoucherLifespan
       );
     })
     .with({ type: "EServiceTemplateVersionDocumentAdded" }, async (msg) => {
       const docToAddToInstances = getTemplateDocumentFromEvent(msg);
 
-      await commitUpdateToInstanceDescriptors(
+      const addDocumentToEServiceTemplateInstanceDescriptor = async (
+        instance: EService,
+        headers: InteropHeaders
+      ): Promise<void> => {
+        const descriptor = retrieveTemplateInstanceDescriptor(
+          instance,
+          msg.data.eserviceTemplateVersionId
+        );
+
+        if (!descriptor) {
+          return;
+        }
+
+        const alreadyHasDoc = descriptor.docs.some(
+          (d) => d.checksum === docToAddToInstances.checksum
+        );
+
+        if (alreadyHasDoc) {
+          return;
+        }
+
+        if (descriptor.state === descriptorState.archived) {
+          return;
+        }
+
+        const clonedDoc = await cloneDocument(
+          docToAddToInstances,
+          fileManager,
+          loggerInstance
+        );
+
+        try {
+          await catalogProcess.client.createTemplateInstanceDescriptorDocument(
+            clonedDoc,
+            {
+              params: {
+                eServiceId: instance.id,
+                descriptorId: descriptor.id,
+              },
+              headers,
+            }
+          );
+        } catch (err) {
+          await fileManager.delete(
+            config.eserviceDocumentsContainer,
+            clonedDoc.filePath,
+            loggerInstance
+          );
+          throw err;
+        }
+      };
+
+      await commitUpdateToTemplateInstances(
         msg,
         refreshableToken,
         correlationId,
         readModelService,
-        async (instance, descriptor, headers) => {
-          const alreadyHasDoc = descriptor?.docs.some(
-            (d) => d.checksum === docToAddToInstances.checksum
-          );
-
-          if (alreadyHasDoc) {
-            return;
-          }
-
-          if (descriptor.state === descriptorState.archived) {
-            return;
-          }
-
-          const clonedDoc = await cloneDocument(
-            docToAddToInstances,
-            fileManager,
-            loggerInstance
-          );
-
-          try {
-            await catalogProcess.client.createTemplateInstanceDescriptorDocument(
-              clonedDoc,
-              {
-                params: {
-                  eServiceId: instance.id,
-                  descriptorId: descriptor.id,
-                },
-                headers,
-              }
-            );
-          } catch (err) {
-            await fileManager.delete(
-              config.eserviceDocumentsContainer,
-              clonedDoc.filePath,
-              loggerInstance
-            );
-            throw err;
-          }
-        }
+        addDocumentToEServiceTemplateInstanceDescriptor
       );
     })
     .with({ type: "EServiceTemplateVersionDocumentUpdated" }, async (msg) => {
       const updatedEServiceTemplateDoc = getTemplateDocumentFromEvent(msg);
 
-      await commitUpdateToInstanceDescriptors(
+      const updateEServiceTemplateInstanceDescriptorDocument = async (
+        instance: EService,
+        headers: InteropHeaders
+      ): Promise<void> => {
+        const descriptor = retrieveTemplateInstanceDescriptor(
+          instance,
+          msg.data.eserviceTemplateVersionId
+        );
+
+        if (!descriptor) {
+          return;
+        }
+
+        const docToUpdate = descriptor?.docs.find(
+          (d) => d.checksum === updatedEServiceTemplateDoc.checksum
+        );
+
+        if (!docToUpdate) {
+          return;
+        }
+
+        await catalogProcess.client.updateTemplateInstanceDescriptorDocument(
+          { prettyName: updatedEServiceTemplateDoc.prettyName },
+          {
+            params: {
+              eServiceId: instance.id,
+              descriptorId: descriptor.id,
+              documentId: docToUpdate.id,
+            },
+            headers,
+          }
+        );
+      };
+
+      await commitUpdateToTemplateInstances(
         msg,
         refreshableToken,
         correlationId,
         readModelService,
-        async (instance, descriptor, headers) => {
-          const docToUpdate = descriptor?.docs.find(
-            (d) => d.checksum === updatedEServiceTemplateDoc.checksum
-          );
-
-          if (!docToUpdate) {
-            return;
-          }
-
-          await catalogProcess.client.updateTemplateInstanceDescriptorDocument(
-            { prettyName: updatedEServiceTemplateDoc.prettyName },
-            {
-              params: {
-                eServiceId: instance.id,
-                descriptorId: descriptor.id,
-                documentId: docToUpdate.id,
-              },
-              headers,
-            }
-          );
-        }
+        updateEServiceTemplateInstanceDescriptorDocument
       );
     })
     .with({ type: "EServiceTemplateVersionDocumentDeleted" }, async (msg) => {
       const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
 
-      await commitUpdateToInstanceDescriptors(
+      const deleteEServiceTemplateInstanceDescriptorDocument = async (
+        instance: EService,
+        headers: InteropHeaders
+      ): Promise<void> => {
+        const descriptor = retrieveTemplateInstanceDescriptor(
+          instance,
+          msg.data.eserviceTemplateVersionId
+        );
+
+        if (!descriptor) {
+          return;
+        }
+
+        const docToDelete = descriptor?.docs.find(
+          (d) =>
+            !eserviceTemplateVersion.docs.some(
+              (doc) => doc.checksum === d.checksum
+            )
+        );
+
+        if (!docToDelete) {
+          return;
+        }
+
+        await catalogProcess.client.deleteTemplateInstanceDescriptorDocument(
+          undefined,
+          {
+            params: {
+              eServiceId: instance.id,
+              descriptorId: descriptor.id,
+              documentId: docToDelete.id,
+            },
+            headers,
+          }
+        );
+      };
+
+      await commitUpdateToTemplateInstances(
         msg,
         refreshableToken,
         correlationId,
         readModelService,
-        async (instance, descriptor, headers) => {
-          const docToDelete = descriptor?.docs.find(
-            (d) =>
-              !eserviceTemplateVersion.docs.some(
-                (doc) => doc.checksum === d.checksum
-              )
-          );
-
-          if (!docToDelete) {
-            return;
-          }
-
-          await catalogProcess.client.deleteTemplateInstanceDescriptorDocument(
-            undefined,
-            {
-              params: {
-                eServiceId: instance.id,
-                descriptorId: descriptor.id,
-                documentId: docToDelete.id,
-              },
-              headers,
-            }
-          );
-        }
+        deleteEServiceTemplateInstanceDescriptorDocument
       );
     })
     .with(
@@ -315,6 +391,15 @@ function getTemplateFromEvent(
   return msg.data.eserviceTemplate;
 }
 
+function retrieveTemplateInstanceDescriptor(
+  instance: EService,
+  eserviceTemplateVersionId: string
+): Descriptor | undefined {
+  return instance.descriptors.find(
+    (d) => d.templateVersionRef?.id === eserviceTemplateVersionId
+  );
+}
+
 function getTemplateVersionFromEvent(
   msg: EServiceTemplateEventEnvelope & {
     data: { eserviceTemplateVersionId: string };
@@ -333,37 +418,7 @@ function getTemplateVersionFromEvent(
   return eserviceTemplateVersion;
 }
 
-async function commitUpdateToInstanceDescriptors(
-  msg: EServiceTemplateEventEnvelope & {
-    data: { eserviceTemplateVersionId: string };
-  },
-  refreshableToken: RefreshableInteropToken,
-  correlationId: CorrelationId,
-  readModelService: ReadModelService,
-  action: (
-    eservice: EService,
-    descriptor: Descriptor,
-    headers: InteropHeaders
-  ) => Promise<void>
-): Promise<void> {
-  await commitUpdateToInstances(
-    msg,
-    refreshableToken,
-    correlationId,
-    readModelService,
-    async (instance, headers) => {
-      const instanceDescriptor = instance.descriptors.find(
-        (d) => d.templateVersionRef?.id === msg.data.eserviceTemplateVersionId
-      );
-
-      if (instanceDescriptor) {
-        await action(instance, instanceDescriptor, headers);
-      }
-    }
-  );
-}
-
-async function commitUpdateToInstances(
+async function commitUpdateToTemplateInstances(
   msg: EServiceTemplateEventEnvelope,
   refreshableToken: RefreshableInteropToken,
   correlationId: CorrelationId,
