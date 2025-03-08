@@ -138,7 +138,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         ],
       };
 
-      await catalogService.updateTemplateInstanceDescriptorAttributes(
+      await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -190,7 +190,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
 
       await addOneEService(mockEService);
 
-      await catalogService.updateTemplateInstanceDescriptorAttributes(
+      await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -230,7 +230,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
 
     await addOneEService(mockEService);
 
-    await catalogService.updateTemplateInstanceDescriptorAttributes(
+    await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
       mockEService.id,
       mockDescriptor.id,
       {
@@ -272,7 +272,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
     };
 
     expect(
-      catalogService.updateTemplateInstanceDescriptorAttributes(
+      catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -305,7 +305,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateTemplateInstanceDescriptorAttributes(
+      catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
@@ -349,7 +349,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateTemplateInstanceDescriptorAttributes(
+      catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {
@@ -392,7 +392,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateTemplateInstanceDescriptorAttributes(
+      catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {
@@ -439,7 +439,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
     await addOneEService(mockEService);
 
     expect(
-      catalogService.updateTemplateInstanceDescriptorAttributes(
+      catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
         mockEService.id,
         mockDescriptor.id,
         {

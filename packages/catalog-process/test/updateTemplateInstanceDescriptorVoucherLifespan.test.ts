@@ -48,7 +48,7 @@ describe("update descriptor", () => {
         },
       ],
     };
-    await catalogService.updateTemplateInstanceDescriptorVoucherLifespan(
+    await catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
       eservice.id,
       descriptor.id,
       1000,
@@ -86,7 +86,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.updateTemplateInstanceDescriptorVoucherLifespan(
+    await catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
       eservice.id,
       descriptor.id,
       1000,
@@ -108,7 +108,7 @@ describe("update descriptor", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
-      catalogService.updateTemplateInstanceDescriptorVoucherLifespan(
+      catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
         mockEService.id,
         mockDescriptor.id,
         1000,
@@ -130,7 +130,7 @@ describe("update descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.updateTemplateInstanceDescriptorVoucherLifespan(
+      catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
         mockEService.id,
         mockDescriptor.id,
         1000,

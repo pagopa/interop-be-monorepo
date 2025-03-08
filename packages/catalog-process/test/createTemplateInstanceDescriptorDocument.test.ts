@@ -52,7 +52,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
 
       const newDocument = buildDocumentSeed();
 
-      await catalogService.createTemplateInstanceDescriptorDocument(
+      await catalogService.internalCreateTemplateInstanceDescriptorDocument(
         eservice.id,
         descriptor.id,
         newDocument,
@@ -122,7 +122,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.createTemplateInstanceDescriptorDocument(
+    await catalogService.internalCreateTemplateInstanceDescriptorDocument(
       eservice.id,
       descriptor.id,
       newDocument,
@@ -158,7 +158,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.createTemplateInstanceDescriptorDocument(
+    await catalogService.internalCreateTemplateInstanceDescriptorDocument(
       eservice.id,
       descriptor.id,
       newDocument,
@@ -182,7 +182,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
-      catalogService.createTemplateInstanceDescriptorDocument(
+      catalogService.internalCreateTemplateInstanceDescriptorDocument(
         mockEService.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
@@ -203,7 +203,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.createTemplateInstanceDescriptorDocument(
+      catalogService.internalCreateTemplateInstanceDescriptorDocument(
         eservice.id,
         mockDescriptor.id,
         buildInterfaceSeed(),

@@ -35,7 +35,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
 
     const updatedDescription = "eservice new description";
 
-    await catalogService.updateTemplateInstanceDescription(
+    await catalogService.internalUpdateTemplateInstanceDescription(
       eservice.id,
       updatedDescription,
       {
@@ -70,7 +70,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
     const eservice = getMockEService();
 
     expect(
-      catalogService.updateTemplateInstanceDescription(
+      catalogService.internalUpdateTemplateInstanceDescription(
         eservice.id,
         "eservice new description",
         {
