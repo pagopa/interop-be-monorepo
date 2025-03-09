@@ -168,7 +168,7 @@ describe("E-service Template Service BFF ", () => {
 
         const requestPayload = {
           contactName: "John Doe",
-          email: "test-jhon-doe@email.test.com",
+          contactEmail: "test-jhon-doe@email.test.com",
           contactUrl: "http://example.com",
           termsAndConditionsUrl: "http://example.com/terms",
           serverUrls: [
