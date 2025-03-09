@@ -25,8 +25,8 @@ import {
   activateEServiceTemplateVersionErrorMapper,
   suspendEServiceTemplateVersionErrorMapper,
   updateEServiceTemplateNameErrorMapper,
-  updateEServiceTemplateAudienceDescriptionErrorMapper,
-  updateEServiceTemplateEServiceDescriptionErrorMapper,
+  updateEServiceIntendedTargetErrorMapper,
+  updateEServiceTemplateDescriptionErrorMapper,
   updateEServiceTemplateVersionQuotasErrorMapper,
   updateEServiceTemplateVersionAttributesErrorMapper,
   createEServiceTemplateVersionErrorMapper,
@@ -608,14 +608,14 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/audienceDescription/update",
+      "/eservices/templates/:eServiceTemplateId/intendedTarget/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedEServiceTemplate =
-            await eserviceTemplateService.updateEServiceTemplateAudienceDescription(
+            await eserviceTemplateService.updateEServiceIntendedTarget(
               unsafeBrandId(req.params.eServiceTemplateId),
               req.body.description,
               ctx
@@ -630,7 +630,7 @@ const eserviceTemplatesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateEServiceTemplateAudienceDescriptionErrorMapper,
+            updateEServiceIntendedTargetErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -639,14 +639,14 @@ const eserviceTemplatesRouter = (
       }
     )
     .post(
-      "/eservices/templates/:eServiceTemplateId/eserviceDescription/update",
+      "/eservices/templates/:eServiceTemplateId/description/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedEServiceTemplate =
-            await eserviceTemplateService.updateEServiceTemplateEServiceDescription(
+            await eserviceTemplateService.updateEServiceTemplateDescription(
               unsafeBrandId(req.params.eServiceTemplateId),
               req.body.description,
               ctx
@@ -661,7 +661,7 @@ const eserviceTemplatesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateEServiceTemplateEServiceDescriptionErrorMapper,
+            updateEServiceTemplateDescriptionErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

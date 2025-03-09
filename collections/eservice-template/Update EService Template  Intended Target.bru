@@ -1,11 +1,11 @@
 meta {
-  name: Update EService Template Audience Description
+  name: Update EService Template Intended Target
   type: http
   seq: 4
 }
 
 put {
-  url: {{host-catalog}}/eservices/templates/:eserviceTemplateId/audienceDescription/update
+  url: {{host-catalog}}/eservices/templates/:eserviceTemplateId/intendedTarget/update
   body: json
   auth: none
 }
@@ -21,6 +21,6 @@ headers {
 
 body:json {
   {
-      "description": "Test EService Template audience description",
+      "description": "Test EService Intended target",
   }
 }

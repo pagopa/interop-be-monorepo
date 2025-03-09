@@ -280,7 +280,10 @@ describe("update Document", () => {
         }
       )
     ).rejects.toThrowError(
-      documentPrettyNameDuplicate(document1.prettyName.toLowerCase(), version.id)
+      documentPrettyNameDuplicate(
+        document1.prettyName.toLowerCase(),
+        version.id
+      )
     );
   });
 });

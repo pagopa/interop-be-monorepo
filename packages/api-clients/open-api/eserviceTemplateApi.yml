@@ -911,7 +911,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/audienceDescription/update:
+  /eservices/templates/{eServiceTemplateId}/intendedTarget/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -919,8 +919,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service published template audience description
-      operationId: updateEServiceTemplateAudienceDescription
+      summary: Update a published e-service template intended target description
+      operationId: updateEServiceIntendedTarget
       parameters:
         - name: eServiceTemplateId
           in: path
@@ -938,7 +938,7 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
       responses:
         "200":
-          description: EService template audience description updated
+          description: EService template description updated
           content:
             application/json:
               schema:
@@ -961,7 +961,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/eserviceDescription/update:
+  /eservices/templates/{eServiceTemplateId}/description/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -969,8 +969,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update an e-service published template e-service description
-      operationId: updateEServiceTemplateEServiceDescription
+      summary: Update a published e-service template description
+      operationId: updateEServiceTemplateDescription
       parameters:
         - name: eServiceTemplateId
           in: path
@@ -1196,8 +1196,8 @@ components:
       additionalProperties: false
       required:
         - name
-        - audienceDescription
-        - eserviceDescription
+        - intendedTarget
+        - description
         - technology
         - mode
         - version
@@ -1206,11 +1206,11 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        audienceDescription:
+        intendedTarget:
           type: string
           minLength: 10
           maxLength: 250
-        eserviceDescription:
+        description:
           type: string
           minLength: 10
           maxLength: 250
@@ -1227,8 +1227,8 @@ components:
       additionalProperties: false
       required:
         - name
-        - audienceDescription
-        - eserviceDescription
+        - intendedTarget
+        - description
         - technology
         - mode
       properties:
@@ -1236,11 +1236,11 @@ components:
           type: string
           minLength: 5
           maxLength: 60
-        audienceDescription:
+        intendedTarget:
           type: string
           minLength: 10
           maxLength: 250
-        eserviceDescription:
+        description:
           type: string
           minLength: 10
           maxLength: 250
@@ -1450,8 +1450,8 @@ components:
         - id
         - creatorId
         - name
-        - audienceDescription
-        - eserviceDescription
+        - intendedTarget
+        - description
         - technology
         - versions
         - riskAnalysis
@@ -1465,9 +1465,9 @@ components:
           format: uuid
         name:
           type: string
-        audienceDescription:
+        intendedTarget:
           type: string
-        eserviceDescription:
+        description:
           type: string
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
