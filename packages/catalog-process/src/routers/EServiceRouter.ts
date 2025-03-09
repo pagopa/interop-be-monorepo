@@ -70,7 +70,6 @@ import {
   updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
   updateTemplateInstanceNameErrorMapper,
   upgradeEServiceInstanceErrorMapper,
-  createEServiceInstanceFromTemplateErrorMapper,
   updateEServiceTemplateInstanceErrorMapper,
   updateDraftDescriptorTemplateInstanceErrorMapper,
 } from "../utilities/errorMappers.js";
