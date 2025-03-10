@@ -13,7 +13,6 @@ import {
   EServiceTemplate,
   EServiceTemplateEvent,
   EServiceTemplateId,
-  RiskAnalysis,
   Tenant,
   toReadModelTenant,
   generateId,
@@ -21,6 +20,7 @@ import {
   toReadModelAttribute,
   EServiceTemplateVersion,
   toReadModelEService,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -98,12 +98,13 @@ export const readLastEserviceTemplateEvent = async (
   );
 
 export const buildRiskAnalysisSeed = (
-  riskAnalysis: RiskAnalysis
+  riskAnalysis: EServiceTemplateRiskAnalysis
 ): eserviceTemplateApi.EServiceRiskAnalysisSeed => ({
   name: riskAnalysis.name,
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
   ),
+  tenantKind: riskAnalysis.tenantKind,
 });
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {

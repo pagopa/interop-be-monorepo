@@ -12,7 +12,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -84,7 +84,8 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const mockValidRiskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
@@ -173,7 +174,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
@@ -203,7 +206,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         {
           authData: getMockAuthData(requesterId),
           correlationId: generateId(),
@@ -232,7 +237,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
@@ -263,7 +270,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
@@ -290,7 +299,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         {
           authData: getMockAuthData(eserviceTemplate.creatorId),
           correlationId: generateId(),
@@ -324,7 +335,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         {
           authData: getMockAuthData(creator.id),
           correlationId: generateId(),
@@ -339,7 +352,8 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
 
-    const riskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
 
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -360,7 +374,8 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     };
     await addOneTenant(creator);
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const mockValidRiskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
       name: riskAnalysis.name,
@@ -406,7 +421,8 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const mockValidRiskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 

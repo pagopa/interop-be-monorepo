@@ -420,7 +420,7 @@ export function eserviceTemplateServiceBuilder(
     },
     createEServiceTemplateEServiceRiskAnalysis: async (
       eServiceTemplateId: EServiceTemplateId,
-      seed: bffApi.EServiceRiskAnalysisSeed,
+      seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
@@ -436,7 +436,7 @@ export function eserviceTemplateServiceBuilder(
     updateEServiceTemplateEServiceRiskAnalysis: async (
       eServiceTemplateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      seed: bffApi.EServiceRiskAnalysisSeed,
+      seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(

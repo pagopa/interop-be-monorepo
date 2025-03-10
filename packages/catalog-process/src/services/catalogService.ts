@@ -84,6 +84,7 @@ import {
   riskAnalysisDuplicated,
   tenantNotFound,
   unchangedAttributes,
+  receiveTemplateMissingTenantKindRiskAnalysis,
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
@@ -429,6 +430,7 @@ async function innerCreateEService(
   seed: {
     eServiceSeed: catalogApi.EServiceSeed;
     eServiceTemplateReferences: EServiceTemplateReferences | undefined;
+    riskAnalysis?: RiskAnalysis[];
   },
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
@@ -457,7 +459,7 @@ async function innerCreateEService(
     attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
-    riskAnalysis: [],
+    riskAnalysis: seed.riskAnalysis ?? [],
     isSignalHubEnabled: config.featureFlagSignalhubWhitelist
       ? isTenantInSignalHubWhitelist(
           authData.organizationId,
@@ -2894,6 +2896,30 @@ export function catalogServiceBuilder(
         throw eServiceTemplateWithoutPublishedVersion(templateId);
       }
 
+      const tenant = await retrieveTenant(
+        ctx.authData.organizationId,
+        readModelService
+      );
+
+      assertTenantKindExists(tenant);
+
+      const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
+        .filter((r) => r.tenantKind === tenant.kind)
+        .map((r) => ({
+          id: generateId(),
+          createdAt: r.createdAt,
+          name: r.name,
+          riskAnalysisForm: r.riskAnalysisForm,
+        }));
+
+      if (template.mode === eserviceMode.receive && riskAnalysis.length === 0) {
+        throw receiveTemplateMissingTenantKindRiskAnalysis(
+          template.id,
+          tenant.id,
+          tenant.kind
+        );
+      }
+
       const { eService: createdEService, events } = await innerCreateEService(
         {
           eServiceSeed: {
@@ -2923,6 +2949,7 @@ export function catalogServiceBuilder(
             templateVersionId: publishedVersion.id,
             instanceLabel: seed.instanceLabel,
           },
+          riskAnalysis,
         },
         readModelService,
         ctx

@@ -8,6 +8,7 @@ import {
   EServiceTemplateId,
   RiskAnalysisId,
   TenantId,
+  TenantKind,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -46,6 +47,7 @@ export const errorCodes = {
   eServiceNotAnInstance: "0032",
   eServiceAlreadyUpgraded: "0033",
   invalidDescriptorVersion: "0034",
+  receiveTemplateMissingTenantKindRiskAnalysis: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -389,5 +391,17 @@ export function eServiceAlreadyUpgraded(
     detail: `EService ${eserviceId} has already the latest version of the template`,
     code: "eServiceAlreadyUpgraded",
     title: "EService already upgraded",
+  });
+}
+
+export function receiveTemplateMissingTenantKindRiskAnalysis(
+  templateId: EServiceTemplateId,
+  tenantId: TenantId,
+  tenantKind: TenantKind
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Template ${templateId} with mode receive is not compatible with tenant ${tenantId} of kind ${tenantKind}, missing risk analysis`,
+    code: "receiveTemplateMissingTenantKindRiskAnalysis",
+    title: "Receive template missing tenant kind risk analysis",
   });
 }

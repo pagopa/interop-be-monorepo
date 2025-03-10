@@ -44,7 +44,16 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "eServiceNameDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "originNotCompliant",
+      "receiveTemplateMissingTenantKindRiskAnalysis",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "tenantNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceErrorMapper = (

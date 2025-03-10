@@ -80,11 +80,14 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
+  TenantKind,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
+import { getMockValidRiskAnalysis } from "./riskAnalysisTestUtils.js";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -729,4 +732,11 @@ export const getMockEServiceTemplate = (
   riskAnalysis: [],
   mode: "Deliver",
   isSignalHubEnabled: true,
+});
+
+export const getMockValidEServiceTemplateRiskAnalysis = (
+  tenantKind: TenantKind
+): EServiceTemplateRiskAnalysis => ({
+  ...getMockValidRiskAnalysis(tenantKind),
+  tenantKind,
 });

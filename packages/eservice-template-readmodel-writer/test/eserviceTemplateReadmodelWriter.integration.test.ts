@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  getMockValidRiskAnalysis,
   getMockEServiceTemplate,
   writeInReadmodel,
   getMockEServiceTemplateVersion,
   getMockDocument,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   Document,
@@ -23,7 +23,6 @@ import {
   EServiceTemplateEventEnvelope,
   EServiceTemplateRiskAnalysisAddedV2,
   EServiceTemplateRiskAnalysisDeletedV2,
-  RiskAnalysis,
   EServiceTemplateDeletedV2,
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
@@ -33,6 +32,7 @@ import {
   EServiceTemplateDraftVersionUpdatedV2,
   eserviceTemplateVersionState,
   EServiceTemplateNameUpdatedV2,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { eserviceTemplates } from "./utils.js";
@@ -701,7 +701,7 @@ describe("database test", async () => {
         1
       );
 
-      const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
+      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis("PA");
       const updatedEServiceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [mockRiskAnalysis],
@@ -732,7 +732,7 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisUpdated", async () => {
-      const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
+      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis("PA");
       const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [mockRiskAnalysis],
@@ -743,8 +743,9 @@ describe("database test", async () => {
         1
       );
 
-      const updatedRiskAnalysis: RiskAnalysis = {
+      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
         ...mockRiskAnalysis,
+        tenantKind: "PA",
         riskAnalysisForm: {
           ...mockRiskAnalysis.riskAnalysisForm,
           singleAnswers: mockRiskAnalysis.riskAnalysisForm.singleAnswers.map(
@@ -786,7 +787,7 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisDeleted", async () => {
-      const riskAnalysis = getMockValidRiskAnalysis("PA");
+      const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis("PA");
       const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [riskAnalysis],

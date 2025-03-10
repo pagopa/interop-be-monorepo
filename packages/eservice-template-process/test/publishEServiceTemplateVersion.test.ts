@@ -11,7 +11,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -23,9 +23,9 @@ import {
   eserviceTemplateVersionState,
   EServiceTemplateVersionPublishedV2,
   tenantKind,
-  RiskAnalysis,
   EServiceTemplateVersionId,
   eserviceMode,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import { expect, describe, it, afterAll, vi, beforeAll } from "vitest";
 import {
@@ -385,8 +385,10 @@ describe("publishEServiceTemplateVersion", () => {
       kind: tenantKind.PA,
     };
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenant.kind);
-    const invalidRiskAnalysis: RiskAnalysis = {
+    const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenant.kind
+    );
+    const invalidRiskAnalysis: EServiceTemplateRiskAnalysis = {
       ...mockValidRiskAnalysis,
       riskAnalysisForm: {
         ...mockValidRiskAnalysis.riskAnalysisForm,
@@ -470,8 +472,10 @@ describe("publishEServiceTemplateVersion", () => {
       kind: tenantKind.PA,
     };
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenant.kind);
-    const invalidRiskAnalysis: RiskAnalysis = {
+    const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenant.kind
+    );
+    const invalidRiskAnalysis = {
       ...mockValidRiskAnalysis,
       riskAnalysisForm: {
         ...mockValidRiskAnalysis.riskAnalysisForm,

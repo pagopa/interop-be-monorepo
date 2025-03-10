@@ -1481,7 +1481,7 @@ components:
         riskAnalysis:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceRiskAnalysis"
+            $ref: "#/components/schemas/EServiceTemplateRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
@@ -1492,13 +1492,14 @@ components:
       enum:
         - RECEIVE
         - DELIVER
-    EServiceRiskAnalysis:
+    EServiceTemplateRiskAnalysis:
       type: object
       additionalProperties: false
       required:
         - id
         - name
         - riskAnalysisForm
+        - tenantKind
         - createdAt
       properties:
         id:
@@ -1508,6 +1509,8 @@ components:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/EServiceRiskAnalysisForm"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
         createdAt:
           type: string
           format: date-time

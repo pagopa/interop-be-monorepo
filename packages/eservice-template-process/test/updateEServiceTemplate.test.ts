@@ -6,7 +6,7 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
@@ -187,7 +187,7 @@ describe("update EService template", () => {
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
-    const riskAnalysis = getMockValidRiskAnalysis("PA");
+    const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis("PA");
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],

@@ -18,6 +18,15 @@ export function toBffCompactEServiceTemplateVersion(
   };
 }
 
+export function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
+  riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
+): bffApi.EServiceTemplateRiskAnalysis {
+  return {
+    ...toBffCatalogApiEserviceRiskAnalysis(riskAnalysis),
+    tenantKind: riskAnalysis.tenantKind,
+  };
+}
+
 export function toBffEServiceTemplateDetails(
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
   creator: tenantApi.Tenant
@@ -31,7 +40,7 @@ export function toBffEServiceTemplateDetails(
     creator: toBffCompactOrganization(creator),
     mode: eserviceTemplate.mode,
     riskAnalysis: eserviceTemplate.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+      toBffEServiceTemplateApiEServiceTemplateRiskAnalysis
     ),
     versions: eserviceTemplate.versions.map(
       toBffCompactEServiceTemplateVersion
