@@ -1290,7 +1290,7 @@ export function purposeServiceBuilder(
         consumerDelegation
       );
 
-      if (isClonable(purposeToClone.data)) {
+      if (!isClonable(purposeToClone.data)) {
         throw purposeCannotBeCloned(purposeId);
       }
 

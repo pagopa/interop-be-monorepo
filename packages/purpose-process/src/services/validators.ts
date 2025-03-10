@@ -76,7 +76,7 @@ export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.waitingForApproval;
 
 export const isClonable = (purpose: Purpose): boolean =>
-  purposeIsDraft(purpose) || purposeIsArchived(purpose);
+  !purposeIsDraft(purpose) && !purposeIsArchived(purpose);
 
 export const assertEserviceMode = (
   eservice: EService,
