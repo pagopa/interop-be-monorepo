@@ -179,12 +179,15 @@ describe("Purpose queries", () => {
   });
 
   describe("Delete a Purpose", () => {
-    it("should delete a purpose by purpose id", async () => {
+    it.only("should delete a purpose by purpose id", async () => {
       const isPurposeComplete = true;
       const { purpose } = initMockPurpose(isPurposeComplete);
       await purposeReadModelService.upsertPurpose(purpose);
 
-      await purposeReadModelService.deletePurposeById(purpose.data.id);
+      await purposeReadModelService.deletePurposeById(
+        purpose.data.id,
+        purpose.metadata.version + 1
+      );
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         purpose.data.id

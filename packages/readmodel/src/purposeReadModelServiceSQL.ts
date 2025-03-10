@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Purpose, PurposeId, WithMetadata } from "pagopa-interop-models";
 import {
@@ -117,10 +117,18 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
       return aggregatePurpose(toPurposeAggregator(queryResult));
     },
-    async deletePurposeById(purposeId: PurposeId): Promise<void> {
+    async deletePurposeById(
+      purposeId: PurposeId,
+      version: number
+    ): Promise<void> {
       await db
         .delete(purposeInReadmodelPurpose)
-        .where(eq(purposeInReadmodelPurpose.id, purposeId));
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.id, purposeId),
+            lte(purposeInReadmodelPurpose.metadataVersion, version)
+          )
+        );
     },
     async getAllPurposes(): Promise<Array<WithMetadata<Purpose>>> {
       const queryResult = await db
