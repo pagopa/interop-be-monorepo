@@ -18,7 +18,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-formatting-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-check-formatting-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-check-formatting
       - uses: pnpm/action-setup@v4
@@ -40,7 +40,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-lint-${{ github.sha }}-lint
+          key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
@@ -62,7 +62,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-check
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
@@ -83,7 +83,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-test-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-test
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
