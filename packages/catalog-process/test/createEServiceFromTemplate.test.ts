@@ -3,6 +3,7 @@ import {
   decodeProtobufPayload,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockTenant,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
@@ -31,6 +32,7 @@ import {
   addOneEServiceTemplate,
   fileManager,
   getMockDocument,
+  addOneTenant,
 } from "./utils.js";
 
 describe("create eService from template", () => {
@@ -56,6 +58,9 @@ describe("create eService from template", () => {
       versions: [publishedVersion],
     };
 
+    const tenant = getMockTenant(mockEService.producerId);
+
+    await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
@@ -160,6 +165,9 @@ describe("create eService from template", () => {
       versions: [publishedVersion],
     };
 
+    const tenant = getMockTenant(mockEService.producerId);
+
+    await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
@@ -280,6 +288,9 @@ describe("create eService from template", () => {
       versions: [eserviceTemplatePublishedVersion],
     };
 
+    const tenant = getMockTenant(mockEService.producerId);
+
+    await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
     await fileManager.storeBytes(
