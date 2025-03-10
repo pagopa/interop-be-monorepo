@@ -6118,6 +6118,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SessionToken"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/tenants/{tenantId}/users":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -15151,6 +15208,9 @@ components:
         archivedAt:
           type: string
           format: date-time
+        suspendedAt:
+          type: string
+          format: date-time
         rejectionReasons:
           type: array
           items:
@@ -15218,6 +15278,7 @@ components:
         - name
         - contentType
         - prettyName
+        - checksum
       properties:
         id:
           type: string
@@ -15227,6 +15288,8 @@ components:
         contentType:
           type: string
         prettyName:
+          type: string
+        checksum:
           type: string
     UpdateEServiceDescriptorDocumentSeed:
       type: object
