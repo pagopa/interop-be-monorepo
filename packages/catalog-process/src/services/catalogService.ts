@@ -875,16 +875,11 @@ export function catalogServiceBuilder(
         eserviceSeed.instanceLabel ?? ""
       }`.trim();
 
-      if (newName !== eservice.data.name) {
-        const eserviceWithSameName =
-          await readModelService.getEServiceByNameAndProducerId({
-            name: newName,
-            producerId: eservice.data.producerId,
-          });
-        if (eserviceWithSameName !== undefined) {
-          throw eServiceNameDuplicate(newName);
-        }
-      }
+      await assertNotDuplicatedEServiceName(
+        newName,
+        eservice.data,
+        readModelService
+      );
 
       const updatedEService: EService = {
         ...eservice.data,
