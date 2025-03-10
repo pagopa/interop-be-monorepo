@@ -24,7 +24,7 @@ import {
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
 } from "../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -246,7 +246,7 @@ describe("update Document", () => {
     );
   });
 
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that version, case insensitive", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that version, case insensitive", async () => {
     const document1: Document = {
       ...getMockDocument(),
       prettyName: "TEST A",
@@ -280,7 +280,10 @@ describe("update Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document1.prettyName.toLowerCase(), version.id)
+      documentPrettyNameDuplicate(
+        document1.prettyName.toLowerCase(),
+        version.id
+      )
     );
   });
 });

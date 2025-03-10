@@ -9,7 +9,6 @@ import {
   AWSSesConfig,
   EventStoreConfig,
   FileManagerConfig,
-  LoggerConfig,
   ReadModelDbConfig,
   RedisRateLimiterConfig,
   S3Config,
@@ -51,7 +50,7 @@ declare module "vitest" {
     readModelConfig?: ReadModelDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
-    fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
+    fileManagerConfig?: FileManagerConfig & S3Config;
     redisRateLimiterConfig?: RedisRateLimiterConfig;
     emailManagerConfig?: PecEmailManagerConfigTest;
     sesEmailManagerConfig?: AWSSesConfig;
@@ -70,9 +69,7 @@ export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
-  const fileManagerConfig = FileManagerConfig.and(LoggerConfig)
-    .and(S3Config.optional())
-    .safeParse(process.env);
+  const fileManagerConfig = FileManagerConfig.safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
   const awsSESConfig = AWSSesConfig.safeParse(process.env);
@@ -133,7 +130,8 @@ export function setupTestContainersVitestGlobal() {
     // Setting up the Minio container if the config is provided
     if (fileManagerConfig.success) {
       const s3Bucket =
-        fileManagerConfig.data.s3Bucket ?? "interop-local-bucket";
+        S3Config.safeParse(process.env)?.data?.s3Bucket ??
+        "interop-local-bucket";
 
       startedMinioContainer = await minioContainer({
         ...fileManagerConfig.data,

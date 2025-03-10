@@ -1,4 +1,8 @@
 /* eslint-disable functional/no-let */
+import type {
+  FileManager,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
 import {
   getMockDescriptor,
   getMockDocument,
@@ -13,7 +17,7 @@ import {
   Document,
   EService,
   EServiceTemplate,
-  EServiceTemplateEServiceDescriptionUpdatedV2,
+  EServiceTemplateDescriptionUpdatedV2,
   EServiceTemplateEventEnvelope,
   EServiceTemplateNameUpdatedV2,
   EServiceTemplateVersion,
@@ -28,7 +32,7 @@ import {
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi, afterEach } from "vitest";
-import * as commons from "pagopa-interop-commons";
+import { addOneEService, readModelService } from "./utils.js";
 
 const updateTemplateInstanceNameFn = vi.fn();
 const updateTemplateInstanceDescriptionFn = vi.fn();
@@ -42,7 +46,7 @@ const copyDocumentFn = vi.fn();
 
 const fileManager = {
   copy: copyDocumentFn,
-} as unknown as commons.FileManager;
+} as unknown as FileManager;
 
 vi.doMock("pagopa-interop-api-clients", () => ({
   catalogApi: {
@@ -64,38 +68,36 @@ vi.doMock("pagopa-interop-api-clients", () => ({
   },
 }));
 
-const instanceToUpdate1 = getMockEService();
-const instanceToUpdate2 = getMockEService();
-const instanceToUpdate3 = getMockEService();
-
-function mockInstancesToUpdate(
-  instances: EService[] = [
-    instanceToUpdate1,
-    instanceToUpdate2,
-    instanceToUpdate3,
-  ]
-): void {
-  vi.spyOn(commons, "getAllFromPaginated").mockResolvedValue(instances);
-}
-
 describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
   const correlationId: CorrelationId = generateId();
 
   const testToken = "mockToken";
 
   const eserviceTemplate = getMockEServiceTemplate();
+  const instanceToUpdate1: EService = {
+    ...getMockEService(),
+    templateRef: { id: eserviceTemplate.id },
+  };
+  const instanceToUpdate2: EService = {
+    ...getMockEService(),
+    templateRef: { id: eserviceTemplate.id },
+  };
+  const instanceToUpdate3: EService = {
+    ...getMockEService(),
+    templateRef: { id: eserviceTemplate.id },
+  };
 
   const testHeaders = {
     "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${testToken}`,
   };
 
-  let mockRefreshableToken: commons.RefreshableInteropToken;
+  let mockRefreshableToken: RefreshableInteropToken;
 
   beforeAll(() => {
     mockRefreshableToken = {
       get: () => Promise.resolve({ serialized: testToken }),
-    } as unknown as commons.RefreshableInteropToken;
+    } as unknown as RefreshableInteropToken;
   });
 
   afterEach(() => {
@@ -124,7 +126,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    mockInstancesToUpdate();
+    await addOneEService(instanceToUpdate1);
+    await addOneEService(instanceToUpdate2);
+    await addOneEService(instanceToUpdate3);
 
     const { handleMessageV2 } = await import(
       "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
@@ -135,6 +139,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       refreshableToken: mockRefreshableToken,
       partition: Math.random(),
       offset: "10",
+      readModelService,
       fileManager,
     });
 
@@ -169,7 +174,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
   });
 
   it("The consumer should call the updateTemplateInstanceDescription route on EServiceTemplateVersionAttributesUpdated event", async () => {
-    const payload: EServiceTemplateEServiceDescriptionUpdatedV2 = {
+    const payload: EServiceTemplateDescriptionUpdatedV2 = {
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
     };
 
@@ -177,14 +182,16 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       sequence_num: 1,
       stream_id: eserviceTemplate.id,
       version: 2,
-      type: "EServiceTemplateEServiceDescriptionUpdated",
+      type: "EServiceTemplateDescriptionUpdated",
       event_version: 2,
       data: payload,
       log_date: new Date(),
       correlation_id: correlationId,
     };
 
-    mockInstancesToUpdate();
+    await addOneEService(instanceToUpdate1);
+    await addOneEService(instanceToUpdate2);
+    await addOneEService(instanceToUpdate3);
 
     const { handleMessageV2 } = await import(
       "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
@@ -195,12 +202,13 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       refreshableToken: mockRefreshableToken,
       partition: Math.random(),
       offset: "10",
+      readModelService,
       fileManager,
     });
 
     expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledTimes(3);
     expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
-      { description: eserviceTemplate.eserviceDescription },
+      { description: eserviceTemplate.description },
       {
         params: {
           eServiceId: instanceToUpdate1.id,
@@ -209,7 +217,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       }
     );
     expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
-      { description: eserviceTemplate.eserviceDescription },
+      { description: eserviceTemplate.description },
       {
         params: {
           eServiceId: instanceToUpdate2.id,
@@ -218,7 +226,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       }
     );
     expect(updateTemplateInstanceDescriptionFn).toHaveBeenCalledWith(
-      { description: eserviceTemplate.eserviceDescription },
+      { description: eserviceTemplate.description },
       {
         params: {
           eServiceId: instanceToUpdate3.id,
@@ -270,14 +278,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
+      templateRef: { id: eserviceTemplate.id },
     };
 
     const payload: EServiceTemplateVersionAttributesUpdatedV2 = {
@@ -297,11 +308,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    mockInstancesToUpdate([
-      eserviceInstance1,
-      eserviceInstance2,
-      eserviceInstance3,
-    ]);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
 
     const { handleMessageV2 } = await import(
       "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
@@ -312,6 +321,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       refreshableToken: mockRefreshableToken,
       partition: Math.random(),
       offset: "10",
+      readModelService,
       fileManager,
     });
 
@@ -380,14 +390,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
+      templateRef: { id: eserviceTemplate.id },
     };
 
     const payload: EServiceTemplateVersionQuotasUpdatedV2 = {
@@ -406,11 +419,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    mockInstancesToUpdate([
-      eserviceInstance1,
-      eserviceInstance2,
-      eserviceInstance3,
-    ]);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
 
     const { handleMessageV2 } = await import(
       "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
@@ -421,6 +432,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       refreshableToken: mockRefreshableToken,
       partition: Math.random(),
       offset: "10",
+      readModelService,
       fileManager,
     });
 
@@ -506,14 +518,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
+      templateRef: { id: eserviceTemplate.id },
     };
 
     const payload: EServiceTemplateVersionDocumentAddedV2 = {
@@ -533,11 +548,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    mockInstancesToUpdate([
-      eserviceInstance1,
-      eserviceInstance2,
-      eserviceInstance3,
-    ]);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
 
     const clonedPath = "clonedPath";
     copyDocumentFn.mockResolvedValue(clonedPath);
@@ -551,6 +564,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       refreshableToken: mockRefreshableToken,
       partition: Math.random(),
       offset: "10",
+      readModelService,
       fileManager,
     });
 
@@ -639,14 +653,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
+      templateRef: { id: eserviceTemplate.id },
     };
 
     const payload: EServiceTemplateVersionDocumentUpdatedV2 = {
@@ -666,11 +683,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    mockInstancesToUpdate([
-      eserviceInstance1,
-      eserviceInstance2,
-      eserviceInstance3,
-    ]);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
 
     const { handleMessageV2 } = await import(
       "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
@@ -681,6 +696,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       refreshableToken: mockRefreshableToken,
       partition: Math.random(),
       offset: "10",
+      readModelService,
       fileManager,
     });
 
@@ -763,14 +779,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
+      templateRef: { id: eserviceTemplate.id },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
+      templateRef: { id: eserviceTemplate.id },
     };
 
     const payload: EServiceTemplateVersionDocumentDeletedV2 = {
@@ -790,11 +809,9 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       correlation_id: correlationId,
     };
 
-    mockInstancesToUpdate([
-      eserviceInstance1,
-      eserviceInstance2,
-      eserviceInstance3,
-    ]);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
 
     const { handleMessageV2 } = await import(
       "../src/eserviceTemplateInstancesUpdaterConsumerServiceV2.js"
@@ -805,6 +822,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       refreshableToken: mockRefreshableToken,
       partition: Math.random(),
       offset: "10",
+      readModelService,
       fileManager,
     });
 
@@ -845,7 +863,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
 
   it.each([
     "EServiceTemplateAdded",
-    "EServiceTemplateAudienceDescriptionUpdated",
+    "EServiceIntendedTargetUpdated",
     "EServiceTemplateDeleted",
     "EServiceTemplateDraftUpdated",
     "EServiceTemplateDraftVersionDeleted",
@@ -881,6 +899,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       refreshableToken: mockRefreshableToken,
       partition: 0,
       offset: "10",
+      readModelService,
       fileManager,
     });
 
@@ -917,6 +936,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         refreshableToken: mockRefreshableToken,
         partition: 0,
         offset: "10",
+        readModelService,
         fileManager,
       })
     ).rejects.toThrow(

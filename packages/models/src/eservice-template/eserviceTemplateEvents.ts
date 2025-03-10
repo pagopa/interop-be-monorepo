@@ -4,8 +4,8 @@ import { match } from "ts-pattern";
 import {
   EServiceTemplateVersionActivatedV2,
   EServiceTemplateAddedV2,
-  EServiceTemplateAudienceDescriptionUpdatedV2,
-  EServiceTemplateEServiceDescriptionUpdatedV2,
+  EServiceIntendedTargetUpdatedV2,
+  EServiceTemplateDescriptionUpdatedV2,
   EServiceTemplateDeletedV2,
   EServiceTemplateDraftVersionDeletedV2,
   EServiceTemplateDraftVersionUpdatedV2,
@@ -112,13 +112,13 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceTemplateAudienceDescriptionUpdated"),
-    data: protobufDecoder(EServiceTemplateAudienceDescriptionUpdatedV2),
+    type: z.literal("EServiceIntendedTargetUpdated"),
+    data: protobufDecoder(EServiceIntendedTargetUpdatedV2),
   }),
   z.object({
-    type: z.literal("EServiceTemplateEServiceDescriptionUpdated"),
+    type: z.literal("EServiceTemplateDescriptionUpdated"),
     event_version: z.literal(2),
-    data: protobufDecoder(EServiceTemplateEServiceDescriptionUpdatedV2),
+    data: protobufDecoder(EServiceTemplateDescriptionUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -159,11 +159,11 @@ export function eserviceTemplateEventToBinaryDataV2(
     .with({ type: "EServiceTemplateAdded" }, ({ data }) =>
       EServiceTemplateAddedV2.toBinary(data)
     )
-    .with({ type: "EServiceTemplateAudienceDescriptionUpdated" }, ({ data }) =>
-      EServiceTemplateAudienceDescriptionUpdatedV2.toBinary(data)
+    .with({ type: "EServiceIntendedTargetUpdated" }, ({ data }) =>
+      EServiceIntendedTargetUpdatedV2.toBinary(data)
     )
-    .with({ type: "EServiceTemplateEServiceDescriptionUpdated" }, ({ data }) =>
-      EServiceTemplateEServiceDescriptionUpdatedV2.toBinary(data)
+    .with({ type: "EServiceTemplateDescriptionUpdated" }, ({ data }) =>
+      EServiceTemplateDescriptionUpdatedV2.toBinary(data)
     )
     .with({ type: "EServiceTemplateDeleted" }, ({ data }) =>
       EServiceTemplateDeletedV2.toBinary(data)

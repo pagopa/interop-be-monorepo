@@ -25,7 +25,7 @@ import {
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   interfaceAlreadyExists,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
 } from "../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -203,7 +203,7 @@ describe("upload Document", () => {
     ).rejects.toThrowError(interfaceAlreadyExists(version.id));
   });
 
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that version, case insensitive", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that version, case insensitive", async () => {
     const document: Document = {
       ...getMockDocument(),
       prettyName: "TEST",
@@ -235,7 +235,7 @@ describe("upload Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document.prettyName.toLowerCase(), version.id)
+      documentPrettyNameDuplicate(document.prettyName.toLowerCase(), version.id)
     );
   });
 

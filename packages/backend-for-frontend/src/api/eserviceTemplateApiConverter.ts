@@ -25,8 +25,8 @@ export function toBffEServiceTemplateDetails(
   return {
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
-    audienceDescription: eserviceTemplate.audienceDescription,
-    eserviceDescription: eserviceTemplate.eserviceDescription,
+    intendedTarget: eserviceTemplate.intendedTarget,
+    description: eserviceTemplate.description,
     technology: eserviceTemplate.technology,
     creator: toBffCompactOrganization(creator),
     mode: eserviceTemplate.mode,
@@ -57,7 +57,7 @@ export function toBffCatalogEServiceTemplate(
   return {
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
-    description: eserviceTemplate.audienceDescription,
+    description: eserviceTemplate.intendedTarget,
     creator: toBffCompactOrganization(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
@@ -82,6 +82,7 @@ export function toBffProducerEServiceTemplate(
   return {
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
+    mode: eserviceTemplate.mode,
     activeVersion,
     draftVersion,
   };

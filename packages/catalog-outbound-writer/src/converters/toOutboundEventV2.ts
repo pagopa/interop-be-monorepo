@@ -158,7 +158,6 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
-      // TODO
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },

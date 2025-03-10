@@ -22,7 +22,7 @@ import {
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   eServiceNotFound,
   eServiceDescriptorNotFound,
   templateInstanceNotAllowed,
@@ -250,7 +250,7 @@ describe("clone descriptor", () => {
       })
     ).rejects.toThrowError(FileManagerError);
   });
-  it("should throw eServiceDuplicate if an eservice with the same name already exists, case insensitive", async () => {
+  it("should throw eServiceNameDuplicate if an eservice with the same name already exists, case insensitive", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -286,7 +286,7 @@ describe("clone descriptor", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(
-      eServiceDuplicate(
+      eServiceNameDuplicate(
         `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
           cloneTimestamp
         )}`
@@ -385,6 +385,6 @@ describe("clone descriptor", () => {
         serviceName: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
 });

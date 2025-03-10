@@ -185,25 +185,22 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
-    updateEServiceTemplateAudienceDescription: async (
+    updateEServiceIntendedTarget: async (
       eServiceTemplateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateDescriptionUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
-        `Updating EService template ${eServiceTemplateId} audience description`
+        `Updating EService template ${eServiceTemplateId} intended target description`
       );
-      await eserviceTemplateClient.updateEServiceTemplateAudienceDescription(
-        seed,
-        {
-          headers,
-          params: {
-            eServiceTemplateId,
-          },
-        }
-      );
+      await eserviceTemplateClient.updateEServiceIntendedTarget(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+        },
+      });
     },
-    updateEServiceTemplateEServiceDescription: async (
+    updateEServiceTemplateDescription: async (
       eServiceTemplateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateDescriptionUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -211,15 +208,12 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating EService template ${eServiceTemplateId} e-service description`
       );
-      await eserviceTemplateClient.updateEServiceTemplateEServiceDescription(
-        seed,
-        {
-          headers,
-          params: {
-            eServiceTemplateId,
-          },
-        }
-      );
+      await eserviceTemplateClient.updateEServiceTemplateDescription(seed, {
+        headers,
+        params: {
+          eServiceTemplateId,
+        },
+      });
     },
     updateEServiceTemplateVersionQuotas: async (
       eServiceTemplateId: EServiceTemplateId,
@@ -619,7 +613,7 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating document ${documentId} of version ${eServiceTemplateVersionId} of EServiceTemplate ${eServiceTemplateId}`
       );
-      const { id, name, contentType, prettyName } =
+      const { id, name, contentType, prettyName, checksum } =
         await eserviceTemplateClient.updateEServiceTemplateDocumentById(
           updateEServiceTemplateVersionDocumentSeed,
           {
@@ -632,7 +626,7 @@ export function eserviceTemplateServiceBuilder(
           }
         );
 
-      return { id, name, contentType, prettyName };
+      return { id, name, contentType, prettyName, checksum };
     },
     addEserviceInterfaceByTemplate: async (
       eServiceId: EServiceId,

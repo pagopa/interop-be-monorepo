@@ -24,7 +24,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   eServiceDocumentNotFound,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
   templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
@@ -352,7 +352,7 @@ describe("update Document", () => {
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document1: Document = {
       ...getMockDocument(),
       prettyName: "TEST A",
@@ -386,7 +386,10 @@ describe("update Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document1.prettyName.toLowerCase(), descriptor.id)
+      documentPrettyNameDuplicate(
+        document1.prettyName.toLowerCase(),
+        descriptor.id
+      )
     );
   });
   it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
@@ -416,6 +419,6 @@ describe("update Document", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(templateInstanceNotAllowed(templateId));
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });
