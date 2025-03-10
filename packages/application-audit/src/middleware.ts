@@ -174,19 +174,14 @@ export async function applicationAuditEndMiddleware(
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
-  console.log("log 1");
   return async (req, res, next): Promise<void> => {
     if (
       !config.endpointsWithoutAudit ||
       (config.endpointsWithoutAudit &&
         !config.endpointsWithoutAudit.includes(req.path)) // TODO path contains the parameter, so how to match the string?
     ) {
-      console.log("log 2");
-
       const context = (req as Request & { ctx?: AppContext }).ctx;
       if (!context) {
-        console.log("log 3");
-
         throw genericInternalError("Failed to retrieve context");
       }
 
@@ -205,8 +200,6 @@ export async function applicationAuditEndMiddleware(
 
       const requestTimestamp = context.requestTimestamp;
       if (!requestTimestamp) {
-        console.log("log 4");
-
         throw genericInternalError(
           "Failed to retrieve requestTimestamp from context"
         );
