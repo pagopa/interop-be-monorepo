@@ -1454,6 +1454,25 @@ export function catalogServiceBuilder(
         isClientAccessDelegable: importedEservice.isClientAccessDelegable,
       };
 
+      const eservice: catalogApi.EService = importedEservice.templateRef
+        ? await catalogProcessClient.createEServiceInstanceFromTemplate(
+            {
+              instanceId: importedEservice.templateRef.instanceId,
+              isSignalHubEnabled: importedEservice.isSignalHubEnabled,
+              isConsumerDelegable: importedEservice.isConsumerDelegable,
+              isClientAccessDelegable: importedEservice.isClientAccessDelegable,
+            },
+            {
+              headers,
+              params: {
+                templateId: importedEservice.templateRef.templateId,
+              },
+            }
+          )
+        : await catalogProcessClient.createEService(eserviceSeed, {
+            headers,
+          });
+
       const pollEServiceById = createPollingByCondition(() =>
         catalogProcessClient.getEServiceById({
           params: {
@@ -1463,9 +1482,6 @@ export function catalogServiceBuilder(
         })
       );
 
-      const eservice = await catalogProcessClient.createEService(eserviceSeed, {
-        headers,
-      });
       await pollEServiceById((result) => result.descriptors.length > 0);
 
       for (const riskAnalysis of importedEservice.riskAnalysis) {
