@@ -10,8 +10,6 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   TenantSQL,
-  tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
   TenantMailSQL,
   TenantFeatureSQL,
   TenantCertifiedAttributeSQL,
@@ -19,10 +17,6 @@ import {
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
-  tenantCertifiedAttributeInReadmodelTenant,
-  tenantDeclaredAttributeInReadmodelTenant,
-  tenantVerifiedAttributeInReadmodelTenant,
-  tenantFeatureInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
   AttributeId,
@@ -33,12 +27,13 @@ import {
   generateId,
   stringToDate,
   Tenant,
+  TenantAttribute,
   tenantAttributeType,
+  TenantFeature,
   TenantFeatureCertifier,
   TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
   tenantFeatureType,
-  TenantId,
   tenantKind,
   TenantMail,
   TenantRevoker,
@@ -47,9 +42,18 @@ import {
   VerifiedTenantAttribute,
   WithMetadata,
 } from "pagopa-interop-models";
-import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+
 import { tenantReadModelServiceBuilderSQL } from "../src/tenantReadModelServiceSQL.js";
+import {
+  retrieveTenantSQL,
+  retrieveTenantMailsSQL,
+  retrieveTenantCertifiedAttributesSQL,
+  retrieveTenantDeclaredAttributesSQL,
+  retrieveTenantVerifiedAttributesSQL,
+  retrieveTenantVerifiedAttributeVerifiersSQL,
+  retrieveTenantVerifiedAttributeRevokersSQL,
+  retrieveTenanFeaturesSQL,
+} from "./tenantTestReadModelService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -411,7 +415,7 @@ export const retrieveTenantSQLObjects = async (
   };
 };
 
-export const generateCompleteExpectedTenantSQLObjects = ({
+export const generateExpectedTenantSQLObjects = ({
   tenant,
   tenantMails,
   tenantCertifiedAttribute,
@@ -576,108 +580,35 @@ export const generateCompleteExpectedTenantSQLObjects = ({
   };
 };
 
-const retrieveTenantSQL = async (
-  tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
-): Promise<TenantSQL | undefined> => {
-  const result = await db
-    .select()
-    .from(tenantInReadmodelTenant)
-    .where(eq(tenantInReadmodelTenant.id, tenantId));
-  return result[0];
-};
-
-export const retrieveTenantMailsSQL = async (
-  tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
-): Promise<TenantMailSQL[] | undefined> => {
-  const result = await db
-    .select()
-    .from(tenantMailInReadmodelTenant)
-    .where(eq(tenantMailInReadmodelTenant.tenantId, tenantId));
-  return result.length > 0 ? result : undefined;
-};
-
-export const retrieveTenantCertifiedAttributesSQL = async (
-  tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
-): Promise<TenantCertifiedAttributeSQL[] | undefined> => {
-  const result = await db
-    .select()
-    .from(tenantCertifiedAttributeInReadmodelTenant)
-    .where(eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId));
-  return result.length > 0 ? result : undefined;
-};
-
-export const retrieveTenantDeclaredAttributesSQL = async (
-  tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
-): Promise<TenantDeclaredAttributeSQL[] | undefined> => {
-  const result = await db
-    .select()
-    .from(tenantDeclaredAttributeInReadmodelTenant)
-    .where(eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId));
-  return result.length > 0 ? result : undefined;
-};
-
-export const retrieveTenantVerifiedAttributesSQL = async (
-  tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
-): Promise<TenantVerifiedAttributeSQL[] | undefined> => {
-  const result = await db
-    .select()
-    .from(tenantVerifiedAttributeInReadmodelTenant)
-    .where(eq(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantId));
-  return result.length > 0 ? result : undefined;
-};
-
-export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
-  tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
-): Promise<TenantVerifiedAttributeVerifierSQL[] | undefined> => {
-  const result = await db
-    .select()
-    .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
-    .where(
-      eq(tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId, tenantId)
-    );
-  return result.length > 0 ? result : undefined;
-};
-
-export const retrieveTenantVerifiedAttributeRevokersSQL = async (
-  tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
-): Promise<TenantVerifiedAttributeRevokerSQL[] | undefined> => {
-  const result = await db
-    .select()
-    .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
-    .where(
-      eq(tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId, tenantId)
-    );
-  return result.length > 0 ? result : undefined;
-};
-
-export const retrieveTenanFeaturesSQL = async (
-  tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
-): Promise<TenantFeatureSQL[] | undefined> => {
-  const result = await db
-    .select()
-    .from(tenantFeatureInReadmodelTenant)
-    .where(eq(tenantFeatureInReadmodelTenant.tenantId, tenantId));
-  return result.length > 0 ? result : undefined;
-};
-
 export function stringToISOString(input: string): string;
 export function stringToISOString(input: string | null): string | null;
 export function stringToISOString(input: string | null): string | null {
   return input ? stringToDate(input).toISOString() : null;
 }
 
-export const sortFeatures = (
+export const sortATenant = (
+  tenant: WithMetadata<Tenant>
+): WithMetadata<Tenant> => ({
+  data: {
+    ...tenant.data,
+    attributes: tenant.data.attributes.sort(sortAttributes),
+    features: tenant.data.features.sort(sortFeatures),
+  },
+  metadata: tenant.metadata,
+});
+
+export const sortFeaturesSQL = (
   a: TenantFeatureSQL,
   b: TenantFeatureSQL
 ): number => sortByString(a.kind, b.kind);
+
+export const sortFeatures = (a: TenantFeature, b: TenantFeature): number =>
+  sortByString(a.type, b.type);
+
+export const sortAttributes = (
+  a: TenantAttribute,
+  b: TenantAttribute
+): number => sortByString(a.type, b.type);
 
 export const sortTenants = (
   a: WithMetadata<Tenant>,

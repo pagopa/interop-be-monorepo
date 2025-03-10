@@ -29,13 +29,15 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
+
 import {
-  generateCompleteExpectedTenantSQLObjects,
+  generateExpectedTenantSQLObjects,
   initMockTenant,
   retrieveTenantSQLObjects,
-  sortFeatures,
+  sortFeaturesSQL,
   sortTenants,
   tenantReadModelService,
+  sortATenant,
 } from "./utils.js";
 
 describe("Tenant Queries", () => {
@@ -81,7 +83,7 @@ describe("Tenant Queries", () => {
         expectedVerifiedAttributeVerifiersSQL,
         expectedVerifiedAttributeRevokersSQL,
         expectedFeaturesSQL,
-      } = generateCompleteExpectedTenantSQLObjects({
+      } = generateExpectedTenantSQLObjects({
         tenant,
         tenantMails,
         tenantCertifiedAttribute,
@@ -111,8 +113,8 @@ describe("Tenant Queries", () => {
       expect(retrievedVerifiedAttributeRevokersSQL).toMatchObject(
         expectedVerifiedAttributeRevokersSQL
       );
-      expect(retrievedFeaturesSQL?.sort(sortFeatures)).toMatchObject(
-        expect.arrayContaining(expectedFeaturesSQL.sort(sortFeatures))
+      expect(retrievedFeaturesSQL?.sort(sortFeaturesSQL)).toMatchObject(
+        expectedFeaturesSQL.sort(sortFeaturesSQL)
       );
     });
     it("should add an incomplete (*only* mandatory fields) tenant", async () => {
@@ -156,7 +158,7 @@ describe("Tenant Queries", () => {
         expectedVerifiedAttributeVerifiersSQL,
         expectedVerifiedAttributeRevokersSQL,
         expectedFeaturesSQL,
-      } = generateCompleteExpectedTenantSQLObjects({
+      } = generateExpectedTenantSQLObjects({
         tenant,
         tenantMails,
         tenantCertifiedAttribute,
@@ -186,8 +188,8 @@ describe("Tenant Queries", () => {
       expect(retrievedVerifiedAttributeRevokersSQL).toMatchObject(
         expectedVerifiedAttributeRevokersSQL
       );
-      expect(retrievedFeaturesSQL?.sort(sortFeatures)).toMatchObject(
-        expectedFeaturesSQL.sort(sortFeatures)
+      expect(retrievedFeaturesSQL?.sort(sortFeaturesSQL)).toMatchObject(
+        expectedFeaturesSQL.sort(sortFeaturesSQL)
       );
     });
     it("should update a complete (*all* fields) tenant", async () => {
@@ -233,7 +235,7 @@ describe("Tenant Queries", () => {
         expectedVerifiedAttributeVerifiersSQL,
         expectedVerifiedAttributeRevokersSQL,
         expectedFeaturesSQL,
-      } = generateCompleteExpectedTenantSQLObjects({
+      } = generateExpectedTenantSQLObjects({
         tenant,
         tenantMails,
         tenantCertifiedAttribute,
@@ -263,8 +265,8 @@ describe("Tenant Queries", () => {
       expect(retrievedVerifiedAttributeRevokersSQL).toMatchObject(
         expectedVerifiedAttributeRevokersSQL
       );
-      expect(retrievedFeaturesSQL?.sort(sortFeatures)).toMatchObject(
-        expectedFeaturesSQL.sort(sortFeatures)
+      expect(retrievedFeaturesSQL?.sort(sortFeaturesSQL)).toMatchObject(
+        expectedFeaturesSQL.sort(sortFeaturesSQL)
       );
     });
   });
@@ -281,16 +283,8 @@ describe("Tenant Queries", () => {
       const retrievedTenant = await tenantReadModelService.getTenantById(
         tenant.data.id
       );
-      // checking features: doing a check on array features separately otherwise toMatchObject fails on array equality
-      expect(retrievedTenant?.data.features).toEqual(
-        expect.arrayContaining(tenant?.data.features)
-      );
-      // overwriting features in expectedTenant so toMatchObject dont fails to check array equality
-      const expectedTenant = {
-        ...tenant,
-        data: { features: retrievedTenant?.data.features },
-      };
-      expect(retrievedTenant).toMatchObject(expectedTenant);
+
+      expect(sortATenant(retrievedTenant!)).toMatchObject(sortATenant(tenant));
     });
     it("should *not* get a tenant from a tenantId", async () => {
       const tenantId = generateId<TenantId>();
@@ -432,12 +426,20 @@ describe("Tenant Queries", () => {
       await tenantReadModelService.upsertTenant(tenant2);
 
       const retrievedTenants = await tenantReadModelService.getAllTenants();
+      const retrievedOrderedTenants = retrievedTenants
+        .map(sortATenant)
+        .sort(sortTenants);
 
-      expect(retrievedTenants.sort(sortTenants)).toMatchObject(
-        [tenant1, tenant2, tenantForVerifying, tenantForRevoking].sort(
-          sortTenants
-        )
-      );
+      const expectedOrderedTenants = [
+        tenant1,
+        tenant2,
+        tenantForVerifying,
+        tenantForRevoking,
+      ]
+        .map(sortATenant)
+        .sort(sortTenants);
+
+      expect(retrievedOrderedTenants).toMatchObject(expectedOrderedTenants);
     });
     it("should *not* get any tenants", async () => {
       const retrievedTenants = await tenantReadModelService.getAllTenants();
