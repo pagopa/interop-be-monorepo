@@ -38,8 +38,6 @@ import {
   riskAnalysisValidationFailed,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
-  tenantKindNotFound,
-  tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -281,71 +279,6 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         }
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));
-  });
-  it("should throw tenantNotFound if the creator tenant doesn't exist", async () => {
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-      interface: getMockDocument(),
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      mode: eserviceMode.receive,
-      versions: [eserviceTemplateVersion],
-      creatorId: generateId(),
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    expect(
-      eserviceTemplateService.createRiskAnalysis(
-        eserviceTemplate.id,
-        buildRiskAnalysisSeed(
-          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
-        ),
-        {
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
-  });
-  it("should throw tenantKindNotFound if the creator tenant kind doesn't exist", async () => {
-    const creator: Tenant = {
-      ...getMockTenant(),
-      kind: undefined,
-    };
-
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-      interface: getMockDocument(),
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      mode: eserviceMode.receive,
-      versions: [eserviceTemplateVersion],
-      creatorId: creator.id,
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    await addOneTenant(creator);
-
-    expect(
-      eserviceTemplateService.createRiskAnalysis(
-        eserviceTemplate.id,
-        buildRiskAnalysisSeed(
-          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
-        ),
-        {
-          authData: getMockAuthData(creator.id),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(tenantKindNotFound(creator.id));
   });
   it("should throw riskAnalysisDuplicated if risk analysis name is duplicated, case insensitive", async () => {
     const creatorTenantKind: TenantKind = randomArrayItem(

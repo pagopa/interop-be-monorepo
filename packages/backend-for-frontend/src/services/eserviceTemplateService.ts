@@ -404,7 +404,7 @@ export function eserviceTemplateServiceBuilder(
       };
     },
     createEServiceTemplateEServiceRiskAnalysis: async (
-      eServiceTemplateId: EServiceTemplateId,
+      templateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {

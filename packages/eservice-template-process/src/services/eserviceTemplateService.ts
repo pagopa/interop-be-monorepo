@@ -28,8 +28,6 @@ import {
   unsafeBrandId,
   WithMetadata,
   RiskAnalysisId,
-  Tenant,
-  TenantId,
   TenantKind,
   eserviceMode,
   generateId,
@@ -56,7 +54,6 @@ import {
   inconsistentAttributesSeedGroupsCount,
   unchangedAttributes,
   riskAnalysisValidationFailed,
-  tenantNotFound,
   originNotCompliant,
   eserviceTemaplateRiskAnalysisNameDuplicate,
   missingTemplateVersionInterface,
@@ -100,7 +97,6 @@ import {
 } from "./readModelService.js";
 import {
   assertIsReceiveTemplate,
-  assertTenantKindExists,
   assertIsDraftEServiceTemplate,
   assertRequesterEServiceTemplateCreator,
   assertNoDraftEServiceTemplateVersions,
@@ -224,17 +220,6 @@ const replaceEServiceTemplateVersion = (
     ...eserviceTemplate,
     versions: updatedEServiceTemplateVersions,
   };
-};
-
-const retrieveTenant = async (
-  tenantId: TenantId,
-  readModelService: ReadModelService
-): Promise<Tenant> => {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-  return tenant;
 };
 
 export function validateRiskAnalysisSchemaOrThrow(
@@ -496,12 +481,6 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
-      const tenant = await retrieveTenant(
-        eserviceTemplate.data.creatorId,
-        readModelService
-      );
-      assertTenantKindExists(tenant);
-
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         if (eserviceTemplate.data.riskAnalysis.length > 0) {
           const riskAnalysisError = eserviceTemplate.data.riskAnalysis.reduce<
@@ -510,7 +489,7 @@ export function eserviceTemplateServiceBuilder(
             const result = validateRiskAnalysis(
               riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
               true,
-              tenant.kind
+              ra.tenantKind
             );
 
             if (result.type === "invalid") {

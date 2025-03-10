@@ -6,7 +6,6 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   makeApiProblemBuilder,
-  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -17,25 +16,23 @@ export const errorCodes = {
   eserviceTemplateWithoutPublishedVersion: "0005",
   riskAnalysisNameDuplicate: "0006",
   riskAnalysisValidationFailed: "0007",
-  tenantNotFound: "0008",
-  tenantKindNotFound: "0009",
-  eserviceTemplateNotInDraftState: "0010",
-  eserviceTemplateNotInReceiveMode: "0011",
-  inconsistentDailyCalls: "0012",
-  inconsistentAttributesSeedGroupsCount: "0013",
-  versionAttributeGroupSupersetMissingInAttributesSeed: "0014",
-  unchangedAttributes: "0015",
-  attributeNotFound: "0016",
-  originNotCompliant: "0017",
-  missingTemplateVersionInterface: "0018",
-  missingRiskAnalysis: "0019",
-  instanceNameConflict: "0020",
-  interfaceAlreadyExists: "0021",
-  documentPrettyNameDuplicate: "0022",
-  checksumDuplicate: "0023",
-  draftEServiceTemplateVersionAlreadyExists: "0024",
-  eServiceDocumentNotFound: "0025",
-  eserviceTemplateDocumentNotFound: "0026",
+  eserviceTemplateNotInDraftState: "0008",
+  eserviceTemplateNotInReceiveMode: "0009",
+  inconsistentDailyCalls: "0010",
+  inconsistentAttributesSeedGroupsCount: "0011",
+  versionAttributeGroupSupersetMissingInAttributesSeed: "0012",
+  unchangedAttributes: "0013",
+  attributeNotFound: "0014",
+  originNotCompliant: "0015",
+  missingTemplateVersionInterface: "0016",
+  missingRiskAnalysis: "0017",
+  instanceNameConflict: "0018",
+  interfaceAlreadyExists: "0019",
+  documentPrettyNameDuplicate: "0020",
+  checksumDuplicate: "0021",
+  draftEServiceTemplateVersionAlreadyExists: "0022",
+  eServiceDocumentNotFound: "0023",
+  eserviceTemplateDocumentNotFound: "0024",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -172,22 +169,6 @@ export function riskAnalysisValidationFailed(
       .join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
-  });
-}
-
-export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} not found`,
-    code: "tenantNotFound",
-    title: "Tenant not found",
-  });
-}
-
-export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant kind for tenant ${tenantId} not found`,
-    code: "tenantKindNotFound",
-    title: "Tenant kind not found",
   });
 }
 

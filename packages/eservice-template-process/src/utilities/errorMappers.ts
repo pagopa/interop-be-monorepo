@@ -63,11 +63,6 @@ export const publishEServiceTemplateVersionErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with(
-      "tenantNotFound",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceTemplateNameErrorMapper = (

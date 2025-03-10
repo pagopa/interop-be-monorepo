@@ -35,8 +35,6 @@ import {
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
-  tenantKindNotFound,
-  tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
   eserviceTemplateService,
@@ -278,68 +276,6 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplateVersion.id
       )
     );
-  });
-
-  it("should throw tenantNotFound if the eservice template creator doesn't exist", async () => {
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      interface: getMockDocument(),
-      state: descriptorState.draft,
-    };
-
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      versions: [eserviceTemplateVersion],
-    };
-
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    expect(
-      eserviceTemplateService.publishEServiceTemplateVersion(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id,
-        {
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
-  });
-
-  it("should throw tenantKindNotFound if the eservice template creator doesn't have a kind", async () => {
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      interface: getMockDocument(),
-      state: descriptorState.draft,
-    };
-
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      versions: [eserviceTemplateVersion],
-    };
-
-    const tenant = {
-      ...getMockTenant(eserviceTemplate.creatorId),
-      kind: undefined,
-    };
-
-    await addOneTenant(tenant);
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    expect(
-      eserviceTemplateService.publishEServiceTemplateVersion(
-        eserviceTemplate.id,
-        eserviceTemplateVersion.id,
-        {
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
-      )
-    ).rejects.toThrowError(tenantKindNotFound(eserviceTemplate.creatorId));
   });
 
   it("should throw riskAnalysisValidationFailed if the eservice template mode is receive and doesn't have any risk analysis", async () => {
