@@ -2941,7 +2941,7 @@ export function catalogServiceBuilder(
       seed: catalogApi.InstanceEServiceSeed,
       ctx: WithLogger<AppContext>
     ): Promise<EService> {
-      ctx.logger.info(`Retrieving EService template ${templateId}`);
+      ctx.logger.info(`Creating EService from template ${templateId}`);
 
       const template = await readModelService.getEServiceTemplateById(
         templateId

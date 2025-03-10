@@ -6,8 +6,8 @@ meta {
 }
 
 post {
-  url: {{host-bff}}/template/eservices/:eServiceId/descriptors/:descriptorId/interface:
-  body: multipartForm
+  url: {{host-bff}}/templates/eservices/:eServiceId/descriptors/:descriptorId/interface:
+  body: json
   auth: none
 }
 
@@ -24,7 +24,7 @@ headers {
 body:json {
   {
     "contactName": "Mark",
-    "email": "testemplayee@exampletest.eu",
+    "contactEmail": "testemplayee@exampletest.eu",
     "contactUrl": "https://test.example.com",
     "termsAndConditionsUrl": "https://test.example.com/contacts",
     "serverUrls": ["https://test.example2.com","https://test.example3.com"]
