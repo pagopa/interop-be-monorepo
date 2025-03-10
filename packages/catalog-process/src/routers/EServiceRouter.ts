@@ -1,24 +1,25 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  ExpressContext,
-  userRoles,
-  ZodiosContext,
   authorizationMiddleware,
-  ReadModelRepository,
+  ExpressContext,
+  fromAppContext,
   initDB,
   initFileManager,
+  ReadModelRepository,
+  userRoles,
+  ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import {
-  unsafeBrandId,
-  EServiceId,
-  TenantId,
   AttributeId,
+  EServiceId,
   EServiceTemplateId,
+  TenantId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { config } from "../config/config.js";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -29,46 +30,46 @@ import {
   documentToApiDocument,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
-import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   activateDescriptorErrorMapper,
+  addEServiceTemplateInstanceInterfaceErrorMapper,
+  approveDelegatedEServiceDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
   cloneEServiceByDescriptorErrorMapper,
   createDescriptorErrorMapper,
   createEServiceErrorMapper,
+  createEServiceInstanceFromTemplateErrorMapper,
   createRiskAnalysisErrorMapper,
+  createTemplateInstanceDescriptorDocumentErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
   deleteRiskAnalysisErrorMapper,
+  deleteTemplateInstanceDescriptorDocumentErrorMapper,
   documentCreateErrorMapper,
   documentDeleteErrorMapper,
   documentGetErrorMapper,
   documentUpdateErrorMapper,
   getEServiceErrorMapper,
   publishDescriptorErrorMapper,
+  rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
+  updateDescriptorAttributesErrorMapper,
   updateDescriptorErrorMapper,
   updateDraftDescriptorErrorMapper,
   updateEServiceDescriptionErrorMapper,
   updateEServiceErrorMapper,
-  updateRiskAnalysisErrorMapper,
-  updateDescriptorAttributesErrorMapper,
-  updateEServiceNameErrorMapper,
-  approveDelegatedEServiceDescriptorErrorMapper,
-  rejectDelegatedEServiceDescriptorErrorMapper,
   updateEServiceFlagsErrorMapper,
-  updateTemplateInstanceNameErrorMapper,
+  updateEServiceNameErrorMapper,
+  updateRiskAnalysisErrorMapper,
   updateTemplateInstanceDescriptionErrorMapper,
-  updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
   updateTemplateInstanceDescriptorAttributesErrorMapper,
-  createTemplateInstanceDescriptorDocumentErrorMapper,
   updateTemplateInstanceDescriptorDocumentErrorMapper,
-  deleteTemplateInstanceDescriptorDocumentErrorMapper,
+  updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
+  updateTemplateInstanceNameErrorMapper,
   upgradeEServiceInstanceErrorMapper,
-  createEServiceInstanceFromTemplateErrorMapper,
   updateEServiceTemplateInstanceErrorMapper,
   updateDraftDescriptorTemplateInstanceErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -1041,7 +1042,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceName(
+          await catalogService.internalUpdateTemplateInstanceName(
             unsafeBrandId(req.params.eServiceId),
             req.body.name,
             ctx
@@ -1065,7 +1066,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceDescription(
+          await catalogService.internalUpdateTemplateInstanceDescription(
             unsafeBrandId(req.params.eServiceId),
             req.body.description,
             ctx
@@ -1089,7 +1090,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceDescriptorVoucherLifespan(
+          await catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body.voucherLifespan,
@@ -1114,7 +1115,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceDescriptorAttributes(
+          await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1139,7 +1140,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.createTemplateInstanceDescriptorDocument(
+          await catalogService.internalCreateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1164,7 +1165,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.deleteTemplateInstanceDescriptorDocument(
+          await catalogService.internalDeleteTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1189,7 +1190,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          await catalogService.updateTemplateInstanceDescriptorDocument(
+          await catalogService.innerUpdateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
@@ -1201,6 +1202,31 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorDocumentErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.addEServiceTemplateInstanceInterface(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addEServiceTemplateInstanceInterfaceErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

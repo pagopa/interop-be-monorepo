@@ -13,9 +13,7 @@ export const errorCodes = {
   eserviceIsNotDraft: "0004",
   attributeNotExists: "0005",
   invalidEserviceRequester: "0006",
-  missingClaim: "0007",
   tenantLoginNotAllowed: "0008",
-  tokenVerificationFailed: "0009",
   eServiceNotFound: "0010",
   tenantNotFound: "0011",
   agreementNotFound: "0012",
@@ -60,6 +58,8 @@ export const errorCodes = {
   tooManyDescriptorForInterfaceWithTemplate: "0051",
   eserviceDescriptorDraftNotFound: "0052",
   templateDataNotFound: "0053",
+  missingUserRolesInIdentityToken: "0054",
+  noVersionInEServiceTemplate: "0055",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -212,14 +212,6 @@ export function attributeNotExists(id: AttributeId): ApiError<ErrorCodes> {
   });
 }
 
-export function missingClaim(claimName: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Claim ${claimName} has not been passed`,
-    code: "missingClaim",
-    title: "Claim not found",
-  });
-}
-
 export function tenantLoginNotAllowed(
   selfcareId: string
 ): ApiError<ErrorCodes> {
@@ -227,14 +219,6 @@ export function tenantLoginNotAllowed(
     detail: `Tenant origin is not allowed and SelfcareID ${selfcareId} does not belong to allow list`,
     code: "tenantLoginNotAllowed",
     title: "Tenant login not allowed",
-  });
-}
-
-export function tokenVerificationFailed(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Token verification failed",
-    code: "tokenVerificationFailed",
-    title: "Token verification failed",
   });
 }
 
@@ -305,34 +289,6 @@ export function invalidInterfaceContentTypeDetected(
     detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
     code: "invalidInterfaceContentTypeDetected",
     title: "Invalid content type detected",
-  });
-}
-
-export function invalidInterfaceFileDetected(
-  eServiceId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The interface file for EService ${eServiceId} is invalid`,
-    code: "invalidInterfaceFileDetected",
-    title: "Invalid interface file detected",
-  });
-}
-
-export function openapiVersionNotRecognized(
-  version: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `OpenAPI version not recognized - ${version}`,
-    code: "openapiVersionNotRecognized",
-    title: "OpenAPI version not recognized",
-  });
-}
-
-export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Error extracting info from interface file`,
-    code: "interfaceExtractingInfoError",
-    title: "Error extracting info from interface file",
   });
 }
 
@@ -479,16 +435,6 @@ export function eserviceTemplateNotFound(
   });
 }
 
-export function eserviceTemplateDataNotFound(
-  eServiceId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Expected template reference in Eservice ${eServiceId} not found`,
-    code: "templateDataNotFound",
-    title: "EService template not found",
-  });
-}
-
 export function eserviceIsNotDraft(eserviceId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is not in draft state`,
@@ -507,31 +453,10 @@ export function eserviceTemplateNotPublished(
   });
 }
 
-export function eserviceTemplateInterfaceNotFound(
-  eserviceTemplateId: string,
-  eserviceTemplateVersionId: string
-): ApiError<ErrorCodes> {
+export function missingUserRolesInIdentityToken(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
-    code: "eserviceTemplateInterfaceNotFound",
-    title: "EService template interface document not found",
-  });
-}
-
-export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService template interface data not valid`,
-    code: "eserviceTemplateInterfaceDataNotValid",
-    title: "EService template interface data not valid",
-  });
-}
-
-export function eserviceDescriptorDraftNotFound(
-  eserviceId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Draft descriptor not found in Eservice ${eserviceId}`,
-    code: "eserviceDescriptorDraftNotFound",
-    title: "EService descriptor draft not found",
+    detail: "Unable to extract userRoles from claims",
+    code: "missingUserRolesInIdentityToken",
+    title: "Unable to extract userRoles from claims",
   });
 }

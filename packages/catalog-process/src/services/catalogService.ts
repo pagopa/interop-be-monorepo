@@ -1,4 +1,5 @@
 /* eslint-disable max-params */
+import { randomUUID } from "crypto";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
@@ -9,10 +10,12 @@ import {
   FileManager,
   formatDateddMMyyyyHHmmss,
   hasPermission,
+  interpolateOpenApiSpec,
   Logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
+  verifyAndCreateDocument,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -34,9 +37,11 @@ import {
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
+  eserviceMode,
   EServiceTemplate,
   EServiceTemplateId,
-  eserviceMode,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionId,
   EServiceTemplateVersionRef,
   eserviceTemplateVersionState,
   generateId,
@@ -63,14 +68,17 @@ import {
   attributeNotFound,
   audienceCannotBeEmpty,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
+  documentPrettyNameDuplicate,
   eServiceAlreadyUpgraded,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
+  eserviceInterfaceDataNotValid,
   eServiceNameDuplicate,
   eServiceNotAnInstance,
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
+  eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   eserviceWithoutValidDescriptors,
@@ -80,7 +88,6 @@ import {
   invalidEServiceFlags,
   notValidDescriptorState,
   originNotCompliant,
-  documentPrettyNameDuplicate,
   riskAnalysisDuplicated,
   tenantNotFound,
   unchangedAttributes,
@@ -135,6 +142,7 @@ import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDocumentDeletableDescriptorState,
+  assertEServiceNotTemplateInstance,
   assertHasNoDraftOrWaitingForApprovalDescriptor,
   assertInterfaceDeletableDescriptorState,
   assertIsDraftEservice,
@@ -144,7 +152,6 @@ import {
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
-  assertEServiceNotTemplateInstance,
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
@@ -165,20 +172,24 @@ const retrieveEService = async (
   return eservice;
 };
 
-const retrieveDescriptor = (
+const retrieveDescriptorFromEService = (
   descriptorId: DescriptorId,
-  eservice: WithMetadata<EService>
+  eservice: EService
 ): Descriptor => {
-  const descriptor = eservice.data.descriptors.find(
+  const descriptor = eservice.descriptors.find(
     (d: Descriptor) => d.id === descriptorId
   );
 
   if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eservice.data.id, descriptorId);
+    throw eServiceDescriptorNotFound(eservice.id, descriptorId);
   }
 
   return descriptor;
 };
+const retrieveDescriptor = (
+  descriptorId: DescriptorId,
+  eservice: WithMetadata<EService>
+): Descriptor => retrieveDescriptorFromEService(descriptorId, eservice.data);
 
 const retrieveDocument = (
   eserviceId: EServiceId,
@@ -258,6 +269,68 @@ const retrieveEServiceTemplate = async (
     throw eServiceTemplateNotFound(eserviceTemplateId);
   }
   return eserviceTemplate;
+};
+
+const retrieveEServicePublishedTemplateVersion = (
+  eserviceTemplate: EServiceTemplate,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): EServiceTemplateVersion => {
+  const eserviceTemplateVersion = eserviceTemplate.versions.find(
+    (v) => v.id === eserviceTemplateVersionId
+  );
+
+  if (
+    !eserviceTemplateVersion ||
+    eserviceTemplateVersion.state !== eserviceTemplateVersionState.published
+  ) {
+    throw eServiceTemplateWithoutPublishedVersion(eserviceTemplate.id);
+  }
+
+  return eserviceTemplateVersion;
+};
+
+const getTemplateDataFromEservice = (
+  eservice: EService,
+  descriptor: Descriptor
+): {
+  eserviceTemplateId: EServiceTemplateId;
+  eserviceTemplateVersionId: EServiceTemplateVersionId;
+} => {
+  const eserviceTemplateId = eservice.templateRef?.id;
+  const eserviceTemplateVersionId = descriptor.templateVersionRef?.id;
+
+  if (!eserviceTemplateId || !eserviceTemplateVersionId) {
+    throw eServiceNotAnInstance(eservice.id);
+  }
+
+  return {
+    eserviceTemplateId: unsafeBrandId(eserviceTemplateId),
+    eserviceTemplateVersionId: unsafeBrandId(eserviceTemplateVersionId),
+  };
+};
+
+const evaluateEServiceTemplateVersionRef = (
+  templateVersionId: EServiceTemplateVersionId | undefined,
+  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
+): EServiceTemplateVersionRef | undefined => {
+  if (!templateVersionId) {
+    return undefined;
+  }
+
+  const templateRef = { id: templateVersionId };
+  const isInterface = documentSeed.kind === "INTERFACE";
+
+  const updateTemplateRef: EServiceTemplateVersionRef | undefined =
+    isInterface && documentSeed.interfaceTemplateMetadata
+      ? {
+          ...templateRef,
+          interfaceMetadata: {
+            ...documentSeed.interfaceTemplateMetadata,
+          },
+        }
+      : templateRef;
+
+  return updateTemplateRef;
 };
 
 const updateDescriptorState = (
@@ -541,10 +614,11 @@ async function innerCreateEService(
 }
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
-async function innerUploadDocument(
+async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
+  templateVersionId: EServiceTemplateVersionId | undefined,
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
 ): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
@@ -586,21 +660,10 @@ async function innerUploadDocument(
     uploadDate: new Date(),
   };
 
-  const templateData: EServiceTemplateVersionRef | undefined =
-    documentSeed.templateVersionRef
-      ? {
-          ...documentSeed.templateVersionRef,
-          id: unsafeBrandId(documentSeed.templateVersionRef.id),
-        }
-      : undefined;
-
-  const updateTemplateRef = templateData
-    ? isInterface
-      ? templateData
-      : {
-          id: templateData.id,
-        }
-    : undefined;
+  const templateVersionRef = evaluateEServiceTemplateVersionRef(
+    templateVersionId,
+    documentSeed
+  );
 
   const updatedEService: EService = {
     ...eService.data,
@@ -608,7 +671,7 @@ async function innerUploadDocument(
       d.id === descriptorId
         ? {
             ...d,
-            templateVersionRef: updateTemplateRef,
+            templateVersionRef,
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
             serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
@@ -877,16 +940,11 @@ export function catalogServiceBuilder(
         eserviceSeed.instanceLabel ?? ""
       }`.trim();
 
-      if (newName !== eservice.data.name) {
-        const eserviceWithSameName =
-          await readModelService.getEServiceByNameAndProducerId({
-            name: newName,
-            producerId: eservice.data.producerId,
-          });
-        if (eserviceWithSameName !== undefined) {
-          throw eServiceNameDuplicate(newName);
-        }
-      }
+      await assertNotDuplicatedEServiceName(
+        newName,
+        eservice.data,
+        readModelService
+      );
 
       const updatedEService: EService = {
         ...eservice.data,
@@ -993,13 +1051,15 @@ export function catalogServiceBuilder(
         eservice.data.templateRef?.id
       );
 
-      const { eService: updatedEService, event } = await innerUploadDocument(
-        eservice,
-        descriptorId,
-        document,
-        readModelService,
-        ctx
-      );
+      const { eService: updatedEService, event } =
+        await innerAddDocumentToEserviceEvent(
+          eservice,
+          descriptorId,
+          document,
+          undefined,
+          readModelService,
+          ctx
+        );
 
       await repository.createEvent(event);
 
@@ -2486,7 +2546,7 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
-    async updateTemplateInstanceName(
+    async internalUpdateTemplateInstanceName(
       eserviceId: EServiceId,
       newName: string,
       { correlationId, logger }: WithLogger<AppContext>
@@ -2523,7 +2583,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async updateTemplateInstanceDescription(
+    async internalUpdateTemplateInstanceDescription(
       eserviceId: EServiceId,
       description: string,
       { correlationId, logger }: WithLogger<AppContext>
@@ -2547,7 +2607,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async updateTemplateInstanceDescriptorVoucherLifespan(
+    async internalUpdateTemplateInstanceDescriptorVoucherLifespan(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       voucherLifespan: number,
@@ -2578,7 +2638,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async updateTemplateInstanceDescriptorAttributes(
+    async internalUpdateTemplateInstanceDescriptorAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.AttributesSeed,
@@ -2627,7 +2687,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async createTemplateInstanceDescriptorDocument(
+    async internalCreateTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: catalogApi.CreateEServiceDescriptorDocumentSeed,
@@ -2683,7 +2743,7 @@ export function catalogServiceBuilder(
         )
       );
     },
-    async deleteTemplateInstanceDescriptorDocument(
+    async internalDeleteTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
@@ -2723,7 +2783,7 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateTemplateInstanceDescriptorDocument(
+    async innerUpdateTemplateInstanceDescriptorDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
@@ -2878,7 +2938,7 @@ export function catalogServiceBuilder(
       seed: catalogApi.InstanceEServiceSeed,
       ctx: WithLogger<AppContext>
     ): Promise<EService> {
-      ctx.logger.info(`Retrieving EService template ${templateId}`);
+      ctx.logger.info(`Creating EService from template ${templateId}`);
 
       const template = await readModelService.getEServiceTemplateById(
         templateId
@@ -2968,7 +3028,7 @@ export function catalogServiceBuilder(
           doc.name,
           ctx.logger
         );
-        const { eService, event } = await innerUploadDocument(
+        const { eService, event } = await innerAddDocumentToEserviceEvent(
           { data: lastEService, metadata: { version: index + 1 } },
           createdEService.descriptors[0].id,
           {
@@ -2980,8 +3040,8 @@ export function catalogServiceBuilder(
             contentType: doc.contentType,
             checksum: doc.checksum,
             serverUrls: [], // not used in case of kind == "DOCUMENT"
-            templateVersionRef: { id: publishedVersion.id },
           },
+          publishedVersion.id,
           readModelService,
           ctx
         );
@@ -2994,7 +3054,143 @@ export function catalogServiceBuilder(
 
       return lastEService;
     },
+    async addEServiceTemplateInstanceInterface(
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
+      ctx: WithLogger<AppContext>
+    ): Promise<EService> {
+      const { logger, authData } = ctx;
+      logger.info(
+        `Adding interface to EService template instance ${eServiceId} with descriptor ${descriptorId}`
+      );
+
+      const eserviceWithMetadata = await retrieveEService(
+        eServiceId,
+        readModelService
+      );
+
+      const eservice = eserviceWithMetadata.data;
+      const descriptor = retrieveDescriptor(descriptorId, eserviceWithMetadata);
+      assertIsDraftEservice(eservice);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.producerId,
+        eservice.id,
+        authData,
+        readModelService
+      );
+
+      const { eserviceTemplateId, eserviceTemplateVersionId } =
+        getTemplateDataFromEservice(eservice, descriptor);
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      const eserviceTemplateVersion = retrieveEServicePublishedTemplateVersion(
+        eserviceTemplate,
+        eserviceTemplateVersionId
+      );
+
+      const templateInterface = eserviceTemplateVersion.interface;
+      if (!templateInterface) {
+        throw eserviceTemplateInterfaceNotFound(
+          eserviceTemplateId,
+          eserviceTemplateVersionId
+        );
+      }
+
+      const { eService: updatedEService, event: addDocumentEvent } =
+        await createOpenApiInterfaceByTemplate(
+          eserviceWithMetadata,
+          descriptor.id,
+          templateInterface,
+          eserviceInstanceInterfaceData,
+          config.eserviceTemplateDocumentsContainer,
+          fileManager,
+          readModelService,
+          ctx
+        );
+
+      await repository.createEvent(addDocumentEvent);
+
+      return updatedEService;
+    },
   };
+}
+
+// eslint-disable-next-line max-params
+export async function createOpenApiInterfaceByTemplate(
+  eserviceWithMetadata: WithMetadata<EService>,
+  descriptorId: DescriptorId,
+  eserviceTemplateInterface: Document,
+  eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
+  bucket: string,
+  fileManager: FileManager,
+  readModelService: ReadModelService,
+  ctx: WithLogger<AppContext>
+): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
+  const eservice = eserviceWithMetadata.data;
+  const interfaceTemplate = await fileManager.get(
+    bucket,
+    eserviceTemplateInterface.path,
+    ctx.logger
+  );
+
+  if (eserviceInstanceInterfaceData.serverUrls.length < 1) {
+    throw eserviceInterfaceDataNotValid();
+  }
+
+  const documentId = unsafeBrandId<EServiceDocumentId>(randomUUID());
+  const newInterfaceFile = await interpolateOpenApiSpec(
+    eservice,
+    Buffer.from(interfaceTemplate).toString(),
+    eserviceTemplateInterface,
+    eserviceInstanceInterfaceData
+  );
+
+  return await verifyAndCreateDocument(
+    fileManager,
+    eservice.id,
+    eservice.technology,
+    "INTERFACE",
+    newInterfaceFile,
+    documentId,
+    config.eserviceTemplateDocumentsContainer,
+    config.eserviceDocumentsPath,
+    eserviceTemplateInterface.prettyName,
+    async (
+      documentId,
+      fileName,
+      filePath,
+      prettyName,
+      kind,
+      serverUrls,
+      contentType,
+      checksum
+    ) =>
+      await innerAddDocumentToEserviceEvent(
+        eserviceWithMetadata,
+        descriptorId,
+        {
+          documentId,
+          kind,
+          prettyName,
+          filePath,
+          fileName,
+          contentType,
+          checksum,
+          serverUrls,
+          interfaceTemplateMetadata: eserviceInstanceInterfaceData,
+        },
+        undefined,
+        readModelService,
+        ctx
+      ),
+    ctx.logger
+  );
 }
 
 function isRequesterEServiceProducer(

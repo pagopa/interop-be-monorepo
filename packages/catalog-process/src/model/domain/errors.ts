@@ -47,7 +47,9 @@ export const errorCodes = {
   eServiceNotAnInstance: "0032",
   eServiceAlreadyUpgraded: "0033",
   invalidDescriptorVersion: "0034",
-  receiveTemplateMissingTenantKindRiskAnalysis: "0035",
+  eserviceTemplateInterfaceNotFound: "0035",
+  eserviceTemplateInterfaceDataNotValid: "0036",
+  receiveTemplateMissingTenantKindRiskAnalysis: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -391,6 +393,25 @@ export function eServiceAlreadyUpgraded(
     detail: `EService ${eserviceId} has already the latest version of the template`,
     code: "eServiceAlreadyUpgraded",
     title: "EService already upgraded",
+  });
+}
+
+export function eserviceTemplateInterfaceNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
+    code: "eserviceTemplateInterfaceNotFound",
+    title: "EService template interface document not found",
+  });
+}
+
+export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface data not valid`,
+    code: "eserviceTemplateInterfaceDataNotValid",
+    title: "EService template interface data not valid",
   });
 }
 
