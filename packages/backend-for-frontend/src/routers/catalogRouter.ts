@@ -20,6 +20,7 @@ import { catalogServiceBuilder } from "../services/catalogService.js";
 import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
+  addEServiceInterfceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
   createEServiceDocumentErrorMapper,
   emptyErrorMapper,
@@ -62,9 +63,7 @@ const catalogRouter = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
-    delegationProcessClient,
-    fileManager,
-    config
+    fileManager
   );
 
   catalogRouter
@@ -969,7 +968,7 @@ const catalogRouter = (
       }
     })
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/instances/interface",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
@@ -984,7 +983,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            addEServiceInterfceByTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error adding interface for eService ${req.params.eServiceId}`
