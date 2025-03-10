@@ -197,6 +197,7 @@ const errorCodes = {
   openapiVersionNotRecognized: "10006",
   interfaceExtractingInfoError: "10007",
   invalidInterfaceContentTypeDetected: "10008",
+  tokenVerificationFailed: "10009",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -352,6 +353,20 @@ export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
     detail: `Unexpected error on JWT decoding: ${parseErrorMessage(error)}`,
     code: "jwtDecodingError",
     title: "JWT decoding error",
+  });
+}
+
+export function tokenVerificationFailed(
+  uid: string | undefined,
+  selfcareId: string | undefined
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail:
+      "Token verification failed" +
+      (uid ? " for user " + uid : "") +
+      (selfcareId ? " for tenant " + selfcareId : ""),
+    code: "tokenVerificationFailed",
+    title: "Token verification failed",
   });
 }
 
