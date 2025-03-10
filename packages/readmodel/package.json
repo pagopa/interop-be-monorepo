@@ -34,7 +34,6 @@
   },
   "devDependencies": {
     "@types/pg": "8.11.11",
-    "drizzle-kit": "0.30.4",
     "eslint": "8.57.0",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
