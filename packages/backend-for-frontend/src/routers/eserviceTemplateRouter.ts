@@ -18,7 +18,6 @@ import {
   bffGetCatalogEServiceTemplateErrorMapper,
   bffGetEServiceTemplateErrorMapper,
 } from "../utilities/errorMappers.js";
-import { BffProcessConfig } from "../config/config.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
@@ -27,10 +26,8 @@ const eserviceTemplateRouter = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
-    delegationProcessClient,
   }: PagoPAInteropBeClients,
-  fileManager: FileManager,
-  bffConfig: BffProcessConfig
+  fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eserviceTemplateRouter = ctx.router(bffApi.eserviceTemplatesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -41,9 +38,7 @@ const eserviceTemplateRouter = (
     tenantProcessClient,
     attributeProcessClient,
     catalogProcessClient,
-    delegationProcessClient,
-    fileManager,
-    bffConfig
+    fileManager
   );
 
   eserviceTemplateRouter

@@ -59,6 +59,7 @@ export const errorCodes = {
   eserviceDescriptorDraftNotFound: "0052",
   templateDataNotFound: "0053",
   missingUserRolesInIdentityToken: "0054",
+  noVersionInEServiceTemplate: "0055",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -291,34 +292,6 @@ export function invalidInterfaceContentTypeDetected(
   });
 }
 
-export function invalidInterfaceFileDetected(
-  eServiceId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The interface file for EService ${eServiceId} is invalid`,
-    code: "invalidInterfaceFileDetected",
-    title: "Invalid interface file detected",
-  });
-}
-
-export function openapiVersionNotRecognized(
-  version: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `OpenAPI version not recognized - ${version}`,
-    code: "openapiVersionNotRecognized",
-    title: "OpenAPI version not recognized",
-  });
-}
-
-export function interfaceExtractingInfoError(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Error extracting info from interface file`,
-    code: "interfaceExtractingInfoError",
-    title: "Error extracting info from interface file",
-  });
-}
-
 export function notValidDescriptor(
   descriptorId: string,
   state: string
@@ -462,16 +435,6 @@ export function eserviceTemplateNotFound(
   });
 }
 
-export function eserviceTemplateDataNotFound(
-  eServiceId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Expected template reference in Eservice ${eServiceId} not found`,
-    code: "templateDataNotFound",
-    title: "EService template not found",
-  });
-}
-
 export function eserviceIsNotDraft(eserviceId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is not in draft state`,
@@ -487,35 +450,6 @@ export function eserviceTemplateNotPublished(
     detail: `EService template ${eserviceTemplateId} is not in published state`,
     code: "eserviceTemplateIsNotPublished",
     title: "EService template is not in published state",
-  });
-}
-
-export function eserviceTemplateInterfaceNotFound(
-  eserviceTemplateId: string,
-  eserviceTemplateVersionId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
-    code: "eserviceTemplateInterfaceNotFound",
-    title: "EService template interface document not found",
-  });
-}
-
-export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService template interface data not valid`,
-    code: "eserviceTemplateInterfaceDataNotValid",
-    title: "EService template interface data not valid",
-  });
-}
-
-export function eserviceDescriptorDraftNotFound(
-  eserviceId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Draft descriptor not found in Eservice ${eserviceId}`,
-    code: "eserviceDescriptorDraftNotFound",
-    title: "EService descriptor draft not found",
   });
 }
 
