@@ -34,6 +34,7 @@ import {
   PurposeVersion,
   PurposeVersionId,
   purposeVersionState,
+  TenantId,
   TokenGenStatesConsumerClientGSIPurpose,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -397,12 +398,15 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
                 eserviceId: purpose.eserviceId,
               }),
             },
+            ":purposeConsumerId": {
+              S: purpose.consumerId,
+            },
             ":newUpdatedAt": {
               S: new Date().toISOString(),
             },
           },
           UpdateExpression:
-            "SET purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :gsiPKConsumerIdEServiceId, updatedAt = :newUpdatedAt" +
+            "SET consumerId = :purposeConsumerId, purposeState = :newState, purposeVersionId = :newPurposeVersionId, GSIPK_consumerId_eserviceId = :gsiPKConsumerIdEServiceId, updatedAt = :newUpdatedAt" +
             agreementUpdateExpression +
             descriptorUpdateExpression,
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
@@ -439,12 +443,14 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
   purposeId,
   purposeState,
   purposeVersionId,
+  purposeConsumerId,
   logger,
 }: {
   dynamoDBClient: DynamoDBClient;
   purposeId: PurposeId;
   purposeState: ItemState;
   purposeVersionId: PurposeVersionId;
+  purposeConsumerId: TenantId;
   logger: Logger;
 }): Promise<void> => {
   const runPaginatedUpdateQuery = async (
@@ -469,6 +475,9 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
           },
         },
         ExpressionAttributeValues: {
+          ":purposeConsumerId": {
+            S: purposeConsumerId,
+          },
           ":newState": {
             S: purposeState,
           },
@@ -480,7 +489,7 @@ export const updatePurposeDataInTokenGenStatesEntries = async ({
           },
         },
         UpdateExpression:
-          "SET purposeState = :newState, updatedAt = :newUpdatedAt, purposeVersionId = :newPurposeVersionId",
+          "SET consumerId = :purposeConsumerId, purposeState = :newState, updatedAt = :newUpdatedAt, purposeVersionId = :newPurposeVersionId",
         TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
         ReturnValues: "NONE",
       };

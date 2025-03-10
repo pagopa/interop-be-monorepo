@@ -647,9 +647,13 @@ export const upsertTokenGenStatesConsumerClient = async (
       updatedAt: {
         S: tokenGenStatesConsumerClient.updatedAt,
       },
-      consumerId: {
-        S: tokenGenStatesConsumerClient.consumerId,
-      },
+      ...(tokenGenStatesConsumerClient.consumerId
+        ? {
+            consumerId: {
+              S: tokenGenStatesConsumerClient.consumerId,
+            },
+          }
+        : {}),
       ...(tokenGenStatesConsumerClient.agreementId
         ? {
             agreementId: {
@@ -1059,6 +1063,7 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
   const updatedFields: Partial<TokenGenerationStatesConsumerClient> = {
     ...(purposeEntry
       ? {
+          ...setIfChanged("consumerId", purposeEntry.purposeConsumerId),
           ...setIfChanged(
             "GSIPK_consumerId_eserviceId",
             makeGSIPKConsumerIdEServiceId({
@@ -1192,14 +1197,14 @@ export const createTokenGenStatesConsumerClient = ({
   agreementEntry,
   catalogEntry,
 }: {
-  consumerId: TenantId;
+  consumerId: TenantId | undefined;
   kid: string;
   publicKey: string;
   clientId: ClientId;
   purposeId: PurposeId;
-  purposeEntry?: PlatformStatesPurposeEntry;
-  agreementEntry?: PlatformStatesAgreementEntry;
-  catalogEntry?: PlatformStatesCatalogEntry;
+  purposeEntry: PlatformStatesPurposeEntry | undefined;
+  agreementEntry: PlatformStatesAgreementEntry | undefined;
+  catalogEntry: PlatformStatesCatalogEntry | undefined;
 }): TokenGenerationStatesConsumerClient => {
   const pk = makeTokenGenerationStatesClientKidPurposePK({
     clientId,
@@ -1209,7 +1214,6 @@ export const createTokenGenStatesConsumerClient = ({
 
   return {
     PK: pk,
-    consumerId,
     updatedAt: new Date().toISOString(),
     clientKind: clientKindTokenGenStates.consumer,
     publicKey,
@@ -1220,14 +1224,16 @@ export const createTokenGenStatesConsumerClient = ({
       purposeId,
     }),
     GSIPK_purposeId: purposeId,
-    ...(purposeEntry && {
-      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+    ...(purposeEntry &&
+      consumerId && {
         consumerId,
-        eserviceId: purposeEntry.purposeEserviceId,
+        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          consumerId,
+          eserviceId: purposeEntry.purposeEserviceId,
+        }),
+        purposeState: purposeEntry.state,
+        purposeVersionId: purposeEntry.purposeVersionId,
       }),
-      purposeState: purposeEntry.state,
-      purposeVersionId: purposeEntry.purposeVersionId,
-    }),
     ...(purposeEntry &&
       agreementEntry && {
         agreementId: agreementEntry.agreementId,
