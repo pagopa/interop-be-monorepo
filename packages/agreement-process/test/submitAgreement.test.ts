@@ -710,16 +710,13 @@ describe("submit agreement", () => {
       ],
     };
 
-    const allowedStatus: DescriptorState[] = [
-      descriptorState.published,
-      descriptorState.suspended,
-    ];
+    const allowedState: DescriptorState[] = [descriptorState.published];
     const descriptor = {
       ...getMockDescriptor(),
       state: randomArrayItem(
         Object.values(descriptorState).filter(
           (state: DescriptorState) =>
-            !allowedStatus.includes(state) &&
+            !allowedState.includes(state) &&
             state !== descriptorState.draft &&
             state !== descriptorState.waitingForApproval
         )
@@ -753,7 +750,7 @@ describe("submit agreement", () => {
         }
       )
     ).rejects.toThrowError(
-      descriptorNotInExpectedState(eservice.id, descriptor.id, allowedStatus)
+      descriptorNotInExpectedState(eservice.id, descriptor.id, allowedState)
     );
   });
 
@@ -773,7 +770,7 @@ describe("submit agreement", () => {
 
     const descriptor = {
       ...getMockDescriptor(),
-      state: descriptorState.suspended,
+      state: descriptorState.published,
     };
     const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
       descriptor,
@@ -821,7 +818,7 @@ describe("submit agreement", () => {
 
     const descriptor = {
       ...getMockDescriptor(),
-      state: descriptorState.suspended,
+      state: descriptorState.published,
     };
     const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
       descriptor,
@@ -869,7 +866,7 @@ describe("submit agreement", () => {
 
     const descriptor = {
       ...getMockDescriptor(),
-      state: descriptorState.suspended,
+      state: descriptorState.published,
       attributes: {
         certified: [[getMockEServiceAttribute()]],
         declared: [],
@@ -940,7 +937,7 @@ describe("submit agreement", () => {
 
     const descriptor = {
       ...getMockDescriptor(),
-      state: descriptorState.suspended,
+      state: descriptorState.published,
       attributes: {
         certified: [[getMockEServiceAttribute()]],
         declared: [],
@@ -1055,7 +1052,7 @@ describe("submit agreement", () => {
 
       const descriptor = {
         ...getMockDescriptor(),
-        state: descriptorState.suspended,
+        state: descriptorState.published,
         attributes: {
           certified: [],
           declared: [],
@@ -1193,7 +1190,7 @@ describe("submit agreement", () => {
 
           const descriptor = {
             ...getMockDescriptor(),
-            state: descriptorState.suspended,
+            state: descriptorState.published,
             attributes: {
               certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
               declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
@@ -1492,7 +1489,7 @@ describe("submit agreement", () => {
 
       const descriptor = {
         ...getMockDescriptor(),
-        state: descriptorState.suspended,
+        state: descriptorState.published,
         agreementApprovalPolicy: agreementApprovalPolicy.automatic,
         attributes: {
           certified: [],
@@ -1636,7 +1633,7 @@ describe("submit agreement", () => {
 
           const descriptor = {
             ...getMockDescriptor(),
-            state: descriptorState.suspended,
+            state: descriptorState.published,
             agreementApprovalPolicy: agreementApprovalPolicy.automatic,
             attributes: {
               certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
@@ -1933,7 +1930,7 @@ describe("submit agreement", () => {
 
       const descriptor = {
         ...getMockDescriptor(),
-        state: descriptorState.suspended,
+        state: descriptorState.published,
         agreementApprovalPolicy: agreementApprovalPolicy.manual,
         attributes: {
           certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
@@ -2093,7 +2090,7 @@ describe("submit agreement", () => {
       };
       const descriptor = {
         ...getMockDescriptor(),
-        state: descriptorState.suspended,
+        state: descriptorState.published,
         agreementApprovalPolicy: agreementApprovalPolicy.automatic,
         attributes: {
           certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
