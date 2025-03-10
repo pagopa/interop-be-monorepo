@@ -14,6 +14,7 @@ import {
   EServiceAddedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorDocumentAddedV2,
+  eserviceMode,
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
@@ -61,7 +62,10 @@ describe("create eService from template", () => {
       versions: [publishedVersion],
     };
 
-    const tenant = getMockTenant(mockEService.producerId);
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
 
     await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
@@ -168,8 +172,10 @@ describe("create eService from template", () => {
       versions: [publishedVersion],
     };
 
-    const tenant = getMockTenant(mockEService.producerId);
-
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
     await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
@@ -291,8 +297,10 @@ describe("create eService from template", () => {
       versions: [eserviceTemplatePublishedVersion],
     };
 
-    const tenant = getMockTenant(mockEService.producerId);
-
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
     await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
@@ -526,6 +534,7 @@ describe("create eService from template", () => {
   it("should throw receiveTemplateMissingTenantKindRiskAnalysis when the template is in receive mode and there are no risk analysis of the requester tenant kind", async () => {
     const tenant: Tenant = {
       ...getMockTenant(mockEService.producerId),
+      id: mockEService.producerId,
       kind: tenantKind.PA,
     };
 
@@ -540,6 +549,7 @@ describe("create eService from template", () => {
 
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
       riskAnalysis: [validRiskAnalysis],
       versions: [publishedVersion],
     };
