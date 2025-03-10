@@ -332,7 +332,7 @@ export function tenantServiceBuilder(
       );
       if (existingTenant) {
         logger.info(
-          `Updating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
+          `Updating tenant with external id ${tenantSeed.externalId.origin}/${tenantSeed.externalId.value} via SelfCare request"`
         );
         await assertResourceAllowed(existingTenant.data.id, authData);
 
@@ -351,6 +351,7 @@ export function tenantServiceBuilder(
           ...existingTenant.data,
           kind: tenantKind,
           selfcareId: tenantSeed.selfcareId,
+          onboardedAt: new Date(tenantSeed.onboardedAt),
           updatedAt: new Date(),
         };
 
@@ -1365,7 +1366,7 @@ export function tenantServiceBuilder(
       { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Tenant> {
       logger.info(
-        `Updating tenant with external id ${internalTenantSeed.externalId} via internal request`
+        `Updating tenant with external id ${internalTenantSeed.externalId.origin}/${internalTenantSeed.externalId.value} via internal request`
       );
 
       const existingTenant = await retrieveTenantByExternalId({
@@ -1465,7 +1466,7 @@ export function tenantServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Tenant> {
       logger.info(
-        `Updating tenant with external id ${m2mTenantSeed.externalId} via m2m request`
+        `Updating tenant with external id ${m2mTenantSeed.externalId.origin}/${m2mTenantSeed.externalId.value} via m2m request`
       );
 
       const requesterTenant = await retrieveTenant(
