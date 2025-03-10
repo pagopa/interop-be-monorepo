@@ -198,13 +198,6 @@ export async function applicationAuditEndMiddleware(
         throw genericInternalError("The forwardedFor header is missing");
       }
 
-      const requestTimestamp = context.requestTimestamp;
-      if (!requestTimestamp) {
-        throw genericInternalError(
-          "Failed to retrieve requestTimestamp from context"
-        );
-      }
-
       const endTimestamp = Date.now();
 
       const finalAudit: ApplicationAuditEndRequest = {
@@ -213,7 +206,7 @@ export async function applicationAuditEndMiddleware(
         serviceVersion: config.serviceVersion,
         endpoint: req.route.path,
         httpMethod: req.method,
-        executionTimeMs: endTimestamp - requestTimestamp,
+        executionTimeMs: endTimestamp - context.requestTimestamp,
         organizationId,
         phase: Phase.END_REQUEST,
         httpResponseStatus: res.statusCode,
