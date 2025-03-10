@@ -51,6 +51,7 @@ import {
   RiskAnalysisId,
   Tenant,
   TenantId,
+  tenantKind,
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -2964,7 +2965,24 @@ export function catalogServiceBuilder(
       assertTenantKindExists(tenant);
 
       const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
-        .filter((r) => r.tenantKind === tenant.kind)
+        .filter((r) =>
+          match(r.tenantKind)
+            .with(tenantKind.PA, () => tenant.kind === tenantKind.PA)
+            /**
+             * For now, GSP, PRIVATE and SCP tenants share the same risk analysis .
+             * This may change in the future.
+             */
+            .with(
+              tenantKind.GSP,
+              tenantKind.PRIVATE,
+              tenantKind.SCP,
+              () =>
+                tenant.kind === tenantKind.GSP ||
+                tenant.kind === tenantKind.PRIVATE ||
+                tenant.kind === tenantKind.SCP
+            )
+            .exhaustive()
+        )
         .map((r) => ({
           id: generateId(),
           createdAt: r.createdAt,
