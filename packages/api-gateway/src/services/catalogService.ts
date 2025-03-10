@@ -262,7 +262,7 @@ export async function enhanceEservice(
     templateRef: eservice.templateRef
       ? {
           templateId: eservice.templateRef.id,
-          instanceId: eservice.templateRef.instanceId,
+          instanceLabel: eservice.templateRef.instanceLabel,
           templateVersionId: latestValidDescriptor.templateVersionRef?.id,
         }
       : undefined,
