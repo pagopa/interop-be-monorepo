@@ -27,7 +27,7 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  /eservices/templates:
+  /templates:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -138,7 +138,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}:
+  /templates/{templateId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -149,7 +149,7 @@ paths:
       summary: Get an e-service template
       operationId: getEServiceTemplateById
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: The E-Service template id
           required: true
@@ -187,7 +187,7 @@ paths:
       summary: Updates e-service template general information
       operationId: updateEServiceTemplate
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: The E-Service id to update
           required: true
@@ -225,7 +225,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions:
+  /templates/{templateId}/versions:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -236,7 +236,7 @@ paths:
       summary: Adds a version to the specified e-service template
       operationId: createEServiceTemplateVersion
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: The E-Service template id
           required: true
@@ -267,7 +267,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}:
+  /templates/{templateId}/versions/{templateVersionId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     delete:
@@ -278,13 +278,13 @@ paths:
       summary: Deletes a draft template version
       operationId: deleteDraftTemplateVersion
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: The E-Service template Id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: The E-Service template version Id
           required: true
@@ -319,13 +319,13 @@ paths:
       summary: Updates a draft template version
       operationId: updateDraftTemplateVersion
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: The E-Service template id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: The E-Service template version Id
           required: true
@@ -363,7 +363,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/publish:
+  /templates/{templateId}/versions/{templateVersionId}/publish:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -374,13 +374,13 @@ paths:
       summary: Publish the selected template version.
       operationId: publishTemplateVersion
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version Id
           required: true
@@ -407,7 +407,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/suspend:
+  /templates/{templateId}/versions/{templateVersionId}/suspend:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -418,13 +418,13 @@ paths:
       summary: Suspend the selected template version.
       operationId: suspendTemplateVersion
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version Id
           required: true
@@ -451,7 +451,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/activate:
+  /templates/{templateId}/versions/{templateVersionId}/activate:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -462,13 +462,13 @@ paths:
       summary: Activate the selected template version.
       operationId: activateTemplateVersion
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version Id
           required: true
@@ -495,7 +495,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/quotas/update:
+  /templates/{templateId}/versions/{templateVersionId}/quotas/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -506,14 +506,14 @@ paths:
       summary: Update the quotas of the selected template version
       operationId: updateTemplateVersionQuotas
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
             format: uuid
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version Id
           required: true
@@ -552,7 +552,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents:
+  /templates/{templateId}/versions/{templateVersionId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -563,13 +563,13 @@ paths:
       summary: Add new e-service template document
       operationId: createEServiceTemplateDocument
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version Id
           required: true
@@ -607,7 +607,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}:
+  /templates/{templateId}/versions/{templateVersionId}/documents/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -618,13 +618,13 @@ paths:
       summary: Get an e-service template document
       operationId: getEServiceTemplateDocumentById
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version Id
           required: true
@@ -669,13 +669,13 @@ paths:
       summary: Deletes an e-service template document
       operationId: deleteEServiceTemplateDocumentById
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version Id
           required: true
@@ -708,7 +708,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}/update:
+  /templates/{templateId}/versions/{templateVersionId}/documents/{documentId}/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -719,13 +719,13 @@ paths:
       summary: Updates an e-service template document
       operationId: updateEServiceTemplateDocumentById
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version Id
           required: true
@@ -769,7 +769,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/riskAnalysis:
+  /templates/{templateId}/riskAnalysis:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -780,7 +780,7 @@ paths:
       summary: Create an e-service template risk analysis
       operationId: createEServiceTemplateRiskAnalysis
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
@@ -815,7 +815,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/riskAnalysis/{riskAnalysisId}:
+  /templates/{templateId}/riskAnalysis/{riskAnalysisId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -826,7 +826,7 @@ paths:
       summary: Update an e-service template risk analysis
       operationId: updateEServiceTemplateRiskAnalysis
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
@@ -876,7 +876,7 @@ paths:
       summary: Delete an e-service template risk analysis
       operationId: deleteEServiceTemplateRiskAnalysis
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
@@ -911,7 +911,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/intendedTarget/update:
+  /templates/{templateId}/intendedTarget/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -922,7 +922,7 @@ paths:
       summary: Update a published e-service template intended target description
       operationId: updateEServiceIntendedTarget
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
@@ -961,7 +961,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/description/update:
+  /templates/{templateId}/description/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -972,7 +972,7 @@ paths:
       summary: Update a published e-service template description
       operationId: updateEServiceTemplateDescription
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
@@ -1011,7 +1011,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/name/update:
+  /templates/{templateId}/name/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1022,7 +1022,7 @@ paths:
       summary: Update an e-service published template name
       operationId: updateEServiceTemplateName
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
@@ -1061,7 +1061,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/attributes/update:
+  /templates/{templateId}/versions/{templateVersionId}/attributes/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1072,14 +1072,14 @@ paths:
       summary: Update e-service published template version attributes
       operationId: updateTemplateVersionAttributes
       parameters:
-        - name: eServiceTemplateId
+        - name: templateId
           in: path
           description: the eservice template id
           required: true
           schema:
             type: string
             format: uuid
-        - name: eServiceTemplateVersionId
+        - name: templateVersionId
           in: path
           description: the template version id
           required: true
@@ -1124,7 +1124,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/eservices/templates/creators":
+  "/templates/creators":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
