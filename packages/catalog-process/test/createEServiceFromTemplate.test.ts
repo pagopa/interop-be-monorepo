@@ -4,6 +4,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
+  getMockValidEServiceTemplateRiskAnalysis,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
@@ -18,6 +19,8 @@ import {
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
+  Tenant,
+  tenantKind,
   toEServiceV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -519,6 +522,45 @@ describe("create eService from template", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedDocument2.path);
+  });
+  it("should throw receiveTemplateMissingTenantKindRiskAnalysis when the template is in receive mode and there are no risk analysis of the requester tenant kind", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    const validRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PRIVATE
+    );
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      riskAnalysis: [validRiskAnalysis],
+      versions: [publishedVersion],
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      catalogService.createEServiceInstanceFromTemplate(
+        eserviceTemplate.id,
+        { instanceLabel: undefined },
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toMatchObject({
+      code: "receiveTemplateMissingTenantKindRiskAnalysis",
+    });
   });
   it("should throw eServiceTemplateNotFound when the template does not exist", async () => {
     await expect(
