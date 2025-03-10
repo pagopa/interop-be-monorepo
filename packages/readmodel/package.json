@@ -14,7 +14,8 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
@@ -34,7 +35,6 @@
   },
   "devDependencies": {
     "@types/pg": "8.11.11",
-    "drizzle-kit": "0.30.4",
     "eslint": "8.57.0",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
