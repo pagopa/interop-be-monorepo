@@ -17858,11 +17858,14 @@ components:
       required:
         - name
         - riskAnalysisForm
+        - tenantKind
       properties:
         name:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysis:
       type: object
       additionalProperties: false

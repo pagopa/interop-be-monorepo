@@ -131,11 +131,6 @@ export const createRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("riskAnalysisNameDuplicate", () => HTTP_STATUS_CONFLICT)
-    .with(
-      "tenantNotFound",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteRiskAnalysisErrorMapper = (
@@ -155,12 +150,7 @@ export const updateRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "eServiceTemplateNotFound",
-      "tenantNotFound",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateNotInDraftState",

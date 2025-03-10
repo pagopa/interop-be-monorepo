@@ -1420,11 +1420,14 @@ components:
       required:
         - name
         - riskAnalysisForm
+        - tenantKind
       properties:
         name:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/EServiceRiskAnalysisFormSeed"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysisFormSeed:
       type: object
       additionalProperties: false
@@ -1756,6 +1759,13 @@ components:
       required:
         - results
         - totalCount
+    TenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
+        - GSP
+        - SCP
     Problem:
       properties:
         type:

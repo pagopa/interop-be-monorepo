@@ -1,6 +1,7 @@
 import { match } from "ts-pattern";
 import { dateToBigInt } from "../utils.js";
 import {
+  EServiceTemplateRiskAnalysisV2,
   EServiceTemplateV2,
   EServiceTemplateVersionStateV2,
   EServiceTemplateVersionV2,
@@ -11,10 +12,11 @@ import {
   toEServiceAttributeV2,
   toEServiceModeV2,
   toEServiceTechnologyV2,
-  toRiskAnalysisV2,
 } from "../eservice/protobufConverterToV2.js";
+import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import {
   EServiceTemplate,
+  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
@@ -41,6 +43,14 @@ export const toEServiceTemplateVersionStateV2 = (
       () => EServiceTemplateVersionStateV2.DEPRECATED
     )
     .exhaustive();
+
+export const toEServiceTemplateRiskAnalysisV2 = (
+  input: EServiceTemplateRiskAnalysis
+): EServiceTemplateRiskAnalysisV2 => ({
+  ...input,
+  createdAt: dateToBigInt(input.createdAt),
+  tenantKind: toTenantKindV2(input.tenantKind),
+});
 
 export const toEServiceTemplateVersionV2 = (
   input: EServiceTemplateVersion
@@ -73,5 +83,5 @@ export const toEServiceTemplateV2 = (
   versions: input.versions.map(toEServiceTemplateVersionV2),
   createdAt: dateToBigInt(input.createdAt),
   mode: toEServiceModeV2(input.mode),
-  riskAnalysis: input.riskAnalysis.map(toRiskAnalysisV2),
+  riskAnalysis: input.riskAnalysis.map(toEServiceTemplateRiskAnalysisV2),
 });

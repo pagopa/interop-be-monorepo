@@ -8,11 +8,11 @@ import {
   eventRepository,
   hasPermission,
   userRoles,
-  riskAnalysisValidatedFormToNewRiskAnalysis,
   validateRiskAnalysis,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisValidationIssue,
   Logger,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -27,7 +27,6 @@ import {
   eserviceTemplateVersionState,
   unsafeBrandId,
   WithMetadata,
-  RiskAnalysis,
   RiskAnalysisId,
   Tenant,
   TenantId,
@@ -37,6 +36,7 @@ import {
   ListResult,
   Document,
   EServiceDocumentId,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -897,15 +897,10 @@ export function eserviceTemplateServiceBuilder(
       logger.info(`Creating risk analysis for eServiceTemplateId: ${id}`);
 
       const template = await retrieveEServiceTemplate(id, readModelService);
+
       assertRequesterEServiceTemplateCreator(template.data.creatorId, authData);
       assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
-
-      const tenant = await retrieveTenant(
-        template.data.creatorId,
-        readModelService
-      );
-      assertTenantKindExists(tenant);
 
       const raSameName = template.data.riskAnalysis.find(
         (ra) => ra.name === createRiskAnalysis.name
@@ -918,14 +913,18 @@ export function eserviceTemplateServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         createRiskAnalysis.riskAnalysisForm,
-        tenant.kind
+        createRiskAnalysis.tenantKind
       );
 
-      const newRiskAnalysis: RiskAnalysis =
-        riskAnalysisValidatedFormToNewRiskAnalysis(
-          validatedRiskAnalysisForm,
-          createRiskAnalysis.name
-        );
+      const newRiskAnalysis: EServiceTemplateRiskAnalysis = {
+        id: generateId<RiskAnalysisId>(),
+        name: createRiskAnalysis.name,
+        createdAt: new Date(),
+        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+          validatedRiskAnalysisForm
+        ),
+        tenantKind: createRiskAnalysis.tenantKind,
+      };
 
       const newTemplate: EServiceTemplate = {
         ...template.data,
@@ -994,22 +993,20 @@ export function eserviceTemplateServiceBuilder(
       assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 
-      const tenant = await retrieveTenant(
-        template.data.creatorId,
-        readModelService
-      );
-      assertTenantKindExists(tenant);
-
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         updateRiskAnalysis.riskAnalysisForm,
-        tenant.kind
+        updateRiskAnalysis.tenantKind
       );
 
-      const updatedRiskAnalysis: RiskAnalysis =
-        riskAnalysisValidatedFormToNewRiskAnalysis(
-          validatedRiskAnalysisForm,
-          updateRiskAnalysis.name
-        );
+      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+        id: generateId<RiskAnalysisId>(),
+        name: updateRiskAnalysis.name,
+        createdAt: new Date(),
+        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+          validatedRiskAnalysisForm
+        ),
+        tenantKind: updateRiskAnalysis.tenantKind,
+      };
 
       const newTemplate: EServiceTemplate = {
         ...template.data,

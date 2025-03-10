@@ -12,6 +12,7 @@ import {
   EServiceMode,
 } from "../eservice/eservice.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+import { TenantKind } from "../tenant/tenant.js";
 
 export const eserviceTemplateVersionState = {
   draft: "Draft",
@@ -46,6 +47,13 @@ export const EServiceTemplateVersion = z.object({
 });
 export type EServiceTemplateVersion = z.infer<typeof EServiceTemplateVersion>;
 
+export const EServiceTemplateRiskAnalysis = RiskAnalysis.and(
+  z.object({ tenantKind: TenantKind })
+);
+export type EServiceTemplateRiskAnalysis = z.infer<
+  typeof EServiceTemplateRiskAnalysis
+>;
+
 export const EServiceTemplate = z.object({
   id: EServiceTemplateId,
   creatorId: TenantId,
@@ -55,7 +63,7 @@ export const EServiceTemplate = z.object({
   technology: Technology,
   versions: z.array(EServiceTemplateVersion),
   createdAt: z.coerce.date(),
-  riskAnalysis: z.array(RiskAnalysis),
+  riskAnalysis: z.array(EServiceTemplateRiskAnalysis),
   mode: EServiceMode,
   isSignalHubEnabled: z.boolean().optional(),
 });
