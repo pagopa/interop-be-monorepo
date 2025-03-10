@@ -106,13 +106,13 @@ export function parseForwardedForHeader(req: Request): string | undefined {
   return undefined;
 }
 
-export async function applicationAuditMiddleware(
+export async function applicationAuditBeginMiddleware(
   serviceName: string,
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
 
-  return async (req, res, next): Promise<void> => {
+  return async (req, _, next): Promise<void> => {
     if (
       !config.endpointsWithoutAudit ||
       (config.endpointsWithoutAudit &&
@@ -121,21 +121,16 @@ export async function applicationAuditMiddleware(
       const context = (req as Request & { ctx?: AppContext }).ctx;
       const requestTimestamp = Date.now();
 
-      const correlationId = context?.correlationId;
-      const organizationId = context?.authData.organizationId;
-      const amznTraceId = parseAmznTraceIdHeader(req);
-      const forwardedFor = parseForwardedForHeader(req);
-      if (!correlationId) {
-        throw genericInternalError(
-          "Failed to retrieve correlationId from context"
-        );
+      if (!context) {
+        throw genericInternalError("Failed to retrieve context");
       }
 
-      if (!organizationId) {
-        throw genericInternalError(
-          "Failed to retrieve organizationId from context"
-        );
-      }
+      // eslint-disable-next-line functional/immutable-data
+      context.requestTimestamp = requestTimestamp;
+
+      const correlationId = context.correlationId;
+      const amznTraceId = parseAmznTraceIdHeader(req);
+      const forwardedFor = parseForwardedForHeader(req);
 
       if (!amznTraceId) {
         throw genericInternalError("The amznTraceId header is missing");
@@ -146,7 +141,7 @@ export async function applicationAuditMiddleware(
       }
 
       const initialAudit: ApplicationAuditBeginRequest = {
-        correlationId,
+        correlationId: context.correlationId,
         service: serviceName,
         serviceVersion: config.serviceVersion,
         endpoint: req.path,
@@ -168,35 +163,82 @@ export async function applicationAuditMiddleware(
           },
         ],
       });
+    }
 
-      res.on("finish", async () => {
-        const endTimestamp = Date.now();
+    return next();
+  };
+}
 
-        const finalAudit: ApplicationAuditEndRequest = {
-          correlationId,
-          service: serviceName,
-          serviceVersion: config.serviceVersion,
-          endpoint: req.route.path,
-          httpMethod: req.method,
-          executionTimeMs: endTimestamp - requestTimestamp,
-          organizationId,
-          phase: Phase.END_REQUEST,
-          httpResponseStatus: res.statusCode,
-          requesterIpAddress: forwardedFor,
-          nodeIp: config.nodeIp,
-          podName: config.podName,
-          uptimeSeconds: Math.round(process.uptime()),
-          timestamp: endTimestamp,
-          amazonTraceId: amznTraceId,
-        };
-        await producer.send({
-          messages: [
-            {
-              key: correlationId,
-              value: JSON.stringify(finalAudit),
-            },
-          ],
-        });
+export async function applicationAuditEndMiddleware(
+  serviceName: string,
+  config: ApplicationAuditProducerConfig
+): Promise<RequestHandler> {
+  const producer = await initProducer(config, config.applicationAuditTopic);
+  console.log("log 1");
+  return async (req, res, next): Promise<void> => {
+    if (
+      !config.endpointsWithoutAudit ||
+      (config.endpointsWithoutAudit &&
+        !config.endpointsWithoutAudit.includes(req.path)) // TODO path contains the parameter, so how to match the string?
+    ) {
+      console.log("log 2");
+
+      const context = (req as Request & { ctx?: AppContext }).ctx;
+      if (!context) {
+        console.log("log 3");
+
+        throw genericInternalError("Failed to retrieve context");
+      }
+
+      const correlationId = context.correlationId;
+      const organizationId = context.authData.organizationId;
+      const amznTraceId = parseAmznTraceIdHeader(req);
+      const forwardedFor = parseForwardedForHeader(req);
+
+      if (!amznTraceId) {
+        throw genericInternalError("The amznTraceId header is missing");
+      }
+
+      if (!forwardedFor) {
+        throw genericInternalError("The forwardedFor header is missing");
+      }
+
+      const requestTimestamp = context.requestTimestamp;
+      if (!requestTimestamp) {
+        console.log("log 4");
+
+        throw genericInternalError(
+          "Failed to retrieve requestTimestamp from context"
+        );
+      }
+
+      const endTimestamp = Date.now();
+
+      const finalAudit: ApplicationAuditEndRequest = {
+        correlationId,
+        service: serviceName,
+        serviceVersion: config.serviceVersion,
+        endpoint: req.route.path,
+        httpMethod: req.method,
+        executionTimeMs: endTimestamp - requestTimestamp,
+        organizationId,
+        phase: Phase.END_REQUEST,
+        httpResponseStatus: res.statusCode,
+        requesterIpAddress: forwardedFor,
+        nodeIp: config.nodeIp,
+        podName: config.podName,
+        uptimeSeconds: Math.round(process.uptime()),
+        timestamp: endTimestamp,
+        amazonTraceId: amznTraceId,
+      };
+
+      await producer.send({
+        messages: [
+          {
+            key: correlationId,
+            value: JSON.stringify(finalAudit),
+          },
+        ],
       });
     }
 

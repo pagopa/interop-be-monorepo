@@ -8,7 +8,7 @@ import {
   initPDFGenerator,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { applicationAuditMiddleware } from "pagopa-interop-application-audit";
+import { applicationAuditBeginMiddleware } from "pagopa-interop-application-audit";
 import healthRouter from "./routers/HealthRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
@@ -43,7 +43,7 @@ app.use(healthRouter);
 app.use(contextMiddleware(serviceName));
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
-app.use(await applicationAuditMiddleware(serviceName, config));
+app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(
   delegationRouter(
     zodiosCtx,

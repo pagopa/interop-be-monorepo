@@ -19,6 +19,7 @@ export const AppContext = z.object({
   serviceName: z.string(),
   authData: AuthData,
   correlationId: CorrelationId,
+  requestTimestamp: z.number(),
 });
 export type AppContext = z.infer<typeof AppContext>;
 
