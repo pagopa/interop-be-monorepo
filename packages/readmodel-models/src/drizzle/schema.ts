@@ -676,6 +676,9 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
       name: "purpose_version_document_purpose_id_metadata_version_fkey",
     }),
     unique("purpose_version_document_purpose_id_key").on(table.purposeId),
+    unique("purpose_version_document_purpose_version_id_key").on(
+      table.purposeVersionId
+    ),
   ]
 );
 
