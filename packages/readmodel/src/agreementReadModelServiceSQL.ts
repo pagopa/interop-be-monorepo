@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Agreement, AgreementId, WithMetadata } from "pagopa-interop-models";
 import {
@@ -36,7 +36,15 @@ export function agreementReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         await tx
           .delete(agreementInReadmodelAgreement)
-          .where(eq(agreementInReadmodelAgreement.id, agreement.data.id));
+          .where(
+            and(
+              eq(agreementInReadmodelAgreement.id, agreement.data.id),
+              lte(
+                agreementInReadmodelAgreement.metadataVersion,
+                agreement.metadata.version
+              )
+            )
+          );
 
         await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
 
@@ -120,10 +128,18 @@ export function agreementReadModelServiceBuilder(
 
       return aggregateAgreement(toAgreementAggregator(queryResult));
     },
-    async deleteAgreementById(agreementId: AgreementId): Promise<void> {
+    async deleteAgreementById(
+      agreementId: AgreementId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(agreementInReadmodelAgreement)
-        .where(eq(agreementInReadmodelAgreement.id, agreementId));
+        .where(
+          and(
+            eq(agreementInReadmodelAgreement.id, agreementId),
+            lte(agreementInReadmodelAgreement.metadataVersion, metadataVersion)
+          )
+        );
     },
     async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
       const queryResult = await db
