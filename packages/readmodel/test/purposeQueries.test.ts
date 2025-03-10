@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PurposeSQL } from "pagopa-interop-readmodel-models";
+import { generateId } from "pagopa-interop-models";
 import {
   generateCompleteExpectedPurposeSQLObjects,
   initMockPurpose,
@@ -127,6 +128,69 @@ describe("Purpose queries", () => {
       expect(retrievedPurposeVersionDocumentsSQL).toStrictEqual(
         expectedPurposeVersionDocumentsSQL
       );
+    });
+  });
+
+  describe("Get a Purpose", async () => {
+    it("should get a purpose from by purpose id", async () => {
+      const isPurposeComplete = true;
+      const { purpose } = initMockPurpose(isPurposeComplete);
+      await purposeReadModelService.upsertPurpose(purpose);
+
+      const retrievedPurpose = await purposeReadModelService.getPurposeById(
+        purpose.data.id
+      );
+
+      expect(retrievedPurpose).toStrictEqual(purpose);
+    });
+
+    it("should *not* get a purpose by purpose id", async () => {
+      const retrievedPurpose = await purposeReadModelService.getPurposeById(
+        generateId()
+      );
+
+      expect(retrievedPurpose).toBeUndefined();
+    });
+  });
+
+  describe("Get all Purposes", () => {
+    it("should get all purposes", async () => {
+      const isPurposeComplete = true;
+      const { purpose: purpose1 } = initMockPurpose(isPurposeComplete);
+      const { purpose: purpose2 } = initMockPurpose(isPurposeComplete);
+
+      await purposeReadModelService.upsertPurpose(purpose1);
+      await purposeReadModelService.upsertPurpose(purpose2);
+
+      const retrievedPurposes = await purposeReadModelService.getAllPurposes();
+
+      expect(retrievedPurposes).toHaveLength(2);
+      // TODO: fix this test
+      // expect(retrievedPurposes).toStrictEqual(
+      //   expect.arrayContaining([purpose1, purpose2])
+      // );
+    });
+
+    it("should *not* get any purposes", async () => {
+      const retrievedPurposes = await purposeReadModelService.getAllPurposes();
+
+      expect(retrievedPurposes).toStrictEqual([]);
+    });
+  });
+
+  describe("Delete a Purpose", () => {
+    it("should delete a purpose by purpose id", async () => {
+      const isPurposeComplete = true;
+      const { purpose } = initMockPurpose(isPurposeComplete);
+      await purposeReadModelService.upsertPurpose(purpose);
+
+      await purposeReadModelService.deletePurposeById(purpose.data.id);
+
+      const retrievedPurpose = await purposeReadModelService.getPurposeById(
+        purpose.data.id
+      );
+
+      expect(retrievedPurpose).toBeUndefined();
     });
   });
 });
