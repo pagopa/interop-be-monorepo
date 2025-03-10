@@ -2,7 +2,10 @@
 import { expect, describe, it } from "vitest";
 import { getMockTenant } from "pagopa-interop-commons-test/index.js";
 import { Tenant, TenantId, generateId } from "pagopa-interop-models";
-import { TenantSeed, getTenantUpsertData } from "../src/index.js";
+import {
+  TenantSeed,
+  getTenantUpsertData,
+} from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
 const registryData = {
