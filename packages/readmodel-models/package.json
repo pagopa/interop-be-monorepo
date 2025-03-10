@@ -8,7 +8,6 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "test": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -21,16 +20,12 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@types/node": "20.14.6",
-    "connection-string": "4.4.0",
     "dotenv": "16.4.7",
-    "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pg": "8.13.1",
-    "pg-promise": "11.8.0",
-    "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "pg-promise": "11.8.0"
   },
   "devDependencies": {
     "@types/pg": "8.11.11",
@@ -39,7 +34,6 @@
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
     "tsx": "4.19.1",
-    "typescript": "5.4.5",
-    "vitest": "1.6.0"
+    "typescript": "5.4.5"
   }
 }

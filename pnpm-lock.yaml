@@ -3167,15 +3167,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      connection-string:
-        specifier: 4.4.0
-        version: 4.4.0
       dotenv:
         specifier: 16.4.7
         version: 16.4.7
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
       drizzle-orm:
         specifier: 0.39.3
         version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
@@ -3191,12 +3185,6 @@ importers:
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
     devDependencies:
       '@types/pg':
         specifier: 8.11.11
@@ -3219,9 +3207,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
 
   packages/selfcare-onboarding-consumer:
     dependencies:
