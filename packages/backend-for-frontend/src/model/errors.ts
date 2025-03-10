@@ -13,9 +13,7 @@ export const errorCodes = {
   eserviceIsNotDraft: "0004",
   attributeNotExists: "0005",
   invalidEserviceRequester: "0006",
-  missingClaim: "0007",
   tenantLoginNotAllowed: "0008",
-  tokenVerificationFailed: "0009",
   eServiceNotFound: "0010",
   tenantNotFound: "0011",
   agreementNotFound: "0012",
@@ -60,6 +58,7 @@ export const errorCodes = {
   tooManyDescriptorForInterfaceWithTemplate: "0051",
   eserviceDescriptorDraftNotFound: "0052",
   templateDataNotFound: "0053",
+  missingUserRolesInIdentityToken: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -212,14 +211,6 @@ export function attributeNotExists(id: AttributeId): ApiError<ErrorCodes> {
   });
 }
 
-export function missingClaim(claimName: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Claim ${claimName} has not been passed`,
-    code: "missingClaim",
-    title: "Claim not found",
-  });
-}
-
 export function tenantLoginNotAllowed(
   selfcareId: string
 ): ApiError<ErrorCodes> {
@@ -227,14 +218,6 @@ export function tenantLoginNotAllowed(
     detail: `Tenant origin is not allowed and SelfcareID ${selfcareId} does not belong to allow list`,
     code: "tenantLoginNotAllowed",
     title: "Tenant login not allowed",
-  });
-}
-
-export function tokenVerificationFailed(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Token verification failed",
-    code: "tokenVerificationFailed",
-    title: "Token verification failed",
   });
 }
 
@@ -533,5 +516,13 @@ export function eserviceDescriptorDraftNotFound(
     detail: `Draft descriptor not found in Eservice ${eserviceId}`,
     code: "eserviceDescriptorDraftNotFound",
     title: "EService descriptor draft not found",
+  });
+}
+
+export function missingUserRolesInIdentityToken(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Unable to extract userRoles from claims",
+    code: "missingUserRolesInIdentityToken",
+    title: "Unable to extract userRoles from claims",
   });
 }
