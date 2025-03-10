@@ -27,9 +27,9 @@ import { P, match } from "ts-pattern";
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
-const processExit = (existStatusCode: number = 1): void => {
-  genericLogger.debug(`Process exit with code ${existStatusCode}`);
-  process.exit(existStatusCode);
+const processExit = (exitStatusCode: number = 1): void => {
+  genericLogger.debug(`Process exit with code ${exitStatusCode}`);
+  process.exit(exitStatusCode);
 };
 
 const errorEventsListener = (consumerOrProducer: Consumer | Producer): void => {
