@@ -1276,7 +1276,7 @@ export function catalogServiceBuilder(
 
       const descriptorId = generateId<DescriptorId>();
 
-      const latestVersion = getLatestDescriptor(eservice.data);
+      const latestDescriptor = getLatestDescriptor(eservice.data);
       const eserviceVersion = eservice.metadata.version;
 
       const newDescriptor: Descriptor = {
@@ -1302,8 +1302,8 @@ export function catalogServiceBuilder(
         createdAt: new Date(),
         attributes: parsedAttributes,
         rejectionReasons: undefined,
-        templateVersionRef: latestVersion.templateVersionRef
-          ? { id: latestVersion.templateVersionRef.id }
+        templateVersionRef: latestDescriptor.templateVersionRef
+          ? { id: latestDescriptor.templateVersionRef.id }
           : undefined,
       };
 
