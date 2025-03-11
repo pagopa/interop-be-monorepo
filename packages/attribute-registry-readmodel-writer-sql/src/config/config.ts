@@ -1,11 +1,11 @@
 import {
   AttributeTopicConfig,
-  ReadModelWriterSQLConfig,
+  ReadModelWriterConfigSQL,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const AttributeRegistryReadModelWriterConfig =
-  ReadModelWriterSQLConfig.and(AttributeTopicConfig);
+  ReadModelWriterConfigSQL.and(AttributeTopicConfig);
 
 export type AttributeRegistryReadModelWriterConfig = z.infer<
   typeof AttributeRegistryReadModelWriterConfig
