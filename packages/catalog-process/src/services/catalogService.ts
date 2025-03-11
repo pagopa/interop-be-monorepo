@@ -1247,11 +1247,6 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(
-        eservice.data.id,
-        eservice.data.templateRef?.id
-      );
-
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
