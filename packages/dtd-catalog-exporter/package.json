@@ -20,6 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "csv-stringify": "6.5.2",
+    "csv-parse": "5.6.0",
     "dotenv-flow": "4.1.0",
     "mongodb": "6.7.0",
     "pagopa-interop-commons": "workspace:*",

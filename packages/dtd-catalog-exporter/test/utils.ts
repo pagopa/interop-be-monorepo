@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { z } from "zod";
+import { parse } from "csv-parse";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExporterService.js";
 import { config } from "../src/config/config.js";
@@ -43,7 +44,7 @@ export const dtdCatalogExporterService = dtdCatalogExporterServiceBuilder({
   loggerInstance: genericLogger,
 });
 
-export const getExportDtdPublicCatalogFromJsonResult = async (): Promise<
+export const getExportedDtdPublicCatalogFromJson = async (): Promise<
   PublicEService[]
 > => {
   const data = await fileManager.get(
@@ -55,6 +56,41 @@ export const getExportDtdPublicCatalogFromJsonResult = async (): Promise<
   return z
     .array(PublicEService)
     .parse(JSON.parse(Buffer.from(data).toString()));
+};
+
+export const getExportedDtdPublicCatalogFromCsv = async (): Promise<
+  PublicEService[]
+> => {
+  const data = await fileManager.get(
+    config.s3Bucket,
+    `${config.dtdCatalogStoragePath}/${config.dtdCatalogCsvFilename}`,
+    genericLogger
+  );
+
+  const csvContent = Buffer.from(data).toString();
+  const records = parse(csvContent, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+  });
+
+  const transformedRecords = records.map((record) => ({
+    id: record.id,
+    name: record.name,
+    description: record.description,
+    technology: record.technology,
+    producerId: record.producerId,
+    producerName: record.producerName,
+    producerExternalId: record.producerExternalId,
+    activeDescriptor: {
+      id: record.activeDescriptorId,
+      state: record.activeDescriptorState,
+      version: record.activeDescriptorVersion,
+    },
+    attributes: JSON.parse(record.attributes),
+  }));
+
+  return z.array(PublicEService).parse(transformedRecords);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {

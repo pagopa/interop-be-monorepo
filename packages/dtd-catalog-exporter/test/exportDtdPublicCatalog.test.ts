@@ -6,12 +6,14 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { Descriptor, EService, genericError } from "pagopa-interop-models";
+import { PublicEService } from "../src/models/models.js";
 import {
   addOneAttribute,
   addOneEService,
   addOneTenant,
   dtdCatalogExporterService,
-  getExportDtdPublicCatalogFromJsonResult,
+  getExportedDtdPublicCatalogFromCsv,
+  getExportedDtdPublicCatalogFromJson,
 } from "./utils.js";
 
 describe("exportDtdPublicCatalog", () => {
@@ -48,16 +50,14 @@ describe("exportDtdPublicCatalog", () => {
     await addOneAttribute(attribute3Mock);
 
     await dtdCatalogExporterService.exportDtdData();
-    const result = await getExportDtdPublicCatalogFromJsonResult();
 
-    expect(result.length).toBe(1);
-    expect(result[0]).toEqual({
+    const expectedEService: PublicEService = {
       activeDescriptor: {
         id: descriptorMock.id,
-        state: descriptorMock.state.toUpperCase(),
+        state: descriptorMock.state.toUpperCase() as "PUBLISHED" | "SUSPENDED",
         version: descriptorMock.version,
       },
-      technology: eserviceMock.technology.toUpperCase(),
+      technology: eserviceMock.technology.toUpperCase() as "REST" | "SOAP",
       producerId: producerMock.id,
       producerName: producerMock.name,
       producerExternalId: producerMock.externalId.value,
@@ -88,7 +88,17 @@ describe("exportDtdPublicCatalog", () => {
           },
         ],
       },
-    });
+    };
+
+    const jsonResult = await getExportedDtdPublicCatalogFromJson();
+    expect(jsonResult.length).toBe(1);
+    expect(jsonResult[0]).toEqual(expectedEService);
+
+    const csvResult = await getExportedDtdPublicCatalogFromCsv();
+    expect(csvResult.length).toBe(1);
+    expect(csvResult[0]).toEqual(expectedEService);
+
+    expect(csvResult).toEqual(jsonResult);
   });
 
   it("should ignore eservices with no active descriptor", async () => {
@@ -115,7 +125,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneTenant(producerMock);
 
     await dtdCatalogExporterService.exportDtdData();
-    const result = await getExportDtdPublicCatalogFromJsonResult();
+    const result = await getExportedDtdPublicCatalogFromJson();
 
     expect(result.length).toBe(1);
     expect(
