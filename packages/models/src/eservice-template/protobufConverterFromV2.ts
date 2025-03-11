@@ -74,11 +74,11 @@ export function fromEServiceTemplateRiskAnalysisV2(
   input: EServiceTemplateRiskAnalysisV2
 ): EServiceTemplateRiskAnalysis {
   return {
+    ...input,
     id: unsafeBrandId(input.id),
     createdAt: bigIntToDate(input.createdAt),
     riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
     tenantKind: fromTenantKindV2(input.tenantKind),
-    name: input.name,
   };
 }
 

@@ -504,7 +504,7 @@ async function innerCreateEService(
   seed: {
     eServiceSeed: catalogApi.EServiceSeed;
     eServiceTemplateReferences: EServiceTemplateReferences | undefined;
-    riskAnalysis?: RiskAnalysis[];
+    riskAnalysis: RiskAnalysis[] | undefined;
   },
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
@@ -807,7 +807,11 @@ export function catalogServiceBuilder(
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
       const { eService, events } = await innerCreateEService(
-        { eServiceSeed: seed, eServiceTemplateReferences: undefined },
+        {
+          eServiceSeed: seed,
+          eServiceTemplateReferences: undefined,
+          riskAnalysis: undefined,
+        },
         readModelService,
         ctx
       );
@@ -2966,20 +2970,20 @@ export function catalogServiceBuilder(
 
       const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
         .filter((r) =>
-          match(r.tenantKind)
-            .with(tenantKind.PA, () => tenant.kind === tenantKind.PA)
-            /**
-             * For now, GSP, PRIVATE and SCP tenants share the same risk analysis .
-             * This may change in the future.
-             */
+          match(tenant.kind)
+            .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
             .with(
               tenantKind.GSP,
               tenantKind.PRIVATE,
               tenantKind.SCP,
-              () =>
-                tenant.kind === tenantKind.GSP ||
-                tenant.kind === tenantKind.PRIVATE ||
-                tenant.kind === tenantKind.SCP
+              (t) =>
+                [tenantKind.GSP, tenantKind.PRIVATE, tenantKind.SCP].includes(
+                  r.tenantKind as typeof t
+                )
+              /**
+               * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
+               * This may change in the future.
+               */
             )
             .exhaustive()
         )
