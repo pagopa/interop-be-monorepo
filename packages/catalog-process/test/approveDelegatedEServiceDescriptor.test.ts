@@ -67,6 +67,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -124,6 +125,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -199,6 +201,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -245,6 +248,7 @@ describe("publish descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -265,6 +269,7 @@ describe("publish descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -291,6 +296,7 @@ describe("publish descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -323,6 +329,7 @@ describe("publish descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);

@@ -66,6 +66,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -179,6 +180,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -248,6 +250,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -323,6 +326,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -396,6 +400,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -415,6 +420,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -432,6 +438,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, descriptorIdToDelete)
@@ -458,6 +465,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -489,6 +497,7 @@ describe("delete draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -512,6 +521,7 @@ describe("delete draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

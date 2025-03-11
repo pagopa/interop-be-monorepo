@@ -69,6 +69,7 @@ describe("reject descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -110,6 +111,7 @@ describe("reject descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -131,6 +133,7 @@ describe("reject descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -159,6 +162,7 @@ describe("reject descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -193,6 +197,7 @@ describe("reject descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);

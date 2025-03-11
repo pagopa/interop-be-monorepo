@@ -67,6 +67,7 @@ describe("update Document", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -146,6 +147,7 @@ describe("update Document", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -201,6 +203,7 @@ describe("update Document", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -227,6 +230,7 @@ describe("update Document", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -260,6 +264,7 @@ describe("update Document", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -281,6 +286,7 @@ describe("update Document", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -343,6 +349,7 @@ describe("update Document", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -380,6 +387,7 @@ describe("update Document", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

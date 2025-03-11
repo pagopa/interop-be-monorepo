@@ -53,6 +53,7 @@ describe("selfcareUpsertTenant", async () => {
       correlationId,
       serviceName: "",
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastTenantEvent(mockTenant.id);
@@ -94,6 +95,7 @@ describe("selfcareUpsertTenant", async () => {
         correlationId,
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       });
       expect(id).toBeDefined();
       const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
@@ -143,6 +145,7 @@ describe("selfcareUpsertTenant", async () => {
         correlationId,
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -165,6 +168,7 @@ describe("selfcareUpsertTenant", async () => {
         correlationId,
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       selfcareIdConflict({

@@ -142,6 +142,7 @@ describe("revokeVerifiedAttribute", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -202,6 +203,7 @@ describe("revokeVerifiedAttribute", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(targetTenant.id));
@@ -235,6 +237,7 @@ describe("revokeVerifiedAttribute", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(attributeNotFound(verifiedAttribute.id));
@@ -273,6 +276,7 @@ describe("revokeVerifiedAttribute", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -296,6 +300,7 @@ describe("revokeVerifiedAttribute", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(verifiedAttributeSelfRevocationNotAllowed());
@@ -329,6 +334,7 @@ describe("revokeVerifiedAttribute", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

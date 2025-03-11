@@ -380,6 +380,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -396,6 +397,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -418,6 +420,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -446,6 +449,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -467,6 +471,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.published)
@@ -490,6 +495,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.deprecated)
@@ -513,6 +519,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.suspended)
@@ -536,6 +543,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.archived)
@@ -559,6 +567,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceDescriptorWithoutInterface(descriptor.id));
   });
@@ -584,6 +593,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantNotFound(eservice.producerId));
   });
@@ -616,6 +626,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -652,6 +663,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceRiskAnalysisIsRequired(eservice.id));
   });
@@ -699,6 +711,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(riskAnalysisNotValid());
   });
@@ -724,6 +737,7 @@ describe("publish descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(audienceCannotBeEmpty(descriptor.id));
   });

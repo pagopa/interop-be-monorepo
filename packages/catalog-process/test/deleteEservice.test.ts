@@ -196,6 +196,7 @@ describe("delete eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -208,6 +209,7 @@ describe("delete eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -229,6 +231,7 @@ describe("delete eservice", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(
         eserviceWithActiveOrPendingDelegation(mockEService.id, delegation.id)
@@ -253,6 +256,7 @@ describe("delete eservice", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).resolves.not.toThrowError(
         eserviceWithActiveOrPendingDelegation(mockEService.id, delegation.id)
@@ -283,6 +287,7 @@ describe("delete eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
