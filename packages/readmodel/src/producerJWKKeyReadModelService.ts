@@ -13,7 +13,7 @@ import {
 } from "./authorization/producerJWKKeyAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function producerJWKKeyreadModelServiceBuilder(
+export function producerJWKKeyReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
@@ -93,5 +93,5 @@ export function producerJWKKeyreadModelServiceBuilder(
 }
 
 export type ProducerJWKKeyReadModelService = ReturnType<
-  typeof producerJWKKeyreadModelServiceBuilder
+  typeof producerJWKKeyReadModelServiceBuilder
 >;
