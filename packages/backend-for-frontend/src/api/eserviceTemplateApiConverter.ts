@@ -22,6 +22,11 @@ export function toBffEServiceTemplateDetails(
   eserviceTemplate: eserviceTemplateApi.EServiceTemplate,
   creator: tenantApi.Tenant
 ): bffApi.EServiceTemplateDetails {
+  const draftVersion = eserviceTemplate.versions.find(
+    (v) =>
+      v.state === eserviceTemplateApi.EServiceTemplateVersionState.Values.DRAFT
+  );
+
   return {
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
@@ -37,6 +42,7 @@ export function toBffEServiceTemplateDetails(
       toBffCompactEServiceTemplateVersion
     ),
     isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+    draftVersion,
   };
 }
 
