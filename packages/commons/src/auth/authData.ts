@@ -116,23 +116,23 @@ const UIAuthData = z.object({
     origin: z.string(),
   }),
 });
-type UIAuthData = z.infer<typeof UIAuthData>;
+export type UIAuthData = z.infer<typeof UIAuthData>;
 
 const M2MAuthData = z.object({
   tokenType: z.literal("m2m"),
   organizationId: TenantId,
 });
-type M2MAuthData = z.infer<typeof M2MAuthData>;
+export type M2MAuthData = z.infer<typeof M2MAuthData>;
 
 const InternalAuthData = z.object({
   tokenType: z.literal("internal"),
 });
-type InternalAuthData = z.infer<typeof InternalAuthData>;
+export type InternalAuthData = z.infer<typeof InternalAuthData>;
 
 const MaintenanceAuthData = z.object({
   tokenType: z.literal("maintenance"),
 });
-type MaintenanceAuthData = z.infer<typeof MaintenanceAuthData>;
+export type MaintenanceAuthData = z.infer<typeof MaintenanceAuthData>;
 
 export const AuthData = z.union([
   UIAuthData,

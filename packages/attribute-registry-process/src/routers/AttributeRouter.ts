@@ -2,13 +2,15 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  userRoles,
   ZodiosContext,
+  authorizationRole,
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
+  assertHasTokenTypeIn,
+  assertHasTokenType,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -58,7 +60,7 @@ const attributeRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
-  } = userRoles;
+  } = authorizationRole;
   attributeRouter
     .get(
       "/attributes",
@@ -251,10 +253,13 @@ const attributeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertHasTokenTypeIn(ctx.authData, ["ui", "m2m"]);
           const attribute =
             await attributeRegistryService.createCertifiedAttribute(
               req.body,
-              ctx
+              ctx.authData,
+              ctx.logger,
+              ctx.correlationId
             );
           return res
             .status(200)
@@ -274,15 +279,17 @@ const attributeRouter = (
     )
     .post(
       "/declaredAttributes",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertHasTokenType(ctx.authData, "ui");
           const attribute =
             await attributeRegistryService.createDeclaredAttribute(
               req.body,
-              ctx
+              ctx.authData,
+              ctx.logger,
+              ctx.correlationId
             );
           return res
             .status(200)
@@ -302,15 +309,18 @@ const attributeRouter = (
     )
     .post(
       "/verifiedAttributes",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertHasTokenType(ctx.authData, "ui");
           const attribute =
             await attributeRegistryService.createVerifiedAttribute(
               req.body,
-              ctx
+              ctx.authData,
+              ctx.logger,
+              ctx.correlationId
             );
           return res
             .status(200)

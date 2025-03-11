@@ -16,14 +16,14 @@ import { AuthData, fromAppContext, userRole } from "../index.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
 
-const authorizationRole = {
+export const authorizationRole = {
   ...userRole,
   M2M_ROLE: "m2m",
   INTERNAL_ROLE: "internal",
   MAINTENANCE_ROLE: "maintenance",
 } as const;
 
-const AuthorizationRole = z.enum([
+export const AuthorizationRole = z.enum([
   Object.values(authorizationRole)[0],
   ...Object.values(authorizationRole).slice(1),
 ]);

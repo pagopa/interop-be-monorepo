@@ -5,6 +5,7 @@ import {
   jwtDecodingError,
   tokenVerificationFailed,
 } from "pagopa-interop-models";
+import { P, match } from "ts-pattern";
 import { buildJwksClients, JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
@@ -82,7 +83,14 @@ export const verifyJwtToken = async (
               unverifiedDecoded && readAuthDataFromJwtToken(unverifiedDecoded);
 
             reject(
-              tokenVerificationFailed(authData?.userId, authData?.selfcareId)
+              match(authData)
+                .with({ tokenType: "ui" }, ({ userId, selfcareId }) =>
+                  tokenVerificationFailed(userId, selfcareId)
+                )
+                .with(P.not({ tokenType: "ui" }), () =>
+                  tokenVerificationFailed(undefined, undefined)
+                )
+                .exhaustive()
             );
           } else {
             resolve({ decoded });

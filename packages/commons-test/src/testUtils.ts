@@ -125,11 +125,7 @@ export const getTenantOneCertifierFeature = (
 
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
-): AuthData => ({
-  ...generateMock(AuthData),
-  userRoles: ["admin"],
-  organizationId,
-});
+): AuthData => getMockAuthData(organizationId);
 
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
@@ -379,9 +375,10 @@ export const getMockKey = (): Key => ({
 });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  tokenType: "ui",
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: [],
+  userRoles: ["admin"],
   externalId: {
     value: "123456",
     origin: "IPA",
