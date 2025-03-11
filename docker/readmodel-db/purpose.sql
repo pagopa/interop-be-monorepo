@@ -56,13 +56,13 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version_document (
-  purpose_id UUID NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
+  purpose_id UUID UNIQUE NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   purpose_version_id UUID NOT NULL REFERENCES readmodel_purpose.purpose_version (id) ON DELETE CASCADE,
   id UUID NOT NULL,
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
-  created_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
 );
