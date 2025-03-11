@@ -118,6 +118,7 @@ describe.each([
       logger: genericLogger,
       correlationId: generateId(),
       serviceName: "DelegationServiceTest",
+      requestTimestamp: Date.now(),
     });
 
     const event = await readLastDelegationEvent(existentDelegation.id);
@@ -214,6 +215,7 @@ describe.each([
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "DelegationServiceTest",
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrow(delegationNotFound(delegationId, kind));
   });
@@ -236,6 +238,7 @@ describe.each([
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
   });
@@ -260,6 +263,7 @@ describe.each([
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "DelegationServiceTest",
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrow(
       operationRestrictedToDelegator(delegatorId, delegationId)
@@ -289,6 +293,7 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrow(
         incorrectState(

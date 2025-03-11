@@ -50,6 +50,7 @@ describe("database test", () => {
               correlationId: generateId(),
               logger: genericLogger,
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           );
         expect(attribute).toBeDefined();
@@ -97,6 +98,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
@@ -119,6 +121,7 @@ describe("database test", () => {
               correlationId: generateId(),
               logger: genericLogger,
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           )
         ).rejects.toThrowError(
@@ -139,6 +142,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           );
         expect(attribute).toBeDefined();
@@ -186,6 +190,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
@@ -208,6 +213,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           )
         ).rejects.toThrowError(
@@ -241,6 +247,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           );
         expect(attribute).toBeDefined();
@@ -302,6 +309,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           )
         ).rejects.toThrowError(
@@ -326,6 +334,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
@@ -344,6 +353,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
@@ -376,6 +386,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           );
         expect(attribute).toBeDefined();
@@ -438,6 +449,7 @@ describe("database test", () => {
               logger: genericLogger,
               correlationId: generateId(),
               serviceName: "",
+              requestTimestamp: Date.now(),
             }
           )
         ).rejects.toThrowError(

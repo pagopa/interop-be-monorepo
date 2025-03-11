@@ -68,6 +68,7 @@ describe("create consumer delegation", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eserviceNotConsumerDelegable(eservice.id));
@@ -125,6 +126,7 @@ describe("create consumer delegation", () => {
             logger: genericLogger,
             correlationId: generateId(),
             serviceName: "DelegationServiceTest",
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
