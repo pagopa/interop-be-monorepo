@@ -123,31 +123,31 @@ export const aggregateAgreement = ({
   } = stampsSQL.reduce(
     (acc: { [key in AgreementStampKind]?: AgreementStampSQL }, stamp) =>
       match(stamp.kind)
-        .with(agreementStampKind.submission, () => ({
+        .with(agreementStampKind.enum.submission, () => ({
           ...acc,
           submission: stamp,
         }))
-        .with(agreementStampKind.activation, () => ({
+        .with(agreementStampKind.enum.activation, () => ({
           ...acc,
           activation: stamp,
         }))
-        .with(agreementStampKind.rejection, () => ({
+        .with(agreementStampKind.enum.rejection, () => ({
           ...acc,
           rejection: stamp,
         }))
-        .with(agreementStampKind.suspensionByProducer, () => ({
+        .with(agreementStampKind.enum.suspensionByProducer, () => ({
           ...acc,
           suspensionByProducer: stamp,
         }))
-        .with(agreementStampKind.suspensionByConsumer, () => ({
+        .with(agreementStampKind.enum.suspensionByConsumer, () => ({
           ...acc,
           suspensionByConsumer: stamp,
         }))
-        .with(agreementStampKind.upgrade, () => ({
+        .with(agreementStampKind.enum.upgrade, () => ({
           ...acc,
           upgrade: stamp,
         }))
-        .with(agreementStampKind.archiving, () => ({
+        .with(agreementStampKind.enum.archiving, () => ({
           ...acc,
           archiving: stamp,
         }))
