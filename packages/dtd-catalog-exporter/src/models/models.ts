@@ -1,3 +1,4 @@
+import { AttributeKind, TenantId } from "pagopa-interop-models";
 import { z } from "zod";
 
 const PublicEServiceAttribute = z.object({
@@ -73,3 +74,25 @@ export const FlattenedPublicEService = z.object({
   activeDescriptorVersion: z.string(),
 });
 export type FlattenedPublicEService = z.infer<typeof FlattenedPublicEService>;
+
+export const PublicTenantAttribute = z.object({
+  name: z.string(),
+  type: AttributeKind,
+});
+export type PublicTenantAttribute = z.infer<typeof PublicTenantAttribute>;
+
+export const PublicTenant = z.object({
+  id: TenantId,
+  name: z.string(),
+  externalId: z.string(),
+  attributes: z.array(PublicTenantAttribute),
+});
+export type PublicTenant = z.infer<typeof PublicTenant>;
+
+export const FlattenedPublicTenant = z.object({
+  id: TenantId,
+  name: z.string(),
+  externalId: z.string(),
+  attributes: z.string(),
+});
+export type FlattenedPublicTenant = z.infer<typeof FlattenedPublicTenant>;

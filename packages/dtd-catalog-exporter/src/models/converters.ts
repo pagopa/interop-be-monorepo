@@ -6,12 +6,15 @@ import {
   genericError,
 } from "pagopa-interop-models";
 import { getLatestActiveDescriptor } from "../utils/utils.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   PublicEService,
   PublicEServiceAttribute,
   PublicEServiceAttributeGroup,
   PublicEServiceAttributes,
   PublicEServiceAttributeSingle,
+  PublicTenant,
+  PublicTenantAttribute,
 } from "./models.js";
 
 export function toPublicEService(
@@ -93,5 +96,29 @@ function toPublicAttributes(
     declared: declared.map((att) =>
       toPublicAttributesGroup(att, attributesMap)
     ),
+  };
+}
+
+function toPublicTenantAttribute(
+  attribute: AttributeReadmodel
+): PublicTenantAttribute {
+  return {
+    name: attribute.name,
+    type: attribute.kind,
+  };
+}
+
+export async function toPublicTenant(
+  tenant: TenantReadModel,
+  readModelService: ReturnType<typeof readModelServiceBuilder>
+): Promise<PublicTenant> {
+  const attributesIds = tenant.attributes.map((attr) => attr.id);
+  const tenantAttributes = await readModelService.getAttributes(attributesIds);
+
+  return {
+    id: tenant.id,
+    name: tenant.name,
+    externalId: tenant.externalId.value,
+    attributes: tenantAttributes.map(toPublicTenantAttribute),
   };
 }

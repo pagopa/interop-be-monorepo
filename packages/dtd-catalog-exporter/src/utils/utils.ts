@@ -44,7 +44,7 @@ export function getAllTenantsIds(eservices: EServiceReadModel[]): TenantId[] {
  * @param eservices - The array of eservices
  * @returns The array of attributes ids
  */
-export function getAllAttributesIds(
+export function getAllEservicesAttributesIds(
   eservices: EServiceReadModel[]
 ): AttributeId[] {
   const attributesIds: Set<AttributeId> = new Set();

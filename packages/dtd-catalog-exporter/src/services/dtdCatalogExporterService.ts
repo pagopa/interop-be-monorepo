@@ -3,9 +3,17 @@
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { stringify } from "csv-stringify/sync";
 import { config } from "../config/config.js";
-import { toPublicEService } from "../models/converters.js";
-import { getAllAttributesIds, getAllTenantsIds } from "../utils/utils.js";
-import { FlattenedPublicEService, PublicEService } from "../models/models.js";
+import { toPublicEService, toPublicTenant } from "../models/converters.js";
+import {
+  getAllEservicesAttributesIds,
+  getAllTenantsIds,
+} from "../utils/utils.js";
+import {
+  PublicTenant,
+  FlattenedPublicEService,
+  PublicEService,
+  FlattenedPublicTenant,
+} from "../models/models.js";
 import { readModelServiceBuilder } from "./readModelService.js";
 
 export function dtdCatalogExporterServiceBuilder({
@@ -17,17 +25,20 @@ export function dtdCatalogExporterServiceBuilder({
   fileManager: FileManager;
   loggerInstance: Logger;
 }) {
-  const getPublicEServices = async (): Promise<PublicEService[]> => {
+  const getPublicEServicesAndTenants = async (): Promise<{
+    eservices: PublicEService[];
+    tenants: PublicTenant[];
+  }> => {
     loggerInstance.info("Getting e-services from read-model...");
     const eservices = await readModelService.getActiveEServices();
 
     loggerInstance.info(
       "Getting e-service's tenants and attributes data from database..."
     );
-    const eserviceAttributeIds = getAllAttributesIds(eservices);
+    const eserviceAttributeIds = getAllEservicesAttributesIds(eservices);
     const tenantIds = getAllTenantsIds(eservices);
 
-    const attributes = await readModelService.getEServicesAttributes(
+    const attributes = await readModelService.getAttributes(
       eserviceAttributeIds
     );
     const attributesMap = new Map(attributes.map((attr) => [attr.id, attr]));
@@ -38,12 +49,41 @@ export function dtdCatalogExporterServiceBuilder({
     loggerInstance.info("Data successfully fetched!\n");
     loggerInstance.info("Remapping e-services to public e-services...\n");
 
-    return eservices.map((eservice) =>
+    const publicEservices = eservices.map((eservice) =>
       toPublicEService(eservice, attributesMap, tenantsMap)
     );
+
+    const publicTenants = await Promise.all(
+      Array.from(tenantsMap.values()).map(
+        async (tenant) => await toPublicTenant(tenant, readModelService)
+      )
+    );
+
+    return {
+      eservices: publicEservices,
+      tenants: publicTenants,
+    };
   };
 
-  const convertToCSV = (publicEServices: PublicEService[]): string => {
+  const convertTenantsToCSV = (tenants: PublicTenant[]): string => {
+    const records: FlattenedPublicTenant[] = tenants.map((tenant) => ({
+      id: tenant.id,
+      name: tenant.name,
+      externalId: tenant.externalId,
+      attributes: JSON.stringify(tenant.attributes),
+    }));
+
+    const columns: Array<keyof FlattenedPublicTenant> = [
+      "id",
+      "name",
+      "externalId",
+      "attributes",
+    ];
+
+    return stringify(records, { header: true, columns });
+  };
+
+  const convertEservicesToCSV = (publicEServices: PublicEService[]): string => {
     const records: FlattenedPublicEService[] = publicEServices.map(
       (service) => ({
         id: service.id,
@@ -77,33 +117,45 @@ export function dtdCatalogExporterServiceBuilder({
     return stringify(records, { header: true, columns });
   };
 
-  const convertToJSON = (publicEServices: PublicEService[]): string =>
+  const convertEservicesToJSON = (publicEServices: PublicEService[]): string =>
     JSON.stringify(publicEServices);
 
   return {
     async exportDtdData(): Promise<void> {
-      const publicEServices = await getPublicEServices();
+      const { eservices, tenants } = await getPublicEServicesAndTenants();
 
-      loggerInstance.info("\nUploading JSON result to S3 bucket...");
-      const jsonContent = convertToJSON(publicEServices);
+      loggerInstance.info("\nUploading Eservices JSON result to S3 bucket...");
+      const eservicesJsonContent = convertEservicesToJSON(eservices);
       await fileManager.storeBytes(
         {
           bucket: config.s3Bucket,
           path: config.dtdCatalogStoragePath,
           name: config.dtdCatalogJsonFilename,
-          content: Buffer.from(jsonContent),
+          content: Buffer.from(eservicesJsonContent),
         },
         loggerInstance
       );
 
-      loggerInstance.info("\nUploading CSV result to S3 bucket...");
-      const csvContent = convertToCSV(publicEServices);
+      loggerInstance.info("\nUploading Eservices CSV result to S3 bucket...");
+      const eservicesCsvContent = convertEservicesToCSV(eservices);
       await fileManager.storeBytes(
         {
           bucket: config.s3Bucket,
           path: config.dtdCatalogStoragePath,
           name: config.dtdCatalogCsvFilename,
-          content: Buffer.from(csvContent),
+          content: Buffer.from(eservicesCsvContent),
+        },
+        loggerInstance
+      );
+
+      loggerInstance.info("\nUploading Tenants CSV result to S3 bucket...");
+      const tenantsCsvContent = convertTenantsToCSV(tenants);
+      await fileManager.storeBytes(
+        {
+          bucket: config.s3Bucket,
+          path: config.dtdCatalogStoragePath,
+          name: config.dtdTenantsCsvFilename,
+          content: Buffer.from(tenantsCsvContent),
         },
         loggerInstance
       );

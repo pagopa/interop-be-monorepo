@@ -15,11 +15,13 @@ const DtdCatalogExporterConfig = ReadModelDbConfig.and(FileManagerConfig)
         DTD_CATALOG_STORAGE_PATH: z.string(),
         DTD_CATALOG_JSON_FILENAME: z.string(),
         DTD_CATALOG_CSV_FILENAME: z.string(),
+        DTD_TENANTS_CSV_FILENAME: z.string(),
       })
       .transform((c) => ({
         dtdCatalogStoragePath: c.DTD_CATALOG_STORAGE_PATH,
         dtdCatalogJsonFilename: c.DTD_CATALOG_JSON_FILENAME,
         dtdCatalogCsvFilename: c.DTD_CATALOG_CSV_FILENAME,
+        dtdTenantsCsvFilename: c.DTD_TENANTS_CSV_FILENAME,
       }))
   );
 
