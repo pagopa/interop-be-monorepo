@@ -5546,6 +5546,7 @@ paths:
       summary: Upgrade an instance of a template
       operationId: upgradeEServiceInstance
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - name: eServiceId
           in: path
           description: the eservice id
