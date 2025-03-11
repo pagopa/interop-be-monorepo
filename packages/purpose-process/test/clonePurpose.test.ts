@@ -536,6 +536,45 @@ describe("clonePurpose", async () => {
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
+  it("should throw purposeCannotBeCloned if the purpose is in archived (archived version)", async () => {
+    const mockTenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+    const mockEService = getMockEService();
+
+    const mockAgreement = getMockAgreement(
+      mockEService.id,
+      mockTenant.id,
+      agreementState.active
+    );
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      consumerId: mockTenant.id,
+      versions: [getMockPurposeVersion(purposeVersionState.archived)],
+    };
+
+    await addOnePurpose(mockPurpose);
+    await addOneTenant(mockTenant);
+    await addOneAgreement(mockAgreement);
+
+    expect(
+      purposeService.clonePurpose({
+        purposeId: mockPurpose.id,
+        seed: {
+          eserviceId: mockEService.id,
+        },
+        ctx: {
+          authData: getMockAuthData(mockTenant.id),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "test",
+        },
+      })
+    ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
+  });
   it("should throw duplicatedPurposeTitle if a purpose with the same name already exists", async () => {
     const mockTenant = {
       ...getMockTenant(),
