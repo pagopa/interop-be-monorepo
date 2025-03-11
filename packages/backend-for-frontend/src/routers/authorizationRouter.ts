@@ -57,7 +57,7 @@ const authorizationRouter = (
           .status(200)
           .send(bffApi.SessionToken.parse(result.sessionToken));
       } catch (error) {
-        const err = makeApiProblem(
+        const errorRes = makeApiProblem(
           error,
           sessionTokenErrorMapper,
           ctx.logger,
@@ -65,7 +65,7 @@ const authorizationRouter = (
           "Error creating a session token"
         );
 
-        return res.status(err.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/support", async (req, res) => {
