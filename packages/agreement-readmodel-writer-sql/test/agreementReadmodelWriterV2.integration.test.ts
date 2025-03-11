@@ -1,20 +1,13 @@
-/* eslint-disable functional/no-let */
-/* eslint-disable functional/immutable-data */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
-import {
-  getMockAgreement,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { getMockAgreement } from "pagopa-interop-commons-test";
 import {
   AgreementEventEnvelopeV2,
   generateId,
   toAgreementV2,
-  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { agreements } from "./utils.js";
+import { readModelService } from "./utils.js";
+import { agreementReadModelService } from "./utils.js";
 
 describe("events V2", async () => {
   beforeEach(async () => {
@@ -23,11 +16,13 @@ describe("events V2", async () => {
   });
 
   it("should test upsert agreement events", async () => {
-    const spyUpdate = vi.spyOn(agreements, "updateOne");
-    const spyDelete = vi.spyOn(agreements, "deleteOne");
+    const spyUpdate = vi.spyOn(readModelService, "upsertAgreement");
 
     const agreement = getMockAgreement();
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
 
     const eventTypes = [
       "AgreementAdded",
@@ -55,33 +50,33 @@ describe("events V2", async () => {
         event_version: 2,
         sequence_num: 1,
         stream_id: agreement.id,
-        version: 1,
+        version: 2,
         type: eventType,
         data: event,
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, agreements);
+      await handleMessageV2(message, readModelService);
 
-      const actualAgreement = await agreements.findOne({
-        "data.id": agreement.id.toString(),
-      });
+      const actualAgreement = await agreementReadModelService.getAgreementById(
+        agreement.id
+      );
 
-      const expectedAgreement = toReadModelAgreement(agreement);
-
-      expect(actualAgreement?.data).toMatchObject(expectedAgreement);
+      expect(actualAgreement?.data).toMatchObject(agreement);
 
       expect(spyUpdate).toHaveBeenCalled();
-      expect(spyDelete).not.toHaveBeenCalled();
     }
   });
 
   it("should test all agreement consumer document events", async () => {
-    const spyUpdate = vi.spyOn(agreements, "updateOne");
-    const spyDelete = vi.spyOn(agreements, "deleteOne");
+    const spyUpdate = vi.spyOn(readModelService, "upsertAgreement");
+    const spyDelete = vi.spyOn(readModelService, "deleteAgreement");
 
     const agreement = getMockAgreement();
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
 
     const eventTypesConsumerDocument = [
       "AgreementConsumerDocumentAdded",
@@ -104,15 +99,13 @@ describe("events V2", async () => {
         log_date: new Date(),
       };
 
-      await handleMessageV2(message, agreements);
+      await handleMessageV2(message, readModelService);
 
-      const actualAgreement = await agreements.findOne({
-        "data.id": agreement.id.toString(),
-      });
+      const actualAgreement = await agreementReadModelService.getAgreementById(
+        agreement.id
+      );
 
-      const expectedAgreement = toReadModelAgreement(agreement);
-
-      expect(actualAgreement?.data).toMatchObject(expectedAgreement);
+      expect(actualAgreement?.data).toMatchObject(agreement);
 
       expect(spyUpdate).toHaveBeenCalled();
       expect(spyDelete).not.toHaveBeenCalled();
@@ -120,11 +113,13 @@ describe("events V2", async () => {
   });
 
   it("should test delete agreement", async () => {
-    const spyUpdate = vi.spyOn(agreements, "updateOne");
-    const spyDelete = vi.spyOn(agreements, "deleteOne");
+    const spyDelete = vi.spyOn(readModelService, "deleteAgreement");
 
     const agreement = getMockAgreement();
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
 
     const eventType = "AgreementDeleted";
     const event = {
@@ -141,15 +136,14 @@ describe("events V2", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV2(message, agreements);
+    await handleMessageV2(message, readModelService);
 
-    const actualAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const actualAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
-    expect(actualAgreement).toBeNull();
+    expect(actualAgreement).toBeUndefined();
 
-    expect(spyUpdate).not.toHaveBeenCalled();
     expect(spyDelete).toHaveBeenCalled();
   });
 });

@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { generateMock } from "@anatine/zod-mock";
-import {
-  getMockAgreement,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { getMockAgreement } from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementActivatedV1,
@@ -18,13 +13,13 @@ import {
   AgreementDeletedV1,
   AgreementDocument,
   AgreementEventEnvelope,
+  AgreementId,
   AgreementStateV1,
   AgreementSuspendedV1,
   AgreementUpdatedV1,
   agreementState,
   fromAgreementV1,
   generateId,
-  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
@@ -32,11 +27,11 @@ import {
   toAgreementV1,
 } from "pagopa-interop-commons-test";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
-import { agreements } from "./utils.js";
+import { agreementReadModelService, readModelService } from "./utils.js";
 
 describe("events V1", async () => {
   it("should create an agreement", async () => {
-    const id = generateId();
+    const id = generateId<AgreementId>();
     const newAgreement: AgreementAddedV1 = {
       agreement: {
         id,
@@ -61,21 +56,19 @@ describe("events V1", async () => {
       data: newAgreement,
       log_date: new Date(),
     };
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const agreement = await agreements.findOne({
-      "data.id": id.toString(),
-    });
+    const agreement = await agreementReadModelService.getAgreementById(id);
 
-    expect(agreement?.data).toEqual(
-      toReadModelAgreement(fromAgreementV1(newAgreement.agreement!))
-    );
+    expect(agreement?.data).toEqual(fromAgreementV1(newAgreement.agreement!));
   });
 
   it("should delete an agreement", async () => {
     const agreement = getMockAgreement();
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const agreementDeleted: AgreementDeletedV1 = {
       agreementId: agreement.id,
     };
@@ -90,19 +83,21 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const actualAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const actualAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
-    expect(actualAgreement).toBeNull();
+    expect(actualAgreement).toBeUndefined();
   });
 
   it("should update an agreement", async () => {
     const agreement = getMockAgreement();
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const agreementUpdated: AgreementUpdatedV1 = {
       agreement: {
         id: agreement.id,
@@ -129,23 +124,25 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const actualAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const actualAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
     expect(actualAgreement).not.toBeNull();
 
     expect(actualAgreement?.data).toEqual(
-      toReadModelAgreement(fromAgreementV1(agreementUpdated.agreement!))
+      fromAgreementV1(agreementUpdated.agreement!)
     );
   });
 
   it("should add a consumer document to an agreement", async () => {
     const agreement = getMockAgreement();
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const agreementConsumerDocument = generateMock(AgreementDocument);
 
     const consumerDocumentAdded: AgreementConsumerDocumentAddedV1 = {
@@ -163,23 +160,21 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const actualAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const actualAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
     expect(actualAgreement).not.toBeNull();
 
-    expect(actualAgreement?.data).toMatchObject(
-      toReadModelAgreement({
-        ...agreement,
-        consumerDocuments: [
-          ...agreement.consumerDocuments,
-          agreementConsumerDocument,
-        ],
-      })
-    );
+    expect(actualAgreement?.data).toMatchObject({
+      ...agreement,
+      consumerDocuments: [
+        ...agreement.consumerDocuments,
+        agreementConsumerDocument,
+      ],
+    });
   });
 
   it("should remove a consumer document from an agreement", async () => {
@@ -188,8 +183,10 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       consumerDocuments: [agreementConsumerDocument],
     };
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const consumerDocumentRemoved: AgreementConsumerDocumentRemovedV1 = {
       documentId: agreementConsumerDocument.id,
       agreementId: agreement.id,
@@ -205,11 +202,11 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const actualAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const actualAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
     expect(actualAgreement).not.toBeNull();
 
@@ -221,8 +218,10 @@ describe("events V1", async () => {
   it("should add an agreement contract", async () => {
     const agreementContract = generateMock(AgreementDocument);
     const agreement = getMockAgreement();
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const agreementContractAdded: AgreementContractAddedV1 = {
       contract: toAgreementDocumentV1(agreementContract),
       agreementId: agreement.id,
@@ -238,20 +237,17 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const actualAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
-
+    const actualAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
     expect(actualAgreement).not.toBeNull();
 
-    expect(actualAgreement?.data).toMatchObject(
-      toReadModelAgreement({
-        ...agreement,
-        contract: agreementContract,
-      })
-    );
+    expect(actualAgreement?.data).toMatchObject({
+      ...agreement,
+      contract: agreementContract,
+    });
   });
 
   it("should activate an agreement", async () => {
@@ -259,8 +255,10 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.pending,
     };
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const activatedAgreement: Agreement = {
       ...agreement,
       state: agreementState.active,
@@ -279,17 +277,15 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const retrievedAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
     expect(retrievedAgreement).not.toBeNull();
 
-    expect(retrievedAgreement?.data).toEqual(
-      toReadModelAgreement(activatedAgreement)
-    );
+    expect(retrievedAgreement?.data).toEqual(activatedAgreement);
   });
 
   it("should suspend an agreement", async () => {
@@ -297,8 +293,10 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const suspendedAgreement: Agreement = {
       ...agreement,
       state: agreementState.active,
@@ -317,17 +315,15 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const retrievedAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
     expect(retrievedAgreement).not.toBeNull();
 
-    expect(retrievedAgreement?.data).toEqual(
-      toReadModelAgreement(suspendedAgreement)
-    );
+    expect(retrievedAgreement?.data).toEqual(suspendedAgreement);
   });
 
   it("should deactivate an agreement", async () => {
@@ -335,8 +331,10 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const deactivatedAgreement: Agreement = {
       ...agreement,
       state: agreementState.active,
@@ -355,17 +353,15 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const retrievedAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
     expect(retrievedAgreement).not.toBeNull();
 
-    expect(retrievedAgreement?.data).toEqual(
-      toReadModelAgreement(deactivatedAgreement)
-    );
+    expect(retrievedAgreement?.data).toMatchObject(deactivatedAgreement);
   });
 
   it("should update the verified attributes of an agreement", async () => {
@@ -373,8 +369,10 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-
+    await readModelService.upsertAgreement({
+      data: agreement,
+      metadata: { version: 1 },
+    });
     const updatedAgreement: Agreement = {
       ...agreement,
       verifiedAttributes: [{ id: generateId() }],
@@ -393,16 +391,14 @@ describe("events V1", async () => {
       log_date: new Date(),
     };
 
-    await handleMessageV1(message, agreements);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedAgreement = await agreements.findOne({
-      "data.id": agreement.id.toString(),
-    });
+    const retrievedAgreement = await agreementReadModelService.getAgreementById(
+      agreement.id
+    );
 
     expect(retrievedAgreement).not.toBeNull();
 
-    expect(retrievedAgreement?.data).toEqual(
-      toReadModelAgreement(updatedAgreement)
-    );
+    expect(retrievedAgreement?.data).toEqual(updatedAgreement);
   });
 });

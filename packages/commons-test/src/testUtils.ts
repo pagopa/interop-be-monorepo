@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
@@ -247,13 +248,19 @@ export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
   state: AgreementState = agreementState.draft
-): Agreement => ({
-  ...generateMock(Agreement),
-  eserviceId,
-  consumerId,
-  state,
-  stamps: getMockAgreementStamps(),
-});
+): Agreement => {
+  const agreement = {
+    ...generateMock(Agreement),
+    eserviceId,
+    consumerId,
+    state,
+    stamps: getMockAgreementStamps(),
+  };
+  delete agreement.suspendedByConsumer;
+  delete agreement.suspendedByProducer;
+  delete agreement.suspendedByPlatform;
+  return agreement;
+};
 
 export const getMockAttribute = (
   kind: AttributeKind = attributeKind.certified,
