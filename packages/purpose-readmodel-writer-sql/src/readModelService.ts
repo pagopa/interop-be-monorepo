@@ -114,6 +114,7 @@ export type CustomReadModelService = ReturnType<
   typeof customReadModelServiceBuilder
 >;
 
+// TODO: import this after merging
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
 export type TransactionType = Parameters<
   Parameters<DrizzleReturnType["transaction"]>[0]
