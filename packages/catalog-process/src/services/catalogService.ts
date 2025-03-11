@@ -137,7 +137,10 @@ import {
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
-import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
+import {
+  getLatestDescriptor,
+  nextDescriptorVersion,
+} from "../utilities/versionGenerator.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDocumentDeletableDescriptorState,
@@ -1273,7 +1276,9 @@ export function catalogServiceBuilder(
 
       const descriptorId = generateId<DescriptorId>();
 
+      const latestVersion = getLatestDescriptor(eservice.data);
       const eserviceVersion = eservice.metadata.version;
+
       const newDescriptor: Descriptor = {
         id: descriptorId,
         description: eserviceDescriptorSeed.description,
@@ -1297,6 +1302,9 @@ export function catalogServiceBuilder(
         createdAt: new Date(),
         attributes: parsedAttributes,
         rejectionReasons: undefined,
+        templateVersionRef: latestVersion.templateVersionRef
+          ? { id: latestVersion.templateVersionRef.id }
+          : undefined,
       };
 
       const newEservice: EService = {
@@ -2858,6 +2866,7 @@ export function catalogServiceBuilder(
         (max, version) => (version.version > max.version ? version : max),
         template.versions[0]
       );
+
       if (
         eservice.data.descriptors.some(
           (d) => d.templateVersionRef?.id === lastVersion.id
