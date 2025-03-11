@@ -194,7 +194,8 @@ describe("E-service queries", () => {
         }));
       const expectedRiskAnalysisAnswersSQL = generateRiskAnalysisAnswersSQL(
         eservice.data.id,
-        riskAnalyses
+        riskAnalyses,
+        eservice.metadata.version
       );
 
       expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
