@@ -29,6 +29,7 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       } = splitPurposeIntoObjectsSQL(purpose.data, purpose.metadata.version);
 
       await db.transaction(async (tx) => {
+        // TODO: add version checking "lte"
         await tx
           .delete(purposeInReadmodelPurpose)
           .where(eq(purposeInReadmodelPurpose.id, purpose.data.id));
