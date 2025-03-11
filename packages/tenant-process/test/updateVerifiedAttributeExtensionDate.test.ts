@@ -70,7 +70,6 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
           logger: genericLogger,
           serviceName: "",
           authData: getMockAuthData(),
-          requestTimestamp: Date.now(),
         }
       );
     const writtenEvent = await readLastTenantEvent(tenant.id);
@@ -117,7 +116,6 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
           logger: genericLogger,
           serviceName: "",
           authData: getMockAuthData(),
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
@@ -156,7 +154,6 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
           logger: genericLogger,
           serviceName: "",
           authData: getMockAuthData(),
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -181,7 +178,6 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
           logger: genericLogger,
           serviceName: "",
           authData: getMockAuthData(),
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -202,7 +198,6 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
           logger: genericLogger,
           serviceName: "",
           authData: getMockAuthData(),
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

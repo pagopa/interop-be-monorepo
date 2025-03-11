@@ -154,7 +154,6 @@ describe("create agreement", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -217,7 +216,6 @@ describe("create agreement", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -299,7 +297,6 @@ describe("create agreement", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -341,7 +338,6 @@ describe("create agreement", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -391,7 +387,6 @@ describe("create agreement", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -438,7 +433,6 @@ describe("create agreement", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -467,7 +461,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(unsafeBrandId(eserviceId)));
@@ -493,7 +486,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -540,7 +532,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -583,7 +574,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -624,7 +614,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
@@ -680,7 +669,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(agreementAlreadyExists(delegator.id, eservice.id));
@@ -711,7 +699,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(consumer.id));
@@ -762,7 +749,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -824,7 +810,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -861,7 +846,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -900,7 +884,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
@@ -934,7 +917,6 @@ describe("create agreement", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

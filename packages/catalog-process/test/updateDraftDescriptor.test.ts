@@ -98,7 +98,6 @@ describe("update draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -177,7 +176,6 @@ describe("update draft descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -210,7 +208,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -233,7 +230,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -263,7 +259,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -293,7 +288,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -323,7 +317,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -353,7 +346,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -386,7 +378,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -425,7 +416,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -457,7 +447,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
@@ -521,7 +510,6 @@ describe("update draft descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));

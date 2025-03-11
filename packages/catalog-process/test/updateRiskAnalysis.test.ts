@@ -110,7 +110,6 @@ describe("update risk analysis", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -236,7 +235,6 @@ describe("update risk analysis", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -314,7 +312,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -331,7 +328,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -356,7 +352,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -383,7 +378,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
@@ -411,7 +405,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eserviceNotInReceiveMode(eservice.id));
@@ -439,7 +432,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(eservice.producerId));
@@ -475,7 +467,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
@@ -515,7 +506,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -570,7 +560,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -635,7 +624,6 @@ describe("update risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

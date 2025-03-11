@@ -138,7 +138,6 @@ describe("activate descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -156,7 +155,6 @@ describe("activate descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -180,7 +178,6 @@ describe("activate descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -210,7 +207,6 @@ describe("activate descriptor", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -239,7 +235,6 @@ describe("activate descriptor", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

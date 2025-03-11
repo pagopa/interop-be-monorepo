@@ -104,7 +104,6 @@ describe("m2mUpsertTenant", async () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
-      requestTimestamp: Date.now(),
     });
     const writtenEvent = await readEventByStreamIdAndVersion(
       mockTenant.id,
@@ -254,7 +253,6 @@ describe("m2mUpsertTenant", async () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
-      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastTenantEvent(tenant.id);
@@ -336,7 +334,6 @@ describe("m2mUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(attribute.id, tenantAlreadyAssigned.id)
@@ -356,7 +353,6 @@ describe("m2mUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantNotFound(authData.organizationId));
   });
@@ -400,7 +396,6 @@ describe("m2mUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
@@ -438,7 +433,6 @@ describe("m2mUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       attributeNotFound(
@@ -461,7 +455,6 @@ describe("m2mUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
   });
