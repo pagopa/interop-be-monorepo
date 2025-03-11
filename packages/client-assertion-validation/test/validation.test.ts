@@ -320,16 +320,9 @@ describe("validation test", async () => {
 
     it("unexpectedClientAssertionPayload", async () => {
       const { keySet } = generateKeySet();
-      const kid = generateId();
-      // const options: jsonwebtoken.SignOptions = {
-      //   header: {
-      //     kid: generateId(),
-      //     alg: "RS256",
-      //   },
-      // };
 
       const jws = await new SignJWT({ val: "actualPayload" })
-        .setProtectedHeader({ kid, alg: "RS256" })
+        .setProtectedHeader({ kid: generateId(), alg: "RS256" })
         .setJti(generateId())
         .setIssuedAt(new Date())
         .setExpirationTime("1h")

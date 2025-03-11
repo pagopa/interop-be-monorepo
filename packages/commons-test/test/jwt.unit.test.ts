@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 import { JWTPayload, SignJWT, decodeJwt } from "jose";
 import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
 import { invalidClaim } from "pagopa-interop-models";
@@ -103,8 +102,6 @@ const getMockSignedToken = async (token: JWTPayload): Promise<JWTPayload> => {
   const signedJwt = await new SignJWT(token)
     .setProtectedHeader({ alg: "HS256" })
     .sign(new TextEncoder().encode("test-secret"));
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return decodeJwt(signedJwt);
 };
 
