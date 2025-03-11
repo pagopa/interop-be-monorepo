@@ -7,9 +7,11 @@ import {
 } from "jose";
 import {
   invalidClaim,
+  jwkDecodingError,
   jwtDecodingError,
   tokenVerificationFailed,
 } from "pagopa-interop-models";
+import { JOSEError } from "jose/errors";
 import { JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
@@ -50,19 +52,30 @@ export const verifyJwtToken = async (
       throw invalidClaim("kid");
     }
 
-    // TODO multiple jwks??
-    const jwksURL = config.wellKnownUrls[0];
+    const jwksClients = config.wellKnownUrls.map((url) =>
+      createRemoteJWKSet(new URL(url))
+    );
 
-    const jwks = createRemoteJWKSet(new URL(jwksURL));
-
-    await jwtVerify(jwtToken, jwks, {
-      audience: acceptedAudiences,
-    });
-    const decoded = decodeJwtToken(jwtToken, logger);
-    if (!decoded) {
-      throw new Error("Decoding error");
+    for (const jwksClient of jwksClients) {
+      try {
+        await jwtVerify(jwtToken, jwksClient, {
+          audience: acceptedAudiences,
+        });
+        const decoded = decodeJwtToken(jwtToken, logger);
+        if (!decoded) {
+          throw jwkDecodingError("Empty decoded token");
+        }
+        return { decoded };
+      } catch (error) {
+        if (error instanceof JOSEError) {
+          throw error;
+        } else {
+          logger.debug(`Skip Jwks client: ${error}`);
+          continue;
+        }
+      }
     }
-    return { decoded };
+    throw new Error("Impossible error");
   } catch (error) {
     logger.warn(`Token verification failed: ${error}`);
 
