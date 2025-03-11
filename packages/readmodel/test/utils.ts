@@ -128,10 +128,12 @@ export const initMockPurpose = (
       }
     : {};
   const purpose: WithMetadata<Purpose> = {
-    ...purposeBeforeUpdate,
     data: {
       ...purposeBeforeUpdate.data,
       ...purposeOptionalFields,
+    },
+    metadata: {
+      version: 2,
     },
   };
 
