@@ -36,7 +36,7 @@ const redisRateLimiter = await initRedisRateLimiter({
 app.disable("x-powered-by");
 
 app.use(loggerMiddleware(serviceName));
-app.use();
+
 app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
