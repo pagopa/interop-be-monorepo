@@ -22,6 +22,22 @@ export function customReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>,
   purposeReadModelService: PurposeReadModelService
 ) {
+  const updateMetadataVersionInPurposeTable = async (
+    tx: TransactionType,
+    purposeId: PurposeId,
+    newMetadataVersion: number
+  ): Promise<void> => {
+    await tx
+      .update(purposeInReadmodelPurpose)
+      .set({ metadataVersion: newMetadataVersion })
+      .where(
+        and(
+          eq(purposeInReadmodelPurpose.id, purposeId),
+          lte(purposeInReadmodelPurpose.metadataVersion, newMetadataVersion)
+        )
+      );
+  };
+
   return {
     async upsertPurpose(purpose: WithMetadata<Purpose>): Promise<void> {
       await purposeReadModelService.upsertPurpose(purpose);
@@ -102,19 +118,3 @@ export type DrizzleReturnType = ReturnType<typeof drizzle>;
 export type TransactionType = Parameters<
   Parameters<DrizzleReturnType["transaction"]>[0]
 >[0];
-
-const updateMetadataVersionInPurposeTable = async (
-  tx: TransactionType,
-  purposeId: PurposeId,
-  newMetadataVersion: number
-): Promise<void> => {
-  await tx
-    .update(purposeInReadmodelPurpose)
-    .set({ metadataVersion: newMetadataVersion })
-    .where(
-      and(
-        eq(purposeInReadmodelPurpose.id, purposeId),
-        lte(purposeInReadmodelPurpose.metadataVersion, newMetadataVersion)
-      )
-    );
-};
