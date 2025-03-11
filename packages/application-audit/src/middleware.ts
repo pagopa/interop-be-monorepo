@@ -200,16 +200,17 @@ export async function applicationAuditEndMiddleware(
         serviceVersion: config.serviceVersion,
         endpoint: req.route.path,
         httpMethod: req.method,
-        executionTimeMs: endTimestamp - context.requestTimestamp,
-        organizationId,
         phase: Phase.END_REQUEST,
-        httpResponseStatus: res.statusCode,
         requesterIpAddress: forwardedFor,
         nodeIp: config.nodeIp,
         podName: config.podName,
         uptimeSeconds: Math.round(process.uptime()),
         timestamp: endTimestamp,
         amazonTraceId: amznTraceId,
+        organizationId,
+        userId: context.authData.userId,
+        httpResponseStatus: res.statusCode,
+        executionTimeMs: endTimestamp - context.requestTimestamp,
       };
 
       await producer.send({
@@ -259,17 +260,17 @@ export async function applicationAuditEndBffMiddleware(
         serviceVersion: config.serviceVersion,
         endpoint: req.route.path,
         httpMethod: req.method,
-        executionTimeMs: endTimestamp - context.requestTimestamp,
-        organizationId,
         phase: Phase.END_REQUEST,
-        httpResponseStatus: res.statusCode,
         requesterIpAddress: forwardedFor,
         nodeIp: config.nodeIp,
         podName: config.podName,
-        selfcareId: context.authData.selfcareId,
         uptimeSeconds: Math.round(process.uptime()),
         timestamp: endTimestamp,
         amazonTraceId: amznTraceId,
+        organizationId,
+        selfcareId: context.authData.selfcareId,
+        httpResponseStatus: res.statusCode,
+        executionTimeMs: endTimestamp - context.requestTimestamp,
       };
 
       await producer.send({

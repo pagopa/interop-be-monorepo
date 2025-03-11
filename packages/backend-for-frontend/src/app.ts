@@ -10,6 +10,7 @@ import {
 import express from "express";
 import {
   applicationAuditBeginMiddleware,
+  applicationAuditEndBffMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { config } from "./config/config.js";
@@ -92,7 +93,8 @@ app.use(
   delegationRouter(zodiosCtx, clients, fileManager),
   producerDelegationRouter(zodiosCtx, clients, fileManager),
   consumerDelegationRouter(zodiosCtx, clients, fileManager),
-  await applicationAuditEndMiddleware(serviceName, config)
+  await applicationAuditEndMiddleware(serviceName, config),
+  await applicationAuditEndBffMiddleware(serviceName, config)
 );
 
 export default app;
