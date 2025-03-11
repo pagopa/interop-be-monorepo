@@ -3,7 +3,10 @@ import {
   contextMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import { applicationAuditBeginMiddleware } from "pagopa-interop-application-audit";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationRouter from "./routers/AuthorizationRouter.js";
 import { config } from "./config/config.js";
@@ -18,8 +21,9 @@ app.disable("x-powered-by");
 
 app.use(healthRouter);
 app.use(contextMiddleware(serviceName));
-app.use(authenticationMiddleware(config));
 app.use(await applicationAuditBeginMiddleware(serviceName, config));
+app.use(authenticationMiddleware(config));
 app.use(authorizationRouter(zodiosCtx));
+app.use(await applicationAuditEndMiddleware(serviceName, config));
 
 export default app;

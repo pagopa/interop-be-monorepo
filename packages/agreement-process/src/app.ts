@@ -4,7 +4,10 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import { applicationAuditBeginMiddleware } from "pagopa-interop-application-audit";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
@@ -19,9 +22,10 @@ app.disable("x-powered-by");
 
 app.use(healthRouter);
 app.use(contextMiddleware(serviceName));
+app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
-app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(agreementRouter(zodiosCtx));
+app.use(await applicationAuditEndMiddleware(serviceName, config));
 
 export default app;

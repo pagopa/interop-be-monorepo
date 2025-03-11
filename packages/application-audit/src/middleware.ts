@@ -113,57 +113,51 @@ export async function applicationAuditBeginMiddleware(
   const producer = await initProducer(config, config.applicationAuditTopic);
 
   return async (req, _, next): Promise<void> => {
-    if (
-      !config.endpointsWithoutAudit ||
-      (config.endpointsWithoutAudit &&
-        !config.endpointsWithoutAudit.includes(req.path)) // TODO path contains the parameter, so how to match the string?
-    ) {
-      const context = (req as Request & { ctx?: AppContext }).ctx;
-      const requestTimestamp = Date.now();
+    const context = (req as Request & { ctx?: AppContext }).ctx;
+    const requestTimestamp = Date.now();
 
-      if (!context) {
-        throw genericInternalError("Failed to retrieve context");
-      }
-
-      // eslint-disable-next-line functional/immutable-data
-      context.requestTimestamp = requestTimestamp;
-
-      const correlationId = context.correlationId;
-      const amznTraceId = parseAmznTraceIdHeader(req);
-      const forwardedFor = parseForwardedForHeader(req);
-
-      if (!amznTraceId) {
-        throw genericInternalError("The amznTraceId header is missing");
-      }
-
-      if (!forwardedFor) {
-        throw genericInternalError("The forwardedFor header is missing");
-      }
-
-      const initialAudit: ApplicationAuditBeginRequest = {
-        correlationId: context.correlationId,
-        service: serviceName,
-        serviceVersion: config.serviceVersion,
-        endpoint: req.path,
-        httpMethod: req.method,
-        phase: Phase.BEGIN_REQUEST,
-        requesterIpAddress: forwardedFor,
-        nodeIp: config.nodeIp,
-        podName: config.podName,
-        uptimeSeconds: Math.round(process.uptime()),
-        timestamp: requestTimestamp,
-        amazonTraceId: amznTraceId,
-      };
-
-      await producer.send({
-        messages: [
-          {
-            key: correlationId,
-            value: JSON.stringify(initialAudit),
-          },
-        ],
-      });
+    if (!context) {
+      throw genericInternalError("Failed to retrieve context");
     }
+
+    // eslint-disable-next-line functional/immutable-data
+    context.requestTimestamp = requestTimestamp;
+
+    const correlationId = context.correlationId;
+    const amznTraceId = parseAmznTraceIdHeader(req);
+    const forwardedFor = parseForwardedForHeader(req);
+
+    if (!amznTraceId) {
+      throw genericInternalError("The amznTraceId header is missing");
+    }
+
+    if (!forwardedFor) {
+      throw genericInternalError("The forwardedFor header is missing");
+    }
+
+    const initialAudit: ApplicationAuditBeginRequest = {
+      correlationId: context.correlationId,
+      service: serviceName,
+      serviceVersion: config.serviceVersion,
+      endpoint: req.path,
+      httpMethod: req.method,
+      phase: Phase.BEGIN_REQUEST,
+      requesterIpAddress: forwardedFor,
+      nodeIp: config.nodeIp,
+      podName: config.podName,
+      uptimeSeconds: Math.round(process.uptime()),
+      timestamp: requestTimestamp,
+      amazonTraceId: amznTraceId,
+    };
+
+    await producer.send({
+      messages: [
+        {
+          key: correlationId,
+          value: JSON.stringify(initialAudit),
+        },
+      ],
+    });
 
     return next();
   };
@@ -176,9 +170,9 @@ export async function applicationAuditEndMiddleware(
   const producer = await initProducer(config, config.applicationAuditTopic);
   return async (req, res, next): Promise<void> => {
     if (
-      !config.endpointsWithoutAudit ||
-      (config.endpointsWithoutAudit &&
-        !config.endpointsWithoutAudit.includes(req.path)) // TODO path contains the parameter, so how to match the string?
+      !config.endpointsWithCustomAudit ||
+      (config.endpointsWithCustomAudit &&
+        !config.endpointsWithCustomAudit.includes(req.route.path))
     ) {
       const context = (req as Request & { ctx?: AppContext }).ctx;
       if (!context) {
@@ -213,6 +207,66 @@ export async function applicationAuditEndMiddleware(
         requesterIpAddress: forwardedFor,
         nodeIp: config.nodeIp,
         podName: config.podName,
+        uptimeSeconds: Math.round(process.uptime()),
+        timestamp: endTimestamp,
+        amazonTraceId: amznTraceId,
+      };
+
+      await producer.send({
+        messages: [
+          {
+            key: correlationId,
+            value: JSON.stringify(finalAudit),
+          },
+        ],
+      });
+    }
+
+    return next();
+  };
+}
+
+export async function applicationAuditEndBffMiddleware(
+  serviceName: string,
+  config: ApplicationAuditProducerConfig
+): Promise<RequestHandler> {
+  const producer = await initProducer(config, config.applicationAuditTopic);
+  return async (req, res, next): Promise<void> => {
+    if (config.endpointsWithCustomAudit?.includes(req.route.path)) {
+      const context = (req as Request & { ctx?: AppContext }).ctx;
+      if (!context) {
+        throw genericInternalError("Failed to retrieve context");
+      }
+
+      const correlationId = context.correlationId;
+      const organizationId = context.authData.organizationId;
+      const amznTraceId = parseAmznTraceIdHeader(req);
+      const forwardedFor = parseForwardedForHeader(req);
+
+      if (!amznTraceId) {
+        throw genericInternalError("The amznTraceId header is missing");
+      }
+
+      if (!forwardedFor) {
+        throw genericInternalError("The forwardedFor header is missing");
+      }
+
+      const endTimestamp = Date.now();
+
+      const finalAudit: ApplicationAuditEndRequestSessionTokenExchange = {
+        correlationId,
+        service: serviceName,
+        serviceVersion: config.serviceVersion,
+        endpoint: req.route.path,
+        httpMethod: req.method,
+        executionTimeMs: endTimestamp - context.requestTimestamp,
+        organizationId,
+        phase: Phase.END_REQUEST,
+        httpResponseStatus: res.statusCode,
+        requesterIpAddress: forwardedFor,
+        nodeIp: config.nodeIp,
+        podName: config.podName,
+        selfcareId: context.authData.selfcareId,
         uptimeSeconds: Math.round(process.uptime()),
         timestamp: endTimestamp,
         amazonTraceId: amznTraceId,

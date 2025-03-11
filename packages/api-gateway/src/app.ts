@@ -6,7 +6,10 @@ import {
   rateLimiterMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import { applicationAuditBeginMiddleware } from "pagopa-interop-application-audit";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import healthRouter from "./routers/healthRouter.js";
 import apiGatewayRouter from "./routers/apiGatewayRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -33,15 +36,17 @@ const redisRateLimiter = await initRedisRateLimiter({
 app.disable("x-powered-by");
 
 app.use(loggerMiddleware(serviceName));
-app.use(await applicationAuditBeginMiddleware(serviceName, config));
+app.use();
 app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
+  await applicationAuditBeginMiddleware(serviceName, config),
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
-  apiGatewayRouter(zodiosCtx, clients)
+  apiGatewayRouter(zodiosCtx, clients),
+  await applicationAuditEndMiddleware(serviceName, config)
 );
 
 export default app;
