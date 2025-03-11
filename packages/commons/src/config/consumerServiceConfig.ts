@@ -42,9 +42,9 @@ export type KafkaBatchConsumerConfig = z.infer<typeof KafkaBatchConsumerConfig>;
 export const ReadModelWriterConfig = KafkaConsumerConfig.and(ReadModelDbConfig);
 export type ReadModelWriterConfig = z.infer<typeof ReadModelWriterConfig>;
 
-export const ReadModelWriterSQLConfig =
+export const ReadModelWriterConfigSQL =
   KafkaConsumerConfig.and(ReadModelSQLDbConfig);
-export type ReadModelWriterSQLConfig = z.infer<typeof ReadModelWriterSQLConfig>;
+export type ReadModelWriterConfigSQL = z.infer<typeof ReadModelWriterConfigSQL>;
 
 export const PlatformStateWriterConfig = KafkaConsumerConfig.and(
   TokenGenerationReadModelDbConfig
