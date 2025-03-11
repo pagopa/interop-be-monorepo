@@ -1302,7 +1302,7 @@ export function catalogServiceBuilder(
         createdAt: new Date(),
         attributes: parsedAttributes,
         rejectionReasons: undefined,
-        templateVersionRef: latestDescriptor.templateVersionRef
+        templateVersionRef: latestDescriptor?.templateVersionRef
           ? { id: latestDescriptor.templateVersionRef.id }
           : undefined,
       };

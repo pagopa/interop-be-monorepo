@@ -12,18 +12,22 @@ function parseVersionNumber(version: string): number {
   return versionNumber.data;
 }
 
-export const getLatestDescriptor = (eservice: EService): Descriptor =>
-  eservice.descriptors.reduce(
-    (latest, descriptor) =>
-      parseVersionNumber(descriptor.version) >
-      parseVersionNumber(latest.version)
-        ? descriptor
-        : latest,
-    eservice.descriptors[0]
-  );
+export const getLatestDescriptor = (
+  eservice: EService
+): Descriptor | undefined =>
+  eservice.descriptors.length > 0
+    ? eservice.descriptors.reduce(
+        (latest, descriptor) =>
+          parseVersionNumber(descriptor.version) >
+          parseVersionNumber(latest.version)
+            ? descriptor
+            : latest,
+        eservice.descriptors[0]
+      )
+    : undefined;
 
 export const nextDescriptorVersion = (eservice: EService): string => {
-  const currentVersion = getLatestDescriptor(eservice).version;
+  const currentVersion = getLatestDescriptor(eservice)?.version ?? "0";
   const parsedVersion = parseVersionNumber(currentVersion);
   return (parsedVersion + 1).toString();
 };
