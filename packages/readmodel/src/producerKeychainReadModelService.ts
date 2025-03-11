@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   ProducerKeychain,
@@ -24,14 +24,13 @@ export function producerKeychainReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
+    // TODO: add metadata version check (lte)
     async upsertProducerKeychain(
-      producerKeychain: WithMetadata<ProducerKeychain>
+      producerKeychain: ProducerKeychain,
+      metadataVersion: number
     ): Promise<void> {
       const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
-        splitProducerKeychainIntoObjectsSQL(
-          producerKeychain.data,
-          producerKeychain.metadata.version
-        );
+        splitProducerKeychainIntoObjectsSQL(producerKeychain, metadataVersion);
 
       await db.transaction(async (tx) => {
         await tx
@@ -39,7 +38,7 @@ export function producerKeychainReadModelServiceBuilder(
           .where(
             eq(
               producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychain.data.id
+              producerKeychain.id
             )
           );
 
@@ -120,14 +119,21 @@ export function producerKeychainReadModelServiceBuilder(
       );
     },
     async deleteProducerKeychainById(
-      producerKeychainId: ProducerKeychainId
+      producerKeychainId: ProducerKeychainId,
+      metadataVersion: number
     ): Promise<void> {
       await db
-        .delete(producerKeychainEserviceInReadmodelProducerKeychain)
+        .delete(producerKeychainInReadmodelProducerKeychain)
         .where(
-          eq(
-            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId,
-            producerKeychainId
+          and(
+            eq(
+              producerKeychainInReadmodelProducerKeychain.id,
+              producerKeychainId
+            ),
+            lte(
+              producerKeychainInReadmodelProducerKeychain.metadataVersion,
+              metadataVersion
+            )
           )
         );
     },
