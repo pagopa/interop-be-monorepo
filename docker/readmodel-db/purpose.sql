@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_form (
   version VARCHAR NOT NULL,
   risk_analysis_id UUID,
   PRIMARY KEY (id),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_answer (
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_risk_analysis_answer (
   "key" VARCHAR NOT NULL,
   value VARCHAR ARRAY,
   PRIMARY KEY (id),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version (
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version (
   first_activation_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version_document (
@@ -64,5 +64,5 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_version_document (
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version)
+  FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) ON UPDATE CASCADE
 );
