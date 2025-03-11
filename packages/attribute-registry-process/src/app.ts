@@ -22,9 +22,9 @@ app.disable("x-powered-by");
 
 app.use(healthRouter);
 app.use(contextMiddleware(serviceName));
+app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
-app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(attributeRouter(zodiosCtx));
 app.use(await applicationAuditEndMiddleware(serviceName, config));
 
