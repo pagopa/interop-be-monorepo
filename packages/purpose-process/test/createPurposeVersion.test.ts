@@ -1124,7 +1124,7 @@ describe("createPurposeVersion", () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: mockEService.id,
       delegationId: generateId<DelegationId>(),
       consumerId: authData.organizationId,
@@ -1153,7 +1153,7 @@ describe("createPurposeVersion", () => {
 
   it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const delegatePurpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockConsumer.id,
       delegationId: undefined,
     };
