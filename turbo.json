@@ -21,26 +21,26 @@
     },
     "build": {
       "dependsOn": ["generate-model", "generate-protobuf", "^build"],
-      "outputs": ["dist"]
+      "outputs": ["dist/**"]
     },
     "check": {
       "dependsOn": ["generate-model", "generate-protobuf", "^build", "^check"],
-      "outputs": ["dist"]
+      "outputs": ["dist/**"]
     },
     "generate-model": {
       "dependsOn": ["^generate-model"],
-      "outputs": ["src/generated"]
+      "outputs": ["src/generated/**"]
     },
     "generate-protobuf": {
       "dependsOn": ["^generate-protobuf"],
-      "outputs": ["src/gen"]
+      "outputs": ["src/gen/**"]
     },
     "test": {
       "dependsOn": ["build"]
     },
     "lint": {
       "dependsOn": ["build", "^lint"],
-      "outputs": ["dist"]
+      "outputs": [".eslintcache"]
     },
     "lint:autofix": {
       "dependsOn": ["build"],
