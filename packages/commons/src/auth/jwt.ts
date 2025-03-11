@@ -11,7 +11,7 @@ import {
   jwtDecodingError,
   tokenVerificationFailed,
 } from "pagopa-interop-models";
-import { JOSEError } from "jose/errors";
+import { JOSEError, JWKSNoMatchingKey } from "jose/errors";
 import { JWTConfig, Logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
@@ -67,12 +67,15 @@ export const verifyJwtToken = async (
         }
         return { decoded };
       } catch (error) {
-        if (error instanceof JOSEError) {
-          throw error;
-        } else {
+        // If it is a matching key error or a network problem try with the next client
+        if (
+          error instanceof JWKSNoMatchingKey ||
+          !(error instanceof JOSEError)
+        ) {
           logger.debug(`Skip Jwks client: ${error}`);
           continue;
         }
+        throw error;
       }
     }
     throw new Error("Impossible error");
