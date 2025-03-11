@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   ProducerJWKKey,
@@ -26,6 +26,7 @@ export function producerJWKKeyReadModelServiceBuilder(
       );
 
       await db.transaction(async (tx) => {
+        // TODO: add metadata version check (lte)
         await tx
           .delete(producerJwkKeyInReadmodelProducerJwkKey)
           .where(
@@ -66,7 +67,8 @@ export function producerJWKKeyReadModelServiceBuilder(
     },
     async deleteProducerJWKKeyByKid(
       producerKeychainId: ProducerKeychainId,
-      kid: string
+      kid: string,
+      metadataVersion: number
     ): Promise<void> {
       await db
         .delete(producerJwkKeyInReadmodelProducerJwkKey)
@@ -76,7 +78,11 @@ export function producerJWKKeyReadModelServiceBuilder(
               producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
               producerKeychainId
             ),
-            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kid)
+            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kid),
+            lte(
+              producerJwkKeyInReadmodelProducerJwkKey.metadataVersion,
+              metadataVersion
+            )
           )
         );
     },
