@@ -47,6 +47,7 @@ app.use(contextMiddleware(serviceName));
 app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
+app.use(await applicationAuditEndMiddleware(serviceName, config));
 app.use(
   delegationRouter(
     zodiosCtx,
@@ -56,6 +57,5 @@ app.use(
     fileManager
   )
 );
-app.use(await applicationAuditEndMiddleware(serviceName, config));
 
 export default app;

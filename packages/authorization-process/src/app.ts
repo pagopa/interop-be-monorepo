@@ -23,7 +23,7 @@ app.use(healthRouter);
 app.use(contextMiddleware(serviceName));
 app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(authenticationMiddleware(config));
-app.use(authorizationRouter(zodiosCtx));
 app.use(await applicationAuditEndMiddleware(serviceName, config));
+app.use(authorizationRouter(zodiosCtx));
 
 export default app;

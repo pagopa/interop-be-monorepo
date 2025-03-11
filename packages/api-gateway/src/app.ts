@@ -45,8 +45,8 @@ app.use(
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
-  apiGatewayRouter(zodiosCtx, clients),
-  await applicationAuditEndMiddleware(serviceName, config)
+  await applicationAuditEndMiddleware(serviceName, config),
+  apiGatewayRouter(zodiosCtx, clients)
 );
 
 export default app;

@@ -25,7 +25,7 @@ app.use(contextMiddleware(serviceName));
 app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(authenticationMiddleware(config));
 app.use(loggerMiddleware(serviceName));
-app.use(eservicesRouter(zodiosCtx));
 app.use(await applicationAuditEndMiddleware(serviceName, config));
+app.use(eservicesRouter(zodiosCtx));
 
 export default app;

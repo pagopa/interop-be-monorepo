@@ -92,9 +92,9 @@ app.use(
   producerKeychainRouter(zodiosCtx, clients),
   delegationRouter(zodiosCtx, clients, fileManager),
   producerDelegationRouter(zodiosCtx, clients, fileManager),
-  consumerDelegationRouter(zodiosCtx, clients, fileManager),
   await applicationAuditEndMiddleware(serviceName, config),
-  await applicationAuditEndBffMiddleware(serviceName, config)
+  await applicationAuditEndBffMiddleware(serviceName, config),
+  consumerDelegationRouter(zodiosCtx, clients, fileManager)
 );
 
 export default app;
