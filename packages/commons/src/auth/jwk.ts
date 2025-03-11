@@ -1,5 +1,4 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
-import jwksClient, { JwksClient } from "jwks-rsa";
 import {
   notAnRSAKey,
   invalidKeyLength,
@@ -8,7 +7,6 @@ import {
   notAllowedCertificateException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
-import { JWTConfig } from "../config/index.js";
 
 export const decodeBase64ToPem = (base64String: string): string => {
   try {
@@ -88,22 +86,4 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
       (prev, sortedKey) => ({ ...prev, [sortedKey]: jwk[sortedKey] }),
       {}
     );
-}
-
-export function buildJwksClients(config: JWTConfig): JwksClient[] {
-  return config.wellKnownUrls.map((url) =>
-    jwksClient({
-      jwksUri: url,
-      /* If JWKS_CACHE_MAX_AGE_MILLIS not provided using 10 minutes as default value:
-      https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration
-      */
-
-      // Caching is not being leveraged at the moment since we are building
-      // a new client for each request.
-      // Building clients only once at startup caused https://pagopa.atlassian.net/browse/PIN-5682
-      // cache: true,
-      // rateLimit: true,
-      // cacheMaxAge: config.jwksCacheMaxAge ?? 600000,
-    })
-  );
 }

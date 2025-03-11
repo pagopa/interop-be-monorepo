@@ -10,7 +10,7 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
-import * as jsonwebtoken from "jsonwebtoken";
+import { SignJWT } from "jose";
 import {
   generateKeySet,
   getMockClientAssertion,
@@ -320,17 +320,22 @@ describe("validation test", async () => {
 
     it("unexpectedClientAssertionPayload", async () => {
       const { keySet } = generateKeySet();
-      const options: jsonwebtoken.SignOptions = {
-        header: {
-          kid: generateId(),
-          alg: "RS256",
-        },
-      };
-      const jws = jsonwebtoken.sign(
-        "actualPayload",
-        keySet.privateKey,
-        options
-      );
+      const kid = generateId();
+      // const options: jsonwebtoken.SignOptions = {
+      //   header: {
+      //     kid: generateId(),
+      //     alg: "RS256",
+      //   },
+      // };
+
+      const jws = await new SignJWT({ val: "actualPayload" })
+        .setProtectedHeader({ kid, alg: "RS256" })
+        .setJti(generateId())
+        .setIssuedAt(new Date())
+        .setExpirationTime("1h")
+        .setIssuer(generateId())
+        .setSubject(generateId())
+        .sign(keySet.privateKey);
 
       const { errors } = verifyClientAssertion(
         jws,
@@ -341,11 +346,7 @@ describe("validation test", async () => {
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(
-        invalidClientAssertionFormat(
-          "Failed to parse the decoded payload as JSON"
-        )
-      );
+      expect(errors![0]).toEqual(audienceNotFound());
     });
 
     it("jtiNotFound", async () => {

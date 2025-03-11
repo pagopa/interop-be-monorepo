@@ -7,7 +7,7 @@ export const JWTConfig = z
     WELL_KNOWN_URLS: z
       .string()
       .transform((s) => s.split(","))
-      .pipe(z.array(APIEndpoint)),
+      .pipe(z.array(APIEndpoint).nonempty()),
 
     ACCEPTED_AUDIENCES: z
       .string()
