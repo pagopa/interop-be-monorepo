@@ -12,12 +12,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+      - name: Cache turbo setup
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
         with:
-          node-version-file: ./package.json
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-check-formatting-${{ github.ref_name }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-check-formatting
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version-file: ./package.json
       - run: pnpm format:check
 
   lint:
@@ -25,6 +34,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Cache turbo setup
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-lint-
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
         with:
           node-version-file: ./package.json
@@ -38,6 +56,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Cache turbo setup
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-check
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
         with:
           node-version-file: ./package.json
@@ -45,12 +72,20 @@ jobs:
         with:
           run_install: true
       - run: pnpm check
-
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Cache turbo setup
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-test
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
         with:
           node-version-file: ./package.json
@@ -83,7 +118,7 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
     env:
-        DOCKER_BUILD_SUMMARY: "false"
+      DOCKER_BUILD_SUMMARY: "false"
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
       - name: Build Docker image

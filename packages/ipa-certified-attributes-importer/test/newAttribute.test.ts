@@ -1,7 +1,10 @@
 import { randomUUID } from "crypto";
 import { expect, describe, it } from "vitest";
 import { Attribute, unsafeBrandId } from "pagopa-interop-models";
-import { TenantSeed, getNewAttributes } from "../src/index.js";
+import {
+  TenantSeed,
+  getNewAttributes,
+} from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
 describe("NewAttributes", async () => {
