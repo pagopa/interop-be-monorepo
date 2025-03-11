@@ -1,4 +1,4 @@
-import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
+import { getMockAttribute } from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
 import { Attribute } from "pagopa-interop-models";
 import { AttributeSQL } from "pagopa-interop-readmodel-models";

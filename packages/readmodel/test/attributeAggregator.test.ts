@@ -1,4 +1,4 @@
-import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
+import { getMockAttribute } from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
 import { Attribute, WithMetadata } from "pagopa-interop-models";
 import { splitAttributeIntoObjectsSQL } from "./../src/attribute/splitters.js";
