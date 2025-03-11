@@ -74,7 +74,9 @@ export const getExportedDtdPublicCatalogFromCsv = async (): Promise<
     trim: true,
   });
 
-  const transformedRecords = records.map((record) => ({
+  const recordsArray = Array.isArray(records) ? records : [records];
+
+  const transformedRecords = recordsArray.map((record) => ({
     id: record.id,
     name: record.name,
     description: record.description,
