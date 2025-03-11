@@ -10,7 +10,7 @@ import {
   FileManager,
   formatDateddMMyyyyHHmmss,
   hasPermission,
-  interpolateOpenApiSpec,
+  interpolateApiSpec,
   Logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
@@ -3117,7 +3117,7 @@ export async function createOpenApiInterfaceByTemplate(
   }
 
   const documentId = unsafeBrandId<EServiceDocumentId>(randomUUID());
-  const newInterfaceFile = await interpolateOpenApiSpec(
+  const newInterfaceFile = await interpolateApiSpec(
     eservice,
     Buffer.from(interfaceTemplate).toString(),
     eserviceTemplateInterface,

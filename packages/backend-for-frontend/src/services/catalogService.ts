@@ -17,7 +17,7 @@ import {
   formatDateyyyyMMddThhmmss,
   getAllFromPaginated,
   verifyAndCreateDocument,
-  verifyAndCreateImportedDoc,
+  verifyAndCreateImportedDocument,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -1512,7 +1512,7 @@ export function catalogServiceBuilder(
 
       const descriptor = eservice.descriptors[0];
       if (descriptorInterface) {
-        await verifyAndCreateImportedDoc(
+        await verifyAndCreateImportedDocument(
           fileManager,
           unsafeBrandId(eservice.id),
           apiTechnologyToTechnology(eservice.technology),
@@ -1532,7 +1532,7 @@ export function catalogServiceBuilder(
       );
 
       for (const doc of importedEservice.descriptor.docs) {
-        await verifyAndCreateImportedDoc(
+        await verifyAndCreateImportedDocument(
           fileManager,
           unsafeBrandId(eservice.id),
           apiTechnologyToTechnology(eservice.technology),
