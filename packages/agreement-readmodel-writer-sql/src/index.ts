@@ -1,9 +1,5 @@
 import { EachMessagePayload } from "kafkajs";
-import {
-  ReadModelRepository,
-  decodeKafkaMessage,
-  logger,
-} from "pagopa-interop-commons";
+import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import {
   AgreementEvent,
@@ -12,12 +8,18 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import {
+  agreementReadModelServiceBuilder,
+  makeDrizzleConnection,
+} from "pagopa-interop-readmodel";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
+import { readModelServiceBuilder } from "./readModelService.js";
 
-const { agreements } = ReadModelRepository.init(config);
-
+const db = makeDrizzleConnection(config);
+const agreementReadModelService = agreementReadModelServiceBuilder(db);
+const readModelService = readModelServiceBuilder(db, agreementReadModelService);
 async function processMessage({
   message,
   partition,
@@ -35,8 +37,8 @@ async function processMessage({
   });
 
   await match(msg)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, agreements))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, agreements))
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
     .exhaustive();
 
   loggerInstance.info(

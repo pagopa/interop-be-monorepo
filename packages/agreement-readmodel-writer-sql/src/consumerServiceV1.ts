@@ -5,6 +5,8 @@ import {
   genericInternalError,
   AgreementId,
   unsafeBrandId,
+  fromAgreementDocumentV1,
+  AgreementDocumentId,
 } from "pagopa-interop-models";
 import { ReadModelService } from "./readModelService.js";
 
@@ -43,66 +45,37 @@ export async function handleMessageV1(
       );
     })
     .with({ type: "AgreementConsumerDocumentAdded" }, async (msg) => {
-      // await agreements.updateOne(
-      //   {
-      //     "data.id": msg.stream_id,
-      //     "metadata.version": { $lte: msg.version },
-      //   },
-      //   {
-      //     $push: {
-      //       "data.consumerDocuments": msg.data.document
-      //         ? toReadModelAgreementDocument(
-      //             fromAgreementDocumentV1(msg.data.document)
-      //           )
-      //         : undefined,
-      //     },
-      //     $set: {
-      //       metadata: {
-      //         version: msg.version,
-      //       },
-      //     },
-      //   }
-      // );
+      const consumerDocV1 = msg.data.document;
+      if (!consumerDocV1) {
+        throw genericInternalError(
+          "consumer document can't be missing in event message"
+        );
+      }
+      await readModelService.upsertConsumerDocument(
+        fromAgreementDocumentV1(consumerDocV1),
+        unsafeBrandId<AgreementId>(msg.data.agreementId),
+        msg.version
+      );
     })
     .with({ type: "AgreementConsumerDocumentRemoved" }, async (msg) => {
-      // await agreements.updateOne(
-      //   {
-      //     "data.id": msg.stream_id,
-      //     "metadata.version": { $lte: msg.version },
-      //   },
-      //   {
-      //     $pull: {
-      //       "data.consumerDocuments": {
-      //         id: msg.data.documentId,
-      //       },
-      //     },
-      //     $set: {
-      //       metadata: {
-      //         version: msg.version,
-      //       },
-      //     },
-      //   }
-      // );
+      await readModelService.deleteConsumerDocument(
+        unsafeBrandId<AgreementId>(msg.data.agreementId),
+        unsafeBrandId<AgreementDocumentId>(msg.data.documentId),
+        msg.version
+      );
     })
     .with({ type: "AgreementContractAdded" }, async (msg) => {
-      // await agreements.updateOne(
-      //   {
-      //     "data.id": msg.stream_id,
-      //     "metadata.version": { $lte: msg.version },
-      //   },
-      //   {
-      //     $set: {
-      //       "data.contract": msg.data.contract
-      //         ? toReadModelAgreementDocument(
-      //             fromAgreementDocumentV1(msg.data.contract)
-      //           )
-      //         : undefined,
-      //       metadata: {
-      //         version: msg.version,
-      //       },
-      //     },
-      //   }
-      // );
+      const contractV1 = msg.data.contract;
+      if (!contractV1) {
+        throw genericInternalError(
+          "contract can't be missing in event message"
+        );
+      }
+      await readModelService.upsertContractDocument(
+        fromAgreementDocumentV1(contractV1),
+        unsafeBrandId<AgreementId>(msg.data.agreementId),
+        msg.version
+      );
     })
     .exhaustive();
 }

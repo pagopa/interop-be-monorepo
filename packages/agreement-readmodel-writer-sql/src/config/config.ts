@@ -1,11 +1,9 @@
-import {
-  AgreementTopicConfig,
-  ReadModelWriterConfig,
-} from "pagopa-interop-commons";
+import { AgreementTopicConfig } from "pagopa-interop-commons";
 import { z } from "zod";
+import { ReadModelWriterConfigSQL } from "pagopa-interop-commons";
 
 const AgreementReadModelWriterConfig =
-  ReadModelWriterConfig.and(AgreementTopicConfig);
+  ReadModelWriterConfigSQL.and(AgreementTopicConfig);
 
 export type AgreementReadModelWriterConfig = z.infer<
   typeof AgreementReadModelWriterConfig
