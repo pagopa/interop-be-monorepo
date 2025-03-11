@@ -121,6 +121,7 @@ import {
   assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
   verifyRequesterIsConsumerOrDelegateConsumer,
   isClonable,
+  purposeIsArchived,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
