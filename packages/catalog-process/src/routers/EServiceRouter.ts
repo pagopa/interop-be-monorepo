@@ -65,7 +65,7 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 
-const catalogService = catalogServiceBuilder(
+export const catalogService = catalogServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
