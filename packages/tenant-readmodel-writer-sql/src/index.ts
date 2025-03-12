@@ -9,7 +9,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  tenantReadModelServiceBuilderSQL,
+  tenantReadModelServiceBuilder,
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
@@ -18,7 +18,7 @@ import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
 import { customReadModelServiceBuilder } from "./customReadModelService.js";
 
 const db = makeDrizzleConnection(config);
-const tenantReadModelService = tenantReadModelServiceBuilderSQL(db);
+const tenantReadModelService = tenantReadModelServiceBuilder(db);
 const customReadModelService = customReadModelServiceBuilder(db);
 
 async function processMessage({

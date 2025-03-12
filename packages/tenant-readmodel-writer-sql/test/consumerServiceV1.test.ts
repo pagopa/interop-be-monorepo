@@ -53,10 +53,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantDeleted", async () => {
-      await tenantReadModelServiceSQL.upsertTenant({
-        data: mockTenant,
-        metadata: { version: 1 },
-      });
+      await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
 
       const payload: TenantDeletedV1 = {
         tenantId: mockTenant.id,
@@ -83,10 +80,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantUpdated", async () => {
-      await tenantReadModelServiceSQL.upsertTenant({
-        data: mockTenant,
-        metadata: { version: 1 },
-      });
+      await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
@@ -125,10 +119,7 @@ describe("Integration tests", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
-      await tenantReadModelServiceSQL.upsertTenant({
-        data: mockTenant,
-        metadata: { version: 1 },
-      });
+      await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
 
       const selfcareId = generateId();
 
@@ -166,10 +157,7 @@ describe("Integration tests", async () => {
     });
 
     it("TenantMailAdded", async () => {
-      await tenantReadModelServiceSQL.upsertTenant({
-        data: mockTenant,
-        metadata: { version: 1 },
-      });
+      await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
 
       const mailId = generateId();
       const updatedTenant: Tenant = {
@@ -228,10 +216,7 @@ describe("Integration tests", async () => {
           },
         ],
       };
-      await tenantReadModelServiceSQL.upsertTenant({
-        data: tenantWithMail,
-        metadata: { version: 1 },
-      });
+      await tenantReadModelServiceSQL.upsertTenant(tenantWithMail, 1);
 
       const updatedTenant: Tenant = {
         ...mockTenant,
