@@ -46,14 +46,14 @@ export function attributeReadModelServiceBuilder(
     },
     async deleteAttributeById(
       attributeId: AttributeId,
-      version: number
+      metadataVersion: number
     ): Promise<void> {
       await db
         .delete(attributeInReadmodelAttribute)
         .where(
           and(
             eq(attributeInReadmodelAttribute.id, attributeId),
-            lte(attributeInReadmodelAttribute.metadataVersion, version)
+            lte(attributeInReadmodelAttribute.metadataVersion, metadataVersion)
           )
         );
     },
