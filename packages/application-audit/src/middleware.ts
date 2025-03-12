@@ -236,52 +236,54 @@ export async function applicationAuditEndBffMiddleware(
   const producer = await initProducer(config, config.applicationAuditTopic);
   return async (req, res, next): Promise<void> => {
     if (config.endpointsWithCustomAudit?.includes(req.route.path)) {
-      const context = (req as Request & { ctx?: AppContext }).ctx;
-      if (!context) {
-        throw genericInternalError("Failed to retrieve context");
-      }
+      res.on("finish", async () => {
+        const context = (req as Request & { ctx?: AppContext }).ctx;
+        if (!context) {
+          throw genericInternalError("Failed to retrieve context");
+        }
 
-      const correlationId = context.correlationId;
-      const organizationId = context.authData.organizationId;
-      const amznTraceId = parseAmznTraceIdHeader(req);
-      const forwardedFor = parseForwardedForHeader(req);
+        const correlationId = context.correlationId;
+        const organizationId = context.authData.organizationId;
+        const amznTraceId = parseAmznTraceIdHeader(req);
+        const forwardedFor = parseForwardedForHeader(req);
 
-      if (!amznTraceId) {
-        throw genericInternalError("The amznTraceId header is missing");
-      }
+        if (!amznTraceId) {
+          throw genericInternalError("The amznTraceId header is missing");
+        }
 
-      if (!forwardedFor) {
-        throw genericInternalError("The forwardedFor header is missing");
-      }
+        if (!forwardedFor) {
+          throw genericInternalError("The forwardedFor header is missing");
+        }
 
-      const endTimestamp = Date.now();
+        const endTimestamp = Date.now();
 
-      const finalAudit: ApplicationAuditEndRequestSessionTokenExchange = {
-        correlationId,
-        service: serviceName,
-        serviceVersion: config.serviceVersion,
-        endpoint: req.route.path,
-        httpMethod: req.method,
-        phase: Phase.END_REQUEST,
-        requesterIpAddress: forwardedFor,
-        nodeIp: config.nodeIp,
-        podName: config.podName,
-        uptimeSeconds: Math.round(process.uptime()),
-        timestamp: endTimestamp,
-        amazonTraceId: amznTraceId,
-        organizationId,
-        selfcareId: context.authData.selfcareId,
-        httpResponseStatus: res.statusCode,
-        executionTimeMs: endTimestamp - context.requestTimestamp,
-      };
+        const finalAudit: ApplicationAuditEndRequestSessionTokenExchange = {
+          correlationId,
+          service: serviceName,
+          serviceVersion: config.serviceVersion,
+          endpoint: req.route.path,
+          httpMethod: req.method,
+          phase: Phase.END_REQUEST,
+          requesterIpAddress: forwardedFor,
+          nodeIp: config.nodeIp,
+          podName: config.podName,
+          uptimeSeconds: Math.round(process.uptime()),
+          timestamp: endTimestamp,
+          amazonTraceId: amznTraceId,
+          organizationId,
+          selfcareId: context.authData.selfcareId,
+          httpResponseStatus: res.statusCode,
+          executionTimeMs: endTimestamp - context.requestTimestamp,
+        };
 
-      await producer.send({
-        messages: [
-          {
-            key: correlationId,
-            value: JSON.stringify(finalAudit),
-          },
-        ],
+        await producer.send({
+          messages: [
+            {
+              key: correlationId,
+              value: JSON.stringify(finalAudit),
+            },
+          ],
+        });
       });
     }
 
