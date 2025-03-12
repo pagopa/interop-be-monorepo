@@ -3,7 +3,10 @@
 import { randomUUID } from "crypto";
 import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { TenantSeed, getAttributesToRevoke } from "../src/index.js";
+import {
+  TenantSeed,
+  getAttributesToRevoke,
+} from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { attributes } from "./expectation.js";
 
 describe("GetAttributesToRevoke", async () => {

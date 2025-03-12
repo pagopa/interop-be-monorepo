@@ -253,7 +253,7 @@ const aggregateTenantAttributes = ({
               : {}),
             ...(tenantVerifierSQL.extensionDate
               ? {
-                  expirationDate: stringToDate(tenantVerifierSQL.extensionDate),
+                  extensionDate: stringToDate(tenantVerifierSQL.extensionDate),
                 }
               : {}),
             ...(tenantVerifierSQL.delegationId
@@ -375,23 +375,23 @@ export const toTenantAggregatorArray = (
   const mailIdSet = new Set<string>();
   const mailsSQL: TenantMailSQL[] = [];
 
-  const certifiedAttributeIdSet = new Set<[string, string]>();
+  const certifiedAttributeIdSet = new Set<string>();
   const certifiedAttributesSQL: TenantCertifiedAttributeSQL[] = [];
 
-  const declaredAttributeIdSet = new Set<[string, string]>();
+  const declaredAttributeIdSet = new Set<string>();
   const declaredAttributesSQL: TenantDeclaredAttributeSQL[] = [];
 
-  const verifiedAttributeIdSet = new Set<[string, string]>();
+  const verifiedAttributeIdSet = new Set<string>();
   const verifiedAttributesSQL: TenantVerifiedAttributeSQL[] = [];
 
-  const verifiersIdSet = new Set<[string, string, string]>();
+  const verifiersIdSet = new Set<string>();
   const verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
     [];
 
-  const revokersIdSet = new Set<[string, string, string]>();
+  const revokersIdSet = new Set<string>();
   const verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] = [];
 
-  const featureIdSet = new Set<[string, string]>();
+  const featureIdSet = new Set<string>();
   const featuresSQL: TenantFeatureSQL[] = [];
 
   queryRes.forEach((row) => {
@@ -413,15 +413,19 @@ export const toTenantAggregatorArray = (
 
     if (
       certifiedAttributeSQL &&
-      !certifiedAttributeIdSet.has([
-        certifiedAttributeSQL.attributeId,
-        certifiedAttributeSQL.tenantId,
-      ])
+      !certifiedAttributeIdSet.has(
+        uniqueKey([
+          certifiedAttributeSQL.attributeId,
+          certifiedAttributeSQL.tenantId,
+        ])
+      )
     ) {
-      certifiedAttributeIdSet.add([
-        certifiedAttributeSQL.attributeId,
-        certifiedAttributeSQL.tenantId,
-      ]);
+      certifiedAttributeIdSet.add(
+        uniqueKey([
+          certifiedAttributeSQL.attributeId,
+          certifiedAttributeSQL.tenantId,
+        ])
+      );
       // eslint-disable-next-line functional/immutable-data
       certifiedAttributesSQL.push(certifiedAttributeSQL);
     }
@@ -430,15 +434,19 @@ export const toTenantAggregatorArray = (
 
     if (
       declaredAttributeSQL &&
-      !declaredAttributeIdSet.has([
-        declaredAttributeSQL.attributeId,
-        declaredAttributeSQL.tenantId,
-      ])
+      !declaredAttributeIdSet.has(
+        uniqueKey([
+          declaredAttributeSQL.attributeId,
+          declaredAttributeSQL.tenantId,
+        ])
+      )
     ) {
-      declaredAttributeIdSet.add([
-        declaredAttributeSQL.attributeId,
-        declaredAttributeSQL.tenantId,
-      ]);
+      declaredAttributeIdSet.add(
+        uniqueKey([
+          declaredAttributeSQL.attributeId,
+          declaredAttributeSQL.tenantId,
+        ])
+      );
       // eslint-disable-next-line functional/immutable-data
       declaredAttributesSQL.push(declaredAttributeSQL);
     }
@@ -447,15 +455,19 @@ export const toTenantAggregatorArray = (
 
     if (verifiedAttributeSQL) {
       if (
-        !verifiedAttributeIdSet.has([
-          verifiedAttributeSQL.attributeId,
-          verifiedAttributeSQL.tenantId,
-        ])
+        !verifiedAttributeIdSet.has(
+          uniqueKey([
+            verifiedAttributeSQL.attributeId,
+            verifiedAttributeSQL.tenantId,
+          ])
+        )
       ) {
-        verifiedAttributeIdSet.add([
-          verifiedAttributeSQL.attributeId,
-          verifiedAttributeSQL.tenantId,
-        ]);
+        verifiedAttributeIdSet.add(
+          uniqueKey([
+            verifiedAttributeSQL.attributeId,
+            verifiedAttributeSQL.tenantId,
+          ])
+        );
         // eslint-disable-next-line functional/immutable-data
         verifiedAttributesSQL.push(verifiedAttributeSQL);
       }
@@ -464,17 +476,21 @@ export const toTenantAggregatorArray = (
 
       if (
         verifier &&
-        !verifiersIdSet.has([
-          verifier.tenantVerifierId,
-          verifier.tenantVerifiedAttributeId,
-          verifier.tenantId,
-        ])
+        !verifiersIdSet.has(
+          uniqueKey([
+            verifier.tenantVerifierId,
+            verifier.tenantVerifiedAttributeId,
+            verifier.tenantId,
+          ])
+        )
       ) {
-        verifiersIdSet.add([
-          verifier.tenantVerifierId,
-          verifier.tenantVerifiedAttributeId,
-          verifier.tenantId,
-        ]);
+        verifiersIdSet.add(
+          uniqueKey([
+            verifier.tenantVerifierId,
+            verifier.tenantVerifiedAttributeId,
+            verifier.tenantId,
+          ])
+        );
         // eslint-disable-next-line functional/immutable-data
         verifiedAttributeVerifiersSQL.push(verifier);
       }
@@ -483,25 +499,32 @@ export const toTenantAggregatorArray = (
 
       if (
         revoker &&
-        !revokersIdSet.has([
-          revoker.tenantRevokerId,
-          revoker.tenantVerifiedAttributeId,
-          revoker.tenantId,
-        ])
+        !revokersIdSet.has(
+          uniqueKey([
+            revoker.tenantRevokerId,
+            revoker.tenantVerifiedAttributeId,
+            revoker.tenantId,
+          ])
+        )
       ) {
-        revokersIdSet.add([
-          revoker.tenantRevokerId,
-          revoker.tenantVerifiedAttributeId,
-          revoker.tenantId,
-        ]);
+        revokersIdSet.add(
+          uniqueKey([
+            revoker.tenantRevokerId,
+            revoker.tenantVerifiedAttributeId,
+            revoker.tenantId,
+          ])
+        );
         // eslint-disable-next-line functional/immutable-data
         verifiedAttributeRevokersSQL.push(revoker);
       }
     }
 
     const feature = row.feature;
-    if (feature && !featureIdSet.has([feature.tenantId, feature.kind])) {
-      featureIdSet.add([feature.tenantId, feature.kind]);
+    if (
+      feature &&
+      !featureIdSet.has(uniqueKey([feature.tenantId, feature.kind]))
+    ) {
+      featureIdSet.add(uniqueKey([feature.tenantId, feature.kind]));
       // eslint-disable-next-line functional/immutable-data
       featuresSQL.push(feature);
     }
@@ -518,3 +541,5 @@ export const toTenantAggregatorArray = (
     featuresSQL,
   };
 };
+
+const uniqueKey = (ids: string[]): string => ids.join("#");

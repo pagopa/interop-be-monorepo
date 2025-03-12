@@ -228,6 +228,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
@@ -236,6 +237,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
@@ -431,6 +433,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
@@ -439,6 +442,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
@@ -531,6 +535,7 @@ describe("integration tests for events V2", () => {
       const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
         {
           ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          consumerId: purpose.consumerId,
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
           GSIPK_consumerId_eserviceId: undefined,
@@ -556,6 +561,7 @@ describe("integration tests for events V2", () => {
       const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
         {
           ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          consumerId: purpose.consumerId,
           GSIPK_purposeId: purposeId,
           purposeState: itemState.inactive,
           GSIPK_consumerId_eserviceId: undefined,
@@ -841,6 +847,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[1].id,
           updatedAt: new Date().toISOString(),
@@ -848,6 +855,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[1].id,
           updatedAt: new Date().toISOString(),
@@ -1021,6 +1029,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
@@ -1029,6 +1038,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
@@ -1226,6 +1236,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
@@ -1234,6 +1245,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           GSIPK_consumerId_eserviceId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
@@ -1380,6 +1392,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
@@ -1395,6 +1408,7 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
@@ -1630,12 +1644,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
@@ -1760,12 +1776,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
@@ -1992,12 +2010,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
@@ -2122,12 +2142,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
@@ -2358,12 +2380,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
@@ -2489,12 +2513,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
@@ -2725,12 +2751,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
@@ -2856,12 +2884,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
@@ -2985,12 +3015,14 @@ describe("integration tests for events V2", () => {
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          consumerId: purpose.consumerId,
           purposeState: itemState.inactive,
           updatedAt: new Date().toISOString(),
         };

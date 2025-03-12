@@ -1,1 +1,2 @@
-export * from "./tenantReadModelServiceSQL.js";
+export * from "./utils.js";
+export * from "./tenantReadModelService.js";
