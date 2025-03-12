@@ -11,6 +11,8 @@ import {
   fromAppContext,
   assertHasTokenTypeIn,
   assertHasTokenType,
+  UIAuthData,
+  M2MAuthData,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -250,16 +252,14 @@ const attributeRouter = (
       "/certifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+        const ctx = fromAppContext<UIAuthData | M2MAuthData>(req.ctx);
 
         try {
           assertHasTokenTypeIn(ctx.authData, ["ui", "m2m"]);
           const attribute =
             await attributeRegistryService.createCertifiedAttribute(
               req.body,
-              ctx.authData,
-              ctx.logger,
-              ctx.correlationId
+              ctx
             );
           return res
             .status(200)
@@ -281,15 +281,13 @@ const attributeRouter = (
       "/declaredAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+        const ctx = fromAppContext<UIAuthData>(req.ctx);
         try {
           assertHasTokenType(ctx.authData, "ui");
           const attribute =
             await attributeRegistryService.createDeclaredAttribute(
               req.body,
-              ctx.authData,
-              ctx.logger,
-              ctx.correlationId
+              ctx
             );
           return res
             .status(200)
@@ -311,16 +309,14 @@ const attributeRouter = (
       "/verifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+        const ctx = fromAppContext<UIAuthData>(req.ctx);
 
         try {
           assertHasTokenType(ctx.authData, "ui");
           const attribute =
             await attributeRegistryService.createVerifiedAttribute(
               req.body,
-              ctx.authData,
-              ctx.logger,
-              ctx.correlationId
+              ctx
             );
           return res
             .status(200)

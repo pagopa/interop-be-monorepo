@@ -105,42 +105,36 @@ export type AuthToken = z.infer<typeof AuthToken>;
   It is used to populate the context object, which is referenced all
   around the application to perform authorization checks.
 */
-const UIAuthData = z.object({
-  tokenType: z.literal("ui"),
-  organizationId: TenantId,
-  userId: UserId,
-  userRoles: z.array(UserRole).nonempty(),
-  selfcareId: SelfcareId,
-  externalId: z.object({
-    value: z.string(),
-    origin: z.string(),
-  }),
-});
-export type UIAuthData = z.infer<typeof UIAuthData>;
+export type UIAuthData = {
+  tokenType: "ui";
+  organizationId: TenantId;
+  userId: UserId;
+  userRoles: UserRole[];
+  selfcareId: SelfcareId;
+  externalId: {
+    value: string;
+    origin: string;
+  };
+};
 
-const M2MAuthData = z.object({
-  tokenType: z.literal("m2m"),
-  organizationId: TenantId,
-});
-export type M2MAuthData = z.infer<typeof M2MAuthData>;
+export type M2MAuthData = {
+  tokenType: "m2m";
+  organizationId: TenantId;
+};
 
-const InternalAuthData = z.object({
-  tokenType: z.literal("internal"),
-});
-export type InternalAuthData = z.infer<typeof InternalAuthData>;
+export type InternalAuthData = {
+  tokenType: "internal";
+};
 
-const MaintenanceAuthData = z.object({
-  tokenType: z.literal("maintenance"),
-});
-export type MaintenanceAuthData = z.infer<typeof MaintenanceAuthData>;
+export type MaintenanceAuthData = {
+  tokenType: "maintenance";
+};
 
-export const AuthData = z.union([
-  UIAuthData,
-  M2MAuthData,
-  InternalAuthData,
-  MaintenanceAuthData,
-]);
-export type AuthData = z.infer<typeof AuthData>;
+export type AuthData =
+  | UIAuthData
+  | M2MAuthData
+  | InternalAuthData
+  | MaintenanceAuthData;
 
 export const getAuthDataFromToken = (token: AuthToken): AuthData =>
   match<AuthToken, AuthData>(token)

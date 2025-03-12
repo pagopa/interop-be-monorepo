@@ -18,7 +18,6 @@ import {
   AttributeKind,
   ListResult,
   TenantFeatureCertifier,
-  CorrelationId,
 } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
@@ -132,9 +131,7 @@ export function attributeRegistryServiceBuilder(
 
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: attributeRegistryApi.AttributeSeed,
-      authData: UIAuthData,
-      logger: Logger,
-      correlationId: CorrelationId
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
@@ -176,9 +173,7 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed,
-      authData: UIAuthData,
-      logger: Logger,
-      correlationId: CorrelationId
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
@@ -219,14 +214,15 @@ export function attributeRegistryServiceBuilder(
 
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
-      authData: UIAuthData | M2MAuthData,
-      logger: Logger,
-      correlationId: CorrelationId
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
       );
-
       const certifierPromise = getCertifierId(
         authData.organizationId,
         readModelService
