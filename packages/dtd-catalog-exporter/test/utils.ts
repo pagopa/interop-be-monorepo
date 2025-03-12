@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { z } from "zod";
-import { parse } from "csv-parse";
+import { parse } from "csv-parse/sync";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExporterService.js";
 import { config } from "../src/config/config.js";
