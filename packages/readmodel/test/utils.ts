@@ -33,7 +33,7 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
-import { catalogReadModelServiceBuilder } from "../src/catalogReadModelServiceSQL.js";
+import { catalogReadModelServiceBuilder } from "../src/catalogReadModelService.js";
 import {
   retrieveEServiceSQL,
   retrieveEserviceDescriptorsSQL,
@@ -68,14 +68,15 @@ export function stringToISOString(input: string | null): string | null {
 
 export const generateRiskAnalysisAnswersSQL = (
   eserviceId: string,
-  riskAnalyses: RiskAnalysis[]
+  riskAnalyses: RiskAnalysis[],
+  metadataVersion: number
 ): EServiceRiskAnalysisAnswerSQL[] =>
   riskAnalyses.flatMap(({ riskAnalysisForm }) => [
     ...riskAnalysisForm.singleAnswers.map(
       (a): EServiceRiskAnalysisAnswerSQL => ({
         id: a.id,
         eserviceId,
-        metadataVersion: 1,
+        metadataVersion,
         key: a.key,
         value: a.value ? [a.value] : [],
         riskAnalysisFormId: riskAnalysisForm.id,
@@ -86,7 +87,7 @@ export const generateRiskAnalysisAnswersSQL = (
       (a): EServiceRiskAnalysisAnswerSQL => ({
         id: a.id,
         eserviceId,
-        metadataVersion: 1,
+        metadataVersion,
         key: a.key,
         value: a.values,
         riskAnalysisFormId: riskAnalysisForm.id,
@@ -153,7 +154,6 @@ export const initMockEService = (
     },
   };
   const eservice: WithMetadata<EService> = {
-    ...eserviceBeforeUpdate,
     data: {
       ...eserviceBeforeUpdate.data,
       descriptors: [descriptor],
@@ -165,6 +165,9 @@ export const initMockEService = (
             isClientAccessDelegable: true,
           }
         : {}),
+    },
+    metadata: {
+      version: 2,
     },
   };
 
@@ -397,7 +400,8 @@ export const generateCompleteExpectedEServiceSQLObjects = ({
   );
   const expectedRiskAnalysisAnswersSQL = generateRiskAnalysisAnswersSQL(
     eservice.data.id,
-    riskAnalyses
+    riskAnalyses,
+    eservice.metadata.version
   );
 
   return {
