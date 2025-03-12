@@ -116,7 +116,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig,
@@ -131,6 +131,7 @@ export function setupTestContainersVitest(
   readModelDB: ReturnType<typeof drizzle>;
   cleanup: () => Promise<void>;
 }>;
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
@@ -249,22 +250,22 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE eservice_template.events RESTART IDENTITY"
       );
 
+      await readModelDB?.delete(eserviceInReadmodelCatalog);
+      await readModelDB?.delete(agreementInReadmodelAgreement);
+      await readModelDB?.delete(attributeInReadmodelAttribute);
+      await readModelDB?.delete(purposeInReadmodelPurpose);
+      await readModelDB?.delete(tenantInReadmodelTenant);
+      await readModelDB?.delete(clientInReadmodelClient);
+      await readModelDB?.delete(producerKeychainInReadmodelProducerKeychain);
+      await readModelDB?.delete(clientJwkKeyInReadmodelClientJwkKey);
+      await readModelDB?.delete(producerJwkKeyInReadmodelProducerJwkKey);
+      await readModelDB?.delete(delegationInReadmodelDelegation);
+      // TODO: add eservice-template
+      // await readModelDB?.delete(eserviceTemplateInReadmodelEserviceTemplate);
+
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =
           fileManagerConfig?.s3Bucket ?? "interop-local-bucket";
-
-        await readModelDB?.delete(eserviceInReadmodelCatalog);
-        await readModelDB?.delete(agreementInReadmodelAgreement);
-        await readModelDB?.delete(attributeInReadmodelAttribute);
-        await readModelDB?.delete(purposeInReadmodelPurpose);
-        await readModelDB?.delete(tenantInReadmodelTenant);
-        await readModelDB?.delete(clientInReadmodelClient);
-        await readModelDB?.delete(producerKeychainInReadmodelProducerKeychain);
-        await readModelDB?.delete(clientJwkKeyInReadmodelClientJwkKey);
-        await readModelDB?.delete(producerJwkKeyInReadmodelProducerJwkKey);
-        await readModelDB?.delete(delegationInReadmodelDelegation);
-        // TODO: add eservice-template
-        // await readModelDB?.delete(eserviceTemplateInReadmodelEserviceTemplate);
 
         const files = await fileManager.listFiles(
           s3OriginalBucket,
