@@ -16,7 +16,7 @@ import {
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import { match } from "ts-pattern";
 import {
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
 } from "../src/model/domain/errors.js";
@@ -393,7 +393,7 @@ describe("create eservice", () => {
     expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
-  it("should throw eServiceDuplicate if an eservice with the same name already exists, case insensitive", async () => {
+  it("should throw eServiceNameDuplicate if an eservice with the same name already exists, case insensitive", async () => {
     await addOneEService({
       ...mockEService,
       name: mockEService.name.toUpperCase(),
@@ -415,7 +415,9 @@ describe("create eservice", () => {
           requestTimestamp: Date.now(),
         }
       )
-    ).rejects.toThrowError(eServiceDuplicate(mockEService.name.toLowerCase()));
+    ).rejects.toThrowError(
+      eServiceNameDuplicate(mockEService.name.toLowerCase())
+    );
   });
 
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {

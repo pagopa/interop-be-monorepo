@@ -17,13 +17,15 @@ import {
   generateId,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
 import {
   eServiceNotFound,
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   eserviceNotInDraftState,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -530,7 +532,7 @@ describe("update eService", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceDuplicate if the updated name is already in use, case insensitive", async () => {
+  it("should throw eServiceNameDuplicate if the updated name is already in use, case insensitive", async () => {
     const eservice1: EService = {
       ...mockEService,
       id: generateId(),
@@ -562,7 +564,9 @@ describe("update eService", () => {
           requestTimestamp: Date.now(),
         }
       )
-    ).rejects.toThrowError(eServiceDuplicate("ESERVICE NAME ALREADY IN USE"));
+    ).rejects.toThrowError(
+      eServiceNameDuplicate("ESERVICE NAME ALREADY IN USE")
+    );
   });
 
   it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {
@@ -687,5 +691,41 @@ describe("update eService", () => {
         }
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
+  });
+
+  it("should throw templateInstanceNotAllowed if the eservice is an instance of a template", async () => {
+    const templateId: EServiceTemplateId = generateId();
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: mockDocument,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      templateRef: {
+        id: templateId,
+        instanceLabel: undefined,
+      },
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: "eservice new name",
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
 });

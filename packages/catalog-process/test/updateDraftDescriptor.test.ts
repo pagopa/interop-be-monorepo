@@ -4,6 +4,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockDelegation,
+  getMockEServiceTemplate,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -24,6 +25,7 @@ import {
   notValidDescriptorState,
   inconsistentDailyCalls,
   attributeNotFound,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -36,6 +38,7 @@ import {
   getMockDocument,
   buildUpdateDescriptorSeed,
   addOneDelegation,
+  addOneEServiceTemplate,
 } from "./utils.js";
 
 describe("update draft descriptor", () => {
@@ -525,5 +528,78 @@ describe("update draft descriptor", () => {
         }
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
+  });
+
+  it("should throw templateInstanceNotAllowed if the eservice is a template instance", async () => {
+    const template = getMockEServiceTemplate();
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      attributes: {
+        certified: [],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      name: template.name,
+      templateRef: {
+        id: template.id,
+        instanceLabel: undefined,
+      },
+    };
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+
+    const attribute: Attribute = {
+      name: "Attribute name",
+      id: generateId(),
+      kind: "Declared",
+      description: "Attribute Description",
+      creationTime: new Date(),
+    };
+    await addOneAttribute(attribute);
+    const notExistingId1 = generateId();
+    const notExistingId2 = generateId();
+
+    const descriptorSeed = {
+      ...buildUpdateDescriptorSeed(mockDescriptor),
+      attributes: {
+        certified: [],
+        declared: [
+          [
+            { id: attribute.id, explicitAttributeVerification: false },
+            {
+              id: notExistingId1,
+              explicitAttributeVerification: false,
+            },
+            {
+              id: notExistingId2,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+      },
+    };
+
+    expect(
+      catalogService.updateDraftDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorSeed,
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(eservice.id, template.id)
+    );
   });
 });

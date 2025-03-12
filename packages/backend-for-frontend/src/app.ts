@@ -36,6 +36,7 @@ import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
+import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 
 const serviceName = "backend-for-frontend";
 const fileManager = initFileManager(config);
@@ -79,6 +80,8 @@ app.use(
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
+  await applicationAuditEndMiddleware(serviceName, config),
+  await applicationAuditEndBffMiddleware(serviceName, config),
   catalogRouter(zodiosCtx, clients, fileManager),
   attributeRouter(zodiosCtx, clients),
   purposeRouter(zodiosCtx, clients),
@@ -92,9 +95,8 @@ app.use(
   producerKeychainRouter(zodiosCtx, clients),
   delegationRouter(zodiosCtx, clients, fileManager),
   producerDelegationRouter(zodiosCtx, clients, fileManager),
-  await applicationAuditEndMiddleware(serviceName, config),
-  await applicationAuditEndBffMiddleware(serviceName, config),
   consumerDelegationRouter(zodiosCtx, clients, fileManager)
+  eserviceTemplateRouter(zodiosCtx, clients, fileManager)
 );
 
 export default app;

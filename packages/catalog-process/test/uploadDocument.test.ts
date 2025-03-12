@@ -13,6 +13,7 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -24,7 +25,8 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   interfaceAlreadyExists,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -370,7 +372,7 @@ describe("upload Document", () => {
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document: Document = {
       ...getMockDocument(),
       prettyName: "TEST",
@@ -403,7 +405,38 @@ describe("upload Document", () => {
         }
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document.prettyName.toLowerCase(), descriptor.id)
+      documentPrettyNameDuplicate(
+        document.prettyName.toLowerCase(),
+        descriptor.id
+      )
     );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+    expect(
+      catalogService.uploadDocument(
+        eService.id,
+        descriptor.id,
+        {
+          ...buildDocumentSeed(),
+        },
+        {
+          authData: getMockAuthData(eService.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });

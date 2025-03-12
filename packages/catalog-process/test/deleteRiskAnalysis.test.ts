@@ -16,12 +16,15 @@ import {
   operationForbidden,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceNotInDraftState,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -299,5 +302,29 @@ describe("delete risk analysis", () => {
         }
       )
     ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const eservice: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [],
+      riskAnalysis: [getMockValidRiskAnalysis("PA")],
+      mode: "Receive",
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.deleteRiskAnalysis(
+        eservice.id,
+        generateId<RiskAnalysisId>(),
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
 });
