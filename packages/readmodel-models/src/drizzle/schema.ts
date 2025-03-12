@@ -542,7 +542,7 @@ export const purposeRiskAnalysisFormInReadmodelPurpose = readmodelPurpose.table(
         purposeInReadmodelPurpose.metadataVersion,
       ],
       name: "purpose_risk_analysis_form_purpose_id_metadata_version_fkey",
-    }).onUpdate("cascade"),
+    }),
   ]
 );
 
@@ -576,7 +576,7 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
           purposeInReadmodelPurpose.metadataVersion,
         ],
         name: "purpose_risk_analysis_answer_purpose_id_metadata_version_fkey",
-      }).onUpdate("cascade"),
+      }),
     ]
   );
 
@@ -638,7 +638,7 @@ export const purposeVersionInReadmodelPurpose = readmodelPurpose.table(
         purposeInReadmodelPurpose.metadataVersion,
       ],
       name: "purpose_version_purpose_id_metadata_version_fkey",
-    }).onUpdate("cascade"),
+    }),
   ]
 );
 
@@ -674,7 +674,7 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
         purposeInReadmodelPurpose.metadataVersion,
       ],
       name: "purpose_version_document_purpose_id_metadata_version_fkey",
-    }).onUpdate("cascade"),
+    }),
     unique("purpose_version_document_purpose_version_id_key").on(
       table.purposeVersionId
     ),

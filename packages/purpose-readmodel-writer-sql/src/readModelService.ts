@@ -12,9 +12,11 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   purposeInReadmodelPurpose,
+  purposeRiskAnalysisAnswerInReadmodelPurpose,
+  purposeRiskAnalysisFormInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
-} from "../../readmodel-models/dist/index.js";
+} from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function customReadModelServiceBuilder(
@@ -26,15 +28,25 @@ export function customReadModelServiceBuilder(
     purposeId: PurposeId,
     newMetadataVersion: number
   ): Promise<void> => {
-    await tx
-      .update(purposeInReadmodelPurpose)
-      .set({ metadataVersion: newMetadataVersion })
-      .where(
-        and(
-          eq(purposeInReadmodelPurpose.id, purposeId),
-          lte(purposeInReadmodelPurpose.metadataVersion, newMetadataVersion)
-        )
-      );
+    const purposeTables = [
+      purposeInReadmodelPurpose,
+      purposeRiskAnalysisFormInReadmodelPurpose,
+      purposeRiskAnalysisAnswerInReadmodelPurpose,
+      purposeVersionInReadmodelPurpose,
+      purposeVersionDocumentInReadmodelPurpose,
+    ];
+
+    for (const table of purposeTables) {
+      await tx
+        .update(table)
+        .set({ metadataVersion: newMetadataVersion })
+        .where(
+          and(
+            eq("purposeId" in table ? table.purposeId : table.id, purposeId),
+            lte(table.metadataVersion, newMetadataVersion)
+          )
+        );
+    }
   };
 
   return {

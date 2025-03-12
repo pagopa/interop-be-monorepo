@@ -32,35 +32,44 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
       await db.transaction(async (tx) => {
-        // TODO: add version checking "lte"
-        await tx
-          .delete(purposeInReadmodelPurpose)
+        const existingPurposeSQL = await tx
+          .select()
+          .from(purposeInReadmodelPurpose)
           .where(eq(purposeInReadmodelPurpose.id, purpose.id));
 
-        await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
-
-        if (riskAnalysisFormSQL) {
+        // TODO: metadataVersion >= existingPurposeSQL[0].metadataVersion?
+        if (existingPurposeSQL[0].metadataVersion <= metadataVersion) {
           await tx
-            .insert(purposeRiskAnalysisFormInReadmodelPurpose)
-            .values(riskAnalysisFormSQL);
-        }
+            .delete(purposeInReadmodelPurpose)
+            .where(eq(purposeInReadmodelPurpose.id, purpose.id));
 
-        if (riskAnalysisAnswersSQL) {
-          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+          await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
+
+          if (riskAnalysisFormSQL) {
             await tx
-              .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
-              .values(riskAnalysisAnswerSQL);
+              .insert(purposeRiskAnalysisFormInReadmodelPurpose)
+              .values(riskAnalysisFormSQL);
           }
-        }
 
-        for (const versionSQL of versionsSQL) {
-          await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
-        }
+          if (riskAnalysisAnswersSQL) {
+            for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+              await tx
+                .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
+                .values(riskAnalysisAnswerSQL);
+            }
+          }
 
-        for (const versionDocumentSQL of versionDocumentsSQL) {
-          await tx
-            .insert(purposeVersionDocumentInReadmodelPurpose)
-            .values(versionDocumentSQL);
+          for (const versionSQL of versionsSQL) {
+            await tx
+              .insert(purposeVersionInReadmodelPurpose)
+              .values(versionSQL);
+          }
+
+          for (const versionDocumentSQL of versionDocumentsSQL) {
+            await tx
+              .insert(purposeVersionDocumentInReadmodelPurpose)
+              .values(versionDocumentSQL);
+          }
         }
       });
     },
