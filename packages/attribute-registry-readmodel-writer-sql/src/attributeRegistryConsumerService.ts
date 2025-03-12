@@ -5,11 +5,11 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AttributeReadModelServiceSQL } from "pagopa-interop-readmodel";
+import { AttributeReadModelService } from "pagopa-interop-readmodel";
 
 export async function handleMessage(
   message: AttributeEventEnvelope,
-  attributeReadModelService: AttributeReadModelServiceSQL
+  attributeReadModelService: AttributeReadModelService
 ): Promise<void> {
   await match(message)
     .with({ type: "AttributeAdded" }, async (msg) => {
@@ -17,10 +17,10 @@ export async function handleMessage(
         throw genericInternalError(`Attribute not found in message data`);
       }
 
-      await attributeReadModelService.upsertAttribute({
-        data: fromAttributeV1(msg.data.attribute),
-        metadata: { version: msg.version },
-      });
+      await attributeReadModelService.upsertAttribute(
+        fromAttributeV1(msg.data.attribute),
+        msg.version
+      );
     })
     .with({ type: "MaintenanceAttributeDeleted" }, async (msg) => {
       await attributeReadModelService.deleteAttributeById(

@@ -103,10 +103,7 @@ describe("database test", async () => {
         ...getMockAttribute(),
         kind: attributeKind.verified,
       };
-      await attributeReadModelService.upsertAttribute({
-        data: certifiedAttribute,
-        metadata: { version: 0 },
-      });
+      await attributeReadModelService.upsertAttribute(certifiedAttribute, 0);
 
       const payload: MaintenanceAttributeDeletedV1 = {
         id: certifiedAttribute.id,

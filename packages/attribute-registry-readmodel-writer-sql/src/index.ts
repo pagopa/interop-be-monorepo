@@ -9,12 +9,12 @@ import {
 import { runConsumer } from "kafka-iam-auth";
 import {
   makeDrizzleConnection,
-  attributeReadModelServiceBuilderSQL,
+  attributeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 import { config } from "./config/config.js";
 
-const attributeReadModelService = attributeReadModelServiceBuilderSQL(
+const attributeReadModelService = attributeReadModelServiceBuilder(
   makeDrizzleConnection(config)
 );
 
