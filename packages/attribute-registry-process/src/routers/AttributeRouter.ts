@@ -10,9 +10,7 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   assertHasTokenTypeIn,
-  assertHasTokenType,
-  UIAuthData,
-  M2MAuthData,
+  fromAppContextWithTokenType,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -252,7 +250,7 @@ const attributeRouter = (
       "/certifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContext<UIAuthData | M2MAuthData>(req.ctx);
+        const ctx = fromAppContextWithTokenType(req.ctx, ["ui", "m2m"]);
 
         try {
           assertHasTokenTypeIn(ctx.authData, ["ui", "m2m"]);
@@ -281,9 +279,8 @@ const attributeRouter = (
       "/declaredAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContext<UIAuthData>(req.ctx);
+        const ctx = fromAppContextWithTokenType(req.ctx, ["ui"]);
         try {
-          assertHasTokenType(ctx.authData, "ui");
           const attribute =
             await attributeRegistryService.createDeclaredAttribute(
               req.body,
@@ -309,10 +306,9 @@ const attributeRouter = (
       "/verifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContext<UIAuthData>(req.ctx);
+        const ctx = fromAppContextWithTokenType(req.ctx, ["ui"]);
 
         try {
-          assertHasTokenType(ctx.authData, "ui");
           const attribute =
             await attributeRegistryService.createVerifiedAttribute(
               req.body,

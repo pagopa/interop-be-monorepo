@@ -5,8 +5,10 @@ import {
   makeApiProblemBuilder,
   tooManyRequestsError,
 } from "pagopa-interop-models";
-import { ExpressContext, fromAppContext } from "../context/context.js";
-import { M2MAuthData, UIAuthData } from "../auth/authData.js";
+import {
+  ExpressContext,
+  fromAppContextWithTokenType,
+} from "../context/context.js";
 import { RateLimiter } from "./rateLimiterModel.js";
 import { rateLimiterHeadersFromStatus } from "./rateLimiterUtils.js";
 
@@ -16,7 +18,7 @@ export function rateLimiterMiddleware(
   rateLimiter: RateLimiter
 ): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
-    const ctx = fromAppContext<UIAuthData | M2MAuthData>(req.ctx);
+    const ctx = fromAppContextWithTokenType(req.ctx, ["ui", "m2m"]);
 
     if (!ctx.authData?.organizationId) {
       const errorRes = makeApiProblem(

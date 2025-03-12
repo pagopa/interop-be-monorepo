@@ -10,7 +10,7 @@ import {
   missingHeader,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData } from "../auth/authData.js";
+import { AuthData, assertHasTokenTypeIn } from "../auth/authData.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
 
@@ -26,10 +26,22 @@ export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export type WithLogger<T> = T & { logger: Logger };
 
-export function fromAppContext<A extends AuthData = AuthData>(
-  ctx: AppContext<A>
-): WithLogger<AppContext<A>> {
+export function fromAppContext(
+  ctx: AppContext<AuthData>
+): WithLogger<AppContext<AuthData>> {
   return { ...ctx, logger: logger({ ...ctx }) };
+}
+
+export function fromAppContextWithTokenType<T extends AuthData["tokenType"]>(
+  ctx: AppContext<AuthData>,
+  tokenTypes: ReadonlyArray<T>
+): WithLogger<AppContext<Extract<AuthData, { tokenType: T }>>> {
+  assertHasTokenTypeIn(ctx.authData, tokenTypes);
+  return {
+    ...ctx,
+    authData: ctx.authData,
+    logger: logger({ ...ctx }),
+  };
 }
 
 const makeApiProblem = makeApiProblemBuilder({});
