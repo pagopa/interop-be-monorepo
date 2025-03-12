@@ -1,68 +1,91 @@
 import { constants } from "http2";
 import {
-  ExpressContext,
-  fromAppContext,
-  initFileManager,
-  initRedisRateLimiter,
+  // fromAppContext,
+  genericLogger,
+  // initFileManager,
+  // initRedisRateLimiter,
   InteropTokenGenerator,
   rateLimiterHeadersFromStatus,
-  ZodiosContext,
-  zodiosValidationErrorToApiProblem,
+  // zodiosCtx,
+  // zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { Problem, tooManyRequestsError } from "pagopa-interop-models";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
+import {
+  CorrelationId,
+  generateId,
+  Problem,
+  tooManyRequestsError,
+} from "pagopa-interop-models";
+// import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { initProducer } from "kafka-iam-auth";
-import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { ZodiosRouter } from "@zodios/express";
+import { KMSClient } from "@aws-sdk/client-kms";
+// import { initProducer } from "kafka-iam-auth";
+import express from "express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
 
-const dynamoDBClient = new DynamoDBClient();
-const redisRateLimiter = await initRedisRateLimiter({
-  limiterGroup: "AUTHSERVER",
-  maxRequests: config.rateLimiterMaxRequests,
-  rateInterval: config.rateLimiterRateInterval,
-  burstPercentage: config.rateLimiterBurstPercentage,
-  redisHost: config.rateLimiterRedisHost,
-  redisPort: config.rateLimiterRedisPort,
-  timeout: config.rateLimiterTimeout,
+const dynamoDBClient = new DynamoDBClient({
+  // requestHandler: {
+  //   requestTimeout: 3_000,
+  //   httpsAgent: { maxSockets: 2000 },
+  // },
 });
-const producer = await initProducer(config, config.tokenAuditingTopic);
-const fileManager = initFileManager(config);
+const kmsClient = new KMSClient({
+  // requestHandler: {
+  //   requestTimeout: 3_000,
+  //   httpsAgent: { maxSockets: 2000 },
+  // },
+});
+// const redisRateLimiter = await initRedisRateLimiter({
+//   limiterGroup: "AUTHSERVER",
+//   maxRequests: config.rateLimiterMaxRequests,
+//   rateInterval: config.rateLimiterRateInterval,
+//   burstPercentage: config.rateLimiterBurstPercentage,
+//   redisHost: config.rateLimiterRedisHost,
+//   redisPort: config.rateLimiterRedisPort,
+//   timeout: config.rateLimiterTimeout,
+// });
+// const producer = await initProducer(config, config.tokenAuditingTopic);
+// const fileManager = initFileManager(config, 2000);
 
-const tokenGenerator = new InteropTokenGenerator({
-  generatedInteropTokenKid: config.generatedInteropTokenKid,
-  generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
-  generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
-  generatedInteropTokenM2MDurationSeconds:
-    config.generatedInteropTokenM2MDurationSeconds,
-});
+const tokenGenerator = new InteropTokenGenerator(
+  {
+    generatedInteropTokenKid: config.generatedInteropTokenKid,
+    generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
+    generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
+    generatedInteropTokenM2MDurationSeconds:
+      config.generatedInteropTokenM2MDurationSeconds,
+  },
+  kmsClient
+);
 
 const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
-  redisRateLimiter,
-  producer,
-  fileManager,
+  // redisRateLimiter,
+  // producer,
+  // fileManager,
 });
 
-const authorizationServerRouter = (
-  ctx: ZodiosContext
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const authorizationServerRouter = ctx.router(
-    authorizationServerApi.authApi.api,
-    {
-      validationErrorHandler: zodiosValidationErrorToApiProblem,
-    }
-  );
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function authorizationServerRouter(): express.Router {
+  // const authorizationServerRouter = zodiosCtx.router(
+  //   authorizationServerApi.authApi.api,
+  //   {
+  //     validationErrorHandler: zodiosValidationErrorToApiProblem,
+  //   }
+  // );
+  const authorizationServerRouter = express.Router();
   authorizationServerRouter.post(
     "/authorization-server/token.oauth2",
     async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      // const ctx = fromAppContext(req.ctx);
 
+      const ctx = {
+        correlationId: generateId<CorrelationId>(),
+        logger: genericLogger,
+      };
       try {
         const tokenResult = await tokenService.generateToken(
           req.body,
@@ -135,7 +158,10 @@ const authorizationServerRouter = (
       }
     }
   );
-  return authorizationServerRouter;
-};
+
+  // This cast will be removed when the router and the entire service
+  // will drop fastify-express and will be fully migrated to fastify
+  return authorizationServerRouter as unknown as express.Router;
+}
 
 export default authorizationServerRouter;
