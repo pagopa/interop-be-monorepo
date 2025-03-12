@@ -98,6 +98,7 @@ describe("addClientPurpose", async () => {
         authData: getMockAuthData(mockConsumerId),
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       },
     });
 
@@ -181,6 +182,7 @@ describe("addClientPurpose", async () => {
         authData: getMockAuthData(mockClient.consumerId),
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       },
     });
 
@@ -263,6 +265,7 @@ describe("addClientPurpose", async () => {
         authData: getMockAuthData(mockClient.consumerId),
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       },
     });
 
@@ -336,6 +339,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
@@ -388,6 +392,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -441,6 +446,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
@@ -493,6 +499,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -546,6 +553,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(eserviceNotFound(mockEservice.id));
@@ -588,6 +596,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -647,6 +656,7 @@ describe("addClientPurpose", async () => {
             authData: getMockAuthData(mockConsumerId),
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           },
         })
       ).rejects.toThrowError(
@@ -703,6 +713,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(mockDescriptor.id);
@@ -756,6 +767,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -819,6 +831,7 @@ describe("addClientPurpose", async () => {
             authData: getMockAuthData(mockConsumerId),
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           },
         })
       ).rejects.toThrowError(
@@ -875,6 +888,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(mockConsumerId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -940,6 +954,7 @@ describe("addClientPurpose", async () => {
         authData: getMockAuthData(delegateId),
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       },
     });
 
@@ -1023,6 +1038,7 @@ describe("addClientPurpose", async () => {
         authData: getMockAuthData(consumerId),
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       },
     });
 
@@ -1108,6 +1124,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(delegateId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(purposeDelegationNotFound(delegation.id));
@@ -1172,6 +1189,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(delegateId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -1238,6 +1256,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(delegateId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(eserviceNotDelegableForClientAccess(mockEservice));
@@ -1302,6 +1321,7 @@ describe("addClientPurpose", async () => {
           authData: getMockAuthData(delegateId),
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(

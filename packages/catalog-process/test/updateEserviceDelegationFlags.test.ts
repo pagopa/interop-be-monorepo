@@ -59,6 +59,7 @@ describe("update eService flags", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -106,6 +107,7 @@ describe("update eService flags", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -154,6 +156,7 @@ describe("update eService flags", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -202,6 +205,7 @@ describe("update eService flags", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -241,6 +245,7 @@ describe("update eService flags", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -261,6 +266,7 @@ describe("update eService flags", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -288,6 +294,7 @@ describe("update eService flags", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -308,6 +315,7 @@ describe("update eService flags", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
@@ -366,6 +374,7 @@ describe("update eService flags", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(invalidEServiceFlags(eservice.id));

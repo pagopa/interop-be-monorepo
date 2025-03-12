@@ -85,6 +85,7 @@ describe("create descriptor", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const newDescriptorId = returnedDescriptor.id;
@@ -178,6 +179,7 @@ describe("create descriptor", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const newDescriptorId = returnedDescriptor.id;
@@ -303,6 +305,7 @@ describe("create descriptor", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const newDescriptorId = returnedDescriptor.id;
@@ -416,6 +419,7 @@ describe("create descriptor", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -464,6 +468,7 @@ describe("create descriptor", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
   });
@@ -487,6 +492,7 @@ describe("create descriptor", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -519,6 +525,7 @@ describe("create descriptor", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -541,6 +548,7 @@ describe("create descriptor", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(inconsistentDailyCalls());
   });

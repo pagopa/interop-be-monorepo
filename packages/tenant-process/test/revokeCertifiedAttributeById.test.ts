@@ -91,6 +91,7 @@ describe("revokeCertifiedAttributeById", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
@@ -138,6 +139,7 @@ describe("revokeCertifiedAttributeById", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
@@ -158,6 +160,7 @@ describe("revokeCertifiedAttributeById", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
@@ -184,6 +187,7 @@ describe("revokeCertifiedAttributeById", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantIsNotACertifier(notCertifierTenant.id));
@@ -212,6 +216,7 @@ describe("revokeCertifiedAttributeById", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -247,6 +252,7 @@ describe("revokeCertifiedAttributeById", async () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

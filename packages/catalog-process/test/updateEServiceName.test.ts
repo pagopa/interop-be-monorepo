@@ -52,6 +52,7 @@ describe("update eService name on published eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const updatedEService: EService = {
@@ -97,6 +98,7 @@ describe("update eService name on published eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const updatedEService: EService = {
@@ -125,6 +127,7 @@ describe("update eService name on published eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -137,6 +140,7 @@ describe("update eService name on published eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -155,6 +159,7 @@ describe("update eService name on published eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(operationForbidden);
   });
@@ -167,6 +172,7 @@ describe("update eService name on published eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
@@ -188,6 +194,7 @@ describe("update eService name on published eservice", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
@@ -222,6 +229,7 @@ describe("update eService name on published eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceDuplicate(duplicateName));
   });

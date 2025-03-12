@@ -263,6 +263,7 @@ describe("internalUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(
@@ -293,6 +294,7 @@ describe("internalUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
@@ -324,6 +326,7 @@ describe("internalUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       attributeNotFound(

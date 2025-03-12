@@ -253,6 +253,7 @@ describe("create risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -268,6 +269,7 @@ describe("create risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -290,6 +292,7 @@ describe("create risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(operationForbidden);
@@ -315,6 +318,7 @@ describe("create risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
@@ -341,6 +345,7 @@ describe("create risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eserviceNotInReceiveMode(eservice.id));
@@ -367,6 +372,7 @@ describe("create risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(eservice.producerId));
@@ -401,6 +407,7 @@ describe("create risk analysis", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
@@ -448,6 +455,7 @@ describe("create risk analysis", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       riskAnalysisDuplicated(riskAnalysis.name.toLowerCase(), eservice.id)
@@ -506,6 +514,7 @@ describe("create risk analysis", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
