@@ -20,7 +20,7 @@ describe("Attribute Splitter", () => {
       code: "beta",
     };
 
-    expect(attributeSQL).toEqual(expectedAttributeSQL);
+    expect(attributeSQL).toStrictEqual(expectedAttributeSQL);
   });
 
   it("should transform undefined into null", () => {
@@ -38,6 +38,6 @@ describe("Attribute Splitter", () => {
       code: null,
     };
 
-    expect(attributeSQL).toEqual(expectedAttributeSQL);
+    expect(attributeSQL).toStrictEqual(expectedAttributeSQL);
   });
 });
