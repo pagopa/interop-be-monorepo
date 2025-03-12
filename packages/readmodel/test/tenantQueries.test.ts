@@ -59,9 +59,18 @@ describe("Tenant Queries", () => {
         tenantFeatureDelegatedProducer,
       } = initMockTenant(isTenantComplete);
 
-      await tenantReadModelService.upsertTenant(tenantForVerifying);
-      await tenantReadModelService.upsertTenant(tenantForRevoking);
-      await tenantReadModelService.upsertTenant(tenant);
+      await tenantReadModelService.upsertTenant(
+        tenantForVerifying.data,
+        tenantForVerifying.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenantForRevoking.data,
+        tenantForRevoking.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenant.data,
+        tenant.metadata.version
+      );
 
       const {
         retrievedTenantSQL,
@@ -134,9 +143,18 @@ describe("Tenant Queries", () => {
         tenantFeatureDelegatedProducer,
       } = initMockTenant(isTenantComplete);
 
-      await tenantReadModelService.upsertTenant(tenantForVerifying);
-      await tenantReadModelService.upsertTenant(tenantForRevoking);
-      await tenantReadModelService.upsertTenant(tenant);
+      await tenantReadModelService.upsertTenant(
+        tenantForVerifying.data,
+        tenantForVerifying.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenantForRevoking.data,
+        tenantForRevoking.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenant.data,
+        tenant.metadata.version
+      );
 
       const {
         retrievedTenantSQL,
@@ -210,10 +228,22 @@ describe("Tenant Queries", () => {
         tenantFeatureDelegatedProducer,
       } = initMockTenant(isTenantComplete);
 
-      await tenantReadModelService.upsertTenant(tenantForVerifying);
-      await tenantReadModelService.upsertTenant(tenantForRevoking);
-      await tenantReadModelService.upsertTenant(tenantBeforeUpdate);
-      await tenantReadModelService.upsertTenant(tenant);
+      await tenantReadModelService.upsertTenant(
+        tenantForVerifying.data,
+        tenantForVerifying.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenantForRevoking.data,
+        tenantForRevoking.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenantBeforeUpdate.data,
+        tenantBeforeUpdate.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenant.data,
+        tenant.metadata.version
+      );
 
       const {
         retrievedTenantSQL,
@@ -276,15 +306,24 @@ describe("Tenant Queries", () => {
       const { tenant, tenantForVerifying, tenantForRevoking } =
         initMockTenant(isTenantComplete);
 
-      await tenantReadModelService.upsertTenant(tenantForVerifying);
-      await tenantReadModelService.upsertTenant(tenantForRevoking);
-      await tenantReadModelService.upsertTenant(tenant);
+      await tenantReadModelService.upsertTenant(
+        tenantForVerifying.data,
+        tenantForVerifying.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenantForRevoking.data,
+        tenantForRevoking.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenant.data,
+        tenant.metadata.version
+      );
 
       const retrievedTenant = await tenantReadModelService.getTenantById(
         tenant.data.id
       );
 
-      expect(sortATenant(retrievedTenant)).toMatchObject(sortATenant(tenant));
+      expect(sortATenant(retrievedTenant!)).toMatchObject(sortATenant(tenant));
     });
     it("should *not* get a tenant from a tenantId", async () => {
       const tenantId = generateId<TenantId>();
@@ -420,10 +459,22 @@ describe("Tenant Queries", () => {
         metadata: { version: 1 },
       };
 
-      await tenantReadModelService.upsertTenant(tenantForVerifying);
-      await tenantReadModelService.upsertTenant(tenantForRevoking);
-      await tenantReadModelService.upsertTenant(tenant1);
-      await tenantReadModelService.upsertTenant(tenant2);
+      await tenantReadModelService.upsertTenant(
+        tenantForVerifying.data,
+        tenantForVerifying.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenantForRevoking.data,
+        tenantForRevoking.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenant1.data,
+        tenant1.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenant2.data,
+        tenant2.metadata.version
+      );
 
       const retrievedTenants = await tenantReadModelService.getAllTenants();
       const retrievedOrderedTenants = retrievedTenants
@@ -452,9 +503,18 @@ describe("Tenant Queries", () => {
       const { tenant, tenantForVerifying, tenantForRevoking } =
         initMockTenant(isTenantComplete);
 
-      await tenantReadModelService.upsertTenant(tenantForVerifying);
-      await tenantReadModelService.upsertTenant(tenantForRevoking);
-      await tenantReadModelService.upsertTenant(tenant);
+      await tenantReadModelService.upsertTenant(
+        tenantForVerifying.data,
+        tenantForVerifying.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenantForRevoking.data,
+        tenantForRevoking.metadata.version
+      );
+      await tenantReadModelService.upsertTenant(
+        tenant.data,
+        tenant.metadata.version
+      );
 
       const {
         retrievedTenantSQL: beforeDeletedRetrievedTenantSQL,
