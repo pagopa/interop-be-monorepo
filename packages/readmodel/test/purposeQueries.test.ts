@@ -14,7 +14,10 @@ describe("Purpose queries", () => {
       const isPurposeComplete = true;
       const { purpose, purposeVersions } = initMockPurpose(isPurposeComplete);
 
-      await purposeReadModelService.upsertPurpose(purpose);
+      await purposeReadModelService.upsertPurpose(
+        purpose.data,
+        purpose.metadata.version
+      );
 
       const {
         retrievedPurposeSQL,
@@ -54,7 +57,10 @@ describe("Purpose queries", () => {
       const isPurposeComplete = false;
       const { purpose } = initMockPurpose(isPurposeComplete);
 
-      await purposeReadModelService.upsertPurpose(purpose);
+      await purposeReadModelService.upsertPurpose(
+        purpose.data,
+        purpose.metadata.version
+      );
 
       const {
         retrievedPurposeSQL,
@@ -93,8 +99,14 @@ describe("Purpose queries", () => {
       const { purposeBeforeUpdate, purpose, purposeVersions } =
         initMockPurpose(isPurposeComplete);
 
-      await purposeReadModelService.upsertPurpose(purposeBeforeUpdate);
-      await purposeReadModelService.upsertPurpose(purpose);
+      await purposeReadModelService.upsertPurpose(
+        purposeBeforeUpdate.data,
+        purposeBeforeUpdate.metadata.version
+      );
+      await purposeReadModelService.upsertPurpose(
+        purpose.data,
+        purpose.metadata.version
+      );
 
       const {
         retrievedPurposeSQL,
@@ -135,7 +147,10 @@ describe("Purpose queries", () => {
     it("should get a purpose from by purpose id", async () => {
       const isPurposeComplete = true;
       const { purpose } = initMockPurpose(isPurposeComplete);
-      await purposeReadModelService.upsertPurpose(purpose);
+      await purposeReadModelService.upsertPurpose(
+        purpose.data,
+        purpose.metadata.version
+      );
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         purpose.data.id
@@ -159,8 +174,14 @@ describe("Purpose queries", () => {
       const { purpose: purpose1 } = initMockPurpose(isPurposeComplete);
       const { purpose: purpose2 } = initMockPurpose(isPurposeComplete);
 
-      await purposeReadModelService.upsertPurpose(purpose1);
-      await purposeReadModelService.upsertPurpose(purpose2);
+      await purposeReadModelService.upsertPurpose(
+        purpose1.data,
+        purpose1.metadata.version
+      );
+      await purposeReadModelService.upsertPurpose(
+        purpose2.data,
+        purpose2.metadata.version
+      );
 
       const retrievedPurposes = await purposeReadModelService.getAllPurposes();
 
@@ -182,7 +203,10 @@ describe("Purpose queries", () => {
     it("should delete a purpose by purpose id", async () => {
       const isPurposeComplete = true;
       const { purpose } = initMockPurpose(isPurposeComplete);
-      await purposeReadModelService.upsertPurpose(purpose);
+      await purposeReadModelService.upsertPurpose(
+        purpose.data,
+        purpose.metadata.version
+      );
 
       await purposeReadModelService.deletePurposeById(
         purpose.data.id,

@@ -27,7 +27,7 @@ import {
   PurposeVersionDocumentSQL,
   PurposeVersionSQL,
 } from "pagopa-interop-readmodel-models";
-import { purposeReadModelServiceBuilder } from "../src/purposeReadModelServiceSQL.js";
+import { purposeReadModelServiceBuilder } from "../src/purposeReadModelService.js";
 import {
   retrievePurposeRiskAnalysisAnswersSQL,
   retrievePurposeRiskAnalysisForm,
