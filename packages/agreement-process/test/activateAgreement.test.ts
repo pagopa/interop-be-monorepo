@@ -325,6 +325,7 @@ describe("activate agreement", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           });
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -559,6 +560,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
 
@@ -679,6 +681,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
     });
@@ -699,6 +702,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(
         organizationIsNotTheProducer(authData.organizationId)
@@ -731,6 +735,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(
         organizationIsNotTheProducer(authData.organizationId)
@@ -764,6 +769,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(
         organizationIsNotTheDelegateProducer(
@@ -906,6 +912,7 @@ describe("activate agreement", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           });
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1040,6 +1047,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1262,6 +1270,7 @@ describe("activate agreement", () => {
               serviceName: "",
               correlationId: generateId(),
               logger: genericLogger,
+              requestTimestamp: Date.now(),
             });
 
           const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1324,6 +1333,7 @@ describe("activate agreement", () => {
               serviceName: "",
               correlationId: generateId(),
               logger: genericLogger,
+              requestTimestamp: Date.now(),
             });
 
           const agreementEvent = await readAgreementEventByVersion(
@@ -1563,6 +1573,7 @@ describe("activate agreement", () => {
               serviceName: "",
               correlationId: generateId(),
               logger: genericLogger,
+              requestTimestamp: Date.now(),
             });
           const agreementEvent = await readLastAgreementEvent(agreement.id);
           expect(agreementEvent).toMatchObject({
@@ -1618,6 +1629,7 @@ describe("activate agreement", () => {
               serviceName: "",
               correlationId: generateId(),
               logger: genericLogger,
+              requestTimestamp: Date.now(),
             });
 
           const agreementEvent = await readAgreementEventByVersion(
@@ -1692,6 +1704,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
@@ -1723,6 +1736,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
@@ -1739,6 +1753,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
@@ -1777,6 +1792,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
@@ -1803,6 +1819,7 @@ describe("activate agreement", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           })
         ).rejects.toThrowError(
           agreementNotInExpectedState(agreement.id, agreement.state)
@@ -1828,6 +1845,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
@@ -1858,6 +1876,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(
         descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
@@ -1904,6 +1923,7 @@ describe("activate agreement", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           })
         ).rejects.toThrowError(
           descriptorNotInExpectedState(
@@ -1949,6 +1969,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(tenantNotFound(consumerId));
     });
@@ -1988,6 +2009,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(tenantNotFound(producerId));
     });
@@ -2033,6 +2055,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(agreementStampNotFound("submission"));
     });
@@ -2102,6 +2125,7 @@ describe("activate agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(
         attributeNotFound(validTenantCertifiedAttribute.id)

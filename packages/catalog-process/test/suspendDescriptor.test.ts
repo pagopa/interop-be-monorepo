@@ -53,6 +53,7 @@ describe("suspend descriptor", () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -107,6 +108,7 @@ describe("suspend descriptor", () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);

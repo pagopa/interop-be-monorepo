@@ -59,6 +59,7 @@ describe("archive agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const agreementId = returnedAgreement.id;
@@ -134,6 +135,7 @@ describe("archive agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -206,6 +208,7 @@ describe("archive agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
@@ -235,6 +238,7 @@ describe("archive agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
   });
@@ -257,6 +261,7 @@ describe("archive agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
@@ -286,6 +291,7 @@ describe("archive agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, notArchivableState)

@@ -76,6 +76,7 @@ describe("agreement consumer document", () => {
               serviceName: "",
               correlationId: generateId(),
               logger: genericLogger,
+              requestTimestamp: Date.now(),
             }
           );
         expect(retrievedDocument).toEqual(document);
@@ -92,6 +93,7 @@ describe("agreement consumer document", () => {
               serviceName: "",
               correlationId: generateId(),
               logger: genericLogger,
+              requestTimestamp: Date.now(),
             }
           );
         expect(retrievedDocument).toEqual(document);
@@ -138,6 +140,7 @@ describe("agreement consumer document", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -180,6 +183,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
 
@@ -215,6 +219,7 @@ describe("agreement consumer document", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -258,6 +263,7 @@ describe("agreement consumer document", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -288,6 +294,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(agreementNotFound(randomAgreementId));
@@ -315,6 +322,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
@@ -344,6 +352,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -374,6 +383,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
       const { data: payload } = await readLastAgreementEvent(agreement.id);
@@ -442,6 +452,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
       const { data: payload } = await readLastAgreementEvent(agreement.id);
@@ -495,6 +506,7 @@ describe("agreement consumer document", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -520,6 +532,7 @@ describe("agreement consumer document", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -555,6 +568,7 @@ describe("agreement consumer document", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -591,6 +605,7 @@ describe("agreement consumer document", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -622,6 +637,7 @@ describe("agreement consumer document", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
       await expect(actualConsumerDocument).rejects.toThrowError(
@@ -662,6 +678,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
 
@@ -718,6 +735,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
 
@@ -763,6 +781,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -786,6 +805,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
 
@@ -806,6 +826,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
 
@@ -839,6 +860,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
 
@@ -860,6 +882,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
@@ -882,6 +905,7 @@ describe("agreement consumer document", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(

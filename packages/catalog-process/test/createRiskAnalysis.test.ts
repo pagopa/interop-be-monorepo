@@ -86,6 +86,7 @@ describe("create risk analysis", () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -184,6 +185,7 @@ describe("create risk analysis", () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);

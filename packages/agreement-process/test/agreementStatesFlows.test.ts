@@ -157,6 +157,7 @@ describe("Agreeement states flows", () => {
         serviceName: "AgreementService",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -176,6 +177,7 @@ describe("Agreeement states flows", () => {
         serviceName: "AgreementService",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -192,6 +194,7 @@ describe("Agreeement states flows", () => {
         serviceName: "Agreement Service",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -253,6 +256,7 @@ describe("Agreeement states flows", () => {
         serviceName: "Agreement Service",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -277,6 +281,7 @@ describe("Agreeement states flows", () => {
         serviceName: "Agreement Service",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -346,6 +351,7 @@ describe("Agreeement states flows", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -436,6 +442,7 @@ describe("Agreeement states flows", () => {
         serviceName: "AgreementService",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -455,6 +462,7 @@ describe("Agreeement states flows", () => {
         serviceName: "AgreementService",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -513,6 +521,7 @@ describe("Agreeement states flows", () => {
         serviceName: "Agreement Service",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -537,6 +546,7 @@ describe("Agreeement states flows", () => {
         serviceName: "Agreement Service",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -600,6 +610,7 @@ describe("Agreeement states flows", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 

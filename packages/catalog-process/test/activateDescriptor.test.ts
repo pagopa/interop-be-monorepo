@@ -52,6 +52,7 @@ describe("activate descriptor", () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
 
     const expectedDescriptor = {
@@ -106,6 +107,7 @@ describe("activate descriptor", () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
 
     const expectedDescriptor = {

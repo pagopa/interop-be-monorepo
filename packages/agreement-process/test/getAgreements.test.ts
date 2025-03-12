@@ -278,6 +278,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant1, [
@@ -297,6 +298,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant2, [
@@ -314,6 +316,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant3, [
@@ -333,6 +336,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       });
     expectSinglePageListResult(allAgreementsVisibleToDelegateProducer1, [
       agreement1,
@@ -348,6 +352,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       });
 
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer1, [
@@ -361,6 +366,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       });
 
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer2, [
@@ -381,6 +387,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements1, [agreement1, agreement2]);
@@ -396,6 +403,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements2, [
@@ -417,6 +425,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements1, [
@@ -437,6 +446,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements2, [
@@ -460,6 +470,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements1, [agreement1, agreement2]);
@@ -475,6 +486,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements2, [
@@ -496,6 +508,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements1, [agreement1]);
@@ -511,6 +524,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements2, [
@@ -533,6 +547,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements1, [agreement1]);
@@ -548,6 +563,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements2, [agreement1, agreement2]);
@@ -563,6 +579,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements3, [agreement1, agreement2]);
@@ -580,6 +597,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements, [agreement2, agreement3]);
@@ -597,6 +615,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements, [
@@ -619,6 +638,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements, [agreement1, agreement3]);
@@ -639,6 +659,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements, [agreement1]);
@@ -657,6 +678,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements, [agreement2]);
@@ -676,6 +698,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements1, [agreement1]);
@@ -693,6 +716,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements2, []);
@@ -704,6 +728,7 @@ describe("get agreements", () => {
       serviceName: "",
       correlationId: generateId(),
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
     expect(agreements).toEqual({
       totalCount: 5,
@@ -717,6 +742,7 @@ describe("get agreements", () => {
       serviceName: "",
       correlationId: generateId(),
       logger: genericLogger,
+      requestTimestamp: Date.now(),
     });
     expect(agreements).toEqual({
       totalCount: 5,
@@ -736,6 +762,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -757,6 +784,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements, [agreement1, agreement2]);
@@ -774,6 +802,7 @@ describe("get agreements", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     expectSinglePageListResult(agreements, [agreement5]);

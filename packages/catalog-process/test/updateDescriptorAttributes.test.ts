@@ -474,6 +474,7 @@ describe("update descriptor", () => {
             correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(

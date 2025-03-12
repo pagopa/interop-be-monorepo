@@ -204,6 +204,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -237,6 +238,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -275,6 +277,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -314,6 +317,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -353,6 +357,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -389,6 +394,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -432,6 +438,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -473,6 +480,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -522,6 +530,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
@@ -571,6 +580,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
@@ -620,6 +630,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
@@ -691,6 +702,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
@@ -747,6 +759,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -797,6 +810,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
@@ -845,6 +859,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
@@ -900,6 +915,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(agreementSubmissionFailed(agreement.id));
@@ -984,6 +1000,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(agreementSubmissionFailed(agreement.id));
@@ -1107,6 +1124,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -1292,6 +1310,7 @@ describe("submit agreement", () => {
               correlationId: generateId(),
               serviceName: "AgreementServiceTest",
               logger: genericLogger,
+              requestTimestamp: Date.now(),
             }
           );
 
@@ -1540,6 +1559,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -1735,6 +1755,7 @@ describe("submit agreement", () => {
               correlationId: generateId(),
               serviceName: "AgreementServiceTest",
               logger: genericLogger,
+              requestTimestamp: Date.now(),
             }
           );
 
@@ -2017,6 +2038,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -2173,6 +2195,7 @@ describe("submit agreement", () => {
           correlationId: generateId(),
           serviceName: "AgreementServiceTest",
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 

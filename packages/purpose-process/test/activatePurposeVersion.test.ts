@@ -155,6 +155,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -252,6 +253,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -347,6 +349,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -408,6 +411,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -470,6 +474,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -541,6 +546,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -601,6 +607,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -659,6 +666,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -769,6 +777,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -923,6 +932,7 @@ describe("activatePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -1011,6 +1021,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(organizationIsNotTheProducer(mockConsumer.id));
@@ -1040,6 +1051,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(organizationIsNotTheConsumer(mockProducer.id));
@@ -1079,6 +1091,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
@@ -1112,6 +1125,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(missingRiskAnalysis(mockPurpose.id));
@@ -1134,6 +1148,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
@@ -1162,6 +1177,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(
@@ -1201,6 +1217,7 @@ describe("activatePurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
+            requestTimestamp: Date.now(),
           }
         );
       }).rejects.toThrowError(
@@ -1230,6 +1247,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
@@ -1262,6 +1280,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
@@ -1298,6 +1317,7 @@ describe("activatePurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
+            requestTimestamp: Date.now(),
           }
         );
       }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
@@ -1332,6 +1352,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
@@ -1373,6 +1394,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(
@@ -1408,6 +1430,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
@@ -1430,6 +1453,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantNotFound(mockProducer.id));
@@ -1459,6 +1483,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
@@ -1488,6 +1513,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantKindNotFound(producer.id));
@@ -1523,6 +1549,7 @@ describe("activatePurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
+            requestTimestamp: Date.now(),
           }
         );
       }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
@@ -1559,6 +1586,7 @@ describe("activatePurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
+            requestTimestamp: Date.now(),
           }
         );
       }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
@@ -1604,6 +1632,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
@@ -1647,6 +1676,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
@@ -1691,6 +1721,7 @@ describe("activatePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));

@@ -197,6 +197,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -210,6 +211,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -223,6 +225,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -238,6 +241,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -253,6 +257,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -266,6 +271,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -281,6 +287,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -296,6 +303,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -309,6 +317,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -327,6 +336,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -346,6 +356,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -365,6 +376,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -384,6 +396,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -403,6 +416,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -420,6 +434,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -433,6 +448,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -446,6 +462,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -459,6 +476,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -472,6 +490,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -485,6 +504,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -500,6 +520,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -515,6 +536,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -528,6 +550,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         });
 
       expectSinglePageListResult(
@@ -546,6 +569,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -564,6 +588,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -583,6 +608,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -602,6 +628,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -621,6 +648,7 @@ describe("get agreements consumers / producers", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         }
       );
 

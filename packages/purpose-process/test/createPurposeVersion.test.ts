@@ -146,6 +146,7 @@ describe("createPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -258,6 +259,7 @@ describe("createPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -358,6 +360,7 @@ describe("createPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -462,6 +465,7 @@ describe("createPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -544,6 +548,7 @@ describe("createPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -707,6 +712,7 @@ describe("createPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -807,6 +813,7 @@ describe("createPurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
+            requestTimestamp: Date.now(),
           }
         )
     ).rejects.toThrowError(unchangedDailyCalls(mockPurpose.id));
@@ -830,6 +837,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(
@@ -854,6 +862,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
@@ -880,6 +889,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(organizationIsNotTheConsumer(anotherTenant.id));
@@ -902,6 +912,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(
@@ -938,6 +949,7 @@ describe("createPurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
+            requestTimestamp: Date.now(),
           }
         );
       }).rejects.toThrowError(
@@ -963,6 +975,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
@@ -985,6 +998,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantNotFound(mockProducer.id));
@@ -1014,6 +1028,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
@@ -1043,6 +1058,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(tenantKindNotFound(producer.id));
@@ -1071,6 +1087,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
@@ -1110,6 +1127,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(
@@ -1142,6 +1160,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(
@@ -1182,6 +1201,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(
@@ -1233,6 +1253,7 @@ describe("createPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
     }).rejects.toThrowError(

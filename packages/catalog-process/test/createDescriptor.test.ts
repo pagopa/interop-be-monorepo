@@ -402,6 +402,7 @@ describe("create descriptor", async () => {
             correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));

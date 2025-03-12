@@ -78,6 +78,7 @@ describe("get eservice by id", () => {
       logger: genericLogger,
       correlationId: generateId(),
       serviceName: "",
+      requestTimestamp: Date.now(),
     });
     expect(result).toEqual(eservice1);
   });
@@ -91,6 +92,7 @@ describe("get eservice by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(notExistingId));
   });
@@ -113,6 +115,7 @@ describe("get eservice by id", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "",
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
     }
@@ -139,6 +142,7 @@ describe("get eservice by id", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "",
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
     }
@@ -155,6 +159,7 @@ describe("get eservice by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -178,6 +183,7 @@ describe("get eservice by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -208,6 +214,7 @@ describe("get eservice by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       });
       expect(result.descriptors).toEqual([descriptorB]);
     }
@@ -239,6 +246,7 @@ describe("get eservice by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       });
       expect(result.descriptors).toEqual([descriptorB]);
     }
@@ -278,6 +286,7 @@ describe("get eservice by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       });
       expect(result.descriptors).toEqual([descriptorA, descriptorB]);
     }
@@ -307,6 +316,7 @@ describe("get eservice by id", () => {
       logger: genericLogger,
       correlationId: generateId(),
       serviceName: "",
+      requestTimestamp: Date.now(),
     });
     expect(result.descriptors).toEqual([descriptorB]);
   });
@@ -335,6 +345,7 @@ describe("get eservice by id", () => {
       logger: genericLogger,
       correlationId: generateId(),
       serviceName: "",
+      requestTimestamp: Date.now(),
     });
     expect(result.descriptors).toEqual([descriptorB]);
   });
@@ -370,6 +381,7 @@ describe("get eservice by id", () => {
       logger: genericLogger,
       correlationId: generateId(),
       serviceName: "",
+      requestTimestamp: Date.now(),
     });
     expect(result.descriptors).toEqual([descriptorA, descriptorB]);
   });

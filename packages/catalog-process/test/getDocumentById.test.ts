@@ -56,6 +56,7 @@ describe("get document by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
     expect(result).toEqual(mockDocument);
@@ -89,6 +90,7 @@ describe("get document by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
     expect(result).toEqual(mockDocument);
@@ -132,6 +134,7 @@ describe("get document by id", () => {
         logger: genericLogger,
         correlationId: generateId(),
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
     expect(result).toEqual(mockDocument);
@@ -154,6 +157,7 @@ describe("get document by id", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -182,6 +186,7 @@ describe("get document by id", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -218,6 +223,7 @@ describe("get document by id", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -251,6 +257,7 @@ describe("get document by id", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -282,6 +289,7 @@ describe("get document by id", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
@@ -313,6 +321,7 @@ describe("get document by id", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));

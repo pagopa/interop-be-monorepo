@@ -130,6 +130,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -251,6 +252,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -340,6 +342,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -496,6 +499,7 @@ describe("suspend agreement", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
+            requestTimestamp: Date.now(),
           }
         );
         expect(actualAgreement).toEqual(expectedAgreement);
@@ -513,6 +517,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
@@ -531,6 +536,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
@@ -552,6 +558,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -572,6 +579,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
@@ -603,6 +611,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
   });
@@ -631,6 +640,7 @@ describe("suspend agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
@@ -686,6 +696,7 @@ describe("suspend agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     }
@@ -730,6 +741,7 @@ describe("suspend agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
+          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     }

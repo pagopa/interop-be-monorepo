@@ -146,6 +146,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -299,6 +300,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -377,6 +379,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
@@ -395,6 +398,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
@@ -425,6 +429,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
@@ -454,6 +459,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -476,6 +482,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
@@ -511,6 +518,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(agreementAlreadyExists(consumerId, eservice.id));
   });
@@ -557,6 +565,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantNotFound(consumerId));
   });
@@ -584,6 +593,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
@@ -639,6 +649,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       missingCertifiedAttributesError(descriptor.id, consumerId)
@@ -682,6 +693,7 @@ describe("clone agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(FileManagerError);
   });

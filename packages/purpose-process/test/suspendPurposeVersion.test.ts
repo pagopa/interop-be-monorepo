@@ -84,6 +84,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       );
 
@@ -152,6 +153,7 @@ describe("suspendPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -228,6 +230,7 @@ describe("suspendPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -296,6 +299,7 @@ describe("suspendPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -377,6 +381,7 @@ describe("suspendPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -460,6 +465,7 @@ describe("suspendPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -589,6 +595,7 @@ describe("suspendPurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -646,6 +653,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(purposeNotFound(randomPurposeId));
@@ -674,6 +682,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -707,6 +716,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -751,6 +761,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationNotAllowed(randomCaller.organizationId));
@@ -795,6 +806,7 @@ describe("suspendPurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -838,6 +850,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationNotAllowed(mockEService.producerId));
@@ -874,6 +887,7 @@ describe("suspendPurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
+            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -919,6 +933,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationNotAllowed(mockPurpose.consumerId));
@@ -953,6 +968,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
@@ -996,6 +1012,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
@@ -1037,6 +1054,7 @@ describe("suspendPurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
