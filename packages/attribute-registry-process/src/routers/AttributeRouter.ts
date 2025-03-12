@@ -9,8 +9,7 @@ import {
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
-  assertHasTokenTypeIn,
-  fromAppContextWithTokenType,
+  assertContextHasTokenTypeIn,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -250,10 +249,10 @@ const attributeRouter = (
       "/certifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContextWithTokenType(req.ctx, ["ui", "m2m"]);
+        const ctx = fromAppContext(req.ctx);
 
         try {
-          assertHasTokenTypeIn(ctx.authData, ["ui", "m2m"]);
+          assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
           const attribute =
             await attributeRegistryService.createCertifiedAttribute(
               req.body,
@@ -279,8 +278,9 @@ const attributeRouter = (
       "/declaredAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContextWithTokenType(req.ctx, ["ui"]);
+        const ctx = fromAppContext(req.ctx);
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const attribute =
             await attributeRegistryService.createDeclaredAttribute(
               req.body,
@@ -306,9 +306,10 @@ const attributeRouter = (
       "/verifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromAppContextWithTokenType(req.ctx, ["ui"]);
+        const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const attribute =
             await attributeRegistryService.createVerifiedAttribute(
               req.body,
@@ -337,6 +338,7 @@ const attributeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["internal"]);
           const attribute =
             await attributeRegistryService.createInternalCertifiedAttribute(
               req.body,

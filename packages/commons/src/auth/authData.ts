@@ -181,7 +181,7 @@ export function getUserInfoFromAuthData(authData: AuthData | undefined): {
     .exhaustive();
 }
 
-export function assertHasTokenTypeIn<T extends AuthData["tokenType"]>(
+export function assertAuthDataTokenTypeIn<T extends AuthData["tokenType"]>(
   authData: AuthData,
   tokenTypes: ReadonlyArray<T>
 ): asserts authData is Extract<AuthData, { tokenType: T }> {

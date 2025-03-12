@@ -6,6 +6,7 @@ import {
   eventRepository,
   UIAuthData,
   M2MAuthData,
+  InternalAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -269,7 +270,7 @@ export function attributeRegistryServiceBuilder(
 
     async createInternalCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
-      { correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`

@@ -7,7 +7,8 @@ import {
 } from "pagopa-interop-models";
 import {
   ExpressContext,
-  fromAppContextWithTokenType,
+  assertContextHasTokenTypeIn,
+  fromAppContext,
 } from "../context/context.js";
 import { RateLimiter } from "./rateLimiterModel.js";
 import { rateLimiterHeadersFromStatus } from "./rateLimiterUtils.js";
@@ -18,7 +19,8 @@ export function rateLimiterMiddleware(
   rateLimiter: RateLimiter
 ): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
-    const ctx = fromAppContextWithTokenType(req.ctx, ["ui", "m2m"]);
+    const ctx = fromAppContext(req.ctx);
+    assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
 
     if (!ctx.authData?.organizationId) {
       const errorRes = makeApiProblem(
