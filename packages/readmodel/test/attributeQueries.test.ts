@@ -7,7 +7,7 @@ import { attributeReadModelService, readModelDB } from "./utils.js";
 import { retrieveAttributeSQL } from "./attributeTestReadModelService.js";
 
 describe("Attribute queries", () => {
-  describe("upsertAttribute", () => {
+  describe("should insert or update an attribute in the db", () => {
     it("should add a complete (*all* fields) attribute", async () => {
       const attribute: Attribute = {
         ...getMockAttribute(),
@@ -82,7 +82,7 @@ describe("Attribute queries", () => {
     });
   });
 
-  describe("getAttributeById", () => {
+  describe("should get an attribute by id from the db", () => {
     it("attribute found", async () => {
       const attribute: Attribute = {
         ...getMockAttribute(),
@@ -111,7 +111,7 @@ describe("Attribute queries", () => {
     });
   });
 
-  describe("getAllAttributes", () => {
+  describe("should get all attributes from the db", () => {
     it("get all attributes", async () => {
       const attribute1: Attribute = {
         ...getMockAttribute(),
@@ -140,7 +140,7 @@ describe("Attribute queries", () => {
     });
   });
 
-  describe("deleteAttributeById", () => {
+  describe("should delete an attribute by id from the db", () => {
     it("delete one attribute", async () => {
       const attribute: Attribute = {
         ...getMockAttribute(),
