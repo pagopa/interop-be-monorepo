@@ -449,7 +449,10 @@ describe("E-service queries", () => {
       expect(riskAnalysisSQLBeforeDelete).toBeDefined();
       expect(riskAnalysisAnswersSQLBeforeDelete).toBeDefined();
 
-      await catalogReadModelService.deleteEServiceById(eservice.data.id);
+      await catalogReadModelService.deleteEServiceById(
+        eservice.data.id,
+        eservice.metadata.version + 1
+      );
 
       const [
         eserviceSQL,
