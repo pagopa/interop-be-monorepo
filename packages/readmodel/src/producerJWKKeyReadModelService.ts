@@ -18,11 +18,12 @@ export function producerJWKKeyReadModelServiceBuilder(
 ) {
   return {
     async upsertProducerJWKKey(
-      jwkKey: WithMetadata<ProducerJWKKey>
+      jwkKey: ProducerJWKKey,
+      metadataVersion: number
     ): Promise<void> {
       const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
-        jwkKey.data,
-        jwkKey.metadata.version
+        jwkKey,
+        metadataVersion
       );
 
       await db.transaction(async (tx) => {
@@ -33,9 +34,9 @@ export function producerJWKKeyReadModelServiceBuilder(
             and(
               eq(
                 producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-                jwkKey.data.producerKeychainId
+                jwkKey.producerKeychainId
               ),
-              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.data.kid)
+              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
             )
           );
 
