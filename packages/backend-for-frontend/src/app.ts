@@ -95,7 +95,7 @@ app.use(
   producerKeychainRouter(zodiosCtx, clients),
   delegationRouter(zodiosCtx, clients, fileManager),
   producerDelegationRouter(zodiosCtx, clients, fileManager),
-  consumerDelegationRouter(zodiosCtx, clients, fileManager)
+  consumerDelegationRouter(zodiosCtx, clients, fileManager),
   eserviceTemplateRouter(zodiosCtx, clients, fileManager)
 );
 
