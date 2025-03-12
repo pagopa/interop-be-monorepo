@@ -51,7 +51,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: id,
-      version: 1,
+      version: 2,
       type: "AgreementAdded",
       data: newAgreement,
       log_date: new Date(),
@@ -77,7 +77,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "AgreementDeleted",
       data: agreementDeleted,
       log_date: new Date(),
@@ -118,7 +118,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "AgreementUpdated",
       data: agreementUpdated,
       log_date: new Date(),
@@ -154,7 +154,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "AgreementConsumerDocumentAdded",
       data: consumerDocumentAdded,
       log_date: new Date(),
@@ -196,7 +196,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "AgreementConsumerDocumentRemoved",
       data: consumerDocumentRemoved,
       log_date: new Date(),
@@ -217,7 +217,10 @@ describe("events V1", async () => {
 
   it("should add an agreement contract", async () => {
     const agreementContract = generateMock(AgreementDocument);
-    const agreement = getMockAgreement();
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      contract: agreementContract,
+    };
     await readModelService.upsertAgreement({
       data: agreement,
       metadata: { version: 1 },
@@ -231,7 +234,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "AgreementContractAdded",
       data: agreementContractAdded,
       log_date: new Date(),
@@ -244,7 +247,7 @@ describe("events V1", async () => {
     );
     expect(actualAgreement).not.toBeNull();
 
-    expect(actualAgreement?.data).toMatchObject({
+    expect(actualAgreement?.data).toEqual({
       ...agreement,
       contract: agreementContract,
     });
@@ -271,7 +274,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "AgreementActivated",
       data: payload,
       log_date: new Date(),
@@ -309,7 +312,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "AgreementSuspended",
       data: payload,
       log_date: new Date(),
@@ -347,7 +350,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "AgreementDeactivated",
       data: payload,
       log_date: new Date(),
@@ -385,7 +388,7 @@ describe("events V1", async () => {
       event_version: 1,
       sequence_num: 1,
       stream_id: agreement.id,
-      version: 1,
+      version: 2,
       type: "VerifiedAttributeUpdated",
       data: payload,
       log_date: new Date(),

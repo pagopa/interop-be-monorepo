@@ -134,7 +134,7 @@ export function readModelServiceBuilder(
           );
 
         await tx
-          .insert(agreementConsumerDocumentInReadmodelAgreement)
+          .insert(agreementContractInReadmodelAgreement)
           .values(contractDocumentSQL);
       });
     },
