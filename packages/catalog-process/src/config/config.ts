@@ -40,7 +40,6 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   )
   .and(EServiceTemplateS3Config)
-  .and(KafkaProducerConfig)
   .and(ApplicationAuditProducerConfig);
 
 export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
