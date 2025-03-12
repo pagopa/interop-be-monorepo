@@ -76,7 +76,6 @@ export const authorizationMiddleware =
       if (!validationResult.isValid) {
         throw validationResult.error;
       }
-
       return next();
     } catch (err) {
       const problem = match(err)
