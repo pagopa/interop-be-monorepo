@@ -14,7 +14,7 @@ export async function handleMessageV2(
 ): Promise<void> {
   await match(message)
     .with({ type: "EServiceDeleted" }, async (message) => {
-      await catalogReadModelService.deleteEService(
+      await catalogReadModelService.deleteEServiceById(
         unsafeBrandId<EServiceId>(message.stream_id),
         message.version
       );

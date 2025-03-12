@@ -170,7 +170,7 @@ export function customReadModelServiceBuilder(
       });
     },
 
-    async deleteEService(
+    async deleteEServiceById(
       eserviceId: EServiceId,
       metadataVersion: number
     ): Promise<void> {

@@ -69,7 +69,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceDeleted" },
       async (msg) =>
-        await customReadModeService.deleteEService(
+        await customReadModeService.deleteEServiceById(
           unsafeBrandId<EServiceId>(msg.data.eserviceId),
           msg.version
         )
