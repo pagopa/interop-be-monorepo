@@ -190,14 +190,14 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     },
     async deleteEServiceById(
       eserviceId: EServiceId,
-      version: number
+      metadataVersion: number
     ): Promise<void> {
       await db
         .delete(eserviceInReadmodelCatalog)
         .where(
           and(
             eq(eserviceInReadmodelCatalog.id, eserviceId),
-            lte(eserviceInReadmodelCatalog.metadataVersion, version)
+            lte(eserviceInReadmodelCatalog.metadataVersion, metadataVersion)
           )
         );
     },
