@@ -20,6 +20,7 @@ import { readModelServiceBuilder } from "./readModelService.js";
 const db = makeDrizzleConnection(config);
 const agreementReadModelService = agreementReadModelServiceBuilder(db);
 const readModelService = readModelServiceBuilder(db, agreementReadModelService);
+
 async function processMessage({
   message,
   partition,

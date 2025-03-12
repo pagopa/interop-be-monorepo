@@ -3,7 +3,6 @@ import {
   AgreementDocument,
   AgreementDocumentId,
   AgreementId,
-  WithMetadata,
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
@@ -23,8 +22,14 @@ export function readModelServiceBuilder(
   agreementReadModelService: AgreementReadModelService
 ) {
   return {
-    async upsertAgreement(agreement: WithMetadata<Agreement>): Promise<void> {
-      return await agreementReadModelService.upsertAgreement(agreement);
+    async upsertAgreement(
+      agreement: Agreement,
+      metadataVersion: number
+    ): Promise<void> {
+      return await agreementReadModelService.upsertAgreement(
+        agreement,
+        metadataVersion
+      );
     },
     async deleteAgreement(
       agreementId: AgreementId,

@@ -30,12 +30,10 @@ export async function handleMessageV1(
           );
         }
 
-        await readModelService.upsertAgreement({
-          data: fromAgreementV1(agreementV1),
-          metadata: {
-            version: msg.version,
-          },
-        });
+        await readModelService.upsertAgreement(
+          fromAgreementV1(agreementV1),
+          message.version
+        );
       }
     )
     .with({ type: "AgreementDeleted" }, async (msg) => {

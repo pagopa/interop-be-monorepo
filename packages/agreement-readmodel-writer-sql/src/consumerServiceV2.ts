@@ -55,10 +55,10 @@ export async function handleMessageV2(
             "agreement can't be missing in event message"
           );
         }
-        await readModelService.upsertAgreement({
-          data: fromAgreementV2(agreementV2),
-          metadata: { version: message.version },
-        });
+        await readModelService.upsertAgreement(
+          fromAgreementV2(agreementV2),
+          message.version
+        );
       }
     )
     .exhaustive();
