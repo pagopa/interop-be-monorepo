@@ -47,6 +47,7 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegatedConsumer,
   puroposeDelegationNotFound,
+  purposeCannotBeUpdated,
   tenantKindNotFound,
   tenantNotFound,
   unchangedDailyCalls,
@@ -1123,7 +1124,7 @@ describe("createPurposeVersion", () => {
     const authData = getRandomAuthData();
     const mockEService = getMockEService();
     const mockPurpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: mockEService.id,
       delegationId: generateId<DelegationId>(),
       consumerId: authData.organizationId,
@@ -1152,7 +1153,7 @@ describe("createPurposeVersion", () => {
 
   it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const delegatePurpose: Purpose = {
-      ...getMockPurpose(),
+      ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockConsumer.id,
       delegationId: undefined,
     };
@@ -1241,5 +1242,31 @@ describe("createPurposeVersion", () => {
         mockPurpose.delegationId
       )
     );
+  });
+  it("should throw purposeCannotBeUpdated if the purpose is in archived (archived version)", async () => {
+    const mockEService = getMockEService();
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      versions: [getMockPurposeVersion(purposeVersionState.archived)],
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    expect(async () => {
+      await purposeService.createPurposeVersion(
+        mockPurpose.id,
+        {
+          dailyCalls: 1000,
+        },
+        {
+          authData: getRandomAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        }
+      );
+    }).rejects.toThrowError(purposeCannotBeUpdated(mockPurpose.id));
   });
 });
