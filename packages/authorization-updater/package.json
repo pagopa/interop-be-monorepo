@@ -17,7 +17,7 @@
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
     "test": "vitest",
-    "test:it": "vitest integration"
+    "test:integration": "vitest integration"
   },
   "keywords": [],
   "author": "",
