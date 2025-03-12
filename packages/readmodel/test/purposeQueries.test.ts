@@ -179,7 +179,7 @@ describe("Purpose queries", () => {
   });
 
   describe("Delete a Purpose", () => {
-    it.only("should delete a purpose by purpose id", async () => {
+    it("should delete a purpose by purpose id", async () => {
       const isPurposeComplete = true;
       const { purpose } = initMockPurpose(isPurposeComplete);
       await purposeReadModelService.upsertPurpose(purpose);

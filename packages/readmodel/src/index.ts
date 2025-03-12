@@ -1,3 +1,3 @@
 export * from "./utils.js";
-export * from "./purposeReadModelServiceSQL.js";
+export * from "./purposeReadModelService.js";
 export * from "./purpose/splitters.js";

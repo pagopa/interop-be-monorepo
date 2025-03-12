@@ -19,20 +19,23 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    async upsertPurpose(purpose: WithMetadata<Purpose>): Promise<void> {
+    async upsertPurpose(
+      purpose: Purpose,
+      metadataVersion: number
+    ): Promise<void> {
       const {
         purposeSQL,
         riskAnalysisFormSQL,
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
-      } = splitPurposeIntoObjectsSQL(purpose.data, purpose.metadata.version);
+      } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
       await db.transaction(async (tx) => {
         // TODO: add version checking "lte"
         await tx
           .delete(purposeInReadmodelPurpose)
-          .where(eq(purposeInReadmodelPurpose.id, purpose.data.id));
+          .where(eq(purposeInReadmodelPurpose.id, purpose.id));
 
         await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
 
