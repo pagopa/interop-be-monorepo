@@ -11,8 +11,10 @@ import {
   WithLogger,
   eventRepository,
   formatDateddMMyyyyHHmmss,
+  hasUserRole,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
+  userRole,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -2233,19 +2235,20 @@ export function catalogServiceBuilder(
   };
 }
 
-function isRequesterEServiceProducer(
-  eservice: EService,
-  authData: UIAuthData | M2MAuthData
-): boolean {
-  return authData.organizationId === eservice.producerId;
-}
-
 async function applyVisibilityToEService(
   eservice: EService,
   authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (isRequesterEServiceProducer(eservice, authData)) {
+  if (
+    authData.tokenType === "ui" &&
+    hasUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) &&
+    authData.organizationId === eservice.producerId
+  ) {
     return eservice;
   }
 
