@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { EService, EServiceId, WithMetadata } from "pagopa-interop-models";
 import {
@@ -183,10 +183,18 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
       return aggregateEservice(toEServiceAggregator(queryResult));
     },
-    async deleteEServiceById(eserviceId: EServiceId): Promise<void> {
+    async deleteEServiceById(
+      eserviceId: EServiceId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(eserviceInReadmodelCatalog)
-        .where(eq(eserviceInReadmodelCatalog.id, eserviceId));
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.id, eserviceId),
+            lte(eserviceInReadmodelCatalog.metadataVersion, metadataVersion)
+          )
+        );
     },
     async getAllEServices(): Promise<Array<WithMetadata<EService>>> {
       const queryResult = await db
