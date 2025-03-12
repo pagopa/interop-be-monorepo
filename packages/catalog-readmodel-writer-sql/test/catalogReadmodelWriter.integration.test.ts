@@ -89,10 +89,7 @@ describe("database test", async () => {
     });
 
     it("ClonedEServiceAdded", async () => {
-      await readModelService.upsertEService({
-        data: mockEService,
-        metadata: { version: 1 },
-      });
+      await readModelService.upsertEService(mockEService, 1);
 
       const date = new Date();
       const clonedEService: EService = {
@@ -129,10 +126,7 @@ describe("database test", async () => {
     });
 
     it("EServiceUpdated", async () => {
-      await catalogReadModelService.upsertEService({
-        data: mockEService,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(mockEService, 1);
       const updatedEService: EService = {
         ...mockEService,
         description: "updated description",
@@ -162,10 +156,7 @@ describe("database test", async () => {
     });
 
     it("EServiceRiskAnalysisAdded", async () => {
-      await catalogReadModelService.upsertEService({
-        data: mockEService,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(mockEService, 1);
       const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
       const updatedEService: EService = {
         ...mockEService,
@@ -219,10 +210,7 @@ describe("database test", async () => {
         attributes,
         descriptors: [descriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
       const expectedDescriptor = {
         ...descriptor,
         attributes,
@@ -263,10 +251,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -308,10 +293,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedDocument: Document = {
         ...document,
@@ -348,10 +330,7 @@ describe("database test", async () => {
     });
 
     it("EServiceDeleted", async () => {
-      await catalogReadModelService.upsertEService({
-        data: mockEService,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(mockEService, 1);
 
       const payload: EServiceDeletedV1 = {
         eserviceId: mockEService.id,
@@ -386,10 +365,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await catalogReadModelService.upsertEService({
-          data: eservice,
-          metadata: { version: 1 },
-        });
+        await catalogReadModelService.upsertEService(eservice, 1);
 
         const updatedServerUrls = ["updated.pagopa.it"];
         const updatedEService: EService = {
@@ -439,10 +415,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await catalogReadModelService.upsertEService({
-          data: eservice,
-          metadata: { version: 1 },
-        });
+        await catalogReadModelService.upsertEService(eservice, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -487,10 +460,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await catalogReadModelService.upsertEService({
-          data: eservice,
-          metadata: { version: 1 },
-        });
+        await catalogReadModelService.upsertEService(eservice, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -534,10 +504,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await catalogReadModelService.upsertEService({
-          data: eservice,
-          metadata: { version: 1 },
-        });
+        await catalogReadModelService.upsertEService(eservice, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -578,10 +545,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -620,10 +584,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const publishedDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -664,10 +625,7 @@ describe("database test", async () => {
         riskAnalysis: [riskAnalysis],
       };
 
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...mockEService,
@@ -702,10 +660,7 @@ describe("database test", async () => {
   describe("Events V2", async () => {
     const mockEService = getMockEService();
     it("EServiceDeleted", async () => {
-      await catalogReadModelService.upsertEService({
-        data: mockEService,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(mockEService, 1);
 
       const payload: EServiceDeletedV2 = {
         eserviceId: mockEService.id,
@@ -752,10 +707,7 @@ describe("database test", async () => {
     });
 
     it("DraftEServiceUpdated", async () => {
-      await catalogReadModelService.upsertEService({
-        data: mockEService,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(mockEService, 1);
       const updatedEService: EService = {
         ...mockEService,
         description: "updated description",
@@ -795,12 +747,7 @@ describe("database test", async () => {
         descriptors: [sourceDescriptor],
       };
 
-      await catalogReadModelService.upsertEService({
-        data: sourceEService,
-        metadata: {
-          version: 1,
-        },
-      });
+      await catalogReadModelService.upsertEService(sourceEService, 1);
 
       const date = new Date();
       const clonedEService: EService = {
@@ -858,10 +805,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -898,10 +842,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -941,10 +882,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedDraftDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -987,10 +925,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedPublishedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -1035,10 +970,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [suspendedDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const publishedDescriptor: Descriptor = {
         ...suspendedDescriptor,
@@ -1083,10 +1015,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const archivedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -1129,10 +1058,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const publishedDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -1176,10 +1102,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [publishedDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const suspendedDescriptor: Descriptor = {
         ...publishedDescriptor,
@@ -1223,10 +1146,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
       const updatedEService: EService = {
         ...eservice,
         descriptors: [{ ...draftDescriptor, interface: descriptorInterface }],
@@ -1265,10 +1185,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1308,10 +1225,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedInterface: Document = {
         ...descriptorInterface,
@@ -1355,10 +1269,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedDocument: Document = {
         ...document,
@@ -1402,10 +1313,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1448,10 +1356,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -1482,10 +1387,7 @@ describe("database test", async () => {
     });
 
     it("EServiceRiskAnalysisAdded", async () => {
-      await catalogReadModelService.upsertEService({
-        data: mockEService,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(mockEService, 1);
       const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
       const updatedEService: EService = {
         ...mockEService,
@@ -1521,12 +1423,7 @@ describe("database test", async () => {
         ...mockEService,
         riskAnalysis: [mockRiskAnalysis],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: {
-          version: 1,
-        },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedRiskAnalysis: RiskAnalysis = {
         ...mockRiskAnalysis,
@@ -1576,10 +1473,7 @@ describe("database test", async () => {
         riskAnalysis: [riskAnalysis],
       };
 
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
 
       const updatedEService: EService = {
         ...mockEService,
@@ -1621,10 +1515,7 @@ describe("database test", async () => {
         name: "previousName",
         descriptors: [publishedDescriptor],
       };
-      await catalogReadModelService.upsertEService({
-        data: eservice,
-        metadata: { version: 1 },
-      });
+      await catalogReadModelService.upsertEService(eservice, 1);
       const updatedEService: EService = {
         ...eservice,
         name: "newName",

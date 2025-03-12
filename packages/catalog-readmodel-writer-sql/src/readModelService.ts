@@ -5,7 +5,6 @@ import {
   EService,
   EServiceDocumentId,
   EServiceId,
-  WithMetadata,
 } from "pagopa-interop-models";
 import {
   CatalogReadModelService,
@@ -29,9 +28,16 @@ export function customReadModelServiceBuilder(
   catalogReadModelService: CatalogReadModelService
 ) {
   return {
-    async upsertEService(eservice: WithMetadata<EService>): Promise<void> {
-      return await catalogReadModelService.upsertEService(eservice);
+    async upsertEService(
+      eservice: EService,
+      metadataVersion: number
+    ): Promise<void> {
+      return await catalogReadModelService.upsertEService(
+        eservice,
+        metadataVersion
+      );
     },
+
     async deleteDescriptor({
       eserviceId,
       descriptorId,

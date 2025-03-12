@@ -33,10 +33,10 @@ export async function handleMessageV1(
           );
         }
 
-        return await customReadModeService.upsertEService({
-          data: fromEServiceV1(eserviceV1),
-          metadata: { version: msg.version },
-        });
+        return await customReadModeService.upsertEService(
+          fromEServiceV1(eserviceV1),
+          msg.version
+        );
       }
     )
     .with(

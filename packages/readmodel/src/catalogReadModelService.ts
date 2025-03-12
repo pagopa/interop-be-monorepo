@@ -43,10 +43,7 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           .where(
             and(
               eq(eserviceInReadmodelCatalog.id, eserviceSQL.id),
-              lte(
-                eserviceInReadmodelCatalog.metadataVersion,
-                eservice.metadata.version
-              )
+              lte(eserviceInReadmodelCatalog.metadataVersion, metadataVersion)
             )
           );
 

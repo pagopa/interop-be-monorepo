@@ -59,10 +59,10 @@ export async function handleMessageV2(
           );
         }
 
-        return await catalogReadModelService.upsertEService({
-          data: fromEServiceV2(eservice),
-          metadata: { version: message.version },
-        });
+        return await catalogReadModelService.upsertEService(
+          fromEServiceV2(eservice),
+          message.version
+        );
       }
     )
     .exhaustive();
