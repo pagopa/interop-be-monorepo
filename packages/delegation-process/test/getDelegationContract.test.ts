@@ -47,6 +47,7 @@ describe("getDelegationContract", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -69,6 +70,7 @@ describe("getDelegationContract", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -96,6 +98,7 @@ describe("getDelegationContract", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 
@@ -122,6 +125,7 @@ describe("getDelegationContract", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
+        requestTimestamp: Date.now(),
       }
     );
 

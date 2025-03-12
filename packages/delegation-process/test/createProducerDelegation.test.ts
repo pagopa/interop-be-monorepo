@@ -54,6 +54,7 @@ describe("create producer delegation", () => {
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
+          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(differentEServiceProducer(delegatorId));

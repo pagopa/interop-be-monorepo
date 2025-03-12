@@ -87,6 +87,7 @@ describe("internalUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
@@ -189,6 +190,7 @@ describe("internalUpsertTenant", async () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
+        requestTimestamp: Date.now(),
       }
     );
 
