@@ -101,7 +101,7 @@ export const retrieveTenantVerifiedAttributeRevokersSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-export const retrieveTenanFeaturesSQL = async (
+export const retrieveTenantFeaturesSQL = async (
   tenantId: TenantId,
   db: ReturnType<typeof drizzle>
 ): Promise<TenantFeatureSQL[] | undefined> => {

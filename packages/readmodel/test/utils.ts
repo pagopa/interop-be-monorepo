@@ -42,7 +42,6 @@ import {
   VerifiedTenantAttribute,
   WithMetadata,
 } from "pagopa-interop-models";
-
 import { tenantReadModelServiceBuilder } from "../src/tenantReadModelService.js";
 import {
   retrieveTenantSQL,
@@ -52,7 +51,7 @@ import {
   retrieveTenantVerifiedAttributesSQL,
   retrieveTenantVerifiedAttributeVerifiersSQL,
   retrieveTenantVerifiedAttributeRevokersSQL,
-  retrieveTenanFeaturesSQL,
+  retrieveTenantFeaturesSQL,
 } from "./tenantTestReadModelService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -68,7 +67,7 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
 afterEach(async () => {
   /*
   TODO the entries in tenant_verified_attribute_verifier and tenant_verified_attribute_revoker have a reference on the tenant table,
-  but this reference donesn't have on delete cascade. During the cleanup of the test, those entries block the deletion of tenants (for example the verifier) from the tenant table because they are still referred.
+  but this reference doesn't have on delete cascade. During the cleanup of the test, those entries block the deletion of tenants (for example the verifier) from the tenant table because they are still referred.
   This problem could be fixed if we add ON DELETE CASCADE but I am not sure if that could bring to an unwanted behavior
 */
   await readModelDB.delete(tenantVerifiedAttributeVerifierInReadmodelTenant);
@@ -334,7 +333,7 @@ export const retrieveTenantSQLObjects = async (
 
   const retrievedVerifiedAttributesSQL =
     await retrieveTenantVerifiedAttributesSQL(tenant.data.id, readModelDB);
-  const retrievedAndFormattedverifiedAttributesSQL =
+  const retrievedAndFormattedVerifiedAttributesSQL =
     retrievedVerifiedAttributesSQL?.map(
       (attribute: TenantVerifiedAttributeSQL) => ({
         ...attribute,
@@ -385,7 +384,7 @@ export const retrieveTenantSQLObjects = async (
       })
     );
 
-  const retrievedFeaturesSQL = await retrieveTenanFeaturesSQL(
+  const retrievedFeaturesSQL = await retrieveTenantFeaturesSQL(
     tenant.data.id,
     readModelDB
   );
@@ -406,7 +405,7 @@ export const retrieveTenantSQLObjects = async (
     retrievedCertifiedAttributesSQL:
       retrievedAndFormattedCertifiedAttributesSQL,
     retrievedDeclaredAttributesSQL: retrievedAndFormattedDeclaredAttributesSQL,
-    retrievedVerifiedAttributesSQL: retrievedAndFormattedverifiedAttributesSQL,
+    retrievedVerifiedAttributesSQL: retrievedAndFormattedVerifiedAttributesSQL,
     retrievedVerifiedAttributeVerifiersSQL:
       retrievedAndFormattedVerifiedAttributeVerifiersSQL,
     retrievedVerifiedAttributeRevokersSQL:
