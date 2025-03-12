@@ -5,7 +5,6 @@ import {
   EventStoreConfig,
   S3Config,
   FeatureFlagsConfig,
-  KafkaProducerConfig,
   ApplicationAuditProducerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
