@@ -21,22 +21,22 @@ export function agreementReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async upsertAgreement(agreement: WithMetadata<Agreement>): Promise<void> {
+    async upsertAgreement(
+      agreement: Agreement,
+      metadataVersion: number
+    ): Promise<void> {
       const {
         agreementSQL,
         stampsSQL,
         attributesSQL,
         consumerDocumentsSQL,
         contractSQL,
-      } = splitAgreementIntoObjectsSQL(
-        agreement.data,
-        agreement.metadata.version
-      );
+      } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
 
       await db.transaction(async (tx) => {
         await tx
           .delete(agreementInReadmodelAgreement)
-          .where(eq(agreementInReadmodelAgreement.id, agreement.data.id));
+          .where(eq(agreementInReadmodelAgreement.id, agreement.id));
 
         await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
 
