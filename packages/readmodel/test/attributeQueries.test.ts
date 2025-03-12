@@ -2,12 +2,8 @@
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute, AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
-import {
-  attributeReadModelService,
-  readModelDB,
-  stringToISOString,
-} from "./utils.js";
+import { aggregateAttribute } from "../src/attribute/aggregators.js";
+import { attributeReadModelService, readModelDB } from "./utils.js";
 import { retrieveAttributeSQL } from "./attributeTestReadModelService.js";
 
 describe("Attribute queries", () => {
@@ -25,27 +21,13 @@ describe("Attribute queries", () => {
         attribute.id,
         readModelDB
       );
-      const retrievedAndFormattedAttributeSQL = retrievedAttributeSQL
-        ? {
-            ...retrievedAttributeSQL,
-            creationTime: stringToISOString(retrievedAttributeSQL.creationTime),
-          }
-        : undefined;
+      expect(retrievedAttributeSQL).toBeDefined();
 
-      const expectedAttributeSQL: AttributeSQL = {
-        id: attribute.id,
-        name: attribute.name,
-        description: attribute.description,
-        metadataVersion: 1,
-        kind: attribute.kind,
-        creationTime: attribute.creationTime.toISOString(),
-        code: attribute.code!,
-        origin: attribute.origin!,
-      };
-
-      expect(retrievedAndFormattedAttributeSQL).toMatchObject(
-        expectedAttributeSQL
-      );
+      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQL!);
+      expect(retrievedAttribute).toStrictEqual({
+        data: attribute,
+        metadata: { version: 1 },
+      });
     });
 
     it("should add an incomplete (*only* mandatory fields) attribute", async () => {
@@ -59,27 +41,44 @@ describe("Attribute queries", () => {
         attribute.id,
         readModelDB
       );
-      const retrievedAndFormattedAttributeSQL = retrievedAttributeSQL
-        ? {
-            ...retrievedAttributeSQL,
-            creationTime: stringToISOString(retrievedAttributeSQL.creationTime),
-          }
-        : undefined;
+      expect(retrievedAttributeSQL).toBeDefined();
 
-      const expectedAttributeSQL: AttributeSQL = {
-        id: attribute.id,
-        name: attribute.name,
-        description: attribute.description,
-        metadataVersion: 1,
-        kind: attribute.kind,
-        creationTime: attribute.creationTime.toISOString(),
-        code: null,
-        origin: null,
+      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQL!);
+      expect(retrievedAttribute).toStrictEqual({
+        data: attribute,
+        metadata: { version: 1 },
+      });
+    });
+
+    it("should update an attribute", async () => {
+      const attribute: Attribute = {
+        ...getMockAttribute(),
+        code: "test code",
+        origin: "test origin",
       };
+      await attributeReadModelService.upsertAttribute(attribute, 1);
+      expect(
+        await retrieveAttributeSQL(attribute.id, readModelDB)
+      ).toBeDefined();
 
-      expect(retrievedAndFormattedAttributeSQL).toMatchObject(
-        expectedAttributeSQL
+      const updatedAttribute: Attribute = {
+        ...attribute,
+        code: "test code updated",
+        origin: "test origin updated",
+      };
+      await attributeReadModelService.upsertAttribute(updatedAttribute, 2);
+
+      const retrievedAttributeSQL = await retrieveAttributeSQL(
+        attribute.id,
+        readModelDB
       );
+      expect(retrievedAttributeSQL).toBeDefined();
+
+      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQL!);
+      expect(retrievedAttribute).toStrictEqual({
+        data: updatedAttribute,
+        metadata: { version: 2 },
+      });
     });
   });
 
@@ -96,7 +95,7 @@ describe("Attribute queries", () => {
       const retrievedAttribute =
         await attributeReadModelService.getAttributeById(attribute.id);
 
-      expect(retrievedAttribute).toMatchObject({
+      expect(retrievedAttribute).toStrictEqual({
         data: attribute,
         metadata: { version: 1 },
       });
@@ -126,7 +125,7 @@ describe("Attribute queries", () => {
 
       const retrievedAttributes =
         await attributeReadModelService.getAllAttributes();
-      expect(retrievedAttributes).toMatchObject(
+      expect(retrievedAttributes).toStrictEqual(
         expect.arrayContaining([
           { data: attribute1, metadata: { version: 1 } },
           { data: attribute2, metadata: { version: 1 } },
