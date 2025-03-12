@@ -1,2 +1,2 @@
 export * from "./utils.js";
-export * from "./attributeReadModelServiceSQL.js";
+export * from "./attributeReadModelService.js";

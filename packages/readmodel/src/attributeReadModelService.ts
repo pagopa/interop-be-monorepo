@@ -9,14 +9,17 @@ import {
 } from "./attribute/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function attributeReadModelServiceBuilderSQL(
+export function attributeReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async upsertAttribute(attribute: WithMetadata<Attribute>): Promise<void> {
+    async upsertAttribute(
+      attribute: Attribute,
+      metadataVersion: number
+    ): Promise<void> {
       const attributeSQL = splitAttributeIntoObjectsSQL(
-        attribute.data,
-        attribute.metadata.version
+        attribute,
+        metadataVersion
       );
 
       await db.transaction(async (tx) => {
@@ -63,5 +66,5 @@ export function attributeReadModelServiceBuilderSQL(
 }
 
 export type AttributeReadModelServiceSQL = ReturnType<
-  typeof attributeReadModelServiceBuilderSQL
+  typeof attributeReadModelServiceBuilder
 >;
