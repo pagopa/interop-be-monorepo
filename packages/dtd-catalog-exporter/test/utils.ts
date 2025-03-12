@@ -17,7 +17,7 @@ import { parse } from "csv-parse/sync";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExporterService.js";
 import { config } from "../src/config/config.js";
-import { PublicEService } from "../src/models/models.js";
+import { PublicEService, PublicTenant } from "../src/models/models.js";
 
 export const {
   cleanup,
@@ -76,7 +76,7 @@ export const getExportedDtdPublicCatalogFromCsv = async (): Promise<
 
   const recordsArray = Array.isArray(records) ? records : [records];
 
-  const transformedRecords = recordsArray.map((record) => ({
+  const transformedRecords: PublicEService[] = recordsArray.map((record) => ({
     id: record.id,
     name: record.name,
     description: record.description,
@@ -93,6 +93,34 @@ export const getExportedDtdPublicCatalogFromCsv = async (): Promise<
   }));
 
   return z.array(PublicEService).parse(transformedRecords);
+};
+
+export const getExportedDtdPublicTenantsFromCsv = async (): Promise<
+  PublicTenant[]
+> => {
+  const data = await fileManager.get(
+    config.s3Bucket,
+    `${config.dtdCatalogStoragePath}/${config.dtdTenantsCsvFilename}`,
+    genericLogger
+  );
+
+  const csvContent = Buffer.from(data).toString();
+  const records = parse(csvContent, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+  });
+
+  const recordsArray = Array.isArray(records) ? records : [records];
+
+  const transformedRecords: PublicTenant[] = recordsArray.map((record) => ({
+    id: record.id,
+    name: record.name,
+    externalId: record.externalId,
+    attributes: JSON.parse(record.attributes),
+  }));
+
+  return z.array(PublicTenant).parse(transformedRecords);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {

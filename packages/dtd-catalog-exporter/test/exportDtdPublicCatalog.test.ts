@@ -1,12 +1,21 @@
 import { describe, it, expect } from "vitest";
 import {
   getMockAttribute,
+  getMockCertifiedTenantAttribute,
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { Descriptor, EService, genericError } from "pagopa-interop-models";
-import { PublicEService } from "../src/models/models.js";
+import {
+  Attribute,
+  attributeKind,
+  Descriptor,
+  EService,
+  generateId,
+  genericError,
+  TenantId,
+} from "pagopa-interop-models";
+import { PublicEService, PublicTenant } from "../src/models/models.js";
 import {
   addOneAttribute,
   addOneEService,
@@ -14,6 +23,7 @@ import {
   dtdCatalogExporterService,
   getExportedDtdPublicCatalogFromCsv,
   getExportedDtdPublicCatalogFromJson,
+  getExportedDtdPublicTenantsFromCsv,
 } from "./utils.js";
 
 describe("exportDtdPublicCatalog", () => {
@@ -99,6 +109,40 @@ describe("exportDtdPublicCatalog", () => {
     expect(csvResult[0]).toEqual(expectedEService);
 
     expect(csvResult).toEqual(jsonResult);
+  });
+
+  it("should correctly retrieve and remap tenants", async () => {
+    const producerId = generateId<TenantId>();
+    const producerAttribute = getMockCertifiedTenantAttribute();
+    const producerMock = getMockTenant(producerId, [producerAttribute]);
+
+    const descriptorMock: Descriptor = getMockDescriptorPublished();
+    const eserviceMock: EService = {
+      ...getMockEService(),
+      producerId: producerMock.id,
+      descriptors: [descriptorMock],
+    };
+    const attribute: Attribute = getMockAttribute(
+      attributeKind.certified,
+      producerAttribute.id
+    );
+
+    await addOneEService(eserviceMock);
+    await addOneTenant(producerMock);
+    await addOneAttribute(attribute);
+
+    await dtdCatalogExporterService.exportDtdData();
+
+    const expectedTenant: PublicTenant = {
+      id: producerMock.id,
+      name: producerMock.name,
+      externalId: producerMock.externalId.value,
+      attributes: [{ name: attribute.name, type: attribute.kind }],
+    };
+
+    const csvResult = await getExportedDtdPublicTenantsFromCsv();
+    expect(csvResult.length).toBe(1);
+    expect(csvResult[0]).toEqual(expectedTenant);
   });
 
   it("should ignore eservices with no active descriptor", async () => {
