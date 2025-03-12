@@ -284,7 +284,7 @@ describe("Tenant Queries", () => {
         tenant.data.id
       );
 
-      expect(sortATenant(retrievedTenant!)).toMatchObject(sortATenant(tenant));
+      expect(sortATenant(retrievedTenant)).toMatchObject(sortATenant(tenant));
     });
     it("should *not* get a tenant from a tenantId", async () => {
       const tenantId = generateId<TenantId>();

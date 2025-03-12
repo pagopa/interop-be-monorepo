@@ -20,11 +20,9 @@ import {
 } from "./tenant/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantReadModelServiceBuilderSQL(
-  db: ReturnType<typeof drizzle>
-) {
+export function tenantReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    async upsertTenant(tenant: WithMetadata<Tenant>): Promise<void> {
+    async upsertTenant(tenant: Tenant, metadataVersion: number): Promise<void> {
       const {
         tenantSQL,
         mailsSQL,
@@ -34,12 +32,12 @@ export function tenantReadModelServiceBuilderSQL(
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
-      } = splitTenantIntoObjectsSQL(tenant.data, tenant.metadata.version);
+      } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
       await db.transaction(async (tx) => {
         await tx
           .delete(tenantInReadmodelTenant)
-          .where(eq(tenantInReadmodelTenant.id, tenant.data.id));
+          .where(eq(tenantInReadmodelTenant.id, tenant.id));
 
         await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
 
@@ -248,6 +246,6 @@ export function tenantReadModelServiceBuilderSQL(
   };
 }
 
-export type TenantReadModelServiceSQL = ReturnType<
-  typeof tenantReadModelServiceBuilderSQL
+export type TenantReadModelService = ReturnType<
+  typeof tenantReadModelServiceBuilder
 >;
