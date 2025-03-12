@@ -65,6 +65,6 @@ export function attributeReadModelServiceBuilder(
   };
 }
 
-export type AttributeReadModelServiceSQL = ReturnType<
+export type AttributeReadModelService = ReturnType<
   typeof attributeReadModelServiceBuilder
 >;
