@@ -68,7 +68,7 @@ import {
   toCreateEventEServiceTemplateVersionSuspended,
   toCreateEventEServiceTemplateNameUpdated,
   toCreateEventEServiceTemplateDraftVersionUpdated,
-  toCreateEventEServiceIntendedTargetUpdated,
+  toCreateEventEServiceTemplateIntendedTargetUpdated,
   toCreateEventEServiceTemplateDescriptionUpdated,
   toCreateEventEServiceTemplateVersionQuotasUpdated,
   toCreateEventEServiceTemplateVersionAttributesUpdated,
@@ -666,7 +666,7 @@ export function eserviceTemplateServiceBuilder(
       );
       return updatedEserviceTemplate;
     },
-    async updateEServiceIntendedTarget(
+    async updateEServiceTemplateIntendedTarget(
       eserviceTemplateId: EServiceTemplateId,
       intendedTarget: string,
       { authData, correlationId, logger }: WithLogger<AppContext>
@@ -691,7 +691,7 @@ export function eserviceTemplateServiceBuilder(
         intendedTarget,
       };
       await repository.createEvent(
-        toCreateEventEServiceIntendedTargetUpdated(
+        toCreateEventEServiceTemplateIntendedTargetUpdated(
           eserviceTemplate.data.id,
           eserviceTemplate.metadata.version,
           updatedEserviceTemplate,
