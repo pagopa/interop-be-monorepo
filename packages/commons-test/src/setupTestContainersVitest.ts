@@ -253,20 +253,19 @@ export async function setupTestContainersVitest(
         const s3OriginalBucket =
           fileManagerConfig?.s3Bucket ?? "interop-local-bucket";
 
-      await readModelDB?.delete(eserviceInReadmodelCatalog);
-      await readModelDB?.delete(agreementInReadmodelAgreement);
-      await readModelDB?.delete(attributeInReadmodelAttribute);
-      await readModelDB?.delete(purposeInReadmodelPurpose);
-      await readModelDB?.delete(tenantInReadmodelTenant);
-      await readModelDB?.delete(clientInReadmodelClient);
-      await readModelDB?.delete(producerKeychainInReadmodelProducerKeychain);
-      await readModelDB?.delete(clientJwkKeyInReadmodelClientJwkKey);
-      await readModelDB?.delete(producerJwkKeyInReadmodelProducerJwkKey);
-      await readModelDB?.delete(delegationInReadmodelDelegation);
-      // TODO: add eservice-template
-      // await readModelDB?.delete(eserviceTemplateInReadmodelEserviceTemplate);
+        await readModelDB?.delete(eserviceInReadmodelCatalog);
+        await readModelDB?.delete(agreementInReadmodelAgreement);
+        await readModelDB?.delete(attributeInReadmodelAttribute);
+        await readModelDB?.delete(purposeInReadmodelPurpose);
+        await readModelDB?.delete(tenantInReadmodelTenant);
+        await readModelDB?.delete(clientInReadmodelClient);
+        await readModelDB?.delete(producerKeychainInReadmodelProducerKeychain);
+        await readModelDB?.delete(clientJwkKeyInReadmodelClientJwkKey);
+        await readModelDB?.delete(producerJwkKeyInReadmodelProducerJwkKey);
+        await readModelDB?.delete(delegationInReadmodelDelegation);
+        // TODO: add eservice-template
+        // await readModelDB?.delete(eserviceTemplateInReadmodelEserviceTemplate);
 
-      if (s3OriginalBucket && fileManagerConfig && fileManager) {
         const files = await fileManager.listFiles(
           s3OriginalBucket,
           genericLogger
