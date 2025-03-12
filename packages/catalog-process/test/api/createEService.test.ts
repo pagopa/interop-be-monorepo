@@ -5,12 +5,12 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
 import { match } from "ts-pattern";
-import { api } from "../vitestAPISetup.js";
-import { catalogService } from "../../src/routers/EServiceRouter.js";
 import {
   buildDescriptorSeedForEserviceCreation,
   getMockDescriptor,
 } from "../mockUtils.js";
+import { api } from "../vitest.api.setup.js";
+import { catalogService } from "../../src/routers/EServiceRouter.js";
 
 describe("api create eservice", () => {
   const mockEService = getMockEService();
