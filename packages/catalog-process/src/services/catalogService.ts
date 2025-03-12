@@ -2241,7 +2241,6 @@ async function applyVisibilityToEService(
   readModelService: ReadModelService
 ): Promise<EService> {
   if (
-    authData.tokenType === "ui" &&
     hasUserRole(authData, [
       userRole.ADMIN_ROLE,
       userRole.API_ROLE,

@@ -193,8 +193,11 @@ export function assertAuthDataTokenTypeIn<T extends AuthData["tokenType"]>(
 }
 
 export function hasUserRole(
-  authData: UIAuthData,
+  authData: AuthData,
   userRoles: UserRole[]
 ): boolean {
-  return authData.userRoles.some((role: UserRole) => userRoles.includes(role));
+  return (
+    authData.tokenType === "ui" &&
+    authData.userRoles.some((role: UserRole) => userRoles.includes(role))
+  );
 }

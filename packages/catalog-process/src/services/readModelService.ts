@@ -214,75 +214,72 @@ export function readModelServiceBuilder(
           ],
         });
 
-      const visibilityFilter: ReadModelFilter<EService> =
-        authData.tokenType === "ui" &&
-        hasUserRole(authData, [
-          userRole.ADMIN_ROLE,
-          userRole.API_ROLE,
-          userRole.SUPPORT_ROLE,
-        ])
-          ? {
-              $nor: [
-                {
-                  $and: [
-                    {
-                      $nor: [
-                        { "data.producerId": authData.organizationId },
-                        {
-                          delegations: {
-                            $elemMatch: {
-                              "data.delegateId": authData.organizationId,
-                              "data.state": delegationState.active,
-                              "data.kind": delegationKind.delegatedProducer,
-                            },
+      const visibilityFilter: ReadModelFilter<EService> = hasUserRole(
+        authData,
+        [userRole.ADMIN_ROLE, userRole.API_ROLE, userRole.SUPPORT_ROLE]
+      )
+        ? {
+            $nor: [
+              {
+                $and: [
+                  {
+                    $nor: [
+                      { "data.producerId": authData.organizationId },
+                      {
+                        delegations: {
+                          $elemMatch: {
+                            "data.delegateId": authData.organizationId,
+                            "data.state": delegationState.active,
+                            "data.kind": delegationKind.delegatedProducer,
                           },
                         },
-                      ],
-                    },
-                    { "data.descriptors": { $size: 0 } },
-                  ],
-                },
-                {
-                  $and: [
-                    {
-                      $nor: [
-                        { "data.producerId": authData.organizationId },
-                        {
-                          delegations: {
-                            $elemMatch: {
-                              "data.delegateId": authData.organizationId,
-                              "data.state": delegationState.active,
-                              "data.kind": delegationKind.delegatedProducer,
-                            },
+                      },
+                    ],
+                  },
+                  { "data.descriptors": { $size: 0 } },
+                ],
+              },
+              {
+                $and: [
+                  {
+                    $nor: [
+                      { "data.producerId": authData.organizationId },
+                      {
+                        delegations: {
+                          $elemMatch: {
+                            "data.delegateId": authData.organizationId,
+                            "data.state": delegationState.active,
+                            "data.kind": delegationKind.delegatedProducer,
                           },
                         },
-                      ],
-                    },
-                    { "data.descriptors": { $size: 1 } },
-                    {
-                      "data.descriptors.state": {
-                        $in: notActiveDescriptorState,
                       },
+                    ],
+                  },
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors.state": {
+                      $in: notActiveDescriptorState,
                     },
-                  ],
-                },
-              ],
-            }
-          : {
-              $nor: [
-                { "data.descriptors": { $size: 0 } },
-                {
-                  $and: [
-                    { "data.descriptors": { $size: 1 } },
-                    {
-                      "data.descriptors.state": {
-                        $in: notActiveDescriptorState,
-                      },
+                  },
+                ],
+              },
+            ],
+          }
+        : {
+            $nor: [
+              { "data.descriptors": { $size: 0 } },
+              {
+                $and: [
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors.state": {
+                      $in: notActiveDescriptorState,
                     },
-                  ],
-                },
-              ],
-            };
+                  },
+                ],
+              },
+            ],
+          };
 
       const modeFilter: ReadModelFilter<EService> = mode
         ? { "data.mode": { $eq: mode } }
