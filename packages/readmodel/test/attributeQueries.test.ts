@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { getMockAttribute } from "pagopa-interop-commons-test";
-import {
-  Attribute,
-  AttributeId,
-  generateId,
-  WithMetadata,
-} from "pagopa-interop-models";
+import { Attribute, AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import {
@@ -18,19 +13,16 @@ import { retrieveAttributeSQL } from "./attributeTestReadModelService.js";
 describe("Attribute queries", () => {
   describe("upsertAttribute", () => {
     it("should add a complete (*all* fields) attribute", async () => {
-      const attribute: WithMetadata<Attribute> = {
-        data: {
-          ...getMockAttribute(),
-          code: "test code",
-          origin: "test origin",
-        },
-        metadata: { version: 1 },
+      const attribute: Attribute = {
+        ...getMockAttribute(),
+        code: "test code",
+        origin: "test origin",
       };
 
-      await attributeReadModelService.upsertAttribute(attribute);
+      await attributeReadModelService.upsertAttribute(attribute, 1);
 
       const retrievedAttributeSQL = await retrieveAttributeSQL(
-        attribute.data.id,
+        attribute.id,
         readModelDB
       );
       const retrievedAndFormattedAttributeSQL = retrievedAttributeSQL
@@ -41,14 +33,14 @@ describe("Attribute queries", () => {
         : undefined;
 
       const expectedAttributeSQL: AttributeSQL = {
-        id: attribute.data.id,
-        name: attribute.data.name,
-        description: attribute.data.description,
-        metadataVersion: attribute.metadata.version,
-        kind: attribute.data.kind,
-        creationTime: attribute.data.creationTime.toISOString(),
-        code: attribute.data.code!,
-        origin: attribute.data.origin!,
+        id: attribute.id,
+        name: attribute.name,
+        description: attribute.description,
+        metadataVersion: 1,
+        kind: attribute.kind,
+        creationTime: attribute.creationTime.toISOString(),
+        code: attribute.code!,
+        origin: attribute.origin!,
       };
 
       expect(retrievedAndFormattedAttributeSQL).toMatchObject(
@@ -57,17 +49,14 @@ describe("Attribute queries", () => {
     });
 
     it("should add an incomplete (*only* mandatory fields) attribute", async () => {
-      const attribute: WithMetadata<Attribute> = {
-        data: {
-          ...getMockAttribute(),
-        },
-        metadata: { version: 1 },
+      const attribute: Attribute = {
+        ...getMockAttribute(),
       };
 
-      await attributeReadModelService.upsertAttribute(attribute);
+      await attributeReadModelService.upsertAttribute(attribute, 1);
 
       const retrievedAttributeSQL = await retrieveAttributeSQL(
-        attribute.data.id,
+        attribute.id,
         readModelDB
       );
       const retrievedAndFormattedAttributeSQL = retrievedAttributeSQL
@@ -78,12 +67,12 @@ describe("Attribute queries", () => {
         : undefined;
 
       const expectedAttributeSQL: AttributeSQL = {
-        id: attribute.data.id,
-        name: attribute.data.name,
-        description: attribute.data.description,
-        metadataVersion: attribute.metadata.version,
-        kind: attribute.data.kind,
-        creationTime: attribute.data.creationTime.toISOString(),
+        id: attribute.id,
+        name: attribute.name,
+        description: attribute.description,
+        metadataVersion: 1,
+        kind: attribute.kind,
+        creationTime: attribute.creationTime.toISOString(),
         code: null,
         origin: null,
       };
@@ -96,21 +85,21 @@ describe("Attribute queries", () => {
 
   describe("getAttributeById", () => {
     it("attribute found", async () => {
-      const attribute: WithMetadata<Attribute> = {
-        data: {
-          ...getMockAttribute(),
-          code: "test code",
-          origin: "test origin",
-        },
-        metadata: { version: 1 },
+      const attribute: Attribute = {
+        ...getMockAttribute(),
+        code: "test code",
+        origin: "test origin",
       };
 
-      await attributeReadModelService.upsertAttribute(attribute);
+      await attributeReadModelService.upsertAttribute(attribute, 1);
 
       const retrievedAttribute =
-        await attributeReadModelService.getAttributeById(attribute.data.id);
+        await attributeReadModelService.getAttributeById(attribute.id);
 
-      expect(retrievedAttribute).toMatchObject(attribute);
+      expect(retrievedAttribute).toMatchObject({
+        data: attribute,
+        metadata: { version: 1 },
+      });
     });
 
     it("attribute not found", async () => {
@@ -125,26 +114,23 @@ describe("Attribute queries", () => {
 
   describe("getAllAttributes", () => {
     it("get all attributes", async () => {
-      const attribute1: WithMetadata<Attribute> = {
-        data: {
-          ...getMockAttribute(),
-        },
-        metadata: { version: 1 },
+      const attribute1: Attribute = {
+        ...getMockAttribute(),
       };
-      await attributeReadModelService.upsertAttribute(attribute1);
+      await attributeReadModelService.upsertAttribute(attribute1, 1);
 
-      const attribute2: WithMetadata<Attribute> = {
-        data: {
-          ...getMockAttribute(),
-        },
-        metadata: { version: 1 },
+      const attribute2: Attribute = {
+        ...getMockAttribute(),
       };
-      await attributeReadModelService.upsertAttribute(attribute2);
+      await attributeReadModelService.upsertAttribute(attribute2, 1);
 
       const retrievedAttributes =
         await attributeReadModelService.getAllAttributes();
       expect(retrievedAttributes).toMatchObject(
-        expect.arrayContaining([attribute1, attribute2])
+        expect.arrayContaining([
+          { data: attribute1, metadata: { version: 1 } },
+          { data: attribute2, metadata: { version: 1 } },
+        ])
       );
     });
 
@@ -157,23 +143,20 @@ describe("Attribute queries", () => {
 
   describe("deleteAttributeById", () => {
     it("delete one attribute", async () => {
-      const attribute: WithMetadata<Attribute> = {
-        data: {
-          ...getMockAttribute(),
-          code: "test code",
-          origin: "test origin",
-        },
-        metadata: { version: 1 },
+      const attribute: Attribute = {
+        ...getMockAttribute(),
+        code: "test code",
+        origin: "test origin",
       };
 
-      await attributeReadModelService.upsertAttribute(attribute);
+      await attributeReadModelService.upsertAttribute(attribute, 1);
       expect(
-        await retrieveAttributeSQL(attribute.data.id, readModelDB)
+        await retrieveAttributeSQL(attribute.id, readModelDB)
       ).toBeDefined();
 
-      await attributeReadModelService.deleteAttributeById(attribute.data.id, 2);
+      await attributeReadModelService.deleteAttributeById(attribute.id, 2);
       expect(
-        await retrieveAttributeSQL(attribute.data.id, readModelDB)
+        await retrieveAttributeSQL(attribute.id, readModelDB)
       ).toBeUndefined();
     });
   });

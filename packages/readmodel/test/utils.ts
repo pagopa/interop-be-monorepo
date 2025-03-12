@@ -1,7 +1,7 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import { stringToDate } from "pagopa-interop-models";
-import { attributeReadModelServiceBuilderSQL } from "../src/attributeReadModelServiceSQL.js";
+import { attributeReadModelServiceBuilder } from "../src/attributeReadModelService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -16,7 +16,7 @@ export const { cleanup, readModelDB } = await setupTestContainersVitest(
 afterEach(cleanup);
 
 export const attributeReadModelService =
-  attributeReadModelServiceBuilderSQL(readModelDB);
+  attributeReadModelServiceBuilder(readModelDB);
 
 export function stringToISOString(input: string): string;
 export function stringToISOString(input: string | null): string | null;
