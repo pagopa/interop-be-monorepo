@@ -3,7 +3,7 @@ import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { ProducerJWKKey } from "pagopa-interop-models";
 import { ProducerKeychainId } from "../../models/dist/brandedIds.js";
-import { ProducerJWKKeyReadModelService } from "../../readmodel/dist/producerJWKKeyReadModelServiceSQL.js";
+import { ProducerJWKKeyReadModelService } from "../../readmodel/dist/producerJWKKeyReadModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function customReadModelServiceBuilder(
