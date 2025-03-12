@@ -1,7 +1,7 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  AuthData,
   RiskAnalysisValidatedForm,
+  UIAuthData,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -94,13 +94,9 @@ export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: AuthData,
+  authData: UIAuthData,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
-
   // Search for active producer delegation
   const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
@@ -124,11 +120,8 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: AuthData
+  authData: UIAuthData
 ): void {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
   }
