@@ -57,7 +57,10 @@ describe("E-service queries", () => {
         riskAnalyses,
       } = initMockEService(isEServiceComplete);
 
-      await catalogReadModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
 
       const {
         retrievedEserviceSQL,
@@ -110,7 +113,10 @@ describe("E-service queries", () => {
       const { eservice, descriptor, document, attributes, riskAnalyses } =
         initMockEService(isEServiceComplete);
 
-      await catalogReadModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
 
       const {
         retrievedEserviceSQL,
@@ -226,8 +232,14 @@ describe("E-service queries", () => {
         riskAnalyses,
       } = initMockEService(isEServiceComplete);
 
-      await catalogReadModelService.upsertEService(eserviceBeforeUpdate);
-      await catalogReadModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(
+        eserviceBeforeUpdate.data,
+        eserviceBeforeUpdate.metadata.version
+      );
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
 
       const {
         retrievedEserviceSQL,
@@ -297,7 +309,10 @@ describe("E-service queries", () => {
         },
         metadata: { version: 1 },
       };
-      await catalogReadModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
       const retrievedEService = await catalogReadModelService.getEServiceById(
         eservice.data.id
       );
@@ -336,7 +351,10 @@ describe("E-service queries", () => {
         },
         metadata: { version: 1 },
       };
-      await catalogReadModelService.upsertEService(eservice1);
+      await catalogReadModelService.upsertEService(
+        eservice1.data,
+        eservice1.metadata.version
+      );
 
       const descriptor2: Descriptor = {
         ...getMockDescriptor(),
@@ -357,7 +375,10 @@ describe("E-service queries", () => {
         },
         metadata: { version: 1 },
       };
-      await catalogReadModelService.upsertEService(eservice2);
+      await catalogReadModelService.upsertEService(
+        eservice2.data,
+        eservice2.metadata.version
+      );
 
       const retrievedEServices =
         await catalogReadModelService.getAllEServices();
@@ -395,7 +416,10 @@ describe("E-service queries", () => {
         },
         metadata: { version: 1 },
       };
-      await catalogReadModelService.upsertEService(eservice);
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
 
       const [
         eserviceSQLBeforeDelete,
