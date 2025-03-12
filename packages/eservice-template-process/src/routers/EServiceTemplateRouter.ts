@@ -25,7 +25,7 @@ import {
   activateEServiceTemplateVersionErrorMapper,
   suspendEServiceTemplateVersionErrorMapper,
   updateEServiceTemplateNameErrorMapper,
-  updateEServiceIntendedTargetErrorMapper,
+  updateEServiceTemplateIntendedTargetErrorMapper,
   updateEServiceTemplateDescriptionErrorMapper,
   updateEServiceTemplateVersionQuotasErrorMapper,
   updateEServiceTemplateVersionAttributesErrorMapper,
@@ -612,7 +612,7 @@ const eserviceTemplatesRouter = (
 
         try {
           const updatedEServiceTemplate =
-            await eserviceTemplateService.updateEServiceIntendedTarget(
+            await eserviceTemplateService.updateEServiceTemplateIntendedTarget(
               unsafeBrandId(req.params.templateId),
               req.body.description,
               ctx
@@ -627,7 +627,7 @@ const eserviceTemplatesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateEServiceIntendedTargetErrorMapper,
+            updateEServiceTemplateIntendedTargetErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
