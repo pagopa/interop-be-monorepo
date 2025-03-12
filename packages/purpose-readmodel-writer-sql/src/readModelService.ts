@@ -5,7 +5,6 @@ import {
   PurposeId,
   PurposeVersion,
   PurposeVersionId,
-  WithMetadata,
 } from "pagopa-interop-models";
 import {
   PurposeReadModelService,
@@ -39,8 +38,11 @@ export function customReadModelServiceBuilder(
   };
 
   return {
-    async upsertPurpose(purpose: WithMetadata<Purpose>): Promise<void> {
-      await purposeReadModelService.upsertPurpose(purpose);
+    async upsertPurpose(
+      purpose: Purpose,
+      metadataVersion: number
+    ): Promise<void> {
+      await purposeReadModelService.upsertPurpose(purpose, metadataVersion);
     },
 
     async deletePurposeById(

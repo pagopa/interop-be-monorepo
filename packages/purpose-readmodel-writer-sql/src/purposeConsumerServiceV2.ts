@@ -48,10 +48,7 @@ export async function handleMessageV2(
       { type: "PurposeCloned" },
       { type: "PurposeVersionArchivedByRevokedDelegation" },
       async (message) => {
-        await purposeReadModelService.upsertPurpose({
-          data: purpose,
-          metadata: { version: message.version },
-        });
+        await purposeReadModelService.upsertPurpose(purpose, message.version);
       }
     )
     .exhaustive();

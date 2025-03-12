@@ -25,10 +25,7 @@ export async function handleMessageV1(
       async (msg) => {
         const purpose = getPurposeFromMessage(msg.data.purpose);
 
-        await purposeReadModelService.upsertPurpose({
-          data: purpose,
-          metadata: { version: msg.version },
-        });
+        await purposeReadModelService.upsertPurpose(purpose, msg.version);
       }
     )
 
