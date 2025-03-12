@@ -22,7 +22,10 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    async upsertEService(eservice: WithMetadata<EService>): Promise<void> {
+    async upsertEService(
+      eservice: EService,
+      metadataVersion: number
+    ): Promise<void> {
       const {
         eserviceSQL,
         riskAnalysesSQL,
@@ -32,7 +35,7 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         interfacesSQL,
         documentsSQL,
         rejectionReasonsSQL,
-      } = splitEserviceIntoObjectsSQL(eservice.data, eservice.metadata.version);
+      } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
       await db.transaction(async (tx) => {
         await tx

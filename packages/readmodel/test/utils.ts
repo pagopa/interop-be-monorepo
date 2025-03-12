@@ -33,7 +33,7 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
-import { catalogReadModelServiceBuilder } from "../src/catalogReadModelServiceSQL.js";
+import { catalogReadModelServiceBuilder } from "../src/catalogReadModelService.js";
 import {
   retrieveEServiceSQL,
   retrieveEserviceDescriptorsSQL,
