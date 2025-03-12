@@ -116,7 +116,7 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           // templateBinding: eserviceTemplateBindingInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
-        .where(and(eq(eserviceInReadmodelCatalog.id, eserviceId)))
+        .where(eq(eserviceInReadmodelCatalog.id, eserviceId))
         .leftJoin(
           // 1
           eserviceDescriptorInReadmodelCatalog,
