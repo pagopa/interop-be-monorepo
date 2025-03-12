@@ -43,7 +43,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 
-import { tenantReadModelServiceBuilderSQL } from "../src/tenantReadModelServiceSQL.js";
+import { tenantReadModelServiceBuilder } from "../src/tenantReadModelService.js";
 import {
   retrieveTenantSQL,
   retrieveTenantMailsSQL,
@@ -78,7 +78,7 @@ afterEach(async () => {
 });
 
 export const tenantReadModelService =
-  tenantReadModelServiceBuilderSQL(readModelDB);
+  tenantReadModelServiceBuilder(readModelDB);
 
 export const initMockTenant = (
   isTenantComplete: boolean
