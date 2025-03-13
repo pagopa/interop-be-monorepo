@@ -10,7 +10,7 @@ import {
   getMockPurposeVersion,
   getMockTenant,
   getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Purpose,
   PurposeClonedV2,
@@ -566,7 +566,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getMockAuthData(mockTenant.id),
+          authData: getRandomAuthData(mockTenant.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
