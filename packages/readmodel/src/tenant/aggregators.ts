@@ -253,7 +253,7 @@ const aggregateTenantAttributes = ({
               : {}),
             ...(tenantVerifierSQL.extensionDate
               ? {
-                  expirationDate: stringToDate(tenantVerifierSQL.extensionDate),
+                  extensionDate: stringToDate(tenantVerifierSQL.extensionDate),
                 }
               : {}),
             ...(tenantVerifierSQL.delegationId

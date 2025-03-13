@@ -233,22 +233,24 @@ describe("Tenant splitters", () => {
           tenantFeatureDelegatedProducer.availabilityTimestamp.toISOString(),
       };
 
-      expect(tenantSQL).toEqual(expectedTenantSQL);
-      expect(mailsSQL).toEqual([expectedTenantMailSQL]);
-      expect(certifiedAttributesSQL).toEqual([
+      expect(tenantSQL).toStrictEqual(expectedTenantSQL);
+      expect(mailsSQL).toStrictEqual([expectedTenantMailSQL]);
+      expect(certifiedAttributesSQL).toStrictEqual([
         expectedTenantCertifiedAttributeSQL,
       ]);
-      expect(declaredAttributesSQL).toEqual([
+      expect(declaredAttributesSQL).toStrictEqual([
         expectedTenantDeclaredAttributeSQL,
       ]);
-      expect(verifiedAttributesSQL).toEqual([
+      expect(verifiedAttributesSQL).toStrictEqual([
         expectedTenantVerifiedAttributeSQL,
       ]);
-      expect(verifiedAttributeVerifiersSQL).toEqual([
+      expect(verifiedAttributeVerifiersSQL).toStrictEqual([
         expectedTenantVerifierSQL,
       ]);
-      expect(verifiedAttributeRevokersSQL).toEqual([expectedTenantRevokerSQL]);
-      expect(featuresSQL).toEqual(
+      expect(verifiedAttributeRevokersSQL).toStrictEqual([
+        expectedTenantRevokerSQL,
+      ]);
+      expect(featuresSQL).toStrictEqual(
         expect.arrayContaining([
           expectedTenantFeatureCertifierSQL,
           expectedTenantFeatureDelegatedConsumerSQL,
@@ -447,22 +449,24 @@ describe("Tenant splitters", () => {
           tenantFeatureDelegatedProducer.availabilityTimestamp.toISOString(),
       };
 
-      expect(tenantSQL).toEqual(expectedTenantSQL);
-      expect(mailsSQL).toEqual([expectedTenantMailSQL]);
-      expect(certifiedAttributesSQL).toEqual([
+      expect(tenantSQL).toStrictEqual(expectedTenantSQL);
+      expect(mailsSQL).toStrictEqual([expectedTenantMailSQL]);
+      expect(certifiedAttributesSQL).toStrictEqual([
         expectedTenantCertifiedAttributeSQL,
       ]);
-      expect(declaredAttributesSQL).toEqual([
+      expect(declaredAttributesSQL).toStrictEqual([
         expectedTenantDeclaredAttributeSQL,
       ]);
-      expect(verifiedAttributesSQL).toEqual([
+      expect(verifiedAttributesSQL).toStrictEqual([
         expectedTenantVerifiedAttributeSQL,
       ]);
-      expect(verifiedAttributeVerifiersSQL).toEqual([
+      expect(verifiedAttributeVerifiersSQL).toStrictEqual([
         expectedTenantVerifierSQL,
       ]);
-      expect(verifiedAttributeRevokersSQL).toEqual([expectedTenantRevokerSQL]);
-      expect(featuresSQL).toEqual(
+      expect(verifiedAttributeRevokersSQL).toStrictEqual([
+        expectedTenantRevokerSQL,
+      ]);
+      expect(featuresSQL).toStrictEqual(
         expect.arrayContaining([
           expectedTenantFeatureCertifierSQL,
           expectedTenantFeatureDelegatedConsumerSQL,
