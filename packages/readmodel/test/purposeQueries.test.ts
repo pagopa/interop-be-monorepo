@@ -246,27 +246,45 @@ describe("Purpose queries", () => {
 
   describe("Delete a Purpose", () => {
     it("should delete a purpose by purpose id", async () => {
-      const purposeVersion1: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        riskAnalysis: getMockPurposeVersionDocument(),
-        rejectionReason: "Test rejection reason",
-        updatedAt: new Date(),
-        firstActivationAt: new Date(),
-        suspendedAt: new Date(),
+      const checkCompletePurpose = async (purpose: Purpose): Promise<void> => {
+        expect(await retrievePurposeSQL(purpose.id, readModelDB)).toBeDefined();
+        expect(
+          await retrievePurposeRiskAnalysisForm(purpose.id, readModelDB)
+        ).toBeDefined();
+        expect(
+          await retrievePurposeRiskAnalysisAnswersSQL(purpose.id, readModelDB)
+        ).toHaveLength(
+          purpose.riskAnalysisForm!.multiAnswers.length +
+            purpose.riskAnalysisForm!.singleAnswers.length
+        );
+        expect(
+          await retrievePurposeVersionsSQL(purpose.id, readModelDB)
+        ).toHaveLength(purpose.versions.length);
+        expect(
+          await retrievePurposeVersionDocumentSQL(purpose.id, readModelDB)
+        ).toHaveLength(purpose.versions.length);
       };
-      const purposeVersion2: PurposeVersion = {
-        ...getMockPurposeVersion(purposeVersionState.draft),
-        riskAnalysis: getMockPurposeVersionDocument(),
-        rejectionReason: "Test rejection reason",
-        updatedAt: new Date(),
-        firstActivationAt: new Date(),
-        suspendedAt: new Date(),
-      };
-      const purposeVersions = [purposeVersion1, purposeVersion2];
 
-      const purpose: Purpose = {
+      const purpose1: Purpose = {
         ...getMockPurpose(),
-        versions: purposeVersions,
+        versions: [
+          {
+            ...getMockPurposeVersion(),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
+          {
+            ...getMockPurposeVersion(),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
+        ],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
@@ -277,41 +295,61 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
       };
+      await purposeReadModelService.upsertPurpose(purpose1, 1);
+      await checkCompletePurpose(purpose1);
 
-      await purposeReadModelService.upsertPurpose(purpose, 1);
+      const purpose2: Purpose = {
+        ...getMockPurpose(),
+        versions: [
+          {
+            ...getMockPurposeVersion(),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
+          {
+            ...getMockPurposeVersion(),
+            riskAnalysis: getMockPurposeVersionDocument(),
+            rejectionReason: "Test rejection reason",
+            updatedAt: new Date(),
+            firstActivationAt: new Date(),
+            suspendedAt: new Date(),
+          },
+        ],
+        delegationId: generateId<DelegationId>(),
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantKind.PA),
+          riskAnalysisId: generateId<RiskAnalysisId>(),
+        },
+        updatedAt: new Date(),
+        freeOfChargeReason: "Test free of charge reason",
+      };
+      await purposeReadModelService.upsertPurpose(purpose2, 1);
+      await checkCompletePurpose(purpose2);
 
-      expect(await retrievePurposeSQL(purpose.id, readModelDB)).toBeDefined();
-      expect(
-        await retrievePurposeRiskAnalysisForm(purpose.id, readModelDB)
-      ).toBeDefined();
-      expect(
-        await retrievePurposeRiskAnalysisAnswersSQL(purpose.id, readModelDB)
-      ).toHaveLength(
-        purpose.riskAnalysisForm!.multiAnswers.length +
-          purpose.riskAnalysisForm!.singleAnswers.length
-      );
-      expect(
-        await retrievePurposeVersionsSQL(purpose.id, readModelDB)
-      ).toHaveLength(purposeVersions.length);
-      expect(
-        await retrievePurposeVersionDocumentSQL(purpose.id, readModelDB)
-      ).toHaveLength(purposeVersions.length);
+      await purposeReadModelService.deletePurposeById(purpose1.id, 1);
 
-      await purposeReadModelService.deletePurposeById(purpose.id, 1);
-
-      expect(await retrievePurposeSQL(purpose.id, readModelDB)).toBeUndefined();
       expect(
-        await retrievePurposeRiskAnalysisForm(purpose.id, readModelDB)
+        await retrievePurposeSQL(purpose1.id, readModelDB)
       ).toBeUndefined();
       expect(
-        await retrievePurposeRiskAnalysisAnswersSQL(purpose.id, readModelDB)
+        await retrievePurposeRiskAnalysisForm(purpose1.id, readModelDB)
+      ).toBeUndefined();
+      expect(
+        await retrievePurposeRiskAnalysisAnswersSQL(purpose1.id, readModelDB)
       ).toHaveLength(0);
       expect(
-        await retrievePurposeVersionsSQL(purpose.id, readModelDB)
+        await retrievePurposeVersionsSQL(purpose1.id, readModelDB)
       ).toHaveLength(0);
       expect(
-        await retrievePurposeVersionDocumentSQL(purpose.id, readModelDB)
+        await retrievePurposeVersionDocumentSQL(purpose1.id, readModelDB)
       ).toHaveLength(0);
+
+      await checkCompletePurpose(purpose2);
     });
   });
 });
