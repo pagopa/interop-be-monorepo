@@ -7,6 +7,7 @@ import {
   UIAuthData,
   hasUserRole,
   userRole,
+  EServiceTemplateCollection,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -33,6 +34,8 @@ import {
   delegationState,
   delegationKind,
   DelegationKind,
+  EServiceTemplate,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -98,6 +101,31 @@ async function getTenant(
   return result.data;
 }
 
+async function getEServiceTemplate(
+  templates: EServiceTemplateCollection,
+  filter: Filter<WithId<WithMetadata<EServiceTemplate>>>
+): Promise<EServiceTemplate | undefined> {
+  const data = await templates.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+
+  if (!data) {
+    return undefined;
+  }
+
+  const result = EServiceTemplate.safeParse(data.data);
+
+  if (!result.success) {
+    throw genericInternalError(
+      `Unable to parse template item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+  }
+
+  return result.data;
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
@@ -107,6 +135,7 @@ export function readModelServiceBuilder(
   const attributes = readModelRepository.attributes;
   const tenants = readModelRepository.tenants;
   const delegations = readModelRepository.delegations;
+  const eserviceTemplates = readModelRepository.eserviceTemplates;
 
   return {
     async getEServices(
@@ -125,6 +154,7 @@ export function readModelServiceBuilder(
         mode,
         isConsumerDelegable,
         delegated,
+        templatesIds,
       } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
@@ -314,6 +344,13 @@ export function readModelServiceBuilder(
         }))
         .otherwise(() => ({}));
 
+      const templatesIdsFilter =
+        templatesIds.length > 0
+          ? {
+              "data.templateRef.id": { $in: templatesIds },
+            }
+          : {};
+
       const aggregationPipeline = [
         delegationLookup,
         { $match: nameFilter },
@@ -325,6 +362,7 @@ export function readModelServiceBuilder(
         { $match: modeFilter },
         { $match: isConsumerDelegableFilter },
         { $match: delegatedFilter },
+        { $match: templatesIdsFilter },
         {
           $project: {
             data: 1,
@@ -627,6 +665,11 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+    async getEServiceTemplateById(
+      id: EServiceTemplateId
+    ): Promise<EServiceTemplate | undefined> {
+      return getEServiceTemplate(eserviceTemplates, { "data.id": id });
     },
   };
 }
