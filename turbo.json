@@ -36,7 +36,13 @@
       "outputs": ["src/gen/**"]
     },
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": ["build", "^test", "test:integration", "test:api"]
+    },
+    "test:integration": {
+      "dependsOn": ["build", "^test:integration"]
+    },
+    "test:api": {
+      "dependsOn": ["build", "^test:api"]
     },
     "lint": {
       "dependsOn": ["build", "^lint"],
