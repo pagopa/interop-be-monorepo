@@ -1070,7 +1070,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/rest:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1078,8 +1078,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Add EService template instance interface
-      operationId: addEServiceTemplateInstanceInterface
+      summary: Add EService template instance interface for REST protocol
+      operationId: addEServiceTemplateInstanceInterfaceRest
       parameters:
         - name: eServiceId
           in: path
@@ -1096,12 +1096,83 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: A payload containing the eservice's api data
+        description: A payload containing eservice's interface API REST URLs and contacts
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
+              $ref: "#/components/schemas/TemplateInstanceInterfaceRESTSeed"
+      responses:
+        "200":
+          description: EService Interface Document uploaded
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Add EService template instance interface for SOAP protocol
+      operationId: addEServiceTemplateInstanceInterfaceSoap
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the eservice descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing eservice's interface API SOAP URLs and contacts
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateInstanceInterfaceSOAPSeed"
       responses:
         "200":
           description: EService Interface Document uploaded
@@ -2386,14 +2457,45 @@ components:
         interfaceMetadata:
           required: false
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
-    TemplateInstanceInterfaceMetadata:
+    TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
       required:
         - contactName
         - contactEmail
-        - contactUrl
-        - termsAndConditionsUrl
+        - serverUrls
+      properties:
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+        contactUrl:
+          type: string
+          format: uri
+        termsAndConditionsUrl:
+          type: string
+          format: uri
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+    TemplateInstanceInterfaceSOAPSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - serverUrls
+      properties:
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+    TemplateInstanceInterfaceMetadata:
+      type: object
+      additionalProperties: false
+      required:
         - serverUrls
       properties:
         contactName:

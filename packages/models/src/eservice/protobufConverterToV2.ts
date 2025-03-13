@@ -119,6 +119,17 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   archivedAt: dateToBigInt(input.archivedAt),
   rejectionReasons:
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
+  templateVersionRef: input.templateVersionRef
+    ? {
+        id: input.templateVersionRef.id,
+        interfaceMetadata: input.templateVersionRef.interfaceMetadata
+          ? {
+              ...input.templateVersionRef.interfaceMetadata,
+              serverUrls: input.templateVersionRef.interfaceMetadata.serverUrls,
+            }
+          : undefined,
+      }
+    : undefined,
 });
 
 export const toRiskAnalysisV2 = (

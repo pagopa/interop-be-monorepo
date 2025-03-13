@@ -615,14 +615,34 @@ export function eserviceTemplateServiceBuilder(
 
       return { id, name, contentType, prettyName, checksum };
     },
-    addEserviceInterfaceByTemplate: async (
+    addEserviceInterfaceRestByTemplate: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
-      eserviceInstanceInterfaceData: bffApi.TemplateInstanceInterfaceMetadata,
+      eserviceInstanceInterfaceData: bffApi.TemplateInstanceInterfaceRESTSeed,
       { headers }: WithLogger<BffAppContext>
     ): Promise<CreatedResource> => {
       const { id } =
-        await catalogProcessClient.addEServiceTemplateInstanceInterface(
+        await catalogProcessClient.addEServiceTemplateInstanceInterfaceRest(
+          eserviceInstanceInterfaceData,
+          {
+            headers,
+            params: {
+              eServiceId,
+              descriptorId,
+            },
+          }
+        );
+
+      return { id };
+    },
+    addEserviceInterfaceSoapByTemplate: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      eserviceInstanceInterfaceData: bffApi.TemplateInstanceInterfaceSOAPSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<CreatedResource> => {
+      const { id } =
+        await catalogProcessClient.addEServiceTemplateInstanceInterfaceSoap(
           eserviceInstanceInterfaceData,
           {
             headers,

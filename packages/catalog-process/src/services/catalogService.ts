@@ -3030,7 +3030,9 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
-      eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
+      eserviceInstanceInterfaceData:
+        | catalogApi.TemplateInstanceInterfaceRESTSeed
+        | catalogApi.TemplateInstanceInterfaceSOAPSeed,
       ctx: WithLogger<AppContext>
     ): Promise<EService> {
       const { logger, authData } = ctx;
@@ -3099,7 +3101,9 @@ export async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
+  eserviceInstanceInterfaceData:
+    | catalogApi.TemplateInstanceInterfaceRESTSeed
+    | catalogApi.TemplateInstanceInterfaceSOAPSeed,
   bucket: string,
   fileManager: FileManager,
   readModelService: ReadModelService,

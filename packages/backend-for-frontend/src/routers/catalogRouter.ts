@@ -968,12 +968,36 @@ const catalogRouter = (
       }
     })
     .post(
-      "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface",
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface/soap",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await eserviceTemplateService.addEserviceInterfaceSoapByTemplate(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addEServiceInterfceByTemplateErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error adding interface for eService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
           const response =
-            await eserviceTemplateService.addEserviceInterfaceByTemplate(
+            await eserviceTemplateService.addEserviceInterfaceRestByTemplate(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,

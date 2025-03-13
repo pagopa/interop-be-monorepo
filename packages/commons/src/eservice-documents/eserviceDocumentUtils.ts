@@ -106,10 +106,10 @@ export const interpolateApiSpec = async (
     prettyName: string;
   },
   eserviceInstanceInterfaceData: {
-    contactName: string;
-    contactEmail: string;
-    contactUrl: string;
-    termsAndConditionsUrl: string;
+    contactName?: string;
+    contactEmail?: string;
+    contactUrl?: string;
+    termsAndConditionsUrl?: string;
     serverUrls: string[];
   }
 ): Promise<File> => {
@@ -152,10 +152,10 @@ export const interpolateOpenApiSpec = async (
     prettyName: string;
   },
   eserviceInstanceInterfaceData: {
-    contactName: string;
-    contactEmail: string;
-    contactUrl: string;
-    termsAndConditionsUrl: string;
+    contactName?: string;
+    contactEmail?: string;
+    contactUrl?: string;
+    termsAndConditionsUrl?: string;
     serverUrls: string[];
   }
 ): Promise<File> => {
