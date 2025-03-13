@@ -11,9 +11,11 @@ import {
 import { drizzle } from "drizzle-orm/node-postgres";
 import { and, eq, lte } from "drizzle-orm";
 import {
+  agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
 } from "../../readmodel-models/dist/drizzle/schema.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -52,11 +54,6 @@ export function readModelServiceBuilder(
       );
 
       await db.transaction(async (tx) => {
-        await updateMetadataVersionInAgreementTable(
-          tx,
-          agreementId,
-          metadataVersion
-        );
         await tx
           .delete(agreementConsumerDocumentInReadmodelAgreement)
           .where(
@@ -75,6 +72,12 @@ export function readModelServiceBuilder(
         await tx
           .insert(agreementConsumerDocumentInReadmodelAgreement)
           .values(consumerDocumentSQL);
+
+        await updateMetadataVersionInAgreementRelatedTables(
+          tx,
+          agreementId,
+          metadataVersion
+        );
       });
     },
 
@@ -84,11 +87,6 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        await updateMetadataVersionInAgreementTable(
-          tx,
-          agreementId,
-          metadataVersion
-        );
         await tx
           .delete(agreementConsumerDocumentInReadmodelAgreement)
           .where(
@@ -103,6 +101,12 @@ export function readModelServiceBuilder(
               )
             )
           );
+
+        await updateMetadataVersionInAgreementRelatedTables(
+          tx,
+          agreementId,
+          metadataVersion
+        );
       });
     },
 
@@ -118,11 +122,6 @@ export function readModelServiceBuilder(
       );
 
       await db.transaction(async (tx) => {
-        await updateMetadataVersionInAgreementTable(
-          tx,
-          agreementId,
-          metadataVersion
-        );
         await tx
           .delete(agreementContractInReadmodelAgreement)
           .where(
@@ -141,6 +140,12 @@ export function readModelServiceBuilder(
         await tx
           .insert(agreementContractInReadmodelAgreement)
           .values(contractDocumentSQL);
+
+        await updateMetadataVersionInAgreementRelatedTables(
+          tx,
+          agreementId,
+          metadataVersion
+        );
       });
     },
   };
@@ -151,11 +156,18 @@ export type TransactionType = Parameters<
   Parameters<DrizzleReturnType["transaction"]>[0]
 >[0];
 
-const updateMetadataVersionInAgreementTable = async (
+const updateMetadataVersionInAgreementRelatedTables = async (
   tx: TransactionType,
   agreementId: AgreementId,
   newVersion: number
 ): Promise<void> => {
+  const agreementRelatedTables = [
+    agreementStampInReadmodelAgreement,
+    agreementAttributeInReadmodelAgreement,
+    agreementConsumerDocumentInReadmodelAgreement,
+    agreementContractInReadmodelAgreement,
+  ];
+
   await tx
     .update(agreementInReadmodelAgreement)
     .set({ metadataVersion: newVersion })
@@ -165,6 +177,18 @@ const updateMetadataVersionInAgreementTable = async (
         lte(agreementInReadmodelAgreement.metadataVersion, newVersion)
       )
     );
+
+  for (const table of agreementRelatedTables) {
+    await tx
+      .update(table)
+      .set({ metadataVersion: newVersion })
+      .where(
+        and(
+          eq(table.agreementId, agreementId),
+          lte(table.metadataVersion, newVersion)
+        )
+      );
+  }
 };
 
 export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
