@@ -229,7 +229,7 @@ export async function applicationAuditEndMiddleware(
   };
 }
 
-export async function applicationAuditEndBffMiddleware(
+export async function applicationAuditEndSessionTokenExchangeMiddleware(
   serviceName: string,
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {

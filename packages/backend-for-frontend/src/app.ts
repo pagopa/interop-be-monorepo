@@ -10,7 +10,7 @@ import {
 import express from "express";
 import {
   applicationAuditBeginMiddleware,
-  applicationAuditEndBffMiddleware,
+  applicationAuditEndSessionTokenExchangeMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { config } from "./config/config.js";
@@ -81,7 +81,7 @@ app.use(
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   await applicationAuditEndMiddleware(serviceName, config),
-  await applicationAuditEndBffMiddleware(serviceName, config),
+  await applicationAuditEndSessionTokenExchangeMiddleware(serviceName, config),
   catalogRouter(zodiosCtx, clients, fileManager),
   attributeRouter(zodiosCtx, clients),
   purposeRouter(zodiosCtx, clients),
