@@ -127,10 +127,6 @@ export async function applicationAuditBeginMiddleware(
     const amznTraceId = parseAmznTraceIdHeader(req);
     const forwardedFor = parseForwardedForHeader(req);
 
-    if (!amznTraceId) {
-      throw genericInternalError("The amznTraceId header is missing");
-    }
-
     if (!forwardedFor) {
       throw genericInternalError("The forwardedFor header is missing");
     }
@@ -184,10 +180,6 @@ export async function applicationAuditEndMiddleware(
         const organizationId = context.authData.organizationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
         const forwardedFor = parseForwardedForHeader(req);
-
-        if (!amznTraceId) {
-          throw genericInternalError("The amznTraceId header is missing");
-        }
 
         if (!forwardedFor) {
           throw genericInternalError("The forwardedFor header is missing");
@@ -246,10 +238,6 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
         const organizationId = context.authData.organizationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
         const forwardedFor = parseForwardedForHeader(req);
-
-        if (!amznTraceId) {
-          throw genericInternalError("The amznTraceId header is missing");
-        }
 
         if (!forwardedFor) {
           throw genericInternalError("The forwardedFor header is missing");
