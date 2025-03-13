@@ -7,82 +7,92 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export enum Phase {
-  BEGIN_REQUEST = "BEGIN_REQUEST",
-  END_REQUEST = "END_REQUEST",
-}
+const Phase = {
+  BEGIN_REQUEST: "BEGIN_REQUEST",
+  END_REQUEST: "END_REQUEST",
+} as const;
 
-export interface ApplicationAuditBeginRequest {
-  correlationId: string;
-  service: string;
-  serviceVersion: string;
-  endpoint: string;
-  httpMethod: string;
-  phase: Phase.BEGIN_REQUEST;
-  requesterIpAddress: string;
-  nodeIp: string;
-  podName: string;
-  uptimeSeconds: number;
-  timestamp: number;
-  amazonTraceId?: string;
-}
+const ApplicationAuditBeginRequest = z.object({
+  correlationId: z.string(),
+  service: z.string(),
+  serviceVersion: z.string(),
+  endpoint: z.string(),
+  httpMethod: z.string(),
+  phase: z.literal(Phase.BEGIN_REQUEST),
+  requesterIpAddress: z.string(),
+  nodeIp: z.string(),
+  podName: z.string(),
+  uptimeSeconds: z.number(),
+  timestamp: z.number(),
+  amazonTraceId: z.string().optional(),
+});
+type ApplicationAuditBeginRequest = z.infer<
+  typeof ApplicationAuditBeginRequest
+>;
 
-export interface ApplicationAuditEndRequest {
-  correlationId: string;
-  service: string;
-  serviceVersion: string;
-  endpoint: string;
-  httpMethod: string;
-  phase: Phase.END_REQUEST;
-  requesterIpAddress: string;
-  nodeIp: string;
-  podName: string;
-  uptimeSeconds: number;
-  timestamp: number;
-  amazonTraceId?: string;
-  organizationId: string;
-  userId?: string;
-  httpResponseStatus: number;
-  executionTimeMs: number;
-}
+const ApplicationAuditEndRequest = z.object({
+  correlationId: z.string(),
+  service: z.string(),
+  serviceVersion: z.string(),
+  endpoint: z.string(),
+  httpMethod: z.string(),
+  phase: z.literal(Phase.END_REQUEST),
+  requesterIpAddress: z.string(),
+  nodeIp: z.string(),
+  podName: z.string(),
+  uptimeSeconds: z.number(),
+  timestamp: z.number(),
+  amazonTraceId: z.string().optional(),
+  organizationId: z.string(),
+  userId: z.string().optional(),
+  httpResponseStatus: z.number(),
+  executionTimeMs: z.number(),
+});
+type ApplicationAuditEndRequest = z.infer<typeof ApplicationAuditEndRequest>;
 
-export interface ApplicationAuditEndRequestAuthServer {
-  correlationId: string;
-  service: string;
-  serviceVersion: string;
-  endpoint: string;
-  httpMethod: string;
-  phase: Phase.END_REQUEST;
-  requesterIpAddress: string;
-  nodeIp: string;
-  podName: string;
-  uptimeSeconds: number;
-  timestamp: number;
-  amazonTraceId?: string;
-  organizationId?: string;
-  clientId?: string;
-  httpResponseStatus: number;
-  executionTimeMs: number;
-}
+// const ApplicationAuditEndRequestAuthServer = z.object({
+//   correlationId: z.string(),
+//   service: z.string(),
+//   serviceVersion: z.string(),
+//   endpoint: z.string(),
+//   httpMethod: z.string(),
+//   phase: z.literal(phase.END_REQUEST),
+//   requesterIpAddress: z.string(),
+//   nodeIp: z.string(),
+//   podName: z.string(),
+//   uptimeSeconds: z.number(),
+//   timestamp: z.number(),
+//   amazonTraceId: z.string().optional(),
+//   organizationId: z.string().optional(),
+//   clientId: z.string().optional(),
+//   httpResponseStatus: z.number(),
+//   executionTimeMs: z.number(),
+// });
+// type ApplicationAuditEndRequestAuthServer = z.infer<
+//   typeof ApplicationAuditEndRequestAuthServer
+// >;
 
-export interface ApplicationAuditEndRequestSessionTokenExchange {
-  correlationId: string;
-  service: string;
-  serviceVersion: string;
-  endpoint: string;
-  httpMethod: string;
-  phase: Phase.END_REQUEST;
-  requesterIpAddress: string;
-  nodeIp: string;
-  podName: string;
-  uptimeSeconds: number;
-  timestamp: number;
-  amazonTraceId?: string;
-  organizationId?: string;
-  selfcareId?: string;
-  httpResponseStatus: number;
-  executionTimeMs: number;
-}
+export const ApplicationAuditEndRequestSessionTokenExchange = z.object({
+  correlationId: z.string(),
+  service: z.string(),
+  serviceVersion: z.string(),
+  endpoint: z.string(),
+  httpMethod: z.string(),
+  phase: z.literal(Phase.END_REQUEST),
+  requesterIpAddress: z.string(),
+  nodeIp: z.string(),
+  podName: z.string(),
+  uptimeSeconds: z.number(),
+  timestamp: z.number(),
+  amazonTraceId: z.string().optional(),
+  organizationId: z.string().optional(),
+  selfcareId: z.string().optional(),
+  httpResponseStatus: z.number(),
+  executionTimeMs: z.number(),
+});
+export type ApplicationAuditEndRequestSessionTokenExchange = z.infer<
+  typeof ApplicationAuditEndRequestSessionTokenExchange
+>;
 
 export function parseAmznTraceIdHeader(req: Request): string | undefined {
   const parsed = z
