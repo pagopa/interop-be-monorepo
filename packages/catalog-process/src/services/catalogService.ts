@@ -2976,10 +2976,10 @@ export function catalogServiceBuilder(
               tenantKind.GSP,
               tenantKind.PRIVATE,
               tenantKind.SCP,
-              (t) =>
-                [tenantKind.GSP, tenantKind.PRIVATE, tenantKind.SCP].includes(
-                  r.tenantKind as typeof t
-                )
+              () =>
+                r.tenantKind === tenantKind.GSP ||
+                r.tenantKind === tenantKind.PRIVATE ||
+                r.tenantKind === tenantKind.SCP
               /**
                * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
                * This may change in the future.
