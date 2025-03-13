@@ -22,9 +22,9 @@ import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
   eserviceIsNotDraft,
-  eserviceIsTemplateInstance,
   invalidEServiceRequester,
   notValidDescriptor,
+  templateInstanceNotAllowed,
 } from "../model/errors.js";
 import {
   agreementApiState,
@@ -211,12 +211,12 @@ export function assertIsDraftEservice(eservice: catalogApi.EService): void {
   }
 }
 
-export function assertEServiceIsTemplateInstance(
+export function assertEServiceNotTemplateInstance(
   eservice: catalogApi.EService
 ): asserts eservice is catalogApi.EService & {
   templateRef: NonNullable<EService["templateRef"]>;
 } {
   if (eservice.templateRef !== undefined) {
-    throw eserviceIsTemplateInstance(eservice.id, eservice.templateRef.id);
+    throw templateInstanceNotAllowed(eservice.id, eservice.templateRef.id);
   }
 }
