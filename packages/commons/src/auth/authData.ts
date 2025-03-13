@@ -26,7 +26,7 @@ const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
   z
     .string()
     .transform((s: string) => s.split(","))
-    .pipe(z.array(t).nonempty());
+    .pipe(z.array(t));
 
 const SharedStandardJWTClaims = z.object({
   // All standard claims except "sub", which is not present in UI tokens
