@@ -65,10 +65,7 @@ describe("events V1", async () => {
 
   it("should delete an agreement", async () => {
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const agreementDeleted: AgreementDeletedV1 = {
       agreementId: agreement.id,
     };
@@ -94,10 +91,7 @@ describe("events V1", async () => {
 
   it("should update an agreement", async () => {
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const agreementUpdated: AgreementUpdatedV1 = {
       agreement: {
         id: agreement.id,
@@ -139,10 +133,7 @@ describe("events V1", async () => {
 
   it("should add a consumer document to an agreement", async () => {
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const agreementConsumerDocument = generateMock(AgreementDocument);
 
     const consumerDocumentAdded: AgreementConsumerDocumentAddedV1 = {
@@ -183,10 +174,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       consumerDocuments: [agreementConsumerDocument],
     };
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const consumerDocumentRemoved: AgreementConsumerDocumentRemovedV1 = {
       documentId: agreementConsumerDocument.id,
       agreementId: agreement.id,
@@ -221,10 +209,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       contract: agreementContract,
     };
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const agreementContractAdded: AgreementContractAddedV1 = {
       contract: toAgreementDocumentV1(agreementContract),
       agreementId: agreement.id,
@@ -258,10 +243,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.pending,
     };
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const activatedAgreement: Agreement = {
       ...agreement,
       state: agreementState.active,
@@ -296,10 +278,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const suspendedAgreement: Agreement = {
       ...agreement,
       state: agreementState.active,
@@ -334,10 +313,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const deactivatedAgreement: Agreement = {
       ...agreement,
       state: agreementState.active,
@@ -372,10 +348,7 @@ describe("events V1", async () => {
       ...getMockAgreement(),
       state: agreementState.active,
     };
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
     const updatedAgreement: Agreement = {
       ...agreement,
       verifiedAttributes: [{ id: generateId() }],

@@ -19,10 +19,7 @@ describe("events V2", async () => {
     const spyUpdate = vi.spyOn(readModelService, "upsertAgreement");
 
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
 
     const eventTypes = [
       "AgreementAdded",
@@ -73,10 +70,7 @@ describe("events V2", async () => {
     const spyDelete = vi.spyOn(readModelService, "deleteAgreement");
 
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
 
     const eventTypesConsumerDocument = [
       "AgreementConsumerDocumentAdded",
@@ -116,10 +110,7 @@ describe("events V2", async () => {
     const spyDelete = vi.spyOn(readModelService, "deleteAgreement");
 
     const agreement = getMockAgreement();
-    await readModelService.upsertAgreement({
-      data: agreement,
-      metadata: { version: 1 },
-    });
+    await readModelService.upsertAgreement(agreement, 1);
 
     const eventType = "AgreementDeleted";
     const event = {
