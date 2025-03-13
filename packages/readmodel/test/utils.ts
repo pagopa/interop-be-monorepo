@@ -17,6 +17,12 @@ import {
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
+  tenantCertifiedAttributeInReadmodelTenant,
+  tenantDeclaredAttributeInReadmodelTenant,
+  tenantFeatureInReadmodelTenant,
+  tenantInReadmodelTenant,
+  tenantMailInReadmodelTenant,
+  tenantVerifiedAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
   AttributeId,
@@ -42,17 +48,9 @@ import {
   VerifiedTenantAttribute,
   WithMetadata,
 } from "pagopa-interop-models";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { eq } from "drizzle-orm";
 import { tenantReadModelServiceBuilder } from "../src/tenantReadModelService.js";
-import {
-  retrieveTenantSQL,
-  retrieveTenantMailsSQL,
-  retrieveTenantCertifiedAttributesSQL,
-  retrieveTenantDeclaredAttributesSQL,
-  retrieveTenantVerifiedAttributesSQL,
-  retrieveTenantVerifiedAttributeVerifiersSQL,
-  retrieveTenantVerifiedAttributeRevokersSQL,
-  retrieveTenantFeaturesSQL,
-} from "./tenantTestReadModelService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -76,6 +74,9 @@ afterEach(async () => {
   await cleanup();
 });
 
+// ////// //
+// TENANT //
+// ////// //
 export const tenantReadModelService =
   tenantReadModelServiceBuilder(readModelDB);
 
@@ -415,6 +416,98 @@ export function stringToISOString(input: string | null): string | null {
   return input ? stringToDate(input).toISOString() : null;
 }
 
+export const retrieveTenantSQL = async (
+  tenantId: TenantId,
+  db: ReturnType<typeof drizzle>
+): Promise<TenantSQL | undefined> => {
+  const result = await db
+    .select()
+    .from(tenantInReadmodelTenant)
+    .where(eq(tenantInReadmodelTenant.id, tenantId));
+  return result[0];
+};
+
+export const retrieveTenantMailsSQL = async (
+  tenantId: TenantId,
+  db: ReturnType<typeof drizzle>
+): Promise<TenantMailSQL[] | undefined> => {
+  const result = await db
+    .select()
+    .from(tenantMailInReadmodelTenant)
+    .where(eq(tenantMailInReadmodelTenant.tenantId, tenantId));
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveTenantCertifiedAttributesSQL = async (
+  tenantId: TenantId,
+  db: ReturnType<typeof drizzle>
+): Promise<TenantCertifiedAttributeSQL[] | undefined> => {
+  const result = await db
+    .select()
+    .from(tenantCertifiedAttributeInReadmodelTenant)
+    .where(eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId));
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveTenantDeclaredAttributesSQL = async (
+  tenantId: TenantId,
+  db: ReturnType<typeof drizzle>
+): Promise<TenantDeclaredAttributeSQL[] | undefined> => {
+  const result = await db
+    .select()
+    .from(tenantDeclaredAttributeInReadmodelTenant)
+    .where(eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId));
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveTenantVerifiedAttributesSQL = async (
+  tenantId: TenantId,
+  db: ReturnType<typeof drizzle>
+): Promise<TenantVerifiedAttributeSQL[] | undefined> => {
+  const result = await db
+    .select()
+    .from(tenantVerifiedAttributeInReadmodelTenant)
+    .where(eq(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantId));
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
+  tenantId: TenantId,
+  db: ReturnType<typeof drizzle>
+): Promise<TenantVerifiedAttributeVerifierSQL[] | undefined> => {
+  const result = await db
+    .select()
+    .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
+    .where(
+      eq(tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId, tenantId)
+    );
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveTenantVerifiedAttributeRevokersSQL = async (
+  tenantId: TenantId,
+  db: ReturnType<typeof drizzle>
+): Promise<TenantVerifiedAttributeRevokerSQL[] | undefined> => {
+  const result = await db
+    .select()
+    .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
+    .where(
+      eq(tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId, tenantId)
+    );
+  return result.length > 0 ? result : undefined;
+};
+
+export const retrieveTenantFeaturesSQL = async (
+  tenantId: TenantId,
+  db: ReturnType<typeof drizzle>
+): Promise<TenantFeatureSQL[] | undefined> => {
+  const result = await db
+    .select()
+    .from(tenantFeatureInReadmodelTenant)
+    .where(eq(tenantFeatureInReadmodelTenant.tenantId, tenantId));
+  return result.length > 0 ? result : undefined;
+};
+
 /*
 export const sortATenant = (
   tenant: WithMetadata<Tenant>
@@ -455,3 +548,7 @@ const sortByString = (a: string, b: string): number => {
   return 0;
 };
 */
+
+// ////// //
+// TENANT //
+// ////// //
