@@ -118,7 +118,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig,
