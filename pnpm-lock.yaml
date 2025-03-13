@@ -18,64 +18,6 @@ importers:
         specifier: 2.2.3
         version: 2.2.3
 
-  packages/agreement-email-sender:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
-      axios:
-        specifier: 1.7.4
-        version: 1.7.4
-      cpx2:
-        specifier: 7.0.1
-        version: 7.0.1
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      testcontainers:
-        specifier: 10.9.0
-        version: 10.9.0
-      tsx:
-        specifier: 4.19.1
-        version: 4.19.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
-
   packages/agreement-lifecycle:
     dependencies:
       '@types/node':
@@ -962,6 +904,9 @@ importers:
 
   packages/backend-for-frontend:
     dependencies:
+      '@apidevtools/swagger-parser':
+        specifier: 10.1.0
+        version: 10.1.0(openapi-types@12.1.3)
       '@aws-sdk/client-dynamodb':
         specifier: 3.693.0
         version: 3.693.0
@@ -1337,6 +1282,70 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/certified-email-sender:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      nodemailer:
+        specifier: 6.9.14
+        version: 6.9.14
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/nodemailer':
+        specifier: 6.4.17
+        version: 6.4.17
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
+      cpx2:
+        specifier: 7.0.1
+        version: 7.0.1
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/client-assertion-validation:
     dependencies:
       jose:
@@ -1489,6 +1498,9 @@ importers:
 
   packages/commons:
     dependencies:
+      '@apidevtools/swagger-parser':
+        specifier: 10.1.0
+        version: 10.1.0(openapi-types@12.1.3)
       '@aws-sdk/client-kms':
         specifier: 3.693.0
         version: 3.693.0
@@ -1501,12 +1513,18 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: 3.693.0
         version: 3.693.0
+      '@types/adm-zip':
+        specifier: 0.5.5
+        version: 0.5.5
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.4)(zod@3.23.8)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      adm-zip:
+        specifier: 0.5.15
+        version: 0.5.15
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -1522,6 +1540,9 @@ importers:
       express:
         specifier: 4.20.0
         version: 4.20.0
+      fast-xml-parser:
+        specifier: 4.4.1
+        version: 4.4.1
       handlebars:
         specifier: 4.7.8
         version: 4.7.8
@@ -1534,6 +1555,9 @@ importers:
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
+      mime:
+        specifier: 4.0.4
+        version: 4.0.4
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
@@ -1561,6 +1585,9 @@ importers:
       winston:
         specifier: 3.13.0
         version: 3.13.0
+      yaml:
+        specifier: 2.4.5
+        version: 2.4.5
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -1578,8 +1605,8 @@ importers:
         specifier: 20.14.6
         version: 20.14.6
       '@types/nodemailer':
-        specifier: 6.4.15
-        version: 6.4.15
+        specifier: 6.4.17
+        version: 6.4.17
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -2154,6 +2181,198 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/eservice-template-instances-updater:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/eservice-template-process:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      mongodb:
+        specifier: 6.7.0
+        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
+      openapi-zod-client:
+        specifier: 1.18.1
+        version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@faker-js/faker':
+        specifier: 8.4.1
+        version: 8.4.1
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pg-promise:
+        specifier: 11.8.0
+        version: 11.8.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/eservice-template-readmodel-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/event-migration:
     dependencies:
       '@types/node':
@@ -2251,6 +2470,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -2442,6 +2664,70 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
 
+  packages/notification-email-sender:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      nodemailer:
+        specifier: 6.9.14
+        version: 6.9.14
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/nodemailer':
+        specifier: 6.4.17
+        version: 6.4.17
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
+      cpx2:
+        specifier: 7.0.1
+        version: 7.0.1
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/notifier-seeder:
     dependencies:
       '@aws-sdk/client-sqs':
@@ -2583,8 +2869,8 @@ importers:
         specifier: 20.14.6
         version: 20.14.6
       '@types/nodemailer':
-        specifier: 6.4.9
-        version: 6.4.9
+        specifier: 6.4.17
+        version: 6.4.17
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4668,11 +4954,8 @@ packages:
   '@types/node@20.4.9':
     resolution: {integrity: sha512-8e2HYcg7ohnTUbHk8focoklEQYvemQmu9M/f43DZVx43kHn0tE3BY/6gSDxS7k0SprtS0NHvj+L80cGLnoOUcQ==}
 
-  '@types/nodemailer@6.4.15':
-    resolution: {integrity: sha512-0EBJxawVNjPkng1zm2vopRctuWVCxk34JcIlRuXSf54habUWdz1FB7wHDqOqvDa8Mtpt0Q3LTXQkAs2LNyK5jQ==}
-
-  '@types/nodemailer@6.4.9':
-    resolution: {integrity: sha512-XYG8Gv+sHjaOtUpiuytahMy2mM3rectgroNbs6R3djZEKmPNiIJwe9KqOJBGzKKnNZNKvnuvmugBgpq3w/S0ig==}
+  '@types/nodemailer@6.4.17':
+    resolution: {integrity: sha512-I9CCaIp6DTldEg7vyUTZi8+9Vo0hi1/T8gv3C89yk1rSAAzoKQ8H8ki/jBYJSFoH/BisgLP8tkZMlQ91CIquww==}
 
   '@types/qs@6.9.15':
     resolution: {integrity: sha512-uXHQKES6DQKKCLh441Xv/dwxOq1TVS3JPUMlEqoEglvlhR6Mxnlew/Xq/LRVHpLyk7iK3zODe1qYHIMltO7XGg==}
@@ -5639,6 +5922,7 @@ packages:
   eslint@8.57.0:
     resolution: {integrity: sha512-dZ6+mexnaTIbSBZWgou51U6OmzIhYM2VcNdtiTtI7qPNZm35Akpr0f6vtw3w1Kmn5PYo+tZVfh13WrhpS6oLqQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@3.0.0-alpha-1:
@@ -6277,6 +6561,7 @@ packages:
 
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
+    deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
 
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
@@ -6289,6 +6574,7 @@ packages:
 
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.isinteger@4.0.4:
     resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==}
@@ -10037,11 +10323,7 @@ snapshots:
 
   '@types/node@20.4.9': {}
 
-  '@types/nodemailer@6.4.15':
-    dependencies:
-      '@types/node': 20.14.6
-
-  '@types/nodemailer@6.4.9':
+  '@types/nodemailer@6.4.17':
     dependencies:
       '@types/node': 20.14.6
 

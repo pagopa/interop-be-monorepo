@@ -9,9 +9,14 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   Descriptor,
+  descriptorState,
+  DescriptorState,
   EServiceAttribute,
+  Technology,
+  technology,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -36,6 +41,7 @@ export function toEserviceCatalogProcessQueryParams(
     ...queryParams,
     eservicesIds: [],
     name: queryParams.q,
+    templatesIds: [],
   };
 }
 
@@ -150,6 +156,7 @@ export function toBffCatalogApiDescriptorDoc(
     name: document.name,
     contentType: document.contentType,
     prettyName: document.prettyName,
+    checksum: document.checksum,
   };
 }
 
@@ -308,20 +315,20 @@ function toBffCatalogApiDescriptorAttributeGroups(
 
 export function toBffCatalogApiDescriptorAttributes(
   attributes: attributeRegistryApi.Attribute[],
-  descriptor: catalogApi.EServiceDescriptor
+  descriptorAttributes: catalogApi.Attributes
 ): bffApi.DescriptorAttributes {
   return {
     certified: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.certified
+      descriptorAttributes.certified
     ),
     declared: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.declared
+      descriptorAttributes.declared
     ),
     verified: toBffCatalogApiDescriptorAttributeGroups(
       attributes,
-      descriptor.attributes.verified
+      descriptorAttributes.verified
     ),
   };
 }
@@ -385,4 +392,45 @@ export function toCompactProducerDescriptor(
       descriptor.rejectionReasons &&
       descriptor.rejectionReasons.length > 0,
   };
+}
+
+export function toBffEServiceTemplateInstance(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.EServiceTemplateInstance {
+  const activeDescriptor = getLatestActiveDescriptor(eservice);
+
+  return {
+    id: eservice.id,
+    name: eservice.name,
+    producerId: producer.id,
+    producerName: producer.name,
+    activeDescriptor: activeDescriptor
+      ? toCompactDescriptor(activeDescriptor)
+      : undefined,
+    descriptors: eservice.descriptors.map(toCompactDescriptor),
+    instanceLabel: eservice.templateRef?.instanceLabel,
+  };
+}
+
+export function apiTechnologyToTechnology(
+  input: catalogApi.EServiceTechnology
+): Technology {
+  return match<catalogApi.EServiceTechnology, Technology>(input)
+    .with("REST", () => technology.rest)
+    .with("SOAP", () => technology.soap)
+    .exhaustive();
+}
+
+export function apiDescriptorStateToDescriptorState(
+  input: catalogApi.EServiceDescriptorState
+): DescriptorState {
+  return match<catalogApi.EServiceDescriptorState, DescriptorState>(input)
+    .with("DRAFT", () => descriptorState.draft)
+    .with("PUBLISHED", () => descriptorState.published)
+    .with("SUSPENDED", () => descriptorState.suspended)
+    .with("DEPRECATED", () => descriptorState.deprecated)
+    .with("ARCHIVED", () => descriptorState.archived)
+    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
+    .exhaustive();
 }

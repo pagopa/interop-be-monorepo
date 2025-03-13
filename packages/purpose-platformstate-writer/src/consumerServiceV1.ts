@@ -64,6 +64,7 @@ export async function handleMessageV1(
             purposeId: purpose.id,
             purposeState,
             purposeVersionId: purposeVersion.id,
+            purposeConsumerId: purpose.consumerId,
             logger,
           });
         }
@@ -126,6 +127,7 @@ export async function handleMessageV1(
           purposeId: purpose.id,
           purposeState,
           purposeVersionId: existingPurposeEntry.purposeVersionId,
+          purposeConsumerId: purpose.consumerId,
           logger,
         });
       }
@@ -143,6 +145,7 @@ export async function handleMessageV1(
         purposeId: purpose.id,
         purposeState: getPurposeStateFromPurposeVersions(purpose.versions),
         purposeVersionId: getLastArchivedPurposeVersion(purpose.versions).id,
+        purposeConsumerId: purpose.consumerId,
         logger,
       });
     })

@@ -688,7 +688,7 @@ export function authorizationServiceBuilder(
       keySeed: authorizationApi.KeySeed;
       correlationId: CorrelationId;
       logger: Logger;
-    }): Promise<{ client: Client; showUsers: boolean }> {
+    }): Promise<Key> {
       logger.info(`Creating keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(
@@ -738,10 +738,7 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return {
-        client: updatedClient,
-        showUsers: true,
-      };
+      return newKey;
     },
     async getClientKeyById({
       clientId,

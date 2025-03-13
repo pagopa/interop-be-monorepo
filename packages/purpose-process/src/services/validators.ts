@@ -62,6 +62,9 @@ export const isRiskAnalysisFormValid = (
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
 
+export const purposeIsArchived = (purpose: Purpose): boolean =>
+  !purpose.versions.some((v) => v.state !== purposeVersionState.archived);
+
 export const isDeletableVersion = (
   purposeVersion: PurposeVersion,
   purpose: Purpose
@@ -71,6 +74,9 @@ export const isDeletableVersion = (
 
 export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.waitingForApproval;
+
+export const isClonable = (purpose: Purpose): boolean =>
+  !purposeIsDraft(purpose) && !purposeIsArchived(purpose);
 
 export const assertEserviceMode = (
   eservice: EService,
