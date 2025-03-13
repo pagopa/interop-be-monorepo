@@ -1,11 +1,6 @@
-import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AuthData,
-  ExpressContext,
-  genericLogger,
-  jwtFromAuthHeader,
-  readAuthDataFromJwtToken,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
@@ -212,23 +207,3 @@ export const getMockAgreement = ({
     archiving: undefined,
   },
 });
-
-export const mockAuthenticationMiddleware: (
-  config: unknown
-) => ZodiosRouterContextRequestHandler<ExpressContext> =
-  () =>
-  async (req, _res, next): Promise<unknown> => {
-    console.log("Middleware chiamato con req:", req.headers);
-    try {
-      console.log("TRY mockAuthenticationMiddleware");
-      const jwtToken = jwtFromAuthHeader(req, genericLogger);
-      req.ctx.authData = readAuthDataFromJwtToken(jwtToken);
-      console.log("authData nel middleware:", req.ctx.authData);
-
-      return next();
-    } catch (error) {
-      console.log("CATCH mockAuthenticationMiddleware");
-      next(error);
-    }
-    return next();
-  };
