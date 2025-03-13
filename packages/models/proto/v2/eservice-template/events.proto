@@ -86,7 +86,7 @@ message EServiceTemplateNameUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
 }
 
-message EServiceIntendedTargetUpdatedV2 {
+message EServiceTemplateIntendedTargetUpdatedV2 {
   EServiceTemplateV2 eserviceTemplate = 1;
 }
 

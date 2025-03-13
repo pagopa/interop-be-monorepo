@@ -920,7 +920,7 @@ paths:
       tags:
         - process
       summary: Update a published e-service template intended target description
-      operationId: updateEServiceIntendedTarget
+      operationId: updateEServiceTemplateIntendedTarget
       parameters:
         - name: templateId
           in: path

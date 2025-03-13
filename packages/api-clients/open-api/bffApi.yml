@@ -15636,7 +15636,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update an e-service template intended target description
-      operationId: updateEServiceIntendedTarget
+      operationId: updateEServiceTemplateIntendedTarget
       parameters:
         - name: eServiceTemplateId
           in: path
