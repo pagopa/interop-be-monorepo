@@ -50,7 +50,7 @@ describe("Agreement Aggregator", () => {
         certifiedAttributes: [getMockAgreementAttribute()],
         declaredAttributes: [getMockAgreementAttribute()],
         suspendedByConsumer: true,
-        suspendedByProducer: true,
+        suspendedByProducer: false,
         suspendedByPlatform: true,
         consumerDocuments: [getMockAgreementDocument()],
         updatedAt: new Date(),
@@ -86,7 +86,7 @@ describe("Agreement Aggregator", () => {
       attributesSQL,
     });
 
-    expect(aggregatedAgreement).toMatchObject(agreement);
+    expect(aggregatedAgreement).toStrictEqual(agreement);
   });
 
   it("should convert a Agreement object with null values as data model into an Agreement object with undefined values as business model", () => {
@@ -145,6 +145,6 @@ describe("Agreement Aggregator", () => {
       attributesSQL,
     });
 
-    expect(aggregatedAgreement).toMatchObject(agreement);
+    expect(aggregatedAgreement).toStrictEqual(agreement);
   });
 });

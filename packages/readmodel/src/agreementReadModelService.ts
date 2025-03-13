@@ -34,39 +34,47 @@ export function agreementReadModelServiceBuilder(
       } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
 
       await db.transaction(async (tx) => {
-        await tx
-          .delete(agreementInReadmodelAgreement)
-          .where(
-            and(
-              eq(agreementInReadmodelAgreement.id, agreement.id),
-              lte(
-                agreementInReadmodelAgreement.metadataVersion,
-                metadataVersion
-              )
-            )
-          );
-
-        await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
-
-        for (const stampSQL of stampsSQL) {
-          await tx.insert(agreementStampInReadmodelAgreement).values(stampSQL);
-        }
-
-        for (const attributeSQL of attributesSQL) {
+        const existingMetadataVersion: number | undefined = (
           await tx
-            .insert(agreementAttributeInReadmodelAgreement)
-            .values(attributeSQL);
-        }
+            .select({
+              metadataVersion: agreementInReadmodelAgreement.metadataVersion,
+            })
+            .from(agreementInReadmodelAgreement)
+            .where(eq(agreementInReadmodelAgreement.id, agreement.id))
+        )[0]?.metadataVersion;
 
-        for (const docSQL of consumerDocumentsSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(agreementConsumerDocumentInReadmodelAgreement)
-            .values(docSQL);
-        }
-        if (contractSQL !== null) {
-          await tx
-            .insert(agreementContractInReadmodelAgreement)
-            .values(contractSQL);
+            .delete(agreementInReadmodelAgreement)
+            .where(eq(agreementInReadmodelAgreement.id, agreement.id));
+
+          await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
+
+          for (const stampSQL of stampsSQL) {
+            await tx
+              .insert(agreementStampInReadmodelAgreement)
+              .values(stampSQL);
+          }
+
+          for (const attributeSQL of attributesSQL) {
+            await tx
+              .insert(agreementAttributeInReadmodelAgreement)
+              .values(attributeSQL);
+          }
+
+          for (const docSQL of consumerDocumentsSQL) {
+            await tx
+              .insert(agreementConsumerDocumentInReadmodelAgreement)
+              .values(docSQL);
+          }
+          if (contractSQL !== null) {
+            await tx
+              .insert(agreementContractInReadmodelAgreement)
+              .values(contractSQL);
+          }
         }
       });
     },
