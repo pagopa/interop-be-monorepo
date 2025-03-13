@@ -11,9 +11,7 @@ import {
 import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import {
   aggregatePurpose,
-  aggregatePurposeArray,
   toPurposeAggregator,
-  toPurposeAggregatorArray,
 } from "./purpose/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -132,52 +130,6 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
             lte(purposeInReadmodelPurpose.metadataVersion, version)
           )
         );
-    },
-    async getAllPurposes(): Promise<Array<WithMetadata<Purpose>>> {
-      const queryResult = await db
-        .select({
-          purpose: purposeInReadmodelPurpose,
-          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
-          purposeRiskAnalysisAnswer:
-            purposeRiskAnalysisAnswerInReadmodelPurpose,
-          purposeVersion: purposeVersionInReadmodelPurpose,
-          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-        })
-        .from(purposeInReadmodelPurpose)
-        .leftJoin(
-          // 1
-          purposeRiskAnalysisFormInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          // 2
-          purposeRiskAnalysisAnswerInReadmodelPurpose,
-          eq(
-            purposeRiskAnalysisFormInReadmodelPurpose.id,
-            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 3
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeVersionInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          // 4
-          purposeVersionDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
-          )
-        );
-
-      return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
     },
   };
 }
