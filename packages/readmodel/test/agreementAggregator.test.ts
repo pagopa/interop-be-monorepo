@@ -50,7 +50,7 @@ describe("Agreement Aggregator", () => {
         certifiedAttributes: [getMockAgreementAttribute()],
         declaredAttributes: [getMockAgreementAttribute()],
         suspendedByConsumer: true,
-        suspendedByProducer: true,
+        suspendedByProducer: false,
         suspendedByPlatform: true,
         consumerDocuments: [getMockAgreementDocument()],
         updatedAt: new Date(),
