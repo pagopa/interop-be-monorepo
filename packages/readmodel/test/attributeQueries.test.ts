@@ -3,8 +3,8 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute, AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { aggregateAttribute } from "../src/attribute/aggregators.js";
+import { retrieveAttributeSQLById } from "../src/attributeReadModelService.js";
 import { attributeReadModelService, readModelDB } from "./utils.js";
-import { retrieveAttributeSQL } from "./attributeTestReadModelService.js";
 
 describe("Attribute queries", () => {
   describe("should insert or update an attribute in the db", () => {
@@ -17,7 +17,7 @@ describe("Attribute queries", () => {
 
       await attributeReadModelService.upsertAttribute(attribute, 1);
 
-      const retrievedAttributeSQL = await retrieveAttributeSQL(
+      const retrievedAttributeSQL = await retrieveAttributeSQLById(
         attribute.id,
         readModelDB
       );
@@ -37,7 +37,7 @@ describe("Attribute queries", () => {
 
       await attributeReadModelService.upsertAttribute(attribute, 1);
 
-      const retrievedAttributeSQL = await retrieveAttributeSQL(
+      const retrievedAttributeSQL = await retrieveAttributeSQLById(
         attribute.id,
         readModelDB
       );
@@ -58,7 +58,7 @@ describe("Attribute queries", () => {
       };
       await attributeReadModelService.upsertAttribute(attribute, 1);
       expect(
-        await retrieveAttributeSQL(attribute.id, readModelDB)
+        await retrieveAttributeSQLById(attribute.id, readModelDB)
       ).toBeDefined();
 
       const updatedAttribute: Attribute = {
@@ -68,7 +68,7 @@ describe("Attribute queries", () => {
       };
       await attributeReadModelService.upsertAttribute(updatedAttribute, 2);
 
-      const retrievedAttributeSQL = await retrieveAttributeSQL(
+      const retrievedAttributeSQL = await retrieveAttributeSQLById(
         attribute.id,
         readModelDB
       );
@@ -150,12 +150,12 @@ describe("Attribute queries", () => {
 
       await attributeReadModelService.upsertAttribute(attribute, 1);
       expect(
-        await retrieveAttributeSQL(attribute.id, readModelDB)
+        await retrieveAttributeSQLById(attribute.id, readModelDB)
       ).toBeDefined();
 
       await attributeReadModelService.deleteAttributeById(attribute.id, 2);
       expect(
-        await retrieveAttributeSQL(attribute.id, readModelDB)
+        await retrieveAttributeSQLById(attribute.id, readModelDB)
       ).toBeUndefined();
     });
   });

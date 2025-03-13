@@ -1,7 +1,11 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Attribute, AttributeId, WithMetadata } from "pagopa-interop-models";
-import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
+import {
+  attributeInReadmodelAttribute,
+  AttributeSQL,
+  DrizzleReturnType,
+  DrizzleTransactionType,
+} from "pagopa-interop-readmodel-models";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import {
   aggregateAttribute,
@@ -9,25 +13,33 @@ import {
 } from "./attribute/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function attributeReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertAttribute(
       attribute: Attribute,
       metadataVersion: number
     ): Promise<void> {
-      const attributeSQL = splitAttributeIntoObjectsSQL(
-        attribute,
-        metadataVersion
-      );
-
       await db.transaction(async (tx) => {
-        await tx
-          .delete(attributeInReadmodelAttribute)
-          .where(eq(attributeInReadmodelAttribute.id, attributeSQL.id));
+        const existingAttributeSQL = await retrieveAttributeSQLById(
+          attribute.id,
+          tx
+        );
 
-        await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
+        if (
+          !existingAttributeSQL ||
+          existingAttributeSQL.metadataVersion <= metadataVersion
+        ) {
+          await tx
+            .delete(attributeInReadmodelAttribute)
+            .where(eq(attributeInReadmodelAttribute.id, attribute.id));
+
+          const attributeSQL = splitAttributeIntoObjectsSQL(
+            attribute,
+            metadataVersion
+          );
+
+          await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
+        }
       });
     },
     async getAttributeById(
@@ -68,3 +80,15 @@ export function attributeReadModelServiceBuilder(
 export type AttributeReadModelService = ReturnType<
   typeof attributeReadModelServiceBuilder
 >;
+
+export const retrieveAttributeSQLById = async (
+  attributeId: AttributeId,
+  db: DrizzleReturnType | DrizzleTransactionType
+): Promise<AttributeSQL | undefined> => {
+  const result = await db
+    .select()
+    .from(attributeInReadmodelAttribute)
+    .where(eq(attributeInReadmodelAttribute.id, attributeId));
+
+  return result[0];
+};
