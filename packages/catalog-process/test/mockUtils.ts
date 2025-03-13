@@ -1,73 +1,26 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AuthData,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   Agreement,
-  Attribute,
+  agreementState,
   Descriptor,
   DescriptorId,
+  descriptorState,
+  DescriptorState,
   Document,
   EService,
   EServiceAttribute,
-  EServiceEvent,
-  EServiceId,
   EserviceAttributes,
-  RiskAnalysis,
-  Tenant,
-  TenantId,
-  agreementState,
-  descriptorState,
+  EServiceId,
   eserviceMode,
   generateId,
+  RiskAnalysis,
   technology,
-  toEServiceV2,
-  toReadModelAttribute,
-  toReadModelEService,
-  toReadModelTenant,
-  toReadModelAgreement,
-  DescriptorState,
-  Delegation,
-  EServiceTemplate,
-  EServiceTemplateEvent,
-  toEServiceTemplateV2,
+  TenantId,
 } from "pagopa-interop-models";
-import {
-  ReadEvent,
-  StoredEvent,
-  readLastEventByStreamId,
-  setupTestContainersVitest,
-  writeInEventstore,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { inject, afterEach } from "vitest";
-import { catalogServiceBuilder } from "../src/services/catalogService.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
-
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
-  );
-
-afterEach(cleanup);
-
-export const agreements = readModelRepository.agreements;
-export const eservices = readModelRepository.eservices;
-export const tenants = readModelRepository.tenants;
-export const attributes = readModelRepository.attributes;
-export const delegations = readModelRepository.delegations;
-export const eserviceTemplates = readModelRepository.eserviceTemplates;
-
-export const readModelService = readModelServiceBuilder(readModelRepository);
-
-export const catalogService = catalogServiceBuilder(
-  postgresDB,
-  readModelService,
-  fileManager
-);
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
@@ -79,7 +32,6 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   },
   selfcareId: generateId(),
 });
-
 export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor
 ): catalogApi.DescriptorSeedForEServiceCreation => ({
@@ -90,7 +42,6 @@ export const buildDescriptorSeedForEserviceCreation = (
   agreementApprovalPolicy: "AUTOMATIC",
   description: descriptor.description,
 });
-
 export const buildCreateDescriptorSeed = (
   descriptor: Descriptor
 ): catalogApi.EServiceDescriptorSeed => ({
@@ -114,7 +65,6 @@ export const buildCreateDescriptorSeed = (
     fileName: d.name,
   })),
 });
-
 export const buildUpdateDescriptorSeed = (
   descriptor: Descriptor
 ): catalogApi.UpdateEServiceDescriptorSeed => ({
@@ -130,7 +80,6 @@ export const buildUpdateDescriptorSeed = (
     verified: [],
   },
 });
-
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
 ): catalogApi.EServiceRiskAnalysisSeed => ({
@@ -139,7 +88,6 @@ export const buildRiskAnalysisSeed = (
     riskAnalysis.riskAnalysisForm
   ),
 });
-
 export const getMockEService = (): EService => ({
   id: generateId(),
   name: "eservice name",
@@ -152,7 +100,6 @@ export const getMockEService = (): EService => ({
   mode: eserviceMode.deliver,
   riskAnalysis: [],
 });
-
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
@@ -176,18 +123,15 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
   rejectionReasons: [],
 });
-
 export const getMockEServiceAttribute = (): EServiceAttribute => ({
   id: generateId(),
   explicitAttributeVerification: false,
 });
-
 export const getMockEServiceAttributes = (): EserviceAttributes => ({
   certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
   declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
   verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
 });
-
 export const buildInterfaceSeed =
   (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
     contentType: "json",
@@ -199,7 +143,6 @@ export const buildInterfaceSeed =
     fileName: "fileName",
     checksum: "checksum",
   });
-
 export const buildDocumentSeed =
   (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
     contentType: "json",
@@ -211,7 +154,6 @@ export const buildDocumentSeed =
     fileName: "fileName",
     checksum: "checksum",
   });
-
 export const getMockDocument = (): Document => ({
   name: "fileName",
   path: "filePath",
@@ -221,7 +163,6 @@ export const getMockDocument = (): Document => ({
   checksum: "checksum",
   uploadDate: new Date(),
 });
-
 export const getMockAgreement = ({
   eserviceId,
   descriptorId,
@@ -254,74 +195,3 @@ export const getMockAgreement = ({
     archiving: undefined,
   },
 });
-
-export const writeEServiceInEventstore = async (
-  eservice: EService
-): Promise<void> => {
-  const eserviceEvent: EServiceEvent = {
-    type: "EServiceAdded",
-    event_version: 2,
-    data: { eservice: toEServiceV2(eservice) },
-  };
-  const eventToWrite: StoredEvent<EServiceEvent> = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: eserviceEvent.data.eservice!.id,
-    version: 0,
-    event: eserviceEvent,
-  };
-
-  await writeInEventstore(eventToWrite, "catalog", postgresDB);
-};
-
-export const writeEServiceTemplateInEventstore = async (
-  eserviceTemplate: EServiceTemplate
-): Promise<void> => {
-  const eserviceTemplateEvent: EServiceTemplateEvent = {
-    type: "EServiceTemplateAdded",
-    event_version: 2,
-    data: { eserviceTemplate: toEServiceTemplateV2(eserviceTemplate) },
-  };
-  const eventToWrite: StoredEvent<EServiceTemplateEvent> = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: eserviceTemplateEvent.data.eserviceTemplate!.id,
-    version: 0,
-    event: eserviceTemplateEvent,
-  };
-
-  await writeInEventstore(eventToWrite, "eservice_template", postgresDB);
-};
-
-export const addOneEService = async (eservice: EService): Promise<void> => {
-  await writeEServiceInEventstore(eservice);
-  await writeInReadmodel(toReadModelEService(eservice), eservices);
-};
-
-export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
-  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-};
-
-export const addOneTenant = async (tenant: Tenant): Promise<void> => {
-  await writeInReadmodel(toReadModelTenant(tenant), tenants);
-};
-
-export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-};
-
-export const addOneDelegation = async (
-  delegation: Delegation
-): Promise<void> => {
-  await writeInReadmodel(delegation, delegations);
-};
-
-export const readLastEserviceEvent = async (
-  eserviceId: EServiceId
-): Promise<ReadEvent<EServiceEvent>> =>
-  await readLastEventByStreamId(eserviceId, "catalog", postgresDB);
-
-export const addOneEServiceTemplate = async (
-  eServiceTemplate: EServiceTemplate
-): Promise<void> => {
-  await writeEServiceTemplateInEventstore(eServiceTemplate);
-  await writeInReadmodel(eServiceTemplate, eserviceTemplates);
-};

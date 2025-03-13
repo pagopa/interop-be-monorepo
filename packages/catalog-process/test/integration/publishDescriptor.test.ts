@@ -38,16 +38,18 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   addOneTenant,
   addOneAgreement,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
   getMockAgreement,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("publish descriptor", () => {
   const mockEService = getMockEService();

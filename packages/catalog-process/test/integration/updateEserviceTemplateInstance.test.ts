@@ -30,14 +30,16 @@ import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+  addOneEServiceTemplate,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockDocument,
   getMockDescriptor,
   getMockEService,
-  addOneDelegation,
-  addOneEServiceTemplate,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("update eService Instance", () => {
   const mockEService = getMockEService();

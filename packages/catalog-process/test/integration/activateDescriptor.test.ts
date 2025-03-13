@@ -30,7 +30,7 @@ import {
   catalogService,
   readLastEserviceEvent,
   addOneDelegation,
-} from "../utils.js";
+} from "../integrationUtils.js";
 
 describe("activate descriptor", () => {
   const mockEService = getMockEService();

@@ -30,13 +30,15 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("update Document", () => {
   const mockDescriptor = getMockDescriptor();

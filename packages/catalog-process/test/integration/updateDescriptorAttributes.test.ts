@@ -37,11 +37,13 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
+  readLastEserviceEvent,
+} from "../integrationUtils.js";
+import {
   getMockAuthData,
   getMockDescriptor,
   getMockEService,
-  readLastEserviceEvent,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("update descriptor", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);

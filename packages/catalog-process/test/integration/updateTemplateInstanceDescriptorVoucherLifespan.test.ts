@@ -16,12 +16,14 @@ import {
 import {
   addOneEService,
   catalogService,
+  readLastEserviceEvent,
+} from "../integrationUtils.js";
+import {
   getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-  readLastEserviceEvent,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("update descriptor", () => {
   const mockEService = getMockEService();

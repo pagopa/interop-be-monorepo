@@ -48,14 +48,16 @@ import {
 import {
   addOneTenant,
   addOneEService,
-  buildRiskAnalysisSeed,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
+  buildRiskAnalysisSeed,
   getMockDescriptor,
   getMockEService,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("update risk analysis", () => {
   const mockDescriptor = getMockDescriptor();

@@ -30,12 +30,14 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
+  readLastEserviceEvent,
+} from "../integrationUtils.js";
+import {
   getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-  readLastEserviceEvent,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("delete risk analysis", () => {
   const mockDescriptor = getMockDescriptor();

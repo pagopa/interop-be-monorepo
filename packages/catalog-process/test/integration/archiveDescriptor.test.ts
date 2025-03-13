@@ -25,12 +25,14 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
+  readLastEserviceEvent,
+} from "../integrationUtils.js";
+import {
+  getMockEService,
   getMockAuthData,
   getMockDescriptor,
   getMockDocument,
-  getMockEService,
-  readLastEserviceEvent,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("archive descriptor", () => {
   const mockEService = getMockEService();

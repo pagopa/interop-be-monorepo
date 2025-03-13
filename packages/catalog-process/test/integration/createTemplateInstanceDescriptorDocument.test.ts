@@ -19,14 +19,16 @@ import {
 import {
   addOneEService,
   catalogService,
-  buildInterfaceSeed,
-  getMockAuthData,
   readLastEserviceEvent,
+} from "../integrationUtils.js";
+import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
   buildDocumentSeed,
-} from "../utils.js";
+  buildInterfaceSeed,
+  getMockAuthData,
+} from "../mockUtils.js";
 
 describe("createTemplateInstanceDescriptorDocument", () => {
   const mockDescriptor = getMockDescriptor();

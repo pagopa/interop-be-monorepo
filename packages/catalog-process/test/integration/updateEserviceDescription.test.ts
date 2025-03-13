@@ -26,13 +26,15 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockDocument,
   getMockDescriptor,
   getMockEService,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("update eService description", () => {
   it("should write on event-store for the update of the eService description", async () => {

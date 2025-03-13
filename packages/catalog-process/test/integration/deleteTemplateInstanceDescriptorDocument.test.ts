@@ -18,12 +18,14 @@ import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockDescriptor,
   getMockEService,
   getMockDocument,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("delete Document", () => {
   const mockDescriptor = getMockDescriptor();

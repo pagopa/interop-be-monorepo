@@ -16,11 +16,13 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
+} from "../integrationUtils.js";
+import {
   getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("get eservice by id", () => {
   const mockDescriptor = getMockDescriptor();

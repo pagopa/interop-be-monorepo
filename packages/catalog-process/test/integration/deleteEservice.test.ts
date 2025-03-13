@@ -27,15 +27,17 @@ import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
   postgresDB,
   fileManager,
   addOneDelegation,
-} from "../utils.js";
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "../mockUtils.js";
 
 describe("delete eservice", () => {
   const mockDescriptor = getMockDescriptor();

@@ -32,13 +32,15 @@ import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockDocument,
   getMockDescriptor,
   getMockEService,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("update eService", () => {
   const mockEService = getMockEService();

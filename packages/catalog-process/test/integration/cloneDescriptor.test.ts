@@ -29,16 +29,18 @@ import {
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
-  getMockAuthData,
-  getMockEService,
-  getMockDescriptor,
-  getMockDocument,
   addOneDelegation,
   addOneEService,
   catalogService,
   fileManager,
   readLastEserviceEvent,
-} from "../utils.js";
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
+  getMockEService,
+  getMockDescriptor,
+  getMockDocument,
+} from "../mockUtils.js";
 
 describe("clone descriptor", () => {
   const mockEService = getMockEService();

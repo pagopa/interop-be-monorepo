@@ -2,8 +2,8 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockTenant,
   getMockDelegation,
+  getMockTenant,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -24,18 +24,20 @@ import {
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import {
-  getMockAuthData,
-  getMockEService,
-  getMockDescriptor,
-  getMockDocument,
-  getMockAgreement,
   addOneEService,
   addOneAgreement,
   addOneDelegation,
   addOneTenant,
   catalogService,
   readLastEserviceEvent,
-} from "../utils.js";
+} from "../integrationUtils.js";
+import {
+  getMockEService,
+  getMockAgreement,
+  getMockAuthData,
+  getMockDescriptor,
+  getMockDocument,
+} from "../mockUtils.js";
 
 describe("publish descriptor", () => {
   const mockEService = getMockEService();

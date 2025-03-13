@@ -31,18 +31,20 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
-  getMockAuthData,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-  buildCreateDescriptorSeed,
   addOneAttribute,
   addOneDelegation,
   addOneEService,
   catalogService,
   postgresDB,
   readLastEserviceEvent,
-} from "../utils.js";
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+  buildCreateDescriptorSeed,
+} from "../mockUtils.js";
 
 describe("create descriptor", async () => {
   beforeAll(() => {

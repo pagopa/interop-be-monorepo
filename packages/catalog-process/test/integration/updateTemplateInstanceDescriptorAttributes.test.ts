@@ -27,11 +27,13 @@ import {
   addOneAttribute,
   addOneEService,
   catalogService,
+  readLastEserviceEvent,
+} from "../integrationUtils.js";
+import {
   getMockAuthData,
   getMockDescriptor,
   getMockEService,
-  readLastEserviceEvent,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("updateTemplateInstanceDescriptorAttributes", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);

@@ -23,15 +23,17 @@ import {
 import { config } from "../../src/config/config.js";
 import {
   catalogService,
-  getMockEService,
-  getMockAuthData,
   postgresDB,
   readLastEserviceEvent,
-  getMockDescriptor,
   addOneEServiceTemplate,
   fileManager,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
+  getMockDescriptor,
   getMockDocument,
-} from "../utils.js";
+  getMockEService,
+} from "../mockUtils.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();

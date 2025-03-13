@@ -31,15 +31,17 @@ import {
   addOneEService,
   addOneAttribute,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+  addOneEServiceTemplate,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockDescriptor,
   getMockEService,
   getMockDocument,
   buildUpdateDescriptorSeed,
-  addOneDelegation,
-  addOneEServiceTemplate,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("update draft descriptor", () => {
   const mockDescriptor = getMockDescriptor();

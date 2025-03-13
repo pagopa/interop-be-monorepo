@@ -23,13 +23,15 @@ import {
 import { config } from "../../src/config/config.js";
 import {
   addOneEService,
-  buildDescriptorSeedForEserviceCreation,
   catalogService,
-  getMockAuthData,
-  getMockEService,
   postgresDB,
   readLastEserviceEvent,
-} from "../utils.js";
+} from "../integrationUtils.js";
+import {
+  getMockEService,
+  buildDescriptorSeedForEserviceCreation,
+  getMockAuthData,
+} from "../mockUtils.js";
 describe("create eservice", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();

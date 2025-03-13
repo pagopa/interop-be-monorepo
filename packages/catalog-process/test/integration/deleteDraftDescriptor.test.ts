@@ -29,14 +29,16 @@ import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  postgresDB,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
-  postgresDB,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("delete draft descriptor", () => {
   const mockDocument = getMockDocument();

@@ -25,13 +25,15 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("suspend descriptor", () => {
   const mockEService = getMockEService();

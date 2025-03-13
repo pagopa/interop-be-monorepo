@@ -31,15 +31,17 @@ import {
 import {
   addOneEService,
   catalogService,
+  readLastEserviceEvent,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
   buildInterfaceSeed,
   getMockAuthData,
-  readLastEserviceEvent,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
   buildDocumentSeed,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("upload Document", () => {
   const mockDescriptor = getMockDescriptor();

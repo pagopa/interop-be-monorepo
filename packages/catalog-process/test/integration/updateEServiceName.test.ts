@@ -28,13 +28,15 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockDocument,
   getMockDescriptor,
   getMockEService,
-  addOneDelegation,
-} from "../utils.js";
+} from "../mockUtils.js";
 describe("update eService name on published eservice", () => {
   it("should write on event-store for the update of the eService name", async () => {
     const descriptor: Descriptor = {

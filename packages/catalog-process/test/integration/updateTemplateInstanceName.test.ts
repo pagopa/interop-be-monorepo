@@ -17,12 +17,14 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockDocument,
   getMockDescriptor,
   getMockEService,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("updateTemplateInstanceName", () => {
   it("should write on event-store for the internal update of the eService name without instanceLabel", async () => {

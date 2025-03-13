@@ -35,14 +35,16 @@ import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+  addOneEServiceTemplate,
+} from "../integrationUtils.js";
+import {
+  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
-  addOneDelegation,
-  addOneEServiceTemplate,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("upgrade eservice template instance", () => {
   const mockEService = getMockEService();

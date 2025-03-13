@@ -6,20 +6,20 @@ import { AuthData } from "pagopa-interop-commons";
 import { EService, generateId, tenantKind } from "pagopa-interop-models";
 import { getMockValidRiskAnalysis } from "pagopa-interop-commons-test/index.js";
 import { catalogApi } from "pagopa-interop-api-clients";
-
-import { catalogService } from "../../src/routers/EServiceRouter.js";
+// import { catalogService } from "../../src/routers/EServiceRouter.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { EServiceSeed } from "../../../api-clients/dist/catalogApi.js";
+
+import { createPayload } from "../mockedPayloadForToken.js";
+import { api } from "../vitest.api.setup.js";
+import { eServiceNameDuplicate } from "../../src/model/domain/errors.js";
 import {
   getMockAuthData,
   getMockDescriptor,
   getMockEService,
-} from "../utils.js";
-import { createPayload } from "../mockedPayloadForToken.js";
-import { api } from "../vitest.api.setup.js";
-import { eServiceNameDuplicate } from "../../src/model/domain/errors.js";
-
-describe("Test autorizzazione API /eservices", async () => {
+} from "../mockUtils.js";
+import { catalogService } from "../../src/routers/EServiceRouter.js";
+describe("API /eservices authorization test", async () => {
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [getMockDescriptor()],
@@ -56,7 +56,7 @@ describe("Test autorizzazione API /eservices", async () => {
 
   const validToken = jwt.sign(createPayload(authData), "test-secret");
 
-  it("Dovrebbe restituire 200 per un utente con ruolo ADMIN_ROLE, API_ROLE", async () => {
+  it("Should return 200 for a user with ADMIN_ROLE, API_ROLE role", async () => {
     const res = await request(api)
       .post("/eservices")
       .set("Authorization", `Bearer ${validToken}`)
@@ -67,7 +67,7 @@ describe("Test autorizzazione API /eservices", async () => {
     expect(res.body).toEqual(mockApiEservice);
   });
 
-  it("Dovrebbe restituire 403 per un utente con diverso da ADMIN_ROLE, API_ROLE", async () => {
+  it("Should return 403 for a user with role other than ADMIN_ROLE, API_ROLE", async () => {
     const invalidAuthData: AuthData = {
       ...getMockAuthData(),
       userRoles: ["internal"],
@@ -87,7 +87,7 @@ describe("Test autorizzazione API /eservices", async () => {
     expect(res.status).toBe(403);
   });
 
-  it("Dovrebbe restituire 400 per invalid Input", async () => {
+  it("Should return 400 for invalid Input", async () => {
     const res = await request(api)
       .post("/eservices")
       .set("Authorization", `Bearer ${validToken}`)
@@ -98,7 +98,7 @@ describe("Test autorizzazione API /eservices", async () => {
     expect(res.body.detail).toContain("Incorrect value for body");
   });
 
-  it("Dovrebbe restituire 409 per name conflict", async () => {
+  it("Should return 409 for name conflict", async () => {
     vi.spyOn(catalogService, "createEService").mockImplementation((input) => {
       if (input.name === mockEserviceSeed.name) {
         return Promise.reject(eServiceNameDuplicate(input.name));

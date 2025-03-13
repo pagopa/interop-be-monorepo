@@ -24,15 +24,17 @@ import {
   addOneTenant,
   addOneAgreement,
   catalogService,
+  addOneDelegation,
+  addOneEServiceTemplate,
+} from "../integrationUtils.js";
+import {
   getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
   getMockAgreement,
   getMockEServiceAttributes,
-  addOneDelegation,
-  addOneEServiceTemplate,
-} from "../utils.js";
+} from "../mockUtils.js";
 
 describe("get eservices", () => {
   let organizationId1: TenantId;

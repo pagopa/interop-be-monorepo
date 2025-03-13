@@ -41,16 +41,18 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
-  buildRiskAnalysisSeed,
   addOneTenant,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
+  addOneDelegation,
+} from "../integrationUtils.js";
+import {
   getMockDescriptor,
   getMockEService,
-  addOneDelegation,
-} from "../utils.js";
+  buildRiskAnalysisSeed,
+  getMockAuthData,
+} from "../mockUtils.js";
 
 describe("create risk analysis", () => {
   const mockDescriptor = getMockDescriptor();
