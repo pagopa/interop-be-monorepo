@@ -9,7 +9,10 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { toBffCreatedEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
+import {
+  toBffCreatedEServiceTemplateVersion,
+  toCatalogCreateEServiceTemplateSeed,
+} from "../api/eserviceTemplateApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
@@ -47,7 +50,10 @@ const eserviceTemplateRouter = (
 
       try {
         const eserviceTemplate =
-          await eserviceTemplateService.createEServiceTemplate(req.body, ctx);
+          await eserviceTemplateService.createEServiceTemplate(
+            toCatalogCreateEServiceTemplateSeed(req.body),
+            ctx
+          );
         return res
           .status(200)
           .send(

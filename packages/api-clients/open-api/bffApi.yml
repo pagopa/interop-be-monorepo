@@ -20429,7 +20429,6 @@ components:
         - description
         - technology
         - mode
-        - version
       properties:
         name:
           type: string
