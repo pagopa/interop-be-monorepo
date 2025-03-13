@@ -197,7 +197,11 @@ export const exportEServiceDescriptorErrorMapper = (
   match(error.code)
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
-    .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "invalidEserviceRequester",
+      "eserviceIsTemplateInstance",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 const delegationNotFoundErrorMapper = (error: ApiError<ErrorCodes>): number =>

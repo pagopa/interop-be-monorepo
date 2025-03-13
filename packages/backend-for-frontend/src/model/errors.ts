@@ -60,6 +60,7 @@ export const errorCodes = {
   templateDataNotFound: "0053",
   missingUserRolesInIdentityToken: "0054",
   noVersionInEServiceTemplate: "0055",
+  eserviceIsTemplateInstance: "0056",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -458,5 +459,16 @@ export function missingUserRolesInIdentityToken(): ApiError<ErrorCodes> {
     detail: "Unable to extract userRoles from claims",
     code: "missingUserRolesInIdentityToken",
     title: "Unable to extract userRoles from claims",
+  });
+}
+
+export function eserviceIsTemplateInstance(
+  eserviceId: string,
+  eserviceTemplateId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is an instance of eserviceTemplate ${eserviceTemplateId}`,
+    code: "eserviceIsTemplateInstance",
+    title: "EService is a template instance",
   });
 }
