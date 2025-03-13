@@ -1144,6 +1144,9 @@ importers:
 
   packages/catalog-process:
     dependencies:
+      '@featurevisor/sdk':
+        specifier: 1.33.0
+        version: 1.33.0
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.4)(zod@3.23.8)
@@ -1187,6 +1190,9 @@ importers:
       '@faker-js/faker':
         specifier: 8.4.1
         version: 8.4.1
+      '@featurevisor/types':
+        specifier: 1.33.0
+        version: 1.33.0
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
@@ -1513,6 +1519,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: 3.693.0
         version: 3.693.0
+      '@featurevisor/types':
+        specifier: 1.33.0
+        version: 1.33.0
       '@types/adm-zip':
         specifier: 0.5.5
         version: 0.5.5
@@ -2445,6 +2454,12 @@ importers:
       vitest:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
+
+  packages/feature-flags:
+    dependencies:
+      '@featurevisor/cli':
+        specifier: 1.34.2
+        version: 1.34.2
 
   packages/ipa-certified-attributes-importer:
     dependencies:
@@ -4803,6 +4818,22 @@ packages:
     resolution: {integrity: sha512-XQ3cU+Q8Uqmrbf2e0cIC/QN43sTBSC8KF12u29Mb47tWrt2hAgBXSgpZMj4Ao8Uk0iJcU99QsOCaIL8934obCg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
 
+  '@featurevisor/cli@1.34.2':
+    resolution: {integrity: sha512-XjkUybWLpigxjkH0R+Cq/6Rr9dToZMKhPnpqPn7o9r9k9ttPblwKFgBOSaTHnLWr6z3xIPWjflAhB7gylnXDzg==}
+    hasBin: true
+
+  '@featurevisor/core@1.34.2':
+    resolution: {integrity: sha512-CEbmjyk+fjOfPoSZRxmxUr1C2jK/rZ00yeaWyRXeciBGLdA3fKGjiZXJT22r/OqIyJRWaZJ++KidLAjDeYIR2w==}
+
+  '@featurevisor/sdk@1.33.0':
+    resolution: {integrity: sha512-yuFa3uSbQfvRbwb0NFZnfVNAKkRzRRw5uqT1ZhklteNEVvn0j7ASFWA6Jq3WH4wnw5OXLKCwZ8lgZgXWfWz+cA==}
+
+  '@featurevisor/site@1.34.1':
+    resolution: {integrity: sha512-vFO70GrmcmM8QBeVqEn7tjW+mhS6paYbyxcU8X+1Ho4Pz/aDrL3AnywNf/GUAHzS/TqJ8WQg06PWEMHkVuEQ4w==}
+
+  '@featurevisor/types@1.33.0':
+    resolution: {integrity: sha512-z6p7/YRQtSGRgX3qvPZX14pxLpS395h4o8ZnRPbr+LpxNZQE7/IQbBj1Pf6WofWw1xyiykzzm2QmiQjAZroCKQ==}
+
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
     engines: {node: '>=10.10.0'}
@@ -5762,6 +5793,7 @@ packages:
   bson@6.8.0:
     resolution: {integrity: sha512-iOJg8pr7wq2tg/zSlCCHMi3hMm5JTOxLTagf3zxhcenHsFp+c6uOs6K7W5UE7A4QIJGtqh/ZovFNMP4mOPJynQ==}
     engines: {node: '>=16.20.1'}
+    deprecated: a critical bug affecting only useBigInt64=true deserialization usage is fixed in bson@6.10.3
 
   buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
@@ -5827,6 +5859,10 @@ packages:
   chownr@1.1.4:
     resolution: {integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==}
 
+  chownr@2.0.0:
+    resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
+    engines: {node: '>=10'}
+
   chromium-bidi@0.5.23:
     resolution: {integrity: sha512-1o/gLU9wDqbN5nL2MtfjykjOuighGXc3/hnWueO1haiEoFgX8h5vbvcA4tgdQfjw1mkZ1OEF4x/+HVeqEX6NoA==}
     peerDependencies:
@@ -5873,6 +5909,9 @@ packages:
   comment-parser@1.3.1:
     resolution: {integrity: sha512-B52sN2VNghyq5ofvUsqZjmk6YkihBX5vMSChmSK9v4ShjKf3Vk5Xcmgpw4o+iIgtrnM/u5FiMpz9VKb8lpBveA==}
     engines: {node: '>= 12.0.0'}
+
+  compare-versions@6.1.1:
+    resolution: {integrity: sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==}
 
   compress-commons@4.1.2:
     resolution: {integrity: sha512-D3uMHtGc/fcO1Gt1/L7i1e33VOvD4A9hfQLP+6ewd+BvG/gQ84Yh4oftEhAdjSMgBgwGL+jsppT7JYNpo6MHHg==}
@@ -6620,6 +6659,10 @@ packages:
     resolution: {integrity: sha512-PmDi3uwK5nFuXh7XDTlVnS17xJS7vW36is2+w3xcv8SVxiB4NyATf4ctkVY5bkSjX0Y4nbvZCq1/EjtEyr9ktw==}
     engines: {node: '>=14.14'}
 
+  fs-minipass@2.1.0:
+    resolution: {integrity: sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg==}
+    engines: {node: '>= 8'}
+
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
@@ -7237,9 +7280,21 @@ packages:
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
 
+  minipass@3.3.6:
+    resolution: {integrity: sha512-DxiNidxSEK+tHG6zOIklvNOwm3hvCrbUrdtzY74U6HKTJxvIDfOUL5W5P2Ghd3DTkhhKPYGqeNUIh5qcM4YBfw==}
+    engines: {node: '>=8'}
+
+  minipass@5.0.0:
+    resolution: {integrity: sha512-3FnjYuehv9k6ovOEbyOswadCDPX1piCfhV8ncmYtHOjuPwylVWsghTLo7rabjC3Rx5xD4HDx8Wm1xnMF7S5qFQ==}
+    engines: {node: '>=8'}
+
   minipass@7.1.2:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
+
+  minizlib@2.1.2:
+    resolution: {integrity: sha512-bAxsR8BVfj60DWXHE3u30oHzfl4G7khkSuPW+qvpd7jFRHm7dLxOjUk1EHACJ/hxLY8phGJ0YhYHZo7jil7Qdg==}
+    engines: {node: '>= 8'}
 
   mitt@3.0.1:
     resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
@@ -7253,6 +7308,11 @@ packages:
 
   mkdirp@1.0.4:
     resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  mkdirp@2.1.6:
+    resolution: {integrity: sha512-+hEnITedc8LAtIP9u3HJDFIdcLV2vXP33sqLLIzkv1Db1zO/1OxbvYf0Y1OC/S/Qo5dxHXepofhmxL02PsKe+A==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -7309,6 +7369,9 @@ packages:
   multer@1.4.5-lts.1:
     resolution: {integrity: sha512-ywPWvcDMeH+z9gQq5qYHCCy+ethsk4goepZ45GLD63fOu0YcNecQxi64nDs3qluZB+murG3/D4dJ7+dGctcCQQ==}
     engines: {node: '>= 6.0.0'}
+
+  murmurhash@2.0.1:
+    resolution: {integrity: sha512-5vQEh3y+DG/lMPM0mCGPDnyV8chYg/g7rl6v3Gd8WMF9S429ox3Xk8qrk174kWhG767KQMqqxLD1WnGd77hiew==}
 
   nan@2.20.0:
     resolution: {integrity: sha512-bk3gXBZDGILuuo/6sKtr0DQmSThYHLtNCdSdXk9YkxD/jK6X2vmCyyXBBxyqZ4XcnzTyYEAThfX3DCEnLf6igw==}
@@ -8092,6 +8155,10 @@ packages:
 
   tar-stream@3.1.7:
     resolution: {integrity: sha512-qJj60CXt7IU1Ffyc3NJMjh6EkuCFej46zUqJ4J7pqYlThyd9bO0XBTmcOIhSzZJVWfsLks0+nle/j538YAW9RQ==}
+
+  tar@6.2.1:
+    resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
+    engines: {node: '>=10'}
 
   testcontainers@10.9.0:
     resolution: {integrity: sha512-LN+cKAOd61Up9SVMJW+3VFVGeVQG8JBqZhEQo2U0HBfIsAynyAXcsLBSo+KZrOfy9SBz7pGHctWN/KabLDbNFA==}
@@ -10339,6 +10406,38 @@ snapshots:
 
   '@faker-js/faker@8.4.1': {}
 
+  '@featurevisor/cli@1.34.2':
+    dependencies:
+      '@featurevisor/core': 1.34.2
+    transitivePeerDependencies:
+      - debug
+
+  '@featurevisor/core@1.34.2':
+    dependencies:
+      '@featurevisor/sdk': 1.33.0
+      '@featurevisor/site': 1.34.1
+      '@featurevisor/types': 1.33.0
+      axios: 1.7.4
+      js-yaml: 4.1.0
+      mkdirp: 2.1.6
+      tar: 6.2.1
+      yargs: 17.7.2
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - debug
+
+  '@featurevisor/sdk@1.33.0':
+    dependencies:
+      '@featurevisor/types': 1.33.0
+      compare-versions: 6.1.1
+      murmurhash: 2.0.1
+
+  '@featurevisor/site@1.34.1':
+    dependencies:
+      '@featurevisor/types': 1.33.0
+
+  '@featurevisor/types@1.33.0': {}
+
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
@@ -11669,6 +11768,8 @@ snapshots:
 
   chownr@1.1.4: {}
 
+  chownr@2.0.0: {}
+
   chromium-bidi@0.5.23(devtools-protocol@0.0.1299070):
     dependencies:
       devtools-protocol: 0.0.1299070
@@ -11718,6 +11819,8 @@ snapshots:
       delayed-stream: 1.0.0
 
   comment-parser@1.3.1: {}
+
+  compare-versions@6.1.1: {}
 
   compress-commons@4.1.2:
     dependencies:
@@ -12615,6 +12718,10 @@ snapshots:
       jsonfile: 6.1.0
       universalify: 2.0.1
 
+  fs-minipass@2.1.0:
+    dependencies:
+      minipass: 3.3.6
+
   fs.realpath@1.0.0: {}
 
   fsevents@2.3.3:
@@ -13211,7 +13318,18 @@ snapshots:
 
   minimist@1.2.8: {}
 
+  minipass@3.3.6:
+    dependencies:
+      yallist: 4.0.0
+
+  minipass@5.0.0: {}
+
   minipass@7.1.2: {}
+
+  minizlib@2.1.2:
+    dependencies:
+      minipass: 3.3.6
+      yallist: 4.0.0
 
   mitt@3.0.1: {}
 
@@ -13222,6 +13340,8 @@ snapshots:
       minimist: 1.2.8
 
   mkdirp@1.0.4: {}
+
+  mkdirp@2.1.6: {}
 
   mkdirp@3.0.1: {}
 
@@ -13265,6 +13385,8 @@ snapshots:
       object-assign: 4.1.1
       type-is: 1.6.18
       xtend: 4.0.2
+
+  murmurhash@2.0.1: {}
 
   nan@2.20.0:
     optional: true
@@ -14177,6 +14299,15 @@ snapshots:
       b4a: 1.6.6
       fast-fifo: 1.3.2
       streamx: 2.18.0
+
+  tar@6.2.1:
+    dependencies:
+      chownr: 2.0.0
+      fs-minipass: 2.1.0
+      minipass: 5.0.0
+      minizlib: 2.1.2
+      mkdirp: 1.0.4
+      yallist: 4.0.0
 
   testcontainers@10.9.0:
     dependencies:
