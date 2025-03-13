@@ -614,7 +614,7 @@ const eserviceTemplatesRouter = (
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplateIntendedTarget(
               unsafeBrandId(req.params.templateId),
-              req.body.description,
+              req.body.intendedTarget,
               ctx
             );
           return res
