@@ -153,19 +153,19 @@ describe("Agreement Splitter", () => {
       }
     }
 
-    expect(agreementSQL).toEqual(expectedAgreementSQL);
-    expect(consumerDocumentsSQL).toEqual([
+    expect(agreementSQL).toStrictEqual(expectedAgreementSQL);
+    expect(consumerDocumentsSQL).toStrictEqual([
       expectedAgreementConsumerDocumentSQL,
     ]);
-    expect(contractSQL).toEqual(expectedContractDocumentSQL);
-    expect(attributesSQL).toEqual(
+    expect(contractSQL).toStrictEqual(expectedContractDocumentSQL);
+    expect(attributesSQL).toStrictEqual(
       expect.arrayContaining([
         expectedAgreementVerifiedAttributeSQL,
         expectedAgreementCertifiedAttributeSQL,
         expectedAgreementDeclaredAttributeSQL,
       ])
     );
-    expect(stampsSQL).toEqual(expectedAgreementStampsSQL);
+    expect(stampsSQL).toStrictEqual(expectedAgreementStampsSQL);
   });
 
   it("should convert an Agreement object with undefined values as business model into an Agreement object with null values as data model", () => {
@@ -267,18 +267,18 @@ describe("Agreement Splitter", () => {
       },
     ];
 
-    expect(agreementSQL).toEqual(expectedAgreementSQL);
-    expect(consumerDocumentsSQL).toEqual([
+    expect(agreementSQL).toStrictEqual(expectedAgreementSQL);
+    expect(consumerDocumentsSQL).toStrictEqual([
       expectedAgreementConsumerDocumentSQL,
     ]);
     expect(contractSQL).toBeNull();
-    expect(attributesSQL).toEqual(
+    expect(attributesSQL).toStrictEqual(
       expect.arrayContaining([
         expectedAgreementVerifiedAttributeSQL,
         expectedAgreementCertifiedAttributeSQL,
         expectedAgreementDeclaredAttributeSQL,
       ])
     );
-    expect(stampsSQL).toEqual(expectedAgreementStampsSQL);
+    expect(stampsSQL).toStrictEqual(expectedAgreementStampsSQL);
   });
 });
