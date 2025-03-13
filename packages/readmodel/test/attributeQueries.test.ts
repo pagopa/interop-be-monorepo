@@ -17,13 +17,13 @@ describe("Attribute queries", () => {
 
       await attributeReadModelService.upsertAttribute(attribute, 1);
 
-      const retrievedAttributeSQLById = await retrieveAttributeSQLById(
+      const retrievedAttributeSQL = await retrieveAttributeSQLById(
         attribute.id,
         readModelDB
       );
-      expect(retrievedAttributeSQLById).toBeDefined();
+      expect(retrievedAttributeSQL).toBeDefined();
 
-      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQLById!);
+      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQL!);
       expect(retrievedAttribute).toStrictEqual({
         data: attribute,
         metadata: { version: 1 },
@@ -37,13 +37,13 @@ describe("Attribute queries", () => {
 
       await attributeReadModelService.upsertAttribute(attribute, 1);
 
-      const retrievedAttributeSQLById = await retrieveAttributeSQLById(
+      const retrievedAttributeSQL = await retrieveAttributeSQLById(
         attribute.id,
         readModelDB
       );
-      expect(retrievedAttributeSQLById).toBeDefined();
+      expect(retrievedAttributeSQL).toBeDefined();
 
-      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQLById!);
+      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQL!);
       expect(retrievedAttribute).toStrictEqual({
         data: attribute,
         metadata: { version: 1 },
@@ -68,13 +68,13 @@ describe("Attribute queries", () => {
       };
       await attributeReadModelService.upsertAttribute(updatedAttribute, 2);
 
-      const retrievedAttributeSQLById = await retrieveAttributeSQLById(
+      const retrievedAttributeSQL = await retrieveAttributeSQLById(
         attribute.id,
         readModelDB
       );
-      expect(retrievedAttributeSQLById).toBeDefined();
+      expect(retrievedAttributeSQL).toBeDefined();
 
-      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQLById!);
+      const retrievedAttribute = aggregateAttribute(retrievedAttributeSQL!);
       expect(retrievedAttribute).toStrictEqual({
         data: updatedAttribute,
         metadata: { version: 2 },
