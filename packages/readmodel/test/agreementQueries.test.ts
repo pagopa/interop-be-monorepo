@@ -231,7 +231,10 @@ describe("Agreement queries", () => {
         agreement.metadata.version
       );
 
-      await agreementReadModelService.deleteAgreementById(agreement.data.id);
+      await agreementReadModelService.deleteAgreementById(
+        agreement.data.id,
+        agreement.metadata.version
+      );
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
       const retrievedStamps = await readAgreementStampsSQLByAgreementId(
