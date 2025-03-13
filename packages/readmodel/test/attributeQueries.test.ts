@@ -142,21 +142,34 @@ describe("Attribute queries", () => {
 
   describe("should delete an attribute by id from the db", () => {
     it("delete one attribute", async () => {
-      const attribute: Attribute = {
+      const attribute1: Attribute = {
         ...getMockAttribute(),
-        code: "test code",
-        origin: "test origin",
+        code: "test code 1",
+        origin: "test origin 1",
       };
-
-      await attributeReadModelService.upsertAttribute(attribute, 1);
+      await attributeReadModelService.upsertAttribute(attribute1, 1);
       expect(
-        await retrieveAttributeSQLById(attribute.id, readModelDB)
+        await retrieveAttributeSQLById(attribute1.id, readModelDB)
       ).toBeDefined();
 
-      await attributeReadModelService.deleteAttributeById(attribute.id, 2);
+      const attribute2: Attribute = {
+        ...getMockAttribute(),
+        code: "test code 2",
+        origin: "test origin 2",
+      };
+      await attributeReadModelService.upsertAttribute(attribute2, 1);
       expect(
-        await retrieveAttributeSQLById(attribute.id, readModelDB)
+        await retrieveAttributeSQLById(attribute2.id, readModelDB)
+      ).toBeDefined();
+
+      await attributeReadModelService.deleteAttributeById(attribute1.id, 2);
+
+      expect(
+        await retrieveAttributeSQLById(attribute1.id, readModelDB)
       ).toBeUndefined();
+      expect(
+        await retrieveAttributeSQLById(attribute2.id, readModelDB)
+      ).toBeDefined();
     });
   });
 });
