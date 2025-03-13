@@ -84,7 +84,7 @@ export function toOutboundEventV2(
           eserviceTemplate:
             msg.data.eserviceTemplate &&
             toOutboundEServiceTemplateV2(msg.data.eserviceTemplate),
-          eserviceTemplateVersionId: "",
+          eserviceTemplateVersionId: msg.data.eserviceTemplateVersionId,
         },
         stream_id: msg.stream_id,
         timestamp: new Date(),
