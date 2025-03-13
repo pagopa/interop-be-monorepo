@@ -60,3 +60,22 @@ export function getAllEservicesAttributesIds(
 
   return Array.from(attributesIds);
 }
+
+/**
+ * Sanitizes a CSV field to prevent formula injection in spreadsheet applications.
+ * Adds a single quote prefix to values that start with special characters.
+ *
+ * @param {string} value - The CSV field value to sanitize
+ * @returns {string} The sanitized value with a single quote prefix if needed
+ */
+export const sanitizeCsvField = (value: string): string => {
+  const firstChar = value.charAt(0);
+
+  const specialChars = ["=", "+", "-", "@", "\t", "\r"];
+
+  if (specialChars.includes(firstChar)) {
+    return `'${value}`;
+  }
+
+  return value;
+};

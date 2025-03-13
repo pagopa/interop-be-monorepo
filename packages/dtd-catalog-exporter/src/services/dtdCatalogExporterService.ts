@@ -7,6 +7,7 @@ import { toPublicEService, toPublicTenant } from "../models/converters.js";
 import {
   getAllEservicesAttributesIds,
   getAllTenantsIds,
+  sanitizeCsvField,
 } from "../utils/utils.js";
 import {
   PublicTenant,
@@ -68,8 +69,8 @@ export function dtdCatalogExporterServiceBuilder({
   const convertTenantsToCSV = (tenants: PublicTenant[]): string => {
     const records: FlattenedPublicTenant[] = tenants.map((tenant) => ({
       id: tenant.id,
-      name: tenant.name,
-      externalId: tenant.externalId,
+      name: sanitizeCsvField(tenant.name),
+      externalId: sanitizeCsvField(tenant.externalId),
       attributes: JSON.stringify(tenant.attributes),
     }));
 
@@ -87,12 +88,12 @@ export function dtdCatalogExporterServiceBuilder({
     const records: FlattenedPublicEService[] = publicEServices.map(
       (service) => ({
         id: service.id,
-        name: service.name,
-        description: service.description,
+        name: sanitizeCsvField(service.name),
+        description: sanitizeCsvField(service.description),
         technology: service.technology,
         producerId: service.producerId,
-        producerName: service.producerName,
-        producerExternalId: service.producerExternalId,
+        producerName: sanitizeCsvField(service.producerName),
+        producerExternalId: sanitizeCsvField(service.producerExternalId),
         attributes: JSON.stringify(service.attributes),
         activeDescriptorId: service.activeDescriptor.id,
         activeDescriptorState: service.activeDescriptor.state,
