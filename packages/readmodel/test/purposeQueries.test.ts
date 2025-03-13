@@ -1,165 +1,241 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from "vitest";
-import { PurposeSQL } from "pagopa-interop-readmodel-models";
-import { generateId } from "pagopa-interop-models";
 import {
-  generateCompleteExpectedPurposeSQLObjects,
-  initMockPurpose,
+  DelegationId,
+  generateId,
+  Purpose,
+  PurposeVersion,
+  purposeVersionState,
+  RiskAnalysisId,
+  tenantKind,
+} from "pagopa-interop-models";
+import {
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockPurposeVersionDocument,
+  getMockValidRiskAnalysisForm,
+} from "pagopa-interop-commons-test";
+import { aggregatePurpose } from "../src/purpose/aggregators.js";
+import {
   purposeReadModelService,
-  retrievePurposeSQLObjects,
+  readModelDB,
+  retrievePurposeRiskAnalysisAnswersSQL,
+  retrievePurposeRiskAnalysisForm,
+  retrievePurposeSQL,
+  retrievePurposeVersionDocumentSQL,
+  retrievePurposeVersionsSQL,
 } from "./utils.js";
 
 describe("Purpose queries", () => {
   describe("Upsert Purpose", () => {
     it("should add a complete (*all* fields) purpose", async () => {
-      const isPurposeComplete = true;
-      const { purpose, purposeVersions } = initMockPurpose(isPurposeComplete);
+      const purposeVersion1: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
+      const purposeVersion2: PurposeVersion = {
+        ...getMockPurposeVersion(purposeVersionState.draft),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
+      const purposeVersions = [purposeVersion1, purposeVersion2];
 
-      await purposeReadModelService.upsertPurpose(
-        purpose.data,
-        purpose.metadata.version
+      const purpose: Purpose = {
+        ...getMockPurpose(),
+        versions: purposeVersions,
+        delegationId: generateId<DelegationId>(),
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantKind.PA),
+          riskAnalysisId: generateId<RiskAnalysisId>(),
+        },
+        updatedAt: new Date(),
+        freeOfChargeReason: "Test free of charge reason",
+      };
+
+      await purposeReadModelService.upsertPurpose(purpose, 1);
+
+      const retrievedPurposeSQL = await retrievePurposeSQL(
+        purpose.id,
+        readModelDB
+      );
+      const retrievedRiskAnalysisFormSQL =
+        await retrievePurposeRiskAnalysisForm(purpose.id, readModelDB);
+      const retrievedRiskAnalysisAnswersSQL =
+        await retrievePurposeRiskAnalysisAnswersSQL(purpose.id, readModelDB);
+      const retrievedPurposeVersionsSQL = await retrievePurposeVersionsSQL(
+        purpose.id,
+        readModelDB
+      );
+      const retrievedPurposeVersionDocumentSQL =
+        await retrievePurposeVersionDocumentSQL(purpose.id, readModelDB);
+
+      expect(retrievedPurposeSQL).toBeDefined();
+      expect(retrievedRiskAnalysisFormSQL).toBeDefined();
+      expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(
+        purpose.riskAnalysisForm!.multiAnswers.length +
+          purpose.riskAnalysisForm!.singleAnswers.length
+      );
+      expect(retrievedPurposeVersionsSQL).toHaveLength(purposeVersions.length);
+      expect(retrievedPurposeVersionDocumentSQL).toHaveLength(
+        purposeVersions.length
       );
 
-      const {
-        retrievedPurposeSQL,
-        retrieveRiskAnalysisFormSQL,
-        retrievedRiskAnalysisAnswersSQL,
-        retrievedPurposeVersionsSQL,
-        retrievedPurposeVersionDocumentsSQL,
-      } = await retrievePurposeSQLObjects(purpose.data, isPurposeComplete);
-
-      const {
-        expectedPurposeSQL,
-        expectedRiskAnalysisFormSQL,
-        expectedRiskAnalysisAnswersSQL,
-        expectedPurposeVersionsSQL,
-        expectedPurposeVersionDocumentsSQL,
-      } = generateCompleteExpectedPurposeSQLObjects({
-        purpose,
-        purposeVersions,
+      const retrievedPurpose = aggregatePurpose({
+        purposeSQL: retrievedPurposeSQL!,
+        riskAnalysisFormSQL: retrievedRiskAnalysisFormSQL,
+        riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
+        versionsSQL: retrievedPurposeVersionsSQL,
+        versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
       });
 
-      expect(retrievedPurposeSQL).toStrictEqual(expectedPurposeSQL);
-      expect(retrieveRiskAnalysisFormSQL).toStrictEqual(
-        expectedRiskAnalysisFormSQL
-      );
-      expect(retrievedRiskAnalysisAnswersSQL).toStrictEqual(
-        expectedRiskAnalysisAnswersSQL
-      );
-      expect(retrievedPurposeVersionsSQL).toStrictEqual(
-        expectedPurposeVersionsSQL
-      );
-      expect(retrievedPurposeVersionDocumentsSQL).toStrictEqual(
-        expectedPurposeVersionDocumentsSQL
-      );
+      expect(retrievedPurpose).toStrictEqual({
+        data: purpose,
+        metadata: { version: 1 },
+      });
     });
 
     it("should add a incomplete (*only* mandatory fields) purpose", async () => {
-      const isPurposeComplete = false;
-      const { purpose } = initMockPurpose(isPurposeComplete);
+      const purpose = getMockPurpose();
 
-      await purposeReadModelService.upsertPurpose(
-        purpose.data,
-        purpose.metadata.version
+      await purposeReadModelService.upsertPurpose(purpose, 1);
+
+      const retrievedPurposeSQL = await retrievePurposeSQL(
+        purpose.id,
+        readModelDB
       );
+      const retrievedRiskAnalysisFormSQL =
+        await retrievePurposeRiskAnalysisForm(purpose.id, readModelDB);
+      const retrievedRiskAnalysisAnswersSQL =
+        await retrievePurposeRiskAnalysisAnswersSQL(purpose.id, readModelDB);
+      const retrievedPurposeVersionsSQL = await retrievePurposeVersionsSQL(
+        purpose.id,
+        readModelDB
+      );
+      const retrievedPurposeVersionDocumentSQL =
+        await retrievePurposeVersionDocumentSQL(purpose.id, readModelDB);
 
-      const {
-        retrievedPurposeSQL,
-        retrieveRiskAnalysisFormSQL,
-        retrievedRiskAnalysisAnswersSQL,
-        retrievedPurposeVersionsSQL,
-        retrievedPurposeVersionDocumentsSQL,
-      } = await retrievePurposeSQLObjects(purpose.data, isPurposeComplete);
+      expect(retrievedPurposeSQL).toBeDefined();
+      expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
+      expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(0);
+      expect(retrievedPurposeVersionsSQL).toHaveLength(0);
+      expect(retrievedPurposeVersionDocumentSQL).toHaveLength(0);
 
-      // TODO: add in generateCompleteExpectedPurposeSQLObjects or not?
-      const expectedPurposeSQL: PurposeSQL = {
-        id: purpose.data.id,
-        metadataVersion: purpose.metadata.version,
-        eserviceId: purpose.data.eserviceId,
-        consumerId: purpose.data.consumerId,
-        title: purpose.data.title,
-        description: purpose.data.description,
-        createdAt: purpose.data.createdAt.toISOString(),
-        isFreeOfCharge: purpose.data.isFreeOfCharge,
-        delegationId: null,
-        suspendedByConsumer: null,
-        suspendedByProducer: null,
-        updatedAt: null,
-        freeOfChargeReason: null,
-      };
+      const retrievedPurpose = aggregatePurpose({
+        purposeSQL: retrievedPurposeSQL!,
+        riskAnalysisFormSQL: retrievedRiskAnalysisFormSQL,
+        riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
+        versionsSQL: retrievedPurposeVersionsSQL,
+        versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
+      });
 
-      expect(retrievedPurposeSQL).toStrictEqual(expectedPurposeSQL);
-      expect(retrieveRiskAnalysisFormSQL).toBeUndefined();
-      expect(retrievedRiskAnalysisAnswersSQL).toBeUndefined();
-      expect(retrievedPurposeVersionsSQL).toBeUndefined();
-      expect(retrievedPurposeVersionDocumentsSQL).toBeUndefined();
+      expect(retrievedPurpose).toStrictEqual({
+        data: purpose,
+        metadata: { version: 1 },
+      });
     });
 
     it("should update a complete (*all* fields) purpose", async () => {
-      const isPurposeComplete = true;
-      const { purposeBeforeUpdate, purpose, purposeVersions } =
-        initMockPurpose(isPurposeComplete);
+      const purposeVersion1: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
+      const purposeVersion2: PurposeVersion = {
+        ...getMockPurposeVersion(purposeVersionState.draft),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
+      const purposeVersions = [purposeVersion1, purposeVersion2];
 
-      await purposeReadModelService.upsertPurpose(
-        purposeBeforeUpdate.data,
-        purposeBeforeUpdate.metadata.version
+      const purpose: Purpose = {
+        ...getMockPurpose(),
+        versions: purposeVersions,
+        delegationId: generateId<DelegationId>(),
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantKind.PA),
+          riskAnalysisId: generateId<RiskAnalysisId>(),
+        },
+        updatedAt: new Date(),
+        freeOfChargeReason: "Test free of charge reason",
+      };
+
+      await purposeReadModelService.upsertPurpose(purpose, 1);
+      await purposeReadModelService.upsertPurpose(purpose, 2);
+
+      const retrievedPurposeSQL = await retrievePurposeSQL(
+        purpose.id,
+        readModelDB
       );
-      await purposeReadModelService.upsertPurpose(
-        purpose.data,
-        purpose.metadata.version
+      const retrievedRiskAnalysisFormSQL =
+        await retrievePurposeRiskAnalysisForm(purpose.id, readModelDB);
+      const retrievedRiskAnalysisAnswersSQL =
+        await retrievePurposeRiskAnalysisAnswersSQL(purpose.id, readModelDB);
+      const retrievedPurposeVersionsSQL = await retrievePurposeVersionsSQL(
+        purpose.id,
+        readModelDB
+      );
+      const retrievedPurposeVersionDocumentSQL =
+        await retrievePurposeVersionDocumentSQL(purpose.id, readModelDB);
+
+      expect(retrievedPurposeSQL).toBeDefined();
+      expect(retrievedRiskAnalysisFormSQL).toBeDefined();
+      expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(
+        purpose.riskAnalysisForm!.multiAnswers.length +
+          purpose.riskAnalysisForm!.singleAnswers.length
+      );
+      expect(retrievedPurposeVersionsSQL).toHaveLength(purposeVersions.length);
+      expect(retrievedPurposeVersionDocumentSQL).toHaveLength(
+        purposeVersions.length
       );
 
-      const {
-        retrievedPurposeSQL,
-        retrieveRiskAnalysisFormSQL,
-        retrievedRiskAnalysisAnswersSQL,
-        retrievedPurposeVersionsSQL,
-        retrievedPurposeVersionDocumentsSQL,
-      } = await retrievePurposeSQLObjects(purpose.data, isPurposeComplete);
-
-      const {
-        expectedPurposeSQL,
-        expectedRiskAnalysisFormSQL,
-        expectedRiskAnalysisAnswersSQL,
-        expectedPurposeVersionsSQL,
-        expectedPurposeVersionDocumentsSQL,
-      } = generateCompleteExpectedPurposeSQLObjects({
-        purpose,
-        purposeVersions,
+      const retrievedPurpose = aggregatePurpose({
+        purposeSQL: retrievedPurposeSQL!,
+        riskAnalysisFormSQL: retrievedRiskAnalysisFormSQL,
+        riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
+        versionsSQL: retrievedPurposeVersionsSQL,
+        versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
       });
 
-      expect(retrievedPurposeSQL).toStrictEqual(expectedPurposeSQL);
-      expect(retrieveRiskAnalysisFormSQL).toStrictEqual(
-        expectedRiskAnalysisFormSQL
-      );
-      expect(retrievedRiskAnalysisAnswersSQL).toStrictEqual(
-        expectedRiskAnalysisAnswersSQL
-      );
-      expect(retrievedPurposeVersionsSQL).toStrictEqual(
-        expectedPurposeVersionsSQL
-      );
-      expect(retrievedPurposeVersionDocumentsSQL).toStrictEqual(
-        expectedPurposeVersionDocumentsSQL
-      );
+      expect(retrievedPurpose).toStrictEqual({
+        data: purpose,
+        metadata: { version: 2 },
+      });
     });
   });
 
   describe("Get a Purpose", async () => {
-    it("should get a purpose from by purpose id", async () => {
-      const isPurposeComplete = true;
-      const { purpose } = initMockPurpose(isPurposeComplete);
-      await purposeReadModelService.upsertPurpose(
-        purpose.data,
-        purpose.metadata.version
-      );
+    it("should get a purpose by id if present", async () => {
+      const purpose = getMockPurpose([getMockPurposeVersion()]);
+      await purposeReadModelService.upsertPurpose(purpose, 1);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
-        purpose.data.id
+        purpose.id
       );
 
-      expect(retrievedPurpose).toStrictEqual(purpose);
+      expect(retrievedPurpose).toStrictEqual({
+        data: purpose,
+        metadata: { version: 1 },
+      });
     });
 
-    it("should *not* get a purpose by purpose id", async () => {
+    it("should *not* get a purpose by purpose id if not present", async () => {
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         generateId()
       );
@@ -168,56 +244,74 @@ describe("Purpose queries", () => {
     });
   });
 
-  describe("Get all Purposes", () => {
-    it("should get all purposes", async () => {
-      const isPurposeComplete = true;
-      const { purpose: purpose1 } = initMockPurpose(isPurposeComplete);
-      const { purpose: purpose2 } = initMockPurpose(isPurposeComplete);
-
-      await purposeReadModelService.upsertPurpose(
-        purpose1.data,
-        purpose1.metadata.version
-      );
-      await purposeReadModelService.upsertPurpose(
-        purpose2.data,
-        purpose2.metadata.version
-      );
-
-      const retrievedPurposes = await purposeReadModelService.getAllPurposes();
-
-      expect(retrievedPurposes).toHaveLength(2);
-      // TODO: fix this test
-      // expect(retrievedPurposes).toStrictEqual(
-      //   expect.arrayContaining([purpose1, purpose2])
-      // );
-    });
-
-    it("should *not* get any purposes", async () => {
-      const retrievedPurposes = await purposeReadModelService.getAllPurposes();
-
-      expect(retrievedPurposes).toStrictEqual([]);
-    });
-  });
-
   describe("Delete a Purpose", () => {
     it("should delete a purpose by purpose id", async () => {
-      const isPurposeComplete = true;
-      const { purpose } = initMockPurpose(isPurposeComplete);
-      await purposeReadModelService.upsertPurpose(
-        purpose.data,
-        purpose.metadata.version
-      );
+      const purposeVersion1: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
+      const purposeVersion2: PurposeVersion = {
+        ...getMockPurposeVersion(purposeVersionState.draft),
+        riskAnalysis: getMockPurposeVersionDocument(),
+        rejectionReason: "Test rejection reason",
+        updatedAt: new Date(),
+        firstActivationAt: new Date(),
+        suspendedAt: new Date(),
+      };
+      const purposeVersions = [purposeVersion1, purposeVersion2];
 
-      await purposeReadModelService.deletePurposeById(
-        purpose.data.id,
-        purpose.metadata.version + 1
-      );
+      const purpose: Purpose = {
+        ...getMockPurpose(),
+        versions: purposeVersions,
+        delegationId: generateId<DelegationId>(),
+        suspendedByConsumer: false,
+        suspendedByProducer: false,
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantKind.PA),
+          riskAnalysisId: generateId<RiskAnalysisId>(),
+        },
+        updatedAt: new Date(),
+        freeOfChargeReason: "Test free of charge reason",
+      };
 
-      const retrievedPurpose = await purposeReadModelService.getPurposeById(
-        purpose.data.id
-      );
+      await purposeReadModelService.upsertPurpose(purpose, 1);
 
-      expect(retrievedPurpose).toBeUndefined();
+      expect(await retrievePurposeSQL(purpose.id, readModelDB)).toBeDefined();
+      expect(
+        await retrievePurposeRiskAnalysisForm(purpose.id, readModelDB)
+      ).toBeDefined();
+      expect(
+        await retrievePurposeRiskAnalysisAnswersSQL(purpose.id, readModelDB)
+      ).toHaveLength(
+        purpose.riskAnalysisForm!.multiAnswers.length +
+          purpose.riskAnalysisForm!.singleAnswers.length
+      );
+      expect(
+        await retrievePurposeVersionsSQL(purpose.id, readModelDB)
+      ).toHaveLength(purposeVersions.length);
+      expect(
+        await retrievePurposeVersionDocumentSQL(purpose.id, readModelDB)
+      ).toHaveLength(purposeVersions.length);
+
+      await purposeReadModelService.deletePurposeById(purpose.id, 1);
+
+      expect(await retrievePurposeSQL(purpose.id, readModelDB)).toBeUndefined();
+      expect(
+        await retrievePurposeRiskAnalysisForm(purpose.id, readModelDB)
+      ).toBeUndefined();
+      expect(
+        await retrievePurposeRiskAnalysisAnswersSQL(purpose.id, readModelDB)
+      ).toHaveLength(0);
+      expect(
+        await retrievePurposeVersionsSQL(purpose.id, readModelDB)
+      ).toHaveLength(0);
+      expect(
+        await retrievePurposeVersionDocumentSQL(purpose.id, readModelDB)
+      ).toHaveLength(0);
     });
   });
 });
