@@ -4,14 +4,13 @@ import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
-  getMockAuthData,
   getMockDelegation,
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
   getMockTenant,
   getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Purpose,
   PurposeClonedV2,
@@ -90,7 +89,7 @@ describe("clonePurpose", async () => {
         eserviceId: mockEService.id,
       },
       ctx: {
-        authData: getMockAuthData(mockTenant.id),
+        authData: getRandomAuthData(mockTenant.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "test",
@@ -164,7 +163,7 @@ describe("clonePurpose", async () => {
         eserviceId: mockEService.id,
       },
       ctx: {
-        authData: getMockAuthData(mockTenant.id),
+        authData: getRandomAuthData(mockTenant.id),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "test",
@@ -257,7 +256,7 @@ describe("clonePurpose", async () => {
         eserviceId: mockEService.id,
       },
       ctx: {
-        authData: getMockAuthData(delegation.delegateId),
+        authData: getRandomAuthData(delegation.delegateId),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "test",
@@ -380,7 +379,7 @@ describe("clonePurpose", async () => {
         eserviceId: eservice.id,
       },
       ctx: {
-        authData: getMockAuthData(consumerDelegation.delegateId),
+        authData: getRandomAuthData(consumerDelegation.delegateId),
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "test",
@@ -454,7 +453,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getMockAuthData(mockTenant.id),
+          authData: getRandomAuthData(mockTenant.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
@@ -494,7 +493,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getMockAuthData(mockTenant.id),
+          authData: getRandomAuthData(mockTenant.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
@@ -534,7 +533,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getMockAuthData(mockTenant.id),
+          authData: getRandomAuthData(mockTenant.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
@@ -574,7 +573,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getMockAuthData(mockTenant.id),
+          authData: getRandomAuthData(mockTenant.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
@@ -624,7 +623,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getMockAuthData(mockTenant.id),
+          authData: getRandomAuthData(mockTenant.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
@@ -666,7 +665,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: {
-          authData: getMockAuthData(mockTenant.id),
+          authData: getRandomAuthData(mockTenant.id),
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",

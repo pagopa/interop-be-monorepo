@@ -6,6 +6,7 @@ export * from "./consumerServiceConfig.js";
 export * from "./producerServiceConfig.js";
 export * from "./kafkaConfig.js";
 export * from "./readmodelDbConfig.js";
+export * from "./readmodelSQLDbConfig.js";
 export * from "./tokenGenerationReadmodelDbConfig.js";
 export * from "./eventStoreConfig.js";
 export * from "./fileManagerConfig.js";
