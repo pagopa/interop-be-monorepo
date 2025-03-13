@@ -32,9 +32,11 @@
     "testcontainers": "10.9.0",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
+    "@featurevisor/types": "1.33.0",
     "vitest": "1.6.0"
   },
   "dependencies": {
+    "@featurevisor/sdk": "1.33.0",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "axios": "1.7.4",
@@ -42,9 +44,9 @@
     "express": "4.20.0",
     "mongodb": "6.7.0",
     "openapi-zod-client": "1.18.1",
+    "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pagopa-interop-api-clients": "workspace:*",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   }

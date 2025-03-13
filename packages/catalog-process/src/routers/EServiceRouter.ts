@@ -19,6 +19,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { FeaturevisorInstance } from "@featurevisor/sdk";
 import { config } from "../config/config.js";
 import {
   agreementStateToApiAgreementState,
@@ -93,7 +94,8 @@ const catalogService = catalogServiceBuilder(
 );
 
 const eservicesRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  f: FeaturevisorInstance
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eservicesRouter = ctx.router(catalogApi.processApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -134,6 +136,10 @@ const eservicesRouter = (
             offset,
             limit,
           } = req.query;
+
+          if (f.isEnabled("notification")) {
+            logger.info("Featurevisor is enabled");
+          }
 
           const catalogs = await catalogService.getEServices(
             req.ctx.authData,
