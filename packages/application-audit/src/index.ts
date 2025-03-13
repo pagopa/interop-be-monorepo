@@ -1,1 +1,1 @@
-export * from "./middleware.js";
+export * from "./middlewares.js";
