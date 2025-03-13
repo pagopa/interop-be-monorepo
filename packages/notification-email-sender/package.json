@@ -10,7 +10,6 @@
   },
   "scripts": {
     "test": "vitest",
-    "test:it": "vitest integration",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",

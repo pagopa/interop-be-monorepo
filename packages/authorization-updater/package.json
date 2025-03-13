@@ -16,8 +16,7 @@
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json",
-    "test": "vitest",
-    "test:it": "vitest integration"
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
