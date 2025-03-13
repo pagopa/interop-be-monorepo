@@ -1,14 +1,14 @@
-import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { AttributeId } from "pagopa-interop-models";
 import {
   attributeInReadmodelAttribute,
   AttributeSQL,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 
-export const retrieveAttributeSQL = async (
+export const retrieveAttributeSQLById = async (
   attributeId: AttributeId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<AttributeSQL | undefined> => {
   const result = await db
     .select()
