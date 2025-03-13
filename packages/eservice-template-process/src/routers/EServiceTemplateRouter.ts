@@ -744,8 +744,8 @@ const eserviceTemplatesRouter = (
           const { results, totalCount } =
             await eserviceTemplateService.getEServiceTemplateCreators(
               creatorName,
-              offset,
               limit,
+              offset,
               ctx
             );
 
