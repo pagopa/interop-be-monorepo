@@ -4,7 +4,6 @@ import {
   AgreementId,
   AgreementStamp,
   AgreementStampKind,
-  agreementStampKind,
   AgreementStamps,
   attributeKind,
   dateToString,
@@ -93,7 +92,7 @@ export const splitAgreementIntoObjectsSQL = (
     if (stamp) {
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(
-        makeStampSQL(stamp, id, metadataVersion, agreementStampKind[key])
+        makeStampSQL(stamp, id, metadataVersion, AgreementStampKind.enum[key])
       );
     }
   }
