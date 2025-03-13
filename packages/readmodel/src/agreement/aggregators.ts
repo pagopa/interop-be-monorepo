@@ -23,7 +23,6 @@ import {
   AgreementStamp,
   UserId,
   DelegationId,
-  agreementStampKind,
   AgreementStampKind,
   genericInternalError,
   AgreementAttribute,
@@ -123,31 +122,31 @@ export const aggregateAgreement = ({
   } = stampsSQL.reduce(
     (acc: { [key in AgreementStampKind]?: AgreementStampSQL }, stamp) =>
       match(stamp.kind)
-        .with(agreementStampKind.submission, () => ({
+        .with(AgreementStampKind.enum.submission, () => ({
           ...acc,
           submission: stamp,
         }))
-        .with(agreementStampKind.activation, () => ({
+        .with(AgreementStampKind.enum.activation, () => ({
           ...acc,
           activation: stamp,
         }))
-        .with(agreementStampKind.rejection, () => ({
+        .with(AgreementStampKind.enum.rejection, () => ({
           ...acc,
           rejection: stamp,
         }))
-        .with(agreementStampKind.suspensionByProducer, () => ({
+        .with(AgreementStampKind.enum.suspensionByProducer, () => ({
           ...acc,
           suspensionByProducer: stamp,
         }))
-        .with(agreementStampKind.suspensionByConsumer, () => ({
+        .with(AgreementStampKind.enum.suspensionByConsumer, () => ({
           ...acc,
           suspensionByConsumer: stamp,
         }))
-        .with(agreementStampKind.upgrade, () => ({
+        .with(AgreementStampKind.enum.upgrade, () => ({
           ...acc,
           upgrade: stamp,
         }))
-        .with(agreementStampKind.archiving, () => ({
+        .with(AgreementStampKind.enum.archiving, () => ({
           ...acc,
           archiving: stamp,
         }))

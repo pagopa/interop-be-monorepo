@@ -10,7 +10,7 @@ import {
   Agreement,
   AgreementDocument,
   AgreementStamp,
-  agreementStampKind,
+  AgreementStampKind,
   AgreementStamps,
   attributeKind,
   DelegationId,
@@ -145,7 +145,7 @@ describe("Agreement Splitter", () => {
         expectedAgreementStampsSQL.push({
           agreementId: agreement.id,
           metadataVersion: 1,
-          kind: agreementStampKind[key],
+          kind: AgreementStampKind.enum[key],
           who: stamp.who,
           when: stamp.when.toISOString(),
           delegationId,
@@ -260,7 +260,7 @@ describe("Agreement Splitter", () => {
       {
         metadataVersion: 1,
         agreementId: agreement.id,
-        kind: agreementStampKind.submission,
+        kind: AgreementStampKind.enum.submission,
         who: agreementSubmissionStamp.who,
         when: agreementSubmissionStamp.when.toISOString(),
         delegationId: null,
