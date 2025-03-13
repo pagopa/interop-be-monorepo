@@ -224,7 +224,7 @@ const eserviceTemplateRouter = (
         const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
 
         try {
-          await eserviceTemplateService.deleteEServiceTemplateEServiceRiskAnalysis(
+          await eserviceTemplateService.deleteEServiceTemplateVersion(
             unsafeBrandId(eServiceTemplateId),
             unsafeBrandId(eServiceTemplateVersionId),
             ctx
