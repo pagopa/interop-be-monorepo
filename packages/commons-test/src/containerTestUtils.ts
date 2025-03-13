@@ -1,6 +1,7 @@
 import {
   EventStoreConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
@@ -63,6 +64,29 @@ export const postgreSQLContainer = (
       {
         source: "../../docker/event-store-init.sql",
         target: "/docker-entrypoint-initdb.d/01-init.sql",
+      },
+    ])
+    .withExposedPorts(TEST_POSTGRES_DB_PORT);
+
+/**
+ * Starts a PostgreSQL container for testing purposes.
+ *
+ * @param config - The configuration for the ReadModel PostgreSQL container.
+ * @returns A promise that resolves to the started test container.
+ */
+export const postgreSQLReadModelContainer = (
+  config: ReadModelSQLDbConfig
+): GenericContainer =>
+  new GenericContainer(TEST_POSTGRES_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.readModelSQLDbName,
+      POSTGRES_USER: config.readModelSQLDbUsername,
+      POSTGRES_PASSWORD: config.readModelSQLDbPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/readmodel-db",
+        target: "/docker-entrypoint-initdb.d",
       },
     ])
     .withExposedPorts(TEST_POSTGRES_DB_PORT);
