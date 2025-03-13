@@ -69,6 +69,7 @@ import {
   unchangedDailyCalls,
   organizationNotAllowed,
   puroposeDelegationNotFound,
+  purposeCannotBeUpdated,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -119,6 +120,8 @@ import {
   assertRequesterCanActAsProducer,
   assertRequesterIsAllowedToRetrieveRiskAnalysisDocument,
   verifyRequesterIsConsumerOrDelegateConsumer,
+  isClonable,
+  purposeIsArchived,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -763,6 +766,10 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
+      if (purposeIsArchived(purpose.data)) {
+        throw purposeCannotBeUpdated(purposeId);
+      }
+
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
@@ -1289,7 +1296,7 @@ export function purposeServiceBuilder(
         consumerDelegation
       );
 
-      if (purposeIsDraft(purposeToClone.data)) {
+      if (!isClonable(purposeToClone.data)) {
         throw purposeCannotBeCloned(purposeId);
       }
 

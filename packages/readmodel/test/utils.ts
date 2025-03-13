@@ -27,13 +27,13 @@ import {
   generateId,
   stringToDate,
   Tenant,
-  TenantAttribute,
   tenantAttributeType,
   TenantFeature,
   TenantFeatureCertifier,
   TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
   tenantFeatureType,
+  TenantId,
   tenantKind,
   TenantMail,
   TenantRevoker,
@@ -80,21 +80,18 @@ export const tenantReadModelService =
   tenantReadModelServiceBuilder(readModelDB);
 
 export const initMockTenant = (
-  isTenantComplete: boolean
+  isTenantComplete: boolean = true
 ): {
-  tenantBeforeUpdate: WithMetadata<Tenant>;
   tenant: WithMetadata<Tenant>;
   tenantForVerifying: WithMetadata<Tenant>;
   tenantForRevoking: WithMetadata<Tenant>;
   tenantMails: TenantMail[];
-  tenantCertifiedAttribute: CertifiedTenantAttribute;
-  tenantDeclaredAttribute: DeclaredTenantAttribute;
-  tenantVerifiedAttribute: VerifiedTenantAttribute;
+  tenantCertifiedAttributes: CertifiedTenantAttribute[];
+  tenantDeclaredAttributes: DeclaredTenantAttribute[];
+  tenantVerifiedAttributes: VerifiedTenantAttribute[];
   tenantVerifier: TenantVerifier;
   tenantRevoker: TenantRevoker;
-  tenantFeatureCertifier: TenantFeatureCertifier;
-  tenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer;
-  tenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer;
+  tenantFeatures: TenantFeature[];
 } => {
   const tenantForVerifying: WithMetadata<Tenant> = {
     data: {
@@ -109,28 +106,27 @@ export const initMockTenant = (
     metadata: { version: 1 },
   };
   const delegationId = generateId<DelegationId>();
+
+  const tenantVerifierAttributeOptionalProps = {
+    expirationDate: new Date(),
+    extensionDate: new Date(),
+    delegationId,
+  };
   const tenantVerifier: TenantVerifier = {
     id: tenantForVerifying.data.id,
     verificationDate: new Date(),
-    ...(isTenantComplete
-      ? {
-          expirationDate: new Date(),
-          extensionDate: new Date(),
-          delegationId,
-        }
-      : {}),
+    ...(isTenantComplete ? tenantVerifierAttributeOptionalProps : {}),
+  };
+  const tenantRevokerAttributeOptionalProps = {
+    expirationDate: new Date(),
+    extensionDate: new Date(),
+    delegationId,
   };
   const tenantRevoker: TenantRevoker = {
     id: tenantForRevoking.data.id,
     verificationDate: new Date(),
     revocationDate: new Date(),
-    ...(isTenantComplete
-      ? {
-          expirationDate: new Date(),
-          extensionDate: new Date(),
-          delegationId,
-        }
-      : {}),
+    ...(isTenantComplete ? tenantRevokerAttributeOptionalProps : {}),
   };
 
   const tenantMails: TenantMail[] = [
@@ -143,35 +139,41 @@ export const initMockTenant = (
         : {}),
     },
   ];
-  const tenantCertifiedAttribute: CertifiedTenantAttribute = {
-    id: generateId<AttributeId>(),
-    type: tenantAttributeType.CERTIFIED,
-    assignmentTimestamp: new Date(),
-    ...(isTenantComplete
-      ? {
-          revocationTimestamp: new Date(),
-        }
-      : {}),
-  };
+  const tenantCertifiedAttributes: CertifiedTenantAttribute[] = [
+    {
+      id: generateId<AttributeId>(),
+      type: tenantAttributeType.CERTIFIED,
+      assignmentTimestamp: new Date(),
+      ...(isTenantComplete
+        ? {
+            revocationTimestamp: new Date(),
+          }
+        : {}),
+    },
+  ];
 
-  const tenantDeclaredAttribute: DeclaredTenantAttribute = {
-    id: generateId<AttributeId>(),
-    type: tenantAttributeType.DECLARED,
-    assignmentTimestamp: new Date(),
-    ...(isTenantComplete
-      ? {
-          revocationTimestamp: new Date(),
-          delegationId,
-        }
-      : {}),
-  };
+  const tenantDeclaredAttributes: DeclaredTenantAttribute[] = [
+    {
+      id: generateId<AttributeId>(),
+      type: tenantAttributeType.DECLARED,
+      assignmentTimestamp: new Date(),
+      ...(isTenantComplete
+        ? {
+            revocationTimestamp: new Date(),
+            delegationId,
+          }
+        : {}),
+    },
+  ];
 
-  const tenantVerifiedAttribute: VerifiedTenantAttribute = {
-    ...getMockVerifiedTenantAttribute(),
-    verifiedBy: [tenantVerifier],
-    revokedBy: [tenantRevoker],
-    assignmentTimestamp: new Date(),
-  };
+  const tenantVerifiedAttributes: VerifiedTenantAttribute[] = [
+    {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [tenantVerifier],
+      revokedBy: [tenantRevoker],
+      assignmentTimestamp: new Date(),
+    },
+  ];
 
   const tenantFeatureCertifier: TenantFeatureCertifier = {
     type: tenantFeatureType.persistentCertifier,
@@ -188,66 +190,54 @@ export const initMockTenant = (
     availabilityTimestamp: new Date(),
   };
 
-  const selfcareId = generateId();
-
   const externalId: ExternalId = {
     origin: "IPA",
     value: generateId(),
   };
-  const tenantBeforeUpdate: WithMetadata<Tenant> = {
+
+  const tenantOptionalProps = {
+    kind: tenantKind.PA,
+    selfcareId: generateId(),
+    updatedAt: new Date(),
+    onboardedAt: new Date(),
+    subUnitType: tenantUnitType.AOO,
+  };
+  const tenantFeatures = [
+    tenantFeatureDelegatedProducer,
+    tenantFeatureDelegatedConsumer,
+    tenantFeatureCertifier,
+  ];
+  const tenant: WithMetadata<Tenant> = {
     data: {
-      ...getMockTenant(),
+      name: "A tenant",
+      id: generateId<TenantId>(),
+      createdAt: new Date(),
+      externalId,
+      mails: tenantMails,
+      attributes: [
+        ...tenantCertifiedAttributes,
+        ...tenantDeclaredAttributes,
+        ...tenantVerifiedAttributes,
+      ],
+      features: tenantFeatures,
+      ...(isTenantComplete ? tenantOptionalProps : {}),
     },
     metadata: {
       version: 1,
     },
   };
-  const tenant: WithMetadata<Tenant> = {
-    ...tenantBeforeUpdate,
-    data: {
-      ...tenantBeforeUpdate.data,
-      externalId,
-      mails: tenantMails,
-      attributes: [
-        tenantCertifiedAttribute,
-        tenantDeclaredAttribute,
-        tenantVerifiedAttribute,
-      ],
-      features: [
-        tenantFeatureDelegatedProducer,
-        tenantFeatureDelegatedConsumer,
-        tenantFeatureCertifier,
-      ],
-      ...(isTenantComplete
-        ? {
-            kind: tenantKind.PA,
-            selfcareId,
-            updatedAt: new Date(),
-            onboardedAt: new Date(),
-            subUnitType: tenantUnitType.AOO,
-          }
-        : {}),
-    },
-  };
-  if (!isTenantComplete) {
-    // eslint-disable-next-line fp/no-delete
-    delete tenant.data.onboardedAt;
-  }
 
   return {
-    tenantBeforeUpdate,
     tenant,
     tenantForVerifying,
     tenantForRevoking,
     tenantMails,
-    tenantCertifiedAttribute,
-    tenantDeclaredAttribute,
-    tenantVerifiedAttribute,
+    tenantCertifiedAttributes,
+    tenantDeclaredAttributes,
+    tenantVerifiedAttributes,
     tenantVerifier,
     tenantRevoker,
-    tenantFeatureCertifier,
-    tenantFeatureDelegatedConsumer,
-    tenantFeatureDelegatedProducer,
+    tenantFeatures,
   };
 };
 
@@ -272,74 +262,80 @@ export const retrieveTenantSQLObjects = async (
     tenant.data.id,
     readModelDB
   );
-  const retrievedAndFormattedTenantSQL = retrievedTenantSQL
-    ? {
-        ...retrievedTenantSQL,
-        createdAt: stringToISOString(retrievedTenantSQL.createdAt),
-        ...(isTenantComplete
-          ? {
-              kind: retrievedTenantSQL.kind,
-              selfcareId: retrievedTenantSQL.selfcareId,
-              subUnitType: retrievedTenantSQL.subUnitType,
-              updatedAt: stringToISOString(retrievedTenantSQL.updatedAt),
-              onboardedAt: stringToISOString(retrievedTenantSQL.onboardedAt),
-            }
-          : {}),
-      }
-    : undefined;
+  const retrievedAndFormattedTenantSQL: TenantSQL | undefined =
+    retrievedTenantSQL
+      ? {
+          ...retrievedTenantSQL,
+          createdAt: stringToISOString(retrievedTenantSQL.createdAt),
+          ...(isTenantComplete
+            ? {
+                kind: retrievedTenantSQL.kind,
+                selfcareId: retrievedTenantSQL.selfcareId,
+                subUnitType: retrievedTenantSQL.subUnitType,
+                updatedAt: stringToISOString(retrievedTenantSQL.updatedAt),
+                onboardedAt: stringToISOString(retrievedTenantSQL.onboardedAt),
+              }
+            : {}),
+        }
+      : undefined;
   const retrievedTenantMailsSQL = await retrieveTenantMailsSQL(
     tenant.data.id,
     readModelDB
   );
-  const retrievedAndFormattedTenantMailsSQL = retrievedTenantMailsSQL?.map(
-    (mail) => ({ ...mail, createdAt: stringToISOString(mail.createdAt) })
-  );
+  const retrievedAndFormattedTenantMailsSQL: TenantMailSQL[] | undefined =
+    retrievedTenantMailsSQL?.map((mail) => ({
+      ...mail,
+      createdAt: stringToISOString(mail.createdAt),
+    }));
 
   const retrievedCertifiedAttributesSQL =
     await retrieveTenantCertifiedAttributesSQL(tenant.data.id, readModelDB);
 
-  const retrievedAndFormattedCertifiedAttributesSQL =
-    retrievedCertifiedAttributesSQL?.map(
-      (attribute: TenantCertifiedAttributeSQL) => ({
-        ...attribute,
-        assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
-        ...(isTenantComplete
-          ? {
-              revocationTimestamp: stringToISOString(
-                attribute.revocationTimestamp
-              ),
-            }
-          : {}),
-      })
-    );
+  const retrievedAndFormattedCertifiedAttributesSQL:
+    | TenantCertifiedAttributeSQL[]
+    | undefined = retrievedCertifiedAttributesSQL?.map(
+    (attribute: TenantCertifiedAttributeSQL) => ({
+      ...attribute,
+      assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
+      ...(isTenantComplete
+        ? {
+            revocationTimestamp: stringToISOString(
+              attribute.revocationTimestamp
+            ),
+          }
+        : {}),
+    })
+  );
   const retrievedDeclaredAttributesSQL =
     await retrieveTenantDeclaredAttributesSQL(tenant.data.id, readModelDB);
 
-  const retrievedAndFormattedDeclaredAttributesSQL =
-    retrievedDeclaredAttributesSQL?.map(
-      (attribute: TenantDeclaredAttributeSQL) => ({
-        ...attribute,
-        assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
-        ...(isTenantComplete
-          ? {
-              revocationTimestamp: stringToISOString(
-                attribute.revocationTimestamp
-              ),
-              delegationId: attribute.delegationId,
-            }
-          : {}),
-      })
-    );
+  const retrievedAndFormattedDeclaredAttributesSQL:
+    | TenantDeclaredAttributeSQL[]
+    | undefined = retrievedDeclaredAttributesSQL?.map(
+    (attribute: TenantDeclaredAttributeSQL) => ({
+      ...attribute,
+      assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
+      ...(isTenantComplete
+        ? {
+            revocationTimestamp: stringToISOString(
+              attribute.revocationTimestamp
+            ),
+            delegationId: attribute.delegationId,
+          }
+        : {}),
+    })
+  );
 
   const retrievedVerifiedAttributesSQL =
     await retrieveTenantVerifiedAttributesSQL(tenant.data.id, readModelDB);
-  const retrievedAndFormattedVerifiedAttributesSQL =
-    retrievedVerifiedAttributesSQL?.map(
-      (attribute: TenantVerifiedAttributeSQL) => ({
-        ...attribute,
-        assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
-      })
-    );
+  const retrievedAndFormattedVerifiedAttributesSQL:
+    | TenantVerifiedAttributeSQL[]
+    | undefined = retrievedVerifiedAttributesSQL?.map(
+    (attribute: TenantVerifiedAttributeSQL) => ({
+      ...attribute,
+      assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
+    })
+  );
 
   const retrievedVerifiedAttributeVerifiersSQL =
     await retrieveTenantVerifiedAttributeVerifiersSQL(
@@ -347,20 +343,21 @@ export const retrieveTenantSQLObjects = async (
       readModelDB
     );
 
-  const retrievedAndFormattedVerifiedAttributeVerifiersSQL =
-    retrievedVerifiedAttributeVerifiersSQL?.map(
-      (verifier: TenantVerifiedAttributeVerifierSQL) => ({
-        ...verifier,
-        verificationDate: stringToISOString(verifier.verificationDate),
-        ...(isTenantComplete
-          ? {
-              expirationDate: stringToISOString(verifier.expirationDate),
-              extensionDate: stringToISOString(verifier.extensionDate),
-              delegationId: verifier.delegationId,
-            }
-          : {}),
-      })
-    );
+  const retrievedAndFormattedVerifiedAttributeVerifiersSQL:
+    | TenantVerifiedAttributeVerifierSQL[]
+    | undefined = retrievedVerifiedAttributeVerifiersSQL?.map(
+    (verifier: TenantVerifiedAttributeVerifierSQL) => ({
+      ...verifier,
+      verificationDate: stringToISOString(verifier.verificationDate),
+      ...(isTenantComplete
+        ? {
+            expirationDate: stringToISOString(verifier.expirationDate),
+            extensionDate: stringToISOString(verifier.extensionDate),
+            delegationId: verifier.delegationId,
+          }
+        : {}),
+    })
+  );
 
   const retrievedVerifiedAttributeRevokersSQL =
     await retrieveTenantVerifiedAttributeRevokersSQL(
@@ -368,36 +365,34 @@ export const retrieveTenantSQLObjects = async (
       readModelDB
     );
 
-  const retrievedAndFormattedVerifiedAttributeRevokesSQL =
-    retrievedVerifiedAttributeRevokersSQL?.map(
-      (revoker: TenantVerifiedAttributeRevokerSQL) => ({
-        ...revoker,
-        revocationDate: stringToISOString(revoker.revocationDate),
-        verificationDate: stringToISOString(revoker.verificationDate),
-        ...(isTenantComplete
-          ? {
-              expirationDate: stringToISOString(revoker.expirationDate),
-              extensionDate: stringToISOString(revoker.extensionDate),
-              delegationId: revoker.delegationId,
-            }
-          : {}),
-      })
-    );
+  const retrievedAndFormattedVerifiedAttributeRevokesSQL:
+    | TenantVerifiedAttributeRevokerSQL[]
+    | undefined = retrievedVerifiedAttributeRevokersSQL?.map(
+    (revoker: TenantVerifiedAttributeRevokerSQL) => ({
+      ...revoker,
+      revocationDate: stringToISOString(revoker.revocationDate),
+      verificationDate: stringToISOString(revoker.verificationDate),
+      ...(isTenantComplete
+        ? {
+            expirationDate: stringToISOString(revoker.expirationDate),
+            extensionDate: stringToISOString(revoker.extensionDate),
+            delegationId: revoker.delegationId,
+          }
+        : {}),
+    })
+  );
 
   const retrievedFeaturesSQL = await retrieveTenantFeaturesSQL(
     tenant.data.id,
     readModelDB
   );
 
-  const retrievedAndFormattedFeaturesSQL = retrievedFeaturesSQL?.map(
-    (feature: TenantFeatureSQL) => ({
+  const retrievedAndFormattedFeaturesSQL: TenantFeatureSQL[] | undefined =
+    retrievedFeaturesSQL?.map((feature: TenantFeatureSQL) => ({
       ...feature,
-      availabilityTimestamp: feature.availabilityTimestamp
-        ? stringToISOString(feature.availabilityTimestamp)
-        : null,
-      certifierId: feature.certifierId ? feature.certifierId : null,
-    })
-  );
+      availabilityTimestamp: stringToISOString(feature.availabilityTimestamp),
+      certifierId: feature.certifierId,
+    }));
 
   return {
     retrievedTenantSQL: retrievedAndFormattedTenantSQL,
@@ -414,177 +409,13 @@ export const retrieveTenantSQLObjects = async (
   };
 };
 
-export const generateExpectedTenantSQLObjects = ({
-  tenant,
-  tenantMails,
-  tenantCertifiedAttribute,
-  tenantDeclaredAttribute,
-  tenantVerifiedAttribute,
-  tenantVerifier,
-  tenantRevoker,
-  tenantFeatureCertifier,
-  tenantFeatureDelegatedConsumer,
-  tenantFeatureDelegatedProducer,
-}: {
-  tenant: WithMetadata<Tenant>;
-  tenantMails: TenantMail[];
-  tenantCertifiedAttribute: CertifiedTenantAttribute;
-  tenantDeclaredAttribute: DeclaredTenantAttribute;
-  tenantVerifiedAttribute: VerifiedTenantAttribute;
-  tenantVerifier: TenantVerifier;
-  tenantRevoker: TenantRevoker;
-  tenantFeatureCertifier: TenantFeatureCertifier;
-  tenantFeatureDelegatedConsumer: TenantFeatureDelegatedConsumer;
-  tenantFeatureDelegatedProducer: TenantFeatureDelegatedProducer;
-}): {
-  expectedTenantSQL: TenantSQL;
-  expectedMailsSQL: TenantMailSQL[];
-  expectedCertifiedAttributesSQL: TenantCertifiedAttributeSQL[];
-  expectedDeclaredAttributesSQL: TenantDeclaredAttributeSQL[];
-  expectedVerifiedAttributesSQL: TenantVerifiedAttributeSQL[];
-  expectedVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
-  expectedVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
-  expectedFeaturesSQL: TenantFeatureSQL[];
-} => {
-  const expectedTenantSQL: TenantSQL = {
-    id: tenant.data.id,
-    metadataVersion: tenant.metadata.version,
-    kind: tenant.data.kind ? tenant.data.kind : null,
-    selfcareId: tenant.data.selfcareId!,
-    createdAt: tenant.data.createdAt.toISOString(),
-    updatedAt: tenant.data.updatedAt?.toISOString() || null,
-    name: tenant.data.name,
-    onboardedAt: tenant.data.onboardedAt?.toISOString() || null,
-    subUnitType: tenant.data.subUnitType ? tenant.data.subUnitType : null,
-    externalIdOrigin: tenant.data.externalId.origin,
-    externalIdValue: tenant.data.externalId.value,
-  };
-
-  const expectedMailsSQL: TenantMailSQL[] = tenantMails.map(
-    (mail: TenantMail) => ({
-      id: mail.id,
-      kind: mail.kind,
-      createdAt: mail.createdAt.toISOString(),
-      metadataVersion: tenant.metadata.version,
-      tenantId: tenant.data.id,
-      address: mail.address,
-      description: mail.description ? mail.description : null,
-    })
-  );
-  const expectedCertifiedAttributesSQL: TenantCertifiedAttributeSQL[] = [
-    {
-      metadataVersion: tenant.metadata.version,
-      tenantId: tenant.data.id,
-      attributeId: tenantCertifiedAttribute.id,
-      assignmentTimestamp:
-        tenantCertifiedAttribute.assignmentTimestamp.toISOString(),
-      revocationTimestamp:
-        tenantCertifiedAttribute.revocationTimestamp?.toISOString() || null,
-    },
-  ];
-  const expectedDeclaredAttributesSQL: TenantDeclaredAttributeSQL[] = [
-    {
-      tenantId: tenant.data.id,
-      metadataVersion: tenant.metadata.version,
-      attributeId: tenantDeclaredAttribute.id,
-      assignmentTimestamp:
-        tenantDeclaredAttribute.assignmentTimestamp.toISOString(),
-      revocationTimestamp:
-        tenantDeclaredAttribute.revocationTimestamp?.toISOString() || null,
-      delegationId: tenantDeclaredAttribute.delegationId
-        ? tenantDeclaredAttribute.delegationId
-        : null,
-    },
-  ];
-  const expectedVerifiedAttributesSQL: TenantVerifiedAttributeSQL[] = [
-    {
-      tenantId: tenant.data.id,
-      metadataVersion: tenant.metadata.version,
-      attributeId: tenantVerifiedAttribute.id,
-      assignmentTimestamp:
-        tenantVerifiedAttribute.assignmentTimestamp.toISOString(),
-    },
-  ];
-  const expectedVerifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[] =
-    [
-      {
-        tenantVerifierId: tenantVerifier.id,
-        tenantId: tenant.data.id,
-        metadataVersion: tenant.metadata.version,
-        delegationId: tenantVerifier.delegationId
-          ? tenantVerifier.delegationId
-          : null,
-        tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
-        verificationDate: tenantVerifier.verificationDate.toISOString(),
-        expirationDate: tenantVerifier.expirationDate?.toISOString() || null,
-        extensionDate: tenantVerifier.extensionDate?.toISOString() || null,
-      },
-    ];
-  const expectedVerifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[] =
-    [
-      {
-        tenantRevokerId: tenantRevoker.id,
-        tenantId: tenant.data.id,
-        metadataVersion: tenant.metadata.version,
-        delegationId: tenantRevoker.delegationId
-          ? tenantRevoker.delegationId
-          : null,
-        tenantVerifiedAttributeId: tenantVerifiedAttribute.id,
-        verificationDate: tenantRevoker.verificationDate.toISOString(),
-        expirationDate: tenantRevoker.expirationDate?.toISOString() || null,
-        extensionDate: tenantRevoker.extensionDate?.toISOString() || null,
-        revocationDate: tenantRevoker.revocationDate.toISOString(),
-      },
-    ];
-
-  const expectedFeatureCertifierSQL: TenantFeatureSQL = {
-    tenantId: tenant.data.id,
-    metadataVersion: tenant.metadata.version,
-    kind: tenantFeatureType.persistentCertifier,
-    certifierId: tenantFeatureCertifier.certifierId,
-    availabilityTimestamp: null,
-  };
-  const expectedFeatureDelegatedConsumerSQL: TenantFeatureSQL = {
-    tenantId: tenant.data.id,
-    metadataVersion: tenant.metadata.version,
-    kind: tenantFeatureType.delegatedConsumer,
-    certifierId: null,
-    availabilityTimestamp:
-      tenantFeatureDelegatedConsumer.availabilityTimestamp.toISOString(),
-  };
-  const expectedFeatureDelegatedProducerSQL: TenantFeatureSQL = {
-    tenantId: tenant.data.id,
-    metadataVersion: tenant.metadata.version,
-    kind: tenantFeatureType.delegatedProducer,
-    certifierId: null,
-    availabilityTimestamp:
-      tenantFeatureDelegatedProducer.availabilityTimestamp.toISOString(),
-  };
-
-  const expectedFeaturesSQL: TenantFeatureSQL[] = [
-    expectedFeatureCertifierSQL,
-    expectedFeatureDelegatedConsumerSQL,
-    expectedFeatureDelegatedProducerSQL,
-  ];
-
-  return {
-    expectedTenantSQL,
-    expectedMailsSQL,
-    expectedCertifiedAttributesSQL,
-    expectedDeclaredAttributesSQL,
-    expectedVerifiedAttributesSQL,
-    expectedVerifiedAttributeVerifiersSQL,
-    expectedVerifiedAttributeRevokersSQL,
-    expectedFeaturesSQL,
-  };
-};
-
 export function stringToISOString(input: string): string;
 export function stringToISOString(input: string | null): string | null;
 export function stringToISOString(input: string | null): string | null {
   return input ? stringToDate(input).toISOString() : null;
 }
 
+/*
 export const sortATenant = (
   tenant: WithMetadata<Tenant>
 ): WithMetadata<Tenant> => ({
@@ -623,3 +454,4 @@ const sortByString = (a: string, b: string): number => {
   }
   return 0;
 };
+*/
