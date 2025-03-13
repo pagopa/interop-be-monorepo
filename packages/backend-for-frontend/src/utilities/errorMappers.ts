@@ -18,7 +18,6 @@ const {
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
-      "descriptorNotFound",
       "eserviceRiskNotFound",
       "eserviceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
@@ -80,6 +79,7 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .with("missingUserRolesInIdentityToken", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -207,3 +207,49 @@ const delegationNotFoundErrorMapper = (error: ApiError<ErrorCodes>): number =>
 
 export const getDelegationByIdErrorMapper = delegationNotFoundErrorMapper;
 export const getDelegationsErrorMapper = delegationNotFoundErrorMapper;
+
+export const bffGetEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const bffGetCatalogEServiceTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "catalogEServiceTemplatePublishedVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addEServiceInterfceByTemplateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateIsNotPublished",
+      "eserviceIsNotDraft",
+      "eserviceDescriptorDraftNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateInterfaceNotFound",
+      "eserviceTemplateInterfaceDataNotValid",
+      "invalidInterfaceContentTypeDetected",
+      "invalidInterfaceFileDetected",
+      "interfaceExtractingInfoError",
+      "templateDataNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "eServiceNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "eserviceTemplateVersionNotFound",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
