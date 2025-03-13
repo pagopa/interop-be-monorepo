@@ -1,0 +1,32 @@
+
+meta {
+  name: Add e-service interface document by template
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host-bff}}/templates/eservices/:eServiceId/descriptors/:descriptorId/interface:
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "contactName": "Mark",
+    "contactEmail": "testemplayee@exampletest.eu",
+    "contactUrl": "https://test.example.com",
+    "termsAndConditionsUrl": "https://test.example.com/contacts",
+    "serverUrls": ["https://test.example2.com","https://test.example3.com"]
+  }
+}

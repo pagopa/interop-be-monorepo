@@ -1,16 +1,19 @@
 import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
+import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
+
+const readmodelDBConfig = ReadModelSQLDbConfig.parse(process.env);
 
 export default defineConfig({
   out: "./src/drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    host: process.env.READMODEL_SQL_DB_HOST!,
-    port: Number(process.env.READMODEL_SQL_DB_PORT!),
-    user: process.env.READMODEL_SQL_DB_USERNAME!,
-    password: process.env.READMODEL_SQL_DB_PASSWORD!,
-    database: process.env.READMODEL_SQL_DB_NAME!,
-    ssl: process.env.READMODEL_SQL_DB_USE_SSL! === "true",
+    host: readmodelDBConfig.readModelSQLDbHost,
+    port: readmodelDBConfig.readModelSQLDbPort,
+    user: readmodelDBConfig.readModelSQLDbUsername,
+    password: readmodelDBConfig.readModelSQLDbPassword,
+    database: readmodelDBConfig.readModelSQLDbName,
+    ssl: readmodelDBConfig.readModelSQLDbUseSSL,
   },
   schemaFilter: [
     "readmodel_agreement",
