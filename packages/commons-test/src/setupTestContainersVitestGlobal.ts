@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
@@ -10,6 +9,7 @@ import {
   EventStoreConfig,
   FileManagerConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
   TokenGenerationReadModelDbConfig,
@@ -32,6 +32,7 @@ import {
   mailpitContainer,
   minioContainer,
   mongoDBContainer,
+  postgreSQLReadModelContainer,
   postgreSQLContainer,
   redisContainer,
 } from "./containerTestUtils.js";
@@ -48,6 +49,7 @@ type EnhancedTokenGenerationReadModelDbConfig = z.infer<
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
+    readModelSQLConfig?: ReadModelSQLDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
     fileManagerConfig?: FileManagerConfig & S3Config;
@@ -69,6 +71,7 @@ export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
+  const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
   const fileManagerConfig = FileManagerConfig.safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
@@ -80,6 +83,7 @@ export function setupTestContainersVitestGlobal() {
     provide,
   }: GlobalSetupContext): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
@@ -113,6 +117,19 @@ export function setupTestContainersVitestGlobal() {
        * The comment applies to the other containers setup after this one as well.
        */
       provide("eventStoreConfig", eventStoreConfig.data);
+    }
+
+    if (readModelSQLConfig.success) {
+      startedPostgreSqlReadModelContainer = await postgreSQLReadModelContainer(
+        readModelSQLConfig.data
+      ).start();
+
+      readModelSQLConfig.data.readModelSQLDbPort =
+        startedPostgreSqlReadModelContainer.getMappedPort(
+          TEST_POSTGRES_DB_PORT
+        );
+
+      provide("readModelSQLConfig", readModelSQLConfig.data);
     }
 
     // Setting up the MongoDB container if the config is provided
@@ -188,6 +205,7 @@ export function setupTestContainersVitestGlobal() {
 
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
+      await startedPostgreSqlReadModelContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
