@@ -81,6 +81,7 @@ import {
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
   AgreementDocument,
+  AgreementStamp,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -236,6 +237,12 @@ export const getMockTenantMail = (
   kind,
   description: generateMock(z.string()),
   address: generateMock(z.string().email()),
+});
+
+export const getMockAgreementStamp = (): AgreementStamp => ({
+  who: generateId(),
+  when: new Date(),
+  delegationId: generateId<DelegationId>(),
 });
 
 export const getMockAgreementStamps = (): AgreementStamps => {
