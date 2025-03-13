@@ -132,7 +132,7 @@ export async function applicationAuditBeginMiddleware(
     }
 
     const initialAudit: ApplicationAuditBeginRequest = {
-      correlationId: context.correlationId,
+      correlationId,
       service: serviceName,
       serviceVersion: config.serviceVersion,
       endpoint: req.path,
@@ -177,7 +177,6 @@ export async function applicationAuditEndMiddleware(
         }
 
         const correlationId = context.correlationId;
-        const organizationId = context.authData.organizationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
         const forwardedFor = parseForwardedForHeader(req);
 
@@ -200,7 +199,7 @@ export async function applicationAuditEndMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
-          organizationId,
+          organizationId: context.authData.organizationId,
           userId: context.authData.userId,
           httpResponseStatus: res.statusCode,
           executionTimeMs: endTimestamp - context.requestTimestamp,
@@ -235,7 +234,6 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
         }
 
         const correlationId = context.correlationId;
-        const organizationId = context.authData.organizationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
         const forwardedFor = parseForwardedForHeader(req);
 
@@ -258,7 +256,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
-          organizationId,
+          organizationId: context.authData.organizationId,
           selfcareId: context.authData.selfcareId,
           httpResponseStatus: res.statusCode,
           executionTimeMs: endTimestamp - context.requestTimestamp,
