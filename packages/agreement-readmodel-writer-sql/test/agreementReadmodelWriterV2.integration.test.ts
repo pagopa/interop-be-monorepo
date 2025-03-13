@@ -59,7 +59,7 @@ describe("events V2", async () => {
         agreement.id
       );
 
-      expect(actualAgreement?.data).toMatchObject(agreement);
+      expect(actualAgreement?.data).toStrictEqual(agreement);
 
       expect(spyUpdate).toHaveBeenCalled();
     }
@@ -99,7 +99,7 @@ describe("events V2", async () => {
         agreement.id
       );
 
-      expect(actualAgreement?.data).toMatchObject(agreement);
+      expect(actualAgreement?.data).toStrictEqual(agreement);
 
       expect(spyUpdate).toHaveBeenCalled();
       expect(spyDelete).not.toHaveBeenCalled();
