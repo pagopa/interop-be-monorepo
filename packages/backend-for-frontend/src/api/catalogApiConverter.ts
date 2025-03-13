@@ -372,6 +372,7 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
+    serverUrls: descriptor.serverUrls,
   };
 }
 

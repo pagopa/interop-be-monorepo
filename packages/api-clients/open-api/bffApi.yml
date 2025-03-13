@@ -18485,6 +18485,11 @@ components:
           type: array
           items:
             type: string
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
     TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
