@@ -372,7 +372,7 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
-    getProducerEServiceTemplates: async (
+    getCreatorEServiceTemplates: async (
       name: string | undefined,
       offset: number,
       limit: number,
