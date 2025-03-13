@@ -373,13 +373,13 @@ const eserviceTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producers/eservices/templates", async (req, res) => {
+    .get("/creators/eservices/templates", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const { q, offset, limit } = req.query;
 
       try {
         const response =
-          await eserviceTemplateService.getProducerEServiceTemplates(
+          await eserviceTemplateService.getCreatorEServiceTemplates(
             q,
             offset,
             limit,
