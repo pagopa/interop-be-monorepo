@@ -728,7 +728,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .get(
-      "/templates/creators",
+      "/creators",
       authorizationMiddleware([
         ADMIN_ROLE,
         API_ROLE,
