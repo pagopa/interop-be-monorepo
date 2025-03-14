@@ -595,13 +595,8 @@ export const createInstanceDescriptorErrorMapper = (
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "draftDescriptorAlreadyExists",
-      "attributeNotFound",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with(
-      "templateInstanceNotAllowed",
-      "operationForbidden",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

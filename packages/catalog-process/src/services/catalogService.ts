@@ -69,6 +69,7 @@ import {
   attributeNotFound,
   audienceCannotBeEmpty,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
+  descriptorTemplateVersionInFoundInTemplate,
   documentPrettyNameDuplicate,
   eServiceAlreadyUpgraded,
   eServiceDescriptorNotFound,
@@ -81,6 +82,7 @@ import {
   eServiceRiskAnalysisNotFound,
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   eServiceTemplateWithoutPublishedVersion,
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
@@ -3128,7 +3130,10 @@ export function catalogServiceBuilder(
       );
 
       if (!templateVersion) {
-        throw new Error("Template version not found");
+        descriptorTemplateVersionInFoundInTemplate(
+          eservice.data.templateRef.id,
+          latestDescriptor.id
+        );
       }
 
       const agreementApprovalPolicySeed =
