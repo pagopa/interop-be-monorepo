@@ -111,35 +111,6 @@ describe("Attribute queries", () => {
     });
   });
 
-  describe("should get all attributes from the db", () => {
-    it("get all attributes", async () => {
-      const attribute1: Attribute = {
-        ...getMockAttribute(),
-      };
-      await attributeReadModelService.upsertAttribute(attribute1, 1);
-
-      const attribute2: Attribute = {
-        ...getMockAttribute(),
-      };
-      await attributeReadModelService.upsertAttribute(attribute2, 1);
-
-      const retrievedAttributes =
-        await attributeReadModelService.getAllAttributes();
-      expect(retrievedAttributes).toStrictEqual(
-        expect.arrayContaining([
-          { data: attribute1, metadata: { version: 1 } },
-          { data: attribute2, metadata: { version: 1 } },
-        ])
-      );
-    });
-
-    it("attributes NOT found", async () => {
-      const retrievedAttributes =
-        await attributeReadModelService.getAllAttributes();
-      expect(retrievedAttributes).toHaveLength(0);
-    });
-  });
-
   describe("should delete an attribute by id from the db", () => {
     it("delete one attribute", async () => {
       const attribute1: Attribute = {

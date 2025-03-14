@@ -5,10 +5,7 @@ import {
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
-import {
-  aggregateAttribute,
-  aggregateAttributeArray,
-} from "./attribute/aggregators.js";
+import { aggregateAttribute } from "./attribute/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -70,11 +67,6 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
             lte(attributeInReadmodelAttribute.metadataVersion, metadataVersion)
           )
         );
-    },
-    async getAllAttributes(): Promise<Array<WithMetadata<Attribute>>> {
-      const res = await db.select().from(attributeInReadmodelAttribute);
-
-      return aggregateAttributeArray(res);
     },
   };
 }
