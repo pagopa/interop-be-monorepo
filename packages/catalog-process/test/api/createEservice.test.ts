@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, afterAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import { AuthData } from "pagopa-interop-commons";
@@ -98,13 +98,66 @@ describe("API /eservices authorization test", async () => {
     expect(res.body.detail).toContain("Incorrect value for body");
   });
 
+  it("Should return 400 for missing required properties name", async () => {
+    const res = await request(api)
+      .post("/eservices")
+      .set("Authorization", `Bearer ${validToken}`)
+      .set("X-Correlation-Id", generateId())
+      .send({
+        description: mockApiEservice.description,
+        technology: "REST",
+        mode: "RECEIVE",
+        descriptor: {
+          audience: mockApiEservice.descriptors[0].audience,
+          voucherLifespan: mockApiEservice.descriptors[0].voucherLifespan,
+          dailyCallsPerConsumer:
+            mockApiEservice.descriptors[0].dailyCallsPerConsumer,
+          dailyCallsTotal: mockApiEservice.descriptors[0].dailyCallsTotal,
+          agreementApprovalPolicy:
+            mockApiEservice.descriptors[0].agreementApprovalPolicy,
+        },
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toContain("Incorrect value for body");
+    expect(res.text).toContain('Required at \\"name\\""');
+  });
+
+  it("Should return 400 for min lenght required at properties name", async () => {
+    const res = await request(api)
+      .post("/eservices")
+      .set("Authorization", `Bearer ${validToken}`)
+      .set("X-Correlation-Id", generateId())
+      .send({ ...mockEserviceSeed, name: "test" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toContain("Incorrect value for body");
+    expect(res.text).toContain(
+      'String must contain at least 5 character(s) at \\"name\\""'
+    );
+  });
+
+  it("Should return 400 for max lenght exceed at properties name", async () => {
+    const res = await request(api)
+      .post("/eservices")
+      .set("Authorization", `Bearer ${validToken}`)
+      .set("X-Correlation-Id", generateId())
+      .send({
+        ...mockEserviceSeed,
+        name: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789",
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toContain("Incorrect value for body");
+    expect(res.text).toContain(
+      'String must contain at most 60 character(s) at \\"name\\""'
+    );
+  });
+
   it("Should return 409 for name conflict", async () => {
-    vi.spyOn(catalogService, "createEService").mockImplementation((input) => {
-      if (input.name === mockEserviceSeed.name) {
-        return Promise.reject(eServiceNameDuplicate(input.name));
-      }
-      return Promise.resolve(mockEService);
-    });
+    vi.spyOn(catalogService, "createEService").mockImplementation(() =>
+      Promise.reject(eServiceNameDuplicate(mockEserviceSeed.name))
+    );
 
     const res = await request(api)
       .post("/eservices")
@@ -114,8 +167,4 @@ describe("API /eservices authorization test", async () => {
 
     expect(res.status).toBe(409);
   });
-});
-
-afterAll(() => {
-  vi.restoreAllMocks();
 });
