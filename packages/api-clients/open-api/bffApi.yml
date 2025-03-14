@@ -18542,11 +18542,6 @@ components:
         termsAndConditionsUrl:
           type: string
           format: uri
-        serverUrls:
-          type: array
-          items:
-            type: string
-            format: uri
     CompactEService:
       type: object
       additionalProperties: false

@@ -2509,11 +2509,6 @@ components:
         termsAndConditionsUrl:
           type: string
           format: uri
-        serverUrls:
-          type: array
-          items:
-            type: string
-            format: uri
     EServiceMode:
       type: string
       description: Risk Analysis Mode

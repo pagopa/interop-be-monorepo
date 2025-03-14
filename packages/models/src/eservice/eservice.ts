@@ -77,8 +77,7 @@ export const TemplateInstanceInterfaceMetadata = z.object({
   contactName: z.string().optional(),
   contactEmail: z.string().optional(),
   contactUrl: z.string().optional(),
-  termsAndConditionsUrl: z.string().optional(),
-  serverUrls: z.array(z.string()), // TODO remove this field
+  termsAndConditionsUrl: z.string().optional()
 });
 
 export type TemplateInstanceInterfaceMetadata = z.infer<

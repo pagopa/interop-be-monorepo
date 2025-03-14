@@ -3128,6 +3128,23 @@ export async function createOpenApiInterfaceByTemplate(
     eserviceInstanceInterfaceData
   );
 
+  const apiContactsData = match(eserviceInstanceInterfaceData)
+    .with(
+      {
+        contactEmail: P.optional(P.string),
+        contactName: P.optional(P.string),
+        contactUrl: P.optional(P.string),
+        termsAndConditionsUrl: P.optional(P.string),
+      },
+      (data) => ({
+        contactEmail: data.contactEmail,
+        contactName: data.contactName,
+        contactUrl: data.contactUrl,
+        termsAndConditionsUrl: data.termsAndConditionsUrl,
+      })
+    )
+    .otherwise(() => undefined);
+
   return await verifyAndCreateDocument(
     fileManager,
     eservice.id,
@@ -3160,7 +3177,7 @@ export async function createOpenApiInterfaceByTemplate(
           contentType,
           checksum,
           serverUrls,
-          interfaceTemplateMetadata: eserviceInstanceInterfaceData,
+          interfaceTemplateMetadata: apiContactsData,
         },
         undefined,
         readModelService,
