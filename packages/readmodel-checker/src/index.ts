@@ -6,7 +6,6 @@ import {
   ReadModelRepository,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
-import { delegationReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { readModelServiceBuilder } from "./services/readModelService.js";
@@ -40,8 +39,6 @@ const pool = new Pool({
 const readModelDB = drizzle({ client: pool });
 
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
 
 async function main(): Promise<void> {
   // CATALOG
@@ -139,8 +136,7 @@ async function main(): Promise<void> {
 
   // DELEGATION
   const delegations = await readModelService.getAllReadModelDelegations();
-  const delegationsPostgres =
-    await delegationReadModelServiceSQL.getAllDelegations();
+  const delegationsPostgres = await readModelServiceSQL.getAllDelegations();
   compare({
     collectionItems: delegations,
     postgresItems: delegationsPostgres,

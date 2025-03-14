@@ -30,4 +30,5 @@ export * from "./producerKeychainReadModelService.js";
 export * from "./authorization/producerJWKKeyAggregators.js";
 export * from "./producerJWKKeyReadModelService.js";
 
-export * from "./delegationReadModelServiceSQL.js";
+export * from "./delegation/aggregators.js";
+export * from "./delegationReadModelService.js";

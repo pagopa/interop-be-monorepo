@@ -9,9 +9,7 @@ import {
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import {
   aggregateDelegation,
-  aggregateDelegationsArray,
   toDelegationAggregator,
-  toDelegationAggregatorArray,
 } from "./delegation/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -91,36 +89,6 @@ export function delegationReadModelServiceBuilder(
       await db
         .delete(delegationInReadmodelDelegation)
         .where(eq(delegationInReadmodelDelegation.id, delegationId));
-    },
-    async getAllDelegations(): Promise<Array<WithMetadata<Delegation>>> {
-      const queryResult = await db
-        .select({
-          delegation: delegationInReadmodelDelegation,
-          delegationStamp: delegationStampInReadmodelDelegation,
-          delegationContractDocument:
-            delegationContractDocumentInReadmodelDelegation,
-        })
-        .from(delegationInReadmodelDelegation)
-        .leftJoin(
-          // 1
-          delegationStampInReadmodelDelegation,
-          eq(
-            delegationInReadmodelDelegation.id,
-            delegationStampInReadmodelDelegation.delegationId
-          )
-        )
-        .leftJoin(
-          // 2
-          delegationContractDocumentInReadmodelDelegation,
-          eq(
-            delegationInReadmodelDelegation.id,
-            delegationContractDocumentInReadmodelDelegation.delegationId
-          )
-        );
-
-      return aggregateDelegationsArray(
-        toDelegationAggregatorArray(queryResult)
-      );
     },
   };
 }

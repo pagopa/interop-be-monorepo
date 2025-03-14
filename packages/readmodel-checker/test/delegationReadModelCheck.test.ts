@@ -12,6 +12,7 @@ import {
   addOneDelegation,
   delegationReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check delegation readmodels", () => {
@@ -28,8 +29,7 @@ describe("Check delegation readmodels", () => {
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
 
-    const postgresDelegations =
-      await delegationReadModelServiceSQL.getAllDelegations();
+    const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
       collectionItems: collectionDelegations,
@@ -54,8 +54,7 @@ describe("Check delegation readmodels", () => {
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
 
-    const postgresDelegations =
-      await delegationReadModelServiceSQL.getAllDelegations();
+    const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
       collectionItems: collectionDelegations,
@@ -86,8 +85,7 @@ describe("Check delegation readmodels", () => {
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
 
-    const postgresDelegations =
-      await delegationReadModelServiceSQL.getAllDelegations();
+    const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
       collectionItems: collectionDelegations,
@@ -118,8 +116,7 @@ describe("Check delegation readmodels", () => {
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
 
-    const postgresDelegations =
-      await delegationReadModelServiceSQL.getAllDelegations();
+    const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
       collectionItems: collectionDelegations,
@@ -152,8 +149,7 @@ describe("Check delegation readmodels", () => {
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
 
-    const postgresDelegations =
-      await delegationReadModelServiceSQL.getAllDelegations();
+    const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
       collectionItems: collectionDelegations,
@@ -185,8 +181,7 @@ describe("Check delegation readmodels", () => {
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
 
-    const postgresDelegations =
-      await delegationReadModelServiceSQL.getAllDelegations();
+    const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
       collectionItems: collectionDelegations,

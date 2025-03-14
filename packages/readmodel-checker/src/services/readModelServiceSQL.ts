@@ -5,6 +5,7 @@ import {
   Attribute,
   Client,
   ClientJWKKey,
+  Delegation,
   EService,
   ProducerJWKKey,
   ProducerKeychain,
@@ -28,6 +29,8 @@ import {
   aggregateProducerKeychainArray,
   toProducerKeychainAggregatorArray,
   aggregateProducerJWKKeyArray,
+  aggregateDelegationsArray,
+  toDelegationAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -41,6 +44,9 @@ import {
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientUserInReadmodelClient,
+  delegationContractDocumentInReadmodelDelegation,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -421,6 +427,37 @@ export function readModelServiceBuilderSQL(
         .from(producerJwkKeyInReadmodelProducerJwkKey);
 
       return aggregateProducerJWKKeyArray(queryResult);
+    },
+
+    async getAllDelegations(): Promise<Array<WithMetadata<Delegation>>> {
+      const queryResult = await readModelDB
+        .select({
+          delegation: delegationInReadmodelDelegation,
+          delegationStamp: delegationStampInReadmodelDelegation,
+          delegationContractDocument:
+            delegationContractDocumentInReadmodelDelegation,
+        })
+        .from(delegationInReadmodelDelegation)
+        .leftJoin(
+          // 1
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          // 2
+          delegationContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        );
+
+      return aggregateDelegationsArray(
+        toDelegationAggregatorArray(queryResult)
+      );
     },
   };
 }
