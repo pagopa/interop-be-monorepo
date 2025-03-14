@@ -1048,7 +1048,7 @@ const eservicesRouter = (
             req.body.name,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1072,7 +1072,7 @@ const eservicesRouter = (
             req.body.description,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1097,7 +1097,7 @@ const eservicesRouter = (
             req.body.voucherLifespan,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1122,7 +1122,7 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1147,7 +1147,7 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1172,7 +1172,7 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1198,7 +1198,7 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1223,7 +1223,7 @@ const eservicesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
