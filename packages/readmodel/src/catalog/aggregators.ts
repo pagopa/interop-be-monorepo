@@ -96,7 +96,6 @@ export const aggregateDescriptor = ({
   return {
     id: unsafeBrandId<DescriptorId>(descriptorSQL.id),
     version: descriptorSQL.version,
-    description: descriptorSQL.description || undefined,
     interface: parsedInterface,
     docs: documentsSQL.map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
@@ -104,11 +103,18 @@ export const aggregateDescriptor = ({
     voucherLifespan: descriptorSQL.voucherLifespan,
     dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
-    agreementApprovalPolicy: descriptorSQL.agreementApprovalPolicy
-      ? AgreementApprovalPolicy.parse(descriptorSQL.agreementApprovalPolicy)
-      : undefined, // TODO use safeParse?
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
+    ...(descriptorSQL.description
+      ? { description: descriptorSQL.description }
+      : {}),
+    ...(descriptorSQL.agreementApprovalPolicy
+      ? {
+          agreementApprovalPolicy: AgreementApprovalPolicy.parse(
+            descriptorSQL.agreementApprovalPolicy
+          ), // TODO use safeParse?
+        }
+      : {}),
     ...(descriptorSQL.publishedAt
       ? { publishedAt: stringToDate(descriptorSQL.publishedAt) }
       : {}),
@@ -178,9 +184,11 @@ EServiceItemsSQL): WithMetadata<EService> => {
     descriptors,
     riskAnalysis,
     mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
-    isClientAccessDelegable: eserviceSQL.isClientAccessDelegable || undefined,
-    isConsumerDelegable: eserviceSQL.isConsumerDelegable || undefined,
-    isSignalHubEnabled: eserviceSQL.isSignalHubEnabled || undefined,
+    ...(eserviceSQL.isClientAccessDelegable
+      ? { isClientAccessDelegable: true }
+      : {}),
+    ...(eserviceSQL.isConsumerDelegable ? { isConsumerDelegable: true } : {}),
+    ...(eserviceSQL.isSignalHubEnabled ? { isSignalHubEnabled: true } : {}),
   };
   return {
     data: eservice,

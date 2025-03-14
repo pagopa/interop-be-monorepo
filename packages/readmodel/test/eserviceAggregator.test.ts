@@ -85,7 +85,7 @@ describe("E-service aggregator", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     });
 
-    expect(aggregatedEservice).toMatchObject({
+    expect(aggregatedEservice).toStrictEqual({
       data: eservice,
       metadata: { version: 1 },
     });
@@ -104,24 +104,12 @@ describe("E-service aggregator", () => {
         verified: [],
       },
       docs: [doc],
-      interface: undefined,
-      rejectionReasons: undefined,
-      description: undefined,
-      // TODO the optional fields should not be set, otherwise they are expected in the result. Instead, the result will not fill these if the entries have null in db
-      // publishedAt: undefined,
-      // suspendedAt: undefined,
-      // deprecatedAt: undefined,
-      // archivedAt: undefined,
-      agreementApprovalPolicy: undefined,
     };
 
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis1, riskAnalysis2],
-      isSignalHubEnabled: undefined,
-      isClientAccessDelegable: undefined,
-      isConsumerDelegable: undefined,
     };
 
     const {
@@ -148,7 +136,7 @@ describe("E-service aggregator", () => {
       // TODO: add eserviceTemplateBinding
     });
 
-    expect(aggregatedEservice).toMatchObject({
+    expect(aggregatedEservice).toStrictEqual({
       data: eservice,
       metadata: { version: 1 },
     });

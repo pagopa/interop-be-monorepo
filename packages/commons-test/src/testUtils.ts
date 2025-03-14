@@ -320,7 +320,6 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
-  description: undefined,
   docs: [],
   state: state || descriptorState.draft,
   audience: [],
@@ -329,13 +328,11 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   dailyCallsTotal: 1000,
   createdAt: new Date(),
   serverUrls: ["pagopa.it"],
-  agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
     verified: [],
     declared: [],
   },
-  rejectionReasons: undefined,
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {
