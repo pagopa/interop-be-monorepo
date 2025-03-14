@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   ProducerJWKKey,
@@ -13,28 +13,30 @@ import {
 } from "./authorization/producerJWKKeyAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function producerJWKKeyreadModelServiceBuilder(
+export function producerJWKKeyReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
     async upsertProducerJWKKey(
-      jwkKey: WithMetadata<ProducerJWKKey>
+      jwkKey: ProducerJWKKey,
+      metadataVersion: number
     ): Promise<void> {
       const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
-        jwkKey.data,
-        jwkKey.metadata.version
+        jwkKey,
+        metadataVersion
       );
 
       await db.transaction(async (tx) => {
+        // TODO: add metadata version check (lte)
         await tx
           .delete(producerJwkKeyInReadmodelProducerJwkKey)
           .where(
             and(
               eq(
                 producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-                jwkKey.data.producerKeychainId
+                jwkKey.producerKeychainId
               ),
-              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.data.kid)
+              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
             )
           );
 
@@ -66,7 +68,8 @@ export function producerJWKKeyreadModelServiceBuilder(
     },
     async deleteProducerJWKKeyByKid(
       producerKeychainId: ProducerKeychainId,
-      kid: string
+      kid: string,
+      metadataVersion: number
     ): Promise<void> {
       await db
         .delete(producerJwkKeyInReadmodelProducerJwkKey)
@@ -76,7 +79,11 @@ export function producerJWKKeyreadModelServiceBuilder(
               producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
               producerKeychainId
             ),
-            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kid)
+            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kid),
+            lte(
+              producerJwkKeyInReadmodelProducerJwkKey.metadataVersion,
+              metadataVersion
+            )
           )
         );
     },
@@ -93,5 +100,5 @@ export function producerJWKKeyreadModelServiceBuilder(
 }
 
 export type ProducerJWKKeyReadModelService = ReturnType<
-  typeof producerJWKKeyreadModelServiceBuilder
+  typeof producerJWKKeyReadModelServiceBuilder
 >;
