@@ -220,8 +220,6 @@ export async function isOverQuota(
 ): Promise<boolean> {
   const allPurposes = await readModelService.getAllPurposes({
     eservicesIds: [eservice.id],
-    consumersIds: [],
-    producersIds: [],
     states: [purposeVersionState.active],
     excludeDraft: true,
   });
@@ -267,14 +265,15 @@ export async function isOverQuota(
   );
 }
 
-export const assertRequesterIsAllowedToRetrieveRiskAnalysisDocument = async (
+export const assertRequesterCanRetrievePurpose = async (
   purpose: Purpose,
   eservice: EService,
   authData: Pick<AuthData, "organizationId">,
   readModelService: ReadModelService
 ): Promise<void> => {
-  // This operation has a dedicated assertion because it's the only operation that
-  // can be performed also by the producer/consumer even when active producer/consumer delegations exist
+  // This validator is for retrieval operations that can be performed by all the tenants involved:
+  // the consumer, the producer, the consumer delegate, and the producer delegate.
+  // Consumers and producers can retrieve purposes even if delegations exist.
   try {
     assertRequesterIsConsumer(purpose, authData);
   } catch {
@@ -369,7 +368,7 @@ export const assertRequesterCanActAsConsumer = (
 };
 
 const assertRequesterIsDelegateConsumer = (
-  purpose: Pick<Purpose, "consumerId" | "eserviceId">,
+  purpose: Pick<Purpose, "consumerId" | "eserviceId" | "delegationId">,
   authData: Pick<AuthData, "organizationId">,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
@@ -378,7 +377,8 @@ const assertRequesterIsDelegateConsumer = (
     activeConsumerDelegation?.delegatorId !== purpose.consumerId ||
     activeConsumerDelegation?.eserviceId !== purpose.eserviceId ||
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
-    activeConsumerDelegation?.state !== delegationState.active
+    activeConsumerDelegation?.state !== delegationState.active ||
+    purpose.delegationId !== activeConsumerDelegation?.id
   ) {
     throw organizationIsNotTheDelegatedConsumer(
       authData.organizationId,
@@ -388,24 +388,41 @@ const assertRequesterIsDelegateConsumer = (
 };
 
 export const verifyRequesterIsConsumerOrDelegateConsumer = async (
-  purpose: Pick<Purpose, "consumerId" | "eserviceId">,
+  consumerId: TenantId,
+  eserviceId: EServiceId,
   authData: AuthData,
   readModelService: ReadModelService
 ): Promise<DelegationId | undefined> => {
   try {
-    assertRequesterIsConsumer(purpose, authData);
+    assertRequesterIsConsumer(
+      {
+        consumerId,
+      },
+      authData
+    );
     return undefined;
   } catch {
     const consumerDelegation =
       await readModelService.getActiveConsumerDelegationByEserviceAndConsumerIds(
-        purpose
+        {
+          eserviceId,
+          consumerId,
+        }
       );
 
     if (!consumerDelegation) {
       throw organizationIsNotTheConsumer(authData.organizationId);
     }
 
-    assertRequesterIsDelegateConsumer(purpose, authData, consumerDelegation);
+    assertRequesterIsDelegateConsumer(
+      {
+        consumerId,
+        eserviceId,
+        delegationId: consumerDelegation.id,
+      },
+      authData,
+      consumerDelegation
+    );
 
     return consumerDelegation?.id;
   }
