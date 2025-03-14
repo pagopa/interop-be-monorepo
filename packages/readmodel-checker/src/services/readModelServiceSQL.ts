@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  Agreement,
   Attribute,
   EService,
   Purpose,
@@ -15,8 +16,15 @@ import {
   aggregateTenantArray,
   toPurposeAggregatorArray,
   aggregatePurposeArray,
+  aggregateAgreementArray,
+  toAgreementAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
+  agreementAttributeInReadmodelAgreement,
+  agreementConsumerDocumentInReadmodelAgreement,
+  agreementContractInReadmodelAgreement,
+  agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -251,6 +259,52 @@ export function readModelServiceBuilderSQL(
         );
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
+    },
+
+    async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
+      const queryResult = await readModelDB
+        .select({
+          agreement: agreementInReadmodelAgreement,
+          stamp: agreementStampInReadmodelAgreement,
+          attribute: agreementAttributeInReadmodelAgreement,
+          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+          contract: agreementContractInReadmodelAgreement,
+        })
+        .from(agreementInReadmodelAgreement)
+        .leftJoin(
+          // 1
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 2
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 3
+          agreementConsumerDocumentInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementConsumerDocumentInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 4
+          agreementContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementContractInReadmodelAgreement.agreementId
+          )
+        );
+
+      return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
     },
   };
 }

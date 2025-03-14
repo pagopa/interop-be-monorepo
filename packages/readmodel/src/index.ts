@@ -8,6 +8,7 @@ export * from "./attribute/aggregators.js";
 export * from "./attributeReadModelServiceSQL.js";
 
 export * from "./agreement/splitters.js";
+export * from "./agreement/aggregators.js";
 export * from "./agreementReadModelService.js";
 
 export * from "./tenant/aggregators.js";
