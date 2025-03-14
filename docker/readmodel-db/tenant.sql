@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_mail (
   description VARCHAR NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_certified_attribute (
@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_certified_attribute (
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (attribute_id, tenant_id)
+  PRIMARY KEY (attribute_id, tenant_id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_declared_attribute (
@@ -44,7 +45,8 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_declared_attribute (
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
   delegation_id UUID,
-  PRIMARY KEY (attribute_id, tenant_id)
+  PRIMARY KEY (attribute_id, tenant_id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute (
@@ -53,7 +55,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute (
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (attribute_id, tenant_id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_verifier (
@@ -71,7 +73,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_verifier (
     tenant_id
   ),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
@@ -90,7 +92,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
     tenant_id
   ),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_feature (
@@ -100,5 +102,5 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_feature (
   certifier_id VARCHAR,
   availability_timestamp TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (tenant_id, kind),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version)
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
