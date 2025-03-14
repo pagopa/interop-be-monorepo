@@ -11,6 +11,7 @@ import {
   addOneEService,
   eserviceReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check catalog readmodels", () => {
@@ -25,8 +26,7 @@ describe("Check catalog readmodels", () => {
     const collectionEServices =
       await readModelService.getAllReadModelEServices();
 
-    const postgresEServices =
-      await eserviceReadModelServiceSQL.getAllEServices();
+    const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
       collectionItems: collectionEServices,
@@ -55,13 +55,15 @@ describe("Check catalog readmodels", () => {
 
     await addOneEService(eservice);
 
-    await eserviceReadModelServiceSQL.upsertEService(eservice);
+    await eserviceReadModelServiceSQL.upsertEService(
+      eservice.data,
+      eservice.metadata.version
+    );
 
     const collectionEServices =
       await readModelService.getAllReadModelEServices();
 
-    const postgresEServices =
-      await eserviceReadModelServiceSQL.getAllEServices();
+    const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
       collectionItems: collectionEServices,
@@ -96,13 +98,15 @@ describe("Check catalog readmodels", () => {
     await addOneEService(eservice1);
     await addOneEService(eservice2);
 
-    await eserviceReadModelServiceSQL.upsertEService(eservice2);
+    await eserviceReadModelServiceSQL.upsertEService(
+      eservice2.data,
+      eservice2.metadata.version
+    );
 
     const collectionEServices =
       await readModelService.getAllReadModelEServices();
 
-    const postgresEServices =
-      await eserviceReadModelServiceSQL.getAllEServices();
+    const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
       collectionItems: collectionEServices,
@@ -136,14 +140,19 @@ describe("Check catalog readmodels", () => {
 
     await addOneEService(eservice1);
 
-    await eserviceReadModelServiceSQL.upsertEService(eservice1);
-    await eserviceReadModelServiceSQL.upsertEService(eservice2);
+    await eserviceReadModelServiceSQL.upsertEService(
+      eservice1.data,
+      eservice1.metadata.version
+    );
+    await eserviceReadModelServiceSQL.upsertEService(
+      eservice2.data,
+      eservice2.metadata.version
+    );
 
     const collectionEServices =
       await readModelService.getAllReadModelEServices();
 
-    const postgresEServices =
-      await eserviceReadModelServiceSQL.getAllEServices();
+    const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
       collectionItems: collectionEServices,
@@ -180,13 +189,15 @@ describe("Check catalog readmodels", () => {
 
     await addOneEService(eservice1);
 
-    await eserviceReadModelServiceSQL.upsertEService(eservice1ForSQL);
+    await eserviceReadModelServiceSQL.upsertEService(
+      eservice1ForSQL.data,
+      eservice1ForSQL.metadata.version
+    );
 
     const collectionEServices =
       await readModelService.getAllReadModelEServices();
 
-    const postgresEServices =
-      await eserviceReadModelServiceSQL.getAllEServices();
+    const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
       collectionItems: collectionEServices,
@@ -222,13 +233,15 @@ describe("Check catalog readmodels", () => {
 
     await addOneEService(eservice1);
 
-    await eserviceReadModelServiceSQL.upsertEService(eservice1ForSQL);
+    await eserviceReadModelServiceSQL.upsertEService(
+      eservice1ForSQL.data,
+      eservice1ForSQL.metadata.version
+    );
 
     const collectionEServices =
       await readModelService.getAllReadModelEServices();
 
-    const postgresEServices =
-      await eserviceReadModelServiceSQL.getAllEServices();
+    const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
       collectionItems: collectionEServices,

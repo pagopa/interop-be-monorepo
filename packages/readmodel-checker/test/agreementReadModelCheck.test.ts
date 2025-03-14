@@ -7,6 +7,7 @@ import {
   addOneAgreement,
   agreementReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check agreement readmodels", () => {
@@ -21,8 +22,7 @@ describe("Check agreement readmodels", () => {
     const collectionAgreements =
       await readModelService.getAllReadModelAgreements();
 
-    const postgresAgreements =
-      await agreementReadModelServiceSQL.getAllAgreements();
+    const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
       collectionItems: collectionAgreements,
@@ -42,13 +42,15 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement);
 
-    await agreementReadModelServiceSQL.upsertAgreement(agreement);
+    await agreementReadModelServiceSQL.upsertAgreement(
+      agreement.data,
+      agreement.metadata.version
+    );
 
     const collectionAgreements =
       await readModelService.getAllReadModelAgreements();
 
-    const postgresAgreements =
-      await agreementReadModelServiceSQL.getAllAgreements();
+    const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
       collectionItems: collectionAgreements,
@@ -74,13 +76,15 @@ describe("Check agreement readmodels", () => {
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
 
-    await agreementReadModelServiceSQL.upsertAgreement(agreement2);
+    await agreementReadModelServiceSQL.upsertAgreement(
+      agreement2.data,
+      agreement2.metadata.version
+    );
 
     const collectionAgreements =
       await readModelService.getAllReadModelAgreements();
 
-    const postgresAgreements =
-      await agreementReadModelServiceSQL.getAllAgreements();
+    const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
       collectionItems: collectionAgreements,
@@ -105,14 +109,19 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(agreement1);
-    await agreementReadModelServiceSQL.upsertAgreement(agreement2);
+    await agreementReadModelServiceSQL.upsertAgreement(
+      agreement1.data,
+      agreement1.metadata.version
+    );
+    await agreementReadModelServiceSQL.upsertAgreement(
+      agreement2.data,
+      agreement2.metadata.version
+    );
 
     const collectionAgreements =
       await readModelService.getAllReadModelAgreements();
 
-    const postgresAgreements =
-      await agreementReadModelServiceSQL.getAllAgreements();
+    const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
       collectionItems: collectionAgreements,
@@ -140,13 +149,15 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(agreement1ForSQL);
+    await agreementReadModelServiceSQL.upsertAgreement(
+      agreement1ForSQL.data,
+      agreement1ForSQL.metadata.version
+    );
 
     const collectionAgreements =
       await readModelService.getAllReadModelAgreements();
 
-    const postgresAgreements =
-      await agreementReadModelServiceSQL.getAllAgreements();
+    const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
       collectionItems: collectionAgreements,
@@ -173,13 +184,15 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(agreement1ForSQL);
+    await agreementReadModelServiceSQL.upsertAgreement(
+      agreement1ForSQL.data,
+      agreement1ForSQL.metadata.version
+    );
 
     const collectionAgreements =
       await readModelService.getAllReadModelAgreements();
 
-    const postgresAgreements =
-      await agreementReadModelServiceSQL.getAllAgreements();
+    const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
       collectionItems: collectionAgreements,

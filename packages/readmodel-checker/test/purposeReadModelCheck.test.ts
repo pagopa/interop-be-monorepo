@@ -7,6 +7,7 @@ import {
   addOnePurpose,
   purposeReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check purpose readmodels", () => {
@@ -20,7 +21,7 @@ describe("Check purpose readmodels", () => {
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
-    const postgresPurposes = await purposeReadModelServiceSQL.getAllPurposes();
+    const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
       collectionItems: collectionPurposes,
@@ -40,11 +41,14 @@ describe("Check purpose readmodels", () => {
 
     await addOnePurpose(purpose);
 
-    await purposeReadModelServiceSQL.upsertPurpose(purpose);
+    await purposeReadModelServiceSQL.upsertPurpose(
+      purpose.data,
+      purpose.metadata.version
+    );
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
-    const postgresPurposes = await purposeReadModelServiceSQL.getAllPurposes();
+    const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
       collectionItems: collectionPurposes,
@@ -70,11 +74,14 @@ describe("Check purpose readmodels", () => {
     await addOnePurpose(purpose1);
     await addOnePurpose(purpose2);
 
-    await purposeReadModelServiceSQL.upsertPurpose(purpose2);
+    await purposeReadModelServiceSQL.upsertPurpose(
+      purpose2.data,
+      purpose2.metadata.version
+    );
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
-    const postgresPurposes = await purposeReadModelServiceSQL.getAllPurposes();
+    const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
       collectionItems: collectionPurposes,
@@ -99,12 +106,18 @@ describe("Check purpose readmodels", () => {
 
     await addOnePurpose(purpose1);
 
-    await purposeReadModelServiceSQL.upsertPurpose(purpose1);
-    await purposeReadModelServiceSQL.upsertPurpose(purpose2);
+    await purposeReadModelServiceSQL.upsertPurpose(
+      purpose1.data,
+      purpose1.metadata.version
+    );
+    await purposeReadModelServiceSQL.upsertPurpose(
+      purpose2.data,
+      purpose2.metadata.version
+    );
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
-    const postgresPurposes = await purposeReadModelServiceSQL.getAllPurposes();
+    const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
       collectionItems: collectionPurposes,
@@ -134,11 +147,14 @@ describe("Check purpose readmodels", () => {
 
     await addOnePurpose(purpose1);
 
-    await purposeReadModelServiceSQL.upsertPurpose(purpose1ForSQL);
+    await purposeReadModelServiceSQL.upsertPurpose(
+      purpose1ForSQL.data,
+      purpose1ForSQL.metadata.version
+    );
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
-    const postgresPurposes = await purposeReadModelServiceSQL.getAllPurposes();
+    const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
       collectionItems: collectionPurposes,
@@ -165,11 +181,14 @@ describe("Check purpose readmodels", () => {
 
     await addOnePurpose(purpose1);
 
-    await purposeReadModelServiceSQL.upsertPurpose(purpose1ForSQL);
+    await purposeReadModelServiceSQL.upsertPurpose(
+      purpose1ForSQL.data,
+      purpose1ForSQL.metadata.version
+    );
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
 
-    const postgresPurposes = await purposeReadModelServiceSQL.getAllPurposes();
+    const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
       collectionItems: collectionPurposes,

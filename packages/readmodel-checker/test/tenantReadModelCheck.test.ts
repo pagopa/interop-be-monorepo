@@ -7,6 +7,7 @@ import {
   addOneTenant,
   tenantReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check tenant readmodels", () => {
@@ -20,7 +21,7 @@ describe("Check tenant readmodels", () => {
 
     const collectionTenants = await readModelService.getAllReadModelTenants();
 
-    const postgresTenants = await tenantReadModelServiceSQL.getAllTenants();
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
       collectionItems: collectionTenants,
@@ -40,11 +41,14 @@ describe("Check tenant readmodels", () => {
 
     await addOneTenant(tenant);
 
-    await tenantReadModelServiceSQL.upsertTenant(tenant);
+    await tenantReadModelServiceSQL.upsertTenant(
+      tenant.data,
+      tenant.metadata.version
+    );
 
     const collectionTenants = await readModelService.getAllReadModelTenants();
 
-    const postgresTenants = await tenantReadModelServiceSQL.getAllTenants();
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
       collectionItems: collectionTenants,
@@ -70,11 +74,14 @@ describe("Check tenant readmodels", () => {
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
 
-    await tenantReadModelServiceSQL.upsertTenant(tenant2);
+    await tenantReadModelServiceSQL.upsertTenant(
+      tenant2.data,
+      tenant2.metadata.version
+    );
 
     const collectionTenants = await readModelService.getAllReadModelTenants();
 
-    const postgresTenants = await tenantReadModelServiceSQL.getAllTenants();
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
       collectionItems: collectionTenants,
@@ -99,12 +106,18 @@ describe("Check tenant readmodels", () => {
 
     await addOneTenant(tenant1);
 
-    await tenantReadModelServiceSQL.upsertTenant(tenant1);
-    await tenantReadModelServiceSQL.upsertTenant(tenant2);
+    await tenantReadModelServiceSQL.upsertTenant(
+      tenant1.data,
+      tenant1.metadata.version
+    );
+    await tenantReadModelServiceSQL.upsertTenant(
+      tenant2.data,
+      tenant2.metadata.version
+    );
 
     const collectionTenants = await readModelService.getAllReadModelTenants();
 
-    const postgresTenants = await tenantReadModelServiceSQL.getAllTenants();
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
       collectionItems: collectionTenants,
@@ -135,11 +148,14 @@ describe("Check tenant readmodels", () => {
 
     await addOneTenant(tenant1);
 
-    await tenantReadModelServiceSQL.upsertTenant(tenant1ForSQL);
+    await tenantReadModelServiceSQL.upsertTenant(
+      tenant1ForSQL.data,
+      tenant1ForSQL.metadata.version
+    );
 
     const collectionTenants = await readModelService.getAllReadModelTenants();
 
-    const postgresTenants = await tenantReadModelServiceSQL.getAllTenants();
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
       collectionItems: collectionTenants,
@@ -166,11 +182,14 @@ describe("Check tenant readmodels", () => {
 
     await addOneTenant(tenant1);
 
-    await tenantReadModelServiceSQL.upsertTenant(tenant1ForSQL);
+    await tenantReadModelServiceSQL.upsertTenant(
+      tenant1ForSQL.data,
+      tenant1ForSQL.metadata.version
+    );
 
     const collectionTenants = await readModelService.getAllReadModelTenants();
 
-    const postgresTenants = await tenantReadModelServiceSQL.getAllTenants();
+    const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
       collectionItems: collectionTenants,

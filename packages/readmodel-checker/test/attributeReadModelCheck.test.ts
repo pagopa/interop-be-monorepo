@@ -7,6 +7,7 @@ import {
   addOneAttribute,
   attributeReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check attribute readmodels", () => {
@@ -21,8 +22,7 @@ describe("Check attribute readmodels", () => {
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
 
-    const postgresAttributes =
-      await attributeReadModelServiceSQL.getAllAttributes();
+    const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
       collectionItems: collectionAttributes,
@@ -47,8 +47,7 @@ describe("Check attribute readmodels", () => {
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
 
-    const postgresAttributes =
-      await attributeReadModelServiceSQL.getAllAttributes();
+    const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
       collectionItems: collectionAttributes,
@@ -79,8 +78,7 @@ describe("Check attribute readmodels", () => {
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
 
-    const postgresAttributes =
-      await attributeReadModelServiceSQL.getAllAttributes();
+    const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
       collectionItems: collectionAttributes,
@@ -111,8 +109,7 @@ describe("Check attribute readmodels", () => {
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
 
-    const postgresAttributes =
-      await attributeReadModelServiceSQL.getAllAttributes();
+    const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
       collectionItems: collectionAttributes,
@@ -148,8 +145,7 @@ describe("Check attribute readmodels", () => {
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
 
-    const postgresAttributes =
-      await attributeReadModelServiceSQL.getAllAttributes();
+    const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
       collectionItems: collectionAttributes,
@@ -181,8 +177,7 @@ describe("Check attribute readmodels", () => {
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
 
-    const postgresAttributes =
-      await attributeReadModelServiceSQL.getAllAttributes();
+    const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
       collectionItems: collectionAttributes,
