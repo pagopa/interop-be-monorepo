@@ -18,13 +18,25 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
+import {
+  attributeReadModelServiceBuilderSQL,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilderSQL,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { config } from "../src/config/config.js";
 
 export const { cleanup, readModelRepository, postgresDB } =
   await setupTestContainersVitest(
     inject("readModelConfig"),
-    inject("eventStoreConfig")
+    inject("eventStoreConfig"),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
   );
 
 afterEach(cleanup);
@@ -34,7 +46,21 @@ export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+const db = makeDrizzleConnection(inject("readModelSQLConfig")!);
+const attributeReadModelServiceSQL = attributeReadModelServiceBuilderSQL(db);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(db);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  attributeReadModelServiceSQL,
+  tenantReadModelServiceSQL
+);
+
+export const readModelService = config.featureFlagSQL
+  ? readModelServiceSQL
+  : oldReadModelService;
+
 export const attributeRegistryService = attributeRegistryServiceBuilder(
   postgresDB,
   readModelService
@@ -61,10 +87,18 @@ export const writeAttributeInEventstore = async (
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeAttributeInEventstore(attribute);
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+  await attributeReadModelServiceSQL.upsertAttribute({
+    data: attribute,
+    metadata: { version: 1 },
+  });
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
+  await tenantReadModelServiceSQL.upsertTenant({
+    data: tenant,
+    metadata: { version: 1 },
+  });
 };
 
 export const readLastAttributeEvent = async (

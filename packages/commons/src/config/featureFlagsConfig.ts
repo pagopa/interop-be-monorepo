@@ -17,4 +17,14 @@ export const FeatureFlagsConfig = z
     signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
   }));
 
+export const FeatureFlagSQL = z
+  .object({
+    FEATURE_FLAG_SQL: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+  })
+  .transform((c) => ({
+    featureFlagSQL: c.FEATURE_FLAG_SQL,
+  }));
 export type FeatureFlagsConfig = z.infer<typeof FeatureFlagsConfig>;
