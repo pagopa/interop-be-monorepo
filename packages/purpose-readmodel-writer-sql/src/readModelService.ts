@@ -11,6 +11,7 @@ import {
   splitPurposeVersionIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import {
+  DrizzleTransactionType,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
@@ -23,8 +24,8 @@ export function customReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>,
   purposeReadModelService: PurposeReadModelService
 ) {
-  const updateMetadataVersionInPurposeTable = async (
-    tx: TransactionType,
+  const updateMetadataVersionInPurposeTables = async (
+    tx: DrizzleTransactionType,
     purposeId: PurposeId,
     newMetadataVersion: number
   ): Promise<void> => {
@@ -70,29 +71,42 @@ export function customReadModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const { versionSQL, versionDocumentSQL } =
-          splitPurposeVersionIntoObjectsSQL(
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion: purposeInReadmodelPurpose.metadataVersion,
+            })
+            .from(purposeInReadmodelPurpose)
+            .where(eq(purposeInReadmodelPurpose.id, purposeId))
+        )[0]?.metadataVersion;
+
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx
+            .delete(purposeVersionInReadmodelPurpose)
+            .where(eq(purposeVersionInReadmodelPurpose.id, purposeVersion.id));
+
+          const { versionSQL, versionDocumentSQL } =
+            splitPurposeVersionIntoObjectsSQL(
+              purposeId,
+              purposeVersion,
+              metadataVersion
+            );
+
+          await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
+          if (versionDocumentSQL) {
+            await tx
+              .insert(purposeVersionDocumentInReadmodelPurpose)
+              .values(versionDocumentSQL);
+          }
+
+          await updateMetadataVersionInPurposeTables(
+            tx,
             purposeId,
-            purposeVersion,
             metadataVersion
           );
-
-        await updateMetadataVersionInPurposeTable(
-          tx,
-          purposeId,
-          metadataVersion
-        );
-
-        // TODO: add version checking "lte"
-        await tx
-          .delete(purposeVersionInReadmodelPurpose)
-          .where(eq(purposeVersionInReadmodelPurpose.id, purposeVersion.id));
-
-        await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
-        if (versionDocumentSQL) {
-          await tx
-            .insert(purposeVersionDocumentInReadmodelPurpose)
-            .values(versionDocumentSQL);
         }
       });
     },
@@ -103,12 +117,6 @@ export function customReadModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        await updateMetadataVersionInPurposeTable(
-          tx,
-          purposeId,
-          metadataVersion
-        );
-
         await tx
           .delete(purposeVersionInReadmodelPurpose)
           .where(
@@ -120,6 +128,12 @@ export function customReadModelServiceBuilder(
               )
             )
           );
+
+        await updateMetadataVersionInPurposeTables(
+          tx,
+          purposeId,
+          metadataVersion
+        );
       });
     },
   };
@@ -127,9 +141,3 @@ export function customReadModelServiceBuilder(
 export type CustomReadModelService = ReturnType<
   typeof customReadModelServiceBuilder
 >;
-
-// TODO: import this after merging
-export type DrizzleReturnType = ReturnType<typeof drizzle>;
-export type TransactionType = Parameters<
-  Parameters<DrizzleReturnType["transaction"]>[0]
->[0];

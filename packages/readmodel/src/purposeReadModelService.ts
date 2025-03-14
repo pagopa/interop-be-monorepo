@@ -23,25 +23,31 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       purpose: Purpose,
       metadataVersion: number
     ): Promise<void> {
-      const {
-        purposeSQL,
-        riskAnalysisFormSQL,
-        riskAnalysisAnswersSQL,
-        versionsSQL,
-        versionDocumentsSQL,
-      } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
-
       await db.transaction(async (tx) => {
-        const existingPurposeSQL = await tx
-          .select()
-          .from(purposeInReadmodelPurpose)
-          .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion: purposeInReadmodelPurpose.metadataVersion,
+            })
+            .from(purposeInReadmodelPurpose)
+            .where(eq(purposeInReadmodelPurpose.id, purpose.id))
+        )[0]?.metadataVersion;
 
-        // TODO: metadataVersion >= existingPurposeSQL[0].metadataVersion?
-        if (existingPurposeSQL[0].metadataVersion <= metadataVersion) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
             .delete(purposeInReadmodelPurpose)
             .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+
+          const {
+            purposeSQL,
+            riskAnalysisFormSQL,
+            riskAnalysisAnswersSQL,
+            versionsSQL,
+            versionDocumentsSQL,
+          } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
           await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
 
