@@ -12,3 +12,4 @@ export * as notifierApi from "./generated/notifierApi.js";
 export * as delegationApi from "./generated/delegationApi.js";
 export * from "./selfcareClients.js";
 export * as authorizationServerApi from "./generated/authorizationServerApi.js";
+export * as eserviceTemplateApi from "./generated/eserviceTemplateApi.js";

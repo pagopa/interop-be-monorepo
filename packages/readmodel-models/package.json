@@ -12,7 +12,6 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -20,7 +19,6 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/node": "20.14.6",
     "dotenv": "16.4.7",
     "drizzle-orm": "0.39.3",
     "pagopa-interop-commons": "workspace:*",
@@ -29,12 +27,12 @@
     "pg-promise": "11.8.0"
   },
   "devDependencies": {
+    "@types/node": "20.14.6",
     "@types/pg": "8.11.11",
     "drizzle-kit": "0.30.4",
     "eslint": "8.57.0",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
-    "tsx": "4.19.1",
     "typescript": "5.4.5"
   }
 }
