@@ -24,7 +24,7 @@ import {
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
-import { generateRiskAnalysisAnswersSQL } from "./utils.js";
+import { generateEServiceRiskAnalysisAnswersSQL } from "./eserviceUtils.js";
 
 describe("E-service splitter", () => {
   it("should convert a complete e-service into e-service SQL objects", () => {
@@ -117,10 +117,11 @@ describe("E-service splitter", () => {
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] =
-      generateRiskAnalysisAnswersSQL(eservice.id, [
-        riskAnalysis1,
-        riskAnalysis2,
-      ]);
+      generateEServiceRiskAnalysisAnswersSQL(
+        eservice.id,
+        [riskAnalysis1, riskAnalysis2],
+        1
+      );
 
     const expectedDescriptorSQL: EServiceDescriptorSQL = {
       metadataVersion: 1,
@@ -272,10 +273,11 @@ describe("E-service splitter", () => {
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] =
-      generateRiskAnalysisAnswersSQL(eservice.id, [
-        riskAnalysis1,
-        riskAnalysis2,
-      ]);
+      generateEServiceRiskAnalysisAnswersSQL(
+        eservice.id,
+        [riskAnalysis1, riskAnalysis2],
+        1
+      );
 
     const expectedDescriptorSQL: EServiceDescriptorSQL = {
       metadataVersion: 1,
