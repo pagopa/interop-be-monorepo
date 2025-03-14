@@ -6,6 +6,7 @@ import {
   Client,
   ClientJWKKey,
   EService,
+  ProducerKeychain,
   Purpose,
   Tenant,
   WithMetadata,
@@ -23,6 +24,8 @@ import {
   aggregateClientArray,
   toClientAggregatorArray,
   aggregateClientJWKKeyArray,
+  aggregateProducerKeychainArray,
+  toProducerKeychainAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -44,6 +47,10 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  producerKeychainEserviceInReadmodelProducerKeychain,
+  producerKeychainInReadmodelProducerKeychain,
+  producerKeychainKeyInReadmodelProducerKeychain,
+  producerKeychainUserInReadmodelProducerKeychain,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
@@ -354,6 +361,53 @@ export function readModelServiceBuilderSQL(
         .from(clientJwkKeyInReadmodelClientJwkKey);
 
       return aggregateClientJWKKeyArray(queryResult);
+    },
+
+    async getAllProducerKeychains(): Promise<
+      Array<WithMetadata<ProducerKeychain>>
+    > {
+      /*
+        producer_keychain -> 1 producer_keychain_user
+                          -> 2 producer_keychain_eservice
+                          -> 3 producer_keychain_key
+      */
+      const queryResult = await readModelDB
+        .select({
+          producerKeychain: producerKeychainInReadmodelProducerKeychain,
+          producerKeychainUser: producerKeychainUserInReadmodelProducerKeychain,
+          producerKeychainEService:
+            producerKeychainEserviceInReadmodelProducerKeychain,
+          producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
+        })
+        .from(producerKeychainInReadmodelProducerKeychain)
+        .leftJoin(
+          // 1
+          producerKeychainUserInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
+          )
+        )
+        .leftJoin(
+          // 2
+          producerKeychainEserviceInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+          )
+        )
+        .leftJoin(
+          // 3
+          producerKeychainKeyInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
+          )
+        );
+
+      return aggregateProducerKeychainArray(
+        toProducerKeychainAggregatorArray(queryResult)
+      );
     },
   };
 }

@@ -11,6 +11,7 @@ import {
   addOneProducerKeychain,
   producerKeychainReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check producerKeychain readmodels", () => {
@@ -26,7 +27,7 @@ describe("Check producerKeychain readmodels", () => {
       await readModelService.getAllReadModelProducerKeychains();
 
     const postgresProducerKeychains =
-      await producerKeychainReadModelServiceSQL.getAllProducerKeychains();
+      await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
       collectionItems: collectionProducerKeychains,
@@ -47,14 +48,15 @@ describe("Check producerKeychain readmodels", () => {
     await addOneProducerKeychain(producerKeychain);
 
     await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-      producerKeychain
+      producerKeychain.data,
+      producerKeychain.metadata.version
     );
 
     const collectionProducerKeychains =
       await readModelService.getAllReadModelProducerKeychains();
 
     const postgresProducerKeychains =
-      await producerKeychainReadModelServiceSQL.getAllProducerKeychains();
+      await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
       collectionItems: collectionProducerKeychains,
@@ -81,14 +83,15 @@ describe("Check producerKeychain readmodels", () => {
     await addOneProducerKeychain(producerKeychain2);
 
     await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-      producerKeychain2
+      producerKeychain2.data,
+      producerKeychain2.metadata.version
     );
 
     const collectionProducerKeychains =
       await readModelService.getAllReadModelProducerKeychains();
 
     const postgresProducerKeychains =
-      await producerKeychainReadModelServiceSQL.getAllProducerKeychains();
+      await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
       collectionItems: collectionProducerKeychains,
@@ -114,17 +117,19 @@ describe("Check producerKeychain readmodels", () => {
     await addOneProducerKeychain(producerKeychain1);
 
     await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-      producerKeychain1
+      producerKeychain1.data,
+      producerKeychain1.metadata.version
     );
     await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-      producerKeychain2
+      producerKeychain2.data,
+      producerKeychain2.metadata.version
     );
 
     const collectionProducerKeychains =
       await readModelService.getAllReadModelProducerKeychains();
 
     const postgresProducerKeychains =
-      await producerKeychainReadModelServiceSQL.getAllProducerKeychains();
+      await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
       collectionItems: collectionProducerKeychains,
@@ -155,14 +160,15 @@ describe("Check producerKeychain readmodels", () => {
     await addOneProducerKeychain(producerKeychain1);
 
     await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-      producerKeychain1ForSQL
+      producerKeychain1ForSQL.data,
+      producerKeychain1ForSQL.metadata.version
     );
 
     const collectionProducerKeychains =
       await readModelService.getAllReadModelProducerKeychains();
 
     const postgresProducerKeychains =
-      await producerKeychainReadModelServiceSQL.getAllProducerKeychains();
+      await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
       collectionItems: collectionProducerKeychains,
@@ -190,14 +196,15 @@ describe("Check producerKeychain readmodels", () => {
     await addOneProducerKeychain(producerKeychain1);
 
     await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-      producerKeychain1ForSQL
+      producerKeychain1ForSQL.data,
+      producerKeychain1ForSQL.metadata.version
     );
 
     const collectionProducerKeychains =
       await readModelService.getAllReadModelProducerKeychains();
 
     const postgresProducerKeychains =
-      await producerKeychainReadModelServiceSQL.getAllProducerKeychains();
+      await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
       collectionItems: collectionProducerKeychains,

@@ -14,9 +14,7 @@ import {
 import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
 import {
   aggregateProducerKeychain,
-  aggregateProducerKeychainArray,
   toProducerKeychainAggregator,
-  toProducerKeychainAggregatorArray,
 } from "./authorization/producerKeychainAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -136,52 +134,6 @@ export function producerKeychainReadModelServiceBuilder(
             )
           )
         );
-    },
-    async getAllProducerKeychains(): Promise<
-      Array<WithMetadata<ProducerKeychain>>
-    > {
-      /*
-        producer_keychain -> 1 producer_keychain_user
-                          -> 2 producer_keychain_eservice
-                          -> 3 producer_keychain_key
-      */
-      const queryResult = await db
-        .select({
-          producerKeychain: producerKeychainInReadmodelProducerKeychain,
-          producerKeychainUser: producerKeychainUserInReadmodelProducerKeychain,
-          producerKeychainEService:
-            producerKeychainEserviceInReadmodelProducerKeychain,
-          producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
-        })
-        .from(producerKeychainInReadmodelProducerKeychain)
-        .leftJoin(
-          // 1
-          producerKeychainUserInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          // 2
-          producerKeychainEserviceInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          // 3
-          producerKeychainKeyInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
-          )
-        );
-
-      return aggregateProducerKeychainArray(
-        toProducerKeychainAggregatorArray(queryResult)
-      );
     },
   };
 }
