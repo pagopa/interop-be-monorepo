@@ -7,10 +7,7 @@ import {
 } from "pagopa-interop-models";
 import { producerJwkKeyInReadmodelProducerJwkKey } from "pagopa-interop-readmodel-models";
 import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
-import {
-  aggregateProducerJWKKey,
-  aggregateProducerJWKKeyArray,
-} from "./authorization/producerJWKKeyAggregators.js";
+import { aggregateProducerJWKKey } from "./authorization/producerJWKKeyAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function producerJWKKeyReadModelServiceBuilder(
@@ -86,15 +83,6 @@ export function producerJWKKeyReadModelServiceBuilder(
             )
           )
         );
-    },
-    async getAllProducerJWKKeys(): Promise<
-      Array<WithMetadata<ProducerJWKKey>>
-    > {
-      const queryResult = await db
-        .select()
-        .from(producerJwkKeyInReadmodelProducerJwkKey);
-
-      return aggregateProducerJWKKeyArray(queryResult);
     },
   };
 }
