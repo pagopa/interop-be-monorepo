@@ -61,3 +61,6 @@ packages/**/pnpm-lock.yaml
 # General
 .DS_Store
 .env.local
+
+# IntelliJ
+.idea
