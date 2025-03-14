@@ -1215,10 +1215,12 @@ const eservicesRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
+          const interfaceSoapSeed: catalogApi.TemplateInstanceInterfaceSOAPSeed =
+            req.body;
           await catalogService.addEServiceTemplateInstanceInterface(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.body,
+            interfaceSoapSeed,
             ctx
           );
           return res.status(204);
@@ -1236,14 +1238,17 @@ const eservicesRouter = (
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      // eslint-disable-next-line sonarjs/no-identical-functions
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          const interfaceRestSeed: catalogApi.TemplateInstanceInterfaceRESTSeed =
+            req.body;
           await catalogService.addEServiceTemplateInstanceInterface(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.body,
+            interfaceRestSeed,
             ctx
           );
           return res.status(204);
