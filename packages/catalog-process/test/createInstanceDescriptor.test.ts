@@ -442,7 +442,7 @@ describe("create descriptor", async () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it.only("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+  it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
     const templateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
