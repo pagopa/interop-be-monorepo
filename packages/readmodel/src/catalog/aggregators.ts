@@ -390,7 +390,7 @@ export const toEServiceAggregatorArray = (
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
 
-  const attributeIdSet = new Set<[string, string, number]>();
+  const attributeIdSet = new Set<string>();
   const attributesSQL: EServiceDescriptorAttributeSQL[] = [];
 
   const riskAnalysisIdSet = new Set<string>();
@@ -399,7 +399,7 @@ export const toEServiceAggregatorArray = (
   const riskAnalysisAnswerIdSet = new Set<string>();
   const riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] = [];
 
-  const rejectionReasonsSet = new Set<[string, string]>();
+  const rejectionReasonsSet = new Set<string>();
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -440,34 +440,41 @@ export const toEServiceAggregatorArray = (
       const attributeSQL = row.attribute;
       if (
         attributeSQL &&
-        !attributeIdSet.has([
-          attributeSQL.attributeId,
-          attributeSQL.descriptorId,
-          attributeSQL.groupId,
-        ])
+        !attributeIdSet.has(
+          uniqueKey([
+            attributeSQL.attributeId,
+            attributeSQL.descriptorId,
+            attributeSQL.groupId.toString(),
+          ])
+        )
       ) {
-        attributeIdSet.add([
-          attributeSQL.attributeId,
-          attributeSQL.descriptorId,
-          attributeSQL.groupId,
-        ]);
+        attributeIdSet.add(
+          uniqueKey([
+            attributeSQL.attributeId,
+            attributeSQL.descriptorId,
+            attributeSQL.groupId.toString(),
+          ])
+        );
         // eslint-disable-next-line functional/immutable-data
         attributesSQL.push(attributeSQL);
       }
 
-      // TODO: the set should have a unique PK: descriptorId + rejectionReason + rejectedAt
       const rejectionReasonSQL = row.rejection;
       if (
         rejectionReasonSQL &&
-        !rejectionReasonsSet.has([
-          rejectionReasonSQL.descriptorId,
-          rejectionReasonSQL.rejectedAt,
-        ])
+        !rejectionReasonsSet.has(
+          uniqueKey([
+            rejectionReasonSQL.descriptorId,
+            rejectionReasonSQL.rejectedAt,
+          ])
+        )
       ) {
-        rejectionReasonsSet.add([
-          rejectionReasonSQL.descriptorId,
-          rejectionReasonSQL.rejectedAt,
-        ]);
+        rejectionReasonsSet.add(
+          uniqueKey([
+            rejectionReasonSQL.descriptorId,
+            rejectionReasonSQL.rejectedAt,
+          ])
+        );
         // eslint-disable-next-line functional/immutable-data
         rejectionReasonsSQL.push(rejectionReasonSQL);
       }
@@ -505,3 +512,5 @@ export const toEServiceAggregatorArray = (
     // templateBindingSQL: [],
   };
 };
+
+const uniqueKey = (ids: string[]): string => ids.join("#");

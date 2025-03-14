@@ -1,4 +1,6 @@
-export * from "./catalogReadModelServiceSQL.js";
+export * from "./utils.js";
+export * from "./catalogReadModelService.js";
+export * from "./catalog/splitters.js";
 export * from "./attributeReadModelServiceSQL.js";
 export * from "./tenantReadModelServiceSQL.js";
 export * from "./agreementReadModelServiceSQL.js";

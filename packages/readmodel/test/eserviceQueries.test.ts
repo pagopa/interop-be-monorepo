@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable no-console */
 import {
   getMockDescriptor,
   getMockDescriptorRejectionReason,
@@ -9,23 +8,21 @@ import {
   getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
-  agreementApprovalPolicy,
   attributeKind,
   Descriptor,
   EService,
+  EServiceId,
+  generateId,
   tenantKind,
   WithMetadata,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { diff } from "json-diff";
 import {
-  EServiceDescriptorAttributeSQL,
-  EServiceDescriptorDocumentSQL,
-  EServiceDescriptorInterfaceSQL,
-  EServiceDescriptorRejectionReasonSQL,
-  EServiceDescriptorSQL,
-  EServiceRiskAnalysisSQL,
   EServiceSQL,
+  EServiceDescriptorSQL,
+  EServiceDescriptorDocumentSQL,
+  EServiceDescriptorAttributeSQL,
+  EServiceRiskAnalysisSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   retrieveEserviceInterfacesSQL,
@@ -38,124 +35,99 @@ import {
   retrieveEserviceAttributesSQL,
 } from "./eserviceTestReadModelService.js";
 import {
+  generateCompleteExpectedEServiceSQLObjects,
   generateRiskAnalysisAnswersSQL,
+  initMockEService,
   readModelDB,
-  readModelService,
-  stringToISOString,
+  catalogReadModelService,
+  retrieveEServiceSQLObjects,
 } from "./utils.js";
 
 describe("E-service queries", () => {
   describe("upsertEService", () => {
-    it.only("should add a complete (*all* fields with values) e-service", async () => {
-      const metadataVersion = 1;
-      const rejectionReason = getMockDescriptorRejectionReason();
-      const descriptorInterface = getMockDocument();
-      const descriptorDocument = getMockDocument();
-      const certifiedAttribute1 = getMockEServiceAttribute();
-      const certifiedAttribute2 = getMockEServiceAttribute();
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(),
-        attributes: {
-          certified: [[certifiedAttribute1], [certifiedAttribute2]],
-          declared: [],
-          verified: [],
-        },
-        interface: descriptorInterface,
-        docs: [descriptorDocument],
-        rejectionReasons: [rejectionReason],
-        description: "description test",
-        publishedAt: new Date(),
-        suspendedAt: new Date(),
-        deprecatedAt: new Date(),
-        archivedAt: new Date(),
-        agreementApprovalPolicy: agreementApprovalPolicy.automatic,
-      };
+    it("should add a complete (*all* fields) e-service", async () => {
+      const isEServiceComplete = true;
+      const {
+        eservice,
+        descriptor,
+        rejectionReason,
+        descriptorInterface,
+        document,
+        attributes,
+        riskAnalyses,
+      } = initMockEService(isEServiceComplete);
 
-      const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-      const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
-      const eservice: WithMetadata<EService> = {
-        data: {
-          ...getMockEService(),
-          descriptors: [descriptor],
-          riskAnalysis: [riskAnalysis1, riskAnalysis2],
-          isSignalHubEnabled: true,
-          isClientAccessDelegable: true,
-          isConsumerDelegable: true,
-        },
-        metadata: { version: metadataVersion },
-      };
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
 
-      await readModelService.upsertEService(eservice);
+      const {
+        retrievedEserviceSQL,
+        retrievedDescriptorsSQL,
+        retrievedRejectionReasonsSQL,
+        retrievedDocumentsSQL,
+        retrievedInterfacesSQL,
+        retrievedAttributesSQL,
+        retrievedRiskAnalysesSQL,
+        retrievedRiskAnalysisAnswersSQL,
+      } = await retrieveEServiceSQLObjects(eservice, isEServiceComplete);
 
-      const retrievedEserviceSQL = await retrieveEServiceSQL(
-        eservice.data.id,
-        readModelDB
-      );
-      const retrievedAndFormattedEserviceSQL = {
-        ...retrievedEserviceSQL,
-        createdAt: stringToISOString(retrievedEserviceSQL!.createdAt!),
-      };
-      const retrievedDescriptorsSQL = await retrieveEserviceDescriptorsSQL(
-        eservice.data.id,
-        readModelDB
-      );
-      const retrievedAndFormattedDescriptorsSQL = retrievedDescriptorsSQL?.map(
-        (descriptor) => ({
-          ...descriptor,
-          createdAt: stringToISOString(descriptor.createdAt),
-          publishedAt: stringToISOString(descriptor.publishedAt),
-          suspendedAt: stringToISOString(descriptor.suspendedAt),
-          deprecatedAt: stringToISOString(descriptor.deprecatedAt),
-          archivedAt: stringToISOString(descriptor.archivedAt),
-        })
-      );
-      const retrievedRejectionReasons =
-        await retrieveEserviceRejectionReasonsSQL(
-          eservice.data.id,
-          readModelDB
-        );
-      const retrievedAndFormattedRejectionReasons =
-        retrievedRejectionReasons?.map((rejection) => ({
-          ...rejection,
-          rejectedAt: stringToISOString(rejection.rejectedAt),
-        }));
+      const {
+        expectedEserviceSQL,
+        expectedDescriptorsSQL,
+        expectedRejectionReasonsSQL,
+        expectedInterfacesSQL,
+        expectedDocumentsSQL,
+        expectedAttributesSQL,
+        expectedRiskAnalysesSQL,
+        expectedRiskAnalysisAnswersSQL,
+      } = generateCompleteExpectedEServiceSQLObjects({
+        eservice,
+        descriptor,
+        rejectionReason: rejectionReason!,
+        descriptorInterface: descriptorInterface!,
+        document,
+        attributes,
+        riskAnalyses,
+      });
 
-      const retrievedDocuments = await retrieveEserviceDocumentsSQL(
-        eservice.data.id,
-        readModelDB
+      expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
+      expect(retrievedDescriptorsSQL).toMatchObject(expectedDescriptorsSQL);
+      expect(retrievedRejectionReasonsSQL).toMatchObject(
+        expectedRejectionReasonsSQL
       );
-      const retrievedAndFormattedDocuments = retrievedDocuments?.map((doc) => ({
-        ...doc,
-        uploadDate: stringToISOString(doc.uploadDate),
-      }));
+      expect(retrievedInterfacesSQL).toMatchObject(expectedInterfacesSQL);
+      expect(retrievedDocumentsSQL).toMatchObject(expectedDocumentsSQL);
+      expect(retrievedAttributesSQL).toMatchObject(
+        expect.arrayContaining(expectedAttributesSQL)
+      );
+      expect(retrievedRiskAnalysesSQL).toMatchObject(expectedRiskAnalysesSQL);
+      expect(retrievedRiskAnalysisAnswersSQL).toMatchObject(
+        expectedRiskAnalysisAnswersSQL
+      );
+    });
 
-      const retrievedInterfaces = await retrieveEserviceInterfacesSQL(
-        eservice.data.id,
-        readModelDB
+    it("should add an incomplete (*only* mandatory fields) e-service", async () => {
+      const isEServiceComplete = false;
+      const { eservice, descriptor, document, attributes, riskAnalyses } =
+        initMockEService(isEServiceComplete);
+
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
       );
-      const retrievedAndFormattedInterfaces = retrievedInterfaces?.map((i) => ({
-        ...i,
-        uploadDate: stringToISOString(i.uploadDate),
-      }));
-      const retrievedAttributes = await retrieveEserviceAttributesSQL(
-        eservice.data.id,
-        readModelDB
-      );
-      const retrievedRiskAnalyses = await retrieveEserviceRiskAnalysesSQL(
-        eservice.data.id,
-        readModelDB
-      );
-      const retrievedAndFormattedRiskAnalyses = retrievedRiskAnalyses?.map(
-        (ra) => ({
-          ...ra,
-          createdAt: stringToISOString(ra.createdAt),
-        })
-      );
-      const retrievedRiskANalysisAnswers =
-        await retrieveEserviceRiskAnalysisAnswersSQL(
-          eservice.data.id,
-          readModelDB
-        );
+
+      const {
+        retrievedEserviceSQL,
+        retrievedDescriptorsSQL,
+        retrievedRejectionReasonsSQL,
+        retrievedDocumentsSQL,
+        retrievedInterfacesSQL,
+        retrievedAttributesSQL,
+        retrievedRiskAnalysesSQL,
+        retrievedRiskAnalysisAnswersSQL,
+      } = await retrieveEServiceSQLObjects(eservice, isEServiceComplete);
 
       const expectedEserviceSQL: EServiceSQL = {
         name: eservice.data.name,
@@ -166,208 +138,350 @@ describe("E-service queries", () => {
         technology: eservice.data.technology,
         createdAt: eservice.data.createdAt.toISOString(),
         mode: eservice.data.mode,
-        isSignalHubEnabled: eservice.data.isSignalHubEnabled!,
-        isConsumerDelegable: eservice.data.isConsumerDelegable!,
-        isClientAccessDelegable: eservice.data.isClientAccessDelegable!,
+        isSignalHubEnabled: null,
+        isConsumerDelegable: null,
+        isClientAccessDelegable: null,
       };
-      const expectedDescriptors: EServiceDescriptorSQL[] = [
+      const expectedDescriptorsSQL: EServiceDescriptorSQL[] = [
         {
           id: descriptor.id,
           eserviceId: eservice.data.id,
-          metadataVersion,
+          metadataVersion: eservice.metadata.version,
           version: descriptor.version,
-          description: descriptor.description || null,
           state: descriptor.state,
           audience: descriptor.audience,
           voucherLifespan: descriptor.voucherLifespan,
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
           dailyCallsTotal: descriptor.dailyCallsTotal,
-          agreementApprovalPolicy: descriptor.agreementApprovalPolicy!,
           createdAt: descriptor.createdAt.toISOString(),
           serverUrls: descriptor.serverUrls,
-          publishedAt: descriptor.publishedAt!.toISOString(),
-          suspendedAt: descriptor.suspendedAt!.toISOString(),
-          deprecatedAt: descriptor.deprecatedAt!.toISOString(),
-          archivedAt: descriptor.archivedAt!.toISOString(),
+          agreementApprovalPolicy: null,
+          description: null,
+          publishedAt: null,
+          suspendedAt: null,
+          deprecatedAt: null,
+          archivedAt: null,
         },
       ];
-      const expectedRejectionReasons: EServiceDescriptorRejectionReasonSQL[] = [
+      const expectedDocumentsSQL: EServiceDescriptorDocumentSQL[] = [
         {
+          id: document.id,
           eserviceId: eservice.data.id,
-          metadataVersion,
+          metadataVersion: eservice.metadata.version,
           descriptorId: descriptor.id,
-          rejectionReason: rejectionReason.rejectionReason,
-          rejectedAt: rejectionReason.rejectedAt.toISOString(),
+          name: document.name,
+          contentType: document.contentType,
+          prettyName: document.prettyName,
+          path: document.path,
+          checksum: document.checksum,
+          uploadDate: document.uploadDate.toISOString(),
         },
       ];
-      const expectedInterfaces: EServiceDescriptorInterfaceSQL[] = [
-        {
-          id: descriptorInterface.id,
+      const expectedAttributesSQL: EServiceDescriptorAttributeSQL[] =
+        attributes.map((attribute, idx) => ({
+          attributeId: attribute.id,
           eserviceId: eservice.data.id,
-          metadataVersion,
-          descriptorId: descriptor.id,
-          name: descriptorInterface.name,
-          contentType: descriptorInterface.contentType,
-          prettyName: descriptorInterface.prettyName,
-          path: descriptorInterface.path,
-          checksum: descriptorInterface.checksum,
-          uploadDate: descriptorInterface.uploadDate.toISOString(),
-        },
-      ];
-      const expectedDocuments: EServiceDescriptorDocumentSQL[] = [
-        {
-          id: descriptorDocument.id,
-          eserviceId: eservice.data.id,
-          metadataVersion,
-          descriptorId: descriptor.id,
-          name: descriptorDocument.name,
-          contentType: descriptorDocument.contentType,
-          prettyName: descriptorDocument.prettyName,
-          path: descriptorDocument.path,
-          checksum: descriptorDocument.checksum,
-          uploadDate: descriptorDocument.uploadDate.toISOString(),
-        },
-      ];
-      const expectedAttributes: EServiceDescriptorAttributeSQL[] = [
-        {
-          attributeId: certifiedAttribute1.id,
-          eserviceId: eservice.data.id,
-          metadataVersion,
+          metadataVersion: eservice.metadata.version,
           descriptorId: descriptor.id,
           explicitAttributeVerification:
-            certifiedAttribute1.explicitAttributeVerification,
+            attribute.explicitAttributeVerification,
           kind: attributeKind.certified,
-          groupId: 0,
-        },
-        {
-          attributeId: certifiedAttribute2.id,
+          groupId: idx,
+        }));
+      const expectedRiskAnalysesSQL: EServiceRiskAnalysisSQL[] =
+        riskAnalyses.map((riskAnalysis) => ({
+          id: riskAnalysis.id,
           eserviceId: eservice.data.id,
-          metadataVersion,
-          descriptorId: descriptor.id,
-          explicitAttributeVerification:
-            certifiedAttribute2.explicitAttributeVerification,
-          kind: attributeKind.certified,
-          groupId: 1,
-        },
-      ];
-      const expectedRiskAnalyses: EServiceRiskAnalysisSQL[] = [
-        {
-          id: riskAnalysis1.id,
-          eserviceId: eservice.data.id,
-          metadataVersion,
-          name: riskAnalysis1.name,
-          createdAt: riskAnalysis1.createdAt.toISOString(),
-          riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
-          riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
-        },
-        {
-          id: riskAnalysis2.id,
-          eserviceId: eservice.data.id,
-          metadataVersion,
-          name: riskAnalysis2.name,
-          createdAt: riskAnalysis2.createdAt.toISOString(),
-          riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
-          riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
-        },
-      ];
-      const expectedRiskAnalysisAnswers = generateRiskAnalysisAnswersSQL(
+          metadataVersion: eservice.metadata.version,
+          name: riskAnalysis.name,
+          createdAt: riskAnalysis.createdAt.toISOString(),
+          riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
+          riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
+        }));
+      const expectedRiskAnalysisAnswersSQL = generateRiskAnalysisAnswersSQL(
         eservice.data.id,
-        [riskAnalysis1, riskAnalysis2]
+        riskAnalyses,
+        eservice.metadata.version
       );
 
-      expect(retrievedAndFormattedEserviceSQL).toMatchObject(
-        expectedEserviceSQL
+      expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
+      expect(retrievedDescriptorsSQL).toMatchObject(expectedDescriptorsSQL);
+      expect(retrievedRejectionReasonsSQL).toBeUndefined();
+      expect(retrievedInterfacesSQL).toBeUndefined();
+      expect(retrievedDocumentsSQL).toMatchObject(expectedDocumentsSQL);
+      expect(retrievedAttributesSQL).toMatchObject(
+        expect.arrayContaining(expectedAttributesSQL)
       );
-      expect(retrievedAndFormattedDescriptorsSQL).toMatchObject(
-        expectedDescriptors
-      );
-      expect(retrievedAndFormattedRejectionReasons).toMatchObject(
-        expectedRejectionReasons
-      );
-      expect(retrievedAndFormattedInterfaces).toMatchObject(expectedInterfaces);
-      expect(retrievedAndFormattedDocuments).toMatchObject(expectedDocuments);
-      expect(retrievedAttributes).toMatchObject(
-        expect.arrayContaining(expectedAttributes)
-      );
-      expect(retrievedAndFormattedRiskAnalyses).toMatchObject(
-        expectedRiskAnalyses
-      );
-      expect(retrievedRiskANalysisAnswers).toMatchObject(
-        expectedRiskAnalysisAnswers
+      expect(retrievedRiskAnalysesSQL).toMatchObject(expectedRiskAnalysesSQL);
+      expect(retrievedRiskAnalysisAnswersSQL).toMatchObject(
+        expectedRiskAnalysisAnswersSQL
       );
     });
 
-    it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", async () => {
-      const doc = getMockDocument();
-      const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-      const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+    it("should update a complete (*all* fields) e-service", async () => {
+      const isEServiceComplete = true;
 
+      const {
+        eserviceBeforeUpdate,
+        eservice,
+        descriptor,
+        rejectionReason,
+        descriptorInterface,
+        document,
+        attributes,
+        riskAnalyses,
+      } = initMockEService(isEServiceComplete);
+
+      await catalogReadModelService.upsertEService(
+        eserviceBeforeUpdate.data,
+        eserviceBeforeUpdate.metadata.version
+      );
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
+
+      const {
+        retrievedEserviceSQL,
+        retrievedDescriptorsSQL,
+        retrievedRejectionReasonsSQL,
+        retrievedDocumentsSQL,
+        retrievedInterfacesSQL,
+        retrievedAttributesSQL,
+        retrievedRiskAnalysesSQL,
+        retrievedRiskAnalysisAnswersSQL,
+      } = await retrieveEServiceSQLObjects(eservice, isEServiceComplete);
+
+      const {
+        expectedEserviceSQL,
+        expectedDescriptorsSQL,
+        expectedRejectionReasonsSQL,
+        expectedInterfacesSQL,
+        expectedDocumentsSQL,
+        expectedAttributesSQL,
+        expectedRiskAnalysesSQL,
+        expectedRiskAnalysisAnswersSQL,
+      } = generateCompleteExpectedEServiceSQLObjects({
+        eservice,
+        descriptor,
+        rejectionReason: rejectionReason!,
+        descriptorInterface: descriptorInterface!,
+        document,
+        attributes,
+        riskAnalyses,
+      });
+
+      expect(retrievedEserviceSQL).toMatchObject(expectedEserviceSQL);
+      expect(retrievedDescriptorsSQL).toMatchObject(expectedDescriptorsSQL);
+      expect(retrievedRejectionReasonsSQL).toMatchObject(
+        expectedRejectionReasonsSQL
+      );
+      expect(retrievedInterfacesSQL).toMatchObject(expectedInterfacesSQL);
+      expect(retrievedDocumentsSQL).toMatchObject(expectedDocumentsSQL);
+      expect(retrievedAttributesSQL).toMatchObject(
+        expect.arrayContaining(expectedAttributesSQL)
+      );
+      expect(retrievedRiskAnalysesSQL).toMatchObject(expectedRiskAnalysesSQL);
+      expect(retrievedRiskAnalysisAnswersSQL).toMatchObject(
+        expectedRiskAnalysisAnswersSQL
+      );
+    });
+  });
+
+  describe("getEServiceById", () => {
+    it("eservice found", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         attributes: {
-          certified: [],
+          certified: [[getMockEServiceAttribute()]],
           declared: [],
           verified: [],
         },
-        docs: [doc],
-        interface: undefined,
-        rejectionReasons: undefined,
-        description: undefined,
-        // publishedAt: undefined,
-        // suspendedAt: undefined,
-        // deprecatedAt: undefined,
-        // archivedAt: undefined,
-        agreementApprovalPolicy: undefined,
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+        rejectionReasons: [getMockDescriptorRejectionReason()],
       };
-
       const eservice: WithMetadata<EService> = {
         data: {
           ...getMockEService(),
           descriptors: [descriptor],
-          riskAnalysis: [riskAnalysis1, riskAnalysis2],
-          isSignalHubEnabled: undefined,
-          isClientAccessDelegable: undefined,
-          isConsumerDelegable: undefined,
+          riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
         },
         metadata: { version: 1 },
       };
-
-      await readModelService.upsertEService(eservice);
-
-      const retrievedEService = await readModelService.getEServiceById(
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
+      const retrievedEService = await catalogReadModelService.getEServiceById(
         eservice.data.id
       );
 
-      const resDiff = diff(eservice, retrievedEService, {
-        sort: true,
-      });
+      expect(retrievedEService).toMatchObject(eservice);
+    });
 
-      if (resDiff) {
-        console.error(resDiff);
+    it("eservice NOT found", async () => {
+      const eserviceId = generateId<EServiceId>();
+      const retrievedEService = await catalogReadModelService.getEServiceById(
+        eserviceId
+      );
 
-        // if it fails use this output, otherwise undefined values are not printed
-        console.log(
-          JSON.stringify(
-            resDiff,
-            (_k, v) => (v === undefined ? "undefined" : v),
-            2
-          )
-        );
-      }
-
-      expect(resDiff).toBeUndefined();
+      expect(retrievedEService).toBeUndefined();
     });
   });
 
-  describe("get", () => {
-    it("undefined", () => {
-      expect(1).toBe(1);
+  describe("getAllEServices", () => {
+    it("eservices found", async () => {
+      const descriptor1: Descriptor = {
+        ...getMockDescriptor(),
+        attributes: {
+          certified: [[getMockEServiceAttribute()]],
+          declared: [],
+          verified: [],
+        },
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+        rejectionReasons: [getMockDescriptorRejectionReason()],
+      };
+      const eservice1: WithMetadata<EService> = {
+        data: {
+          ...getMockEService(),
+          descriptors: [descriptor1],
+          riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+        },
+        metadata: { version: 1 },
+      };
+      await catalogReadModelService.upsertEService(
+        eservice1.data,
+        eservice1.metadata.version
+      );
+
+      const descriptor2: Descriptor = {
+        ...getMockDescriptor(),
+        attributes: {
+          certified: [[getMockEServiceAttribute()]],
+          declared: [],
+          verified: [],
+        },
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+        rejectionReasons: [getMockDescriptorRejectionReason()],
+      };
+      const eservice2: WithMetadata<EService> = {
+        data: {
+          ...getMockEService(),
+          descriptors: [descriptor2],
+          riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+        },
+        metadata: { version: 1 },
+      };
+      await catalogReadModelService.upsertEService(
+        eservice2.data,
+        eservice2.metadata.version
+      );
+
+      const retrievedEServices =
+        await catalogReadModelService.getAllEServices();
+      expect(retrievedEServices).toHaveLength(2);
+      // expect(retrievedEServices).toMatchObject(
+      //   expect.arrayContaining([eservice1, eservice2])
+      // );
+    });
+
+    it("eservices NOT found", async () => {
+      const retrievedEServices =
+        await catalogReadModelService.getAllEServices();
+      expect(retrievedEServices).toHaveLength(0);
     });
   });
 
-  describe("delete", () => {
-    it("", () => {
-      expect(1).toBe(1);
+  describe("deleteEServiceById", () => {
+    it("delete one eservice", async () => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        attributes: {
+          certified: [[getMockEServiceAttribute()]],
+          declared: [],
+          verified: [],
+        },
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+        rejectionReasons: [getMockDescriptorRejectionReason()],
+      };
+      const eservice: WithMetadata<EService> = {
+        data: {
+          ...getMockEService(),
+          descriptors: [descriptor],
+          riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+        },
+        metadata: { version: 1 },
+      };
+      await catalogReadModelService.upsertEService(
+        eservice.data,
+        eservice.metadata.version
+      );
+
+      const [
+        eserviceSQLBeforeDelete,
+        descriptorsSQLBeforeDelete,
+        docsSQLBeforeDelete,
+        interfacesSQLBeforeDelete,
+        attributesSQLBeforeDelete,
+        rejectionReasonsSQLBeforeDelete,
+        riskAnalysisSQLBeforeDelete,
+        riskAnalysisAnswersSQLBeforeDelete,
+      ] = await Promise.all([
+        retrieveEServiceSQL(eservice.data.id, readModelDB),
+        retrieveEserviceDescriptorsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceDocumentsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceInterfacesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceAttributesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRejectionReasonsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRiskAnalysesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRiskAnalysisAnswersSQL(eservice.data.id, readModelDB),
+      ]);
+      expect(eserviceSQLBeforeDelete).toBeDefined();
+      expect(descriptorsSQLBeforeDelete).toBeDefined();
+      expect(docsSQLBeforeDelete).toBeDefined();
+      expect(interfacesSQLBeforeDelete).toBeDefined();
+      expect(attributesSQLBeforeDelete).toBeDefined();
+      expect(rejectionReasonsSQLBeforeDelete).toBeDefined();
+      expect(riskAnalysisSQLBeforeDelete).toBeDefined();
+      expect(riskAnalysisAnswersSQLBeforeDelete).toBeDefined();
+
+      await catalogReadModelService.deleteEServiceById(
+        eservice.data.id,
+        eservice.metadata.version + 1
+      );
+
+      const [
+        eserviceSQL,
+        descriptorsSQL,
+        docsSQL,
+        interfacesSQL,
+        attributesSQL,
+        rejectionReasonsSQL,
+        riskAnalysisSQL,
+        riskAnalysisAnswersSQL,
+      ] = await Promise.all([
+        retrieveEServiceSQL(eservice.data.id, readModelDB),
+        retrieveEserviceDescriptorsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceDocumentsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceInterfacesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceAttributesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRejectionReasonsSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRiskAnalysesSQL(eservice.data.id, readModelDB),
+        retrieveEserviceRiskAnalysisAnswersSQL(eservice.data.id, readModelDB),
+      ]);
+
+      expect(eserviceSQL).toBeUndefined();
+      expect(descriptorsSQL).toBeUndefined();
+      expect(docsSQL).toBeUndefined();
+      expect(interfacesSQL).toBeUndefined();
+      expect(attributesSQL).toBeUndefined();
+      expect(rejectionReasonsSQL).toBeUndefined();
+      expect(riskAnalysisSQL).toBeUndefined();
+      expect(riskAnalysisAnswersSQL).toBeUndefined();
     });
   });
 });

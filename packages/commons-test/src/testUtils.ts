@@ -322,7 +322,6 @@ export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
-  description: undefined,
   docs: [],
   state: state || descriptorState.draft,
   audience: [],
@@ -337,7 +336,6 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
     verified: [],
     declared: [],
   },
-  rejectionReasons: undefined,
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {
