@@ -17,6 +17,8 @@ export const eventV2TypeMapper = (
       "EServiceIsClientAccessDelegableEnabled",
       "EServiceIsClientAccessDelegableDisabled",
       "EServiceNameUpdated",
+      "EServiceNameUpdatedByTemplateUpdate",
+      "EServiceDescriptionUpdatedByTemplateUpdate",
       () => "catalog_item_updated"
     )
     .with(
@@ -40,21 +42,26 @@ export const eventV2TypeMapper = (
       "EServiceDescriptorApprovedByDelegator",
       "EServiceDescriptorRejectedByDelegator",
       "EServiceDescriptorAttributesUpdated",
+      "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+      "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
       () => "catalog_item_descriptor_updated"
     )
     .with(
       "EServiceDescriptorInterfaceAdded",
       "EServiceDescriptorDocumentAdded",
+      "EServiceDescriptorDocumentAddedByTemplateUpdate",
       () => "catalog_item_document_added"
     )
     .with(
       "EServiceDescriptorInterfaceUpdated",
       "EServiceDescriptorDocumentUpdated",
+      "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
       () => "catalog_item_document_updated"
     )
     .with(
       "EServiceDescriptorInterfaceDeleted",
       "EServiceDescriptorDocumentDeleted",
+      "EServiceDescriptorDocumentDeletedByTemplateUpdate",
       () => "catalog_item_document_deleted"
     )
     .with("EServiceRiskAnalysisAdded", () => "catalog_item_risk_analysis_added")
