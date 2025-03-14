@@ -10,6 +10,7 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   ReadModelSQLDbConfig,
+  FeatureFlagSQL,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -49,8 +50,15 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   tenantReadModelServiceSQL
 );
 
+const SQLFeatureFlagEnabled =
+  FeatureFlagSQL.safeParse(process.env).success && config.featureFlagSQL;
+
+const SQLReadModelConfigured = ReadModelSQLDbConfig.safeParse(
+  process.env
+).success;
+
 const readModelService =
-  config.featureFlagSQL && ReadModelSQLDbConfig.safeParse(process.env).success
+  SQLFeatureFlagEnabled && SQLReadModelConfigured
     ? readModelServiceSQL
     : oldReadModelService;
 
