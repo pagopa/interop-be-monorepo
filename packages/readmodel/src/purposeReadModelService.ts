@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Purpose, PurposeId, WithMetadata } from "pagopa-interop-models";
 import {
@@ -11,9 +11,7 @@ import {
 import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import {
   aggregatePurpose,
-  aggregatePurposeArray,
   toPurposeAggregator,
-  toPurposeAggregatorArray,
 } from "./purpose/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -21,19 +19,22 @@ export function purposeReadModelServiceBuilderSQL(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async upsertPurpose(purpose: WithMetadata<Purpose>): Promise<void> {
+    async upsertPurpose(
+      purpose: Purpose,
+      metadataVersion: number
+    ): Promise<void> {
       const {
         purposeSQL,
         riskAnalysisFormSQL,
         riskAnalysisAnswersSQL,
         versionsSQL,
         versionDocumentsSQL,
-      } = splitPurposeIntoObjectsSQL(purpose.data, purpose.metadata.version);
+      } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
       await db.transaction(async (tx) => {
         await tx
           .delete(purposeInReadmodelPurpose)
-          .where(eq(purposeInReadmodelPurpose.id, purpose.data.id));
+          .where(eq(purposeInReadmodelPurpose.id, purpose.id));
 
         await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
 
@@ -119,56 +120,18 @@ export function purposeReadModelServiceBuilderSQL(
 
       return aggregatePurpose(toPurposeAggregator(queryResult));
     },
-    async deletePurposeById(purposeId: PurposeId): Promise<void> {
+    async deletePurposeById(
+      purposeId: PurposeId,
+      version: number
+    ): Promise<void> {
       await db
         .delete(purposeInReadmodelPurpose)
-        .where(eq(purposeInReadmodelPurpose.id, purposeId));
-    },
-    async getAllPurposes(): Promise<Array<WithMetadata<Purpose>>> {
-      const queryResult = await db
-        .select({
-          purpose: purposeInReadmodelPurpose,
-          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
-          purposeRiskAnalysisAnswer:
-            purposeRiskAnalysisAnswerInReadmodelPurpose,
-          purposeVersion: purposeVersionInReadmodelPurpose,
-          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-        })
-        .from(purposeInReadmodelPurpose)
-        .leftJoin(
-          // 1
-          purposeRiskAnalysisFormInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          // 2
-          purposeRiskAnalysisAnswerInReadmodelPurpose,
-          eq(
-            purposeRiskAnalysisFormInReadmodelPurpose.id,
-            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 3
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeVersionInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          // 4
-          purposeVersionDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+        .where(
+          and(
+            eq(purposeInReadmodelPurpose.id, purposeId),
+            lte(purposeInReadmodelPurpose.metadataVersion, version)
           )
         );
-
-      return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
     },
   };
 }

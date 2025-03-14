@@ -304,7 +304,6 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   description: "Test purpose - description",
   createdAt: new Date(),
   isFreeOfCharge: true,
-  freeOfChargeReason: "test",
 });
 
 export const getMockPurposeVersion = (
@@ -312,7 +311,6 @@ export const getMockPurposeVersion = (
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
-  riskAnalysis: getMockPurposeVersionDocument(),
   dailyCalls: 10,
   createdAt: new Date(),
   ...(state !== purposeVersionState.draft
