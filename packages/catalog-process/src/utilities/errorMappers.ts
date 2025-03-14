@@ -587,3 +587,21 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createInstanceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "draftDescriptorAlreadyExists",
+      "attributeNotFound",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "templateInstanceNotAllowed",
+      "operationForbidden",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

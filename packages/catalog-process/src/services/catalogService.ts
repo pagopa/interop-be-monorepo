@@ -84,7 +84,6 @@ import {
   eServiceTemplateWithoutPublishedVersion,
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
-  inconsistentDailyCalls,
   interfaceAlreadyExists,
   invalidEServiceFlags,
   notValidDescriptorState,
@@ -162,6 +161,7 @@ import {
   isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
+  assertConsistentDailyCalls,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -560,12 +560,7 @@ async function innerCreateEService(
     correlationId
   );
 
-  if (
-    seed.eServiceSeed.descriptor.dailyCallsPerConsumer >
-    seed.eServiceSeed.descriptor.dailyCallsTotal
-  ) {
-    throw inconsistentDailyCalls();
-  }
+  assertConsistentDailyCalls(seed.eServiceSeed.descriptor);
 
   const templateVersionId = seed.eServiceTemplateReferences?.templateVersionId;
 
@@ -615,24 +610,18 @@ async function innerCreateEService(
   };
 }
 
-async function innterCreateDescriptor() {}
-
 // eslint-disable-next-line sonarjs/cognitive-complexity
 async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
   templateVersionId: EServiceTemplateVersionId | undefined,
-  readModelService: ReadModelService,
-  { authData, correlationId }: WithLogger<AppContext>
-): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
-  await assertRequesterIsDelegateProducerOrProducer(
-    eService.data.producerId,
-    eService.data.id,
-    authData,
-    readModelService
-  );
-
+  { correlationId }: WithLogger<AppContext>
+): Promise<{
+  eService: EService;
+  descriptor: Descriptor;
+  event: CreateEvent<EServiceEvent>;
+}> {
   const descriptor = retrieveDescriptor(descriptorId, eService);
 
   if (descriptorStatesNotAllowingDocumentOperations(descriptor)) {
@@ -669,20 +658,18 @@ async function innerAddDocumentToEserviceEvent(
     documentSeed
   );
 
-  const updatedEService: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId
-        ? {
-            ...d,
-            templateVersionRef,
-            interface: isInterface ? newDocument : d.interface,
-            docs: isInterface ? d.docs : [...d.docs, newDocument],
-            serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
-          }
-        : d
-    ),
+  const updatedDescriptor: Descriptor = {
+    ...descriptor,
+    templateVersionRef,
+    interface: isInterface ? newDocument : descriptor.interface,
+    docs: isInterface ? descriptor.docs : [...descriptor.docs, newDocument],
+    serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
   };
+
+  const updatedEService: EService = replaceDescriptor(
+    eService.data,
+    updatedDescriptor
+  );
 
   const event =
     documentSeed.kind === "INTERFACE"
@@ -706,7 +693,49 @@ async function innerAddDocumentToEserviceEvent(
           correlationId
         );
 
-  return { eService: updatedEService, event };
+  return { eService: updatedEService, descriptor: updatedDescriptor, event };
+}
+
+function createNextDescriptor(
+  eservice: EService,
+  seed: Pick<
+    Descriptor,
+    | "description"
+    | "voucherLifespan"
+    | "audience"
+    | "dailyCallsPerConsumer"
+    | "dailyCallsTotal"
+    | "agreementApprovalPolicy"
+    | "attributes"
+    | "docs"
+  > & {
+    templateVersionId: EServiceTemplateVersionId | undefined;
+  }
+): Descriptor {
+  return {
+    id: generateId<DescriptorId>(),
+    description: seed.description,
+    version: nextDescriptorVersion(eservice),
+    interface: undefined,
+    docs: seed.docs,
+    state: descriptorState.draft,
+    voucherLifespan: seed.voucherLifespan,
+    audience: seed.audience,
+    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.dailyCallsTotal,
+    agreementApprovalPolicy: seed.agreementApprovalPolicy,
+    serverUrls: [],
+    publishedAt: undefined,
+    suspendedAt: undefined,
+    deprecatedAt: undefined,
+    archivedAt: undefined,
+    createdAt: new Date(),
+    attributes: seed.attributes,
+    rejectionReasons: undefined,
+    templateVersionRef: seed.templateVersionId
+      ? { id: seed.templateVersionId }
+      : undefined,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -1050,6 +1079,13 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        ctx.authData,
+        readModelService
+      );
+
       assertEServiceNotTemplateInstance(
         eservice.data.id,
         eservice.data.templateRef?.id
@@ -1061,7 +1097,6 @@ export function catalogServiceBuilder(
           descriptorId,
           document,
           undefined,
-          readModelService,
           ctx
         );
 
@@ -1263,30 +1298,18 @@ export function catalogServiceBuilder(
       );
       assertHasNoDraftOrWaitingForApprovalDescriptor(eservice.data);
 
-      const newVersion = nextDescriptorVersion(eservice.data);
-
       const parsedAttributes = await parseAndCheckAttributes(
         eserviceDescriptorSeed.attributes,
         readModelService
       );
 
-      if (
-        eserviceDescriptorSeed.dailyCallsPerConsumer >
-        eserviceDescriptorSeed.dailyCallsTotal
-      ) {
-        throw inconsistentDailyCalls();
-      }
+      assertConsistentDailyCalls(eserviceDescriptorSeed);
 
       const descriptorId = generateId<DescriptorId>();
 
       const eserviceVersion = eservice.metadata.version;
-      const newDescriptor: Descriptor = {
-        id: descriptorId,
+      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
         description: eserviceDescriptorSeed.description,
-        version: newVersion,
-        interface: undefined,
-        docs: [],
-        state: descriptorState.draft,
         voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
         audience: eserviceDescriptorSeed.audience,
         dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
@@ -1295,15 +1318,10 @@ export function catalogServiceBuilder(
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             eserviceDescriptorSeed.agreementApprovalPolicy
           ),
-        serverUrls: [],
-        publishedAt: undefined,
-        suspendedAt: undefined,
-        deprecatedAt: undefined,
-        archivedAt: undefined,
-        createdAt: new Date(),
         attributes: parsedAttributes,
-        rejectionReasons: undefined,
-      };
+        docs: [],
+        templateVersionId: undefined,
+      });
 
       const newEservice: EService = {
         ...eservice.data,
@@ -1448,9 +1466,7 @@ export function catalogServiceBuilder(
         );
       }
 
-      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
-        throw inconsistentDailyCalls();
-      }
+      assertConsistentDailyCalls(seed);
 
       const parsedAttributes = await parseAndCheckAttributes(
         seed.attributes,
@@ -1518,9 +1534,7 @@ export function catalogServiceBuilder(
         );
       }
 
-      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
-        throw inconsistentDailyCalls();
-      }
+      assertConsistentDailyCalls(seed);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -1944,9 +1958,7 @@ export function catalogServiceBuilder(
         );
       }
 
-      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
-        throw inconsistentDailyCalls();
-      }
+      assertConsistentDailyCalls(seed);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2898,29 +2910,18 @@ export function catalogServiceBuilder(
         })
       );
 
-      const newVersion = nextDescriptorVersion(eservice.data);
-      const newDescriptor: Descriptor = {
-        id: generateId(),
-        templateVersionRef: lastVersion.id ? { id: lastVersion.id } : undefined,
+      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
         description: lastVersion.description,
-        version: newVersion,
-        interface: undefined,
-        docs,
-        state: descriptorState.draft,
         voucherLifespan: lastVersion.voucherLifespan,
         audience: [],
         dailyCallsPerConsumer: lastVersion.dailyCallsPerConsumer ?? 1,
         dailyCallsTotal: lastVersion.dailyCallsTotal ?? 1,
         agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
-        serverUrls: [],
-        publishedAt: undefined,
-        suspendedAt: undefined,
-        deprecatedAt: undefined,
-        archivedAt: undefined,
-        createdAt: new Date(),
         attributes: lastVersion.attributes,
-        rejectionReasons: undefined,
-      };
+        docs,
+        templateVersionId: lastVersion.id,
+      });
+
       const upgradedEService: EService = {
         ...eservice.data,
         descriptors: [...eservice.data.descriptors, newDescriptor],
@@ -3021,7 +3022,6 @@ export function catalogServiceBuilder(
             serverUrls: [], // not used in case of kind == "DOCUMENT"
           },
           publishedVersion.id,
-          readModelService,
           ctx
         );
         // eslint-disable-next-line functional/immutable-data
@@ -3089,7 +3089,6 @@ export function catalogServiceBuilder(
           eserviceInstanceInterfaceData,
           config.eserviceTemplateDocumentsContainer,
           fileManager,
-          readModelService,
           ctx
         );
 
@@ -3108,15 +3107,15 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceIsTemplateInstance(eservice.data);
-
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
         ctx.authData,
         readModelService
       );
+
       assertHasNoDraftOrWaitingForApprovalDescriptor(eservice.data);
+      assertEServiceIsTemplateInstance(eservice.data);
 
       const template = await retrieveEServiceTemplate(
         eservice.data.templateRef.id,
@@ -3139,25 +3138,10 @@ export function catalogServiceBuilder(
             )
           : undefined;
 
-      const newVersion = nextDescriptorVersion(eservice.data);
+      assertConsistentDailyCalls(eserviceInstanceDescriptorSeed);
 
-      if (
-        eserviceInstanceDescriptorSeed.dailyCallsPerConsumer >
-        eserviceInstanceDescriptorSeed.dailyCallsTotal
-      ) {
-        throw inconsistentDailyCalls();
-      }
-
-      const descriptorId = generateId<DescriptorId>();
-
-      const eserviceVersion = eservice.metadata.version;
-      const newDescriptor: Descriptor = {
-        id: descriptorId,
+      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
         description: templateVersion.description,
-        version: newVersion,
-        interface: undefined,
-        docs: [],
-        state: descriptorState.draft,
         voucherLifespan: templateVersion.voucherLifespan,
         audience: eserviceInstanceDescriptorSeed.audience,
         dailyCallsPerConsumer:
@@ -3167,15 +3151,12 @@ export function catalogServiceBuilder(
           agreementApprovalPolicySeed ??
           templateVersion.agreementApprovalPolicy ??
           agreementApprovalPolicy.automatic,
-        serverUrls: [],
-        publishedAt: undefined,
-        suspendedAt: undefined,
-        deprecatedAt: undefined,
-        archivedAt: undefined,
-        createdAt: new Date(),
+        docs: [],
         attributes: templateVersion.attributes,
-        rejectionReasons: undefined,
-      };
+        templateVersionId: templateVersion.id,
+      });
+
+      const eserviceVersion = eservice.metadata.version;
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -3185,13 +3166,15 @@ export function catalogServiceBuilder(
       const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
         updatedEservice,
         eserviceVersion,
-        descriptorId,
+        newDescriptor.id,
         ctx.correlationId
       );
 
       const events = [descriptorCreationEvent];
       // eslint-disable-next-line functional/no-let
       let lastEService = updatedEservice;
+      // eslint-disable-next-line functional/no-let
+      let updatedDescriptor = newDescriptor;
 
       for (const [index, doc] of templateVersion.docs.entries()) {
         const clonedDocumentId = generateId<EServiceDocumentId>();
@@ -3203,31 +3186,32 @@ export function catalogServiceBuilder(
           doc.name,
           ctx.logger
         );
-        const { eService, event } = await innerAddDocumentToEserviceEvent(
-          { data: lastEService, metadata: { version: index + 1 } },
-          updatedEservice.descriptors[0].id,
-          {
-            documentId: clonedDocumentId,
-            kind: "DOCUMENT",
-            prettyName: doc.prettyName,
-            filePath: clonedDocumentPath,
-            fileName: doc.name,
-            contentType: doc.contentType,
-            checksum: doc.checksum,
-            serverUrls: [], // not used in case of kind == "DOCUMENT"
-          },
-          templateVersion.id,
-          readModelService,
-          ctx
-        );
+        const { eService, descriptor, event } =
+          await innerAddDocumentToEserviceEvent(
+            { data: lastEService, metadata: { version: index + 1 } },
+            newDescriptor.id,
+            {
+              documentId: clonedDocumentId,
+              kind: "DOCUMENT",
+              prettyName: doc.prettyName,
+              filePath: clonedDocumentPath,
+              fileName: doc.name,
+              contentType: doc.contentType,
+              checksum: doc.checksum,
+              serverUrls: [],
+            },
+            templateVersion.id,
+            ctx
+          );
         // eslint-disable-next-line functional/immutable-data
         events.push(event);
         lastEService = eService;
+        updatedDescriptor = descriptor;
       }
 
       await repository.createEvents(events);
 
-      return descriptorWithDocs;
+      return updatedDescriptor;
     },
   };
 }
@@ -3240,7 +3224,6 @@ export async function createOpenApiInterfaceByTemplate(
   eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
   bucket: string,
   fileManager: FileManager,
-  readModelService: ReadModelService,
   ctx: WithLogger<AppContext>
 ): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
   const eservice = eserviceWithMetadata.data;
@@ -3297,7 +3280,6 @@ export async function createOpenApiInterfaceByTemplate(
           interfaceTemplateMetadata: eserviceInstanceInterfaceData,
         },
         undefined,
-        readModelService,
         ctx
       ),
     ctx.logger
