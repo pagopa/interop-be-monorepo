@@ -244,7 +244,7 @@ describe("Purpose queries", () => {
       });
     });
 
-    it("should *not* get a purpose by purpose id if not present", async () => {
+    it("should *not* get a purpose by id if not present", async () => {
       const retrievedPurpose = await purposeReadModelService.getPurposeById(
         generateId()
       );
@@ -254,7 +254,7 @@ describe("Purpose queries", () => {
   });
 
   describe("Delete a Purpose", () => {
-    it("should delete a purpose by purpose id", async () => {
+    it("should delete a purpose by id", async () => {
       const checkCompletePurpose = async (purpose: Purpose): Promise<void> => {
         expect(
           await retrievePurposeSQLById(purpose.id, readModelDB)
