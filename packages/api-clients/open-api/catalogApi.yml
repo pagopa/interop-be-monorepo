@@ -2444,7 +2444,6 @@ components:
           format: uuid
         instanceLabel:
           type: string
-          format: uuid
     EServiceTemplateVersionRef:
       type: object
       additionalProperties: false

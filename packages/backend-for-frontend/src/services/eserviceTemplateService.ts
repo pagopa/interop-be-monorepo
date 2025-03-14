@@ -172,7 +172,7 @@ export function eserviceTemplateServiceBuilder(
     },
     updateEServiceTemplateIntendedTarget: async (
       templateId: EServiceTemplateId,
-      seed: bffApi.EServiceTemplateDescriptionUpdateSeed,
+      seed: bffApi.EServiceTemplateIntendedTargetUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
