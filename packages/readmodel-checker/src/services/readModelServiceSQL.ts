@@ -6,6 +6,7 @@ import {
   Client,
   ClientJWKKey,
   EService,
+  ProducerJWKKey,
   ProducerKeychain,
   Purpose,
   Tenant,
@@ -26,6 +27,7 @@ import {
   aggregateClientJWKKeyArray,
   aggregateProducerKeychainArray,
   toProducerKeychainAggregatorArray,
+  aggregateProducerJWKKeyArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -47,6 +49,7 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
   producerKeychainKeyInReadmodelProducerKeychain,
@@ -408,6 +411,16 @@ export function readModelServiceBuilderSQL(
       return aggregateProducerKeychainArray(
         toProducerKeychainAggregatorArray(queryResult)
       );
+    },
+
+    async getAllProducerJWKKeys(): Promise<
+      Array<WithMetadata<ProducerJWKKey>>
+    > {
+      const queryResult = await readModelDB
+        .select()
+        .from(producerJwkKeyInReadmodelProducerJwkKey);
+
+      return aggregateProducerJWKKeyArray(queryResult);
     },
   };
 }

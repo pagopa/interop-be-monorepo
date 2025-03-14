@@ -6,10 +6,7 @@ import {
   ReadModelRepository,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
-import {
-  producerJWKKeyreadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { delegationReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { readModelServiceBuilder } from "./services/readModelService.js";
@@ -43,8 +40,6 @@ const pool = new Pool({
 const readModelDB = drizzle({ client: pool });
 
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-const producerKeychainKeyReadModelServiceSQL =
-  producerJWKKeyreadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
@@ -134,7 +129,7 @@ async function main(): Promise<void> {
   // PRODUCER KEYCHAIN JWK KEY
   const producerKeys = await readModelService.getAllReadModelProducerJWKKeys();
   const producerKeysPostgres =
-    await producerKeychainKeyReadModelServiceSQL.getAllProducerJWKKeys();
+    await readModelServiceSQL.getAllProducerJWKKeys();
   compare({
     collectionItems: producerKeys,
     postgresItems: producerKeysPostgres,

@@ -7,6 +7,7 @@ import {
   addOneProducerJWKKey,
   producerKeychainKeyReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check producerKeychain key readmodels", () => {
@@ -21,8 +22,7 @@ describe("Check producerKeychain key readmodels", () => {
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
 
-    const postgresKeys =
-      await producerKeychainKeyReadModelServiceSQL.getAllProducerJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllProducerJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -42,16 +42,15 @@ describe("Check producerKeychain key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey({
-      data: jwkKey,
-      metadata: { version: 1 },
-    });
+    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
+      jwkKey,
+      1
+    );
 
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
 
-    const postgresKeys =
-      await producerKeychainKeyReadModelServiceSQL.getAllProducerJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllProducerJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -77,16 +76,15 @@ describe("Check producerKeychain key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey({
-      data: jwkKey2,
-      metadata: { version: 1 },
-    });
+    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
+      jwkKey2,
+      1
+    );
 
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
 
-    const postgresKeys =
-      await producerKeychainKeyReadModelServiceSQL.getAllProducerJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllProducerJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -107,20 +105,19 @@ describe("Check producerKeychain key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey({
-      data: jwkKey1,
-      metadata: { version: 1 },
-    });
-    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey({
-      data: jwkKey2,
-      metadata: { version: 1 },
-    });
+    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
+      jwkKey1,
+      1
+    );
+    await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
+      jwkKey2,
+      1
+    );
 
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
 
-    const postgresKeys =
-      await producerKeychainKeyReadModelServiceSQL.getAllProducerJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllProducerJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -146,14 +143,14 @@ describe("Check producerKeychain key readmodels", () => {
     await addOneProducerJWKKey(producerKeychainKey1);
 
     await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
-      producerKeychainKey1ForSQL
+      producerKeychainKey1ForSQL.data,
+      producerKeychainKey1ForSQL.metadata.version
     );
 
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
 
-    const postgresKeys =
-      await producerKeychainKeyReadModelServiceSQL.getAllProducerJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllProducerJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -179,14 +176,14 @@ describe("Check producerKeychain key readmodels", () => {
     await addOneProducerJWKKey(producerKeychainKey1);
 
     await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
-      producerKeychainKey1ForSQL
+      producerKeychainKey1ForSQL.data,
+      producerKeychainKey1ForSQL.metadata.version
     );
 
     const collectionKeys =
       await readModelService.getAllReadModelProducerJWKKeys();
 
-    const postgresKeys =
-      await producerKeychainKeyReadModelServiceSQL.getAllProducerJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllProducerJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,

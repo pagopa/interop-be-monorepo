@@ -27,5 +27,7 @@ export * from "./clientJWKKeyReadModelService.js";
 export * from "./authorization/producerKeychainAggregators.js";
 export * from "./producerKeychainReadModelService.js";
 
+export * from "./authorization/producerJWKKeyAggregators.js";
 export * from "./producerJWKKeyReadModelService.js";
+
 export * from "./delegationReadModelServiceSQL.js";
