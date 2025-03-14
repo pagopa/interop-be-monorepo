@@ -5,6 +5,11 @@ import {
   AttributeSQL,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
+import { attributeReadModelServiceBuilder } from "../src/attributeReadModelService.js";
+import { readModelDB } from "./utils.js";
+
+export const attributeReadModelService =
+  attributeReadModelServiceBuilder(readModelDB);
 
 export const retrieveAttributeSQLById = async (
   attributeId: AttributeId,
