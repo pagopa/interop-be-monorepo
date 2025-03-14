@@ -7,7 +7,6 @@ import {
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import {
-  clientReadModelServiceBuilderSQL,
   clientJWKKeyReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   producerJWKKeyreadModelServiceBuilder,
@@ -46,7 +45,6 @@ const pool = new Pool({
 const readModelDB = drizzle({ client: pool });
 
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-const clientReadModelServiceSQL = clientReadModelServiceBuilderSQL(readModelDB);
 const clientKeyReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
 const producerKeychainReadModelServiceSQL =
@@ -109,7 +107,7 @@ async function main(): Promise<void> {
 
   // CLIENT
   const clients = await readModelService.getAllReadModelClients();
-  const clientsPostgres = await clientReadModelServiceSQL.getAllClients();
+  const clientsPostgres = await readModelServiceSQL.getAllClients();
   compare({
     collectionItems: clients,
     postgresItems: clientsPostgres,

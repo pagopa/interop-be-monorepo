@@ -18,7 +18,9 @@ export * from "./purposeReadModelService.js";
 export * from "./purpose/splitters.js";
 export * from "./purpose/aggregators.js";
 
-export * from "./clientReadModelServiceSQL.js";
+export * from "./authorization/clientAggregators.js";
+export * from "./clientReadModelService.js";
+
 export * from "./clientJWKKeyReadModelServiceSQL.js";
 export * from "./producerKeychainReadModelService.js";
 export * from "./producerJWKKeyReadModelService.js";

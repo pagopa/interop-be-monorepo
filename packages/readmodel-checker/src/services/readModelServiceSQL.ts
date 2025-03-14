@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import {
   Agreement,
   Attribute,
+  Client,
   EService,
   Purpose,
   Tenant,
@@ -18,6 +19,8 @@ import {
   aggregatePurposeArray,
   aggregateAgreementArray,
   toAgreementAggregatorArray,
+  aggregateClientArray,
+  toClientAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -26,6 +29,10 @@ import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
+  clientInReadmodelClient,
+  clientKeyInReadmodelClient,
+  clientPurposeInReadmodelClient,
+  clientUserInReadmodelClient,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -305,6 +312,37 @@ export function readModelServiceBuilderSQL(
         );
 
       return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
+    },
+
+    async getAllClients(): Promise<Array<WithMetadata<Client>>> {
+      const queryResult = await readModelDB
+        .select({
+          client: clientInReadmodelClient,
+          clientUser: clientUserInReadmodelClient,
+          clientPurpose: clientPurposeInReadmodelClient,
+          clientKey: clientKeyInReadmodelClient,
+        })
+        .from(clientInReadmodelClient)
+        .leftJoin(
+          // 1
+          clientUserInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
+        )
+        .leftJoin(
+          // 2
+          clientPurposeInReadmodelClient,
+          eq(
+            clientInReadmodelClient.id,
+            clientPurposeInReadmodelClient.clientId
+          )
+        )
+        .leftJoin(
+          // 3
+          clientKeyInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
+        );
+
+      return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
   };
 }

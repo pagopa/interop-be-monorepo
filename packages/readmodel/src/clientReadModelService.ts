@@ -10,9 +10,7 @@ import {
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
   aggregateClient,
-  aggregateClientArray,
   toClientAggregator,
-  toClientAggregatorArray,
 } from "./authorization/clientAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -90,36 +88,6 @@ export function clientReadModelServiceBuilderSQL(
       await db
         .delete(clientInReadmodelClient)
         .where(eq(clientInReadmodelClient.id, clientId));
-    },
-    async getAllClients(): Promise<Array<WithMetadata<Client>>> {
-      const queryResult = await db
-        .select({
-          client: clientInReadmodelClient,
-          clientUser: clientUserInReadmodelClient,
-          clientPurpose: clientPurposeInReadmodelClient,
-          clientKey: clientKeyInReadmodelClient,
-        })
-        .from(clientInReadmodelClient)
-        .leftJoin(
-          // 1
-          clientUserInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
-        )
-        .leftJoin(
-          // 2
-          clientPurposeInReadmodelClient,
-          eq(
-            clientInReadmodelClient.id,
-            clientPurposeInReadmodelClient.clientId
-          )
-        )
-        .leftJoin(
-          // 3
-          clientKeyInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
-        );
-
-      return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
   };
 }

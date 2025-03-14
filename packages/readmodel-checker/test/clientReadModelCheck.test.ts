@@ -7,6 +7,7 @@ import {
   addOneClient,
   clientReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check client readmodels", () => {
@@ -20,7 +21,7 @@ describe("Check client readmodels", () => {
 
     const collectionClients = await readModelService.getAllReadModelClients();
 
-    const postgresClients = await clientReadModelServiceSQL.getAllClients();
+    const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
       collectionItems: collectionClients,
@@ -40,11 +41,14 @@ describe("Check client readmodels", () => {
 
     await addOneClient(client);
 
-    await clientReadModelServiceSQL.upsertClient(client);
+    await clientReadModelServiceSQL.upsertClient(
+      client.data,
+      client.metadata.version
+    );
 
     const collectionClients = await readModelService.getAllReadModelClients();
 
-    const postgresClients = await clientReadModelServiceSQL.getAllClients();
+    const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
       collectionItems: collectionClients,
@@ -70,11 +74,14 @@ describe("Check client readmodels", () => {
     await addOneClient(client1);
     await addOneClient(client2);
 
-    await clientReadModelServiceSQL.upsertClient(client2);
+    await clientReadModelServiceSQL.upsertClient(
+      client2.data,
+      client2.metadata.version
+    );
 
     const collectionClients = await readModelService.getAllReadModelClients();
 
-    const postgresClients = await clientReadModelServiceSQL.getAllClients();
+    const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
       collectionItems: collectionClients,
@@ -99,12 +106,18 @@ describe("Check client readmodels", () => {
 
     await addOneClient(client1);
 
-    await clientReadModelServiceSQL.upsertClient(client1);
-    await clientReadModelServiceSQL.upsertClient(client2);
+    await clientReadModelServiceSQL.upsertClient(
+      client1.data,
+      client1.metadata.version
+    );
+    await clientReadModelServiceSQL.upsertClient(
+      client2.data,
+      client2.metadata.version
+    );
 
     const collectionClients = await readModelService.getAllReadModelClients();
 
-    const postgresClients = await clientReadModelServiceSQL.getAllClients();
+    const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
       collectionItems: collectionClients,
@@ -135,11 +148,14 @@ describe("Check client readmodels", () => {
 
     await addOneClient(client1);
 
-    await clientReadModelServiceSQL.upsertClient(client1ForSQL);
+    await clientReadModelServiceSQL.upsertClient(
+      client1ForSQL.data,
+      client1ForSQL.metadata.version
+    );
 
     const collectionClients = await readModelService.getAllReadModelClients();
 
-    const postgresClients = await clientReadModelServiceSQL.getAllClients();
+    const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
       collectionItems: collectionClients,
@@ -166,11 +182,14 @@ describe("Check client readmodels", () => {
 
     await addOneClient(client1);
 
-    await clientReadModelServiceSQL.upsertClient(client1ForSQL);
+    await clientReadModelServiceSQL.upsertClient(
+      client1ForSQL.data,
+      client1ForSQL.metadata.version
+    );
 
     const collectionClients = await readModelService.getAllReadModelClients();
 
-    const postgresClients = await clientReadModelServiceSQL.getAllClients();
+    const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
       collectionItems: collectionClients,
