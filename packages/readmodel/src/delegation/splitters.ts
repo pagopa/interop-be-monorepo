@@ -6,7 +6,6 @@ import {
   DelegationContractKind,
   DelegationId,
   DelegationStamp,
-  delegationStampKind,
   DelegationStampKind,
   DelegationStamps,
 } from "pagopa-interop-models";
@@ -104,7 +103,7 @@ export const splitDelegationIntoObjectsSQL = (
     if (stamp) {
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(
-        makeStampSQL(stamp, id, metadataVersion, delegationStampKind[key])
+        makeStampSQL(stamp, id, metadataVersion, DelegationStampKind.enum[key])
       );
     }
   }

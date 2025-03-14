@@ -53,9 +53,9 @@ export const splitAgreementIntoObjectsSQL = (
     producerId,
     consumerId,
     state,
-    suspendedByConsumer: suspendedByConsumer || null,
-    suspendedByProducer: suspendedByProducer || null,
-    suspendedByPlatform: suspendedByPlatform || null,
+    suspendedByConsumer: suspendedByConsumer ?? null,
+    suspendedByProducer: suspendedByProducer ?? null,
+    suspendedByPlatform: suspendedByPlatform ?? null,
     createdAt: dateToString(createdAt),
     updatedAt: dateToString(updatedAt),
     consumerNotes: consumerNotes || null,
@@ -93,7 +93,7 @@ export const splitAgreementIntoObjectsSQL = (
     if (stamp) {
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(
-        makeStampSQL(stamp, id, metadataVersion, agreementStampKind[key])
+        makeStampSQL(stamp, id, metadataVersion, agreementStampKind.enum[key])
       );
     }
   }
