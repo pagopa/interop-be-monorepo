@@ -2,31 +2,14 @@ import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Attribute, AttributeId, WithMetadata } from "pagopa-interop-models";
 import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
-import { Pool } from "pg";
-import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { aggregateAttribute } from "./attribute/aggregators.js";
-
-export const makeDrizzleConnection = (
-  readModelSQLDbConfig: ReadModelSQLDbConfig
-): ReturnType<typeof drizzle> => {
-  const pool = new Pool({
-    host: readModelSQLDbConfig.readModelSQLDbHost,
-    port: readModelSQLDbConfig.readModelSQLDbPort,
-    database: readModelSQLDbConfig.readModelSQLDbName,
-    user: readModelSQLDbConfig.readModelSQLDbUsername,
-    password: readModelSQLDbConfig.readModelSQLDbPassword,
-    ssl: readModelSQLDbConfig.readModelSQLDbUseSSL,
-  });
-  return drizzle({ client: pool });
-};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeReadModelServiceBuilderSQL(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    // TODO: (attribute, version)?
     async upsertAttribute(attribute: WithMetadata<Attribute>): Promise<void> {
       const attributeSQL = splitAttributeIntoObjectsSQL(
         attribute.data,
