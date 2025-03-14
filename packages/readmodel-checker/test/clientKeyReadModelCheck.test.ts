@@ -7,6 +7,7 @@ import {
   addOneClientJWKKey,
   clientKeysReadModelServiceSQL,
   readModelService,
+  readModelServiceSQL,
 } from "./utils.js";
 
 describe("Check client key readmodels", () => {
@@ -20,8 +21,7 @@ describe("Check client key readmodels", () => {
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
-    const postgresKeys =
-      await clientKeysReadModelServiceSQL.getAllClientJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllClientJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -48,8 +48,7 @@ describe("Check client key readmodels", () => {
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
-    const postgresKeys =
-      await clientKeysReadModelServiceSQL.getAllClientJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllClientJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -83,8 +82,7 @@ describe("Check client key readmodels", () => {
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
-    const postgresKeys =
-      await clientKeysReadModelServiceSQL.getAllClientJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllClientJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -116,8 +114,7 @@ describe("Check client key readmodels", () => {
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
-    const postgresKeys =
-      await clientKeysReadModelServiceSQL.getAllClientJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllClientJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -145,8 +142,7 @@ describe("Check client key readmodels", () => {
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
-    const postgresKeys =
-      await clientKeysReadModelServiceSQL.getAllClientJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllClientJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,
@@ -174,8 +170,7 @@ describe("Check client key readmodels", () => {
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
-    const postgresKeys =
-      await clientKeysReadModelServiceSQL.getAllClientJWKKeys();
+    const postgresKeys = await readModelServiceSQL.getAllClientJWKKeys();
 
     const res = compare({
       collectionItems: collectionKeys,

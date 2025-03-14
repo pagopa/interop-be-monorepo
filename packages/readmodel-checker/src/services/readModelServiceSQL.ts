@@ -4,6 +4,7 @@ import {
   Agreement,
   Attribute,
   Client,
+  ClientJWKKey,
   EService,
   Purpose,
   Tenant,
@@ -21,6 +22,7 @@ import {
   toAgreementAggregatorArray,
   aggregateClientArray,
   toClientAggregatorArray,
+  aggregateClientJWKKeyArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -30,6 +32,7 @@ import {
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
   clientInReadmodelClient,
+  clientJwkKeyInReadmodelClientJwkKey,
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientUserInReadmodelClient,
@@ -343,6 +346,14 @@ export function readModelServiceBuilderSQL(
         );
 
       return aggregateClientArray(toClientAggregatorArray(queryResult));
+    },
+
+    async getAllClientJWKKeys(): Promise<Array<WithMetadata<ClientJWKKey>>> {
+      const queryResult = await readModelDB
+        .select()
+        .from(clientJwkKeyInReadmodelClientJwkKey);
+
+      return aggregateClientJWKKeyArray(queryResult);
     },
   };
 }
