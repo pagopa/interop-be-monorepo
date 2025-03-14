@@ -403,7 +403,7 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
-    createEServiceTemplateEServiceRiskAnalysis: async (
+    createEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
       seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -416,7 +416,7 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
-    updateEServiceTemplateEServiceRiskAnalysis: async (
+    updateEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
       seed: bffApi.EServiceTemplateRiskAnalysisSeed,

@@ -36,6 +36,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "notValidDescriptor",
       "inconsistentDailyCalls",
       "eServiceTemplateWithoutPublishedVersion",
+      "templateMissingRequiredRiskAnalysis",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -44,11 +45,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "eServiceNameDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
-    .with(
-      "originNotCompliant",
-      "receiveTemplateMissingTenantKindRiskAnalysis",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "tenantNotFound",
       "tenantKindNotFound",

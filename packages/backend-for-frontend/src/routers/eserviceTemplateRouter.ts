@@ -433,7 +433,7 @@ const eserviceTemplateRouter = (
         const { eServiceTemplateId } = req.params;
 
         try {
-          await eserviceTemplateService.createEServiceTemplateEServiceRiskAnalysis(
+          await eserviceTemplateService.createEServiceTemplateRiskAnalysis(
             unsafeBrandId(eServiceTemplateId),
             req.body,
             ctx
@@ -458,7 +458,7 @@ const eserviceTemplateRouter = (
         const { eServiceTemplateId, riskAnalysisId } = req.params;
 
         try {
-          await eserviceTemplateService.updateEServiceTemplateEServiceRiskAnalysis(
+          await eserviceTemplateService.updateEServiceTemplateRiskAnalysis(
             unsafeBrandId(eServiceTemplateId),
             unsafeBrandId(riskAnalysisId),
             req.body,

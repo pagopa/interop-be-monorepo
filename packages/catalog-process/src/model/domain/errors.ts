@@ -49,7 +49,7 @@ export const errorCodes = {
   invalidDescriptorVersion: "0034",
   eserviceTemplateInterfaceNotFound: "0035",
   eserviceTemplateInterfaceDataNotValid: "0036",
-  receiveTemplateMissingTenantKindRiskAnalysis: "0037",
+  templateMissingRequiredRiskAnalysis: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -415,14 +415,14 @@ export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
   });
 }
 
-export function receiveTemplateMissingTenantKindRiskAnalysis(
+export function templateMissingRequiredRiskAnalysis(
   templateId: EServiceTemplateId,
   tenantId: TenantId,
   tenantKind: TenantKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Template ${templateId} with mode receive is not compatible with tenant ${tenantId} of kind ${tenantKind}, missing risk analysis`,
-    code: "receiveTemplateMissingTenantKindRiskAnalysis",
-    title: "Receive template missing tenant kind risk analysis",
+    detail: `Template ${templateId} cannot be instantiated: no risk analysis found for tenant ${tenantId} with kind ${tenantKind} .`,
+    code: "templateMissingRequiredRiskAnalysis",
+    title: "Missing required risk analysis",
   });
 }

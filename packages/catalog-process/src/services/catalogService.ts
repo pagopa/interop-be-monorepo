@@ -92,7 +92,7 @@ import {
   riskAnalysisDuplicated,
   tenantNotFound,
   unchangedAttributes,
-  receiveTemplateMissingTenantKindRiskAnalysis,
+  templateMissingRequiredRiskAnalysis,
 } from "../model/domain/errors.js";
 import {
   ApiGetEServicesFilters,
@@ -2995,7 +2995,7 @@ export function catalogServiceBuilder(
         }));
 
       if (template.mode === eserviceMode.receive && riskAnalysis.length === 0) {
-        throw receiveTemplateMissingTenantKindRiskAnalysis(
+        throw templateMissingRequiredRiskAnalysis(
           template.id,
           tenant.id,
           tenant.kind
