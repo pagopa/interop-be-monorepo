@@ -18,28 +18,50 @@ export function producerJWKKeyReadModelServiceBuilder(
       jwkKey: ProducerJWKKey,
       metadataVersion: number
     ): Promise<void> {
-      const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
-        jwkKey,
-        metadataVersion
-      );
-
       await db.transaction(async (tx) => {
-        // TODO: add metadata version check (lte)
-        await tx
-          .delete(producerJwkKeyInReadmodelProducerJwkKey)
-          .where(
-            and(
-              eq(
-                producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-                jwkKey.producerKeychainId
-              ),
-              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion:
+                producerJwkKeyInReadmodelProducerJwkKey.metadataVersion,
+            })
+            .from(producerJwkKeyInReadmodelProducerJwkKey)
+            .where(
+              and(
+                eq(
+                  producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+                  jwkKey.producerKeychainId
+                ),
+                eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+              )
             )
+        )[0]?.metadataVersion;
+
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx
+            .delete(producerJwkKeyInReadmodelProducerJwkKey)
+            .where(
+              and(
+                eq(
+                  producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+                  jwkKey.producerKeychainId
+                ),
+                eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+              )
+            );
+
+          const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+            jwkKey,
+            metadataVersion
           );
 
-        await tx
-          .insert(producerJwkKeyInReadmodelProducerJwkKey)
-          .values(producerJWKKeySQL);
+          await tx
+            .insert(producerJwkKeyInReadmodelProducerJwkKey)
+            .values(producerJWKKeySQL);
+        }
       });
     },
     async getProducerJWKKeyByKid(
