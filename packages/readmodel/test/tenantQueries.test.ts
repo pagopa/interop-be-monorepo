@@ -6,9 +6,9 @@ import { describe, it, expect } from "vitest";
 import { WithMetadata, Tenant } from "pagopa-interop-models";
 import {
   initMockTenant,
-  retrieveTenantSQLObjects,
   tenantReadModelService,
-} from "./utils.js";
+  retrieveTenantSQLObjects,
+} from "./tenantUtils.js";
 
 describe("Tenant Queries", () => {
   describe("Upsert Tenant", () => {
