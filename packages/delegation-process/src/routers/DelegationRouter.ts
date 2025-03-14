@@ -14,6 +14,7 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import { Unleash } from "unleash-client";
 import { ReadModelService } from "../services/readModelService.js";
 import {
   apiDelegationKindToDelegationKind,
@@ -45,7 +46,9 @@ const delegationRouter = (
   readModelService: ReadModelService,
   eventStore: DB,
   pdfGenerator: PDFGenerator,
-  fileManager: FileManager
+  fileManager: FileManager,
+  f: Unleash
+  // eslint-disable-next-line max-params
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -55,7 +58,8 @@ const delegationRouter = (
     readModelService,
     eventStore,
     pdfGenerator,
-    fileManager
+    fileManager,
+    f
   );
 
   delegationRouter

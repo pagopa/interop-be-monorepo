@@ -9,6 +9,7 @@ import {
   ReadModelRepository,
 } from "pagopa-interop-commons";
 
+import { initialize } from "unleash-client";
 import healthRouter from "./routers/HealthRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
@@ -31,6 +32,14 @@ const eventStore = initDB({
   useSSL: config.eventStoreDbUseSSL,
 });
 
+const unleash = initialize({
+  url: "http://localhost:4242/api/",
+  appName: "unleash-onboarding-node",
+  customHeaders: {
+    Authorization: "default:development.unleash-insecure-api-token", // in production use environment variable
+  },
+});
+
 const serviceName = "delegation-process";
 
 const app = zodiosCtx.app();
@@ -49,7 +58,8 @@ app.use(
     readModelService,
     eventStore,
     pdfGenerator,
-    fileManager
+    fileManager,
+    unleash
   )
 );
 

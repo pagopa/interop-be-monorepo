@@ -29,6 +29,7 @@ import {
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { delegationApi } from "pagopa-interop-api-clients";
+import { Unleash } from "unleash-client";
 import { config } from "../config/config.js";
 import {
   delegationNotFound,
@@ -110,7 +111,8 @@ export function delegationServiceBuilder(
   readModelService: ReadModelService,
   dbInstance: DB,
   pdfGenerator: PDFGenerator,
-  fileManager: FileManager
+  fileManager: FileManager,
+  _: Unleash
 ) {
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
 
