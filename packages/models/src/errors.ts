@@ -191,6 +191,7 @@ const errorCodes = {
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
+  notAllowedMutipleKeysException: "10008",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -401,6 +402,14 @@ export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
     detail: `The received key is a certificate`,
     code: "notAllowedCertificateException",
     title: "Not allowed certificate exception",
+  });
+}
+
+export function notAllowedMutipleKeysException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key contains multiple keys`,
+    code: "notAllowedMutipleKeysException",
+    title: "Not allowed multiple keys exception",
   });
 }
 

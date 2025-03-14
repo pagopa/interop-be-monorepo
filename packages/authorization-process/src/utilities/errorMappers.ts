@@ -121,6 +121,7 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "tooManyKeysPerClient",
       "notAllowedPrivateKeyException",
       "notAllowedCertificateException",
+      "notAllowedMutipleKeysException",
       "jwkDecodingError",
       "invalidKey",
       () => HTTP_STATUS_BAD_REQUEST

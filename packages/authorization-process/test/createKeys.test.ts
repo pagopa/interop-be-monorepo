@@ -12,6 +12,7 @@ import {
   generateId,
   invalidKey,
   notAllowedCertificateException,
+  notAllowedMutipleKeysException,
   notAllowedPrivateKeyException,
   toClientV2,
 } from "pagopa-interop-models";
@@ -455,5 +456,28 @@ describe("createKeys", () => {
         logger: genericLogger,
       })
     ).rejects.toThrowError(notAllowedCertificateException());
+  });
+  it("should throw notAllowedMutipleKeysException if the pem contains multiple keys", async () => {
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    await addOneClient(mockClient);
+
+    const key =
+      "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEwLzZyd3BDSnkyd3c5RFZHUUYyUwpqUjZpbzBjcUFiU1VGSjJMRDI5ZFNha000ZUg4SlBha1JONG00bHhYR0gzMlNQemtsVER1ejVkMTBFZWxDbjBHCkdhMmVFMlRxSTFyRHVSbmRXc1JwSGd4OHlhQXcvaWt3YVRIZEtCZnBXbkZ1djJSUkV5ZkFrcFJUVDZwUk51R2kKM2tQMldjdndBMkR2TTNDYVBzUDVubVZlS05tb09vZElEbUtLS0VEaFRvWVh4cVFScGd0bEJObGNQTldqalhUdApQdFpvZG0xYng0T1cwMU1EQUt3OVVBZHpBd3lMK2VNMFJMZWV4TWdUcnVGTTFqMUlCUHhJNDRRdHRCUnExN3BFClN1aGRlaWk2bFRjcStFazVnWjd4TitqSi9yY2M3akQ3N3ovYURqTEkybjVzdFdmaWJzN1FkZmdVajN2N1hINGQKQndJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCi0tLS0tQkVHSU4gUFVCTElDIEtFWS0tLS0tCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBMC82cndwQ0p5Mnd3OURWR1FGMlMKalI2aW8wY3FBYlNVRkoyTEQyOWRTYWtNNGVIOEpQYWtSTjRtNGx4WEdIMzJTUHprbFREdXo1ZDEwRWVsQ24wRwpHYTJlRTJUcUkxckR1Um5kV3NScEhneDh5YUF3L2lrd2FUSGRLQmZwV25GdXYyUlJFeWZBa3BSVFQ2cFJOdUdpCjNrUDJXY3Z3QTJEdk0zQ2FQc1A1bm1WZUtObW9Pb2RJRG1LS0tFRGhUb1lYeHFRUnBndGxCTmxjUE5XampYVHQKUHRab2RtMWJ4NE9XMDFNREFLdzlVQWR6QXd5TCtlTTBSTGVleE1nVHJ1Rk0xajFJQlB4STQ0UXR0QlJxMTdwRQpTdWhkZWlpNmxUY3ErRWs1Z1o3eE4rakovcmNjN2pENzd6L2FEakxJMm41c3RXZmliczdRZGZnVWozdjdYSDRkCkJ3SURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQ==";
+
+    expect(
+      authorizationService.createKeys({
+        clientId: mockClient.id,
+        authData: mockAuthData,
+        keysSeeds: [
+          {
+            ...keySeed,
+            key,
+          },
+        ],
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(notAllowedMutipleKeysException());
   });
 });
