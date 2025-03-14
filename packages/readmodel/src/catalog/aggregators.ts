@@ -108,6 +108,16 @@ export const aggregateDescriptor = ({
       : {}), // TODO use safeParse?
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
+    ...(descriptorSQL.description
+      ? { description: descriptorSQL.description }
+      : {}),
+    ...(descriptorSQL.agreementApprovalPolicy
+      ? {
+          agreementApprovalPolicy: AgreementApprovalPolicy.parse(
+            descriptorSQL.agreementApprovalPolicy
+          ), // TODO use safeParse?
+        }
+      : {}),
     ...(descriptorSQL.publishedAt
       ? { publishedAt: stringToDate(descriptorSQL.publishedAt) }
       : {}),
