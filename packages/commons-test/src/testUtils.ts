@@ -80,8 +80,9 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
-  DescriptorRejectionReason,
   AgreementDocument,
+  DescriptorRejectionReason,
+  AgreementStamp,
   ClientJWKKey,
   ProducerJWKKey,
   ProducerKeychainId,
@@ -244,6 +245,12 @@ export const getMockTenantMail = (
   kind,
   description: generateMock(z.string()),
   address: generateMock(z.string().email()),
+});
+
+export const getMockAgreementStamp = (): AgreementStamp => ({
+  who: generateId(),
+  when: new Date(),
+  delegationId: generateId<DelegationId>(),
 });
 
 export const getMockAgreementStamps = (): AgreementStamps => {

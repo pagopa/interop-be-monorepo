@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Agreement, AgreementId, WithMetadata } from "pagopa-interop-models";
 import {
@@ -21,44 +21,60 @@ export function agreementReadModelServiceBuilderSQL(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async upsertAgreement(agreement: WithMetadata<Agreement>): Promise<void> {
+    async upsertAgreement(
+      agreement: Agreement,
+      metadataVersion: number
+    ): Promise<void> {
       const {
         agreementSQL,
         stampsSQL,
         attributesSQL,
         consumerDocumentsSQL,
         contractSQL,
-      } = splitAgreementIntoObjectsSQL(
-        agreement.data,
-        agreement.metadata.version
-      );
+      } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
 
       await db.transaction(async (tx) => {
-        await tx
-          .delete(agreementInReadmodelAgreement)
-          .where(eq(agreementInReadmodelAgreement.id, agreement.data.id));
-
-        await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
-
-        for (const stampSQL of stampsSQL) {
-          await tx.insert(agreementStampInReadmodelAgreement).values(stampSQL);
-        }
-
-        for (const attributeSQL of attributesSQL) {
+        const existingMetadataVersion: number | undefined = (
           await tx
-            .insert(agreementAttributeInReadmodelAgreement)
-            .values(attributeSQL);
-        }
+            .select({
+              metadataVersion: agreementInReadmodelAgreement.metadataVersion,
+            })
+            .from(agreementInReadmodelAgreement)
+            .where(eq(agreementInReadmodelAgreement.id, agreement.id))
+        )[0]?.metadataVersion;
 
-        for (const docSQL of consumerDocumentsSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(agreementConsumerDocumentInReadmodelAgreement)
-            .values(docSQL);
-        }
-        if (contractSQL !== null) {
-          await tx
-            .insert(agreementContractInReadmodelAgreement)
-            .values(contractSQL);
+            .delete(agreementInReadmodelAgreement)
+            .where(eq(agreementInReadmodelAgreement.id, agreement.id));
+
+          await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
+
+          for (const stampSQL of stampsSQL) {
+            await tx
+              .insert(agreementStampInReadmodelAgreement)
+              .values(stampSQL);
+          }
+
+          for (const attributeSQL of attributesSQL) {
+            await tx
+              .insert(agreementAttributeInReadmodelAgreement)
+              .values(attributeSQL);
+          }
+
+          for (const docSQL of consumerDocumentsSQL) {
+            await tx
+              .insert(agreementConsumerDocumentInReadmodelAgreement)
+              .values(docSQL);
+          }
+          if (contractSQL !== null) {
+            await tx
+              .insert(agreementContractInReadmodelAgreement)
+              .values(contractSQL);
+          }
         }
       });
     },
@@ -120,10 +136,18 @@ export function agreementReadModelServiceBuilderSQL(
 
       return aggregateAgreement(toAgreementAggregator(queryResult));
     },
-    async deleteAgreementById(agreementId: AgreementId): Promise<void> {
+    async deleteAgreementById(
+      agreementId: AgreementId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(agreementInReadmodelAgreement)
-        .where(eq(agreementInReadmodelAgreement.id, agreementId));
+        .where(
+          and(
+            eq(agreementInReadmodelAgreement.id, agreementId),
+            lte(agreementInReadmodelAgreement.metadataVersion, metadataVersion)
+          )
+        );
     },
     async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
       const queryResult = await db
