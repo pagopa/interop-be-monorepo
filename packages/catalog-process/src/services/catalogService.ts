@@ -1306,8 +1306,6 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(eserviceDescriptorSeed);
 
-      const descriptorId = generateId<DescriptorId>();
-
       const eserviceVersion = eservice.metadata.version;
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
         description: eserviceDescriptorSeed.description,
@@ -1332,7 +1330,7 @@ export function catalogServiceBuilder(
       const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
         newEservice,
         eserviceVersion,
-        descriptorId,
+        newDescriptor.id,
         correlationId
       );
 
@@ -1360,7 +1358,7 @@ export function catalogServiceBuilder(
           const documentEvent = toCreateEventEServiceDocumentAdded(
             version,
             {
-              descriptorId,
+              descriptorId: newDescriptor.id,
               documentId: unsafeBrandId(document.documentId),
               eservice: updatedEService,
             },
