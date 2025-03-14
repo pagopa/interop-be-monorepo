@@ -40,7 +40,7 @@ describe("Tenant aggregators", () => {
       revocationTimestamp: new Date(),
     };
     const delegationId = generateId<DelegationId>();
-    const tenantDelcaredAttribute: DeclaredTenantAttribute = {
+    const tenantDeclaredAttribute: DeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       assignmentTimestamp: new Date(),
       revocationTimestamp: new Date(),
@@ -101,7 +101,7 @@ describe("Tenant aggregators", () => {
       mails: [tenantMail],
       attributes: [
         tenantCertifiedAttribute,
-        tenantDelcaredAttribute,
+        tenantDeclaredAttribute,
         tenantVerifiedAttribute,
       ],
       features: [
@@ -133,42 +133,35 @@ describe("Tenant aggregators", () => {
       featuresSQL,
     });
 
-    expect(aggregatedTenant).toMatchObject({
+    expect(aggregatedTenant).toStrictEqual({
       data: tenant,
       metadata: { version: 1 },
     });
   });
-  it("should convert null to undefined", () => {
+  it("should convert Tenant SQL objects with null values into a Tenant without these props", () => {
     const tenantMail: TenantMail = {
       ...getMockTenantMail(),
-      description: undefined,
     };
     const tenantCertifiedAttribute: CertifiedTenantAttribute = {
       ...getMockCertifiedTenantAttribute(),
       assignmentTimestamp: new Date(),
-      revocationTimestamp: undefined,
     };
     const delegationId = generateId<DelegationId>();
-    const tenantDelcaredAttribute: DeclaredTenantAttribute = {
+    const tenantDeclaredAttribute: DeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
       assignmentTimestamp: new Date(),
-      revocationTimestamp: undefined,
       delegationId,
     };
 
     const tenantVerifier: TenantVerifier = {
       id: generateId(),
       verificationDate: new Date(),
-      expirationDate: undefined,
-      extensionDate: undefined,
       delegationId,
     };
     const tenantRevoker: TenantRevoker = {
       id: generateId(),
       verificationDate: new Date(),
       revocationDate: new Date(),
-      expirationDate: undefined,
-      extensionDate: undefined,
       delegationId,
     };
 
@@ -203,14 +196,11 @@ describe("Tenant aggregators", () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       selfcareId,
-      kind: undefined,
-      subUnitType: undefined,
       externalId,
-      updatedAt: undefined,
       mails: [tenantMail],
       attributes: [
         tenantCertifiedAttribute,
-        tenantDelcaredAttribute,
+        tenantDeclaredAttribute,
         tenantVerifiedAttribute,
       ],
       features: [
@@ -242,7 +232,7 @@ describe("Tenant aggregators", () => {
       featuresSQL,
     });
 
-    expect(aggregatedTenant).toMatchObject({
+    expect(aggregatedTenant).toStrictEqual({
       data: tenant,
       metadata: { version: 1 },
     });

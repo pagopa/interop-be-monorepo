@@ -20,11 +20,9 @@ import {
 } from "./tenant/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantReadModelServiceBuilderSQL(
-  db: ReturnType<typeof drizzle>
-) {
+export function tenantReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
-    async upsertTenant(tenant: WithMetadata<Tenant>): Promise<void> {
+    async upsertTenant(tenant: Tenant, metadataVersion: number): Promise<void> {
       const {
         tenantSQL,
         mailsSQL,
@@ -34,12 +32,12 @@ export function tenantReadModelServiceBuilderSQL(
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
-      } = splitTenantIntoObjectsSQL(tenant.data, tenant.metadata.version);
+      } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
       await db.transaction(async (tx) => {
         await tx
           .delete(tenantInReadmodelTenant)
-          .where(eq(tenantInReadmodelTenant.id, tenant.data.id));
+          .where(eq(tenantInReadmodelTenant.id, tenant.id));
 
         await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
 
@@ -82,7 +80,9 @@ export function tenantReadModelServiceBuilderSQL(
         }
       });
     },
-    async getTenantById(tenantId: TenantId): Promise<WithMetadata<Tenant>> {
+    async getTenantById(
+      tenantId: TenantId
+    ): Promise<WithMetadata<Tenant> | undefined> {
       /*
       tenant  ->1 tenant_mail
 				      ->2 tenant_certified_attribute
@@ -158,9 +158,11 @@ export function tenantReadModelServiceBuilderSQL(
           )
         );
 
-      const aggregatorInput = toTenantAggregator(queryResult);
+      if (queryResult.length === 0) {
+        return undefined;
+      }
 
-      return aggregateTenant(aggregatorInput);
+      return aggregateTenant(toTenantAggregator(queryResult));
     },
     async deleteTenantById(tenantId: TenantId, version: number): Promise<void> {
       await db
@@ -239,13 +241,11 @@ export function tenantReadModelServiceBuilderSQL(
           )
         );
 
-      const aggregatorInput = toTenantAggregatorArray(queryResult);
-
-      return aggregateTenantArray(aggregatorInput);
+      return aggregateTenantArray(toTenantAggregatorArray(queryResult));
     },
   };
 }
 
-export type TenantReadModelServiceSQL = ReturnType<
-  typeof tenantReadModelServiceBuilderSQL
+export type TenantReadModelService = ReturnType<
+  typeof tenantReadModelServiceBuilder
 >;
