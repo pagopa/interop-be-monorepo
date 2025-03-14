@@ -3,10 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Attribute, AttributeId, WithMetadata } from "pagopa-interop-models";
 import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
-import {
-  aggregateAttribute,
-  aggregateAttributeArray,
-} from "./attribute/aggregators.js";
+import { aggregateAttribute } from "./attribute/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeReadModelServiceBuilderSQL(
@@ -53,11 +50,6 @@ export function attributeReadModelServiceBuilderSQL(
             lte(attributeInReadmodelAttribute.metadataVersion, version)
           )
         );
-    },
-    async getAllAttributes(): Promise<Array<WithMetadata<Attribute>>> {
-      const res = await db.select().from(attributeInReadmodelAttribute);
-
-      return aggregateAttributeArray(res);
     },
   };
 }

@@ -8,7 +8,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   catalogReadModelServiceBuilderSQL,
-  attributeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilderSQL,
   agreementReadModelServiceBuilderSQL,
   purposeReadModelServiceBuilderSQL,
@@ -22,6 +21,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { compare } from "./utils.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const Config = ReadModelDbConfig.and(ReadModelSQLDbConfig);
 
@@ -49,10 +49,9 @@ const pool = new Pool({
 
 const readModelDB = drizzle({ client: pool });
 
+const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 const catalogReadModelServiceSQL =
   catalogReadModelServiceBuilderSQL(readModelDB);
-const attributeReadModelServiceSQL =
-  attributeReadModelServiceBuilderSQL(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilderSQL(readModelDB);
@@ -81,8 +80,7 @@ async function main(): Promise<void> {
 
   // ATTRIBUTE
   const attributes = await readModelService.getAllReadModelAttributes();
-  const attributesPostgres =
-    await attributeReadModelServiceSQL.getAllAttributes();
+  const attributesPostgres = await readModelServiceSQL.getAllAttributes();
   compare({
     collectionItems: attributes,
     postgresItems: attributesPostgres,
