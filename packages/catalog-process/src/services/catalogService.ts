@@ -19,6 +19,7 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
+  agreementApprovalPolicy,
   agreementState,
   AttributeId,
   catalogEventToBinaryData,
@@ -137,7 +138,10 @@ import {
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
-import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
+import {
+  getLatestDescriptor,
+  nextDescriptorVersion,
+} from "../utilities/versionGenerator.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertDocumentDeletableDescriptorState,
@@ -610,6 +614,8 @@ async function innerCreateEService(
     events: [eserviceCreationEvent, descriptorCreationEvent],
   };
 }
+
+async function innterCreateDescriptor() {}
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 async function innerAddDocumentToEserviceEvent(
@@ -3090,6 +3096,138 @@ export function catalogServiceBuilder(
       await repository.createEvent(addDocumentEvent);
 
       return updatedEService;
+    },
+    async createInstanceDescriptor(
+      eserviceId: EServiceId,
+      eserviceInstanceDescriptorSeed: catalogApi.EServiceInstanceDescriptorSeed,
+      ctx: WithLogger<AppContext>
+    ): Promise<Descriptor> {
+      ctx.logger.info(
+        `Creating Instance Descriptor for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertEServiceIsTemplateInstance(eservice.data);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        ctx.authData,
+        readModelService
+      );
+      assertHasNoDraftOrWaitingForApprovalDescriptor(eservice.data);
+
+      const template = await retrieveEServiceTemplate(
+        eservice.data.templateRef.id,
+        readModelService
+      );
+
+      const latestDescriptor = getLatestDescriptor(eservice.data);
+      const templateVersion = template.versions.find(
+        (v) => v.id === latestDescriptor?.templateVersionRef?.id
+      );
+
+      if (!templateVersion) {
+        throw new Error("Template version not found");
+      }
+
+      const agreementApprovalPolicySeed =
+        eserviceInstanceDescriptorSeed.agreementApprovalPolicy
+          ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              eserviceInstanceDescriptorSeed.agreementApprovalPolicy
+            )
+          : undefined;
+
+      const newVersion = nextDescriptorVersion(eservice.data);
+
+      if (
+        eserviceInstanceDescriptorSeed.dailyCallsPerConsumer >
+        eserviceInstanceDescriptorSeed.dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const descriptorId = generateId<DescriptorId>();
+
+      const eserviceVersion = eservice.metadata.version;
+      const newDescriptor: Descriptor = {
+        id: descriptorId,
+        description: templateVersion.description,
+        version: newVersion,
+        interface: undefined,
+        docs: [],
+        state: descriptorState.draft,
+        voucherLifespan: templateVersion.voucherLifespan,
+        audience: eserviceInstanceDescriptorSeed.audience,
+        dailyCallsPerConsumer:
+          eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
+        dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
+        agreementApprovalPolicy:
+          agreementApprovalPolicySeed ??
+          templateVersion.agreementApprovalPolicy ??
+          agreementApprovalPolicy.automatic,
+        serverUrls: [],
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        createdAt: new Date(),
+        attributes: templateVersion.attributes,
+        rejectionReasons: undefined,
+      };
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        descriptors: [...eservice.data.descriptors, newDescriptor],
+      };
+
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
+        updatedEservice,
+        eserviceVersion,
+        descriptorId,
+        ctx.correlationId
+      );
+
+      const events = [descriptorCreationEvent];
+      // eslint-disable-next-line functional/no-let
+      let lastEService = updatedEservice;
+
+      for (const [index, doc] of templateVersion.docs.entries()) {
+        const clonedDocumentId = generateId<EServiceDocumentId>();
+        const clonedDocumentPath = await fileManager.copy(
+          config.s3Bucket,
+          doc.path,
+          config.eserviceDocumentsPath,
+          clonedDocumentId,
+          doc.name,
+          ctx.logger
+        );
+        const { eService, event } = await innerAddDocumentToEserviceEvent(
+          { data: lastEService, metadata: { version: index + 1 } },
+          updatedEservice.descriptors[0].id,
+          {
+            documentId: clonedDocumentId,
+            kind: "DOCUMENT",
+            prettyName: doc.prettyName,
+            filePath: clonedDocumentPath,
+            fileName: doc.name,
+            contentType: doc.contentType,
+            checksum: doc.checksum,
+            serverUrls: [], // not used in case of kind == "DOCUMENT"
+          },
+          templateVersion.id,
+          readModelService,
+          ctx
+        );
+        // eslint-disable-next-line functional/immutable-data
+        events.push(event);
+        lastEService = eService;
+      }
+
+      await repository.createEvents(events);
+
+      return descriptorWithDocs;
     },
   };
 }
