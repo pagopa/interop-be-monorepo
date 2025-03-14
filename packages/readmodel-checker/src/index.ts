@@ -7,8 +7,6 @@ import {
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import {
-  catalogReadModelServiceBuilderSQL,
-  tenantReadModelServiceBuilderSQL,
   agreementReadModelServiceBuilderSQL,
   purposeReadModelServiceBuilderSQL,
   clientReadModelServiceBuilderSQL,
@@ -50,9 +48,6 @@ const pool = new Pool({
 const readModelDB = drizzle({ client: pool });
 
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-const catalogReadModelServiceSQL =
-  catalogReadModelServiceBuilderSQL(readModelDB);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilderSQL(readModelDB);
 const purposeReadModelServiceSQL =
@@ -70,7 +65,7 @@ const delegationReadModelServiceSQL =
 async function main(): Promise<void> {
   // CATALOG
   const eservices = await readModelService.getAllReadModelEServices();
-  const eservicesPostgres = await catalogReadModelServiceSQL.getAllEServices();
+  const eservicesPostgres = await readModelServiceSQL.getAllEServices();
   compare({
     collectionItems: eservices,
     postgresItems: eservicesPostgres,
@@ -90,7 +85,7 @@ async function main(): Promise<void> {
 
   // TENANT
   const tenants = await readModelService.getAllReadModelTenants();
-  const tenantsPostgres = await tenantReadModelServiceSQL.getAllTenants();
+  const tenantsPostgres = await readModelServiceSQL.getAllTenants();
   compare({
     collectionItems: tenants,
     postgresItems: tenantsPostgres,
