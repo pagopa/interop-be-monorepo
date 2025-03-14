@@ -1052,6 +1052,24 @@ export function catalogServiceBuilder(
 
       const previousDescriptor = retrieveLatestDescriptor(eService.descriptors);
 
+      if (eService.templateRef) {
+        const { id } = await catalogProcessClient.createInstanceDescriptor(
+          {
+            audience: [],
+            dailyCallsPerConsumer: previousDescriptor.dailyCallsPerConsumer,
+            dailyCallsTotal: previousDescriptor.dailyCallsTotal,
+            agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
+          },
+          {
+            headers,
+            params: {
+              eServiceId,
+            },
+          }
+        );
+        return { id };
+      }
+
       const clonedDocumentsCalls = previousDescriptor.docs.map((doc) =>
         cloneEServiceDocument({
           doc,

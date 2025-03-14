@@ -69,7 +69,6 @@ import {
   attributeNotFound,
   audienceCannotBeEmpty,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
-  descriptorTemplateVersionInFoundInTemplate,
   documentPrettyNameDuplicate,
   eServiceAlreadyUpgraded,
   eServiceDescriptorNotFound,
@@ -82,7 +81,6 @@ import {
   eServiceRiskAnalysisNotFound,
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
-  eserviceTemplateVersionNotFound,
   eServiceTemplateWithoutPublishedVersion,
   eserviceWithoutValidDescriptors,
   inconsistentAttributesSeedGroupsCount,
@@ -91,6 +89,7 @@ import {
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
+  templateVersionNotFoundInEService,
   tenantNotFound,
   unchangedAttributes,
 } from "../model/domain/errors.js";
@@ -3130,9 +3129,9 @@ export function catalogServiceBuilder(
       );
 
       if (!templateVersion) {
-        descriptorTemplateVersionInFoundInTemplate(
+        throw templateVersionNotFoundInEService(
           eservice.data.templateRef.id,
-          latestDescriptor.id
+          eservice.data.id
         );
       }
 
