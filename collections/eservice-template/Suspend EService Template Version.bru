@@ -1,0 +1,21 @@
+meta {
+  name: Suspend EService Template Version
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{host-catalog}}/eservices/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/suspend
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceId}}
+  eserviceTemplateVersionId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
