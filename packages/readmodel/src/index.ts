@@ -7,9 +7,10 @@ export * from "./catalogReadModelService.js";
 export * from "./attribute/aggregators.js";
 export * from "./attributeReadModelServiceSQL.js";
 
-export * from "./agreementReadModelService.js";
 export * from "./agreement/splitters.js";
+export * from "./agreementReadModelService.js";
 
+export * from "./tenant/aggregators.js";
 export * from "./tenantReadModelService.js";
 
 export * from "./purposeReadModelServiceSQL.js";
