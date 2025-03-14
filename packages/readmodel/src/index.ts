@@ -15,6 +15,7 @@ export * from "./tenantReadModelService.js";
 
 export * from "./purposeReadModelService.js";
 export * from "./purpose/splitters.js";
+export * from "./purpose/aggregators.js";
 
 export * from "./clientReadModelServiceSQL.js";
 export * from "./clientJWKKeyReadModelServiceSQL.js";

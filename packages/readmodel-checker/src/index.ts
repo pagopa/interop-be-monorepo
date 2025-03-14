@@ -8,7 +8,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilderSQL,
-  purposeReadModelServiceBuilderSQL,
   clientReadModelServiceBuilderSQL,
   clientJWKKeyReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
@@ -50,8 +49,6 @@ const readModelDB = drizzle({ client: pool });
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilderSQL(readModelDB);
-const purposeReadModelServiceSQL =
-  purposeReadModelServiceBuilderSQL(readModelDB);
 const clientReadModelServiceSQL = clientReadModelServiceBuilderSQL(readModelDB);
 const clientKeyReadModelServiceSQL =
   clientJWKKeyReadModelServiceBuilder(readModelDB);
@@ -106,7 +103,7 @@ async function main(): Promise<void> {
 
   // PURPOSE
   const purposes = await readModelService.getAllReadModelPurposes();
-  const purposesPostgres = await purposeReadModelServiceSQL.getAllPurposes();
+  const purposesPostgres = await readModelServiceSQL.getAllPurposes();
   compare({
     collectionItems: purposes,
     postgresItems: purposesPostgres,

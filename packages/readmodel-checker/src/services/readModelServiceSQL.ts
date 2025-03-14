@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import {
   Attribute,
   EService,
+  Purpose,
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -12,6 +13,8 @@ import {
   toEServiceAggregatorArray,
   toTenantAggregatorArray,
   aggregateTenantArray,
+  toPurposeAggregatorArray,
+  aggregatePurposeArray,
 } from "pagopa-interop-readmodel";
 import {
   attributeInReadmodelAttribute,
@@ -23,6 +26,11 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  purposeInReadmodelPurpose,
+  purposeRiskAnalysisAnswerInReadmodelPurpose,
+  purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeVersionDocumentInReadmodelPurpose,
+  purposeVersionInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
@@ -196,6 +204,53 @@ export function readModelServiceBuilderSQL(
         );
 
       return aggregateTenantArray(toTenantAggregatorArray(queryResult));
+    },
+
+    async getAllPurposes(): Promise<Array<WithMetadata<Purpose>>> {
+      const queryResult = await readModelDB
+        .select({
+          purpose: purposeInReadmodelPurpose,
+          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
+          purposeRiskAnalysisAnswer:
+            purposeRiskAnalysisAnswerInReadmodelPurpose,
+          purposeVersion: purposeVersionInReadmodelPurpose,
+          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+        })
+        .from(purposeInReadmodelPurpose)
+        .leftJoin(
+          // 1
+          purposeRiskAnalysisFormInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
+          )
+        )
+        .leftJoin(
+          // 2
+          purposeRiskAnalysisAnswerInReadmodelPurpose,
+          eq(
+            purposeRiskAnalysisFormInReadmodelPurpose.id,
+            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          // 3
+          purposeVersionInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            purposeVersionInReadmodelPurpose.purposeId
+          )
+        )
+        .leftJoin(
+          // 4
+          purposeVersionDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+          )
+        );
+
+      return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
     },
   };
 }
