@@ -493,7 +493,7 @@ const eserviceTemplatesRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -519,7 +519,7 @@ const eserviceTemplatesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
