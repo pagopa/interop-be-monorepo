@@ -63,7 +63,7 @@ function getEserviceTemplateServiceMock(
     createEServiceDocument: vi.fn().mockResolvedValue({
       id: generateId<EServiceDocumentId>(),
     }),
-    addEServiceTemplateInstanceInterface: vi.fn().mockResolvedValue({
+    addEServiceTemplateInstanceInterfaceRest: vi.fn().mockResolvedValue({
       id: generateId<EServiceDocumentId>(),
     }),
   } as unknown as CatalogProcessClient;
@@ -179,7 +179,7 @@ describe("E-service Template Service BFF ", () => {
         };
 
         const resourceId =
-          await eserviceTemplateService.addEserviceInterfaceByTemplate(
+          await eserviceTemplateService.addEserviceInterfaceRestByTemplate(
             eservice.id,
             draftDescriptor.id,
             requestPayload,
