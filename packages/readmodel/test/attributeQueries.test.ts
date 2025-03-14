@@ -3,8 +3,11 @@ import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute, AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { aggregateAttribute } from "../src/attribute/aggregators.js";
-import { attributeReadModelService, readModelDB } from "./utils.js";
-import { retrieveAttributeSQLById } from "./attributeTestReadModelService.js";
+import { readModelDB } from "./utils.js";
+import {
+  attributeReadModelService,
+  retrieveAttributeSQLById,
+} from "./attributeUtils.js";
 
 describe("Attribute queries", () => {
   describe("should insert or update an attribute in the db", () => {
