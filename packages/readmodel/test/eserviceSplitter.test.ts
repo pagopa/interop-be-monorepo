@@ -178,19 +178,23 @@ describe("E-service splitter", () => {
       rejectedAt: rejectionReason.rejectedAt.toISOString(),
     };
 
-    expect(eserviceSQL).toEqual(expectedEServiceSQL);
-    expect(riskAnalysesSQL).toEqual(
+    expect(eserviceSQL).toStrictEqual(expectedEServiceSQL);
+    expect(riskAnalysesSQL).toStrictEqual(
       expect.arrayContaining([
         expectedRiskAnalysisSQL1,
         expectedRiskAnalysisSQL2,
       ])
     );
-    expect(riskAnalysisAnswersSQL).toEqual(expectedRiskAnalysisAnswersSQL);
-    expect(descriptorsSQL).toEqual([expectedDescriptorSQL]);
-    expect(attributesSQL).toEqual([expectedAttributeSQL]);
-    expect(interfacesSQL).toEqual([expectedInterfaceDocSQL]);
-    expect(documentsSQL).toEqual(expect.arrayContaining([expectedDocumentSQL]));
-    expect(rejectionReasonsSQL).toEqual([expectedRejectionReasonSQL]);
+    expect(riskAnalysisAnswersSQL).toStrictEqual(
+      expectedRiskAnalysisAnswersSQL
+    );
+    expect(descriptorsSQL).toStrictEqual([expectedDescriptorSQL]);
+    expect(attributesSQL).toStrictEqual([expectedAttributeSQL]);
+    expect(interfacesSQL).toStrictEqual([expectedInterfaceDocSQL]);
+    expect(documentsSQL).toStrictEqual(
+      expect.arrayContaining([expectedDocumentSQL])
+    );
+    expect(rejectionReasonsSQL).toStrictEqual([expectedRejectionReasonSQL]);
   });
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
@@ -307,18 +311,22 @@ describe("E-service splitter", () => {
       uploadDate: doc.uploadDate.toISOString(),
     };
 
-    expect(eserviceSQL).toEqual(expectedEServiceSQL);
-    expect(riskAnalysesSQL).toEqual(
+    expect(eserviceSQL).toStrictEqual(expectedEServiceSQL);
+    expect(riskAnalysesSQL).toStrictEqual(
       expect.arrayContaining([
         expectedRiskAnalysisSQL1,
         expectedRiskAnalysisSQL2,
       ])
     );
-    expect(riskAnalysisAnswersSQL).toEqual(expectedRiskAnalysisAnswersSQL);
-    expect(descriptorsSQL).toEqual([expectedDescriptorSQL]);
+    expect(riskAnalysisAnswersSQL).toStrictEqual(
+      expectedRiskAnalysisAnswersSQL
+    );
+    expect(descriptorsSQL).toStrictEqual([expectedDescriptorSQL]);
     expect(attributesSQL).toHaveLength(0);
     expect(interfacesSQL).toHaveLength(0);
-    expect(documentsSQL).toEqual(expect.arrayContaining([expectedDocumentSQL]));
+    expect(documentsSQL).toStrictEqual(
+      expect.arrayContaining([expectedDocumentSQL])
+    );
     expect(rejectionReasonsSQL).toHaveLength(0);
   });
 });

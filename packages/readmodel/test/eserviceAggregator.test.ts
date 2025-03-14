@@ -85,7 +85,7 @@ describe("E-service aggregator", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     });
 
-    expect(aggregatedEservice).toMatchObject({
+    expect(aggregatedEservice).toStrictEqual({
       data: eservice,
       metadata: { version: 1 },
     });
@@ -136,7 +136,7 @@ describe("E-service aggregator", () => {
       // TODO: add eserviceTemplateBinding
     });
 
-    expect(aggregatedEservice).toMatchObject({
+    expect(aggregatedEservice).toStrictEqual({
       data: eservice,
       metadata: { version: 1 },
     });
