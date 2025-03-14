@@ -20,14 +20,14 @@ export function clientReadModelServiceBuilderSQL(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    async upsertClient(client: WithMetadata<Client>): Promise<void> {
+    async upsertClient(client: Client, metadataVersion: number): Promise<void> {
       const { clientSQL, usersSQL, purposesSQL, keysSQL } =
-        splitClientIntoObjectsSQL(client.data, client.metadata.version);
+        splitClientIntoObjectsSQL(client, metadataVersion);
 
       await db.transaction(async (tx) => {
         await tx
           .delete(clientInReadmodelClient)
-          .where(eq(clientInReadmodelClient.id, client.data.id));
+          .where(eq(clientInReadmodelClient.id, client.id));
 
         await tx.insert(clientInReadmodelClient).values(clientSQL);
 

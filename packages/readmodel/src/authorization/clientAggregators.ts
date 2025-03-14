@@ -109,13 +109,13 @@ export const toClientAggregatorArray = (
   const clientIdSet = new Set<string>();
   const clientsSQL: ClientSQL[] = [];
 
-  const userIdSet = new Set<[string, string]>();
+  const userIdSet = new Set<string>();
   const usersSQL: ClientUserSQL[] = [];
 
-  const purposeIdSet = new Set<[string, string]>();
+  const purposeIdSet = new Set<string>();
   const purposesSQL: ClientPurposeSQL[] = [];
 
-  const keyIdSet = new Set<[string, string]>();
+  const keyIdSet = new Set<string>();
   const keysSQL: ClientKeySQL[] = [];
 
   queryRes.forEach((row) => {
@@ -127,8 +127,11 @@ export const toClientAggregatorArray = (
     }
 
     const userSQL = row.clientUser;
-    if (userSQL && !userIdSet.has([userSQL.clientId, userSQL.userId])) {
-      userIdSet.add([userSQL.clientId, userSQL.userId]);
+    if (
+      userSQL &&
+      !userIdSet.has(uniqueKey([userSQL.clientId, userSQL.userId]))
+    ) {
+      userIdSet.add(uniqueKey([userSQL.clientId, userSQL.userId]));
       // eslint-disable-next-line functional/immutable-data
       usersSQL.push(userSQL);
     }
@@ -136,16 +139,16 @@ export const toClientAggregatorArray = (
     const purposeSQL = row.clientPurpose;
     if (
       purposeSQL &&
-      !purposeIdSet.has([purposeSQL.clientId, purposeSQL.purposeId])
+      !purposeIdSet.has(uniqueKey([purposeSQL.clientId, purposeSQL.purposeId]))
     ) {
-      purposeIdSet.add([purposeSQL.clientId, purposeSQL.purposeId]);
+      purposeIdSet.add(uniqueKey([purposeSQL.clientId, purposeSQL.purposeId]));
       // eslint-disable-next-line functional/immutable-data
       purposesSQL.push(purposeSQL);
     }
 
     const keySQL = row.clientKey;
-    if (keySQL && !keyIdSet.has([keySQL.clientId, keySQL.kid])) {
-      keyIdSet.add([keySQL.clientId, keySQL.kid]);
+    if (keySQL && !keyIdSet.has(uniqueKey([keySQL.clientId, keySQL.kid]))) {
+      keyIdSet.add(uniqueKey([keySQL.clientId, keySQL.kid]));
       // eslint-disable-next-line functional/immutable-data
       keysSQL.push(keySQL);
     }
@@ -158,3 +161,5 @@ export const toClientAggregatorArray = (
     keysSQL,
   };
 };
+
+const uniqueKey = (ids: string[]): string => ids.join("#");
