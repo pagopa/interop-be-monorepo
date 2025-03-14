@@ -26,11 +26,11 @@ import {
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
 import { expect } from "vitest";
-import { catalogReadModelServiceBuilder } from "../src/catalogReadModelService.js";
+import { catalogReadModelServiceBuilderSQL } from "../src/catalogReadModelService.js";
 import { readModelDB } from "./utils.js";
 
 export const catalogReadModelService =
-  catalogReadModelServiceBuilder(readModelDB);
+  catalogReadModelServiceBuilderSQL(readModelDB);
 
 export const generateEServiceRiskAnalysisAnswersSQL = (
   eserviceId: string,
