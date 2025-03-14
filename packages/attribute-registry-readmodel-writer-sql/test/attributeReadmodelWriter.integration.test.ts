@@ -1,7 +1,3 @@
-/* eslint-disable functional/no-let */
-/* eslint-disable functional/immutable-data */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { describe, expect, it } from "vitest";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
@@ -40,7 +36,7 @@ describe("database test", async () => {
 
       const retrievedAttribute =
         await attributeReadModelService.getAttributeById(certifiedAttribute.id);
-      expect(retrievedAttribute).toMatchObject({
+      expect(retrievedAttribute).toStrictEqual({
         data: certifiedAttribute,
         metadata: { version: 1 },
       });
