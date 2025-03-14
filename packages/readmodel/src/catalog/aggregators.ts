@@ -179,13 +179,13 @@ EServiceItemsSQL): WithMetadata<EService> => {
     descriptors,
     riskAnalysis,
     mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
-    ...(eserviceSQL.isClientAccessDelegable
+    ...(eserviceSQL.isClientAccessDelegable !== null
       ? { isClientAccessDelegable: eserviceSQL.isClientAccessDelegable }
       : {}),
-    ...(eserviceSQL.isConsumerDelegable
+    ...(eserviceSQL.isConsumerDelegable !== null
       ? { isConsumerDelegable: eserviceSQL.isConsumerDelegable }
       : {}),
-    ...(eserviceSQL.isSignalHubEnabled
+    ...(eserviceSQL.isSignalHubEnabled !== null
       ? { isSignalHubEnabled: eserviceSQL.isSignalHubEnabled }
       : {}),
   };
