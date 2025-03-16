@@ -309,11 +309,12 @@ const getTemplateDataFromEservice = (
 };
 
 const evaluateEServiceTemplateVersionRef = (
+  currentDescriptor: Descriptor,
   templateVersionId: EServiceTemplateVersionId | undefined,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
 ): EServiceTemplateVersionRef | undefined => {
   if (!templateVersionId) {
-    return undefined;
+    return currentDescriptor.templateVersionRef;
   }
 
   const templateRef = { id: templateVersionId };
@@ -659,6 +660,7 @@ async function innerAddDocumentToEserviceEvent(
   };
 
   const templateVersionRef = evaluateEServiceTemplateVersionRef(
+    descriptor,
     templateVersionId,
     documentSeed
   );
