@@ -1217,13 +1217,14 @@ const eservicesRouter = (
         try {
           const interfaceSoapSeed: catalogApi.TemplateInstanceInterfaceSOAPSeed =
             req.body;
-          await catalogService.addEServiceTemplateInstanceInterface(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            interfaceSoapSeed,
-            ctx
-          );
-          return res.status(204);
+          const updatedEservice =
+            await catalogService.addEServiceTemplateInstanceInterface(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              interfaceSoapSeed,
+              ctx
+            );
+          return res.status(200).send(eServiceToApiEService(updatedEservice));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1245,13 +1246,14 @@ const eservicesRouter = (
         try {
           const interfaceRestSeed: catalogApi.TemplateInstanceInterfaceRESTSeed =
             req.body;
-          await catalogService.addEServiceTemplateInstanceInterface(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            interfaceRestSeed,
-            ctx
-          );
-          return res.status(204).send();
+          const updatedEservice =
+            await catalogService.addEServiceTemplateInstanceInterface(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              interfaceRestSeed,
+              ctx
+            );
+          return res.status(200).send(eServiceToApiEService(updatedEservice));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

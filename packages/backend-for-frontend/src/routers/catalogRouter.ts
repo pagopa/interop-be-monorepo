@@ -972,13 +972,14 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          await eserviceTemplateService.addEserviceInterfaceSoapByTemplate(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.body,
-            ctx
-          );
-          return res.status(204).send();
+          const eserviceId =
+            await eserviceTemplateService.addEserviceInterfaceSoapByTemplate(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res.status(200).send(bffApi.CreatedResource.parse(eserviceId));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -996,14 +997,14 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const response =
+          const eserviceId =
             await eserviceTemplateService.addEserviceInterfaceRestByTemplate(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
-          return res.status(200).send(bffApi.CreatedResource.parse(response));
+          return res.status(200).send(bffApi.CreatedResource.parse(eserviceId));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
