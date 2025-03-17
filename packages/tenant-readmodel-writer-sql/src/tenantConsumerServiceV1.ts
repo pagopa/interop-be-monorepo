@@ -5,13 +5,11 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { TenantReadModelService } from "pagopa-interop-readmodel";
-import { CustomReadModelService } from "./customReadModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export async function handleMessageV1(
   message: TenantEventEnvelopeV1,
-  tenantReadModelService: TenantReadModelService,
-  customReadModelService: CustomReadModelService
+  readModelService: ReadModelService
 ): Promise<void> {
   await match(message)
     .with(
@@ -23,20 +21,20 @@ export async function handleMessageV1(
           throw genericInternalError("Tenant not found in message");
         }
 
-        await tenantReadModelService.upsertTenant(
+        await readModelService.upsertTenant(
           fromTenantV1(msg.data.tenant),
           message.version
         );
       }
     )
     .with({ type: "TenantDeleted" }, async (msg) => {
-      await tenantReadModelService.deleteTenantById(
+      await readModelService.deleteTenant(
         unsafeBrandId(msg.data.tenantId),
         message.version
       );
     })
     .with({ type: "SelfcareMappingCreated" }, async (msg) => {
-      await customReadModelService.setSelfcareId(
+      await readModelService.setSelfcareId(
         unsafeBrandId(msg.data.tenantId),
         msg.data.selfcareId,
         msg.version
@@ -44,7 +42,7 @@ export async function handleMessageV1(
     })
     .with({ type: "SelfcareMappingDeleted" }, async () => Promise.resolve())
     .with({ type: "TenantMailDeleted" }, async (msg) => {
-      await customReadModelService.deleteTenantMailById(
+      await readModelService.deleteTenantMailById(
         unsafeBrandId(msg.data.tenantId),
         msg.data.mailId,
         msg.version

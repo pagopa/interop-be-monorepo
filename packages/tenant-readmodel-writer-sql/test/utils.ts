@@ -5,7 +5,7 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { customReadModelServiceBuilder } from "../src/customReadModelService.js";
+import { readModelServiceBuilder } from "../src/readModelService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -29,8 +29,7 @@ afterEach(async () => {
   await cleanup();
 });
 
-export const tenantReadModelServiceSQL =
-  tenantReadModelServiceBuilder(readModelDB);
-
-export const customReadModelServiceSQL =
-  customReadModelServiceBuilder(readModelDB);
+export const readModelService = readModelServiceBuilder(
+  readModelDB,
+  tenantReadModelServiceBuilder(readModelDB)
+);

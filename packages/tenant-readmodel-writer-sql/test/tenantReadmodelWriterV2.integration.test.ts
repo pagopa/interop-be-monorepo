@@ -35,7 +35,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/tenantConsumerServiceV2.js";
-import { tenantReadModelServiceSQL } from "./utils.js";
+import { readModelService } from "./utils.js";
 
 describe("Tenant Events V2", async () => {
   const mockTenant = getMockTenant();
@@ -63,11 +63,9 @@ describe("Tenant Events V2", async () => {
       data: payload,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(tenant);
     expect(retrievedTenant?.metadata).toEqual({
@@ -75,7 +73,7 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("TenantOnboardDetailsUpdated", async () => {
-    await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
+    await readModelService.upsertTenant(mockTenant, 1);
 
     const updatedTenant: Tenant = {
       ...mockTenant,
@@ -93,11 +91,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toMatchObject(updatedTenant);
     expect(retrievedTenant?.metadata).toEqual({
@@ -105,7 +101,7 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("TenantCertifiedAttributeAssigned", async () => {
-    await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
+    await readModelService.upsertTenant(mockTenant, 1);
 
     const certifiedAttribute = {
       ...getMockCertifiedTenantAttribute(),
@@ -129,11 +125,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(updatedTenant);
     expect(retrievedTenant?.metadata).toEqual({
@@ -150,10 +144,7 @@ describe("Tenant Events V2", async () => {
       ...mockTenant,
       attributes: [certifiedAttribute],
     };
-    await tenantReadModelServiceSQL.upsertTenant(
-      tenantWithCertifiedAttribute,
-      1
-    );
+    await readModelService.upsertTenant(tenantWithCertifiedAttribute, 1);
 
     const revokedCertifiedAttribute: CertifiedTenantAttribute = {
       ...certifiedAttribute,
@@ -177,11 +168,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(tenantWithRevokedCertifiedAttribute);
     expect(retrievedTenant?.metadata).toEqual({
@@ -189,7 +178,7 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("TenantDeclaredAttributeAssigned", async () => {
-    await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
+    await readModelService.upsertTenant(mockTenant, 1);
 
     const declaredAttribute: DeclaredTenantAttribute = {
       ...getMockDeclaredTenantAttribute(),
@@ -213,11 +202,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(updatedTenant);
     expect(retrievedTenant?.metadata).toEqual({
@@ -234,7 +221,7 @@ describe("Tenant Events V2", async () => {
       ...mockTenant,
       attributes: [declaredAttribute],
     };
-    await tenantReadModelServiceSQL.upsertTenant(updatedTenant, 1);
+    await readModelService.upsertTenant(updatedTenant, 1);
 
     const payload: TenantDeclaredAttributeRevokedV2 = {
       tenant: toTenantV2(mockTenant),
@@ -248,11 +235,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data.attributes).toHaveLength(0);
   });
@@ -267,9 +252,9 @@ describe("Tenant Events V2", async () => {
       ],
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(verifier, 1);
+    await readModelService.upsertTenant(verifier, 1);
 
-    await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
+    await readModelService.upsertTenant(mockTenant, 1);
 
     const verifiedAttribute: VerifiedTenantAttribute = {
       id: generateId(),
@@ -295,11 +280,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(updatedTenant);
     expect(retrievedTenant?.metadata).toEqual({
@@ -325,17 +308,14 @@ describe("Tenant Events V2", async () => {
       type: tenantAttributeType.VERIFIED,
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(revoker, 1);
+    await readModelService.upsertTenant(revoker, 1);
 
     const tenantWithVerifiedAttribute: Tenant = {
       ...mockTenant,
       attributes: [verifiedAttribute],
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(
-      tenantWithVerifiedAttribute,
-      1
-    );
+    await readModelService.upsertTenant(tenantWithVerifiedAttribute, 1);
 
     const revokedAttribute: VerifiedTenantAttribute = {
       ...verifiedAttribute,
@@ -367,11 +347,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(tenantWithRevokedVerifiedAttribute);
     expect(retrievedTenant?.metadata).toEqual({
@@ -389,17 +367,14 @@ describe("Tenant Events V2", async () => {
       type: tenantAttributeType.VERIFIED,
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(verifier, 1);
+    await readModelService.upsertTenant(verifier, 1);
 
     const tenantWithVerifiedAttribute: Tenant = {
       ...mockTenant,
       attributes: [verifiedAttribute],
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(
-      tenantWithVerifiedAttribute,
-      1
-    );
+    await readModelService.upsertTenant(tenantWithVerifiedAttribute, 1);
 
     const attributeWithUpdatedExpiration: VerifiedTenantAttribute = {
       ...verifiedAttribute,
@@ -430,11 +405,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(tenantWithUpdatedVerifiedAttribute);
     expect(retrievedTenant?.metadata).toEqual({
@@ -452,17 +425,14 @@ describe("Tenant Events V2", async () => {
       type: tenantAttributeType.VERIFIED,
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(verifier, 1);
+    await readModelService.upsertTenant(verifier, 1);
 
     const tenantWithVerifiedAttribute: Tenant = {
       ...mockTenant,
       attributes: [verifiedAttribute],
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(
-      tenantWithVerifiedAttribute,
-      1
-    );
+    await readModelService.upsertTenant(tenantWithVerifiedAttribute, 1);
 
     const attributeWithUpdatedExtensionDate: VerifiedTenantAttribute = {
       ...verifiedAttribute,
@@ -493,11 +463,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(tenantWithExtendedVerifiedAttribute);
     expect(retrievedTenant?.metadata).toEqual({
@@ -505,7 +473,7 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("TenantMailAdded", async () => {
-    await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
+    await readModelService.upsertTenant(mockTenant, 1);
 
     const mail = { ...getMockTenantMail() };
 
@@ -526,11 +494,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(updatedTenant);
     expect(retrievedTenant?.metadata).toEqual({
@@ -545,7 +511,7 @@ describe("Tenant Events V2", async () => {
       mails: [mail],
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(tenant, 1);
+    await readModelService.upsertTenant(tenant, 1);
 
     const updatedTenant: Tenant = {
       ...mockTenant,
@@ -564,11 +530,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(updatedTenant);
     expect(retrievedTenant?.metadata).toEqual({
@@ -580,7 +544,7 @@ describe("Tenant Events V2", async () => {
       ...mockTenant,
       kind: tenantKind.GSP,
     };
-    await tenantReadModelServiceSQL.upsertTenant(tenant, 1);
+    await readModelService.upsertTenant(tenant, 1);
 
     const updatedTenant: Tenant = {
       ...mockTenant,
@@ -599,11 +563,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(updatedTenant);
     expect(retrievedTenant?.metadata).toEqual({
@@ -611,7 +573,7 @@ describe("Tenant Events V2", async () => {
     });
   });
   it("MaintenanceTenantDeleted", async () => {
-    await tenantReadModelServiceSQL.upsertTenant(mockTenant, 1);
+    await readModelService.upsertTenant(mockTenant, 1);
 
     const payload: MaintenanceTenantDeletedV2 = {
       tenantId: mockTenant.id,
@@ -624,11 +586,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant).toBeUndefined();
   });
@@ -649,7 +609,7 @@ describe("Tenant Events V2", async () => {
       subUnitType: tenantUnitType.AOO,
     };
 
-    await tenantReadModelServiceSQL.upsertTenant(tenant, 1);
+    await readModelService.upsertTenant(tenant, 1);
 
     const updatedTenant: Tenant = {
       ...mockTenant,
@@ -676,11 +636,9 @@ describe("Tenant Events V2", async () => {
       version: 2,
     };
 
-    await handleMessageV2(message, tenantReadModelServiceSQL);
+    await handleMessageV2(message, readModelService);
 
-    const retrievedTenant = await tenantReadModelServiceSQL.getTenantById(
-      mockTenant.id
-    );
+    const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
     expect(retrievedTenant?.data).toEqual(updatedTenant);
     expect(retrievedTenant?.metadata).toEqual({

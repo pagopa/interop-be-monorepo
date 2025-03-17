@@ -1,6 +1,7 @@
 import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { TenantId } from "pagopa-interop-models";
+import { Tenant, TenantId, WithMetadata } from "pagopa-interop-models";
+import { TenantReadModelService } from "pagopa-interop-readmodel";
 import {
   tenantCertifiedAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
@@ -13,8 +14,29 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function customReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function readModelServiceBuilder(
+  db: ReturnType<typeof drizzle>,
+  tenantReadModelService: TenantReadModelService
+) {
   return {
+    async upsertTenant(tenant: Tenant, metadataVersion: number): Promise<void> {
+      return await tenantReadModelService.upsertTenant(tenant, metadataVersion);
+    },
+    async getTenantById(
+      tenantId: TenantId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return await tenantReadModelService.getTenantById(tenantId);
+    },
+    async deleteTenant(
+      tenantId: TenantId,
+      metadataVersion: number
+    ): Promise<void> {
+      return await tenantReadModelService.deleteTenantById(
+        tenantId,
+        metadataVersion
+      );
+    },
+
     async deleteTenantMailById(
       tenantId: TenantId,
       tenantMailId: string,
@@ -99,6 +121,4 @@ const updateTenantVersionInRelatedTable = async (
   }
 };
 
-export type CustomReadModelService = ReturnType<
-  typeof customReadModelServiceBuilder
->;
+export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

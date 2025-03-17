@@ -15,11 +15,13 @@ import {
 import { config } from "./config/config.js";
 import { handleMessageV1 } from "./tenantConsumerServiceV1.js";
 import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
-import { customReadModelServiceBuilder } from "./customReadModelService.js";
+import { readModelServiceBuilder } from "./readModelService.js";
 
 const db = makeDrizzleConnection(config);
-const tenantReadModelService = tenantReadModelServiceBuilder(db);
-const customReadModelService = customReadModelServiceBuilder(db);
+const readModelService = readModelServiceBuilder(
+  db,
+  tenantReadModelServiceBuilder(db)
+);
 
 async function processMessage({
   message,
@@ -38,12 +40,8 @@ async function processMessage({
   });
 
   await match(decodedMessage)
-    .with({ event_version: 1 }, (msg) =>
-      handleMessageV1(msg, tenantReadModelService, customReadModelService)
-    )
-    .with({ event_version: 2 }, (msg) =>
-      handleMessageV2(msg, tenantReadModelService)
-    )
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, readModelService))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, readModelService))
     .exhaustive();
   loggerInstance.info(
     `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
