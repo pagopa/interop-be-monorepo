@@ -1,11 +1,11 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   ProducerKeychain,
   ProducerKeychainId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
   producerKeychainKeyInReadmodelProducerKeychain,
@@ -18,9 +18,7 @@ import {
 } from "./authorization/producerKeychainAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function producerKeychainReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function producerKeychainReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertProducerKeychain(
       producerKeychain: ProducerKeychain,
