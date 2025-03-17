@@ -85,16 +85,17 @@ describe("create descriptor", async () => {
       dailyCallsTotal: 60,
     };
 
-    const returnedDescriptor = await catalogService.createTemplateInstanceDescriptor(
-      eservice.id,
-      descriptorSeed,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    const returnedDescriptor =
+      await catalogService.createTemplateInstanceDescriptor(
+        eservice.id,
+        descriptorSeed,
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -190,16 +191,17 @@ describe("create descriptor", async () => {
       dailyCallsTotal: 60,
     };
 
-    const returnedDescriptor = await catalogService.createTemplateInstanceDescriptor(
-      eservice.id,
-      descriptorSeed,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
-    );
+    const returnedDescriptor =
+      await catalogService.createTemplateInstanceDescriptor(
+        eservice.id,
+        descriptorSeed,
+        {
+          authData: getMockAuthData(delegation.delegateId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -291,12 +293,16 @@ describe("create descriptor", async () => {
       };
 
       expect(
-        catalogService.createTemplateInstanceDescriptor(eservice.id, descriptorSeed, {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        })
+        catalogService.createTemplateInstanceDescriptor(
+          eservice.id,
+          descriptorSeed,
+          {
+            authData: getMockAuthData(eservice.producerId),
+            correlationId: generateId(),
+            serviceName: "",
+            logger: genericLogger,
+          }
+        )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
     }
   );
@@ -338,12 +344,16 @@ describe("create descriptor", async () => {
     };
 
     expect(
-      catalogService.createTemplateInstanceDescriptor(eservice.id, descriptorSeed, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.createTemplateInstanceDescriptor(
+        eservice.id,
+        descriptorSeed,
+        {
+          authData: getMockAuthData(eservice.producerId),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
 

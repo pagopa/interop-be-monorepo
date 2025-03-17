@@ -1242,11 +1242,12 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const descriptor = await catalogService.createTemplateInstanceDescriptor(
-            unsafeBrandId(req.params.eServiceId),
-            req.body,
-            ctx
-          );
+          const descriptor =
+            await catalogService.createTemplateInstanceDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              req.body,
+              ctx
+            );
           return res
             .status(200)
             .send(
