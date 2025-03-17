@@ -100,7 +100,7 @@ export type AgreementItemsSQL = {
   stampsSQL: AgreementStampSQL[];
   attributesSQL: AgreementAttributeSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
-  contractSQL: AgreementContractSQL | null;
+  contractSQL: AgreementContractSQL | undefined;
 };
 
 export type TenantSQL = InferSelectModel<typeof tenantInReadmodelTenant>;
