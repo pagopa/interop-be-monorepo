@@ -372,6 +372,7 @@ export function toCompactDescriptor(
     audience: descriptor.audience,
     state: descriptor.state,
     version: descriptor.version,
+    templateVersionId: descriptor.templateVersionRef?.id,
   };
 }
 
@@ -398,17 +399,21 @@ export function toBffEServiceTemplateInstance(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
 ): bffApi.EServiceTemplateInstance {
-  const activeDescriptor = getLatestActiveDescriptor(eservice);
+  const descriptors = eservice.descriptors
+    .filter(isValidDescriptor)
+    .map(toCompactDescriptor);
+
+  const latestDescriptor = [...descriptors]
+    .sort((a, b) => Number(a.version) - Number(b.version))
+    .at(-1);
 
   return {
     id: eservice.id,
     name: eservice.name,
     producerId: producer.id,
     producerName: producer.name,
-    activeDescriptor: activeDescriptor
-      ? toCompactDescriptor(activeDescriptor)
-      : undefined,
-    descriptors: eservice.descriptors.map(toCompactDescriptor),
+    latestDescriptor,
+    descriptors,
     instanceLabel: eservice.templateRef?.instanceLabel,
   };
 }
