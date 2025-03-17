@@ -4,7 +4,7 @@ import {
   invalidKey,
   jwkDecodingError,
   notAllowedCertificateException,
-  notAllowedMutipleKeysException,
+  notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
 import { JWTConfig } from "../config/index.js";
@@ -50,7 +50,7 @@ function assertSingleKey(keyString: string): void {
   const beginMatches = keyString.match(/-----BEGIN PUBLIC KEY-----/g);
 
   if (beginMatches && beginMatches.length > 1) {
-    throw notAllowedMutipleKeysException();
+    throw notAllowedMultipleKeysException();
   }
 }
 

@@ -12,7 +12,7 @@ import {
   generateId,
   invalidKey,
   notAllowedCertificateException,
-  notAllowedMutipleKeysException,
+  notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
   toClientV2,
 } from "pagopa-interop-models";
@@ -411,28 +411,33 @@ describe("createKeys", () => {
     ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
   });
   it("should throw invalidKey if the key doesn't have the delimiters", async () => {
-    const keySeed: authorizationApi.KeySeed = {
-      name: "key seed",
-      use: "ENC",
-      key: `Ck1JSUJDZ0tDQVFFQXF1c1hpYUtuR2RmbnZyZ21WNDlGK2lJR0lOa0tUQ0FJQTZ0d3NVUzNzaWVxdXlQRk80QmMKcVhZSUE2cXZyWDJxc21hOElTS2RMbkt5azBFNXczQ0JOZmZCcUs2ZE9pYm5xZGxEVndnZDZEWm1HY2VWWWFoYQp6QnpqbFdXcllmNEUrTUNvZ1FiUEFYTytOa0Z0M1c3cVhMTFFCYzBYTXlIelQzTlBtQlpJTktRMS9hd05iR3dYCnJJSGlyVnBqZHVpNzJRb3hjR1VBMW5JallRTW9iQ3VBMHg1L3dFL29KblFZZ1g1NVg3SnRKaTQ2dmx0VlpiVVMKckZiWkdlRUIzMEF1NUV6a0U0NUpLVGpTZnVmclJEZDJzcFByKzJiYmFibFFsY1lSYnloaHVpeVR2cU1pSGZmKwplZ2JJNGpseVFSTExhUXdEeThzOHd2NDNWNUtzNmtmVGVRSURBUUFCCgo=`,
-      alg: "",
-    };
-
-    const keysSeeds: authorizationApi.KeysSeed = [keySeed];
-
     await addOneClient(mockClient);
+
+    const keys = [
+      "Ck1JSUJDZ0tDQVFFQXF1c1hpYUtuR2RmbnZyZ21WNDlGK2lJR0lOa0tUQ0FJQTZ0d3NVUzNzaWVxdXlQRk80QmMKcVhZSUE2cXZyWDJxc21hOElTS2RMbkt5azBFNXczQ0JOZmZCcUs2ZE9pYm5xZGxEVndnZDZEWm1HY2VWWWFoYQp6QnpqbFdXcllmNEUrTUNvZ1FiUEFYTytOa0Z0M1c3cVhMTFFCYzBYTXlIelQzTlBtQlpJTktRMS9hd05iR3dYCnJJSGlyVnBqZHVpNzJRb3hjR1VBMW5JallRTW9iQ3VBMHg1L3dFL29KblFZZ1g1NVg3SnRKaTQ2dmx0VlpiVVMKckZiWkdlRUIzMEF1NUV6a0U0NUpLVGpTZnVmclJEZDJzcFByKzJiYmFibFFsY1lSYnloaHVpeVR2cU1pSGZmKwplZ2JJNGpseVFSTExhUXdEeThzOHd2NDNWNUtzNmtmVGVRSURBUUFCCgo=", // no delimiters in the key
+      "LS0tLS1iZWdpbiBwdWJsaWMga2V5LS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF3WUtQbDRKRW84TVFjd1JuTmlRcQp6TDhRQXVOMndkd0ZEM0dObndRTkg2S1FmTlJRNmZSTnFGUlp2RUNtTmJEMFVwWHFISnMrdVg5SzQ5YnZUcW1rCnFHWEJLa3pNdWkweTZFRjJwUzJJS2cxcUNQY2dSUHNySjRtWlZuYjNXWjk0Yktvb2U5SjlLWkE1cnYvMjd1Vm0KRGVRTU94cjlucGpoc29SN3R3bzB1Y1I1bEFqclJlRWVqbFRLS0V3TjNySU9OOHNEYlJSRWdDd1huc2hYOXVBNgo3dGdrbEMvSkJLWTZrWlVna1o2WlRrZE0zdzhUNktZdm1DaXMzVUpCR3BTSjJUTU93L0xwdWJUM0VIcFFRNythCkZrSlZkdnI0UVBXRTBwcmwxRkV4eHkyWkhZcjhndlpyS25landNRkdiVG10ZjJ3VEt6eG1XWFJOUUVFMGN3NU4KUFFJREFRQUIKLS0tLS1lbmQgcHVibGljIGtleS0tLS0t", // lower case begin and end of key
+      "LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJDZ0tDQVFFQXUxU1UxTGZWTFBIQ296TXhIMk1vNGxnT0VlUHpObTB0UmdlTGV6VjZmZkF0MGd1blZUTHcKN29uTFJucnEwL0l6Vzd5V1I3UWtybUJMN2pUS0VuNXUrcUtoYndLZkJzdElzK2JNWTJaa3AxOGduVHhLTHhvUwoydEZjekdrUExQZ2l6c2t1ZW1NZ2hSbmlXYW9MY3llaGtkM3FxR0VsdlcvVkRMNUFhV1RnMG5MVmtqUm85eis0CjBSUXp1VmFFOEFrQUZJRWtrcnFyWk15WFcwQlpzUGdDZm9ocXZZZUU5VS8xUC9SU0dRU0lQSlJlTnV4QXJmaVYKVWk0ZUpJVW1yd0hBMFFJREFRQUIKLS0tLS1FTkQgUlNBIFBVQkxJQyBLRVktLS0tLQ==", // BEGIN RSA PUBLIC KEY (no SPKI format)
+    ];
+
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
-    expect(
-      authorizationService.createKeys({
-        clientId: mockClient.id,
-        authData: mockAuthData,
-        keysSeeds,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      invalidKey(keySeed.key, "error:1E08010C:DECODER routines::unsupported")
-    );
+    keys.forEach((key) => {
+      expect(
+        authorizationService.createKeys({
+          clientId: mockClient.id,
+          authData: mockAuthData,
+          keysSeeds: [
+            {
+              ...keySeed,
+              key,
+            },
+          ],
+          correlationId: generateId(),
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(
+        invalidKey(key, "error:1E08010C:DECODER routines::unsupported")
+      );
+    });
   });
   it("should throw notAllowedCertificateException if the key contains a certificate", async () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
@@ -457,7 +462,7 @@ describe("createKeys", () => {
       })
     ).rejects.toThrowError(notAllowedCertificateException());
   });
-  it("should throw notAllowedMutipleKeysException if the pem contains multiple keys", async () => {
+  it("should throw notAllowedMultipleKeysException if the pem contains multiple keys", async () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     await addOneClient(mockClient);
@@ -478,6 +483,6 @@ describe("createKeys", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(notAllowedMutipleKeysException());
+    ).rejects.toThrowError(notAllowedMultipleKeysException());
   });
 });
