@@ -145,13 +145,17 @@ describe("Purpose splitter", () => {
       path: purposeVersionRiskAnalysis.path,
     };
 
-    expect(purposeSQL).toEqual(expectedPurposeSQL);
-    expect(riskAnalysisFormSQL).toEqual(expectedPurposeRiskAnalysisFormSQL);
-    expect(riskAnalysisAnswersSQL).toEqual(
+    expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
+    expect(riskAnalysisFormSQL).toStrictEqual(
+      expectedPurposeRiskAnalysisFormSQL
+    );
+    expect(riskAnalysisAnswersSQL).toStrictEqual(
       expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL)
     );
-    expect(versionsSQL).toEqual([expectedPurposeVersionSQL]);
-    expect(versionDocumentsSQL).toEqual([expectedPurposeVersionDocumentSQL]);
+    expect(versionsSQL).toStrictEqual([expectedPurposeVersionSQL]);
+    expect(versionDocumentsSQL).toStrictEqual([
+      expectedPurposeVersionDocumentSQL,
+    ]);
   });
 
   it("should convert an incomplete purpose into purpose SQL objects (undefined -> null)", () => {
@@ -263,12 +267,16 @@ describe("Purpose splitter", () => {
       path: purposeVersionRiskAnalysis.path,
     };
 
-    expect(purposeSQL).toEqual(expectedPurposeSQL);
-    expect(riskAnalysisFormSQL).toEqual(expectedPurposeRiskAnalysisFormSQL);
-    expect(riskAnalysisAnswersSQL).toEqual(
+    expect(purposeSQL).toStrictEqual(expectedPurposeSQL);
+    expect(riskAnalysisFormSQL).toStrictEqual(
+      expectedPurposeRiskAnalysisFormSQL
+    );
+    expect(riskAnalysisAnswersSQL).toStrictEqual(
       expect.arrayContaining(expectedPurposeRiskAnalysisAnswersSQL)
     );
-    expect(versionsSQL).toEqual([expectedPurposeVersionSQL]);
-    expect(versionDocumentsSQL).toEqual([expectedPurposeVersionDocumentSQL]);
+    expect(versionsSQL).toStrictEqual([expectedPurposeVersionSQL]);
+    expect(versionDocumentsSQL).toStrictEqual([
+      expectedPurposeVersionDocumentSQL,
+    ]);
   });
 });

@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { PurposeId } from "pagopa-interop-models";
 import {
   purposeInReadmodelPurpose,
@@ -13,9 +12,16 @@ import {
   purposeVersionInReadmodelPurpose,
   PurposeVersionSQL,
 } from "pagopa-interop-readmodel-models";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { purposeReadModelServiceBuilder } from "../src/purposeReadModelService.js";
+import { readModelDB } from "./utils.js";
 
-export const retrievePurposeSQL = async (
+export const purposeReadModelService =
+  purposeReadModelServiceBuilder(readModelDB);
+
+export const retrievePurposeSQLById = async (
   purposeId: PurposeId,
+  // TODO: import this
   db: ReturnType<typeof drizzle>
 ): Promise<PurposeSQL | undefined> => {
   const result = await db
@@ -26,7 +32,7 @@ export const retrievePurposeSQL = async (
   return result[0];
 };
 
-export const retrievePurposeRiskAnalysisForm = async (
+export const retrievePurposeRiskAnalysisFormById = async (
   purposeId: PurposeId,
   db: ReturnType<typeof drizzle>
 ): Promise<PurposeRiskAnalysisFormSQL | undefined> => {
@@ -38,40 +44,31 @@ export const retrievePurposeRiskAnalysisForm = async (
   return result[0];
 };
 
-export const retrievePurposeRiskAnalysisAnswersSQL = async (
+export const retrievePurposeRiskAnalysisAnswersSQLById = async (
   purposeId: PurposeId,
   db: ReturnType<typeof drizzle>
-): Promise<PurposeRiskAnalysisAnswerSQL[] | undefined> => {
-  const result = await db
+): Promise<PurposeRiskAnalysisAnswerSQL[]> =>
+  await db
     .select()
     .from(purposeRiskAnalysisAnswerInReadmodelPurpose)
     .where(
       eq(purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId, purposeId)
     );
 
-  return result.length > 0 ? result : undefined;
-};
-
-export const retrievePurposeVersionsSQL = async (
+export const retrievePurposeVersionsSQLById = async (
   purposeId: PurposeId,
   db: ReturnType<typeof drizzle>
-): Promise<PurposeVersionSQL[] | undefined> => {
-  const result = await db
+): Promise<PurposeVersionSQL[]> =>
+  await db
     .select()
     .from(purposeVersionInReadmodelPurpose)
     .where(eq(purposeVersionInReadmodelPurpose.purposeId, purposeId));
 
-  return result.length > 0 ? result : undefined;
-};
-
-export const retrievePurposeVersionDocumentSQL = async (
+export const retrievePurposeVersionDocumentSQLById = async (
   purposeId: PurposeId,
   db: ReturnType<typeof drizzle>
-): Promise<PurposeVersionDocumentSQL[] | undefined> => {
-  const result = await db
+): Promise<PurposeVersionDocumentSQL[]> =>
+  await db
     .select()
     .from(purposeVersionDocumentInReadmodelPurpose)
     .where(eq(purposeVersionDocumentInReadmodelPurpose.purposeId, purposeId));
-
-  return result.length > 0 ? result : undefined;
-};

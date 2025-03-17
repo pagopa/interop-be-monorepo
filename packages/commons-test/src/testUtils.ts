@@ -73,6 +73,13 @@ import {
   UserId,
   delegationState,
   delegationKind,
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
+  agreementApprovalPolicy,
+  EServiceTemplateVersionState,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -276,7 +283,6 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   description: "Test purpose - description",
   createdAt: new Date(),
   isFreeOfCharge: true,
-  freeOfChargeReason: "test",
 });
 
 export const getMockPurposeVersion = (
@@ -284,7 +290,6 @@ export const getMockPurposeVersion = (
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
-  riskAnalysis: getMockPurposeVersionDocument(),
   dailyCalls: 10,
   createdAt: new Date(),
   ...(state !== purposeVersionState.draft
@@ -681,3 +686,40 @@ export const addSomeRandomDelegations = async <
     }
   }
 };
+
+export const getMockEServiceTemplateVersion = (
+  eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>(),
+  state: EServiceTemplateVersionState = eserviceTemplateVersionState.draft
+): EServiceTemplateVersion => ({
+  id: eserviceTemplateVersionId,
+  version: 1,
+  description: "eService template version description",
+  createdAt: new Date(),
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+  docs: [],
+  state,
+  voucherLifespan: 60,
+  agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+});
+
+export const getMockEServiceTemplate = (
+  eserviceTemplateId: EServiceTemplateId = generateId<EServiceTemplateId>(),
+  creatorId: TenantId = generateId<TenantId>(),
+  versions: EServiceTemplateVersion[] = [getMockEServiceTemplateVersion()]
+): EServiceTemplate => ({
+  id: eserviceTemplateId,
+  creatorId,
+  name: "eService template name",
+  intendedTarget: "eService template inteded target",
+  description: "eService template description",
+  createdAt: new Date(),
+  technology: technology.rest,
+  versions,
+  riskAnalysis: [],
+  mode: "Deliver",
+  isSignalHubEnabled: true,
+});
