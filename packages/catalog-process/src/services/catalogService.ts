@@ -42,7 +42,6 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
-  EServiceTemplateVersionRef,
   eserviceTemplateVersionState,
   generateId,
   ListResult,
@@ -617,7 +616,6 @@ async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
-  templateVersionId: EServiceTemplateVersionId | undefined,
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
 ): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
@@ -671,10 +669,10 @@ async function innerAddDocumentToEserviceEvent(
       d.id === descriptorId
         ? {
             ...d,
-            templateVersionRef,
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
             serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
+            templateVersionRef: evaluateTemplateVersionRef(d, documentSeed),
           }
         : d
     ),
@@ -1056,7 +1054,6 @@ export function catalogServiceBuilder(
           eservice,
           descriptorId,
           document,
-          undefined,
           readModelService,
           ctx
         );
@@ -3016,7 +3013,6 @@ export function catalogServiceBuilder(
             checksum: doc.checksum,
             serverUrls: [], // not used in case of kind == "DOCUMENT"
           },
-          publishedVersion.id,
           readModelService,
           ctx
         );
@@ -3181,7 +3177,6 @@ export async function createOpenApiInterfaceByTemplate(
           serverUrls,
           interfaceTemplateMetadata: apiContactsData,
         },
-        undefined,
         readModelService,
         ctx
       ),
@@ -3360,6 +3355,38 @@ function updateEServiceDescriptorAttributeInAdd(
     ...verifiedAttributes,
     ...declaredAttributes,
   ].map(unsafeBrandId<AttributeId>);
+}
+
+function evaluateTemplateVersionRef(
+  descriptor: Descriptor,
+  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
+): Descriptor["templateVersionRef"] {
+  if (
+    documentSeed.kind !== "INTERFACE" ||
+    !descriptor.templateVersionRef ||
+    !documentSeed.interfaceTemplateMetadata
+  ) {
+    return descriptor.templateVersionRef;
+  }
+
+  const {
+    contactEmail,
+    contactName,
+    contactUrl,
+    serverUrls,
+    termsAndConditionsUrl,
+  } = documentSeed.interfaceTemplateMetadata;
+
+  return {
+    id: descriptor.templateVersionRef.id,
+    interfaceMetadata: {
+      contactEmail,
+      contactName,
+      contactUrl,
+      serverUrls,
+      termsAndConditionsUrl,
+    },
+  };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

@@ -75,6 +75,7 @@ import {
   assertRequesterIsProducer,
   assertRequesterCanActAsProducer,
   isInvalidDescriptor,
+  assertEServiceNotTemplateInstance,
 } from "./validators.js";
 import {
   getAllDelegations,
@@ -1288,6 +1289,8 @@ export function catalogServiceBuilder(
         },
         headers,
       });
+
+      assertEServiceNotTemplateInstance(eservice);
 
       assertRequesterIsProducer(requesterId, eservice);
       await assertNotDelegatedEservice(
