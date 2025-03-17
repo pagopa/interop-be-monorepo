@@ -25,16 +25,6 @@ export const AgreementState = z.enum([
 ]);
 export type AgreementState = z.infer<typeof AgreementState>;
 
-export const agreementStampKind = {
-  submission: "submission",
-  activation: "activation",
-  rejection: "rejection",
-  suspensionByProducer: "suspensionByProducer",
-  suspensionByConsumer: "suspensionByConsumer",
-  upgrade: "upgrade",
-  archiving: "archiving",
-} as const;
-
 export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
 
