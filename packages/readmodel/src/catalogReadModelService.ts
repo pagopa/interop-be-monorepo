@@ -14,81 +14,89 @@ import {
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import {
   aggregateEservice,
-  aggregateEserviceArray,
   toEServiceAggregator,
-  toEServiceAggregatorArray,
 } from "./catalog/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertEService(
       eservice: EService,
       metadataVersion: number
     ): Promise<void> {
-      const {
-        eserviceSQL,
-        riskAnalysesSQL,
-        riskAnalysisAnswersSQL,
-        descriptorsSQL,
-        attributesSQL,
-        interfacesSQL,
-        documentsSQL,
-        rejectionReasonsSQL,
-      } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
-
       await db.transaction(async (tx) => {
-        await tx
-          .delete(eserviceInReadmodelCatalog)
-          .where(
-            and(
-              eq(eserviceInReadmodelCatalog.id, eserviceSQL.id),
-              lte(eserviceInReadmodelCatalog.metadataVersion, metadataVersion)
-            )
-          );
-
-        await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
-
-        for (const descriptorSQL of descriptorsSQL) {
+        const existingMetadataVersion: number | undefined = (
           await tx
-            .insert(eserviceDescriptorInReadmodelCatalog)
-            .values(descriptorSQL);
-        }
+            .select({
+              metadataVersion: eserviceInReadmodelCatalog.metadataVersion,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(eq(eserviceInReadmodelCatalog.id, eservice.id))
+        )[0]?.metadataVersion;
 
-        for (const interfaceSQL of interfacesSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .values(interfaceSQL);
-        }
+            .delete(eserviceInReadmodelCatalog)
+            .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
 
-        for (const docSQL of documentsSQL) {
-          await tx
-            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-            .values(docSQL);
-        }
+          const {
+            eserviceSQL,
+            riskAnalysesSQL,
+            riskAnalysisAnswersSQL,
+            descriptorsSQL,
+            attributesSQL,
+            interfacesSQL,
+            documentsSQL,
+            rejectionReasonsSQL,
+          } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
-        for (const attributeSQL of attributesSQL) {
-          await tx
-            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-            .values(attributeSQL);
-        }
+          await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
 
-        for (const riskAnalysisSQL of riskAnalysesSQL) {
-          await tx
-            .insert(eserviceRiskAnalysisInReadmodelCatalog)
-            .values(riskAnalysisSQL);
-        }
+          for (const descriptorSQL of descriptorsSQL) {
+            await tx
+              .insert(eserviceDescriptorInReadmodelCatalog)
+              .values(descriptorSQL);
+          }
 
-        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
-          await tx
-            .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
-            .values(riskAnalysisAnswerSQL);
-        }
+          for (const interfaceSQL of interfacesSQL) {
+            await tx
+              .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+              .values(interfaceSQL);
+          }
 
-        for (const rejectionReasonSQL of rejectionReasonsSQL) {
-          await tx
-            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-            .values(rejectionReasonSQL);
+          for (const docSQL of documentsSQL) {
+            await tx
+              .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+              .values(docSQL);
+          }
+
+          for (const attributeSQL of attributesSQL) {
+            await tx
+              .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+              .values(attributeSQL);
+          }
+
+          for (const riskAnalysisSQL of riskAnalysesSQL) {
+            await tx
+              .insert(eserviceRiskAnalysisInReadmodelCatalog)
+              .values(riskAnalysisSQL);
+          }
+
+          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+            await tx
+              .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+              .values(riskAnalysisAnswerSQL);
+          }
+
+          for (const rejectionReasonSQL of rejectionReasonsSQL) {
+            await tx
+              .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+              .values(rejectionReasonSQL);
+          }
         }
       });
     },
@@ -200,87 +208,6 @@ export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
             lte(eserviceInReadmodelCatalog.metadataVersion, metadataVersion)
           )
         );
-    },
-    async getAllEServices(): Promise<Array<WithMetadata<EService>>> {
-      const queryResult = await db
-        .select({
-          eservice: eserviceInReadmodelCatalog,
-          descriptor: eserviceDescriptorInReadmodelCatalog,
-          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
-          document: eserviceDescriptorDocumentInReadmodelCatalog,
-          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
-          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
-          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          // templateBinding: eserviceTemplateBindingInReadmodelCatalog,
-        })
-        .from(eserviceInReadmodelCatalog)
-        .leftJoin(
-          // 1
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          // 2
-          eserviceDescriptorInterfaceInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 3
-          eserviceDescriptorDocumentInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 4
-          eserviceDescriptorAttributeInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 5
-          eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 6
-          eserviceRiskAnalysisInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          // 7
-          eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        );
-      // .leftJoin(
-      //   // 8
-      //   eserviceTemplateBindingInReadmodelCatalog,
-      //   eq(
-      //     eserviceInReadmodelCatalog.id,
-      //     eserviceTemplateBindingInReadmodelCatalog.eserviceId
-      //   )
-      // );
-
-      return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
     },
   };
 }
