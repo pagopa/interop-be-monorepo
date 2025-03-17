@@ -7,12 +7,7 @@
 */
 
 import { z } from "zod";
-import {
-  Descriptor,
-  DescriptorRejectionReason,
-  Document,
-  EService,
-} from "../eservice/eservice.js";
+import { Descriptor, Document, EService } from "../eservice/eservice.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 
 export const DocumentReadModel = Document.extend({
@@ -24,14 +19,6 @@ export const RiskAnalysisReadModel = RiskAnalysis.extend({
   createdAt: z.string().datetime(),
 });
 export type RiskAnalysisReadModel = z.infer<typeof RiskAnalysisReadModel>;
-
-export const DescriptorRejectionReasonReadModel =
-  DescriptorRejectionReason.extend({
-    rejectedAt: z.string().datetime(),
-  });
-export type DescriptorRejectionReasonReadModel = z.infer<
-  typeof DescriptorRejectionReasonReadModel
->;
 
 export const DescriptorReadModel = Descriptor.extend({
   interface: DocumentReadModel.optional(),
