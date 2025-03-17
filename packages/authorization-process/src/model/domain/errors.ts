@@ -373,7 +373,7 @@ export function eserviceNotDelegableForClientAccess(
 
 export function securityUserNotMember(userId: UserId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `User ${userId} is not a member of the client`,
+    detail: `User ${userId} with SECURITY_ROLE is not a member of the client`,
     code: "securityUserNotMember",
     title: "Security user not member",
   });

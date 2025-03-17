@@ -150,7 +150,7 @@ export const assertKeyDoesNotAlreadyExist = async (
   }
 };
 
-export const assertNoKeyAccessForSecurityRole = (
+export const assertSecurityRoleIsClientMember = (
   authData: AuthData,
   client: Client
 ): void => {
