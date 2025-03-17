@@ -1,5 +1,5 @@
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  DrizzleReturnType,
   producerKeychainEserviceInReadmodelProducerKeychain,
   ProducerKeychainEServiceSQL,
   producerKeychainInReadmodelProducerKeychain,
@@ -58,7 +58,7 @@ export const checkCompleteProducerKeychain = async (
 
 export const retrieveProducerKeychainSQLById = async (
   producerKeychainId: ProducerKeychainId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<ProducerKeychainSQL | undefined> => {
   const result = await db
     .select()
@@ -72,7 +72,7 @@ export const retrieveProducerKeychainSQLById = async (
 
 export const retrieveProducerKeychainUsersSQLById = async (
   producerKeychainId: ProducerKeychainId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<ProducerKeychainUserSQL[]> =>
   await db
     .select()
@@ -86,7 +86,7 @@ export const retrieveProducerKeychainUsersSQLById = async (
 
 export const retrieveProducerKeychainEServicesSQLById = async (
   producerKeychainId: ProducerKeychainId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<ProducerKeychainEServiceSQL[]> =>
   await db
     .select()
@@ -100,7 +100,7 @@ export const retrieveProducerKeychainEServicesSQLById = async (
 
 export const retrieveProducerKeychainKeysSQLById = async (
   producerKeychainId: ProducerKeychainId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<ProducerKeychainKeySQL[]> =>
   await db
     .select()
