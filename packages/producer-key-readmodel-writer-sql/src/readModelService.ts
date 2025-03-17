@@ -1,12 +1,14 @@
-import { producerJwkKeyInReadmodelProducerJwkKey } from "pagopa-interop-readmodel-models";
+import {
+  DrizzleReturnType,
+  producerJwkKeyInReadmodelProducerJwkKey,
+} from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { ProducerJWKKey, ProducerKeychainId } from "pagopa-interop-models";
 import { ProducerJWKKeyReadModelService } from "pagopa-interop-readmodel";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function customReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>,
+  db: DrizzleReturnType,
   producerJWKKeyReadModelService: ProducerJWKKeyReadModelService
 ) {
   return {
