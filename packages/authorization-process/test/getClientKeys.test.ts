@@ -15,6 +15,7 @@ import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
+  securityUserNotMember,
 } from "../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
@@ -122,6 +123,29 @@ describe("getClientKeys", async () => {
         },
       })
     ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
+  });
+  it("should throw securityUserNotMember if the requester has SECURITY_ROLE and the user is not a member of the organization", async () => {
+    await addOneClient(mockClient);
+
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      userRoles: ["security"],
+    };
+
+    await expect(
+      authorizationService.getClientKeys({
+        clientId: mockClient.id,
+        userIds: [],
+        ctx: {
+          serviceName: "test",
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+        },
+      })
+    ).rejects.toThrowError(
+      securityUserNotMember(unsafeBrandId(authData.userId))
+    );
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     await addOneClient(mockClient);
