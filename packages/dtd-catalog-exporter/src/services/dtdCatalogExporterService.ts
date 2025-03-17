@@ -37,24 +37,16 @@ export function dtdCatalogExporterServiceBuilder({
     loggerInstance.info(
       "Getting e-service's tenants and attributes data from database..."
     );
-    const eserviceAttributeIds = getAllEservicesAttributesIds(eservices);
     const tenantIds = getAllTenantsIds(eservices);
+    const tenants = await readModelService.getEServicesTenants(tenantIds);
+    const tenantsMap = new Map(tenants.map((ten) => [ten.id, ten]));
 
+    const eserviceAttributeIds = getAllEservicesAttributesIds(eservices);
     const eserviceAttributes = await readModelService.getAttributes(
       eserviceAttributeIds
     );
     const eserviceAttributesMap = new Map(
       eserviceAttributes.map((attr) => [attr.id, attr])
-    );
-
-    const tenants = await readModelService.getEServicesTenants(tenantIds);
-    const tenantsMap = new Map(tenants.map((ten) => [ten.id, ten]));
-
-    loggerInstance.info("Data successfully fetched!\n");
-    loggerInstance.info("Remapping e-services to public e-services...\n");
-
-    const publicEservices = eservices.map((eservice) =>
-      toPublicEService(eservice, eserviceAttributesMap, tenantsMap)
     );
 
     const tenantAttributesIds = getAllTenantsAttributesIds(tenants);
@@ -63,6 +55,13 @@ export function dtdCatalogExporterServiceBuilder({
     );
     const tenantAttributesMap = new Map(
       tenantAttributes.map((attr) => [attr.id, attr])
+    );
+
+    loggerInstance.info("Data successfully fetched!\n");
+    loggerInstance.info("Remapping e-services to public e-services...\n");
+
+    const publicEservices = eservices.map((eservice) =>
+      toPublicEService(eservice, eserviceAttributesMap, tenantsMap)
     );
 
     const publicTenants = tenants.map((tenant) =>
