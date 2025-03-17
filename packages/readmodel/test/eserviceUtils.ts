@@ -19,6 +19,7 @@ import {
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
   eserviceInReadmodelCatalog,
+  EServiceItemsSQL,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   EServiceRiskAnalysisAnswerSQL,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -64,29 +65,47 @@ export const generateEServiceRiskAnalysisAnswersSQL = (
 
 export const checkCompleteEService = async (
   eservice: EService
-): Promise<void> => {
-  expect(await retrieveEServiceSQLById(eservice.id, readModelDB)).toBeDefined();
-  expect(
-    await retrieveEserviceDescriptorsSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors.length);
-  expect(
-    await retrieveEserviceInterfacesSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors.length);
-  expect(
-    await retrieveEserviceDocumentsSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors[0].docs.length);
-  expect(
-    await retrieveEserviceDescriptorAttributesSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors[0].attributes.certified.flat().length);
-  expect(
-    await retrieveEserviceRejectionReasonsSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors[0].rejectionReasons!.length);
-  expect(
-    await retrieveEserviceRiskAnalysesSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.riskAnalysis.length);
-  expect(
-    await retrieveEserviceRiskAnalysisAnswersSQLById(eservice.id, readModelDB)
-  ).toHaveLength(
+): Promise<EServiceItemsSQL> => {
+  const eserviceSQL = await retrieveEServiceSQLById(eservice.id, readModelDB);
+  const descriptorsSQL = await retrieveEserviceDescriptorsSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const interfacesSQL = await retrieveEserviceInterfacesSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const documentsSQL = await retrieveEserviceDocumentsSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const attributesSQL = await retrieveEserviceDescriptorAttributesSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const rejectionReasonsSQL = await retrieveEserviceRejectionReasonsSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const riskAnalysesSQL = await retrieveEserviceRiskAnalysesSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const riskAnalysisAnswersSQL =
+    await retrieveEserviceRiskAnalysisAnswersSQLById(eservice.id, readModelDB);
+
+  expect(eserviceSQL).toBeDefined();
+  expect(descriptorsSQL).toHaveLength(eservice.descriptors.length);
+  expect(interfacesSQL).toHaveLength(eservice.descriptors.length);
+  expect(documentsSQL).toHaveLength(eservice.descriptors[0].docs.length);
+  expect(attributesSQL).toHaveLength(
+    eservice.descriptors[0].attributes.certified.flat().length
+  );
+  expect(rejectionReasonsSQL).toHaveLength(
+    eservice.descriptors[0].rejectionReasons!.length
+  );
+  expect(riskAnalysesSQL).toHaveLength(eservice.riskAnalysis.length);
+  expect(riskAnalysisAnswersSQL).toHaveLength(
     eservice.riskAnalysis.reduce(
       (sum, ra) =>
         sum +
@@ -95,6 +114,17 @@ export const checkCompleteEService = async (
       0
     )
   );
+
+  return {
+    eserviceSQL: eserviceSQL!,
+    descriptorsSQL,
+    interfacesSQL,
+    documentsSQL,
+    attributesSQL,
+    rejectionReasonsSQL,
+    riskAnalysesSQL,
+    riskAnalysisAnswersSQL,
+  };
 };
 
 export const retrieveEServiceSQLById = async (

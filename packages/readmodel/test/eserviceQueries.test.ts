@@ -70,44 +70,19 @@ describe("E-service queries", () => {
 
       await catalogReadModelService.upsertEService(eservice, 1);
 
-      const eserviceSQL = await retrieveEServiceSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const descriptorsSQL = await retrieveEserviceDescriptorsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const interfacesSQL = await retrieveEserviceInterfacesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const documentsSQL = await retrieveEserviceDocumentsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const attributesSQL = await retrieveEserviceDescriptorAttributesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const rejectionReasonsSQL = await retrieveEserviceRejectionReasonsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const riskAnalysesSQL = await retrieveEserviceRiskAnalysesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const riskAnalysisAnswersSQL =
-        await retrieveEserviceRiskAnalysisAnswersSQLById(
-          eservice.id,
-          readModelDB
-        );
-
-      await checkCompleteEService(eservice);
+      const {
+        eserviceSQL,
+        descriptorsSQL,
+        interfacesSQL,
+        documentsSQL,
+        attributesSQL,
+        rejectionReasonsSQL,
+        riskAnalysesSQL,
+        riskAnalysisAnswersSQL,
+      } = await checkCompleteEService(eservice);
 
       const retrievedEService = aggregateEservice({
-        eserviceSQL: eserviceSQL!,
+        eserviceSQL,
         descriptorsSQL,
         interfacesSQL,
         documentsSQL,
@@ -229,44 +204,19 @@ describe("E-service queries", () => {
       await catalogReadModelService.upsertEService(eservice, 1);
       await catalogReadModelService.upsertEService(eservice, 2);
 
-      const eserviceSQL = await retrieveEServiceSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const descriptorsSQL = await retrieveEserviceDescriptorsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const interfacesSQL = await retrieveEserviceInterfacesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const documentsSQL = await retrieveEserviceDocumentsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const attributesSQL = await retrieveEserviceDescriptorAttributesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const rejectionReasonsSQL = await retrieveEserviceRejectionReasonsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const riskAnalysesSQL = await retrieveEserviceRiskAnalysesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const riskAnalysisAnswersSQL =
-        await retrieveEserviceRiskAnalysisAnswersSQLById(
-          eservice.id,
-          readModelDB
-        );
-
-      await checkCompleteEService(eservice);
+      const {
+        eserviceSQL,
+        descriptorsSQL,
+        interfacesSQL,
+        documentsSQL,
+        attributesSQL,
+        rejectionReasonsSQL,
+        riskAnalysesSQL,
+        riskAnalysisAnswersSQL,
+      } = await checkCompleteEService(eservice);
 
       const retrievedEService = aggregateEservice({
-        eserviceSQL: eserviceSQL!,
+        eserviceSQL,
         descriptorsSQL,
         interfacesSQL,
         documentsSQL,
