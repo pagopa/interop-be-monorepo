@@ -2494,8 +2494,6 @@ components:
     TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
-      required:
-        - serverUrls
       properties:
         contactName:
           type: string

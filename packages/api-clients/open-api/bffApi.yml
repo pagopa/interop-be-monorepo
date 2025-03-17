@@ -18485,11 +18485,6 @@ components:
           type: array
           items:
             type: string
-        serverUrls:
-          type: array
-          items:
-            type: string
-            format: uri
         templateVersionId:
           type: string
           format: uuid
@@ -18531,8 +18526,6 @@ components:
     TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
-      required:
-        - serverUrls
       properties:
         contactName:
           type: string
