@@ -399,21 +399,18 @@ export function toBffEServiceTemplateInstance(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant
 ): bffApi.EServiceTemplateInstance {
-  const descriptors = eservice.descriptors
+  const validDescriptors = [...eservice.descriptors]
     .filter(isValidDescriptor)
-    .map(toCompactDescriptor);
-
-  const latestDescriptor = [...descriptors]
     .sort((a, b) => Number(a.version) - Number(b.version))
-    .at(-1);
+    .map(toCompactDescriptor);
 
   return {
     id: eservice.id,
     name: eservice.name,
     producerId: producer.id,
     producerName: producer.name,
-    latestDescriptor,
-    descriptors,
+    latestDescriptor: validDescriptors.at(-1),
+    descriptors: validDescriptors,
     instanceLabel: eservice.templateRef?.instanceLabel,
   };
 }

@@ -641,15 +641,15 @@ async function innerAddDocumentToEserviceEvent(
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
             serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
-            templateVersionRef: d.templateVersionRef
-              ? {
-                  ...d.templateVersionRef,
-                  interfaceMetadata:
-                    isInterface && documentSeed.interfaceTemplateMetadata
-                      ? documentSeed.interfaceTemplateMetadata
-                      : d.templateVersionRef?.interfaceMetadata,
-                }
-              : undefined,
+            templateVersionRef:
+              isInterface &&
+              d.templateVersionRef &&
+              documentSeed.interfaceTemplateMetadata
+                ? {
+                    ...d.templateVersionRef,
+                    interfaceMetadata: documentSeed.interfaceTemplateMetadata,
+                  }
+                : d.templateVersionRef,
           }
         : d
     ),
