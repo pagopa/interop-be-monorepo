@@ -932,15 +932,15 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: A payload containing the new description
+        description: A payload containing the new intended target description
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
+              $ref: "#/components/schemas/EServiceTemplateIntendedTargetUpdateSeed"
       responses:
         "200":
-          description: EService template description updated
+          description: EService template intended target updated
           content:
             application/json:
               schema:
@@ -1611,6 +1611,16 @@ components:
           maxLength: 250
       required:
         - description
+    EServiceTemplateIntendedTargetUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        intendedTarget:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - intendedTarget
     EServiceTemplateNameUpdateSeed:
       type: object
       additionalProperties: false
