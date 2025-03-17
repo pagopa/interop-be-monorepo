@@ -18,11 +18,12 @@ import {
 import { aggregatePurpose } from "../src/purpose/aggregators.js";
 import { readModelDB } from "./utils.js";
 import {
+  checkCompletePurpose,
   purposeReadModelService,
   retrievePurposeRiskAnalysisAnswersSQLById,
-  retrievePurposeRiskAnalysisFormById,
+  retrievePurposeRiskAnalysisFormSQLById,
   retrievePurposeSQLById,
-  retrievePurposeVersionDocumentSQLById,
+  retrievePurposeVersionDocumentsSQLById,
   retrievePurposeVersionsSQLById,
 } from "./purposeUtils.js";
 
@@ -63,41 +64,20 @@ describe("Purpose queries", () => {
 
       await purposeReadModelService.upsertPurpose(purpose, 1);
 
-      const retrievedPurposeSQL = await retrievePurposeSQLById(
-        purpose.id,
-        readModelDB
-      );
-      const retrievedRiskAnalysisFormSQL =
-        await retrievePurposeRiskAnalysisFormById(purpose.id, readModelDB);
-      const retrievedRiskAnalysisAnswersSQL =
-        await retrievePurposeRiskAnalysisAnswersSQLById(
-          purpose.id,
-          readModelDB
-        );
-      const retrievedPurposeVersionsSQL = await retrievePurposeVersionsSQLById(
-        purpose.id,
-        readModelDB
-      );
-      const retrievedPurposeVersionDocumentSQL =
-        await retrievePurposeVersionDocumentSQLById(purpose.id, readModelDB);
-
-      expect(retrievedPurposeSQL).toBeDefined();
-      expect(retrievedRiskAnalysisFormSQL).toBeDefined();
-      expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(
-        purpose.riskAnalysisForm!.multiAnswers.length +
-          purpose.riskAnalysisForm!.singleAnswers.length
-      );
-      expect(retrievedPurposeVersionsSQL).toHaveLength(purposeVersions.length);
-      expect(retrievedPurposeVersionDocumentSQL).toHaveLength(
-        purposeVersions.length
-      );
+      const {
+        purposeSQL,
+        riskAnalysisFormSQL,
+        riskAnalysisAnswersSQL,
+        versionsSQL,
+        versionDocumentsSQL,
+      } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
-        purposeSQL: retrievedPurposeSQL,
-        riskAnalysisFormSQL: retrievedRiskAnalysisFormSQL,
-        riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
-        versionsSQL: retrievedPurposeVersionsSQL,
-        versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
+        purposeSQL,
+        riskAnalysisFormSQL,
+        riskAnalysisAnswersSQL,
+        versionsSQL,
+        versionDocumentsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -116,7 +96,7 @@ describe("Purpose queries", () => {
         readModelDB
       );
       const retrievedRiskAnalysisFormSQL =
-        await retrievePurposeRiskAnalysisFormById(purpose.id, readModelDB);
+        await retrievePurposeRiskAnalysisFormSQLById(purpose.id, readModelDB);
       const retrievedRiskAnalysisAnswersSQL =
         await retrievePurposeRiskAnalysisAnswersSQLById(
           purpose.id,
@@ -127,7 +107,7 @@ describe("Purpose queries", () => {
         readModelDB
       );
       const retrievedPurposeVersionDocumentSQL =
-        await retrievePurposeVersionDocumentSQLById(purpose.id, readModelDB);
+        await retrievePurposeVersionDocumentsSQLById(purpose.id, readModelDB);
 
       expect(retrievedPurposeSQL).toBeDefined();
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
@@ -136,7 +116,7 @@ describe("Purpose queries", () => {
       expect(retrievedPurposeVersionDocumentSQL).toHaveLength(0);
 
       const retrievedPurpose = aggregatePurpose({
-        purposeSQL: retrievedPurposeSQL,
+        purposeSQL: retrievedPurposeSQL!,
         riskAnalysisFormSQL: retrievedRiskAnalysisFormSQL,
         riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
         versionsSQL: retrievedPurposeVersionsSQL,
@@ -185,41 +165,20 @@ describe("Purpose queries", () => {
       await purposeReadModelService.upsertPurpose(purpose, 1);
       await purposeReadModelService.upsertPurpose(purpose, 2);
 
-      const retrievedPurposeSQL = await retrievePurposeSQLById(
-        purpose.id,
-        readModelDB
-      );
-      const retrievedRiskAnalysisFormSQL =
-        await retrievePurposeRiskAnalysisFormById(purpose.id, readModelDB);
-      const retrievedRiskAnalysisAnswersSQL =
-        await retrievePurposeRiskAnalysisAnswersSQLById(
-          purpose.id,
-          readModelDB
-        );
-      const retrievedPurposeVersionsSQL = await retrievePurposeVersionsSQLById(
-        purpose.id,
-        readModelDB
-      );
-      const retrievedPurposeVersionDocumentSQL =
-        await retrievePurposeVersionDocumentSQLById(purpose.id, readModelDB);
-
-      expect(retrievedPurposeSQL).toBeDefined();
-      expect(retrievedRiskAnalysisFormSQL).toBeDefined();
-      expect(retrievedRiskAnalysisAnswersSQL).toHaveLength(
-        purpose.riskAnalysisForm!.multiAnswers.length +
-          purpose.riskAnalysisForm!.singleAnswers.length
-      );
-      expect(retrievedPurposeVersionsSQL).toHaveLength(purposeVersions.length);
-      expect(retrievedPurposeVersionDocumentSQL).toHaveLength(
-        purposeVersions.length
-      );
+      const {
+        purposeSQL,
+        riskAnalysisFormSQL,
+        riskAnalysisAnswersSQL,
+        versionsSQL,
+        versionDocumentsSQL,
+      } = await checkCompletePurpose(purpose);
 
       const retrievedPurpose = aggregatePurpose({
-        purposeSQL: retrievedPurposeSQL,
-        riskAnalysisFormSQL: retrievedRiskAnalysisFormSQL,
-        riskAnalysisAnswersSQL: retrievedRiskAnalysisAnswersSQL,
-        versionsSQL: retrievedPurposeVersionsSQL,
-        versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
+        purposeSQL,
+        riskAnalysisFormSQL,
+        riskAnalysisAnswersSQL,
+        versionsSQL,
+        versionDocumentsSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
@@ -255,30 +214,6 @@ describe("Purpose queries", () => {
 
   describe("Delete a Purpose", () => {
     it("should delete a purpose by id", async () => {
-      const checkCompletePurpose = async (purpose: Purpose): Promise<void> => {
-        expect(
-          await retrievePurposeSQLById(purpose.id, readModelDB)
-        ).toBeDefined();
-        expect(
-          await retrievePurposeRiskAnalysisFormById(purpose.id, readModelDB)
-        ).toBeDefined();
-        expect(
-          await retrievePurposeRiskAnalysisAnswersSQLById(
-            purpose.id,
-            readModelDB
-          )
-        ).toHaveLength(
-          purpose.riskAnalysisForm!.multiAnswers.length +
-            purpose.riskAnalysisForm!.singleAnswers.length
-        );
-        expect(
-          await retrievePurposeVersionsSQLById(purpose.id, readModelDB)
-        ).toHaveLength(purpose.versions.length);
-        expect(
-          await retrievePurposeVersionDocumentSQLById(purpose.id, readModelDB)
-        ).toHaveLength(purpose.versions.length);
-      };
-
       const purpose1: Purpose = {
         ...getMockPurpose(),
         versions: [
@@ -351,7 +286,7 @@ describe("Purpose queries", () => {
         await retrievePurposeSQLById(purpose1.id, readModelDB)
       ).toBeUndefined();
       expect(
-        await retrievePurposeRiskAnalysisFormById(purpose1.id, readModelDB)
+        await retrievePurposeRiskAnalysisFormSQLById(purpose1.id, readModelDB)
       ).toBeUndefined();
       expect(
         await retrievePurposeRiskAnalysisAnswersSQLById(
@@ -363,7 +298,7 @@ describe("Purpose queries", () => {
         await retrievePurposeVersionsSQLById(purpose1.id, readModelDB)
       ).toHaveLength(0);
       expect(
-        await retrievePurposeVersionDocumentSQLById(purpose1.id, readModelDB)
+        await retrievePurposeVersionDocumentsSQLById(purpose1.id, readModelDB)
       ).toHaveLength(0);
 
       await checkCompletePurpose(purpose2);
