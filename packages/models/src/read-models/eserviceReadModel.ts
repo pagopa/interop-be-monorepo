@@ -41,7 +41,6 @@ export const DescriptorReadModel = Descriptor.extend({
   suspendedAt: z.string().datetime().optional(),
   deprecatedAt: z.string().datetime().optional(),
   archivedAt: z.string().datetime().optional(),
-  rejectionReasons: z.array(DescriptorRejectionReasonReadModel).optional(),
 });
 export type DescriptorReadModel = z.infer<typeof DescriptorReadModel>;
 
