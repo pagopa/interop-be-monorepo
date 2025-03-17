@@ -15651,7 +15651,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
+              $ref: "#/components/schemas/EServiceTemplateIntendedTargetUpdateSeed"
       responses:
         "204":
           description: EService template intended target description updated
@@ -18413,6 +18413,9 @@ components:
           type: array
           items:
             type: string
+        templateVersionId:
+          type: string
+          format: uuid
     TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
@@ -20246,6 +20249,14 @@ components:
           type: string
       required:
         - description
+    EServiceTemplateIntendedTargetUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        intendedTarget:
+          type: string
+      required:
+        - intendedTarget
     EServiceTemplateVersionState:
       type: string
       description: EService Descriptor State
@@ -20509,7 +20520,7 @@ components:
           format: uuid
         producerName:
           type: string
-        activeDescriptor:
+        latestDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
         descriptors:
           type: array
