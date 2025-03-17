@@ -24,44 +24,66 @@ export function producerKeychainReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    // TODO: add metadata version check (lte)
     async upsertProducerKeychain(
       producerKeychain: ProducerKeychain,
       metadataVersion: number
     ): Promise<void> {
-      const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
-        splitProducerKeychainIntoObjectsSQL(producerKeychain, metadataVersion);
-
       await db.transaction(async (tx) => {
-        await tx
-          .delete(producerKeychainInReadmodelProducerKeychain)
-          .where(
-            eq(
-              producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychain.id
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion:
+                producerKeychainInReadmodelProducerKeychain.metadataVersion,
+            })
+            .from(producerKeychainInReadmodelProducerKeychain)
+            .where(
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychain.id
+              )
             )
-          );
+        )[0]?.metadataVersion;
 
-        await tx
-          .insert(producerKeychainInReadmodelProducerKeychain)
-          .values(producerKeychainSQL);
-
-        for (const userSQL of usersSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(producerKeychainUserInReadmodelProducerKeychain)
-            .values(userSQL);
-        }
+            .delete(producerKeychainInReadmodelProducerKeychain)
+            .where(
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychain.id
+              )
+            );
 
-        for (const eserviceSQL of eservicesSQL) {
-          await tx
-            .insert(producerKeychainEserviceInReadmodelProducerKeychain)
-            .values(eserviceSQL);
-        }
+          const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+            splitProducerKeychainIntoObjectsSQL(
+              producerKeychain,
+              metadataVersion
+            );
 
-        for (const keySQL of keysSQL) {
           await tx
-            .insert(producerKeychainKeyInReadmodelProducerKeychain)
-            .values(keySQL);
+            .insert(producerKeychainInReadmodelProducerKeychain)
+            .values(producerKeychainSQL);
+
+          for (const userSQL of usersSQL) {
+            await tx
+              .insert(producerKeychainUserInReadmodelProducerKeychain)
+              .values(userSQL);
+          }
+
+          for (const eserviceSQL of eservicesSQL) {
+            await tx
+              .insert(producerKeychainEserviceInReadmodelProducerKeychain)
+              .values(eserviceSQL);
+          }
+
+          for (const keySQL of keysSQL) {
+            await tx
+              .insert(producerKeychainKeyInReadmodelProducerKeychain)
+              .values(keySQL);
+          }
         }
       });
     },
