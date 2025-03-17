@@ -30,19 +30,19 @@ import {
 import { match } from "ts-pattern";
 
 export const aggregateAgreementArray = ({
-  agreementSQL,
+  agreementsSQL,
   stampsSQL,
   consumerDocumentsSQL,
-  contractSQL,
+  contractsSQL,
   attributesSQL,
 }: {
-  agreementSQL: AgreementSQL[];
+  agreementsSQL: AgreementSQL[];
   stampsSQL: AgreementStampSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
-  contractSQL: AgreementContractSQL | null;
+  contractsSQL: AgreementContractSQL[];
   attributesSQL: AgreementAttributeSQL[];
 }): Array<WithMetadata<Agreement>> =>
-  agreementSQL.map((agreementSQL) =>
+  agreementsSQL.map((agreementSQL) =>
     aggregateAgreement({
       agreementSQL,
       stampsSQL: stampsSQL.filter(
@@ -51,7 +51,9 @@ export const aggregateAgreementArray = ({
       consumerDocumentsSQL: consumerDocumentsSQL.filter(
         (documentSQL) => documentSQL.agreementId === agreementSQL.id
       ),
-      contractSQL,
+      contractSQL: contractsSQL.find(
+        (contractSQL) => contractSQL.agreementId === agreementSQL.id
+      ),
       attributesSQL: attributesSQL.filter(
         (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
       ),
