@@ -122,12 +122,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   templateVersionRef: input.templateVersionRef
     ? {
         id: input.templateVersionRef.id,
-        interfaceMetadata: input.templateVersionRef.interfaceMetadata
-          ? {
-              ...input.templateVersionRef.interfaceMetadata,
-              serverUrls: input.serverUrls,
-            }
-          : undefined,
+        interfaceMetadata: input.templateVersionRef.interfaceMetadata,
       }
     : undefined,
 });

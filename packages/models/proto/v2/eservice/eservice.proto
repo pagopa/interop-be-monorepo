@@ -97,7 +97,6 @@ message TemplateInstanceInterfaceMetadataV2 {
   optional string contactEmail = 2;
   optional string contactUrl = 3;
   optional string termsAndConditionsUrl = 4;
-  repeated string serverUrls = 5;
 }
 
 message EServiceTemplateVersionRefV2 {
