@@ -11,8 +11,8 @@ import {
   documentToDocumentSQL,
   splitDescriptorIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  DrizzleReturnType,
   DrizzleTransactionType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -27,7 +27,7 @@ import { and, eq, lte } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function customReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>,
+  db: DrizzleReturnType,
   catalogReadModelService: CatalogReadModelService
 ) {
   const updateMetadataVersionInCatalogTables = async (
