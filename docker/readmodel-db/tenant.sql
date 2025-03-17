@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute (
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_verifier (
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  tenant_verifier_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id),
+  tenant_verifier_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_verifier (
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  tenant_revoker_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id),
+  tenant_revoker_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
