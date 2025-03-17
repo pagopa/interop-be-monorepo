@@ -224,7 +224,7 @@ const eserviceTemplateRouter = (
         const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
 
         try {
-          await eserviceTemplateService.deleteEServiceTemplateEServiceRiskAnalysis(
+          await eserviceTemplateService.deleteEServiceTemplateVersion(
             unsafeBrandId(eServiceTemplateId),
             unsafeBrandId(eServiceTemplateVersionId),
             ctx
@@ -644,7 +644,7 @@ const eserviceTemplateRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -668,7 +668,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
