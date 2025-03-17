@@ -1215,13 +1215,11 @@ const eservicesRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const interfaceSoapSeed: catalogApi.TemplateInstanceInterfaceSOAPSeed =
-            req.body;
           const updatedEservice =
             await catalogService.addEServiceTemplateInstanceInterface(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
-              interfaceSoapSeed,
+              req.body,
               ctx
             );
           return res.status(200).send(eServiceToApiEService(updatedEservice));
@@ -1244,13 +1242,11 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const interfaceRestSeed: catalogApi.TemplateInstanceInterfaceRESTSeed =
-            req.body;
           const updatedEservice =
             await catalogService.addEServiceTemplateInstanceInterface(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
-              interfaceRestSeed,
+              req.body,
               ctx
             );
           return res.status(200).send(eServiceToApiEService(updatedEservice));
