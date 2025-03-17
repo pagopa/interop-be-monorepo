@@ -410,7 +410,7 @@ describe("createKeys", () => {
       })
     ).rejects.toThrowError(invalidKey(keySeed.key, "Not an RSA key"));
   });
-  it("should throw invalidKey if the key doesn't have the delimiters", async () => {
+  it("should throw invalidKey if the key is invalid", async () => {
     await addOneClient(mockClient);
 
     const keys = [
