@@ -12,26 +12,13 @@ import {
   DescriptorReadModel,
   RiskAnalysisReadModel,
   EServiceReadModel,
-  DescriptorRejectionReasonReadModel,
 } from "../read-models/eserviceReadModel.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
-import {
-  Document,
-  Descriptor,
-  EService,
-  DescriptorRejectionReason,
-} from "./eservice.js";
+import { Document, Descriptor, EService } from "./eservice.js";
 
 export const toReadModelDocument = (doc: Document): DocumentReadModel => ({
   ...doc,
   uploadDate: doc.uploadDate.toISOString(),
-});
-
-export const toReadModelDescriptorRejectionReason = (
-  rejectionReason: DescriptorRejectionReason
-): DescriptorRejectionReasonReadModel => ({
-  ...rejectionReason,
-  rejectedAt: rejectionReason.rejectedAt.toISOString(),
 });
 
 export const toReadModelDescriptor = (
@@ -55,9 +42,6 @@ export const toReadModelDescriptor = (
   archivedAt: descriptor.archivedAt
     ? descriptor.archivedAt.toISOString()
     : undefined,
-  rejectionReasons: descriptor.rejectionReasons?.map(
-    toReadModelDescriptorRejectionReason
-  ),
 });
 
 export const toReadModelRiskAnalysis = (
