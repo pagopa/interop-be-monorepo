@@ -26,6 +26,7 @@ import {
   generateId,
   purposeVersionState,
   toClientV2,
+  ClientKind,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -378,6 +379,37 @@ describe("addClientPurpose", async () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
+
+    expect(
+      authorizationService.addClientPurpose({
+        clientId: mockClient.id,
+        seed: { purposeId: mockPurpose.id },
+        ctx: {
+          serviceName: "test",
+          authData: getMockAuthData(mockConsumerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+        },
+      })
+    ).rejects.toThrowError(
+      organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
+    );
+  });
+  it("should throw organizationNotAllowedOnClient if the requester is the client api", async () => {
+    const mockConsumerId: TenantId = generateId();
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+
+    const mockClient: Client = {
+      ...getMockClient(),
+      kind: ClientKind.Enum.Api,
+    };
+
+    await addOneClient(mockClient);
+    await addOnePurpose(mockPurpose);
 
     expect(
       authorizationService.addClientPurpose({
