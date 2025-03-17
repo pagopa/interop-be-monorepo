@@ -143,6 +143,8 @@ async function main(): Promise<void> {
     schema: "delegations",
     loggerInstance,
   });
+
+  process.exit();
 }
 
 await main();
