@@ -70,7 +70,7 @@ export function agreementReadModelServiceBuilder(
               .insert(agreementConsumerDocumentInReadmodelAgreement)
               .values(docSQL);
           }
-          if (contractSQL !== null) {
+          if (contractSQL !== undefined) {
             await tx
               .insert(agreementContractInReadmodelAgreement)
               .values(contractSQL);
