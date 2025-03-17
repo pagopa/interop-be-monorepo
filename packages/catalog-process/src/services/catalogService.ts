@@ -307,31 +307,6 @@ const getTemplateDataFromEservice = (
   };
 };
 
-const evaluateEServiceTemplateVersionRef = (
-  currentDescriptor: Descriptor,
-  templateVersionId: EServiceTemplateVersionId | undefined,
-  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
-): EServiceTemplateVersionRef | undefined => {
-  if (!templateVersionId) {
-    return currentDescriptor.templateVersionRef;
-  }
-
-  const templateRef = { id: templateVersionId };
-  const isInterface = documentSeed.kind === "INTERFACE";
-
-  const updateTemplateRef: EServiceTemplateVersionRef | undefined =
-    isInterface && documentSeed.interfaceTemplateMetadata
-      ? {
-          ...templateRef,
-          interfaceMetadata: {
-            ...documentSeed.interfaceTemplateMetadata,
-          },
-        }
-      : templateRef;
-
-  return updateTemplateRef;
-};
-
 const updateDescriptorState = (
   descriptor: Descriptor,
   newState: DescriptorState
@@ -656,12 +631,6 @@ async function innerAddDocumentToEserviceEvent(
     checksum: documentSeed.checksum,
     uploadDate: new Date(),
   };
-
-  const templateVersionRef = evaluateEServiceTemplateVersionRef(
-    descriptor,
-    templateVersionId,
-    documentSeed
-  );
 
   const updatedEService: EService = {
     ...eService.data,
@@ -3369,13 +3338,8 @@ function evaluateTemplateVersionRef(
     return descriptor.templateVersionRef;
   }
 
-  const {
-    contactEmail,
-    contactName,
-    contactUrl,
-    serverUrls,
-    termsAndConditionsUrl,
-  } = documentSeed.interfaceTemplateMetadata;
+  const { contactEmail, contactName, contactUrl, termsAndConditionsUrl } =
+    documentSeed.interfaceTemplateMetadata;
 
   return {
     id: descriptor.templateVersionRef.id,
@@ -3383,7 +3347,6 @@ function evaluateTemplateVersionRef(
       contactEmail,
       contactName,
       contactUrl,
-      serverUrls,
       termsAndConditionsUrl,
     },
   };

@@ -18493,7 +18493,7 @@ components:
         templateVersionId:
           type: string
           format: uuid
-    TemplateInstanceInterfaceMetadata:
+    TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
       required:
