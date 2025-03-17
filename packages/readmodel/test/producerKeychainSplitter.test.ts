@@ -25,14 +25,12 @@ describe("Producer keychain splitter", () => {
     const eserviceId2 = generateId<EServiceId>();
     const key1 = getMockKey();
     const key2 = getMockKey();
-    const description = "test description";
 
     const producerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       users: [userId1, userId2],
       eservices: [eserviceId1, eserviceId2],
       keys: [key1, key2],
-      description,
     };
 
     const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
@@ -43,7 +41,7 @@ describe("Producer keychain splitter", () => {
       producerId: producerKeychain.producerId,
       name: producerKeychain.name,
       createdAt: producerKeychain.createdAt.toISOString(),
-      description,
+      description: producerKeychain.description,
       metadataVersion: 1,
     };
 
@@ -82,20 +80,20 @@ describe("Producer keychain splitter", () => {
       createdAt: key2.createdAt.toISOString(),
     };
 
-    expect(producerKeychainSQL).toEqual(expectedProducerKeychainSQL);
-    expect(usersSQL).toEqual(
+    expect(producerKeychainSQL).toStrictEqual(expectedProducerKeychainSQL);
+    expect(usersSQL).toStrictEqual(
       expect.arrayContaining([
         expectedProducerKeychainUserSQL1,
         expectedProducerKeychainUserSQL2,
       ])
     );
-    expect(eservicesSQL).toEqual(
+    expect(eservicesSQL).toStrictEqual(
       expect.arrayContaining([
         expectedProducerKeychainEServicesSQL1,
         expectedProducerKeychainEServicesSQL2,
       ])
     );
-    expect(keysSQL).toEqual(
+    expect(keysSQL).toStrictEqual(
       expect.arrayContaining([
         expectedProducerKeychainKeySQL1,
         expectedProducerKeychainKeySQL2,

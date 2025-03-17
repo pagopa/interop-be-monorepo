@@ -14,9 +14,7 @@ import {
 import { splitProducerKeychainIntoObjectsSQL } from "./authorization/producerKeychainSplitters.js";
 import {
   aggregateProducerKeychain,
-  aggregateProducerKeychainArray,
   toProducerKeychainAggregator,
-  toProducerKeychainAggregatorArray,
 } from "./authorization/producerKeychainAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -24,44 +22,66 @@ export function producerKeychainReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
-    // TODO: add metadata version check (lte)
     async upsertProducerKeychain(
       producerKeychain: ProducerKeychain,
       metadataVersion: number
     ): Promise<void> {
-      const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
-        splitProducerKeychainIntoObjectsSQL(producerKeychain, metadataVersion);
-
       await db.transaction(async (tx) => {
-        await tx
-          .delete(producerKeychainInReadmodelProducerKeychain)
-          .where(
-            eq(
-              producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychain.id
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion:
+                producerKeychainInReadmodelProducerKeychain.metadataVersion,
+            })
+            .from(producerKeychainInReadmodelProducerKeychain)
+            .where(
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychain.id
+              )
             )
-          );
+        )[0]?.metadataVersion;
 
-        await tx
-          .insert(producerKeychainInReadmodelProducerKeychain)
-          .values(producerKeychainSQL);
-
-        for (const userSQL of usersSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(producerKeychainUserInReadmodelProducerKeychain)
-            .values(userSQL);
-        }
+            .delete(producerKeychainInReadmodelProducerKeychain)
+            .where(
+              eq(
+                producerKeychainInReadmodelProducerKeychain.id,
+                producerKeychain.id
+              )
+            );
 
-        for (const eserviceSQL of eservicesSQL) {
-          await tx
-            .insert(producerKeychainEserviceInReadmodelProducerKeychain)
-            .values(eserviceSQL);
-        }
+          const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+            splitProducerKeychainIntoObjectsSQL(
+              producerKeychain,
+              metadataVersion
+            );
 
-        for (const keySQL of keysSQL) {
           await tx
-            .insert(producerKeychainKeyInReadmodelProducerKeychain)
-            .values(keySQL);
+            .insert(producerKeychainInReadmodelProducerKeychain)
+            .values(producerKeychainSQL);
+
+          for (const userSQL of usersSQL) {
+            await tx
+              .insert(producerKeychainUserInReadmodelProducerKeychain)
+              .values(userSQL);
+          }
+
+          for (const eserviceSQL of eservicesSQL) {
+            await tx
+              .insert(producerKeychainEserviceInReadmodelProducerKeychain)
+              .values(eserviceSQL);
+          }
+
+          for (const keySQL of keysSQL) {
+            await tx
+              .insert(producerKeychainKeyInReadmodelProducerKeychain)
+              .values(keySQL);
+          }
         }
       });
     },
@@ -136,52 +156,6 @@ export function producerKeychainReadModelServiceBuilder(
             )
           )
         );
-    },
-    async getAllProducerKeychains(): Promise<
-      Array<WithMetadata<ProducerKeychain>>
-    > {
-      /*
-        producer_keychain -> 1 producer_keychain_user
-                          -> 2 producer_keychain_eservice
-                          -> 3 producer_keychain_key
-      */
-      const queryResult = await db
-        .select({
-          producerKeychain: producerKeychainInReadmodelProducerKeychain,
-          producerKeychainUser: producerKeychainUserInReadmodelProducerKeychain,
-          producerKeychainEService:
-            producerKeychainEserviceInReadmodelProducerKeychain,
-          producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
-        })
-        .from(producerKeychainInReadmodelProducerKeychain)
-        .leftJoin(
-          // 1
-          producerKeychainUserInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          // 2
-          producerKeychainEserviceInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          // 3
-          producerKeychainKeyInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
-          )
-        );
-
-      return aggregateProducerKeychainArray(
-        toProducerKeychainAggregatorArray(queryResult)
-      );
     },
   };
 }
