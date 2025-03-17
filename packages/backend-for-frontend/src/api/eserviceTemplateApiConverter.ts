@@ -91,8 +91,12 @@ export function toBffProducerEServiceTemplate(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     mode: eserviceTemplate.mode,
-    activeVersion,
-    draftVersion,
+    activeVersion: activeVersion
+      ? toBffCompactEServiceTemplateVersion(activeVersion)
+      : undefined,
+    draftVersion: draftVersion
+      ? toBffCompactEServiceTemplateVersion(draftVersion)
+      : undefined,
   };
 }
 

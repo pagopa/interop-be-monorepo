@@ -40,7 +40,7 @@ import {
   purposeInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { Pool } from "pg";
+import pg from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**
@@ -201,7 +201,7 @@ export async function setupTestContainersVitest(
   }
 
   if (readModelSQLDbConfig) {
-    const pool = new Pool({
+    const pool = new pg.Pool({
       host: readModelSQLDbConfig?.readModelSQLDbHost,
       port: readModelSQLDbConfig?.readModelSQLDbPort,
       database: readModelSQLDbConfig?.readModelSQLDbName,
