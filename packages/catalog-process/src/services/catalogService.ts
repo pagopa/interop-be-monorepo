@@ -632,37 +632,6 @@ async function innerAddDocumentToEserviceEvent(
     uploadDate: new Date(),
   };
 
-  function evaluateTemplateVersionRef(
-    descriptor: Descriptor
-  ): Descriptor["templateVersionRef"] {
-    if (
-      !isInterface ||
-      !descriptor.templateVersionRef ||
-      !documentSeed.interfaceTemplateMetadata
-    ) {
-      return descriptor.templateVersionRef;
-    }
-
-    const {
-      contactEmail,
-      contactName,
-      contactUrl,
-      serverUrls,
-      termsAndConditionsUrl,
-    } = documentSeed.interfaceTemplateMetadata;
-
-    return {
-      id: descriptor.templateVersionRef.id,
-      interfaceMetadata: {
-        contactEmail,
-        contactName,
-        contactUrl,
-        serverUrls,
-        termsAndConditionsUrl,
-      },
-    };
-  }
-
   const updatedEService: EService = {
     ...eService.data,
     descriptors: eService.data.descriptors.map((d: Descriptor) =>
@@ -672,7 +641,7 @@ async function innerAddDocumentToEserviceEvent(
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
             serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
-            templateVersionRef: evaluateTemplateVersionRef(d),
+            templateVersionRef: evaluateTemplateVersionRef(d, documentSeed),
           }
         : d
     ),
@@ -3334,6 +3303,38 @@ function updateEServiceDescriptorAttributeInAdd(
     ...verifiedAttributes,
     ...declaredAttributes,
   ].map(unsafeBrandId<AttributeId>);
+}
+
+function evaluateTemplateVersionRef(
+  descriptor: Descriptor,
+  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
+): Descriptor["templateVersionRef"] {
+  if (
+    documentSeed.kind !== "INTERFACE" ||
+    !descriptor.templateVersionRef ||
+    !documentSeed.interfaceTemplateMetadata
+  ) {
+    return descriptor.templateVersionRef;
+  }
+
+  const {
+    contactEmail,
+    contactName,
+    contactUrl,
+    serverUrls,
+    termsAndConditionsUrl,
+  } = documentSeed.interfaceTemplateMetadata;
+
+  return {
+    id: descriptor.templateVersionRef.id,
+    interfaceMetadata: {
+      contactEmail,
+      contactName,
+      contactUrl,
+      serverUrls,
+      termsAndConditionsUrl,
+    },
+  };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
