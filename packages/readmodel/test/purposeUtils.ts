@@ -2,6 +2,7 @@
 import { eq } from "drizzle-orm";
 import { Purpose, PurposeId } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   purposeInReadmodelPurpose,
   PurposeItemsSQL,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
@@ -14,7 +15,6 @@ import {
   purposeVersionInReadmodelPurpose,
   PurposeVersionSQL,
 } from "pagopa-interop-readmodel-models";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { expect } from "vitest";
 import { purposeReadModelServiceBuilder } from "../src/purposeReadModelService.js";
 import { readModelDB } from "./utils.js";
@@ -62,8 +62,7 @@ export const checkCompletePurpose = async (
 
 export const retrievePurposeSQLById = async (
   purposeId: PurposeId,
-  // TODO: import this
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<PurposeSQL | undefined> => {
   const result = await db
     .select()
@@ -75,7 +74,7 @@ export const retrievePurposeSQLById = async (
 
 export const retrievePurposeRiskAnalysisFormSQLById = async (
   purposeId: PurposeId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<PurposeRiskAnalysisFormSQL | undefined> => {
   const result = await db
     .select()
@@ -87,7 +86,7 @@ export const retrievePurposeRiskAnalysisFormSQLById = async (
 
 export const retrievePurposeRiskAnalysisAnswersSQLById = async (
   purposeId: PurposeId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<PurposeRiskAnalysisAnswerSQL[]> =>
   await db
     .select()
@@ -98,7 +97,7 @@ export const retrievePurposeRiskAnalysisAnswersSQLById = async (
 
 export const retrievePurposeVersionsSQLById = async (
   purposeId: PurposeId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<PurposeVersionSQL[]> =>
   await db
     .select()
@@ -107,7 +106,7 @@ export const retrievePurposeVersionsSQLById = async (
 
 export const retrievePurposeVersionDocumentsSQLById = async (
   purposeId: PurposeId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<PurposeVersionDocumentSQL[]> =>
   await db
     .select()

@@ -1,7 +1,7 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Purpose, PurposeId, WithMetadata } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
@@ -15,7 +15,7 @@ import {
 } from "./purpose/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertPurpose(
       purpose: Purpose,
