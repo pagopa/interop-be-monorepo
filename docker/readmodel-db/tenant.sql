@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute (
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_verifier (
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  tenant_verifier_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
+  tenant_verifier_id UUID NOT NULL,
   tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
@@ -73,13 +73,14 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_verifier (
     tenant_id
   ),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id),
+  FOREIGN KEY (tenant_verifier_id) REFERENCES readmodel_tenant.tenant (id) DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  tenant_revoker_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
+  tenant_revoker_id UUID NOT NULL,
   tenant_verified_attribute_id UUID NOT NULL,
   verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
   expiration_date TIMESTAMP WITH TIME ZONE,
@@ -92,6 +93,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
     tenant_id
   ),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id),
+  FOREIGN KEY (tenant_revoker_id) REFERENCES readmodel_tenant.tenant (id) DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
