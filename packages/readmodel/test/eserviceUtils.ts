@@ -6,8 +6,8 @@ import {
   riskAnalysisAnswerKind,
 } from "pagopa-interop-models";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   EServiceDescriptorAttributeSQL,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -129,7 +129,7 @@ export const checkCompleteEService = async (
 
 export const retrieveEServiceSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceSQL | undefined> => {
   const result = await db
     .select()
@@ -141,7 +141,7 @@ export const retrieveEServiceSQLById = async (
 
 export const retrieveEserviceDescriptorsSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorSQL[]> =>
   await db
     .select()
@@ -150,7 +150,7 @@ export const retrieveEserviceDescriptorsSQLById = async (
 
 export const retrieveEserviceDocumentsSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorDocumentSQL[]> =>
   await db
     .select()
@@ -161,7 +161,7 @@ export const retrieveEserviceDocumentsSQLById = async (
 
 export const retrieveEserviceInterfacesSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorInterfaceSQL[]> =>
   await db
     .select()
@@ -172,7 +172,7 @@ export const retrieveEserviceInterfacesSQLById = async (
 
 export const retrieveEserviceDescriptorAttributesSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorAttributeSQL[]> =>
   await db
     .select()
@@ -183,7 +183,7 @@ export const retrieveEserviceDescriptorAttributesSQLById = async (
 
 export const retrieveEserviceRejectionReasonsSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorRejectionReasonSQL[]> =>
   await db
     .select()
@@ -197,7 +197,7 @@ export const retrieveEserviceRejectionReasonsSQLById = async (
 
 export const retrieveEserviceRiskAnalysesSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceRiskAnalysisSQL[]> =>
   await db
     .select()
@@ -206,7 +206,7 @@ export const retrieveEserviceRiskAnalysesSQLById = async (
 
 export const retrieveEserviceRiskAnalysisAnswersSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceRiskAnalysisAnswerSQL[]> =>
   await db
     .select()
