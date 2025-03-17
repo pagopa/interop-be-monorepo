@@ -21,43 +21,59 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       purpose: Purpose,
       metadataVersion: number
     ): Promise<void> {
-      const {
-        purposeSQL,
-        riskAnalysisFormSQL,
-        riskAnalysisAnswersSQL,
-        versionsSQL,
-        versionDocumentsSQL,
-      } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
-
       await db.transaction(async (tx) => {
-        await tx
-          .delete(purposeInReadmodelPurpose)
-          .where(eq(purposeInReadmodelPurpose.id, purpose.id));
-
-        await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
-
-        if (riskAnalysisFormSQL) {
+        const existingMetadataVersion: number | undefined = (
           await tx
-            .insert(purposeRiskAnalysisFormInReadmodelPurpose)
-            .values(riskAnalysisFormSQL);
-        }
+            .select({
+              metadataVersion: purposeInReadmodelPurpose.metadataVersion,
+            })
+            .from(purposeInReadmodelPurpose)
+            .where(eq(purposeInReadmodelPurpose.id, purpose.id))
+        )[0]?.metadataVersion;
 
-        if (riskAnalysisAnswersSQL) {
-          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx
+            .delete(purposeInReadmodelPurpose)
+            .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+
+          const {
+            purposeSQL,
+            riskAnalysisFormSQL,
+            riskAnalysisAnswersSQL,
+            versionsSQL,
+            versionDocumentsSQL,
+          } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
+
+          await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
+
+          if (riskAnalysisFormSQL) {
             await tx
-              .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
-              .values(riskAnalysisAnswerSQL);
+              .insert(purposeRiskAnalysisFormInReadmodelPurpose)
+              .values(riskAnalysisFormSQL);
           }
-        }
 
-        for (const versionSQL of versionsSQL) {
-          await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
-        }
+          if (riskAnalysisAnswersSQL) {
+            for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+              await tx
+                .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
+                .values(riskAnalysisAnswerSQL);
+            }
+          }
 
-        for (const versionDocumentSQL of versionDocumentsSQL) {
-          await tx
-            .insert(purposeVersionDocumentInReadmodelPurpose)
-            .values(versionDocumentSQL);
+          for (const versionSQL of versionsSQL) {
+            await tx
+              .insert(purposeVersionInReadmodelPurpose)
+              .values(versionSQL);
+          }
+
+          for (const versionDocumentSQL of versionDocumentsSQL) {
+            await tx
+              .insert(purposeVersionDocumentInReadmodelPurpose)
+              .values(versionDocumentSQL);
+          }
         }
       });
     },
