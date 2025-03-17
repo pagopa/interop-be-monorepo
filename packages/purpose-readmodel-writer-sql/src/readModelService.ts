@@ -1,5 +1,4 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   Purpose,
   PurposeId,
@@ -11,6 +10,7 @@ import {
   splitPurposeVersionIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import {
+  DrizzleReturnType,
   DrizzleTransactionType,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
@@ -21,7 +21,7 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function customReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>,
+  db: DrizzleReturnType,
   purposeReadModelService: PurposeReadModelService
 ) {
   const updateMetadataVersionInPurposeTables = async (
