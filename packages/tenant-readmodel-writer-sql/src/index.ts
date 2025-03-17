@@ -13,8 +13,8 @@ import {
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
-import { handleMessageV1 } from "./tenantConsumerServiceV1.js";
-import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
+import { handleMessageV1 } from "./consumerServiceV1.js";
+import { handleMessageV2 } from "./consumerServiceV2.js";
 import { readModelServiceBuilder } from "./readModelService.js";
 
 const db = makeDrizzleConnection(config);

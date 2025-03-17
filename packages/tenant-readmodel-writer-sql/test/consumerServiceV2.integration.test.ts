@@ -34,7 +34,7 @@ import {
   CertifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { handleMessageV2 } from "../src/tenantConsumerServiceV2.js";
+import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { readModelService } from "./utils.js";
 
 describe("Tenant Events V2", async () => {

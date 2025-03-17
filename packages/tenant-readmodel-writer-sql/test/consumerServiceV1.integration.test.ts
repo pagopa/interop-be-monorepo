@@ -11,7 +11,7 @@ import {
   TenantUpdatedV1,
   generateId,
 } from "pagopa-interop-models";
-import { handleMessageV1 } from "../src/tenantConsumerServiceV1.js";
+import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { toTenantV1 } from "./converterV1.js";
 import { readModelService } from "./utils.js";
 
