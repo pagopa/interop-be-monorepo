@@ -53,7 +53,8 @@ export const PublicEService = z.object({
   technology: z.enum(["REST", "SOAP"]),
   producerName: z.string(),
   producerId: z.string(),
-  producerExternalId: z.string(),
+  producerIpaCode: z.string().nullable(),
+  producerFiscalCode: z.string().nullable(),
   name: z.string(),
   description: z.string(),
   attributes: PublicEServiceAttributes,
@@ -67,7 +68,8 @@ export const FlattenedPublicEService = z.object({
   technology: z.enum(["REST", "SOAP"]),
   producerId: z.string(),
   producerName: z.string(),
-  producerExternalId: z.string(),
+  producerIpaCode: z.string().nullable(),
+  producerFiscalCode: z.string().nullable(),
   attributes: z.string(),
   activeDescriptorId: z.string(),
   activeDescriptorState: z.enum(["PUBLISHED", "SUSPENDED"]),
@@ -84,7 +86,8 @@ export type PublicTenantAttribute = z.infer<typeof PublicTenantAttribute>;
 export const PublicTenant = z.object({
   id: TenantId,
   name: z.string(),
-  externalId: z.string(),
+  ipaCode: z.string().nullable(),
+  fiscalCode: z.string().nullable(),
   attributes: z.array(PublicTenantAttribute),
 });
 export type PublicTenant = z.infer<typeof PublicTenant>;
@@ -92,7 +95,8 @@ export type PublicTenant = z.infer<typeof PublicTenant>;
 export const FlattenedPublicTenant = z.object({
   id: TenantId,
   name: z.string(),
-  externalId: z.string(),
+  ipaCode: z.string().nullable(),
+  fiscalCode: z.string().nullable(),
   attributes: z.string(),
 });
 export type FlattenedPublicTenant = z.infer<typeof FlattenedPublicTenant>;

@@ -5,6 +5,7 @@ import {
   type EserviceAttributes,
   genericError,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { getLatestActiveDescriptor } from "../utils/utils.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
@@ -30,6 +31,16 @@ export function toPublicEService(
     throw genericError(`Producer for e-service ${eservice.id} not found`);
   }
 
+  const { producerFiscalCode, producerIpaCode } = match(producer.externalId)
+    .with({ origin: "IPA" }, ({ value }) => ({
+      producerIpaCode: value,
+      producerFiscalCode: null,
+    }))
+    .otherwise(({ value }) => ({
+      producerIpaCode: null,
+      producerFiscalCode: value,
+    }));
+
   return {
     id: eservice.id,
     name: eservice.name,
@@ -37,7 +48,8 @@ export function toPublicEService(
     technology: eservice.technology.toUpperCase() as "REST" | "SOAP",
     producerId: producer.id,
     producerName: producer.name,
-    producerExternalId: producer.externalId.value,
+    producerFiscalCode,
+    producerIpaCode,
     attributes: toPublicAttributes(activeDescriptor.attributes, attributesMap),
     activeDescriptor: {
       id: activeDescriptor.id,
@@ -115,10 +127,21 @@ export async function toPublicTenant(
   const attributesIds = tenant.attributes.map((attr) => attr.id);
   const tenantAttributes = await readModelService.getAttributes(attributesIds);
 
+  const { fiscalCode, ipaCode } = match(tenant.externalId)
+    .with({ origin: "IPA" }, ({ value }) => ({
+      ipaCode: value,
+      fiscalCode: null,
+    }))
+    .otherwise(({ value }) => ({
+      ipaCode: null,
+      fiscalCode: value,
+    }));
+
   return {
     id: tenant.id,
     name: tenant.name,
-    externalId: tenant.externalId.value,
+    fiscalCode,
+    ipaCode,
     attributes: tenantAttributes.map(toPublicTenantAttribute),
   };
 }

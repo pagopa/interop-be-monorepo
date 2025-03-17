@@ -70,14 +70,16 @@ export function dtdCatalogExporterServiceBuilder({
     const records: FlattenedPublicTenant[] = tenants.map((tenant) => ({
       id: tenant.id,
       name: sanitizeCsvField(tenant.name),
-      externalId: sanitizeCsvField(tenant.externalId),
+      fiscalCode: tenant.fiscalCode,
+      ipaCode: tenant.ipaCode,
       attributes: JSON.stringify(tenant.attributes),
     }));
 
     const columns: Array<keyof FlattenedPublicTenant> = [
       "id",
       "name",
-      "externalId",
+      "fiscalCode",
+      "ipaCode",
       "attributes",
     ];
 
@@ -93,7 +95,8 @@ export function dtdCatalogExporterServiceBuilder({
         technology: service.technology,
         producerId: service.producerId,
         producerName: sanitizeCsvField(service.producerName),
-        producerExternalId: sanitizeCsvField(service.producerExternalId),
+        producerFiscalCode: service.producerFiscalCode,
+        producerIpaCode: service.producerIpaCode,
         attributes: JSON.stringify(service.attributes),
         activeDescriptorId: service.activeDescriptor.id,
         activeDescriptorState: service.activeDescriptor.state,
@@ -108,7 +111,8 @@ export function dtdCatalogExporterServiceBuilder({
       "technology",
       "producerId",
       "producerName",
-      "producerExternalId",
+      "producerFiscalCode",
+      "producerIpaCode",
       "attributes",
       "activeDescriptorId",
       "activeDescriptorState",

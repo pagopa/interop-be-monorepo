@@ -83,7 +83,8 @@ export const getExportedDtdPublicCatalogFromCsv = async (): Promise<
     technology: record.technology,
     producerId: record.producerId,
     producerName: record.producerName,
-    producerExternalId: record.producerExternalId,
+    producerFiscalCode: nullIfEmpty(record.producerFiscalCode),
+    producerIpaCode: nullIfEmpty(record.producerIpaCode),
     activeDescriptor: {
       id: record.activeDescriptorId,
       state: record.activeDescriptorState,
@@ -116,7 +117,8 @@ export const getExportedDtdPublicTenantsFromCsv = async (): Promise<
   const transformedRecords: PublicTenant[] = recordsArray.map((record) => ({
     id: record.id,
     name: record.name,
-    externalId: record.externalId,
+    fiscalCode: nullIfEmpty(record.fiscalCode),
+    ipaCode: nullIfEmpty(record.ipaCode),
     attributes: JSON.parse(record.attributes),
   }));
 
@@ -134,3 +136,6 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
+
+const nullIfEmpty = (value: string | null): string | null =>
+  value === "" || value === null ? null : value;

@@ -70,7 +70,8 @@ describe("exportDtdPublicCatalog", () => {
       technology: eserviceMock.technology.toUpperCase() as "REST" | "SOAP",
       producerId: producerMock.id,
       producerName: producerMock.name,
-      producerExternalId: producerMock.externalId.value,
+      producerIpaCode: producerMock.externalId.value,
+      producerFiscalCode: null,
       id: eserviceMock.id,
       name: eserviceMock.name,
       description: eserviceMock.description,
@@ -136,7 +137,8 @@ describe("exportDtdPublicCatalog", () => {
     const expectedTenant: PublicTenant = {
       id: producerMock.id,
       name: producerMock.name,
-      externalId: producerMock.externalId.value,
+      ipaCode: producerMock.externalId.value,
+      fiscalCode: null,
       attributes: [{ name: attribute.name, type: attribute.kind }],
     };
 
