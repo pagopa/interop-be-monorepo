@@ -19,7 +19,6 @@ describe("Producer keychain aggregator", () => {
         users: [generateId(), generateId()],
         eservices: [generateId(), generateId()],
         keys: [getMockKey(), getMockKey()],
-        description: "Test description",
       },
       metadata: { version: 1 },
     };
@@ -33,6 +32,6 @@ describe("Producer keychain aggregator", () => {
       eservicesSQL,
       keysSQL,
     });
-    expect(aggregatedProducerKeychain).toMatchObject(producerKeychain);
+    expect(aggregatedProducerKeychain).toStrictEqual(producerKeychain);
   });
 });
