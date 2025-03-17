@@ -112,7 +112,6 @@ export function setupTestContainersVitest(
   pecEmailManager: EmailManagerPEC;
   sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
-  readModelDB: ReturnType<typeof drizzle>;
   cleanup: () => Promise<void>;
 }>;
 export function setupTestContainersVitest(
@@ -130,6 +129,7 @@ export function setupTestContainersVitest(
   pecEmailManager: EmailManagerPEC;
   sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
+  readModelDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
