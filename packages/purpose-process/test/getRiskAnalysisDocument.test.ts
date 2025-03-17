@@ -3,11 +3,11 @@ import {
   getMockPurposeVersionDocument,
   getMockPurposeVersion,
   getMockPurpose,
-  getMockAuthData,
   getMockDelegation,
   getMockTenant,
   addSomeRandomDelegations,
   getMockAgreement,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -64,8 +64,12 @@ describe("getRiskAnalysisDocument", () => {
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
-      organizationId: mockPurpose.consumerId,
-      logger: genericLogger,
+      ctx: {
+        authData: getRandomAuthData(mockPurpose.consumerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      },
     });
     expect(result).toEqual(mockDocument);
   });
@@ -88,8 +92,12 @@ describe("getRiskAnalysisDocument", () => {
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
-      organizationId: mockEService.producerId,
-      logger: genericLogger,
+      ctx: {
+        authData: getRandomAuthData(mockEService.producerId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      },
     });
     expect(result).toEqual(mockDocument);
   });
@@ -108,11 +116,11 @@ describe("getRiskAnalysisDocument", () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
-    const delegate = getMockAuthData();
+    const delegateId = generateId<TenantId>();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: mockEService.id,
-      delegateId: delegate.organizationId,
+      delegateId,
       state: delegationState.active,
       delegatorId: mockEService.producerId,
     });
@@ -123,8 +131,12 @@ describe("getRiskAnalysisDocument", () => {
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
-      organizationId: delegate.organizationId,
-      logger: genericLogger,
+      ctx: {
+        authData: getRandomAuthData(delegateId),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      },
     });
     expect(result).toEqual(mockDocument);
   });
@@ -172,8 +184,12 @@ describe("getRiskAnalysisDocument", () => {
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
-      organizationId: consumerDelegate.id,
-      logger: genericLogger,
+      ctx: {
+        authData: getRandomAuthData(consumerDelegate.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      },
     });
     expect(result).toEqual(mockDocument);
   });
@@ -232,8 +248,12 @@ describe("getRiskAnalysisDocument", () => {
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
-      organizationId: producerDelegate.id,
-      logger: genericLogger,
+      ctx: {
+        authData: getRandomAuthData(producerDelegate.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      },
     });
     expect(result).toEqual(mockDocument);
   });
@@ -277,8 +297,12 @@ describe("getRiskAnalysisDocument", () => {
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
-      organizationId: producer.id,
-      logger: genericLogger,
+      ctx: {
+        authData: getRandomAuthData(producer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      },
     });
     expect(result).toEqual(mockDocument);
   });
@@ -322,8 +346,12 @@ describe("getRiskAnalysisDocument", () => {
       purposeId: mockPurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
-      organizationId: consumer.id,
-      logger: genericLogger,
+      ctx: {
+        authData: getRandomAuthData(consumer.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      },
     });
     expect(result).toEqual(mockDocument);
   });
@@ -408,8 +436,12 @@ describe("getRiskAnalysisDocument", () => {
       purposeId: delegatePurpose.id,
       versionId: mockPurposeVersion.id,
       documentId: mockDocument.id,
-      organizationId: consumerDelegate.id,
-      logger: genericLogger,
+      ctx: {
+        authData: getRandomAuthData(consumerDelegate.id),
+        correlationId: generateId(),
+        logger: genericLogger,
+        serviceName: "",
+      },
     });
     expect(result).toEqual(mockDocument);
   });
@@ -422,8 +454,12 @@ describe("getRiskAnalysisDocument", () => {
         purposeId: notExistingId,
         versionId: generateId(),
         documentId: generateId(),
-        organizationId: generateId(),
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       })
     ).rejects.toThrowError(purposeNotFound(notExistingId));
   });
@@ -450,8 +486,12 @@ describe("getRiskAnalysisDocument", () => {
         purposeId: mockPurpose.id,
         versionId: randomVersionId,
         documentId: randomDocumentId,
-        organizationId: mockEService.producerId,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       })
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -479,8 +519,12 @@ describe("getRiskAnalysisDocument", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
         documentId: randomDocumentId,
-        organizationId: mockEService.producerId,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(mockEService.producerId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       })
     ).rejects.toThrowError(
       purposeVersionDocumentNotFound(
@@ -491,7 +535,7 @@ describe("getRiskAnalysisDocument", () => {
     );
   });
   it("should throw organizationNotAllowed if the requester is not the producer nor the consumer nor the delegate", async () => {
-    const randomId: TenantId = generateId();
+    const randomTenantId: TenantId = generateId();
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
     const mockPurposeVersion = {
@@ -512,10 +556,14 @@ describe("getRiskAnalysisDocument", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
         documentId: mockDocument.id,
-        organizationId: randomId,
-        logger: genericLogger,
+        ctx: {
+          authData: getRandomAuthData(randomTenantId),
+          correlationId: generateId(),
+          logger: genericLogger,
+          serviceName: "",
+        },
       })
-    ).rejects.toThrowError(organizationNotAllowed(randomId));
+    ).rejects.toThrowError(organizationNotAllowed(randomTenantId));
   });
   it.each(
     Object.values(delegationState).filter((s) => s !== delegationState.active)
@@ -537,11 +585,11 @@ describe("getRiskAnalysisDocument", () => {
       await addOnePurpose(mockPurpose);
       await addOneEService(mockEService);
 
-      const delegate = getMockAuthData();
+      const delegateId = generateId<TenantId>();
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,
-        delegateId: delegate.organizationId,
+        delegateId,
         state: delegationState,
       });
 
@@ -552,10 +600,14 @@ describe("getRiskAnalysisDocument", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
           documentId: mockDocument.id,
-          organizationId: delegate.organizationId,
-          logger: genericLogger,
+          ctx: {
+            authData: getRandomAuthData(delegateId),
+            correlationId: generateId(),
+            logger: genericLogger,
+            serviceName: "",
+          },
         })
-      ).rejects.toThrowError(organizationNotAllowed(delegate.organizationId));
+      ).rejects.toThrowError(organizationNotAllowed(delegateId));
     }
   );
 });
