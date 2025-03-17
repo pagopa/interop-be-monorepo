@@ -43,7 +43,6 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
-  EServiceTemplateVersionRef,
   eserviceTemplateVersionState,
   generateId,
   ListResult,
@@ -311,30 +310,6 @@ const getTemplateDataFromEservice = (
     eserviceTemplateId: unsafeBrandId(eserviceTemplateId),
     eserviceTemplateVersionId: unsafeBrandId(eserviceTemplateVersionId),
   };
-};
-
-const evaluateEServiceTemplateVersionRef = (
-  templateVersionId: EServiceTemplateVersionId | undefined,
-  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
-): EServiceTemplateVersionRef | undefined => {
-  if (!templateVersionId) {
-    return undefined;
-  }
-
-  const templateRef = { id: templateVersionId };
-  const isInterface = documentSeed.kind === "INTERFACE";
-
-  const updateTemplateRef: EServiceTemplateVersionRef | undefined =
-    isInterface && documentSeed.interfaceTemplateMetadata
-      ? {
-          ...templateRef,
-          interfaceMetadata: {
-            ...documentSeed.interfaceTemplateMetadata,
-          },
-        }
-      : templateRef;
-
-  return updateTemplateRef;
 };
 
 const updateDescriptorState = (
@@ -616,7 +591,6 @@ async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
-  templateVersionId: EServiceTemplateVersionId | undefined,
   { correlationId }: WithLogger<AppContext>
 ): Promise<{
   eService: EService;
@@ -654,17 +628,12 @@ async function innerAddDocumentToEserviceEvent(
     uploadDate: new Date(),
   };
 
-  const templateVersionRef = evaluateEServiceTemplateVersionRef(
-    templateVersionId,
-    documentSeed
-  );
-
   const updatedDescriptor: Descriptor = {
     ...descriptor,
-    templateVersionRef,
     interface: isInterface ? newDocument : descriptor.interface,
     docs: isInterface ? descriptor.docs : [...descriptor.docs, newDocument],
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
+    templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
   };
 
   const updatedEService: EService = replaceDescriptor(
@@ -1097,7 +1066,6 @@ export function catalogServiceBuilder(
           eservice,
           descriptorId,
           document,
-          undefined,
           ctx
         );
 
@@ -3020,7 +2988,6 @@ export function catalogServiceBuilder(
             checksum: doc.checksum,
             serverUrls: [], // not used in case of kind == "DOCUMENT"
           },
-          publishedVersion.id,
           ctx
         );
         // eslint-disable-next-line functional/immutable-data
@@ -3202,7 +3169,6 @@ export function catalogServiceBuilder(
               checksum: doc.checksum,
               serverUrls: [],
             },
-            templateVersion.id,
             ctx
           );
         // eslint-disable-next-line functional/immutable-data
@@ -3281,7 +3247,6 @@ export async function createOpenApiInterfaceByTemplate(
           serverUrls,
           interfaceTemplateMetadata: eserviceInstanceInterfaceData,
         },
-        undefined,
         ctx
       ),
     ctx.logger
@@ -3459,6 +3424,38 @@ function updateEServiceDescriptorAttributeInAdd(
     ...verifiedAttributes,
     ...declaredAttributes,
   ].map(unsafeBrandId<AttributeId>);
+}
+
+function evaluateTemplateVersionRef(
+  descriptor: Descriptor,
+  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
+): Descriptor["templateVersionRef"] {
+  if (
+    documentSeed.kind !== "INTERFACE" ||
+    !descriptor.templateVersionRef ||
+    !documentSeed.interfaceTemplateMetadata
+  ) {
+    return descriptor.templateVersionRef;
+  }
+
+  const {
+    contactEmail,
+    contactName,
+    contactUrl,
+    serverUrls,
+    termsAndConditionsUrl,
+  } = documentSeed.interfaceTemplateMetadata;
+
+  return {
+    id: descriptor.templateVersionRef.id,
+    interfaceMetadata: {
+      contactEmail,
+      contactName,
+      contactUrl,
+      serverUrls,
+      termsAndConditionsUrl,
+    },
+  };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
