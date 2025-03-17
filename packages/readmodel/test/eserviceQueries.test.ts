@@ -327,7 +327,7 @@ describe("E-service queries", () => {
     });
   });
 
-  describe("deleteEServiceById", () => {
+  describe("should delete an e-service by id", () => {
     it("delete one eservice", async () => {
       const eservice1: EService = {
         ...getMockEService(),
