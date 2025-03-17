@@ -30,9 +30,10 @@ import {
   toReadModelAgreement,
   Agreement,
   Delegation,
+  ListResult,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { afterAll, afterEach, inject, vi } from "vitest";
+import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -191,3 +192,14 @@ export const readLastPurposeEvent = async (
   purposeId: PurposeId
 ): Promise<ReadEvent<PurposeEvent>> =>
   await readLastEventByStreamId(purposeId, "purpose", postgresDB);
+
+export function expectSinglePageListResult<T>(
+  actual: ListResult<T>,
+  expected: T[]
+): void {
+  expect(actual).toEqual({
+    totalCount: expected.length,
+    results: expect.arrayContaining(expected),
+  });
+  expect(actual.results).toHaveLength(expected.length);
+}
