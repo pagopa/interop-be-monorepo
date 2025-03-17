@@ -154,7 +154,9 @@ export const aggregatePurpose = ({
       ...(versionSQL.rejectionReason
         ? { rejectionReason: versionSQL.rejectionReason }
         : {}),
-      firstActivationAt: stringToDate(versionSQL.firstActivationAt),
+      ...(versionSQL.firstActivationAt
+        ? { firstActivationAt: stringToDate(versionSQL.firstActivationAt) }
+        : {}),
       ...(versionSQL.suspendedAt
         ? { suspendedAt: stringToDate(versionSQL.suspendedAt) }
         : {}),
