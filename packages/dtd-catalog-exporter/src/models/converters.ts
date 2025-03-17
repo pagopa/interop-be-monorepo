@@ -4,6 +4,7 @@ import {
   type TenantReadModel,
   type EserviceAttributes,
   genericError,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { getLatestActiveDescriptor } from "../utils/utils.js";
@@ -31,7 +32,7 @@ export function toPublicEService(
   }
 
   const { producerFiscalCode, producerIpaCode } = match(producer.externalId)
-    .with({ origin: "IPA" }, ({ value }) => ({
+    .with({ origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER }, ({ value }) => ({
       producerIpaCode: value,
       producerFiscalCode: null,
     }))
@@ -132,7 +133,7 @@ export function toPublicTenant(
   });
 
   const { fiscalCode, ipaCode } = match(tenant.externalId)
-    .with({ origin: "IPA" }, ({ value }) => ({
+    .with({ origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER }, ({ value }) => ({
       ipaCode: value,
       fiscalCode: null,
     }))
