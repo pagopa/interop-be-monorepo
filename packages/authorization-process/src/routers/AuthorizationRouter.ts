@@ -486,8 +486,7 @@ const authorizationRouter = (
           const key = await authorizationService.getClientKeyById({
             clientId: unsafeBrandId(req.params.clientId),
             kid: req.params.keyId,
-            organizationId: ctx.authData.organizationId,
-            logger: ctx.logger,
+            ctx,
           });
 
           return res
