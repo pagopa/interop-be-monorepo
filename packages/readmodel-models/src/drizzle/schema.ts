@@ -760,7 +760,7 @@ export const producerKeychainUserInReadmodelProducerKeychain =
           producerKeychainInReadmodelProducerKeychain.metadataVersion,
         ],
         name: "producer_keychain_user_producer_keychain_id_metadata_versi_fkey",
-      }).onUpdate("cascade"),
+      }),
       primaryKey({
         columns: [table.producerKeychainId, table.userId],
         name: "producer_keychain_user_pkey",
@@ -789,7 +789,7 @@ export const producerKeychainEserviceInReadmodelProducerKeychain =
           producerKeychainInReadmodelProducerKeychain.metadataVersion,
         ],
         name: "producer_keychain_eservice_producer_keychain_id_metadata_v_fkey",
-      }).onUpdate("cascade"),
+      }),
       primaryKey({
         columns: [table.producerKeychainId, table.eserviceId],
         name: "producer_keychain_eservice_pkey",
@@ -1273,7 +1273,7 @@ export const producerKeychainKeyInReadmodelProducerKeychain =
           producerKeychainInReadmodelProducerKeychain.metadataVersion,
         ],
         name: "producer_keychain_key_producer_keychain_id_metadata_versio_fkey",
-      }).onUpdate("cascade"),
+      }),
       primaryKey({
         columns: [table.producerKeychainId, table.kid],
         name: "producer_keychain_key_pkey",
