@@ -13,12 +13,15 @@ import {
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  DrizzleTransactionType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 
@@ -27,6 +30,60 @@ export function customReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>,
   catalogReadModelService: CatalogReadModelService
 ) {
+  const updateMetadataVersionInCatalogTables = async (
+    tx: DrizzleTransactionType,
+    eserviceId: EServiceId,
+    newMetadataVersion: number
+  ): Promise<void> => {
+    const catalogTables = [
+      eserviceInReadmodelCatalog,
+      eserviceDescriptorInReadmodelCatalog,
+      eserviceDescriptorRejectionReasonInReadmodelCatalog,
+      eserviceDescriptorInterfaceInReadmodelCatalog,
+      eserviceDescriptorDocumentInReadmodelCatalog,
+      eserviceDescriptorAttributeInReadmodelCatalog,
+      eserviceRiskAnalysisInReadmodelCatalog,
+      eserviceRiskAnalysisAnswerInReadmodelCatalog,
+    ];
+
+    for (const table of catalogTables) {
+      await tx
+        .update(table)
+        .set({ metadataVersion: newMetadataVersion })
+        .where(
+          and(
+            eq("eserviceId" in table ? table.eserviceId : table.id, eserviceId),
+            lte(table.metadataVersion, newMetadataVersion)
+          )
+        );
+    }
+  };
+
+  const setServerUrls = async ({
+    tx,
+    serverUrls,
+    descriptorId,
+    metadataVersion,
+  }: {
+    tx: DrizzleTransactionType;
+    serverUrls: string[];
+    descriptorId: DescriptorId;
+    metadataVersion: number;
+  }): Promise<void> => {
+    await tx
+      .update(eserviceDescriptorInReadmodelCatalog)
+      .set({ serverUrls })
+      .where(
+        and(
+          eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
+          lte(
+            eserviceDescriptorInReadmodelCatalog.metadataVersion,
+            metadataVersion
+          )
+        )
+      );
+  };
+
   return {
     async upsertEService(
       eservice: EService,
@@ -38,7 +95,7 @@ export function customReadModelServiceBuilder(
       );
     },
 
-    async deleteDescriptor({
+    async deleteDescriptorById({
       eserviceId,
       descriptorId,
       metadataVersion,
@@ -59,7 +116,7 @@ export function customReadModelServiceBuilder(
           )
         );
 
-        await updateEServiceVersionInEServiceTable(
+        await updateMetadataVersionInCatalogTables(
           tx,
           eserviceId,
           metadataVersion
@@ -78,41 +135,67 @@ export function customReadModelServiceBuilder(
       document: Document;
       metadataVersion: number;
     }): Promise<void> {
-      const documentSQL = documentToDocumentSQL(
-        document,
-        descriptorId,
-        eserviceId,
-        metadataVersion
-      );
-
       await db.transaction(async (tx) => {
-        await updateEServiceVersionInEServiceTable(
-          tx,
-          eserviceId,
-          metadataVersion
-        );
-
-        await tx.delete(eserviceDescriptorDocumentInReadmodelCatalog).where(
-          and(
-            eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id),
-            eq(
-              eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, // TODO redundant?
-              eserviceId
-            ),
-            eq(
-              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId, // TODO redundant?
-              descriptorId
-            ),
-            lte(
-              eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
-              metadataVersion
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion:
+                eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
+            })
+            .from(eserviceDescriptorDocumentInReadmodelCatalog)
+            .where(
+              and(
+                eq(
+                  eserviceDescriptorDocumentInReadmodelCatalog.id,
+                  document.id
+                ),
+                eq(
+                  eserviceDescriptorDocumentInReadmodelCatalog.descriptorId, // TODO redundant?
+                  descriptorId
+                ),
+                eq(
+                  eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, // TODO redundant?
+                  eserviceId
+                )
+              )
             )
-          )
-        );
+        )[0]?.metadataVersion;
 
-        await tx
-          .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-          .values(documentSQL);
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx.delete(eserviceDescriptorDocumentInReadmodelCatalog).where(
+            and(
+              eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id),
+              eq(
+                eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, // TODO redundant?
+                eserviceId
+              ),
+              eq(
+                eserviceDescriptorDocumentInReadmodelCatalog.descriptorId, // TODO redundant?
+                descriptorId
+              )
+            )
+          );
+
+          const documentSQL = documentToDocumentSQL(
+            document,
+            descriptorId,
+            eserviceId,
+            metadataVersion
+          );
+
+          await tx
+            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+            .values(documentSQL);
+
+          await updateMetadataVersionInCatalogTables(
+            tx,
+            eserviceId,
+            metadataVersion
+          );
+        }
       });
     },
 
@@ -129,44 +212,76 @@ export function customReadModelServiceBuilder(
       serverUrls: string[];
       metadataVersion: number;
     }): Promise<void> {
-      const interfaceSQL = documentToDocumentSQL(
-        descriptorInterface,
-        descriptorId,
-        eserviceId,
-        metadataVersion
-      );
-
       await db.transaction(async (tx) => {
-        await updateEServiceVersionInEServiceTable(
-          tx,
-          eserviceId,
-          metadataVersion
-        );
-
-        await tx.delete(eserviceDescriptorInterfaceInReadmodelCatalog).where(
-          and(
-            eq(
-              eserviceDescriptorInterfaceInReadmodelCatalog.id,
-              descriptorInterface.id
-            ),
-            eq(
-              eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId, // TODO redundant?
-              descriptorId
-            ),
-            eq(
-              eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId, // TODO redundant?
-              eserviceId
-            ),
-            lte(
-              eserviceDescriptorInterfaceInReadmodelCatalog.metadataVersion,
-              metadataVersion
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion:
+                eserviceDescriptorInterfaceInReadmodelCatalog.metadataVersion,
+            })
+            .from(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .where(
+              and(
+                eq(
+                  eserviceDescriptorInterfaceInReadmodelCatalog.id,
+                  descriptorInterface.id
+                ),
+                eq(
+                  eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId, // TODO redundant?
+                  descriptorId
+                ),
+                eq(
+                  eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId, // TODO redundant?
+                  eserviceId
+                )
+              )
             )
-          )
-        );
-        await tx
-          .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-          .values(interfaceSQL);
-        await setServerUrls({ tx, descriptorId, serverUrls, metadataVersion });
+        )[0]?.metadataVersion;
+
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx.delete(eserviceDescriptorInterfaceInReadmodelCatalog).where(
+            and(
+              eq(
+                eserviceDescriptorInterfaceInReadmodelCatalog.id,
+                descriptorInterface.id
+              ),
+              eq(
+                eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId, // TODO redundant?
+                descriptorId
+              ),
+              eq(
+                eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId, // TODO redundant?
+                eserviceId
+              )
+            )
+          );
+
+          const interfaceSQL = documentToDocumentSQL(
+            descriptorInterface,
+            descriptorId,
+            eserviceId,
+            metadataVersion
+          );
+
+          await tx
+            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .values(interfaceSQL);
+          await setServerUrls({
+            tx,
+            descriptorId,
+            serverUrls,
+            metadataVersion,
+          });
+
+          await updateMetadataVersionInCatalogTables(
+            tx,
+            eserviceId,
+            metadataVersion
+          );
+        }
       });
     },
 
@@ -225,7 +340,7 @@ export function customReadModelServiceBuilder(
             );
         }
 
-        await updateEServiceVersionInEServiceTable(
+        await updateMetadataVersionInCatalogTables(
           tx,
           eserviceId,
           metadataVersion
@@ -242,113 +357,83 @@ export function customReadModelServiceBuilder(
       descriptor: Descriptor;
       metadataVersion: number;
     }): Promise<void> {
-      const {
-        descriptorSQL,
-        attributesSQL,
-        interfaceSQL,
-        documentsSQL,
-        rejectionReasonsSQL,
-      } = splitDescriptorIntoObjectsSQL(
-        eserviceId,
-        descriptor,
-        metadataVersion
-      );
-
       await db.transaction(async (tx) => {
-        await updateEServiceVersionInEServiceTable(
-          tx,
-          eserviceId,
-          metadataVersion
-        );
-
-        await tx.delete(eserviceDescriptorInReadmodelCatalog).where(
-          and(
-            eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id),
-            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId), // TODO redundant?
-            lte(
-              eserviceDescriptorInReadmodelCatalog.metadataVersion,
-              metadataVersion
+        const existingMetadataVersion = (
+          await tx
+            .select({
+              metadataVersion:
+                eserviceDescriptorInReadmodelCatalog.metadataVersion,
+            })
+            .from(eserviceDescriptorInReadmodelCatalog)
+            .where(
+              and(
+                eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id),
+                eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId) // TODO redundant?
+              )
             )
-          )
-        );
+        )[0]?.metadataVersion;
 
-        await tx
-          .insert(eserviceDescriptorInReadmodelCatalog)
-          .values(descriptorSQL);
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx.delete(eserviceDescriptorInReadmodelCatalog).where(
+            and(
+              eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id),
+              eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId) // TODO redundant?
+            )
+          );
 
-        if (interfaceSQL) {
+          const {
+            descriptorSQL,
+            attributesSQL,
+            interfaceSQL,
+            documentsSQL,
+            rejectionReasonsSQL,
+          } = splitDescriptorIntoObjectsSQL(
+            eserviceId,
+            descriptor,
+            metadataVersion
+          );
+
           await tx
-            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .values(interfaceSQL);
-        }
+            .insert(eserviceDescriptorInReadmodelCatalog)
+            .values(descriptorSQL);
 
-        for (const docSQL of documentsSQL) {
-          await tx
-            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-            .values(docSQL);
-        }
+          if (interfaceSQL) {
+            await tx
+              .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+              .values(interfaceSQL);
+          }
 
-        for (const attributeSQL of attributesSQL) {
-          await tx
-            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-            .values(attributeSQL);
-        }
+          for (const docSQL of documentsSQL) {
+            await tx
+              .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+              .values(docSQL);
+          }
 
-        for (const rejectionReasonSQL of rejectionReasonsSQL) {
-          await tx
-            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-            .values(rejectionReasonSQL);
+          for (const attributeSQL of attributesSQL) {
+            await tx
+              .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+              .values(attributeSQL);
+          }
+
+          for (const rejectionReasonSQL of rejectionReasonsSQL) {
+            await tx
+              .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+              .values(rejectionReasonSQL);
+          }
+
+          await updateMetadataVersionInCatalogTables(
+            tx,
+            eserviceId,
+            metadataVersion
+          );
         }
       });
     },
   };
 }
-
-export type DrizzleReturnType = ReturnType<typeof drizzle>;
-export type TransactionType = Parameters<
-  Parameters<DrizzleReturnType["transaction"]>[0]
->[0];
-
-const updateEServiceVersionInEServiceTable = async (
-  tx: TransactionType,
-  eserviceId: EServiceId,
-  newVersion: number
-): Promise<void> => {
-  await tx
-    .update(eserviceInReadmodelCatalog)
-    .set({ metadataVersion: newVersion })
-    .where(
-      and(
-        eq(eserviceInReadmodelCatalog.id, eserviceId),
-        lte(eserviceInReadmodelCatalog.metadataVersion, newVersion)
-      )
-    );
-};
-
-const setServerUrls = async ({
-  tx,
-  serverUrls,
-  descriptorId,
-  metadataVersion,
-}: {
-  tx: TransactionType;
-  serverUrls: string[];
-  descriptorId: DescriptorId;
-  metadataVersion: number;
-}): Promise<void> => {
-  await tx
-    .update(eserviceDescriptorInReadmodelCatalog)
-    .set({ serverUrls })
-    .where(
-      and(
-        eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
-        lte(
-          eserviceDescriptorInReadmodelCatalog.metadataVersion,
-          metadataVersion
-        )
-      )
-    );
-};
 
 export type CustomReadModelService = ReturnType<
   typeof customReadModelServiceBuilder

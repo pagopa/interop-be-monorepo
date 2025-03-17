@@ -42,7 +42,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceWithDescriptorsDeleted" },
       async (msg) =>
-        await customReadModeService.deleteDescriptor({
+        await customReadModeService.deleteDescriptorById({
           eserviceId: unsafeBrandId<EServiceId>(msg.stream_id),
           descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
           metadataVersion: msg.version,
