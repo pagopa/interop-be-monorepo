@@ -1,4 +1,5 @@
 import { InferSelectModel } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
 import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
@@ -41,6 +42,11 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "./drizzle/schema.js";
+
+export type DrizzleReturnType = ReturnType<typeof drizzle>;
+export type DrizzleTransactionType = Parameters<
+  Parameters<DrizzleReturnType["transaction"]>[0]
+>[0];
 
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodelCatalog>;
 export type EServiceDescriptorSQL = InferSelectModel<

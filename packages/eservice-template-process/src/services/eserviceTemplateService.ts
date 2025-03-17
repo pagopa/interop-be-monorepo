@@ -1456,7 +1456,7 @@ export function eserviceTemplateServiceBuilder(
       { logger }: WithLogger<AppContext>
     ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
       logger.info(
-        `Retrieving producers from agreements with producer name ${creatorName}, limit ${limit}, offset ${offset}`
+        `Retrieving eservice template creator with name ${creatorName}, limit ${limit}, offset ${offset}`
       );
       return await readModelService.getCreators(creatorName, limit, offset);
     },
