@@ -11,9 +11,7 @@ import {
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import {
   aggregateAgreement,
-  aggregateAgreementArray,
   toAgreementAggregator,
-  toAgreementAggregatorArray,
 } from "./agreement/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -70,7 +68,7 @@ export function agreementReadModelServiceBuilder(
               .insert(agreementConsumerDocumentInReadmodelAgreement)
               .values(docSQL);
           }
-          if (contractSQL !== null) {
+          if (contractSQL !== undefined) {
             await tx
               .insert(agreementContractInReadmodelAgreement)
               .values(contractSQL);
@@ -148,51 +146,6 @@ export function agreementReadModelServiceBuilder(
             lte(agreementInReadmodelAgreement.metadataVersion, metadataVersion)
           )
         );
-    },
-    async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
-      const queryResult = await db
-        .select({
-          agreement: agreementInReadmodelAgreement,
-          stamp: agreementStampInReadmodelAgreement,
-          attribute: agreementAttributeInReadmodelAgreement,
-          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
-          contract: agreementContractInReadmodelAgreement,
-        })
-        .from(agreementInReadmodelAgreement)
-        .leftJoin(
-          // 1
-          agreementStampInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementStampInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 2
-          agreementAttributeInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementAttributeInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 3
-          agreementConsumerDocumentInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementConsumerDocumentInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 4
-          agreementContractInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementContractInReadmodelAgreement.agreementId
-          )
-        );
-
-      return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
     },
   };
 }

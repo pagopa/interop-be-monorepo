@@ -172,7 +172,7 @@ export const splitAgreementIntoObjectsSQL = (
 
   const contractSQL = contract
     ? agreementDocumentToAgreementDocumentSQL(contract, id, metadataVersion)
-    : null;
+    : undefined;
 
   const consumerDocumentsSQL = consumerDocuments.map((doc) =>
     agreementDocumentToAgreementDocumentSQL(doc, id, metadataVersion)
