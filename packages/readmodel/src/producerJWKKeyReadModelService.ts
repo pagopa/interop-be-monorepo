@@ -1,18 +1,18 @@
 import { eq, and, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { producerJwkKeyInReadmodelProducerJwkKey } from "pagopa-interop-readmodel-models";
+import {
+  DrizzleReturnType,
+  producerJwkKeyInReadmodelProducerJwkKey,
+} from "pagopa-interop-readmodel-models";
 import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
 import { aggregateProducerJWKKey } from "./authorization/producerJWKKeyAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function producerJWKKeyReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertProducerJWKKey(
       jwkKey: ProducerJWKKey,
