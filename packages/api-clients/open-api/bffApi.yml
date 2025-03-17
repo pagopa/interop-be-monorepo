@@ -15651,7 +15651,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplateDescriptionUpdateSeed"
+              $ref: "#/components/schemas/EServiceTemplateIntendedTargetUpdateSeed"
       responses:
         "204":
           description: EService template intended target description updated
@@ -20246,6 +20246,14 @@ components:
           type: string
       required:
         - description
+    EServiceTemplateIntendedTargetUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        intendedTarget:
+          type: string
+      required:
+        - intendedTarget
     EServiceTemplateVersionState:
       type: string
       description: EService Descriptor State
