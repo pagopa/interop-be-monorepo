@@ -6,6 +6,7 @@ import {
   EServiceReadModel,
   genericError,
   TenantId,
+  TenantReadModel,
 } from "pagopa-interop-models";
 
 const activeDescriptorStatesFilter: DescriptorState[] = [
@@ -56,6 +57,24 @@ export function getAllEservicesAttributesIds(
     [...certified, ...verified, ...declared].forEach((attributesGroup) => {
       attributesGroup.forEach(({ id }) => attributesIds.add(id));
     });
+  });
+
+  return Array.from(attributesIds);
+}
+
+/**
+ * Returns all the attribute ids of every tenant
+ *
+ * @param tenants - The array of tenants
+ * @returns The array of attributes ids
+ */
+export function getAllTenantsAttributesIds(
+  tenants: TenantReadModel[]
+): AttributeId[] {
+  const attributesIds: Set<AttributeId> = new Set();
+
+  tenants.forEach((tenant) => {
+    tenant.attributes.forEach((attr) => attributesIds.add(attr.id));
   });
 
   return Array.from(attributesIds);

@@ -6,6 +6,7 @@ import { config } from "../config/config.js";
 import { toPublicEService, toPublicTenant } from "../models/converters.js";
 import {
   getAllEservicesAttributesIds,
+  getAllTenantsAttributesIds,
   getAllTenantsIds,
   sanitizeCsvField,
 } from "../utils/utils.js";
@@ -39,10 +40,12 @@ export function dtdCatalogExporterServiceBuilder({
     const eserviceAttributeIds = getAllEservicesAttributesIds(eservices);
     const tenantIds = getAllTenantsIds(eservices);
 
-    const attributes = await readModelService.getAttributes(
+    const eserviceAttributes = await readModelService.getAttributes(
       eserviceAttributeIds
     );
-    const attributesMap = new Map(attributes.map((attr) => [attr.id, attr]));
+    const eserviceAttributesMap = new Map(
+      eserviceAttributes.map((attr) => [attr.id, attr])
+    );
 
     const tenants = await readModelService.getEServicesTenants(tenantIds);
     const tenantsMap = new Map(tenants.map((ten) => [ten.id, ten]));
@@ -51,13 +54,19 @@ export function dtdCatalogExporterServiceBuilder({
     loggerInstance.info("Remapping e-services to public e-services...\n");
 
     const publicEservices = eservices.map((eservice) =>
-      toPublicEService(eservice, attributesMap, tenantsMap)
+      toPublicEService(eservice, eserviceAttributesMap, tenantsMap)
     );
 
-    const publicTenants = await Promise.all(
-      Array.from(tenantsMap.values()).map(
-        async (tenant) => await toPublicTenant(tenant, readModelService)
-      )
+    const tenantAttributesIds = getAllTenantsAttributesIds(tenants);
+    const tenantAttributes = await readModelService.getAttributes(
+      tenantAttributesIds
+    );
+    const tenantAttributesMap = new Map(
+      tenantAttributes.map((attr) => [attr.id, attr])
+    );
+
+    const publicTenants = tenants.map((tenant) =>
+      toPublicTenant(tenant, tenantAttributesMap)
     );
 
     return {

@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { getLatestActiveDescriptor } from "../utils/utils.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   PublicEService,
   PublicEServiceAttribute,
@@ -120,12 +119,17 @@ function toPublicTenantAttribute(
   };
 }
 
-export async function toPublicTenant(
+export function toPublicTenant(
   tenant: TenantReadModel,
-  readModelService: ReturnType<typeof readModelServiceBuilder>
-): Promise<PublicTenant> {
-  const attributesIds = tenant.attributes.map((attr) => attr.id);
-  const tenantAttributes = await readModelService.getAttributes(attributesIds);
+  attributesMap: Map<string, AttributeReadmodel>
+): PublicTenant {
+  const attributes = tenant.attributes.map((attr) => {
+    const attribute = attributesMap.get(attr.id);
+    if (!attribute) {
+      throw genericError(`Attribute with id ${attr.id} not found`);
+    }
+    return attribute;
+  });
 
   const { fiscalCode, ipaCode } = match(tenant.externalId)
     .with({ origin: "IPA" }, ({ value }) => ({
@@ -142,6 +146,6 @@ export async function toPublicTenant(
     name: tenant.name,
     fiscalCode,
     ipaCode,
-    attributes: tenantAttributes.map(toPublicTenantAttribute),
+    attributes: attributes.map(toPublicTenantAttribute),
   };
 }
