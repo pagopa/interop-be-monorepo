@@ -42,7 +42,6 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
-  EServiceTemplateVersionRef,
   eserviceTemplateVersionState,
   generateId,
   ListResult,
@@ -306,30 +305,6 @@ const getTemplateDataFromEservice = (
     eserviceTemplateId: unsafeBrandId(eserviceTemplateId),
     eserviceTemplateVersionId: unsafeBrandId(eserviceTemplateVersionId),
   };
-};
-
-const evaluateEServiceTemplateVersionRef = (
-  templateVersionId: EServiceTemplateVersionId | undefined,
-  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
-): EServiceTemplateVersionRef | undefined => {
-  if (!templateVersionId) {
-    return undefined;
-  }
-
-  const templateRef = { id: templateVersionId };
-  const isInterface = documentSeed.kind === "INTERFACE";
-
-  const updateTemplateRef: EServiceTemplateVersionRef | undefined =
-    isInterface && documentSeed.interfaceTemplateMetadata
-      ? {
-          ...templateRef,
-          interfaceMetadata: {
-            ...documentSeed.interfaceTemplateMetadata,
-          },
-        }
-      : templateRef;
-
-  return updateTemplateRef;
 };
 
 const updateDescriptorState = (
@@ -616,7 +591,6 @@ async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
-  templateVersionId: EServiceTemplateVersionId | undefined,
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
 ): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
@@ -658,21 +632,16 @@ async function innerAddDocumentToEserviceEvent(
     uploadDate: new Date(),
   };
 
-  const templateVersionRef = evaluateEServiceTemplateVersionRef(
-    templateVersionId,
-    documentSeed
-  );
-
   const updatedEService: EService = {
     ...eService.data,
     descriptors: eService.data.descriptors.map((d: Descriptor) =>
       d.id === descriptorId
         ? {
             ...d,
-            templateVersionRef,
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
             serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
+            templateVersionRef: evaluateTemplateVersionRef(d, documentSeed),
           }
         : d
     ),
@@ -1054,7 +1023,6 @@ export function catalogServiceBuilder(
           eservice,
           descriptorId,
           document,
-          undefined,
           readModelService,
           ctx
         );
@@ -3014,7 +2982,6 @@ export function catalogServiceBuilder(
             checksum: doc.checksum,
             serverUrls: [], // not used in case of kind == "DOCUMENT"
           },
-          publishedVersion.id,
           readModelService,
           ctx
         );
@@ -3158,7 +3125,6 @@ export async function createOpenApiInterfaceByTemplate(
           serverUrls,
           interfaceTemplateMetadata: eserviceInstanceInterfaceData,
         },
-        undefined,
         readModelService,
         ctx
       ),
@@ -3337,6 +3303,38 @@ function updateEServiceDescriptorAttributeInAdd(
     ...verifiedAttributes,
     ...declaredAttributes,
   ].map(unsafeBrandId<AttributeId>);
+}
+
+function evaluateTemplateVersionRef(
+  descriptor: Descriptor,
+  documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
+): Descriptor["templateVersionRef"] {
+  if (
+    documentSeed.kind !== "INTERFACE" ||
+    !descriptor.templateVersionRef ||
+    !documentSeed.interfaceTemplateMetadata
+  ) {
+    return descriptor.templateVersionRef;
+  }
+
+  const {
+    contactEmail,
+    contactName,
+    contactUrl,
+    serverUrls,
+    termsAndConditionsUrl,
+  } = documentSeed.interfaceTemplateMetadata;
+
+  return {
+    id: descriptor.templateVersionRef.id,
+    interfaceMetadata: {
+      contactEmail,
+      contactName,
+      contactUrl,
+      serverUrls,
+      termsAndConditionsUrl,
+    },
+  };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
