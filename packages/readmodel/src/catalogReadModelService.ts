@@ -1,7 +1,7 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { EService, EServiceId, WithMetadata } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -18,7 +18,7 @@ import {
 } from "./catalog/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertEService(
