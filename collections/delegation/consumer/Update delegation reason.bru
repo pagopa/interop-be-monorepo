@@ -1,0 +1,30 @@
+meta {
+  name: Update delegation reason
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-delegation}}/delegations/:delegationId/delegationReason/update
+  body: json
+  auth: none
+}
+
+params:path {
+  delegationId: e8009457-c851-4469-ad86-4ca2c40f6036
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "delegationReason": "Test delegation reason"
+  }
+}
+
+vars:post-response {
+  delegationId: res.body.id
+}
