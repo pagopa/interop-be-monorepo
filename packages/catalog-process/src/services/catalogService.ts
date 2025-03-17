@@ -3089,14 +3089,20 @@ export function catalogServiceBuilder(
       );
 
       const latestDescriptor = getLatestDescriptor(eservice.data);
+
+      if (!latestDescriptor) {
+        throw eserviceWithoutValidDescriptors(eserviceId);
+      }
+
       const templateVersion = template.versions.find(
-        (v) => v.id === latestDescriptor?.templateVersionRef?.id
+        (v) => v.id === latestDescriptor.templateVersionRef?.id
       );
 
       if (!templateVersion) {
         throw descriptorTemplateVersionNotFound(
-          eservice.data.templateRef.id,
-          eservice.data.id
+          latestDescriptor.id,
+          eservice.data.id,
+          template.id
         );
       }
 

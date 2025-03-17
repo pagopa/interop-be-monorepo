@@ -593,6 +593,7 @@ export const createTemplateInstanceDescriptorErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
     .with(
       "draftDescriptorAlreadyExists",
       "inconsistentDailyCalls",

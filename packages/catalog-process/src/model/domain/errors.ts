@@ -416,12 +416,11 @@ export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
 
 export function descriptorTemplateVersionNotFound(
   descriptorId: DescriptorId,
-  eserviceId: EserviceId,
-  eserviceTemplateId: EServiceTemplateId,
-  descriptorTemplateVersionId: EServiceTemplateVersionId
+  eserviceId: EServiceId,
+  eserviceTemplateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Template version ${descriptorTemplateVersionId} for instance descriptor ${descriptorId} of e-service ${eserviceId} not found in template ${eserviceTemplateId}`,
+    detail: `Template version for instance descriptor ${descriptorId} of e-service ${eserviceId} not found in template ${eserviceTemplateId}`,
     code: "descriptorTemplateVersionNotFound",
     title: "Descriptor template version not found",
   });
