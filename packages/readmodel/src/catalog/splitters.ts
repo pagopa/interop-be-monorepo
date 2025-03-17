@@ -37,9 +37,9 @@ export const splitEserviceIntoObjectsSQL = (
     description: eservice.description,
     technology: eservice.technology,
     mode: eservice.mode,
-    isSignalHubEnabled: eservice.isSignalHubEnabled || null,
-    isConsumerDelegable: eservice.isConsumerDelegable || null,
-    isClientAccessDelegable: eservice.isClientAccessDelegable || null,
+    isSignalHubEnabled: eservice.isSignalHubEnabled ?? null,
+    isConsumerDelegable: eservice.isConsumerDelegable ?? null,
+    isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
   };
 
   // const eserviceTemplateBindingSQL: EServiceTemplateBindingSQL = {

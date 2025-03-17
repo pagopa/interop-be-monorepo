@@ -224,7 +224,7 @@ describe("E-service splitter", () => {
       ...getMockEService(),
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis1, riskAnalysis2],
-      isSignalHubEnabled: undefined,
+      isSignalHubEnabled: false,
       isClientAccessDelegable: undefined,
       isConsumerDelegable: undefined,
     };
@@ -251,7 +251,7 @@ describe("E-service splitter", () => {
       description: eservice.description,
       technology: eservice.technology,
       mode: eservice.mode,
-      isSignalHubEnabled: null,
+      isSignalHubEnabled: false,
       isClientAccessDelegable: null,
       isConsumerDelegable: null,
     };
