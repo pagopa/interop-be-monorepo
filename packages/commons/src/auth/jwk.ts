@@ -47,7 +47,7 @@ function assertNotPrivateKey(key: string): void {
 }
 
 function assertSingleKey(keyString: string): void {
-  const beginMatches = keyString.match(/-----BEGIN PUBLIC KEY-----/g);
+  const beginMatches = keyString.match(/-----BEGIN [^\r\n]+-----/g);
 
   if (beginMatches && beginMatches.length > 1) {
     throw notAllowedMultipleKeysException();
@@ -57,9 +57,9 @@ function assertSingleKey(keyString: string): void {
 export function createPublicKey(key: string): KeyObject {
   const pemKey = decodeBase64ToPem(key);
 
+  assertSingleKey(pemKey);
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
-  assertSingleKey(pemKey);
 
   try {
     return crypto.createPublicKey(pemKey);
