@@ -18,6 +18,6 @@ describe("Producer JWK key splitter", () => {
       producerKeychainId,
       metadataVersion: 1,
     };
-    expect(producerJWKKeySQL).toEqual(expectedProducerJWKKeySQL);
+    expect(producerJWKKeySQL).toStrictEqual(expectedProducerJWKKeySQL);
   });
 });
