@@ -23,6 +23,7 @@ import {
   tooManyKeysPerProducerKeychain,
   organizationNotAllowedOnEService,
   keyAlreadyExists,
+  securityUserNotMember,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -146,5 +147,17 @@ export const assertKeyDoesNotAlreadyExist = async (
 
   if (clientKey || producerKey) {
     throw keyAlreadyExists(kid);
+  }
+};
+
+export const assertNoKeyAccessForFormerSecurityMember = (
+  authData: AuthData,
+  client: Client
+): void => {
+  if (
+    authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+    !client.users.includes(authData.userId)
+  ) {
+    throw securityUserNotMember(authData.userId);
   }
 };
