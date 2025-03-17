@@ -104,8 +104,7 @@ export function setupTestContainersVitest(
   fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
-  awsSESConfig?: AWSSesConfig,
-  readModelSQLDbConfig?: ReadModelSQLDbConfig
+  awsSESConfig?: AWSSesConfig
 ): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -131,25 +130,6 @@ export function setupTestContainersVitest(
   pecEmailManager: EmailManagerPEC;
   sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
-  readModelDB: ReturnType<typeof drizzle>;
-  cleanup: () => Promise<void>;
-}>;
-export function setupTestContainersVitest(
-  readModelDbConfig?: ReadModelDbConfig,
-  eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config,
-  emailManagerConfig?: PecEmailManagerConfigTest,
-  RedisRateLimiterConfig?: RedisRateLimiterConfig,
-  awsSESConfig?: AWSSesConfig,
-  readModelSQLDbConfig?: ReadModelSQLDbConfig
-): Promise<{
-  readModelRepository: ReadModelRepository;
-  postgresDB: DB;
-  fileManager: FileManager;
-  pecEmailManager: EmailManagerPEC;
-  sesEmailManager: EmailManagerSES;
-  redisRateLimiter: RateLimiter;
-  readModelDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
