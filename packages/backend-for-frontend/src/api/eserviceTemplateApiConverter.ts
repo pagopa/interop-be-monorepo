@@ -42,7 +42,9 @@ export function toBffEServiceTemplateDetails(
       toBffCompactEServiceTemplateVersion
     ),
     isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
-    draftVersion,
+    draftVersion: draftVersion
+      ? toBffCompactEServiceTemplateVersion(draftVersion)
+      : undefined,
   };
 }
 
@@ -89,8 +91,12 @@ export function toBffProducerEServiceTemplate(
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
     mode: eserviceTemplate.mode,
-    activeVersion,
-    draftVersion,
+    activeVersion: activeVersion
+      ? toBffCompactEServiceTemplateVersion(activeVersion)
+      : undefined,
+    draftVersion: draftVersion
+      ? toBffCompactEServiceTemplateVersion(draftVersion)
+      : undefined,
   };
 }
 
@@ -106,3 +112,14 @@ export const toBffCreatedEServiceTemplateVersion = (
     versionId: version.id,
   };
 };
+
+export function toCatalogCreateEServiceTemplateSeed(
+  eServiceTemplateSeed: bffApi.EServiceTemplateSeed
+): eserviceTemplateApi.EServiceTemplateSeed {
+  return {
+    ...eServiceTemplateSeed,
+    version: {
+      voucherLifespan: 60,
+    },
+  };
+}
