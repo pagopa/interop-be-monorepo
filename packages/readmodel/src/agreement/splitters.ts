@@ -52,13 +52,13 @@ export const splitAgreementIntoObjectsSQL = (
     producerId,
     consumerId,
     state,
-    suspendedByConsumer: suspendedByConsumer ?? null,
+    suspendedByConsumer: suspendedByConsumer ?? null, // "??" because "false" should not become null
     suspendedByProducer: suspendedByProducer ?? null,
     suspendedByPlatform: suspendedByPlatform ?? null,
     createdAt: dateToString(createdAt),
     updatedAt: dateToString(updatedAt),
-    consumerNotes: consumerNotes || null,
-    rejectionReason: rejectionReason || null,
+    consumerNotes: consumerNotes ?? null, // "??" because empty strings should not become null
+    rejectionReason: rejectionReason ?? null,
     suspendedAt: dateToString(suspendedAt),
   };
 
