@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   deprecated_at TIMESTAMP WITH TIME ZONE,
   archived_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_rejection_reason (
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_rejection_reaso
   descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
   rejection_reason VARCHAR NOT NULL,
   rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_interface (
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_interface (
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_document (
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_document (
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_attribute (
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_attribute (
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis (
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis (
   risk_analysis_form_id UUID UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer (
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer (
   key VARCHAR NOT NULL,
   value VARCHAR ARRAY NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) ON UPDATE CASCADE
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE INDEX eservice_descriptor_eservice_id_idx ON readmodel_catalog.eservice_descriptor (eservice_id);
