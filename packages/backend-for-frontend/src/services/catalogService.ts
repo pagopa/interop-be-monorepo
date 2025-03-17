@@ -1054,7 +1054,7 @@ export function catalogServiceBuilder(
       const previousDescriptor = retrieveLatestDescriptor(eService.descriptors);
 
       if (eService.templateRef) {
-        const { id } = await catalogProcessClient.createInstanceDescriptor(
+        const { id } = await catalogProcessClient.createTemplateInstanceDescriptor(
           {
             audience: [],
             dailyCallsPerConsumer: previousDescriptor.dailyCallsPerConsumer,

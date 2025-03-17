@@ -506,7 +506,7 @@ paths:
       tags:
         - process
       summary: Adds a descriptor to the specified template instance e-service
-      operationId: createInstanceDescriptor
+      operationId: createTemplateInstanceDescriptor
       parameters:
         - name: eServiceId
           in: path

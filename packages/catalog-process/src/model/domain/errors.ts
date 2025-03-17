@@ -48,7 +48,7 @@ export const errorCodes = {
   invalidDescriptorVersion: "0034",
   eserviceTemplateInterfaceNotFound: "0035",
   eserviceTemplateInterfaceDataNotValid: "0036",
-  templateVersionNotFoundInEService: "0037",
+  descriptorTemplateVersionNotFound: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -414,13 +414,13 @@ export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
   });
 }
 
-export function templateVersionNotFoundInEService(
+export function descriptorTemplateVersionNotFound(
   eserviceTemplateId: EServiceTemplateId,
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService template ${eserviceTemplateId} version not found in e-service ${eserviceId}`,
-    code: "templateVersionNotFoundInEService",
+    code: "descriptorTemplateVersionNotFound",
     title: "Template version not found in EService",
   });
 }

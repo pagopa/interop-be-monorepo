@@ -85,7 +85,7 @@ describe("create descriptor", async () => {
       dailyCallsTotal: 60,
     };
 
-    const returnedDescriptor = await catalogService.createInstanceDescriptor(
+    const returnedDescriptor = await catalogService.createTemplateInstanceDescriptor(
       eservice.id,
       descriptorSeed,
       {
@@ -190,7 +190,7 @@ describe("create descriptor", async () => {
       dailyCallsTotal: 60,
     };
 
-    const returnedDescriptor = await catalogService.createInstanceDescriptor(
+    const returnedDescriptor = await catalogService.createTemplateInstanceDescriptor(
       eservice.id,
       descriptorSeed,
       {
@@ -291,7 +291,7 @@ describe("create descriptor", async () => {
       };
 
       expect(
-        catalogService.createInstanceDescriptor(eservice.id, descriptorSeed, {
+        catalogService.createTemplateInstanceDescriptor(eservice.id, descriptorSeed, {
           authData: getMockAuthData(eservice.producerId),
           correlationId: generateId(),
           serviceName: "",
@@ -338,7 +338,7 @@ describe("create descriptor", async () => {
     };
 
     expect(
-      catalogService.createInstanceDescriptor(eservice.id, descriptorSeed, {
+      catalogService.createTemplateInstanceDescriptor(eservice.id, descriptorSeed, {
         authData: getMockAuthData(eservice.producerId),
         correlationId: generateId(),
         serviceName: "",
@@ -379,7 +379,7 @@ describe("create descriptor", async () => {
     await addOneEServiceTemplate(template);
 
     expect(
-      catalogService.createInstanceDescriptor(
+      catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 60 },
         {
@@ -430,7 +430,7 @@ describe("create descriptor", async () => {
     await addOneDelegation(delegation);
 
     expect(
-      catalogService.createInstanceDescriptor(
+      catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 60 },
         {
@@ -474,7 +474,7 @@ describe("create descriptor", async () => {
     await addOneEServiceTemplate(template);
 
     expect(
-      catalogService.createInstanceDescriptor(
+      catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 50 },
         {

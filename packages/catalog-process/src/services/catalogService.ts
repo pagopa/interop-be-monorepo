@@ -89,7 +89,7 @@ import {
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
-  templateVersionNotFoundInEService,
+  descriptorTemplateVersionNotFound,
   tenantNotFound,
   unchangedAttributes,
 } from "../model/domain/errors.js";
@@ -3095,7 +3095,7 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
-    async createInstanceDescriptor(
+    async createTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       eserviceInstanceDescriptorSeed: catalogApi.EServiceInstanceDescriptorSeed,
       ctx: WithLogger<AppContext>
@@ -3127,7 +3127,7 @@ export function catalogServiceBuilder(
       );
 
       if (!templateVersion) {
-        throw templateVersionNotFoundInEService(
+        throw descriptorTemplateVersionNotFound(
           eservice.data.templateRef.id,
           eservice.data.id
         );
