@@ -16,6 +16,7 @@ import {
   clientNotFound,
   clientKeyNotFound,
   organizationNotAllowedOnClient,
+  securityUserNotMember,
 } from "../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
@@ -99,6 +100,33 @@ describe("getClientKeyById", async () => {
         },
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
+  });
+  it("should throw securityUserNotMember if the requester has SECURITY_ROLE and the user is not a member of the organization", async () => {
+    const mockKey = getMockKey();
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId,
+      keys: [getMockKey()],
+    };
+    await addOneClient(mockClient);
+
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      userRoles: ["security"],
+    };
+
+    expect(
+      authorizationService.getClientKeyById({
+        clientId: mockClient.id,
+        kid: mockKey.kid,
+        ctx: {
+          serviceName: "test",
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+        },
+      })
+    ).rejects.toThrowError(securityUserNotMember(authData.userId));
   });
   it("should throw clientKeyNotFound if the key doesn't exist", async () => {
     const mockKey = getMockKey();

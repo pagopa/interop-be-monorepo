@@ -43,6 +43,7 @@ export const errorCodes = {
   userNotAllowedToDeleteProducerKeychainKey: "0028",
   purposeDelegationNotFound: "0029",
   eserviceNotDelegableForClientAccess: "0030",
+  securityUserNotMember: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -367,5 +368,13 @@ export function eserviceNotDelegableForClientAccess(
     detail: `EService ${eservice.id} is not delegable for client access`,
     code: "eserviceNotDelegableForClientAccess",
     title: "EService not delegable for client access",
+  });
+}
+
+export function securityUserNotMember(userId: UserId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} with SECURITY_ROLE is not a member of the client`,
+    code: "securityUserNotMember",
+    title: "Security user not member",
   });
 }
