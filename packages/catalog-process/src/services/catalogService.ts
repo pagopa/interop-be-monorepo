@@ -632,6 +632,37 @@ async function innerAddDocumentToEserviceEvent(
     uploadDate: new Date(),
   };
 
+  function evaluateTemplateVersionRef(
+    descriptor: Descriptor
+  ): Descriptor["templateVersionRef"] {
+    if (
+      !isInterface ||
+      !descriptor.templateVersionRef ||
+      !documentSeed.interfaceTemplateMetadata
+    ) {
+      return descriptor.templateVersionRef;
+    }
+
+    const {
+      contactEmail,
+      contactName,
+      contactUrl,
+      serverUrls,
+      termsAndConditionsUrl,
+    } = documentSeed.interfaceTemplateMetadata;
+
+    return {
+      id: descriptor.templateVersionRef.id,
+      interfaceMetadata: {
+        contactEmail,
+        contactName,
+        contactUrl,
+        serverUrls,
+        termsAndConditionsUrl,
+      },
+    };
+  }
+
   const updatedEService: EService = {
     ...eService.data,
     descriptors: eService.data.descriptors.map((d: Descriptor) =>
@@ -641,15 +672,7 @@ async function innerAddDocumentToEserviceEvent(
             interface: isInterface ? newDocument : d.interface,
             docs: isInterface ? d.docs : [...d.docs, newDocument],
             serverUrls: isInterface ? documentSeed.serverUrls : d.serverUrls,
-            templateVersionRef:
-              isInterface &&
-              d.templateVersionRef &&
-              documentSeed.interfaceTemplateMetadata
-                ? {
-                    ...d.templateVersionRef,
-                    interfaceMetadata: documentSeed.interfaceTemplateMetadata,
-                  }
-                : d.templateVersionRef,
+            templateVersionRef: evaluateTemplateVersionRef(d),
           }
         : d
     ),
