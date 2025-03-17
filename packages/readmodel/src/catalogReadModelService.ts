@@ -20,68 +20,83 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertEService(
       eservice: EService,
       metadataVersion: number
     ): Promise<void> {
-      const {
-        eserviceSQL,
-        riskAnalysesSQL,
-        riskAnalysisAnswersSQL,
-        descriptorsSQL,
-        attributesSQL,
-        interfacesSQL,
-        documentsSQL,
-        rejectionReasonsSQL,
-      } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
-
       await db.transaction(async (tx) => {
-        await tx
-          .delete(eserviceInReadmodelCatalog)
-          .where(eq(eserviceInReadmodelCatalog.id, eserviceSQL.id));
-
-        await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
-
-        for (const descriptorSQL of descriptorsSQL) {
+        const existingMetadataVersion: number | undefined = (
           await tx
-            .insert(eserviceDescriptorInReadmodelCatalog)
-            .values(descriptorSQL);
-        }
+            .select({
+              metadataVersion: eserviceInReadmodelCatalog.metadataVersion,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(eq(eserviceInReadmodelCatalog.id, eservice.id))
+        )[0]?.metadataVersion;
 
-        for (const interfaceSQL of interfacesSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .values(interfaceSQL);
-        }
+            .delete(eserviceInReadmodelCatalog)
+            .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
 
-        for (const docSQL of documentsSQL) {
-          await tx
-            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-            .values(docSQL);
-        }
+          const {
+            eserviceSQL,
+            riskAnalysesSQL,
+            riskAnalysisAnswersSQL,
+            descriptorsSQL,
+            attributesSQL,
+            interfacesSQL,
+            documentsSQL,
+            rejectionReasonsSQL,
+          } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
-        for (const attributeSQL of attributesSQL) {
-          await tx
-            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-            .values(attributeSQL);
-        }
+          await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
 
-        for (const riskAnalysisSQL of riskAnalysesSQL) {
-          await tx
-            .insert(eserviceRiskAnalysisInReadmodelCatalog)
-            .values(riskAnalysisSQL);
-        }
+          for (const descriptorSQL of descriptorsSQL) {
+            await tx
+              .insert(eserviceDescriptorInReadmodelCatalog)
+              .values(descriptorSQL);
+          }
 
-        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
-          await tx
-            .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
-            .values(riskAnalysisAnswerSQL);
-        }
+          for (const interfaceSQL of interfacesSQL) {
+            await tx
+              .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+              .values(interfaceSQL);
+          }
 
-        for (const rejectionReasonSQL of rejectionReasonsSQL) {
-          await tx
-            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-            .values(rejectionReasonSQL);
+          for (const docSQL of documentsSQL) {
+            await tx
+              .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+              .values(docSQL);
+          }
+
+          for (const attributeSQL of attributesSQL) {
+            await tx
+              .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+              .values(attributeSQL);
+          }
+
+          for (const riskAnalysisSQL of riskAnalysesSQL) {
+            await tx
+              .insert(eserviceRiskAnalysisInReadmodelCatalog)
+              .values(riskAnalysisSQL);
+          }
+
+          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+            await tx
+              .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+              .values(riskAnalysisAnswerSQL);
+          }
+
+          for (const rejectionReasonSQL of rejectionReasonsSQL) {
+            await tx
+              .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+              .values(rejectionReasonSQL);
+          }
         }
       });
     },
