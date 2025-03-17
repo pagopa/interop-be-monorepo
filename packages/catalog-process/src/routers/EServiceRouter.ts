@@ -1,23 +1,25 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  ExpressContext,
-  userRoles,
-  ZodiosContext,
   authorizationMiddleware,
-  ReadModelRepository,
+  ExpressContext,
+  fromAppContext,
   initDB,
   initFileManager,
+  ReadModelRepository,
+  userRoles,
+  ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import {
-  unsafeBrandId,
-  EServiceId,
-  TenantId,
   AttributeId,
+  EServiceId,
+  EServiceTemplateId,
+  TenantId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { config } from "../config/config.js";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -28,37 +30,48 @@ import {
   documentToApiDocument,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
-import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   activateDescriptorErrorMapper,
+  addEServiceTemplateInstanceInterfaceErrorMapper,
+  approveDelegatedEServiceDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
   cloneEServiceByDescriptorErrorMapper,
   createDescriptorErrorMapper,
   createEServiceErrorMapper,
+  createEServiceInstanceFromTemplateErrorMapper,
   createRiskAnalysisErrorMapper,
+  createTemplateInstanceDescriptorDocumentErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
   deleteRiskAnalysisErrorMapper,
+  deleteTemplateInstanceDescriptorDocumentErrorMapper,
   documentCreateErrorMapper,
   documentDeleteErrorMapper,
   documentGetErrorMapper,
   documentUpdateErrorMapper,
   getEServiceErrorMapper,
   publishDescriptorErrorMapper,
+  rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
+  updateDescriptorAttributesErrorMapper,
   updateDescriptorErrorMapper,
   updateDraftDescriptorErrorMapper,
   updateEServiceDescriptionErrorMapper,
   updateEServiceErrorMapper,
-  updateRiskAnalysisErrorMapper,
-  updateDescriptorAttributesErrorMapper,
-  updateEServiceNameErrorMapper,
-  approveDelegatedEServiceDescriptorErrorMapper,
-  rejectDelegatedEServiceDescriptorErrorMapper,
   updateEServiceFlagsErrorMapper,
+  updateEServiceNameErrorMapper,
+  updateRiskAnalysisErrorMapper,
+  updateTemplateInstanceDescriptionErrorMapper,
+  updateTemplateInstanceDescriptorAttributesErrorMapper,
+  updateTemplateInstanceDescriptorDocumentErrorMapper,
+  updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
+  updateTemplateInstanceNameErrorMapper,
+  upgradeEServiceInstanceErrorMapper,
+  updateEServiceTemplateInstanceErrorMapper,
+  updateDraftDescriptorTemplateInstanceErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -117,6 +130,7 @@ const eservicesRouter = (
             mode,
             delegated,
             isConsumerDelegable,
+            templatesIds,
             offset,
             limit,
           } = req.query;
@@ -135,6 +149,7 @@ const eservicesRouter = (
               mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
               isConsumerDelegable,
               delegated,
+              templatesIds: templatesIds.map<EServiceTemplateId>(unsafeBrandId),
             },
             offset,
             limit,
@@ -167,6 +182,32 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createEServiceErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/:templateId/eservices",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const eService =
+            await catalogService.createEServiceInstanceFromTemplate(
+              unsafeBrandId(req.params.templateId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceInstanceFromTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -227,6 +268,35 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateEServiceErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const updatedEService =
+            await catalogService.updateEServiceTemplateInstance(
+              unsafeBrandId(req.params.eServiceId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceTemplateInstanceErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -506,6 +576,36 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDraftDescriptorErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const updatedEService =
+            await catalogService.updateDraftDescriptorTemplateInstance(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateDraftDescriptorTemplateInstanceErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -901,6 +1001,232 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorAttributesErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/upgrade",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const upgradedEService = await catalogService.upgradeEServiceInstance(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(upgradedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            upgradeEServiceInstanceErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/templates/eservices/:eServiceId/name/update",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.internalUpdateTemplateInstanceName(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.name,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstanceNameErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/templates/eservices/:eServiceId/description/update",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.internalUpdateTemplateInstanceDescription(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.description,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstanceDescriptionErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/voucherLifespan/update",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body.voucherLifespan,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/attributes/update",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstanceDescriptorAttributesErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/update",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.internalCreateTemplateInstanceDescriptorDocument(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createTemplateInstanceDescriptorDocumentErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.internalDeleteTemplateInstanceDescriptorDocument(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteTemplateInstanceDescriptorDocumentErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
+      authorizationMiddleware([INTERNAL_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.innerUpdateTemplateInstanceDescriptorDocument(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            unsafeBrandId(req.params.documentId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstanceDescriptorDocumentErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          await catalogService.addEServiceTemplateInstanceInterface(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addEServiceTemplateInstanceInterfaceErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
