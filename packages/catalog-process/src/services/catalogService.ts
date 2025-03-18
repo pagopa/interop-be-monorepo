@@ -561,7 +561,9 @@ async function innerCreateEService(
     deprecatedAt: undefined,
     archivedAt: undefined,
     createdAt: creationDate,
-    attributes: { certified: [], declared: [], verified: [] },
+    attributes: seed.eServiceTemplateReferences
+      ? seed.eServiceTemplateReferences.templateAttributes
+      : { certified: [], declared: [], verified: [] },
     rejectionReasons: undefined,
     templateVersionRef: templateVersionId
       ? { id: templateVersionId }
@@ -3308,23 +3310,6 @@ async function applyVisibilityToEService(
     descriptors: eservice.descriptors.filter(isActiveDescriptor),
   };
 }
-
-const deleteDescriptorInterfaceAndDocs = async (
-  descriptor: Descriptor,
-  fileManager: FileManager,
-  logger: Logger
-): Promise<void> => {
-  const descriptorInterface = descriptor.interface;
-  if (descriptorInterface !== undefined) {
-    await fileManager.delete(config.s3Bucket, descriptorInterface.path, logger);
-  }
-
-  const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-    fileManager.delete(config.s3Bucket, doc.path, logger)
-  );
-
-  await Promise.all(deleteDescriptorDocs);
-};
 
 const processDescriptorPublication = async (
   eservice: EService,
