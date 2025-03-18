@@ -105,37 +105,34 @@ export const interpolateApiSpec = async (
     contentType: string;
     prettyName: string;
   },
-  eserviceInstanceInterfaceData: {
-    contactName?: string;
-    contactEmail?: string;
-    contactUrl?: string;
-    termsAndConditionsUrl?: string;
-    serverUrls: string[];
-  }
+  serverUrls: string[],
+  eservieserviceInstanceInterfaceDataRest:
+    | {
+        contactEmail: string;
+        contactName: string;
+        contactUrl?: string;
+        termsAndConditionsUrl?: string;
+      }
+    | undefined
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
-  return match(fileType)
+  return match([fileType, eservieserviceInstanceInterfaceDataRest])
     .with(
-      eserviceInterfaceAllowedFileType.json,
-      eserviceInterfaceAllowedFileType.yaml,
-      () =>
-        interpolateOpenApiSpec(
-          eservice,
-          file,
-          interfaceFileInfo,
-          eserviceInstanceInterfaceData
-        )
+      (eserviceInterfaceAllowedFileType.json, P.not(P.nullish)),
+      (eserviceInterfaceAllowedFileType.yaml, P.not(P.nullish)),
+      ([_, contactData]) =>
+        interpolateOpenApiSpec(eservice, file, interfaceFileInfo, {
+          serverUrls,
+          ...contactData,
+        })
     )
     .with(
-      eserviceInterfaceAllowedFileType.wsdl,
-      eserviceInterfaceAllowedFileType.xml,
+      (eserviceInterfaceAllowedFileType.wsdl, P.nullish),
+      (eserviceInterfaceAllowedFileType.xml, P.nullish),
       () =>
-        interpolateSoapApiSpec(
-          eservice,
-          file,
-          interfaceFileInfo,
-          eserviceInstanceInterfaceData
-        )
+        interpolateSoapApiSpec(eservice, file, interfaceFileInfo, {
+          serverUrls,
+        })
     )
     .otherwise(() => {
       throw invalidInterfaceFileDetected(eservice.id);

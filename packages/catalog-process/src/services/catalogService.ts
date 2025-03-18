@@ -3044,12 +3044,19 @@ export function catalogServiceBuilder(
         );
       }
 
+      const contactDataRestApi = match(eserviceInstanceInterfaceData)
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => ({
+          ...data,
+        }))
+        .otherwise(() => undefined);
+
       const { eService: updatedEService, event: addDocumentEvent } =
         await createOpenApiInterfaceByTemplate(
           eserviceWithMetadata,
           descriptor.id,
           templateInterface,
-          eserviceInstanceInterfaceData,
+          eserviceInstanceInterfaceData.serverUrls,
+          contactDataRestApi,
           config.eserviceTemplateDocumentsContainer,
           fileManager,
           readModelService,
@@ -3063,14 +3070,19 @@ export function catalogServiceBuilder(
   };
 }
 
-// eslint-disable-next-line max-params
 export async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  eserviceInstanceInterfaceData:
-    | catalogApi.TemplateInstanceInterfaceRESTSeed
-    | catalogApi.TemplateInstanceInterfaceSOAPSeed,
+  serverUrls: string[],
+  eserviceInstanceInterfaceRestData:
+    | {
+        contactEmail: string;
+        contactName: string;
+        contactUrl?: string;
+        termsAndConditionsUrl?: string;
+      }
+    | undefined,
   bucket: string,
   fileManager: FileManager,
   readModelService: ReadModelService,
@@ -3083,7 +3095,7 @@ export async function createOpenApiInterfaceByTemplate(
     ctx.logger
   );
 
-  if (eserviceInstanceInterfaceData.serverUrls.length < 1) {
+  if (serverUrls.length < 1) {
     throw eserviceInterfaceDataNotValid();
   }
 
@@ -3092,25 +3104,9 @@ export async function createOpenApiInterfaceByTemplate(
     eservice,
     Buffer.from(interfaceTemplate).toString(),
     eserviceTemplateInterface,
-    eserviceInstanceInterfaceData
+    serverUrls,
+    eserviceInstanceInterfaceRestData
   );
-
-  const apiContactsData = match(eserviceInstanceInterfaceData)
-    .with(
-      {
-        contactEmail: P.optional(P.string),
-        contactName: P.optional(P.string),
-        contactUrl: P.optional(P.string),
-        termsAndConditionsUrl: P.optional(P.string),
-      },
-      (data) => ({
-        contactEmail: data.contactEmail,
-        contactName: data.contactName,
-        contactUrl: data.contactUrl,
-        termsAndConditionsUrl: data.termsAndConditionsUrl,
-      })
-    )
-    .otherwise(() => undefined);
 
   return await verifyAndCreateDocument(
     fileManager,
@@ -3144,7 +3140,7 @@ export async function createOpenApiInterfaceByTemplate(
           contentType,
           checksum,
           serverUrls,
-          interfaceTemplateMetadata: apiContactsData,
+          interfaceTemplateMetadata: { ...eserviceInstanceInterfaceRestData },
         },
         readModelService,
         ctx
