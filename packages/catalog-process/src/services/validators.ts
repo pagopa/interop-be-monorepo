@@ -34,6 +34,7 @@ import {
   tenantKindNotFound,
   templateInstanceNotAllowed,
   eServiceNotAnInstance,
+  inconsistentDailyCalls,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -286,8 +287,25 @@ export function assertEServiceIsTemplateInstance(
   eservice: EService
 ): asserts eservice is EService & {
   templateRef: NonNullable<EService["templateRef"]>;
+  descriptors: Array<
+    Descriptor & {
+      templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
+    }
+  >;
 } {
   if (eservice.templateRef === undefined) {
     throw eServiceNotAnInstance(eservice.id);
+  }
+}
+
+export function assertConsistentDailyCalls({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+}: {
+  dailyCallsPerConsumer: number;
+  dailyCallsTotal: number;
+}): void {
+  if (dailyCallsPerConsumer > dailyCallsTotal) {
+    throw inconsistentDailyCalls();
   }
 }
