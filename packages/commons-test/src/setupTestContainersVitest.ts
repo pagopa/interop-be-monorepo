@@ -33,6 +33,7 @@ import {
   clientInReadmodelClient,
   clientJwkKeyInReadmodelClientJwkKey,
   delegationInReadmodelDelegation,
+  DrizzleReturnType,
   eserviceInReadmodelCatalog,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainInReadmodelProducerKeychain,
@@ -128,7 +129,7 @@ export function setupTestContainersVitest(
   pecEmailManager: EmailManagerPEC;
   sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
-  readModelDB: ReturnType<typeof drizzle>;
+  readModelDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -147,7 +148,7 @@ export async function setupTestContainersVitest(
   pecEmailManager?: EmailManagerPEC;
   sesEmailManager?: EmailManagerSES;
   redisRateLimiter?: RateLimiter;
-  readModelDB?: ReturnType<typeof drizzle>;
+  readModelDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
   let readModelRepository: ReadModelRepository | undefined;
@@ -157,7 +158,7 @@ export async function setupTestContainersVitest(
   let sesEmailManager: EmailManagerSES | undefined;
   let redisRateLimiter: RateLimiter | undefined;
   const redisRateLimiterGroup = "TEST";
-  let readModelDB: ReturnType<typeof drizzle> | undefined;
+  let readModelDB: DrizzleReturnType | undefined;
 
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
