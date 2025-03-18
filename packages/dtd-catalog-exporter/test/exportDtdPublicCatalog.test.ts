@@ -193,16 +193,10 @@ describe("exportDtdPublicCatalog", () => {
 
     const csvContent = convertEservicesToCSV([expectedEService]);
 
-    const expectedCsv = `id,name,description,technology,producerId,producerName,producerFiscalCode,producerIpaCode,attributes,activeDescriptorId,activeDescriptorState,activeDescriptorVersion
-${expectedEService.id},${expectedEService.name},${
-      expectedEService.description
-    },${expectedEService.technology},${expectedEService.producerId},${
-      expectedEService.producerName
-    },,${expectedEService.producerIpaCode},"${JSON.stringify(
+    const csvAttributes = `"${JSON.stringify(
       expectedEService.attributes
-    ).replace(/"/g, '""')}",${expectedEService.activeDescriptor.id},${
-      expectedEService.activeDescriptor.state
-    },${expectedEService.activeDescriptor.version}\n`;
+    ).replace(/"/g, '""')}"`;
+    const expectedCsv = `id,name,description,technology,producerId,producerName,producerFiscalCode,producerIpaCode,attributes,activeDescriptorId,activeDescriptorState,activeDescriptorVersion\n${expectedEService.id},${expectedEService.name},${expectedEService.description},${expectedEService.technology},${expectedEService.producerId},${expectedEService.producerName},,${expectedEService.producerIpaCode},${csvAttributes},${expectedEService.activeDescriptor.id},${expectedEService.activeDescriptor.state},${expectedEService.activeDescriptor.version}\n`;
 
     expect(csvContent).toEqual(expectedCsv);
   });
