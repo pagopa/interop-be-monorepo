@@ -28,6 +28,27 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import {
+  apiTechnologyToTechnology,
+  toBffCatalogApiDescriptorAttributes,
+  toBffCatalogApiDescriptorDoc,
+  toBffCatalogApiEService,
+  toBffCatalogApiEserviceRiskAnalysis,
+  toBffCatalogApiEserviceRiskAnalysisSeed,
+  toBffCatalogApiProducerDescriptorEService,
+  toBffCatalogDescriptorEService,
+  toBffEServiceTemplateInstance,
+  toCatalogCreateEServiceSeed,
+  toCompactProducerDescriptor,
+} from "../api/catalogApiConverter.js";
+import {
+  AgreementProcessClient,
+  AttributeProcessClient,
+  CatalogProcessClient,
+  DelegationProcessClient,
+  EServiceTemplateProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
@@ -41,46 +62,25 @@ import {
   getLatestActiveDescriptor,
   getLatestTenantContactEmail,
 } from "../model/modelMappingUtils.js";
-import {
-  AgreementProcessClient,
-  AttributeProcessClient,
-  CatalogProcessClient,
-  DelegationProcessClient,
-  EServiceTemplateProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+import { ConfigurationEservice } from "../model/types.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
   cloneEServiceDocument,
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
-import {
-  toBffCatalogApiEService,
-  toBffCatalogApiDescriptorAttributes,
-  toBffCatalogApiDescriptorDoc,
-  toBffCatalogApiProducerDescriptorEService,
-  toBffCatalogApiEserviceRiskAnalysis,
-  toCatalogCreateEServiceSeed,
-  toBffCatalogDescriptorEService,
-  toBffCatalogApiEserviceRiskAnalysisSeed,
-  toCompactProducerDescriptor,
-  apiTechnologyToTechnology,
-  toBffEServiceTemplateInstance,
-} from "../api/catalogApiConverter.js";
-import { ConfigurationEservice } from "../model/types.js";
 import { getAllAgreements, getLatestAgreement } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
-import {
-  assertNotDelegatedEservice,
-  assertRequesterIsProducer,
-  assertRequesterCanActAsProducer,
-  isInvalidDescriptor,
-  assertEServiceNotTemplateInstance,
-} from "./validators.js";
 import {
   getAllDelegations,
   getTenantsFromDelegation,
 } from "./delegationService.js";
+import {
+  assertEServiceNotTemplateInstance,
+  assertNotDelegatedEservice,
+  assertRequesterCanActAsProducer,
+  assertRequesterIsProducer,
+  isInvalidDescriptor,
+} from "./validators.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -1710,6 +1710,44 @@ export function catalogServiceBuilder(
           totalCount,
         },
       };
+    },
+    addEServiceTemplateInstanceInterfaceRest: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      eserviceInstanceInterfaceData: bffApi.TemplateInstanceInterfaceRESTSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      await catalogProcessClient.addEServiceTemplateInstanceInterfaceRest(
+        eserviceInstanceInterfaceData,
+        {
+          headers,
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+        }
+      );
+
+      return { id: descriptorId };
+    },
+    addEServiceTemplateInstanceInterfaceSoap: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      eserviceInstanceInterfaceData: bffApi.TemplateInstanceInterfaceSOAPSeed,
+      { headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      await catalogProcessClient.addEServiceTemplateInstanceInterfaceSoap(
+        eserviceInstanceInterfaceData,
+        {
+          headers,
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+        }
+      );
+
+      return { id: descriptorId };
     },
   };
 }

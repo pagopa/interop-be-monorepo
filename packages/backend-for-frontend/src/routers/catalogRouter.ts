@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
@@ -15,9 +15,11 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
+import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/errors.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   addEServiceInterfceByTemplateErrorMapper,
@@ -27,9 +29,6 @@ import {
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
-import { config } from "../config/config.js";
-import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
-import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -56,14 +55,6 @@ const catalogRouter = (
     eserviceTemplateProcessClient,
     fileManager,
     config
-  );
-
-  const eserviceTemplateService = eserviceTemplateServiceBuilder(
-    eserviceTemplateProcessClient,
-    tenantProcessClient,
-    attributeProcessClient,
-    catalogProcessClient,
-    fileManager
   );
 
   catalogRouter
@@ -972,14 +963,16 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const eserviceId =
-            await eserviceTemplateService.addEserviceInterfaceSoapByTemplate(
+          const descriptorId =
+            await catalogService.addEServiceTemplateInstanceInterfaceSoap(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
-          return res.status(200).send(bffApi.CreatedResource.parse(eserviceId));
+          return res
+            .status(200)
+            .send(bffApi.CreatedResource.parse(descriptorId));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -997,14 +990,16 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const eserviceId =
-            await eserviceTemplateService.addEserviceInterfaceRestByTemplate(
+          const descriptorId =
+            await catalogService.addEServiceTemplateInstanceInterfaceRest(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
-          return res.status(200).send(bffApi.CreatedResource.parse(eserviceId));
+          return res
+            .status(200)
+            .send(bffApi.CreatedResource.parse(descriptorId));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
