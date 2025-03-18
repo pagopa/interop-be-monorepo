@@ -205,6 +205,7 @@ export function authorizationServiceBuilder(
     }): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(organizationId, client.data);
       return {
         client: client.data,
         showUsers: organizationId === client.data.consumerId,
