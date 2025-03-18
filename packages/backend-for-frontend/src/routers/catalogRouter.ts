@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
