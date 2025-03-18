@@ -93,11 +93,10 @@ message EServiceDescriptorV2 {
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
-  string contactName = 1;
-  string contactEmail = 2;
-  string contactUrl = 3;
-  string termsAndConditionsUrl = 4;
-  repeated string serverUrls = 5;
+  optional string contactName = 1;
+  optional string contactEmail = 2;
+  optional string contactUrl = 3;
+  optional string termsAndConditionsUrl = 4;
 }
 
 message EServiceTemplateVersionRefV2 {
