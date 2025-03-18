@@ -3311,6 +3311,23 @@ async function applyVisibilityToEService(
   };
 }
 
+const deleteDescriptorInterfaceAndDocs = async (
+  descriptor: Descriptor,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<void> => {
+  const descriptorInterface = descriptor.interface;
+  if (descriptorInterface !== undefined) {
+    await fileManager.delete(config.s3Bucket, descriptorInterface.path, logger);
+  }
+
+  const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
+    fileManager.delete(config.s3Bucket, doc.path, logger)
+  );
+
+  await Promise.all(deleteDescriptorDocs);
+};
+
 const processDescriptorPublication = async (
   eservice: EService,
   descriptor: Descriptor,
