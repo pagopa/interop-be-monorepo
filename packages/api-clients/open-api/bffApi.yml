@@ -18084,8 +18084,8 @@ components:
           type: string
         instanceLabel:
           type: string
-        templateInterfaceId:
-          type: string
+        templateInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         interfaceMetadata:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
         isNewTemplateVersionAvailable:

@@ -406,6 +406,10 @@ export function catalogServiceBuilder(
           })
         : undefined;
 
+      const eserviceTemplateInterface = eserviceTemplate?.versions.find(
+        (v) => v.id === descriptor.templateVersionRef?.id
+      )?.interface;
+
       return {
         id: descriptor.id,
         version: descriptor.version,
@@ -435,9 +439,9 @@ export function catalogServiceBuilder(
           templateName: eserviceTemplate.name,
           instanceLabel: eservice.templateRef?.instanceLabel,
           templateVersionId: descriptor.templateVersionRef?.id,
-          templateInterfaceId: eserviceTemplate.versions.find(
-            (v) => v.id === descriptor.templateVersionRef?.id
-          )?.interface?.id,
+          templateInterface: eserviceTemplateInterface
+            ? toBffCatalogApiDescriptorDoc(eserviceTemplateInterface)
+            : undefined,
           interfaceMetadata: descriptor.templateVersionRef?.interfaceMetadata,
           isNewTemplateVersionAvailable:
             getLatestActiveDescriptor(eservice)?.id === descriptor.id &&
