@@ -61,6 +61,8 @@ export const EServiceTemplate = z.object({
   createdAt: z.coerce.date(),
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
+
+  // This field acts as a default value for all the e-service instances created from this template
   isSignalHubEnabled: z.boolean().optional(),
 });
 export type EServiceTemplate = z.infer<typeof EServiceTemplate>;
