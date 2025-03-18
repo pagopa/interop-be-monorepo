@@ -33,13 +33,14 @@ import {
   clientInReadmodelClient,
   clientJwkKeyInReadmodelClientJwkKey,
   delegationInReadmodelDelegation,
+  DrizzleReturnType,
   eserviceInReadmodelCatalog,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainInReadmodelProducerKeychain,
   purposeInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { Pool } from "pg";
+import pg from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**
@@ -128,7 +129,7 @@ export function setupTestContainersVitest(
   pecEmailManager: EmailManagerPEC;
   sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
-  readModelDB: ReturnType<typeof drizzle>;
+  readModelDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -147,7 +148,7 @@ export async function setupTestContainersVitest(
   pecEmailManager?: EmailManagerPEC;
   sesEmailManager?: EmailManagerSES;
   redisRateLimiter?: RateLimiter;
-  readModelDB?: ReturnType<typeof drizzle>;
+  readModelDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
   let readModelRepository: ReadModelRepository | undefined;
@@ -157,7 +158,7 @@ export async function setupTestContainersVitest(
   let sesEmailManager: EmailManagerSES | undefined;
   let redisRateLimiter: RateLimiter | undefined;
   const redisRateLimiterGroup = "TEST";
-  let readModelDB: ReturnType<typeof drizzle> | undefined;
+  let readModelDB: DrizzleReturnType | undefined;
 
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
@@ -200,7 +201,7 @@ export async function setupTestContainersVitest(
   }
 
   if (readModelSQLDbConfig) {
-    const pool = new Pool({
+    const pool = new pg.Pool({
       host: readModelSQLDbConfig?.readModelSQLDbHost,
       port: readModelSQLDbConfig?.readModelSQLDbPort,
       database: readModelSQLDbConfig?.readModelSQLDbName,
