@@ -15,6 +15,7 @@ import {
   openapiVersionNotRecognized,
   technology,
   Technology,
+  invalidInterfaceData,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z, ZodError } from "zod";
@@ -106,7 +107,7 @@ export const interpolateApiSpec = async (
     prettyName: string;
   },
   serverUrls: string[],
-  eservieserviceInstanceInterfaceDataRest:
+  eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
         contactName: string;
@@ -116,7 +117,7 @@ export const interpolateApiSpec = async (
     | undefined
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
-  return match([fileType, eservieserviceInstanceInterfaceDataRest])
+  return match([fileType, eserviceInstanceInterfaceRestData])
     .with(
       (eserviceInterfaceAllowedFileType.json, P.not(P.nullish)),
       (eserviceInterfaceAllowedFileType.yaml, P.not(P.nullish)),
@@ -135,7 +136,7 @@ export const interpolateApiSpec = async (
         })
     )
     .otherwise(() => {
-      throw invalidInterfaceFileDetected(eservice.id);
+      throw invalidInterfaceData(eservice.id);
     });
 };
 

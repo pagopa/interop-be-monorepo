@@ -3045,9 +3045,7 @@ export function catalogServiceBuilder(
       }
 
       const contactDataRestApi = match(eserviceInstanceInterfaceData)
-        .with({ contactEmail: P.string, contactName: P.string }, (data) => ({
-          ...data,
-        }))
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
         .otherwise(() => undefined);
 
       const { eService: updatedEService, event: addDocumentEvent } =
@@ -3140,7 +3138,7 @@ export async function createOpenApiInterfaceByTemplate(
           contentType,
           checksum,
           serverUrls,
-          interfaceTemplateMetadata: { ...eserviceInstanceInterfaceRestData },
+          interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
         },
         readModelService,
         ctx
