@@ -1,10 +1,10 @@
-import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { and, eq, lte } from "drizzle-orm";
 import { Delegation, DelegationId, WithMetadata } from "pagopa-interop-models";
 import {
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import {
@@ -13,23 +13,19 @@ import {
 } from "./delegation/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function delegationReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertDelegation(
-      delegation: WithMetadata<Delegation>
+      delegation: Delegation,
+      metadataVersion: number
     ): Promise<void> {
       const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-        splitDelegationIntoObjectsSQL(
-          delegation.data,
-          delegation.metadata.version
-        );
+        splitDelegationIntoObjectsSQL(delegation, metadataVersion);
 
       await db.transaction(async (tx) => {
         await tx
           .delete(delegationInReadmodelDelegation)
-          .where(eq(delegationInReadmodelDelegation.id, delegation.data.id));
+          .where(eq(delegationInReadmodelDelegation.id, delegation.id));
 
         await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
 
@@ -85,10 +81,21 @@ export function delegationReadModelServiceBuilder(
 
       return aggregateDelegation(toDelegationAggregator(queryResult));
     },
-    async deleteDelegationById(delegationId: DelegationId): Promise<void> {
+    async deleteDelegationById(
+      delegationId: DelegationId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(delegationInReadmodelDelegation)
-        .where(eq(delegationInReadmodelDelegation.id, delegationId));
+        .where(
+          and(
+            eq(delegationInReadmodelDelegation.id, delegationId),
+            lte(
+              delegationInReadmodelDelegation.metadataVersion,
+              metadataVersion
+            )
+          )
+        );
     },
   };
 }
