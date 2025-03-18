@@ -47,7 +47,7 @@ export async function handleMessageV2(
       );
     })
     .with({ type: "ProducerKeychainDeleted" }, async (message) => {
-      await producerJWKKeyReadModelService.deleteProducerJWKKeyByProducerKeychainId(
+      await producerJWKKeyReadModelService.deleteProducerJWKKeysByProducerKeychainId(
         unsafeBrandId(message.data.producerKeychainId),
         message.version
       );

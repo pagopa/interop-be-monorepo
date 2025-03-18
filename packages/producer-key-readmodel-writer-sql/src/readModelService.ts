@@ -34,7 +34,7 @@ export function customReadModelServiceBuilder(
       );
     },
 
-    async deleteProducerJWKKeyByProducerKeychainId(
+    async deleteProducerJWKKeysByProducerKeychainId(
       producerKeychainId: ProducerKeychainId,
       metadataVersion: number
     ): Promise<void> {
