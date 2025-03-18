@@ -23,6 +23,13 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -70,6 +77,48 @@ export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
   typeof eserviceDescriptorAttributeInReadmodelCatalog
 >;
+export type EServiceItemsSQL = {
+  eserviceSQL: EServiceSQL;
+  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  // templateBindingSQL: EServiceTemplateBindingSQL[];
+};
+
+export type EServiceTemplateSQL = InferSelectModel<
+  typeof eserviceTemplateInReadmodelEserviceTemplate
+>;
+export type EServiceTemplateVersionSQL = InferSelectModel<
+  typeof eserviceTemplateVersionInReadmodelEserviceTemplate
+>;
+export type EServiceTemplateVersionInterfaceSQL = InferSelectModel<
+  typeof eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate
+>;
+export type EServiceTemplateVersionDocumentSQL = InferSelectModel<
+  typeof eserviceTemplateVersionDocumentInReadmodelEserviceTemplate
+>;
+export type EServiceTemplateRiskAnalysisSQL = InferSelectModel<
+  typeof eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate
+>;
+export type EServiceTemplateRiskAnalysisAnswerSQL = InferSelectModel<
+  typeof eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate
+>;
+export type EServiceTemplateVersionAttributeSQL = InferSelectModel<
+  typeof eserviceTemplateVersionAttributeInReadmodelEserviceTemplate
+>;
+export type EServiceTemplateItemsSQL = {
+  eserviceTemplateSQL: EServiceTemplateSQL;
+  riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
+  versionsSQL: EServiceTemplateVersionSQL[];
+  attributesSQL: EServiceTemplateVersionAttributeSQL[];
+  interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
+  documentsSQL: EServiceTemplateVersionDocumentSQL[];
+};
 
 export type AttributeSQL = InferSelectModel<
   typeof attributeInReadmodelAttribute
