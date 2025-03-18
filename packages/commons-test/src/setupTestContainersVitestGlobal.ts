@@ -72,13 +72,7 @@ export function setupTestContainersVitestGlobal() {
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
   const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
-<<<<<<< HEAD
-  const fileManagerConfig = FileManagerConfig.and(S3Config)
-    .and(LoggerConfig)
-    .safeParse(process.env);
-=======
   const fileManagerConfig = FileManagerConfig.safeParse(process.env);
->>>>>>> develop
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
   const awsSESConfig = AWSSesConfig.safeParse(process.env);
