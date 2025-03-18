@@ -2950,6 +2950,7 @@ export function catalogServiceBuilder(
             templateId: template.id,
             templateVersionId: publishedVersion.id,
             instanceLabel: seed.instanceLabel,
+            templateAttributes: publishedVersion.attributes,
           },
         },
         readModelService,
