@@ -151,7 +151,7 @@ describe("exportDtdPublicCatalog", () => {
       descriptors: [descriptorMock],
     };
 
-    const expectedEService: PublicEService = {
+    const publicEservice: PublicEService = {
       activeDescriptor: {
         id: descriptorMock.id,
         state: descriptorMock.state.toUpperCase() as "PUBLISHED" | "SUSPENDED",
@@ -191,12 +191,13 @@ describe("exportDtdPublicCatalog", () => {
       },
     };
 
-    const csvContent = convertEservicesToCSV([expectedEService]);
+    const csvContent = convertEservicesToCSV([publicEservice]);
 
-    const csvAttributes = `"${JSON.stringify(
-      expectedEService.attributes
-    ).replace(/"/g, '""')}"`;
-    const expectedCsv = `id,name,description,technology,producerId,producerName,producerFiscalCode,producerIpaCode,attributes,activeDescriptorId,activeDescriptorState,activeDescriptorVersion\n${expectedEService.id},${expectedEService.name},${expectedEService.description},${expectedEService.technology},${expectedEService.producerId},${expectedEService.producerName},,${expectedEService.producerIpaCode},${csvAttributes},${expectedEService.activeDescriptor.id},${expectedEService.activeDescriptor.state},${expectedEService.activeDescriptor.version}\n`;
+    const csvAttributes = `"${JSON.stringify(publicEservice.attributes).replace(
+      /"/g,
+      '""'
+    )}"`;
+    const expectedCsv = `id,name,description,technology,producerId,producerName,producerFiscalCode,producerIpaCode,attributes,activeDescriptorId,activeDescriptorState,activeDescriptorVersion\n${publicEservice.id},${publicEservice.name},${publicEservice.description},${publicEservice.technology},${publicEservice.producerId},${publicEservice.producerName},,${publicEservice.producerIpaCode},${csvAttributes},${publicEservice.activeDescriptor.id},${publicEservice.activeDescriptor.state},${publicEservice.activeDescriptor.version}\n`;
 
     expect(csvContent).toEqual(expectedCsv);
   });
