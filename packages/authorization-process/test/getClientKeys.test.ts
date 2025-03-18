@@ -8,6 +8,8 @@ import {
   UserId,
   generateId,
   unsafeBrandId,
+  ClientKind,
+  TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -119,6 +121,25 @@ describe("getClientKeys", async () => {
         unsafeBrandId(organizationId),
         unsafeBrandId(mockClient.id)
       )
+    );
+  });
+  it("should throw organizationNotAllowedOnClient if the requester is the client api", async () => {
+    const mockClient: Client = {
+      ...getMockClient(),
+      kind: ClientKind.Enum.Api,
+    };
+    const organizationId: TenantId = generateId();
+
+    await addOneClient(mockClient);
+    await expect(
+      authorizationService.getClientKeys({
+        clientId: mockClient.id,
+        userIds: [],
+        organizationId: unsafeBrandId(organizationId),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      organizationNotAllowedOnClient(organizationId, mockClient.id)
     );
   });
 });

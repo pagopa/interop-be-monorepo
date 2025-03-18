@@ -11,6 +11,8 @@ import {
   UserId,
   generateId,
   toClientV2,
+  ClientKind,
+  TenantId,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -134,6 +136,28 @@ describe("remove client user", () => {
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
+    );
+  });
+  it("should throw organizationNotAllowedOnClient if the requester is the client api", async () => {
+    const mockClient: Client = {
+      ...getMockClient(),
+      kind: ClientKind.Enum.Api,
+    };
+
+    const organizationId: TenantId = generateId();
+
+    await addOneClient(mockClient);
+
+    expect(
+      authorizationService.removeClientUser({
+        clientId: mockClient.id,
+        userIdToRemove: generateId(),
+        organizationId,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      organizationNotAllowedOnClient(organizationId, mockClient.id)
     );
   });
 });

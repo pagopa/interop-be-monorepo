@@ -16,6 +16,7 @@ import {
   notAllowedPrivateKeyException,
   notAnRSAKey,
   toClientV2,
+  ClientKind,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -194,6 +195,26 @@ describe("createKey", () => {
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(consumerId, notConsumerClient.id)
+    );
+  });
+  it("should throw organizationNotAllowedOnClient if the requester is the client api", async () => {
+    const mockClient: Client = {
+      ...getMockClient(),
+      kind: ClientKind.Enum.Api,
+    };
+
+    await addOneClient(mockClient);
+
+    expect(
+      authorizationService.createKey({
+        clientId: mockClient.id,
+        authData: mockAuthData,
+        keySeed,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      organizationNotAllowedOnClient(mockAuthData.organizationId, mockClient.id)
     );
   });
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {

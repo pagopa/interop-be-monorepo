@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger } from "pagopa-interop-commons";
-import { Client, TenantId, generateId } from "pagopa-interop-models";
+import {
+  Client,
+  TenantId,
+  generateId,
+  ClientKind,
+} from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import {
@@ -38,6 +43,28 @@ describe("getClientKeyById", async () => {
       consumerId: generateId(),
       keys: [mockKey],
     };
+    await addOneClient(mockClient);
+
+    expect(
+      authorizationService.getClientKeyById({
+        clientId: mockClient.id,
+        kid: mockKey.kid,
+        organizationId,
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      organizationNotAllowedOnClient(organizationId, mockClient.id)
+    );
+  });
+  it("should throw organizationNotAllowedOnClient if the requester is the client api", async () => {
+    const mockKey = getMockKey();
+    const organizationId: TenantId = generateId();
+    const mockClient: Client = {
+      ...getMockClient(),
+      kind: ClientKind.Enum.Api,
+      keys: [mockKey],
+    };
+
     await addOneClient(mockClient);
 
     expect(

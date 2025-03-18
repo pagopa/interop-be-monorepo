@@ -13,6 +13,8 @@ import {
   UserId,
   generateId,
   toClientV2,
+  ClientKind,
+  TenantId,
 } from "pagopa-interop-models";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
 import { getMockAuthData } from "pagopa-interop-commons-test";
@@ -186,6 +188,28 @@ describe("remove client key", () => {
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
+    );
+  });
+  it("should throw organizationNotAllowedOnClient if the requester is the client api", async () => {
+    const mockClient: Client = {
+      ...getMockClient(),
+      kind: ClientKind.Enum.Api,
+    };
+
+    const organizationId: TenantId = generateId();
+
+    await addOneClient(mockClient);
+
+    expect(
+      authorizationService.deleteClientKeyById({
+        clientId: mockClient.id,
+        keyIdToRemove: getMockKey().kid,
+        authData: getMockAuthData(organizationId),
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(
+      organizationNotAllowedOnClient(organizationId, mockClient.id)
     );
   });
   it("should throw userNotAllowedOnClient if a security user tries to delete a key without being member of the client", async () => {
