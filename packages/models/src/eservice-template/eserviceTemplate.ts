@@ -37,13 +37,13 @@ export const EServiceTemplateVersion = z.object({
   deprecatedAt: z.coerce.date().optional(),
   attributes: EServiceAttributes,
 
-  // The following fields are values to be set in all the eservice instances descriptors of this template, not editable by the user
+// Values to be set in all e-service descriptor instances created from this template, not editable by the user
   description: z.string().optional(),
   interface: Document.optional(),
   docs: z.array(Document),
   voucherLifespan: z.number().int(),
-
-  // The following fields are default values that will be set in all the eservice instances descriptors in case the user does not provide a value
+  attributes: EServiceAttributes,
+  // Default values to be set in all e-service descriptor instances created from this template, unless the user provides a custom value
   dailyCallsPerConsumer: z.number().int().optional(),
   dailyCallsTotal: z.number().int().optional(),
   agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
@@ -57,14 +57,14 @@ export const EServiceTemplate = z.object({
   versions: z.array(EServiceTemplateVersion),
   createdAt: z.coerce.date(),
 
-  // The following fields are values to be set in all the e-service instances of this template, not editable by the user
+  // Values to be set in all e-service instances created from this template, not editable by the user
   name: z.string(),
   description: z.string(),
   technology: Technology,
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
 
-  // The following fields are default values that will be set in all the eservice instances in case the user does not provide a value
+  // Default values to be set in all e-service instances created from this template, unless the user provides a custom value
   isSignalHubEnabled: z.boolean().optional(),
 });
 export type EServiceTemplate = z.infer<typeof EServiceTemplate>;
