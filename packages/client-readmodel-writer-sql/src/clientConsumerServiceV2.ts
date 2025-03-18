@@ -1,14 +1,16 @@
-import { ClientCollection } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
+  ClientId,
   fromClientV2,
-  toReadModelClient,
+  genericInternalError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { ReadModelService } from "./readModelService.js";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  clients: ClientCollection
+  readModelService: ReadModelService
 ): Promise<void> {
   await match(message)
     .with(
@@ -20,31 +22,25 @@ export async function handleMessageV2(
       { type: "ClientPurposeAdded" },
       { type: "ClientPurposeRemoved" },
       async (message) => {
-        const client = message.data.client;
-        await clients.updateOne(
-          {
-            "data.id": message.stream_id,
-            "metadata.version": { $lte: message.version },
-          },
-          {
-            $set: {
-              data: client
-                ? toReadModelClient(fromClientV2(client))
-                : undefined,
-              metadata: {
-                version: message.version,
-              },
-            },
-          },
-          { upsert: true }
+        const clientV2 = message.data.client;
+
+        if (!clientV2) {
+          throw genericInternalError(
+            "client can't be missing in event message"
+          );
+        }
+
+        await readModelService.upsertClient(
+          fromClientV2(clientV2),
+          message.version
         );
       }
     )
     .with({ type: "ClientDeleted" }, async (message) => {
-      await clients.deleteOne({
-        "data.id": message.stream_id,
-        "metadata.version": { $lte: message.version },
-      });
+      await readModelService.deleteClientById(
+        unsafeBrandId<ClientId>(message.data.clientId),
+        message.version
+      );
     })
     .with(
       { type: "ProducerKeychainAdded" },
