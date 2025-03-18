@@ -31,6 +31,7 @@ import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
+import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 
 const serviceName = "backend-for-frontend";
 const fileManager = initFileManager(config);
@@ -86,7 +87,8 @@ app.use(
   producerKeychainRouter(zodiosCtx, clients),
   delegationRouter(zodiosCtx, clients, fileManager),
   producerDelegationRouter(zodiosCtx, clients, fileManager),
-  consumerDelegationRouter(zodiosCtx, clients, fileManager)
+  consumerDelegationRouter(zodiosCtx, clients, fileManager),
+  eserviceTemplateRouter(zodiosCtx, clients, fileManager)
 );
 
 export default app;
