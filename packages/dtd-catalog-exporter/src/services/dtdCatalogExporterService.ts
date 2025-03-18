@@ -17,6 +17,67 @@ import {
   FlattenedPublicTenant,
 } from "../models/models.js";
 import { readModelServiceBuilder } from "./readModelService.js";
+import { GithubClient } from "./github-client.services.js";
+
+export const convertTenantsToCSV = (tenants: PublicTenant[]): string => {
+  const records: FlattenedPublicTenant[] = tenants.map((tenant) => ({
+    id: tenant.id,
+    name: sanitizeCsvField(tenant.name),
+    fiscalCode: tenant.fiscalCode,
+    ipaCode: tenant.ipaCode,
+    attributes: JSON.stringify(tenant.attributes),
+  }));
+
+  const columns: Array<keyof FlattenedPublicTenant> = [
+    "id",
+    "name",
+    "fiscalCode",
+    "ipaCode",
+    "attributes",
+  ];
+
+  return stringify(records, { header: true, columns });
+};
+
+export const convertEservicesToCSV = (
+  publicEServices: PublicEService[]
+): string => {
+  const records: FlattenedPublicEService[] = publicEServices.map((service) => ({
+    id: service.id,
+    name: sanitizeCsvField(service.name),
+    description: sanitizeCsvField(service.description),
+    technology: service.technology,
+    producerId: service.producerId,
+    producerName: sanitizeCsvField(service.producerName),
+    producerFiscalCode: service.producerFiscalCode,
+    producerIpaCode: service.producerIpaCode,
+    attributes: JSON.stringify(service.attributes),
+    activeDescriptorId: service.activeDescriptor.id,
+    activeDescriptorState: service.activeDescriptor.state,
+    activeDescriptorVersion: service.activeDescriptor.version,
+  }));
+
+  const columns: Array<keyof FlattenedPublicEService> = [
+    "id",
+    "name",
+    "description",
+    "technology",
+    "producerId",
+    "producerName",
+    "producerFiscalCode",
+    "producerIpaCode",
+    "attributes",
+    "activeDescriptorId",
+    "activeDescriptorState",
+    "activeDescriptorVersion",
+  ];
+
+  return stringify(records, { header: true, columns });
+};
+
+export const convertEservicesToJSON = (
+  publicEServices: PublicEService[]
+): string => JSON.stringify(publicEServices);
 
 export function dtdCatalogExporterServiceBuilder({
   readModelService,
@@ -74,68 +135,11 @@ export function dtdCatalogExporterServiceBuilder({
     };
   };
 
-  const convertTenantsToCSV = (tenants: PublicTenant[]): string => {
-    const records: FlattenedPublicTenant[] = tenants.map((tenant) => ({
-      id: tenant.id,
-      name: sanitizeCsvField(tenant.name),
-      fiscalCode: tenant.fiscalCode,
-      ipaCode: tenant.ipaCode,
-      attributes: JSON.stringify(tenant.attributes),
-    }));
-
-    const columns: Array<keyof FlattenedPublicTenant> = [
-      "id",
-      "name",
-      "fiscalCode",
-      "ipaCode",
-      "attributes",
-    ];
-
-    return stringify(records, { header: true, columns });
-  };
-
-  const convertEservicesToCSV = (publicEServices: PublicEService[]): string => {
-    const records: FlattenedPublicEService[] = publicEServices.map(
-      (service) => ({
-        id: service.id,
-        name: sanitizeCsvField(service.name),
-        description: sanitizeCsvField(service.description),
-        technology: service.technology,
-        producerId: service.producerId,
-        producerName: sanitizeCsvField(service.producerName),
-        producerFiscalCode: service.producerFiscalCode,
-        producerIpaCode: service.producerIpaCode,
-        attributes: JSON.stringify(service.attributes),
-        activeDescriptorId: service.activeDescriptor.id,
-        activeDescriptorState: service.activeDescriptor.state,
-        activeDescriptorVersion: service.activeDescriptor.version,
-      })
-    );
-
-    const columns: Array<keyof FlattenedPublicEService> = [
-      "id",
-      "name",
-      "description",
-      "technology",
-      "producerId",
-      "producerName",
-      "producerFiscalCode",
-      "producerIpaCode",
-      "attributes",
-      "activeDescriptorId",
-      "activeDescriptorState",
-      "activeDescriptorVersion",
-    ];
-
-    return stringify(records, { header: true, columns });
-  };
-
-  const convertEservicesToJSON = (publicEServices: PublicEService[]): string =>
-    JSON.stringify(publicEServices);
-
   return {
     async exportDtdData(): Promise<void> {
       const { eservices, tenants } = await getPublicEServicesAndTenants();
+
+      const githubClient = new GithubClient(config.githubAccessToken);
 
       loggerInstance.info("\nUploading Eservices JSON result to S3 bucket...");
       const eservicesJsonContent = convertEservicesToJSON(eservices);
@@ -149,28 +153,22 @@ export function dtdCatalogExporterServiceBuilder({
         loggerInstance
       );
 
-      loggerInstance.info("\nUploading Eservices CSV result to S3 bucket...");
+      loggerInstance.info("\nUploading Eservices CSV result to GitHub repo...");
       const eservicesCsvContent = convertEservicesToCSV(eservices);
-      await fileManager.storeBytes(
-        {
-          bucket: config.s3Bucket,
-          path: config.dtdCatalogStoragePath,
-          name: config.dtdCatalogCsvFilename,
-          content: Buffer.from(eservicesCsvContent),
-        },
-        loggerInstance
+      await githubClient.createOrUpdateRepoFile(
+        eservicesCsvContent,
+        config.githubRepoOwner,
+        config.githubRepo,
+        `data/${config.dtdCatalogCsvFilename}`
       );
 
-      loggerInstance.info("\nUploading Tenants CSV result to S3 bucket...");
+      loggerInstance.info("\nUploading Tenants CSV result to GitHub repo...");
       const tenantsCsvContent = convertTenantsToCSV(tenants);
-      await fileManager.storeBytes(
-        {
-          bucket: config.s3Bucket,
-          path: config.dtdCatalogStoragePath,
-          name: config.dtdTenantsCsvFilename,
-          content: Buffer.from(tenantsCsvContent),
-        },
-        loggerInstance
+      await githubClient.createOrUpdateRepoFile(
+        tenantsCsvContent,
+        config.githubRepoOwner,
+        config.githubRepo,
+        `data/${config.dtdTenantsCsvFilename}`
       );
 
       loggerInstance.info("\nDone!");
