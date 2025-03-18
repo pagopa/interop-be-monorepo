@@ -711,7 +711,7 @@ export const tenantInReadmodelTenant = readmodelTenant.table(
 export const tenantMailInReadmodelTenant = readmodelTenant.table(
   "tenant_mail",
   {
-    id: varchar().primaryKey().notNull(),
+    id: varchar().notNull(),
     tenantId: uuid("tenant_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     kind: varchar().notNull(),
@@ -735,6 +735,10 @@ export const tenantMailInReadmodelTenant = readmodelTenant.table(
         tenantInReadmodelTenant.metadataVersion,
       ],
       name: "tenant_mail_tenant_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.id, table.tenantId],
+      name: "tenant_mail_pkey",
     }),
   ]
 );

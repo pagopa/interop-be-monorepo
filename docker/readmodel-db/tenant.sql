@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_mail (
   address VARCHAR NOT NULL,
   description VARCHAR NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id, tenant_id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
