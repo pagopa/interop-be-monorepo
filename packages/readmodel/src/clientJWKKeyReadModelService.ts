@@ -80,7 +80,7 @@ export function clientJWKKeyReadModelServiceBuilder(
 
       return aggregateClientJWKKey(queryResult[0]);
     },
-    async deleteClientJWKKeyById(
+    async deleteClientJWKKeyByKid(
       clientId: ClientId,
       kid: string,
       metadataVersion: number

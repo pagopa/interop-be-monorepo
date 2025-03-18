@@ -104,7 +104,7 @@ describe("Client JWK key queries", () => {
         )
       ).toBeDefined();
 
-      await clientJWKKeyReadModelService.deleteClientJWKKeyById(
+      await clientJWKKeyReadModelService.deleteClientJWKKeyByKid(
         clientId1,
         clientJWKKey1.kid,
         2
