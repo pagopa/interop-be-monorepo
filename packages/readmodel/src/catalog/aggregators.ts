@@ -96,7 +96,6 @@ export const aggregateDescriptor = ({
   return {
     id: unsafeBrandId<DescriptorId>(descriptorSQL.id),
     version: descriptorSQL.version,
-    interface: parsedInterface,
     docs: documentsSQL.map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
     audience: descriptorSQL.audience,
@@ -105,6 +104,12 @@ export const aggregateDescriptor = ({
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
+    attributes: {
+      certified: certifiedAttributes,
+      declared: declaredAttributes,
+      verified: verifiedAttributes,
+    },
+    ...(parsedInterface ? { interface: parsedInterface } : {}),
     ...(descriptorSQL.description
       ? { description: descriptorSQL.description }
       : {}),
@@ -127,12 +132,7 @@ export const aggregateDescriptor = ({
     ...(descriptorSQL.archivedAt
       ? { archivedAt: stringToDate(descriptorSQL.archivedAt) }
       : {}),
-    attributes: {
-      certified: certifiedAttributes,
-      declared: declaredAttributes,
-      verified: verifiedAttributes,
-    },
-    rejectionReasons,
+    ...(rejectionReasons ? { rejectionReasons } : {}),
   };
 };
 
