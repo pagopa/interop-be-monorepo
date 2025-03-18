@@ -20,6 +20,8 @@ COPY turbo.json /app/
 COPY ./packages/client-readmodel-writer-sql /app/packages/client-readmodel-writer-sql
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/readmodel /app/packages/readmodel
+COPY ./packages/readmodel-models /app/packages/readmodel-models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
@@ -31,6 +33,8 @@ RUN pnpm build && \
       package*.json packages/client-readmodel-writer-sql/package*.json \
       packages/commons \
       packages/models \
+      package/readmodel \
+      package readmodel-models \
       packages/kafka-iam-auth \
       packages/client-readmodel-writer-sql/dist && \
     find /out -exec touch -h --date=@0 {} \;
