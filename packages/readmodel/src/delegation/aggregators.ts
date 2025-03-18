@@ -90,7 +90,9 @@ export const aggregateDelegation = ({
   const delegation: Delegation = {
     id: unsafeBrandId<DelegationId>(delegationSQL.id),
     createdAt: stringToDate(delegationSQL.createdAt),
-    updatedAt: stringToDate(delegationSQL.updatedAt),
+    ...(delegationSQL.updatedAt
+      ? { updatedAt: stringToDate(delegationSQL.updatedAt) }
+      : {}),
     eserviceId: unsafeBrandId<EServiceId>(delegationSQL.eserviceId),
     state: DelegationState.parse(delegationSQL.state),
     kind: DelegationKind.parse(delegationSQL.kind),
