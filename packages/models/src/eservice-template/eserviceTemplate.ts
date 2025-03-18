@@ -35,9 +35,8 @@ export const EServiceTemplateVersion = z.object({
   publishedAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
   deprecatedAt: z.coerce.date().optional(),
-  attributes: EServiceAttributes,
 
-// Values to be set in all e-service descriptor instances created from this template, not editable by the user
+  // Values to be set in all e-service descriptor instances created from this template, not editable by the user
   description: z.string().optional(),
   interface: Document.optional(),
   docs: z.array(Document),
