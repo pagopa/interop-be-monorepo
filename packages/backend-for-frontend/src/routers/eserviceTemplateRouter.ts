@@ -9,7 +9,10 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { toBffCreatedEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
+import {
+  toBffCreatedEServiceTemplateVersion,
+  toCatalogCreateEServiceTemplateSeed,
+} from "../api/eserviceTemplateApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
@@ -47,7 +50,10 @@ const eserviceTemplateRouter = (
 
       try {
         const eserviceTemplate =
-          await eserviceTemplateService.createEServiceTemplate(req.body, ctx);
+          await eserviceTemplateService.createEServiceTemplate(
+            toCatalogCreateEServiceTemplateSeed(req.body),
+            ctx
+          );
         return res
           .status(200)
           .send(
@@ -218,7 +224,7 @@ const eserviceTemplateRouter = (
         const { eServiceTemplateId, eServiceTemplateVersionId } = req.params;
 
         try {
-          await eserviceTemplateService.deleteEServiceTemplateEServiceRiskAnalysis(
+          await eserviceTemplateService.deleteEServiceTemplateVersion(
             unsafeBrandId(eServiceTemplateId),
             unsafeBrandId(eServiceTemplateVersionId),
             ctx
@@ -367,13 +373,13 @@ const eserviceTemplateRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/producers/eservices/templates", async (req, res) => {
+    .get("/creators/eservices/templates", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const { q, offset, limit } = req.query;
 
       try {
         const response =
-          await eserviceTemplateService.getProducerEServiceTemplates(
+          await eserviceTemplateService.getCreatorEServiceTemplates(
             q,
             offset,
             limit,
@@ -638,7 +644,7 @@ const eserviceTemplateRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -662,7 +668,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
