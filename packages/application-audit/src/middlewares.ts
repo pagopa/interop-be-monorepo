@@ -43,7 +43,7 @@ const ApplicationAuditEndRequest = z.object({
   uptimeSeconds: z.number(),
   timestamp: z.number(),
   amazonTraceId: z.string().optional(),
-  organizationId: z.string(),
+  organizationId: z.string().optional(),
   userId: z.string().optional(),
   httpResponseStatus: z.number(),
   executionTimeMs: z.number(),
@@ -200,7 +200,7 @@ export async function applicationAuditEndMiddleware(
           correlationId,
           service: serviceName,
           serviceVersion: config.serviceVersion,
-          endpoint: req.route.path,
+          endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
           httpMethod: req.method,
           phase: Phase.END_REQUEST,
           requesterIpAddress: forwardedFor,
@@ -209,8 +209,8 @@ export async function applicationAuditEndMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
-          organizationId: context.authData.organizationId,
-          userId: context.authData.userId,
+          organizationId: context.authData?.organizationId,
+          userId: context.authData?.userId,
           httpResponseStatus: res.statusCode,
           executionTimeMs: endTimestamp - context.requestTimestamp,
         };
@@ -257,7 +257,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           correlationId,
           service: serviceName,
           serviceVersion: config.serviceVersion,
-          endpoint: req.route.path,
+          endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
           httpMethod: req.method,
           phase: Phase.END_REQUEST,
           requesterIpAddress: forwardedFor,

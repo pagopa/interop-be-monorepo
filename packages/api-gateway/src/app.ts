@@ -42,10 +42,10 @@ app.use(
   healthRouter,
   contextMiddleware(serviceName, false),
   await applicationAuditBeginMiddleware(serviceName, config),
+  await applicationAuditEndMiddleware(serviceName, config),
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
-  await applicationAuditEndMiddleware(serviceName, config),
   apiGatewayRouter(zodiosCtx, clients)
 );
 
