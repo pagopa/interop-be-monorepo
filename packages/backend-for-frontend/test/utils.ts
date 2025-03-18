@@ -14,7 +14,6 @@ import {
 } from "../src/services/eserviceTemplateService.js";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -32,14 +31,12 @@ export const createEServiceTeamplateService = (
   eserviceProcessTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
   fileManager: FileManager
 ): EServiceTemplateService =>
   eserviceTemplateServiceBuilder(
     eserviceProcessTemplateClient,
     tenantProcessClient,
     attributeProcessClient,
-    catalogProcessClient,
     fileManager
   );
 
