@@ -3065,18 +3065,16 @@ export function catalogServiceBuilder(
     async createTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       eserviceInstanceDescriptorSeed: catalogApi.EServiceInstanceDescriptorSeed,
-      ctx: WithLogger<AppContext>
+      { logger, correlationId, authData, serviceName }: WithLogger<AppContext>
     ): Promise<Descriptor> {
-      ctx.logger.info(
-        `Creating Instance Descriptor for EService ${eserviceId}`
-      );
+      logger.info(`Creating Instance Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
-        ctx.authData,
+        authData,
         readModelService
       );
 
@@ -3142,46 +3140,52 @@ export function catalogServiceBuilder(
         updatedEservice,
         eserviceVersion,
         newDescriptor.id,
-        ctx.correlationId
+        correlationId
       );
 
-      const events = [descriptorCreationEvent];
-      // eslint-disable-next-line functional/no-let
-      let lastEService = updatedEservice;
-      // eslint-disable-next-line functional/no-let
-      let updatedDescriptor = newDescriptor;
+      const { updatedDescriptor, events } = await templateVersion.docs.reduce(
+        async (accPromise, doc, index) => {
+          const acc = await accPromise;
 
-      for (const [index, doc] of templateVersion.docs.entries()) {
-        const clonedDocumentId = generateId<EServiceDocumentId>();
-        const clonedDocumentPath = await fileManager.copy(
-          config.s3Bucket,
-          doc.path,
-          config.eserviceDocumentsPath,
-          clonedDocumentId,
-          doc.name,
-          ctx.logger
-        );
-        const { eService, descriptor, event } =
-          await innerAddDocumentToEserviceEvent(
-            { data: lastEService, metadata: { version: index + 1 } },
-            newDescriptor.id,
-            {
-              documentId: clonedDocumentId,
-              kind: "DOCUMENT",
-              prettyName: doc.prettyName,
-              filePath: clonedDocumentPath,
-              fileName: doc.name,
-              contentType: doc.contentType,
-              checksum: doc.checksum,
-              serverUrls: [],
-            },
-            ctx
+          const clonedDocumentId = generateId<EServiceDocumentId>();
+          const clonedDocumentPath = await fileManager.copy(
+            config.s3Bucket,
+            doc.path,
+            config.eserviceDocumentsPath,
+            clonedDocumentId,
+            doc.name,
+            logger
           );
-        // eslint-disable-next-line functional/immutable-data
-        events.push(event);
-        lastEService = eService;
-        updatedDescriptor = descriptor;
-      }
+
+          const { eService, descriptor, event } =
+            await innerAddDocumentToEserviceEvent(
+              { data: acc.lastEService, metadata: { version: index + 1 } },
+              acc.updatedDescriptor.id,
+              {
+                documentId: clonedDocumentId,
+                kind: "DOCUMENT",
+                prettyName: doc.prettyName,
+                filePath: clonedDocumentPath,
+                fileName: doc.name,
+                contentType: doc.contentType,
+                checksum: doc.checksum,
+                serverUrls: [],
+              },
+              { logger, correlationId, authData, serviceName }
+            );
+
+          return {
+            lastEService: eService,
+            updatedDescriptor: descriptor,
+            events: [...acc.events, event],
+          };
+        },
+        Promise.resolve({
+          lastEService: updatedEservice,
+          updatedDescriptor: newDescriptor,
+          events: [descriptorCreationEvent],
+        })
+      );
 
       await repository.createEvents(events);
 
