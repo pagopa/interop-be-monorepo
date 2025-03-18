@@ -8,6 +8,7 @@ import {
   initMockTenant,
   tenantReadModelService,
   retrieveTenantSQLObjects,
+  sortATenant,
 } from "./tenantUtils.js";
 
 describe("Tenant Queries", () => {
@@ -67,7 +68,7 @@ describe("Tenant Queries", () => {
       expect(retrievedVerifiedAttributeRevokersSQL).toHaveLength(1);
       expect(retrievedFeaturesSQL).toHaveLength(tenantFeatures.length);
 
-      expect(retrievedTenant).toStrictEqual(tenant);
+      expect(sortATenant(retrievedTenant!)).toStrictEqual(sortATenant(tenant));
     });
     it("should add an incomplete (*only* mandatory fields) tenant", async () => {
       const isTenantComplete = false;
@@ -124,7 +125,7 @@ describe("Tenant Queries", () => {
       expect(retrievedVerifiedAttributeRevokersSQL).toHaveLength(1);
       expect(retrievedFeaturesSQL).toHaveLength(tenantFeatures.length);
 
-      expect(retrievedTenant).toStrictEqual(tenant);
+      expect(sortATenant(retrievedTenant!)).toStrictEqual(sortATenant(tenant));
     });
     it("should update a complete (*all* fields) tenant", async () => {
       const isTenantComplete = true;
@@ -194,7 +195,9 @@ describe("Tenant Queries", () => {
       expect(retrievedVerifiedAttributeRevokersSQL).toHaveLength(1);
       expect(retrievedFeaturesSQL).toHaveLength(tenantFeatures.length);
 
-      expect(retrievedTenant).toStrictEqual(updatedTenant);
+      expect(sortATenant(retrievedTenant!)).toStrictEqual(
+        sortATenant(updatedTenant)
+      );
     });
   });
   describe("Get a Tenant", () => {
@@ -220,9 +223,7 @@ describe("Tenant Queries", () => {
         tenant.data.id
       );
 
-      expect(retrievedTenant).toStrictEqual(tenant);
-      // is sorting necessary?
-      // expect(sortATenant(retrievedTenant!)).toStrictEqual(sortATenant(tenant));
+      expect(sortATenant(retrievedTenant!)).toStrictEqual(sortATenant(tenant));
     });
     it("should *not* get a tenant from a tenantId", async () => {
       const { tenant, tenantForVerifying, tenantForRevoking } =
@@ -285,7 +286,9 @@ describe("Tenant Queries", () => {
         retrievedFeaturesSQL,
       } = await retrieveTenantSQLObjects(tenant, isTenantComplete);
 
-      expect(retrievedInsertedTenant).toStrictEqual(tenant);
+      expect(sortATenant(retrievedInsertedTenant!)).toStrictEqual(
+        sortATenant(tenant)
+      );
 
       expect(deletedInsertedTenant).toBeUndefined();
       expect(retrievedTenantSQL).toBeUndefined();

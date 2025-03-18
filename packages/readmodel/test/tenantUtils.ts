@@ -31,6 +31,7 @@ import {
   generateId,
   stringToDate,
   Tenant,
+  TenantAttribute,
   tenantAttributeType,
   TenantFeature,
   TenantFeatureCertifier,
@@ -110,6 +111,14 @@ export const initMockTenant = (
       ...(isTenantComplete
         ? {
             description: "mail description",
+          }
+        : {}),
+    },
+    {
+      ...getMockTenantMail(),
+      ...(isTenantComplete
+        ? {
+            description: "mail description 2",
           }
         : {}),
     },
@@ -482,7 +491,6 @@ export const retrieveTenantFeaturesSQL = async (
   return result.length > 0 ? result : undefined;
 };
 
-/*
 export const sortATenant = (
   tenant: WithMetadata<Tenant>
 ): WithMetadata<Tenant> => ({
@@ -521,4 +529,3 @@ const sortByString = (a: string, b: string): number => {
   }
   return 0;
 };
-*/
