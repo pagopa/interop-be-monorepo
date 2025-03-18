@@ -4,7 +4,6 @@ import crypto from "crypto";
 import {
   getMockClient,
   getMockKey,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
   AuthorizationEventEnvelopeV1,
@@ -28,11 +27,10 @@ import {
   generateId,
   toClientV1,
   toKeyV1,
-  toReadModelClient,
 } from "pagopa-interop-models";
 import { expect, it } from "vitest";
 import { handleMessageV1 } from "../src/clientConsumerServiceV1.js";
-import { clients } from "./utils.js";
+import { clientReadModelService, readModelService } from "./utils.js";
 
 describe("Events V1", async () => {
   const mockClient = getMockClient();
@@ -55,20 +53,19 @@ describe("Events V1", async () => {
       data: payload,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": mockClient.id,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      mockClient.id
+    );
 
     expect(retrievedClient).toMatchObject({
-      data: toReadModelClient(mockClient),
+      data: mockClient,
       metadata: { version: 1 },
     });
   });
   it("RelationshipAdded", async () => {
-    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
-
+    await clientReadModelService.upsertClient(mockClient, 1);
     const payload: RelationshipAddedV1 = {
       client: toClientV1(mockClient),
       relationshipId: generateId(),
@@ -80,19 +77,19 @@ describe("Events V1", async () => {
       data: payload,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": mockClient.id,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      mockClient.id
+    );
 
     expect(retrievedClient).toMatchObject({
-      data: toReadModelClient(mockClient),
+      data: mockClient,
       metadata: { version: 1 },
     });
   });
   it("UserAdded", async () => {
-    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
+    await clientReadModelService.upsertClient(mockClient, 1);
 
     const userId: UserId = generateId<UserId>();
     const updatedClient: Client = {
@@ -112,13 +109,13 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": updatedClient.id,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      updatedClient.id
+    );
 
-    expect(retrievedClient?.data).toEqual(toReadModelClient(updatedClient));
+    expect(retrievedClient?.data).toEqual(updatedClient);
     expect(retrievedClient?.metadata).toEqual({
       version: 2,
     });
@@ -129,7 +126,7 @@ describe("Events V1", async () => {
       ...mockClient,
       users: [userId],
     };
-    await writeInReadmodel(toReadModelClient(client), clients, 1);
+    await clientReadModelService.upsertClient(client, 1);
 
     const updatedClient = mockClient;
 
@@ -145,16 +142,16 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": client.id,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      client.id
+    );
 
     expect(retrievedClient?.data.users).toHaveLength(0);
   });
   it("ClientPurposeAdded", async () => {
-    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
+    await clientReadModelService.upsertClient(mockClient, 1);
 
     const purposeId: PurposeId = generateId();
 
@@ -182,13 +179,12 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": updatedClient.id,
-    });
-
-    expect(retrievedClient?.data).toEqual(toReadModelClient(updatedClient));
+    const retrievedClient = await clientReadModelService.getClientById(
+      updatedClient.id
+    );
+    expect(retrievedClient?.data).toEqual(updatedClient);
     expect(retrievedClient?.metadata).toEqual({
       version: 2,
     });
@@ -199,7 +195,7 @@ describe("Events V1", async () => {
       ...mockClient,
       purposes: [purposeId],
     };
-    await writeInReadmodel(toReadModelClient(client), clients, 1);
+    await clientReadModelService.upsertClient(client, 1);
 
     const updatedClient: Client = {
       ...client,
@@ -218,11 +214,11 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": client.id,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      client.id
+    );
 
     expect(retrievedClient?.data.purposes).toHaveLength(0);
   });
@@ -232,7 +228,7 @@ describe("Events V1", async () => {
       ...mockClient,
       purposes: [purposeId],
     };
-    await writeInReadmodel(toReadModelClient(client), clients, 1);
+    await clientReadModelService.upsertClient(client, 1);
 
     const updatedClient = mockClient;
 
@@ -248,11 +244,11 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": client.id,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      client.id
+    );
 
     expect(retrievedClient?.data.purposes).toHaveLength(1);
   });
@@ -268,13 +264,13 @@ describe("Events V1", async () => {
       data: payload,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": clientId,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      clientId
+    );
 
-    expect(retrievedClient).toBeNull();
+    expect(retrievedClient).toBeUndefined();
   });
   it("KeyRelationshipToUserMigrated", async () => {
     const userId: UserId = generateId();
@@ -285,7 +281,7 @@ describe("Events V1", async () => {
       keys: [key],
     };
 
-    await writeInReadmodel(toReadModelClient(updatedClient), clients, 1);
+    await clientReadModelService.upsertClient(updatedClient, 1);
 
     const payload: KeyRelationshipToUserMigratedV1 = {
       clientId: updatedClient.id,
@@ -300,14 +296,14 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": updatedClient.id,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      updatedClient.id
+    );
 
     expect(retrievedClient).toMatchObject({
-      data: toReadModelClient(updatedClient),
+      data: updatedClient,
       metadata: { version: 2 },
     });
   });
@@ -317,7 +313,7 @@ describe("Events V1", async () => {
         ...getMockClient(),
         keys: [],
       };
-      await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
+      await clientReadModelService.upsertClient(mockClient, 1);
 
       const key = crypto.generateKeyPairSync("rsa", {
         modulusLength: 2048,
@@ -363,14 +359,14 @@ describe("Events V1", async () => {
         data: payload,
       };
 
-      await handleMessageV1(message, clients);
+      await handleMessageV1(message, readModelService);
 
-      const retrievedClient = await clients.findOne({
-        "data.id": updatedClient.id,
-      });
+      const retrievedClient = await clientReadModelService.getClientById(
+        updatedClient.id
+      );
 
       expect(retrievedClient).toMatchObject({
-        data: toReadModelClient(updatedClient),
+        data: updatedClient,
         metadata: { version: 2 },
       });
     });
@@ -382,7 +378,7 @@ describe("Events V1", async () => {
       ...getMockClient(),
       keys: [mockKey],
     };
-    await writeInReadmodel(toReadModelClient(mockClient), clients, 1);
+    await clientReadModelService.upsertClient(mockClient, 1);
 
     const payload: KeyDeletedV1 = {
       clientId: mockClient.id,
@@ -398,11 +394,11 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, clients);
+    await handleMessageV1(message, readModelService);
 
-    const retrievedClient = await clients.findOne({
-      "data.id": mockClient.id,
-    });
+    const retrievedClient = await clientReadModelService.getClientById(
+      mockClient.id
+    );
     expect(retrievedClient?.data.keys).toHaveLength(0);
   });
 });
