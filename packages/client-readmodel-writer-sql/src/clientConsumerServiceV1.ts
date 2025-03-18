@@ -101,25 +101,12 @@ export async function handleMessageV1(
       );
     })
     .with({ type: "KeyRelationshipToUserMigrated" }, async (message) => {
-      // await clients.updateOne(
-      //   {
-      //     "data.id": message.stream_id,
-      //     "metadata.version": { $lte: message.version },
-      //   },
-      //   {
-      //     $set: {
-      //       "data.keys.$[key].userId": message.data.userId,
-      //       "metadata.version": message.version,
-      //     },
-      //   },
-      //   {
-      //     arrayFilters: [
-      //       {
-      //         "key.kid": message.data.keyId,
-      //       },
-      //     ],
-      //   }
-      // );
+      await readModelService.migrateKeyRelationshipToUser(
+        unsafeBrandId<ClientId>(message.data.clientId),
+        message.data.keyId,
+        unsafeBrandId<UserId>(message.data.userId),
+        message.version
+      );
     })
     .with({ type: "RelationshipAdded" }, { type: "RelationshipRemoved" }, () =>
       Promise.resolve()

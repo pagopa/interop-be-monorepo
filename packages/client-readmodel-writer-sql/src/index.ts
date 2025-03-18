@@ -8,7 +8,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
+import {
+  clientReadModelServiceBuilder,
+  makeDrizzleConnection,
+} from "pagopa-interop-readmodel";
 import { handleMessageV1 } from "./clientConsumerServiceV1.js";
 import { handleMessageV2 } from "./clientConsumerServiceV2.js";
 import { config } from "./config/config.js";

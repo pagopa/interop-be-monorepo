@@ -1,14 +1,21 @@
-import { Client, ClientId, PurposeId, UserId } from "pagopa-interop-models";
+import {
+  Client,
+  ClientId,
+  dateToString,
+  Key,
+  PurposeId,
+  UserId,
+} from "pagopa-interop-models";
 import { ClientReadModelService } from "pagopa-interop-readmodel";
 import {
   DrizzleTransactionType,
   clientInReadmodelClient,
-  clientUserInReadModelClient,
-  clientPurposeInReadModelClient,
-  clientKeyInReadModelClient,
   clientUserInReadmodelClient,
+  clientPurposeInReadmodelClient,
+  clientKeyInReadmodelClient,
   ClientUserSQL,
   ClientPurposeSQL,
+  ClientKeySQL,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -25,9 +32,9 @@ export function readModelServiceBuilder(
   ): Promise<void> => {
     const clientRelatedTables = [
       clientInReadmodelClient,
-      clientUserInReadModelClient,
-      clientPurposeInReadModelClient,
-      clientKeyInReadModelClient,
+      clientUserInReadmodelClient,
+      clientPurposeInReadmodelClient,
+      clientKeyInReadmodelClient,
     ];
 
     await tx
@@ -46,7 +53,7 @@ export function readModelServiceBuilder(
         .set({ metadataVersion: newMetadataVersion })
         .where(
           and(
-            eq("client_Id" in table ? table.clientId : table.id, clientId),
+            eq("clientId" in table ? table.clientId : table.id, clientId),
             lte(table.metadataVersion, newMetadataVersion)
           )
         );
@@ -71,18 +78,18 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        await updateMetadataVersionInClientTables(
-          tx,
-          clientId,
-          metadataVersion
-        );
-
         const user: ClientUserSQL = {
           clientId,
           userId,
           metadataVersion,
         };
         await tx.insert(clientUserInReadmodelClient).values(user);
+
+        await updateMetadataVersionInClientTables(
+          tx,
+          clientId,
+          metadataVersion
+        );
       });
     },
 
@@ -92,15 +99,15 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
+        await tx
+          .delete(clientUserInReadmodelClient)
+          .where(eq(clientUserInReadmodelClient.userId, userId));
+
         await updateMetadataVersionInClientTables(
           tx,
           clientId,
           metadataVersion
         );
-
-        await tx
-          .delete(clientUserInReadmodelClient)
-          .where(eq(clientUserInReadModelClient.userId, userId));
       });
     },
 
@@ -110,18 +117,18 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        await updateMetadataVersionInClientTables(
-          tx,
-          clientId,
-          metadataVersion
-        );
-
         const purposeSQL: ClientPurposeSQL = {
           clientId,
           purposeId,
           metadataVersion,
         };
-        await tx.insert(clientPurposeInReadModelClient).values(purposeSQL);
+        await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+
+        await updateMetadataVersionInClientTables(
+          tx,
+          clientId,
+          metadataVersion
+        );
       });
     },
 
@@ -131,15 +138,15 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
+        await tx
+          .delete(clientPurposeInReadmodelClient)
+          .where(eq(clientPurposeInReadmodelClient.purposeId, purposeId));
+
         await updateMetadataVersionInClientTables(
           tx,
           clientId,
           metadataVersion
         );
-
-        await tx
-          .delete(clientPurposeInReadModelClient)
-          .where(eq(clientPurposeInReadModelClient.purpose, purposeId));
       });
     },
 
@@ -148,7 +155,26 @@ export function readModelServiceBuilder(
       keys: Key[],
       metadataVersion: number
     ): Promise<void> {
-      await Promise.resolve();
+      await db.transaction(async (tx) => {
+        const keysSQL: ClientKeySQL[] = keys.map((key) => ({
+          metadataVersion,
+          clientId,
+          userId: key.userId,
+          kid: key.kid,
+          name: key.name,
+          encodedPem: key.encodedPem,
+          algorithm: key.algorithm,
+          use: key.use,
+          createdAt: dateToString(key.createdAt),
+        }));
+        await tx.insert(clientKeyInReadmodelClient).values(keysSQL);
+
+        await updateMetadataVersionInClientTables(
+          tx,
+          clientId,
+          metadataVersion
+        );
+      });
     },
 
     async deleteKey(
@@ -156,7 +182,42 @@ export function readModelServiceBuilder(
       keyId: string,
       metadataVersion: number
     ): Promise<void> {
-      await Promise.resolve();
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(clientKeyInReadmodelClient)
+          .where(eq(clientKeyInReadmodelClient.kid, keyId));
+
+        await updateMetadataVersionInClientTables(
+          tx,
+          clientId,
+          metadataVersion
+        );
+      });
+    },
+
+    async migrateKeyRelationshipToUser(
+      clientId: ClientId,
+      keyId: string,
+      userId: UserId,
+      metadataVersion: number
+    ): Promise<void> {
+      await db.transaction(async (tx) => {
+        await tx
+          .update(clientKeyInReadmodelClient)
+          .set({ userId })
+          .where(
+            and(
+              eq(clientKeyInReadmodelClient.kid, keyId),
+              lte(clientKeyInReadmodelClient.metadataVersion, metadataVersion)
+            )
+          );
+
+        await updateMetadataVersionInClientTables(
+          tx,
+          clientId,
+          metadataVersion
+        );
+      });
     },
   };
 }

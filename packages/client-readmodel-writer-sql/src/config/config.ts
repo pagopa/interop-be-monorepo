@@ -1,10 +1,10 @@
 import {
   AuthorizationTopicConfig,
-  ReadModelWriterConfig,
+  ReadModelWriterConfigSQL,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const ClientReadModelWriterConfig = ReadModelWriterConfig.and(
+export const ClientReadModelWriterConfig = ReadModelWriterConfigSQL.and(
   AuthorizationTopicConfig
 );
 
