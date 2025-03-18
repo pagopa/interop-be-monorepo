@@ -1677,12 +1677,22 @@ export function catalogServiceBuilder(
       const tenantsMap = new Map(tenants.map((t) => [t.id, t]));
       const tentantsIds = Array.from(tenantsMap.keys());
 
+      const filterStates: catalogApi.EServiceDescriptorState[] =
+        states.length === 0
+          ? [
+              catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+              catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+              catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+              catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+            ]
+          : states;
+
       const { results, totalCount } = await catalogProcessClient.getEServices({
         headers,
         queries: {
           producersIds: tentantsIds,
           templatesIds: [eServiceTemplateId],
-          states,
+          states: filterStates,
           offset,
           limit,
         },
