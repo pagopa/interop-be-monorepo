@@ -3606,7 +3606,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  
+
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -18082,6 +18082,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DescriptorRejectionReason"
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
     ProducerDescriptorEService:
