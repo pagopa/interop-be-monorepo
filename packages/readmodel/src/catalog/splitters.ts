@@ -28,19 +28,7 @@ export const splitEserviceIntoObjectsSQL = (
   eservice: EService,
   version: number
 ): EServiceItemsSQL => {
-  const eserviceSQL: EServiceSQL = {
-    id: eservice.id,
-    metadataVersion: version,
-    name: eservice.name,
-    createdAt: dateToString(eservice.createdAt),
-    producerId: eservice.producerId,
-    description: eservice.description,
-    technology: eservice.technology,
-    mode: eservice.mode,
-    isSignalHubEnabled: eservice.isSignalHubEnabled ?? null,
-    isConsumerDelegable: eservice.isConsumerDelegable ?? null,
-    isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
-  };
+  const eserviceSQL = eserviceToEserviceSQL(eservice, version);
 
   // const eserviceTemplateBindingSQL: EServiceTemplateBindingSQL = {
   //   eserviceId: eservice.id,
@@ -369,9 +357,9 @@ export const eserviceToEserviceSQL = (
   description: eservice.description,
   technology: eservice.technology,
   mode: eservice.mode,
-  isSignalHubEnabled: eservice.isSignalHubEnabled || null,
-  isConsumerDelegable: eservice.isConsumerDelegable || null,
-  isClientAccessDelegable: eservice.isConsumerDelegable || null,
+  isSignalHubEnabled: eservice.isSignalHubEnabled ?? null,
+  isConsumerDelegable: eservice.isConsumerDelegable ?? null,
+  isClientAccessDelegable: eservice.isConsumerDelegable ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (
