@@ -8,7 +8,6 @@ import {
   AWSSesConfig,
   EventStoreConfig,
   FileManagerConfig,
-  LoggerConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
@@ -53,7 +52,7 @@ declare module "vitest" {
     readModelSQLConfig?: ReadModelSQLDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
-    fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
+    fileManagerConfig?: FileManagerConfig & S3Config;
     redisRateLimiterConfig?: RedisRateLimiterConfig;
     emailManagerConfig?: PecEmailManagerConfigTest;
     sesEmailManagerConfig?: AWSSesConfig;
@@ -73,9 +72,13 @@ export function setupTestContainersVitestGlobal() {
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
   const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
+<<<<<<< HEAD
   const fileManagerConfig = FileManagerConfig.and(S3Config)
     .and(LoggerConfig)
     .safeParse(process.env);
+=======
+  const fileManagerConfig = FileManagerConfig.safeParse(process.env);
+>>>>>>> develop
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
   const awsSESConfig = AWSSesConfig.safeParse(process.env);
@@ -149,14 +152,22 @@ export function setupTestContainersVitestGlobal() {
 
     // Setting up the Minio container if the config is provided
     if (fileManagerConfig.success) {
-      startedMinioContainer = await minioContainer(
-        fileManagerConfig.data
-      ).start();
+      const s3Bucket =
+        S3Config.safeParse(process.env)?.data?.s3Bucket ??
+        "interop-local-bucket";
+
+      startedMinioContainer = await minioContainer({
+        ...fileManagerConfig.data,
+        s3Bucket,
+      }).start();
 
       fileManagerConfig.data.s3ServerPort =
         startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
 
-      provide("fileManagerConfig", fileManagerConfig.data);
+      provide("fileManagerConfig", {
+        ...fileManagerConfig.data,
+        s3Bucket,
+      });
     }
 
     if (emailManagerConfig.success) {
