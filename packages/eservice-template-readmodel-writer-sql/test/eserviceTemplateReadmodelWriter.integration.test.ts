@@ -130,7 +130,7 @@ describe("database test", async () => {
       });
     });
 
-    it.only("EServiceTemplateVersionAdded", async () => {
+    it("EServiceTemplateVersionAdded", async () => {
       const draftVersion: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
         state: eserviceTemplateVersionState.draft,
