@@ -2,126 +2,61 @@
 import { describe, expect, it } from "vitest";
 import {
   Delegation,
-  delegationKind,
+  DelegationId,
   generateId,
-  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
-  getMockDelegation,
-  getMockDelegationDocument,
-} from "pagopa-interop-commons-test/index.js";
-import {
   delegationReadModelService,
-  readDelegationContractDocumentSQLByAgreementId,
-  readDelegationStampsSQLByDelegationId,
+  getCustomMockDelegation,
+  retrieveDelegationSQLObjects,
 } from "./delegationUtils.js";
 
 describe("Delegation queries", () => {
   describe("upsertDelegation", () => {
     it("should add a complete (*all* fields) delegation", async () => {
-      const delegation: WithMetadata<Delegation> = {
-        data: {
-          ...getMockDelegation({ kind: delegationKind.delegatedProducer }),
-          updatedAt: new Date(),
-          stamps: {
-            submission: {
-              who: generateId<UserId>(),
-              when: new Date(),
-            },
-            activation: {
-              who: generateId<UserId>(),
-              when: new Date(),
-            },
-            rejection: {
-              who: generateId<UserId>(),
-              when: new Date(),
-            },
-            revocation: {
-              who: generateId<UserId>(),
-              when: new Date(),
-            },
-          },
-          rejectionReason: "a rejection reason",
-          activationContract: getMockDelegationDocument(),
-          revocationContract: getMockDelegationDocument(),
-        },
-        metadata: { version: 1 },
-      };
+      const delegation = getCustomMockDelegation();
 
       await delegationReadModelService.upsertDelegation(delegation.data, 1);
 
       const retrievedDelegation =
         await delegationReadModelService.getDelegationById(delegation.data.id);
 
-      const retrievedStamps = await readDelegationStampsSQLByDelegationId(
-        delegation.data.id
-      );
-      const retrievedDelegationContract =
-        await readDelegationContractDocumentSQLByAgreementId(
-          delegation.data.id
-        );
+      const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+        await retrieveDelegationSQLObjects(delegation);
 
       expect(retrievedDelegation).toStrictEqual(delegation);
-      expect(retrievedStamps).toHaveLength(4);
-      expect(retrievedDelegationContract).toHaveLength(2);
+      expect(delegationSQL).toBeDefined();
+      expect(stampsSQL).toHaveLength(
+        Object.keys(delegation.data.stamps).length
+      );
+      expect(contractDocumentsSQL).toHaveLength(
+        [delegation.data.activationContract, delegation.data.revocationContract]
+          .length
+      );
     });
 
     it("should add an incomplete (*only* mandatory fields) delegation", async () => {
-      const delegation: WithMetadata<Delegation> = {
-        data: {
-          ...getMockDelegation({ kind: delegationKind.delegatedProducer }),
-        },
-        metadata: { version: 1 },
-      };
+      const delegation = getCustomMockDelegation(false);
 
       await delegationReadModelService.upsertDelegation(delegation.data, 1);
 
       const retrievedDelegation =
         await delegationReadModelService.getDelegationById(delegation.data.id);
 
-      const retrievedStamps = await readDelegationStampsSQLByDelegationId(
-        delegation.data.id
-      );
-      const retrievedDelegationContract =
-        await readDelegationContractDocumentSQLByAgreementId(
-          delegation.data.id
-        );
+      const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+        await retrieveDelegationSQLObjects(delegation);
 
       expect(retrievedDelegation).toStrictEqual(delegation);
-      expect(retrievedStamps).toHaveLength(1);
-      expect(retrievedDelegationContract).toHaveLength(0);
+      expect(delegationSQL).toBeDefined();
+      expect(stampsSQL).toHaveLength(
+        Object.keys(delegation.data.stamps).length
+      );
+      expect(contractDocumentsSQL).toHaveLength(0);
     });
 
     it("should update a complete (*all* fields) delegation", async () => {
-      const delegation: WithMetadata<Delegation> = {
-        data: {
-          ...getMockDelegation({ kind: delegationKind.delegatedProducer }),
-          updatedAt: new Date(),
-          stamps: {
-            submission: {
-              who: generateId<UserId>(),
-              when: new Date(),
-            },
-            activation: {
-              who: generateId<UserId>(),
-              when: new Date(),
-            },
-            rejection: {
-              who: generateId<UserId>(),
-              when: new Date(),
-            },
-            revocation: {
-              who: generateId<UserId>(),
-              when: new Date(),
-            },
-          },
-          rejectionReason: "a rejection reason",
-          activationContract: getMockDelegationDocument(),
-          revocationContract: getMockDelegationDocument(),
-        },
-        metadata: { version: 1 },
-      };
+      const delegation = getCustomMockDelegation();
 
       const updatedDelegation: WithMetadata<Delegation> = {
         data: {
@@ -147,44 +82,77 @@ describe("Delegation queries", () => {
           updatedDelegation.data.id
         );
 
-      const retrievedStamps = await readDelegationStampsSQLByDelegationId(
-        delegation.data.id
-      );
-      const retrievedDelegationContract =
-        await readDelegationContractDocumentSQLByAgreementId(
-          delegation.data.id
-        );
+      const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+        await retrieveDelegationSQLObjects(delegation);
 
       expect(retrievedDelegation).toStrictEqual(updatedDelegation);
-      expect(retrievedStamps).toHaveLength(4);
-      expect(retrievedDelegationContract).toHaveLength(2);
+      expect(delegationSQL).toBeDefined();
+      expect(stampsSQL).toHaveLength(
+        Object.keys(delegation.data.stamps).length
+      );
+      expect(contractDocumentsSQL).toHaveLength(
+        [delegation.data.activationContract, delegation.data.revocationContract]
+          .length
+      );
     });
   });
 
   describe("getDelegationById", () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    it("delegation found", async () => {});
-
-    it("delegation NOT found", async () => {
-      const delegation: WithMetadata<Delegation> = {
-        data: getCustomMockAgreement(),
-        metadata: { version: 1 },
-      };
-
+    it("should get a delegation by id if present", async () => {
+      const delegation = getCustomMockDelegation(false);
       await delegationReadModelService.upsertDelegation(
-        getCustomMockAgreement(),
-        1
+        delegation.data,
+        delegation.metadata.version
       );
+      const retrievedDelegation =
+        await delegationReadModelService.getDelegationById(delegation.data.id);
+      expect(retrievedDelegation).toStrictEqual(delegation);
+    });
 
-      const retrievedAgreement =
-        await delegationReadModelService.getAgreementById(delegation.data.id);
+    it("should not get a delegation by id if not present", async () => {
+      const retrievedDelegation =
+        await delegationReadModelService.getDelegationById(
+          generateId<DelegationId>()
+        );
 
-      expect(retrievedAgreement).toBeUndefined();
+      expect(retrievedDelegation).toBeUndefined();
     });
   });
 
   describe("deleteDelegationtById", () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    it("delete one delegation", async () => {});
+    it("should delete a delegation", async () => {
+      const delegation = getCustomMockDelegation(false);
+
+      await delegationReadModelService.upsertDelegation(
+        delegation.data,
+        delegation.metadata.version
+      );
+
+      const {
+        delegationSQL: delegationInsertedSQL,
+        stampsSQL: stampsInsertedSQL,
+        contractDocumentsSQL: contractDocumentsInsertedSQL,
+      } = await retrieveDelegationSQLObjects(delegation);
+
+      expect(delegationInsertedSQL).toBeDefined();
+      expect(stampsInsertedSQL).toHaveLength(1);
+      expect(contractDocumentsInsertedSQL).toHaveLength(0);
+
+      await delegationReadModelService.deleteDelegationById(
+        delegation.data.id,
+        delegation.metadata.version
+      );
+
+      const retrievedDeletedDelegation =
+        await delegationReadModelService.getDelegationById(delegation.data.id);
+
+      const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+        await retrieveDelegationSQLObjects(delegation);
+
+      expect(retrievedDeletedDelegation).toBeUndefined();
+      expect(delegationSQL).toBeUndefined();
+      expect(stampsSQL).toHaveLength(0);
+      expect(contractDocumentsSQL).toHaveLength(0);
+    });
   });
 });
