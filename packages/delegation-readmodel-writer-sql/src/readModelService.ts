@@ -1,4 +1,3 @@
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Delegation, DelegationId, WithMetadata } from "pagopa-interop-models";
 import { DelegationReadModelService } from "pagopa-interop-readmodel";
 
@@ -32,10 +31,5 @@ export function readModelServiceBuilder(
     },
   };
 }
-
-export type DrizzleReturnType = ReturnType<typeof drizzle>;
-export type TransactionType = Parameters<
-  Parameters<DrizzleReturnType["transaction"]>[0]
->[0];
 
 export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

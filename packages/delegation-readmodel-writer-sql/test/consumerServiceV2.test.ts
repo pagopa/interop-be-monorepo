@@ -48,9 +48,9 @@ describe("Events V2", async () => {
       mockDelegation.id
     );
 
-    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+    expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
-    expect(retrievedDelegation?.metadata).toEqual({
+    expect(retrievedDelegation?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -72,9 +72,9 @@ describe("Events V2", async () => {
       mockDelegation.id
     );
 
-    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+    expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
-    expect(retrievedDelegation?.metadata).toEqual({
+    expect(retrievedDelegation?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -96,9 +96,9 @@ describe("Events V2", async () => {
       mockDelegation.id
     );
 
-    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+    expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
-    expect(retrievedDelegation?.metadata).toEqual({
+    expect(retrievedDelegation?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -120,9 +120,9 @@ describe("Events V2", async () => {
       mockDelegation.id
     );
 
-    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+    expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
-    expect(retrievedDelegation?.metadata).toEqual({
+    expect(retrievedDelegation?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -144,9 +144,9 @@ describe("Events V2", async () => {
       mockDelegation.id
     );
 
-    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+    expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
-    expect(retrievedDelegation?.metadata).toEqual({
+    expect(retrievedDelegation?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -168,9 +168,9 @@ describe("Events V2", async () => {
       mockDelegation.id
     );
 
-    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+    expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
-    expect(retrievedDelegation?.metadata).toEqual({
+    expect(retrievedDelegation?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -192,9 +192,9 @@ describe("Events V2", async () => {
       mockDelegation.id
     );
 
-    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+    expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
-    expect(retrievedDelegation?.metadata).toEqual({
+    expect(retrievedDelegation?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -216,9 +216,9 @@ describe("Events V2", async () => {
       mockDelegation.id
     );
 
-    expect(retrievedDelegation?.data).toEqual(mockDelegation);
+    expect(retrievedDelegation?.data).toStrictEqual(mockDelegation);
 
-    expect(retrievedDelegation?.metadata).toEqual({
+    expect(retrievedDelegation?.metadata).toStrictEqual({
       version: 1,
     });
   });
