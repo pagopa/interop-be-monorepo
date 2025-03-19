@@ -68,8 +68,8 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      templateRefSQL,
+      templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -81,8 +81,8 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      templateRefSQL,
+      templateVersionRefsSQL,
     });
 
     expect(aggregatedEservice).toStrictEqual({
@@ -121,7 +121,8 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
+      templateRefSQL,
+      templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -133,7 +134,8 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
+      templateRefSQL,
+      templateVersionRefsSQL,
     });
 
     expect(aggregatedEservice).toStrictEqual({
