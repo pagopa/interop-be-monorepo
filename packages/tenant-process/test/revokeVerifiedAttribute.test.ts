@@ -16,7 +16,7 @@ import {
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import {
   readLastEventByStreamId,
-  getMockAuthData,
+  getRandomAuthData,
   getMockDescriptor,
   getMockTenant,
   getMockEService,
@@ -46,7 +46,7 @@ import {
 describe("revokeVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();
   const revokerTenant = getMockTenant();
-  const authData = getMockAuthData(revokerTenant.id);
+  const authData = getRandomAuthData(revokerTenant.id);
   const verifiedAttribute = getMockVerifiedTenantAttribute();
   const descriptor: Descriptor = {
     ...getMockDescriptor(),

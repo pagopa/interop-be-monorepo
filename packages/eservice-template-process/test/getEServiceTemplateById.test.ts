@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
-  getMockAuthData,
+  getRandomAuthData,
   getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
@@ -75,7 +75,7 @@ describe("getEServiceTemplateById", () => {
       eserviceTemplate.id,
       getMockContext({
         authData: {
-          ...getMockAuthData(eserviceTemplate.creatorId),
+          ...getRandomAuthData(eserviceTemplate.creatorId),
           userRoles: [userRoles.ADMIN_ROLE],
         },
       })
@@ -146,7 +146,7 @@ describe("getEServiceTemplateById", () => {
       eserviceTemplate.id,
       getMockContext({
         authData: {
-          ...getMockAuthData(),
+          ...getRandomAuthData(),
           userRoles: [userRoles.ADMIN_ROLE],
         },
       })

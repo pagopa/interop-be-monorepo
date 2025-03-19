@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getRandomAuthData,
   getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
@@ -97,7 +97,7 @@ describe("create eservice template", () => {
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
         getMockContext({
           authData: {
-            ...getMockAuthData(mockEServiceTemplate.creatorId),
+            ...getRandomAuthData(mockEServiceTemplate.creatorId),
             externalId: { origin: "not-allowed-origin", value: "aaa" },
           },
         })

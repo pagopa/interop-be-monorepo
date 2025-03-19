@@ -16,7 +16,7 @@ import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import {
-  getMockAuthData,
+  getRandomAuthData,
   getMockTenant,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
@@ -54,7 +54,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: false,
         },
         correlationId: generateId(),
-        authData: getMockAuthData(),
+        authData: getRandomAuthData(),
         logger: genericLogger,
       });
 
@@ -110,7 +110,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: true,
         },
         correlationId: generateId(),
-        authData: getMockAuthData(),
+        authData: getRandomAuthData(),
         logger: genericLogger,
       });
 
@@ -172,7 +172,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: false,
         },
         correlationId: generateId(),
-        authData: getMockAuthData(),
+        authData: getRandomAuthData(),
         logger: genericLogger,
       });
 
@@ -228,7 +228,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: false,
         },
         correlationId: generateId(),
-        authData: getMockAuthData(),
+        authData: getRandomAuthData(),
         logger: genericLogger,
       });
 
@@ -278,7 +278,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: true,
         },
         correlationId: generateId(),
-        authData: getMockAuthData(),
+        authData: getRandomAuthData(),
         logger: genericLogger,
       });
 
@@ -363,7 +363,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: false,
         },
         correlationId: generateId(),
-        authData: getMockAuthData(),
+        authData: getRandomAuthData(),
         logger: genericLogger,
       });
 
@@ -419,7 +419,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: true,
         },
         correlationId: generateId(),
-        authData: getMockAuthData(),
+        authData: getRandomAuthData(),
         logger: genericLogger,
       })
     ).rejects.toThrowError(tenantNotFound(organizationId));
@@ -438,7 +438,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: true,
         },
         authData: {
-          ...getMockAuthData(tenant.id),
+          ...getRandomAuthData(tenant.id),
           externalId: { origin: "UNKNOWN", value: "test" },
         },
         logger: genericLogger,

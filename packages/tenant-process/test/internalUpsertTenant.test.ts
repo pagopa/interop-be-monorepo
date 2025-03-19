@@ -2,7 +2,7 @@
 import { fail } from "assert";
 import { AuthData } from "pagopa-interop-commons";
 import {
-  getMockAuthData,
+  getRandomAuthData,
   getMockContext,
   getMockTenant,
   readEventByStreamIdAndVersion,
@@ -74,7 +74,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["internal"],
     };
@@ -133,7 +133,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["internal"],
     };
@@ -239,7 +239,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: tenantAlreadyAssigned.id,
       userRoles: ["internal"],
     };
@@ -269,7 +269,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["internal"],
     };
@@ -297,7 +297,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["internal"],
     };

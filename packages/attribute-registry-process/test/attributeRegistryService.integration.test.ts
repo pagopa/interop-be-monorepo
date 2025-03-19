@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAttribute,
-  getMockAuthData,
+  getRandomAuthData,
   getMockContext,
   getRandomAuthData,
   getTenantOneCertifierFeature,
@@ -83,7 +83,7 @@ describe("database test", () => {
             },
             getMockContext({
               authData: {
-                ...getMockAuthData(),
+                ...getRandomAuthData(),
                 externalId: {
                   value: "123456",
                   origin: "not-allowed-origin",
@@ -159,7 +159,7 @@ describe("database test", () => {
             },
             getMockContext({
               authData: {
-                ...getMockAuthData(),
+                ...getRandomAuthData(),
                 externalId: {
                   value: "123456",
                   origin: "not-allowed-origin",

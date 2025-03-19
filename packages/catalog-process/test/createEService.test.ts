@@ -26,7 +26,7 @@ import {
   addOneEService,
   buildDescriptorSeedForEserviceCreation,
   catalogService,
-  getMockAuthData,
+  getRandomAuthData,
   getMockEService,
   postgresDB,
   readLastEserviceEvent,
@@ -379,7 +379,7 @@ describe("create eservice", () => {
         },
         getMockContext({
           authData: {
-            ...getMockAuthData(mockEService.producerId),
+            ...getRandomAuthData(mockEService.producerId),
             externalId: {
               value: "123456",
               origin: "not-allowed-origin",

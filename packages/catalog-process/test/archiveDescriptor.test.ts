@@ -25,7 +25,7 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
+  getRandomAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -85,7 +85,7 @@ describe("archive descriptor", () => {
       interface: mockDocument,
       state: descriptorState.suspended,
     };
-    const delegate = getMockAuthData();
+    const delegate = getRandomAuthData();
 
     const eservice: EService = {
       ...mockEService,

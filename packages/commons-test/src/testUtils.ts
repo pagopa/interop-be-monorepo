@@ -137,12 +137,28 @@ export const getTenantOneCertifierFeature = (
   return certifiedFeatures[0];
 };
 
+// export const getRandomAuthData = (organizationId?: TenantId): AuthData => ({
+//   organizationId: organizationId || generateId(),
+//   userId: generateId(),
+//   userRoles: [],
+//   externalId: {
+//     value: "123456",
+//     origin: "IPA",
+//   },
+//   selfcareId: generateId(),
+// });
+
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
-  ...generateMock(AuthData),
-  userRoles: ["admin"],
   organizationId,
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
 });
 
 export const getMockDescriptorPublished = (
@@ -388,17 +404,6 @@ export const getMockKey = (): Key => ({
   encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
-});
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
 });
 
 export const getMockDelegation = ({
@@ -745,7 +750,7 @@ export const getMockContext = ({
   serviceName?: string;
   correlationId?: CorrelationId;
 }): WithLogger<AppContext> => ({
-  authData: authData || getMockAuthData(),
+  authData: authData || getRandomAuthData(),
   serviceName: serviceName || "",
   correlationId: correlationId || generateId(),
   logger: genericLogger,

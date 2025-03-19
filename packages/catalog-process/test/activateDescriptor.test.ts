@@ -24,7 +24,7 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
+  getRandomAuthData,
   readLastEserviceEvent,
   getMockEService,
   getMockDescriptor,
@@ -83,7 +83,7 @@ describe("activate descriptor", () => {
       state: descriptorState.suspended,
     };
 
-    const delegate = getMockAuthData();
+    const delegate = getRandomAuthData();
 
     const eservice: EService = {
       ...mockEService,
