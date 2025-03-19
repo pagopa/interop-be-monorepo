@@ -37,16 +37,6 @@ export function readModelServiceBuilder(
       clientKeyInReadmodelClient,
     ];
 
-    await tx
-      .update(clientInReadmodelClient)
-      .set({ metadataVersion: newMetadataVersion })
-      .where(
-        and(
-          eq(clientInReadmodelClient.id, clientId),
-          lte(clientInReadmodelClient.metadataVersion, newMetadataVersion)
-        )
-      );
-
     for (const table of clientRelatedTables) {
       await tx
         .update(table)
