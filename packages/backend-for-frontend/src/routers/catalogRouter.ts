@@ -942,11 +942,11 @@ const catalogRouter = (
     .post("/templates/eservices/:eServiceId/upgrade", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await catalogService.upgradeEServiceInstance(
+        const response = await catalogService.upgradeEServiceInstance(
           unsafeBrandId(req.params.eServiceId),
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send(bffApi.CreatedResource.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

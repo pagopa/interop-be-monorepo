@@ -509,12 +509,14 @@ describe("delete Document", () => {
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
   });
-  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined and we are deleting a document with kind DOCUMENT", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const document = { ...mockDocument, kind: "DOCUMENT" };
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
-      docs: [mockDocument],
+      docs: [document],
     };
     const eService: EService = {
       ...mockEService,
