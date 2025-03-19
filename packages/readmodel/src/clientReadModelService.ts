@@ -21,22 +21,36 @@ export function clientReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         splitClientIntoObjectsSQL(client, metadataVersion);
 
       await db.transaction(async (tx) => {
-        await tx
-          .delete(clientInReadmodelClient)
-          .where(eq(clientInReadmodelClient.id, client.id));
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion: clientInReadmodelClient.metadataVersion,
+            })
+            .from(clientInReadmodelClient)
+            .where(eq(clientInReadmodelClient.id, client.id))
+        )[0]?.metadataVersion;
 
-        await tx.insert(clientInReadmodelClient).values(clientSQL);
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx
+            .delete(clientInReadmodelClient)
+            .where(eq(clientInReadmodelClient.id, client.id));
 
-        for (const userSQL of usersSQL) {
-          await tx.insert(clientUserInReadmodelClient).values(userSQL);
-        }
+          await tx.insert(clientInReadmodelClient).values(clientSQL);
 
-        for (const purposeSQL of purposesSQL) {
-          await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
-        }
+          for (const userSQL of usersSQL) {
+            await tx.insert(clientUserInReadmodelClient).values(userSQL);
+          }
 
-        for (const keySQL of keysSQL) {
-          await tx.insert(clientKeyInReadmodelClient).values(keySQL);
+          for (const purposeSQL of purposesSQL) {
+            await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+          }
+
+          for (const keySQL of keysSQL) {
+            await tx.insert(clientKeyInReadmodelClient).values(keySQL);
+          }
         }
       });
     },
