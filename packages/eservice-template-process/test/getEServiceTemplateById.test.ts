@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { userRoles, genericLogger } from "pagopa-interop-commons";
+import { userRoles } from "pagopa-interop-commons";
 import {
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
@@ -9,7 +9,8 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
-  getMockAuthData,
+  getRandomAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
@@ -72,15 +73,12 @@ describe("getEServiceTemplateById", () => {
 
     const result = await eserviceTemplateService.getEServiceTemplateById(
       eserviceTemplate.id,
-      {
+      getMockContext({
         authData: {
-          ...getMockAuthData(eserviceTemplate.creatorId),
+          ...getRandomAuthData(eserviceTemplate.creatorId),
           userRoles: [userRoles.ADMIN_ROLE],
         },
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
+      })
     );
     expect(result).toEqual(eserviceTemplate);
   });
@@ -89,12 +87,10 @@ describe("getEServiceTemplateById", () => {
     await addOneEServiceTemplate(mockEServiceTemplate);
     const notExistingId: EServiceTemplateId = generateId();
     expect(
-      eserviceTemplateService.getEServiceTemplateById(notExistingId, {
-        authData: getMockAuthData(),
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      })
+      eserviceTemplateService.getEServiceTemplateById(
+        notExistingId,
+        getMockContext({})
+      )
     ).rejects.toThrowError(eServiceTemplateNotFound(notExistingId));
   });
 
@@ -109,12 +105,10 @@ describe("getEServiceTemplateById", () => {
     };
     await addOneEServiceTemplate(mockEServiceTemplate);
     expect(
-      eserviceTemplateService.getEServiceTemplateById(eserviceTemplate.id, {
-        authData: getMockAuthData(),
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      })
+      eserviceTemplateService.getEServiceTemplateById(
+        eserviceTemplate.id,
+        getMockContext({})
+      )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
   });
 
@@ -125,12 +119,10 @@ describe("getEServiceTemplateById", () => {
     };
     await addOneEServiceTemplate(mockEServiceTemplate);
     expect(
-      eserviceTemplateService.getEServiceTemplateById(eserviceTemplate.id, {
-        authData: getMockAuthData(),
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      })
+      eserviceTemplateService.getEServiceTemplateById(
+        eserviceTemplate.id,
+        getMockContext({})
+      )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
   });
 
@@ -152,15 +144,12 @@ describe("getEServiceTemplateById", () => {
     await addOneEServiceTemplate(eserviceTemplate);
     const result = await eserviceTemplateService.getEServiceTemplateById(
       eserviceTemplate.id,
-      {
+      getMockContext({
         authData: {
-          ...getMockAuthData(),
+          ...getRandomAuthData(),
           userRoles: [userRoles.ADMIN_ROLE],
         },
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
+      })
     );
     expect(result.versions).toEqual([eserviceTemplateVersion]);
   });

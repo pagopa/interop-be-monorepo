@@ -17,6 +17,7 @@ import {
   getMockAgreementAttribute,
   getMockAttribute,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockDescriptorPublished,
@@ -320,12 +321,10 @@ describe("activate agreement", () => {
         });
 
         const acrivateAgreementReturnValue =
-          await agreementService.activateAgreement(agreement.id, {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          });
+          await agreementService.activateAgreement(
+            agreement.id,
+            getMockContext({ authData })
+          );
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -554,12 +553,10 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -674,12 +671,10 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
     });
 
@@ -694,12 +689,10 @@ describe("activate agreement", () => {
       };
       await addOneAgreement(agreement);
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(
         organizationIsNotTheProducer(authData.organizationId)
       );
@@ -726,12 +719,10 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(
         organizationIsNotTheProducer(authData.organizationId)
       );
@@ -759,12 +750,10 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(
         organizationIsNotTheDelegateProducer(
           authData.organizationId,
@@ -901,12 +890,10 @@ describe("activate agreement", () => {
         });
 
         const activateAgreementReturnValue =
-          await agreementService.activateAgreement(agreement.id, {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          });
+          await agreementService.activateAgreement(
+            agreement.id,
+            getMockContext({ authData })
+          );
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -1035,12 +1022,10 @@ describe("activate agreement", () => {
       const relatedAgreements = await addRelatedAgreements(agreement);
 
       const activateAgreementReturnValue =
-        await agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        );
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -1257,12 +1242,10 @@ describe("activate agreement", () => {
           });
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(agreement.id, {
-              authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
-            });
+            await agreementService.activateAgreement(
+              agreement.id,
+              getMockContext({ authData })
+            );
 
           const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -1319,12 +1302,10 @@ describe("activate agreement", () => {
           });
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(agreement.id, {
-              authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
-            });
+            await agreementService.activateAgreement(
+              agreement.id,
+              getMockContext({ authData })
+            );
 
           const agreementEvent = await readAgreementEventByVersion(
             agreement.id,
@@ -1558,12 +1539,10 @@ describe("activate agreement", () => {
           });
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(agreement.id, {
-              authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
-            });
+            await agreementService.activateAgreement(
+              agreement.id,
+              getMockContext({ authData })
+            );
           const agreementEvent = await readLastAgreementEvent(agreement.id);
           expect(agreementEvent).toMatchObject({
             type: eventType,
@@ -1613,12 +1592,10 @@ describe("activate agreement", () => {
           });
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(agreement.id, {
-              authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
-            });
+            await agreementService.activateAgreement(
+              agreement.id,
+              getMockContext({ authData })
+            );
 
           const agreementEvent = await readAgreementEventByVersion(
             agreement.id,
@@ -1687,12 +1664,10 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
 
@@ -1718,12 +1693,10 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
   });
@@ -1734,12 +1707,10 @@ describe("activate agreement", () => {
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
-        agreementService.activateAgreement(agreementId, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreementId,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
@@ -1772,12 +1743,10 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
 
@@ -1798,12 +1767,10 @@ describe("activate agreement", () => {
         };
         await addOneAgreement(agreement);
         await expect(
-          agreementService.activateAgreement(agreement.id, {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          })
+          agreementService.activateAgreement(
+            agreement.id,
+            getMockContext({ authData })
+          )
         ).rejects.toThrowError(
           agreementNotInExpectedState(agreement.id, agreement.state)
         );
@@ -1823,12 +1790,10 @@ describe("activate agreement", () => {
       };
       await addOneAgreement(agreement);
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
 
@@ -1853,12 +1818,10 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(
         descriptorNotFound(agreement.eserviceId, agreement.descriptorId)
       );
@@ -1899,12 +1862,10 @@ describe("activate agreement", () => {
         await addOneAgreement(agreement);
 
         await expect(
-          agreementService.activateAgreement(agreement.id, {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          })
+          agreementService.activateAgreement(
+            agreement.id,
+            getMockContext({ authData })
+          )
         ).rejects.toThrowError(
           descriptorNotInExpectedState(
             eservice.id,
@@ -1944,12 +1905,10 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(tenantNotFound(consumerId));
     });
 
@@ -1983,12 +1942,10 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(tenantNotFound(producerId));
     });
 
@@ -2028,12 +1985,10 @@ describe("activate agreement", () => {
       await addOneEService(eservice);
       await addOneAgreement(agreement);
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(agreementStampNotFound("submission"));
     });
 
@@ -2097,12 +2052,10 @@ describe("activate agreement", () => {
       await addOneEService(eservice);
       await addOneAgreement(agreement);
       await expect(
-        agreementService.activateAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.activateAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(
         attributeNotFound(validTenantCertifiedAttribute.id)
       );

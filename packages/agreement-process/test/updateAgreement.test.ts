@@ -6,6 +6,7 @@ import {
   randomArrayItem,
   getMockDelegation,
   addSomeRandomDelegations,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -18,7 +19,6 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -44,12 +44,7 @@ describe("update agreement", () => {
     const returnedAgreement = await agreementService.updateAgreement(
       agreement.id,
       { consumerNotes: "Updated consumer notes" },
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -84,12 +79,7 @@ describe("update agreement", () => {
       agreementService.updateAgreement(
         agreementId,
         { consumerNotes: "Updated consumer notes" },
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
@@ -102,12 +92,7 @@ describe("update agreement", () => {
       agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
@@ -129,12 +114,7 @@ describe("update agreement", () => {
       agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -161,12 +141,7 @@ describe("update agreement", () => {
     const returnedAgreement = await agreementService.updateAgreement(
       agreement.id,
       { consumerNotes: "Updated consumer notes" },
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -211,12 +186,7 @@ describe("update agreement", () => {
       agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(

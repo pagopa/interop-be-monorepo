@@ -1,10 +1,10 @@
 import { fail } from "assert";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   expectPastTimestamp,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockDescriptorPublished,
@@ -149,12 +149,7 @@ describe("create agreement", () => {
         eserviceId,
         descriptorId,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     await expectedAgreementCreation(
@@ -211,12 +206,7 @@ describe("create agreement", () => {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     await expectedAgreementCreation(
@@ -292,12 +282,7 @@ describe("create agreement", () => {
         descriptorId: eservice.descriptors[0].id,
         delegationId: delegation.id,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     await expectedAgreementCreation(
@@ -333,12 +318,7 @@ describe("create agreement", () => {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     await expectedAgreementCreation(
@@ -382,12 +362,7 @@ describe("create agreement", () => {
         eserviceId: eservice.id,
         descriptorId: descriptor0.id,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     await expectedAgreementCreation(
@@ -428,12 +403,7 @@ describe("create agreement", () => {
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     await expectedAgreementCreation(
@@ -456,12 +426,7 @@ describe("create agreement", () => {
           eserviceId,
           descriptorId,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(unsafeBrandId(eserviceId)));
   });
@@ -481,12 +446,7 @@ describe("create agreement", () => {
           eserviceId,
           descriptorId,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       notLatestEServiceDescriptor(unsafeBrandId(descriptorId))
@@ -527,12 +487,7 @@ describe("create agreement", () => {
           eserviceId,
           descriptorId: descriptor0.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       notLatestEServiceDescriptor(unsafeBrandId(descriptor0.id))
@@ -569,12 +524,7 @@ describe("create agreement", () => {
           eserviceId,
           descriptorId: descriptor.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       descriptorNotInExpectedState(eservice.id, descriptor.id, [
@@ -609,12 +559,7 @@ describe("create agreement", () => {
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
   });
@@ -664,12 +609,7 @@ describe("create agreement", () => {
           descriptorId: descriptor.id,
           delegationId: delegation.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementAlreadyExists(delegator.id, eservice.id));
   });
@@ -694,12 +634,7 @@ describe("create agreement", () => {
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(consumer.id));
   });
@@ -744,12 +679,7 @@ describe("create agreement", () => {
           eserviceId: eservice.id,
           descriptorId: eservice.descriptors[0].id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(descriptor.id, consumer.id)
@@ -805,12 +735,7 @@ describe("create agreement", () => {
           eserviceId: eservice.id,
           descriptorId: eservice.descriptors[0].id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(descriptor.id, consumer.id)
@@ -841,12 +766,7 @@ describe("create agreement", () => {
           eserviceId: eservice.id,
           descriptorId: eservice.descriptors[0].id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
@@ -879,12 +799,7 @@ describe("create agreement", () => {
           descriptorId: eservice.descriptors[0].id,
           delegationId,
         },
-        {
-          authData: getRandomAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
@@ -912,12 +827,7 @@ describe("create agreement", () => {
           descriptorId: eservice.descriptors[0].id,
           delegationId: delegation.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(

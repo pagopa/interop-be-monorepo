@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -60,12 +60,9 @@ describe("update Document", () => {
         version.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({
+          authData: getRandomAuthData(eserviceTemplate.creatorId),
+        })
       );
       const writtenEvent = await readLastEserviceTemplateEvent(
         eserviceTemplate.id
@@ -118,12 +115,7 @@ describe("update Document", () => {
         mockVersion.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
   });
@@ -145,12 +137,7 @@ describe("update Document", () => {
         version.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -167,12 +154,9 @@ describe("update Document", () => {
         mockVersion.id,
         generateId(),
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({
+          authData: getRandomAuthData(eserviceTemplate.creatorId),
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
@@ -204,12 +188,9 @@ describe("update Document", () => {
           version.id,
           generateId(),
           { prettyName: "updated prettyName" },
-          {
-            authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({
+            authData: getRandomAuthData(eserviceTemplate.creatorId),
+          })
         )
       ).rejects.toThrowError(
         notValidEServiceTemplateVersionState(version.id, state)
@@ -234,12 +215,7 @@ describe("update Document", () => {
         version.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(eservice.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(eservice.creatorId) })
       )
     ).rejects.toThrowError(
       eserviceTemplateDocumentNotFound(eservice.id, version.id, mockDocument.id)
@@ -272,12 +248,9 @@ describe("update Document", () => {
         version.id,
         document2.id,
         { prettyName: document1.prettyName.toLowerCase() },
-        {
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({
+          authData: getRandomAuthData(eserviceTemplate.creatorId),
+        })
       )
     ).rejects.toThrowError(
       documentPrettyNameDuplicate(

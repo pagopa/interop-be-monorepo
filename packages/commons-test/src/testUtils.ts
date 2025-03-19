@@ -80,8 +80,15 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
+  CorrelationId,
 } from "pagopa-interop-models";
-import { AuthData, dateToSeconds } from "pagopa-interop-commons";
+import {
+  AppContext,
+  AuthData,
+  dateToSeconds,
+  genericLogger,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
@@ -130,12 +137,28 @@ export const getTenantOneCertifierFeature = (
   return certifiedFeatures[0];
 };
 
+// export const getRandomAuthData = (organizationId?: TenantId): AuthData => ({
+//   organizationId: organizationId || generateId(),
+//   userId: generateId(),
+//   userRoles: [],
+//   externalId: {
+//     value: "123456",
+//     origin: "IPA",
+//   },
+//   selfcareId: generateId(),
+// });
+
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
-  ...generateMock(AuthData),
-  userRoles: ["admin"],
   organizationId,
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
 });
 
 export const getMockDescriptorPublished = (
@@ -270,8 +293,6 @@ export const getMockAttribute = (
   kind,
   description: "attribute description",
   creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
 });
 
 export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
@@ -383,17 +404,6 @@ export const getMockKey = (): Key => ({
   encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
-});
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
 });
 
 export const getMockDelegation = ({
@@ -729,4 +739,19 @@ export const getMockEServiceTemplate = (
   riskAnalysis: [],
   mode: "Deliver",
   isSignalHubEnabled: true,
+});
+
+export const getMockContext = ({
+  authData,
+  serviceName,
+  correlationId,
+}: {
+  authData?: AuthData;
+  serviceName?: string;
+  correlationId?: CorrelationId;
+}): WithLogger<AppContext> => ({
+  authData: authData || getRandomAuthData(),
+  serviceName: serviceName || "",
+  correlationId: correlationId || generateId(),
+  logger: genericLogger,
 });

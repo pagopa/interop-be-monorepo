@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import {
-  getMockAuthData,
+  getRandomAuthData,
+  getMockContext,
   getMockTenant,
   readEventByStreamIdAndVersion,
   writeInReadmodel,
@@ -90,7 +91,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -99,12 +100,10 @@ describe("m2mUpsertTenant", async () => {
     await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
 
     await addOneTenant(mockTenant);
-    const returnedTenant = await tenantService.m2mUpsertTenant(tenantSeed, {
-      authData,
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    const returnedTenant = await tenantService.m2mUpsertTenant(
+      tenantSeed,
+      getMockContext({ authData })
+    );
     const writtenEvent = await readEventByStreamIdAndVersion(
       mockTenant.id,
       1,
@@ -202,7 +201,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -248,12 +247,10 @@ describe("m2mUpsertTenant", async () => {
 
     await addOneTenant(tenant);
 
-    const returnedTenant = await tenantService.m2mUpsertTenant(tenantSeed2, {
-      authData,
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    const returnedTenant = await tenantService.m2mUpsertTenant(
+      tenantSeed2,
+      getMockContext({ authData })
+    );
 
     const writtenEvent = await readLastTenantEvent(tenant.id);
     if (!writtenEvent) {
@@ -309,7 +306,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -329,31 +326,21 @@ describe("m2mUpsertTenant", async () => {
     await addOneTenant(tenantAlreadyAssigned);
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(attribute.id, tenantAlreadyAssigned.id)
     );
   });
   it("Should throw tenantNotFound if the requester doesn't exist", async () => {
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: getMockTenant().id,
       userRoles: ["m2m"],
     };
 
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
     ).rejects.toThrowError(tenantNotFound(authData.organizationId));
   });
   it("Should throw tenantNotFound if the tenant by externalId doesn't exist", async () => {
@@ -373,7 +360,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -391,12 +378,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
         tenantSeed.externalId.origin,
@@ -421,19 +403,14 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
 
     await addOneTenant(mockTenant);
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
     ).rejects.toThrowError(
       attributeNotFound(
         `${certifierId}/${tenantSeed.certifiedAttributes[0].code}`
@@ -443,19 +420,14 @@ describe("m2mUpsertTenant", async () => {
   it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
     const tenant: Tenant = getMockTenant();
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       organizationId: tenant.id,
       userRoles: ["m2m"],
     };
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     await addOneTenant(tenant);
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
     ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
   });
 });

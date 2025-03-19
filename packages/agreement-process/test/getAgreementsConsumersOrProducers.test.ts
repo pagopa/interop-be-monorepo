@@ -1,11 +1,11 @@
 /* eslint-disable functional/no-let */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockTenant,
   getMockAgreement,
   getRandomAuthData,
   getMockDelegation,
   getMockEService,
+  getMockContext,
 } from "pagopa-interop-commons-test/index.js";
 import {
   EServiceId,
@@ -192,12 +192,12 @@ describe("get agreements consumers / producers", () => {
   describe("get agreements consumers", () => {
     it("should get all agreements consumers for agreements visible to consumer/producer requester if no filters are provided", async () => {
       const consumersResultForTenant1 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant1.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForTenant1,
@@ -205,12 +205,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const consumersResultForTenant2 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant2.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForTenant2,
@@ -218,12 +218,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const consumersResultForTenant3 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant3.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant3.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForTenant3,
@@ -233,12 +233,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const consumersResultForTenant4 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant4.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant4.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForTenant4,
@@ -248,12 +248,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const consumersResultForTenant5 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant5.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant5.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForTenant5,
@@ -261,12 +261,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const consumersResultForTenant6 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant6.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant6.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForTenant6,
@@ -276,12 +276,12 @@ describe("get agreements consumers / producers", () => {
 
     it("should get all agreements consumers for agreements visible to delegate producer requester if no filters are provided", async () => {
       const consumersResultForDelegateProducer1 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(delegateProducer1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(delegateProducer1.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForDelegateProducer1,
@@ -291,12 +291,12 @@ describe("get agreements consumers / producers", () => {
 
     it("should get all agreements consumers for agreements visible to delegate consumer requester if no filters are provided", async () => {
       const consumersResultForDelegateConsumer1 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(delegateConsumer1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(delegateConsumer1.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForDelegateConsumer1,
@@ -304,12 +304,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const consumersResultForDelegateConsumer2 =
-        await agreementService.getAgreementsConsumers(undefined, 10, 0, {
-          authData: getRandomAuthData(delegateConsumer2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsConsumers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(delegateConsumer2.id) })
+        );
 
       expectSinglePageListResult(
         consumersResultForDelegateConsumer2,
@@ -322,12 +322,7 @@ describe("get agreements consumers / producers", () => {
         "Bar",
         10,
         0,
-        {
-          authData: getRandomAuthData(tenant4.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant4.id) })
       );
 
       expectSinglePageListResult(
@@ -341,12 +336,7 @@ describe("get agreements consumers / producers", () => {
         undefined,
         2,
         0,
-        {
-          authData: getRandomAuthData(tenant4.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant4.id) })
       );
 
       expect(consumers).toEqual({
@@ -360,12 +350,7 @@ describe("get agreements consumers / producers", () => {
         undefined,
         2,
         1,
-        {
-          authData: getRandomAuthData(tenant4.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant4.id) })
       );
 
       expect(consumers).toEqual({
@@ -379,12 +364,7 @@ describe("get agreements consumers / producers", () => {
         "B",
         1,
         1,
-        {
-          authData: getRandomAuthData(tenant4.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant4.id) })
       );
 
       expect(consumers).toEqual({
@@ -398,12 +378,7 @@ describe("get agreements consumers / producers", () => {
         "Not existing name",
         10,
         0,
-        {
-          authData: getRandomAuthData(tenant1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant1.id) })
       );
 
       expect(producers).toEqual({
@@ -415,12 +390,12 @@ describe("get agreements consumers / producers", () => {
   describe("get agreements producers", () => {
     it("should get all agreements producers for agreements visible to consumer/producer requester if no filters are provided", async () => {
       const producerResultsForTenant1 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant1.id) })
+        );
 
       expectSinglePageListResult(
         producerResultsForTenant1,
@@ -428,12 +403,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const producerResultsForTenant2 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant2.id) })
+        );
 
       expectSinglePageListResult(
         producerResultsForTenant2,
@@ -441,12 +416,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const producerResultsForTenant3 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant3.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant3.id) })
+        );
 
       expectSinglePageListResult(
         producerResultsForTenant3,
@@ -454,12 +429,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const producerResultsForTenant4 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant4.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant4.id) })
+        );
 
       expectSinglePageListResult(
         producerResultsForTenant4,
@@ -467,12 +442,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const producerResultsForTenant5 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant5.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant5.id) })
+        );
 
       expectSinglePageListResult(
         producerResultsForTenant5,
@@ -480,12 +455,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const producerResultsForTenant6 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(tenant6.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(tenant6.id) })
+        );
 
       expectSinglePageListResult(
         producerResultsForTenant6,
@@ -495,12 +470,12 @@ describe("get agreements consumers / producers", () => {
 
     it("should get all agreements producers for agreements visible to delegate producer requester if no filters are provided", async () => {
       const producersResultForDelegateProducer1 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(delegateProducer1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(delegateProducer1.id) })
+        );
 
       expectSinglePageListResult(
         producersResultForDelegateProducer1,
@@ -510,12 +485,12 @@ describe("get agreements consumers / producers", () => {
 
     it("should get all agreements producers for agreements visible to delegate consumer requester if no filters are provided", async () => {
       const producersResultForDelegateConsumer1 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(delegateConsumer1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(delegateConsumer1.id) })
+        );
 
       expectSinglePageListResult(
         producersResultForDelegateConsumer1,
@@ -523,12 +498,12 @@ describe("get agreements consumers / producers", () => {
       );
 
       const producersResultForDelegateConsumer2 =
-        await agreementService.getAgreementsProducers(undefined, 10, 0, {
-          authData: getRandomAuthData(delegateConsumer2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        });
+        await agreementService.getAgreementsProducers(
+          undefined,
+          10,
+          0,
+          getMockContext({ authData: getRandomAuthData(delegateConsumer2.id) })
+        );
 
       expectSinglePageListResult(
         producersResultForDelegateConsumer2,
@@ -541,12 +516,7 @@ describe("get agreements consumers / producers", () => {
         "Bar",
         10,
         0,
-        {
-          authData: getRandomAuthData(tenant2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant2.id) })
       );
 
       expectSinglePageListResult(
@@ -559,12 +529,7 @@ describe("get agreements consumers / producers", () => {
         undefined,
         1,
         0,
-        {
-          authData: getRandomAuthData(tenant2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant2.id) })
       );
 
       expect(producers).toEqual({
@@ -578,12 +543,7 @@ describe("get agreements consumers / producers", () => {
         undefined,
         1,
         1,
-        {
-          authData: getRandomAuthData(tenant2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant2.id) })
       );
 
       expect(producers).toEqual({
@@ -597,12 +557,7 @@ describe("get agreements consumers / producers", () => {
         "Bar",
         1,
         0,
-        {
-          authData: getRandomAuthData(tenant2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant2.id) })
       );
 
       expect(producers).toEqual({
@@ -616,12 +571,7 @@ describe("get agreements consumers / producers", () => {
         "Not existing name",
         10,
         0,
-        {
-          authData: getRandomAuthData(tenant1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant1.id) })
       );
 
       expect(producers).toEqual({

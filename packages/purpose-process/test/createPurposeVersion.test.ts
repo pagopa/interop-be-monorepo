@@ -18,6 +18,7 @@ import {
   getMockDelegation,
   getRandomAuthData,
   addSomeRandomDelegations,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -142,12 +143,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      {
-        authData: getRandomAuthData(mockPurpose.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
     );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -254,12 +250,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      {
-        authData: getRandomAuthData(mockPurpose.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
     );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -354,12 +345,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 4,
       },
-      {
-        authData: getRandomAuthData(mockPurpose.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
     );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -458,12 +444,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 30,
       },
-      {
-        authData: getRandomAuthData(mockPurpose.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -540,12 +521,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      {
-        authData: getRandomAuthData(consumerDelegate.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
     );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -703,12 +679,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 24,
       },
-      {
-        authData: getRandomAuthData(consumerDelegate.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
     );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -803,12 +774,9 @@ describe("createPurposeVersion", () => {
           {
             dailyCalls: mockPurposeVersion.dailyCalls,
           },
-          {
+          getMockContext({
             authData: getRandomAuthData(mockPurpose.consumerId),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          })
         )
     ).rejects.toThrowError(unchangedDailyCalls(mockPurpose.id));
   });
@@ -826,12 +794,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 1000,
         },
-        {
-          authData: getRandomAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       );
     }).rejects.toThrowError(
       organizationIsNotTheConsumer(mockEService.producerId)
@@ -850,12 +813,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
@@ -876,12 +834,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(anotherTenant.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(anotherTenant.id) })
       );
     }).rejects.toThrowError(organizationIsNotTheConsumer(anotherTenant.id));
   });
@@ -898,12 +851,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       );
     }).rejects.toThrowError(
       agreementNotFound(mockEService.id, mockConsumer.id)
@@ -934,12 +882,9 @@ describe("createPurposeVersion", () => {
           {
             dailyCalls: 20,
           },
-          {
+          getMockContext({
             authData: getRandomAuthData(mockPurpose.consumerId),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          })
         );
       }).rejects.toThrowError(
         agreementNotFound(mockEService.id, mockConsumer.id)
@@ -959,12 +904,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
@@ -981,12 +921,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       );
     }).rejects.toThrowError(tenantNotFound(mockProducer.id));
   });
@@ -1010,12 +945,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
@@ -1039,12 +969,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       );
     }).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -1067,12 +992,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
   });
@@ -1106,12 +1026,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData })
       );
     }).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
@@ -1138,12 +1053,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData })
       );
     }).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -1178,12 +1088,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       );
     }).rejects.toThrowError(
       organizationIsNotTheConsumer(delegation.delegateId)
@@ -1229,12 +1134,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       );
     }).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
@@ -1260,12 +1160,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 1000,
         },
-        {
-          authData: getRandomAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       );
     }).rejects.toThrowError(purposeCannotBeUpdated(mockPurpose.id));
   });

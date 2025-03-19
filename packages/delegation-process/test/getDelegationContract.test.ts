@@ -1,7 +1,8 @@
 /* eslint-disable functional/no-let */
 import {
-  getMockAuthData,
+  getMockContext,
   getMockDelegation,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   DelegationContractDocument,
@@ -12,7 +13,6 @@ import {
   operationForbidden,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   delegationContractNotFound,
   delegationNotFound,
@@ -42,12 +42,7 @@ describe("getDelegationContract", () => {
     const returnedContract = await delegationService.getDelegationContract(
       delegation.id,
       mockContract.id,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
     );
 
     expect(returnedContract).toEqual(mockContract);
@@ -64,12 +59,7 @@ describe("getDelegationContract", () => {
     const returnedContract = delegationService.getDelegationContract(
       notFoundId,
       mockContract.id,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
     );
 
     await expect(returnedContract).rejects.toThrow(
@@ -91,12 +81,7 @@ describe("getDelegationContract", () => {
     const returnedContract = delegationService.getDelegationContract(
       delegation.id,
       falseContractId,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
     );
 
     await expect(returnedContract).rejects.toThrow(
@@ -117,12 +102,7 @@ describe("getDelegationContract", () => {
     const returnedContract = delegationService.getDelegationContract(
       delegation.id,
       mockContract.id,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
 
     await expect(returnedContract).rejects.toThrow(operationForbidden);

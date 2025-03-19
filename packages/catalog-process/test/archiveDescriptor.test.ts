@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -13,7 +13,6 @@ import {
   toEServiceV2,
   operationForbidden,
   delegationState,
-  generateId,
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -25,7 +24,7 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
+  getRandomAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -47,12 +46,11 @@ describe("archive descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.archiveDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -86,7 +84,7 @@ describe("archive descriptor", () => {
       interface: mockDocument,
       state: descriptorState.suspended,
     };
-    const delegate = getMockAuthData();
+    const delegate = getRandomAuthData();
 
     const eservice: EService = {
       ...mockEService,
@@ -102,12 +100,11 @@ describe("archive descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(delegate.organizationId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.archiveDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getRandomAuthData(delegate.organizationId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -137,12 +134,11 @@ describe("archive descriptor", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
-      catalogService.archiveDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.archiveDescriptor(
+        mockEService.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
@@ -154,12 +150,11 @@ describe("archive descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.archiveDescriptor(eservice.id, mockDescriptor.id, {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.archiveDescriptor(
+        eservice.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
@@ -176,12 +171,11 @@ describe("archive descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.archiveDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({})
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -204,12 +198,11 @@ describe("archive descriptor", () => {
     await addOneDelegation(delegation);
 
     expect(
-      catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.archiveDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 });

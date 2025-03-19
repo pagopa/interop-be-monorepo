@@ -1,6 +1,6 @@
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
+  getMockContext,
   getMockEService,
   getMockTenant,
   getRandomAuthData,
@@ -63,12 +63,7 @@ describe("create consumer delegation", () => {
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eserviceNotConsumerDelegable(eservice.id));
   });
@@ -120,12 +115,7 @@ describe("create consumer delegation", () => {
             delegateId: delegate.id,
             eserviceId: eservice.id,
           },
-          {
-            authData,
-            logger: genericLogger,
-            correlationId: generateId(),
-            serviceName: "DelegationServiceTest",
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         delegationRelatedAgreementExists(

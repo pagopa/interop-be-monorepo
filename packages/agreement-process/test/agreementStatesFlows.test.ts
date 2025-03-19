@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDescriptorPublished,
   getMockEService,
@@ -152,12 +152,7 @@ describe("Agreeement states flows", () => {
         eserviceId,
         descriptorId,
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
@@ -171,12 +166,7 @@ describe("Agreeement states flows", () => {
       {
         consumerNotes: "Some notes here!",
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(submittedAgreement.state).toEqual(agreementState.active);
@@ -187,12 +177,7 @@ describe("Agreeement states flows", () => {
     ================================= */
     const suspendedAgreement = await agreementService.suspendAgreement(
       submittedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(suspendedAgreement.state).toEqual(agreementState.suspended);
@@ -248,12 +233,7 @@ describe("Agreeement states flows", () => {
     ================================= */
     const upgradedAgreement = await agreementService.upgradeAgreement(
       suspendedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(upgradedAgreement.state).toEqual(agreementState.draft);
@@ -272,12 +252,7 @@ describe("Agreeement states flows", () => {
         consumerNotes:
           "This upgrade is for transit agreement state to PENDING!",
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
@@ -341,12 +316,7 @@ describe("Agreeement states flows", () => {
 
     const activatedAgreement = await agreementService.activateAgreement(
       submittedUpgradedAgreement.id,
-      {
-        authData: producerAuthData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: producerAuthData })
     );
 
     await updateAgreementInReadModel(activatedAgreement);
@@ -431,12 +401,7 @@ describe("Agreeement states flows", () => {
         eserviceId,
         descriptorId,
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
@@ -450,12 +415,7 @@ describe("Agreeement states flows", () => {
       {
         consumerNotes: "Some notes here!",
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(submittedAgreement.state).toEqual(agreementState.active);
@@ -508,12 +468,7 @@ describe("Agreeement states flows", () => {
     ================================= */
     const upgradedAgreement = await agreementService.upgradeAgreement(
       submittedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(upgradedAgreement.state).toEqual(agreementState.draft);
@@ -532,12 +487,7 @@ describe("Agreeement states flows", () => {
         consumerNotes:
           "This upgrade is for transit agreement state to PENDING!",
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
@@ -595,12 +545,7 @@ describe("Agreeement states flows", () => {
 
     const activatedAgreement = await agreementService.activateAgreement(
       submittedUpgradedAgreement.id,
-      {
-        authData: producerAuthData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: producerAuthData })
     );
 
     await updateAgreementInReadModel(activatedAgreement);

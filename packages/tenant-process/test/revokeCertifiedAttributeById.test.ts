@@ -15,7 +15,6 @@ import {
   TenantCertifiedAttributeRevokedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   writeInReadmodel,
   getMockAttribute,
@@ -23,6 +22,7 @@ import {
   readEventByStreamIdAndVersion,
   getRandomAuthData,
   getTenantOneCertifierFeature,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -86,12 +86,7 @@ describe("revokeCertifiedAttributeById", async () => {
         tenantId: tenantWithCertifiedAttribute.id,
         attributeId: attribute.id,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       tenantWithCertifiedAttribute.id,
@@ -133,12 +128,7 @@ describe("revokeCertifiedAttributeById", async () => {
           tenantId: getMockTenant().id,
           attributeId: attribute.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
   });
@@ -153,12 +143,7 @@ describe("revokeCertifiedAttributeById", async () => {
           tenantId: targetTenant.id,
           attributeId: attribute.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
   });
@@ -179,12 +164,7 @@ describe("revokeCertifiedAttributeById", async () => {
           tenantId: targetTenant.id,
           attributeId: attribute.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantIsNotACertifier(notCertifierTenant.id));
   });
@@ -207,12 +187,7 @@ describe("revokeCertifiedAttributeById", async () => {
           tenantId: targetTenant.id,
           attributeId: attribute.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       attributeDoesNotBelongToCertifier(
@@ -242,12 +217,7 @@ describe("revokeCertifiedAttributeById", async () => {
           tenantId: tenantAlreadyRevoked.id,
           attributeId: attribute.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       attributeAlreadyRevoked(

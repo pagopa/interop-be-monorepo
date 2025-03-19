@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockTenant,
   getMockDelegation,
+  getMockContext,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -26,7 +27,6 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   addOneTenant,
   addOneAgreement,
@@ -62,12 +62,7 @@ describe("publish descriptor", () => {
     await catalogService.approveDelegatedEServiceDescriptor(
       eservice.id,
       descriptor.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -119,12 +114,7 @@ describe("publish descriptor", () => {
     await catalogService.approveDelegatedEServiceDescriptor(
       eservice.id,
       descriptor2.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -194,12 +184,7 @@ describe("publish descriptor", () => {
     await catalogService.approveDelegatedEServiceDescriptor(
       eservice.id,
       descriptor2.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -240,12 +225,7 @@ describe("publish descriptor", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -260,12 +240,7 @@ describe("publish descriptor", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         mockDescriptor.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -286,12 +261,7 @@ describe("publish descriptor", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -318,12 +288,7 @@ describe("publish descriptor", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        {
-          authData: getMockAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -349,12 +314,7 @@ describe("publish descriptor", () => {
         catalogService.approveDelegatedEServiceDescriptor(
           eservice.id,
           descriptor.id,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAttribute,
+  getMockContext,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -27,7 +28,6 @@ import {
   addOneAttribute,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockEService,
   readLastEserviceEvent,
@@ -142,12 +142,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -194,12 +189,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -238,12 +228,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         verified: validMockDescriptorVerifiedAttributes,
         declared: [],
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -276,12 +261,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -309,12 +289,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(mockEService.id, mockDescriptor.id)
@@ -363,12 +338,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
             ],
           ],
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingAttributeId));
   });
@@ -408,12 +378,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
           ],
           declared: [],
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       inconsistentAttributesSeedGroupsCount(mockEService.id, mockDescriptor.id)
@@ -460,12 +425,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
           ],
           declared: [],
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       descriptorAttributeGroupSupersetMissingInAttributesSeed(

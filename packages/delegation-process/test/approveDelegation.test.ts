@@ -7,6 +7,7 @@ import {
   getMockTenant,
   getMockEService,
   getRandomAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test/index.js";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -91,12 +92,7 @@ describe.each([
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await approveFn(delegation.id, {
-      authData,
-      serviceName: "",
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await approveFn(delegation.id, getMockContext({ authData }));
 
     const event = await readLastDelegationEvent(delegation.id);
     expect(event.version).toBe("1");
@@ -188,12 +184,10 @@ describe.each([
       unsafeBrandId<DelegationId>("non-existent-id");
 
     await expect(
-      approveFn(nonExistentDelegationId, {
-        authData: getRandomAuthData(delegateId),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      approveFn(
+        nonExistentDelegationId,
+        getMockContext({ authData: getRandomAuthData(delegateId) })
+      )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId, kind));
   });
 
@@ -211,12 +205,10 @@ describe.each([
     await addOneDelegation(delegation);
 
     await expect(
-      approveFn(delegation.id, {
-        authData: getRandomAuthData(delegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      approveFn(
+        delegation.id,
+        getMockContext({ authData: getRandomAuthData(delegate.id) })
+      )
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
   });
 
@@ -233,12 +225,10 @@ describe.each([
     await addOneDelegation(delegation);
 
     await expect(
-      approveFn(delegation.id, {
-        authData: getRandomAuthData(wrongDelegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      approveFn(
+        delegation.id,
+        getMockContext({ authData: getRandomAuthData(wrongDelegate.id) })
+      )
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegate.id, delegation.id)
     );
@@ -261,12 +251,10 @@ describe.each([
       await addOneDelegation(delegation);
 
       await expect(
-        approveFn(delegation.id, {
-          authData: getRandomAuthData(delegate.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        approveFn(
+          delegation.id,
+          getMockContext({ authData: getRandomAuthData(delegate.id) })
+        )
       ).rejects.toThrow(
         incorrectState(delegation.id, state, delegationState.waitingForApproval)
       );
@@ -285,12 +273,10 @@ describe.each([
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await approveFn(delegation.id, {
-      authData: getRandomAuthData(delegate.id),
-      serviceName: "",
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await approveFn(
+      delegation.id,
+      getMockContext({ authData: getRandomAuthData(delegate.id) })
+    );
 
     const contracts = await fileManager.listFiles(
       config.s3Bucket,

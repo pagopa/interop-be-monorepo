@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDescriptor,
   randomArrayItem,
   readEventByStreamIdAndVersion,
@@ -25,7 +25,7 @@ import {
   addOneEService,
   buildDescriptorSeedForEserviceCreation,
   catalogService,
-  getMockAuthData,
+  getRandomAuthData,
   getMockEService,
   postgresDB,
   readLastEserviceEvent,
@@ -64,12 +64,7 @@ describe("create eservice", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -149,12 +144,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -175,12 +165,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -201,12 +186,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -236,12 +216,7 @@ describe("create eservice", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -321,12 +296,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -347,12 +317,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -373,12 +338,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -399,12 +359,7 @@ describe("create eservice", () => {
           mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicate(mockEService.name.toLowerCase())
@@ -421,18 +376,15 @@ describe("create eservice", () => {
           mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
-        {
+        getMockContext({
           authData: {
-            ...getMockAuthData(mockEService.producerId),
+            ...getRandomAuthData(mockEService.producerId),
             externalId: {
               value: "123456",
               origin: "not-allowed-origin",
             },
           },
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
   });
@@ -451,12 +403,7 @@ describe("create eservice", () => {
             dailyCallsTotal: 99,
           },
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });

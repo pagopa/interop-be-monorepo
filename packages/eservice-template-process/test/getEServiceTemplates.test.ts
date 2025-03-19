@@ -1,7 +1,8 @@
 /* eslint-disable functional/no-let */
-import { genericLogger, AuthData, userRoles } from "pagopa-interop-commons";
+import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
-  getMockAuthData,
+  getRandomAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
@@ -132,12 +133,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([eserviceTemplate1, eserviceTemplate2]);
@@ -151,12 +147,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([
@@ -174,12 +165,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([
@@ -198,12 +184,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(4);
     expect(result.results).toEqual([
@@ -223,12 +204,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([
@@ -247,12 +223,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
@@ -267,12 +238,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(1);
     expect(result.results).toEqual([eserviceTemplate4]);
@@ -287,12 +253,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
@@ -306,12 +267,7 @@ describe("get eservices", () => {
       },
       0,
       2,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
 
     expect(result.totalCount).toBe(5);
@@ -326,12 +282,7 @@ describe("get eservices", () => {
       },
       4,
       4,
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({})
     );
     expect(result.totalCount).toBe(5);
     expect(result.results.length).toBe(1);
@@ -345,7 +296,7 @@ describe("get eservices", () => {
       versions: [],
     };
     const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
+      ...getRandomAuthData(organizationId1),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -357,12 +308,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
@@ -388,7 +334,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6],
     };
     const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
+      ...getRandomAuthData(organizationId1),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -400,12 +346,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
@@ -431,7 +372,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6],
     };
     const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
+      ...getRandomAuthData(organizationId1),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -443,12 +384,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result.totalCount).toBe(5);
     expect(result.results).toEqual([
@@ -473,7 +409,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6],
     };
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -485,12 +421,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result.totalCount).toBe(5);
     expect(result.results).toEqual([
@@ -523,7 +454,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
     const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
+      ...getRandomAuthData(organizationId1),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -535,12 +466,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
@@ -574,7 +500,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
     const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
+      ...getRandomAuthData(organizationId1),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -586,12 +512,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
@@ -625,7 +546,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
     const authData: AuthData = {
-      ...getMockAuthData(),
+      ...getRandomAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -637,12 +558,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
