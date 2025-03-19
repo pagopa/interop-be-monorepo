@@ -31,7 +31,13 @@ export const routesConfig: Record<
     },
     {
       method: "get",
-      roles: [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
+      roles: [
+        userRoles.ADMIN_ROLE,
+        userRoles.API_ROLE,
+        userRoles.M2M_ROLE,
+        userRoles.SECURITY_ROLE,
+        userRoles.SUPPORT_ROLE,
+      ],
       mock: mockEServicesResponse,
       routeInput: { ...mockEserviceFilter, offset: 0, limit: 10 },
       expectedOutput: mockApiEServicesResponse,
