@@ -885,7 +885,7 @@ export const agreementAttributeInReadmodelAgreement = readmodelAgreement.table(
 export const eserviceTemplateRefInReadmodelCatalog = readmodelCatalog.table(
   "eservice_template_ref",
   {
-    id: uuid().notNull(),
+    eserviceTemplateId: uuid("eservice_template_id").notNull(),
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     instanceLabel: varchar("instance_label"),
@@ -905,7 +905,7 @@ export const eserviceTemplateRefInReadmodelCatalog = readmodelCatalog.table(
       name: "eservice_template_ref_eservice_id_metadata_version_fkey",
     }),
     primaryKey({
-      columns: [table.id, table.eserviceId],
+      columns: [table.eserviceTemplateId, table.eserviceId],
       name: "eservice_template_ref_pkey",
     }),
   ]
@@ -1138,7 +1138,7 @@ export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
   readmodelCatalog.table(
     "eservice_descriptor_template_version_ref",
     {
-      id: uuid().notNull(),
+      eserviceTemplateVersionId: uuid("eservice_template_version_id").notNull(),
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id").notNull(),
@@ -1167,7 +1167,7 @@ export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
         name: "eservice_descriptor_template__eservice_id_metadata_version_fkey",
       }),
       primaryKey({
-        columns: [table.id, table.descriptorId],
+        columns: [table.eserviceTemplateVersionId, table.descriptorId],
         name: "eservice_descriptor_template_version_ref_pkey",
       }),
     ]
