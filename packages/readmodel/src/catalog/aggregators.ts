@@ -90,7 +90,7 @@ export const aggregateDescriptor = ({
   const templateVersionRef: EServiceTemplateVersionRef | undefined =
     templateVersionRefSQL
       ? {
-          id: unsafeBrandId(templateVersionRefSQL.id),
+          id: unsafeBrandId(templateVersionRefSQL.eserviceTemplateVersionId),
           interfaceMetadata: {
             contactName: templateVersionRefSQL.contactName ?? undefined,
             contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
@@ -190,7 +190,7 @@ export const aggregateEservice = ({
 
   const templateRef: EServiceTemplateRef | undefined = templateRefSQL
     ? {
-        id: unsafeBrandId(templateRefSQL.id),
+        id: unsafeBrandId(templateRefSQL.eserviceTemplateId),
         instanceLabel: templateRefSQL.instanceLabel ?? undefined,
       }
     : undefined;

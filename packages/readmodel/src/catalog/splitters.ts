@@ -35,7 +35,7 @@ export const splitEserviceIntoObjectsSQL = (
   const templateRefSQL: EServiceTemplateRefSQL | undefined =
     eservice.templateRef
       ? {
-          id: eservice.templateRef.id,
+          eserviceTemplateId: eservice.templateRef.id,
           eserviceId: eservice.id,
           metadataVersion: version,
           instanceLabel: eservice.templateRef.instanceLabel ?? null,
@@ -254,7 +254,7 @@ export const splitDescriptorIntoObjectsSQL = (
     | EServiceDescriptorTemplateVersionRefSQL
     | undefined = descriptor.templateVersionRef
     ? {
-        id: descriptor.templateVersionRef.id,
+        eserviceTemplateVersionId: descriptor.templateVersionRef.id,
         eserviceId,
         metadataVersion: version,
         descriptorId: descriptor.id,
