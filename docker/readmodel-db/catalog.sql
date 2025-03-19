@@ -17,11 +17,11 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_template_ref (
-  id UUID,
+  eservice_template_id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   instance_label VARCHAR,
-  PRIMARY KEY (id, eservice_id),
+  PRIMARY KEY (eservice_template_id, eservice_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_template_version_ref (
-  id UUID,
+  eservice_template_version_id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_template_versio
   contact_email VARCHAR,
   contact_url VARCHAR,
   terms_and_conditions_url VARCHAR,
-  PRIMARY KEY (id, descriptor_id),
+  PRIMARY KEY (eservice_template_version_id, descriptor_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 

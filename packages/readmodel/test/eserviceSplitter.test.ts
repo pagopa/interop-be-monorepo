@@ -201,13 +201,13 @@ describe("E-service splitter", () => {
     const expectedTemplateRefSQL: EServiceTemplateRefSQL = {
       metadataVersion: 1,
       eserviceId: eservice.id,
-      id: templateRef.id,
+      eserviceTemplateId: templateRef.id,
       instanceLabel: templateRef.instanceLabel ?? null,
     };
 
     const expectedTemplateVersionRef: EServiceDescriptorTemplateVersionRefSQL =
       {
-        id: templateVersionRef.id,
+        eserviceTemplateVersionId: templateVersionRef.id,
         contactName: templateVersionRef.interfaceMetadata?.contactName ?? null,
         contactEmail:
           templateVersionRef.interfaceMetadata?.contactEmail ?? null,

@@ -90,7 +90,7 @@ export const aggregateDescriptor = ({
   const templateVersionRef: EServiceTemplateVersionRef | undefined =
     templateVersionRefSQL
       ? {
-          id: unsafeBrandId(templateVersionRefSQL.id),
+          id: unsafeBrandId(templateVersionRefSQL.eserviceTemplateVersionId),
           interfaceMetadata: {
             contactName: templateVersionRefSQL.contactName ?? undefined,
             contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
@@ -190,7 +190,7 @@ export const aggregateEservice = ({
 
   const templateRef: EServiceTemplateRef | undefined = templateRefSQL
     ? {
-        id: unsafeBrandId(templateRefSQL.id),
+        id: unsafeBrandId(templateRefSQL.eserviceTemplateId),
         instanceLabel: templateRefSQL.instanceLabel ?? undefined,
       }
     : undefined;
@@ -511,14 +511,14 @@ export const toEServiceAggregatorArray = (
         templateVersionRefSQL &&
         !templateVersionRefIdSet.has(
           uniqueKey([
-            templateVersionRefSQL.id,
+            templateVersionRefSQL.eserviceTemplateVersionId,
             templateVersionRefSQL.descriptorId,
           ])
         )
       ) {
         templateVersionRefIdSet.add(
           uniqueKey([
-            templateVersionRefSQL.id,
+            templateVersionRefSQL.eserviceTemplateVersionId,
             templateVersionRefSQL.descriptorId,
           ])
         );
@@ -549,11 +549,17 @@ export const toEServiceAggregatorArray = (
       if (
         templateRefSQL &&
         !templateRefIdSet.has(
-          uniqueKey([templateRefSQL.id, templateRefSQL.eserviceId])
+          uniqueKey([
+            templateRefSQL.eserviceTemplateId,
+            templateRefSQL.eserviceId,
+          ])
         )
       ) {
         templateRefIdSet.add(
-          uniqueKey([templateRefSQL.id, templateRefSQL.eserviceId])
+          uniqueKey([
+            templateRefSQL.eserviceTemplateId,
+            templateRefSQL.eserviceId,
+          ])
         );
         // eslint-disable-next-line functional/immutable-data
         templateRefsSQL.push(templateRefSQL);
