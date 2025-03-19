@@ -262,19 +262,13 @@ export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
   state: AgreementState = agreementState.draft
-): Agreement => {
-  const agreement = {
-    ...generateMock(Agreement),
-    eserviceId,
-    consumerId,
-    state,
-    stamps: getMockAgreementStamps(),
-  };
-  delete agreement.suspendedByConsumer;
-  delete agreement.suspendedByProducer;
-  delete agreement.suspendedByPlatform;
-  return agreement;
-};
+): Agreement => ({
+  ...generateMock(Agreement),
+  eserviceId,
+  consumerId,
+  state,
+  stamps: getMockAgreementStamps(),
+});
 
 export const getMockAttribute = (
   kind: AttributeKind = attributeKind.certified,
