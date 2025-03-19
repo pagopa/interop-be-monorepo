@@ -23,22 +23,38 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
         splitDelegationIntoObjectsSQL(delegation, metadataVersion);
 
       await db.transaction(async (tx) => {
-        await tx
-          .delete(delegationInReadmodelDelegation)
-          .where(eq(delegationInReadmodelDelegation.id, delegation.id));
-
-        await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
-
-        for (const stampSQL of stampsSQL) {
+        const existingMetadataVersion: number | undefined = (
           await tx
-            .insert(delegationStampInReadmodelDelegation)
-            .values(stampSQL);
-        }
+            .select({
+              metadataVersion: delegationInReadmodelDelegation.metadataVersion,
+            })
+            .from(delegationInReadmodelDelegation)
+            .where(eq(delegationInReadmodelDelegation.id, delegation.id))
+        )[0]?.metadataVersion;
 
-        for (const docSQL of contractDocumentsSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(delegationContractDocumentInReadmodelDelegation)
-            .values(docSQL);
+            .delete(delegationInReadmodelDelegation)
+            .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+          await tx
+            .insert(delegationInReadmodelDelegation)
+            .values(delegationSQL);
+
+          for (const stampSQL of stampsSQL) {
+            await tx
+              .insert(delegationStampInReadmodelDelegation)
+              .values(stampSQL);
+          }
+
+          for (const docSQL of contractDocumentsSQL) {
+            await tx
+              .insert(delegationContractDocumentInReadmodelDelegation)
+              .values(docSQL);
+          }
         }
       });
     },
