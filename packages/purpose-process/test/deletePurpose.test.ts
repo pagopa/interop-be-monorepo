@@ -66,7 +66,6 @@ describe("deletePurpose", () => {
       correlationId: generateId(),
       logger: genericLogger,
       serviceName: "",
-      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -102,7 +101,6 @@ describe("deletePurpose", () => {
       correlationId: generateId(),
       logger: genericLogger,
       serviceName: "",
-      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -140,7 +138,6 @@ describe("deletePurpose", () => {
       correlationId: generateId(),
       logger: genericLogger,
       serviceName: "",
-      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -189,7 +186,6 @@ describe("deletePurpose", () => {
       correlationId: generateId(),
       logger: genericLogger,
       serviceName: "",
-      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -284,7 +280,6 @@ describe("deletePurpose", () => {
       correlationId: generateId(),
       logger: genericLogger,
       serviceName: "",
-      requestTimestamp: Date.now(),
     });
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -314,7 +309,6 @@ describe("deletePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
@@ -338,7 +332,6 @@ describe("deletePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(mockEService.producerId)
@@ -371,7 +364,6 @@ describe("deletePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
     }
@@ -408,7 +400,6 @@ describe("deletePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
@@ -441,7 +432,6 @@ describe("deletePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -477,7 +467,6 @@ describe("deletePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
@@ -523,7 +512,6 @@ describe("deletePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(

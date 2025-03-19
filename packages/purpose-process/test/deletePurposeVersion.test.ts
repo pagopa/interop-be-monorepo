@@ -79,7 +79,6 @@ describe("deletePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -151,7 +150,6 @@ describe("deletePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -270,7 +268,6 @@ describe("deletePurposeVersion", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -322,7 +319,6 @@ describe("deletePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(purposeNotFound(randomId));
@@ -350,7 +346,6 @@ describe("deletePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -383,7 +378,6 @@ describe("deletePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -422,7 +416,6 @@ describe("deletePurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -455,7 +448,6 @@ describe("deletePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -500,7 +492,6 @@ describe("deletePurposeVersion", () => {
             correlationId: generateId(),
             logger: genericLogger,
             serviceName: "",
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -539,7 +530,6 @@ describe("deletePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -581,7 +571,6 @@ describe("deletePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
@@ -633,7 +622,6 @@ describe("deletePurposeVersion", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

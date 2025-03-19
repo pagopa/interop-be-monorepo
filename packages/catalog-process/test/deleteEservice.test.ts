@@ -52,7 +52,6 @@ describe("delete eservice", () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
-      requestTimestamp: Date.now(),
     });
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -129,7 +128,6 @@ describe("delete eservice", () => {
       correlationId: generateId(),
       serviceName: "",
       logger: genericLogger,
-      requestTimestamp: Date.now(),
     });
 
     const descriptorDeletionEvent = await readEventByStreamIdAndVersion(

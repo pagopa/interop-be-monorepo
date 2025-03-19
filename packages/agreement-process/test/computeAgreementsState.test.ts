@@ -98,7 +98,6 @@ describe("compute Agreements state by attribute", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -149,7 +148,6 @@ describe("compute Agreements state by attribute", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         );
 
@@ -205,7 +203,6 @@ describe("compute Agreements state by attribute", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -317,7 +314,6 @@ describe("compute Agreements state by attribute", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -374,7 +370,6 @@ describe("compute Agreements state by attribute", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -433,7 +428,6 @@ describe("compute Agreements state by attribute", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -553,7 +547,6 @@ describe("compute Agreements state by attribute", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 

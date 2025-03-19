@@ -212,7 +212,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -277,7 +276,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -300,7 +298,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -328,7 +325,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -353,7 +349,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -390,7 +385,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
@@ -423,7 +417,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -469,7 +462,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -517,7 +509,6 @@ describe("reject agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

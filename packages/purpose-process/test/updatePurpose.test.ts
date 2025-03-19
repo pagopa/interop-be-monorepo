@@ -153,7 +153,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -200,7 +199,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -243,7 +241,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -307,7 +304,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -368,7 +364,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -477,7 +472,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -580,7 +574,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -620,7 +613,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(purposeNotFound(purposeId));
   });
@@ -642,7 +634,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(organizationIsNotTheConsumer(organizationId));
   });
@@ -668,7 +659,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         })
       ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
     }
@@ -694,7 +684,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -717,7 +706,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(eserviceNotFound(eserviceId));
   });
@@ -732,7 +720,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       eServiceModeNotAllowed(eServiceReceive.id, "Deliver")
@@ -752,7 +739,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -776,7 +762,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
@@ -790,7 +775,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantNotFound(tenant.id));
 
@@ -806,7 +790,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
@@ -827,7 +810,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
@@ -858,7 +840,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -888,7 +869,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -923,7 +903,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
@@ -964,7 +943,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -996,7 +974,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -1028,7 +1005,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -1067,7 +1043,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
@@ -1101,7 +1076,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
@@ -1143,7 +1117,6 @@ describe("updatePurpose and updateReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
@@ -1192,7 +1165,6 @@ describe("updatePurpose and updateReversePurpose", () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

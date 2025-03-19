@@ -49,7 +49,6 @@ describe("update agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -90,7 +89,6 @@ describe("update agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -109,7 +107,6 @@ describe("update agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -137,7 +134,6 @@ describe("update agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -170,7 +166,6 @@ describe("update agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -221,7 +216,6 @@ describe("update agreement", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(

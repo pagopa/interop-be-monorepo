@@ -96,7 +96,6 @@ describe("Verify Tenant Certified Attributes", () => {
           serviceName: "agreement-process",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -124,7 +123,6 @@ describe("Verify Tenant Certified Attributes", () => {
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -151,7 +149,6 @@ describe("Verify Tenant Certified Attributes", () => {
           serviceName: "agreement-process",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -172,7 +169,6 @@ describe("Verify Tenant Certified Attributes", () => {
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -199,7 +195,6 @@ describe("Verify Tenant Certified Attributes", () => {
           serviceName: "agreement-process",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -220,7 +215,6 @@ describe("Verify Tenant Certified Attributes", () => {
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(tenantNotFound(tenantId));
@@ -242,7 +236,6 @@ describe("Verify Tenant Certified Attributes", () => {
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(eServiceNotFound(eserviceId));
@@ -265,7 +258,6 @@ describe("Verify Tenant Certified Attributes", () => {
             serviceName: "agreement-process",
             correlationId: generateId(),
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(descriptorNotFound(mockEService.id, descriptorId));

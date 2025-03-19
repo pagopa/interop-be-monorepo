@@ -188,7 +188,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -210,7 +209,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -232,7 +230,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -257,7 +254,6 @@ describe("get agreements eservices", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
     expectSinglePageListResult(
@@ -281,7 +277,6 @@ describe("get agreements eservices", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
     expectSinglePageListResult(
@@ -303,7 +298,6 @@ describe("get agreements eservices", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       );
     expectSinglePageListResult(
@@ -326,7 +320,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -350,7 +343,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -374,7 +366,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -395,7 +386,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -419,7 +409,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -443,7 +432,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -467,7 +455,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -488,7 +475,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -509,7 +495,6 @@ describe("get agreements eservices", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 

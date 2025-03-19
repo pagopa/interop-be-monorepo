@@ -68,7 +68,6 @@ describe("rejectPurposeVersion", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -142,7 +141,6 @@ describe("rejectPurposeVersion", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -215,7 +213,6 @@ describe("rejectPurposeVersion", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -299,7 +296,6 @@ describe("rejectPurposeVersion", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -359,7 +355,6 @@ describe("rejectPurposeVersion", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(purposeNotFound(randomId));
@@ -387,7 +382,6 @@ describe("rejectPurposeVersion", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eserviceNotFound(mockEService.id));
@@ -416,7 +410,6 @@ describe("rejectPurposeVersion", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -457,7 +450,6 @@ describe("rejectPurposeVersion", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -503,7 +495,6 @@ describe("rejectPurposeVersion", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -551,7 +542,6 @@ describe("rejectPurposeVersion", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -584,7 +574,6 @@ describe("rejectPurposeVersion", () => {
           serviceName: "",
           correlationId: generateId(),
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -622,7 +611,6 @@ describe("rejectPurposeVersion", () => {
             serviceName: "",
             correlationId: generateId(),
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(

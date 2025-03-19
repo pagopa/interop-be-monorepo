@@ -111,7 +111,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -222,7 +221,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -363,7 +361,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -460,7 +457,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(organizationIsNotTheConsumer(producer.id));
   });
@@ -513,7 +509,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       eServiceModeNotAllowed(mockEService.id, eserviceMode.receive)
@@ -568,7 +563,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       eserviceRiskAnalysisNotFound(mockEService.id, randomRiskAnalysisId)
@@ -623,7 +617,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
@@ -676,7 +669,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -721,7 +713,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(agreementNotFound(mockEService.id, consumer.id));
   });
@@ -783,7 +774,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeTitle));
   });
@@ -844,7 +834,6 @@ describe("createReversePurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([

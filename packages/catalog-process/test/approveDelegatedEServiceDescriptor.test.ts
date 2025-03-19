@@ -361,7 +361,6 @@ describe("publish descriptor", () => {
             correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));

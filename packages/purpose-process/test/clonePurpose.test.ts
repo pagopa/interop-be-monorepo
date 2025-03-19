@@ -93,7 +93,6 @@ describe("clonePurpose", async () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "test",
-        requestTimestamp: Date.now(),
       },
     });
 
@@ -167,7 +166,6 @@ describe("clonePurpose", async () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "test",
-        requestTimestamp: Date.now(),
       },
     });
 
@@ -260,7 +258,6 @@ describe("clonePurpose", async () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "test",
-        requestTimestamp: Date.now(),
       },
     });
 
@@ -383,7 +380,6 @@ describe("clonePurpose", async () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "test",
-        requestTimestamp: Date.now(),
       },
     });
 
@@ -457,7 +453,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
@@ -497,7 +492,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
@@ -537,7 +531,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
@@ -577,7 +570,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
@@ -627,7 +619,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -669,7 +660,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
@@ -727,7 +717,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -777,7 +766,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(
@@ -837,7 +825,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
@@ -903,7 +890,6 @@ describe("clonePurpose", async () => {
           correlationId: generateId(),
           logger: genericLogger,
           serviceName: "test",
-          requestTimestamp: Date.now(),
         },
       })
     ).rejects.toThrowError(

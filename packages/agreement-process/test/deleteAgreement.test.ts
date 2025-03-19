@@ -66,7 +66,6 @@ describe("delete agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       });
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -143,7 +142,6 @@ describe("delete agreement", () => {
       serviceName: "",
       correlationId: generateId(),
       logger: genericLogger,
-      requestTimestamp: Date.now(),
     });
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -203,7 +201,6 @@ describe("delete agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
@@ -223,7 +220,6 @@ describe("delete agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
@@ -238,7 +234,6 @@ describe("delete agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
@@ -262,7 +257,6 @@ describe("delete agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -287,7 +281,6 @@ describe("delete agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       fileManagerDeleteError(

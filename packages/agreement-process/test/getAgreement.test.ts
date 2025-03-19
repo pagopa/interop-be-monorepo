@@ -76,7 +76,6 @@ describe("get agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       });
     expect(retrievedAgreementByConsumer).toEqual(agreement);
 
@@ -86,7 +85,6 @@ describe("get agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       });
     expect(retrievedAgreementByProducer).toEqual(agreement);
 
@@ -96,7 +94,6 @@ describe("get agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       });
     expect(retrievedAgreementByProducerDelegate).toEqual(agreement);
 
@@ -106,7 +103,6 @@ describe("get agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       });
     expect(retrievedAgreementByConsumerDelegate).toEqual(agreement);
   });
@@ -124,7 +120,6 @@ describe("get agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
@@ -140,7 +135,6 @@ describe("get agreement", () => {
         serviceName: "",
         correlationId: generateId(),
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });

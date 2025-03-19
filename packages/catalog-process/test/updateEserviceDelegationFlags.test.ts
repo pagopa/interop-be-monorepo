@@ -345,7 +345,6 @@ describe("update eService flags", () => {
             correlationId: generateId(),
             serviceName: "",
             logger: genericLogger,
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));

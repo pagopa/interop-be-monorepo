@@ -119,7 +119,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -208,7 +207,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -349,7 +347,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -427,7 +424,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
@@ -465,7 +461,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
   });
@@ -478,7 +473,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -521,7 +515,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
   });
@@ -546,7 +539,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(organizationIsNotTheConsumer(tenant.id));
   });
@@ -574,7 +566,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
@@ -606,7 +597,6 @@ describe("createPurpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
         serviceName: "",
-        requestTimestamp: Date.now(),
       })
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
   });
