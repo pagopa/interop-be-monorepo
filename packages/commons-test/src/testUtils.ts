@@ -754,4 +754,5 @@ export const getMockContext = ({
   serviceName: serviceName || "",
   correlationId: correlationId || generateId(),
   logger: genericLogger,
+  requestTimestamp: Date.now(),
 });
