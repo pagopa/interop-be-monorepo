@@ -1,7 +1,4 @@
-import {
-  AuthData,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-} from "pagopa-interop-commons";
+import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import {
   Agreement,
   Attribute,
@@ -68,17 +65,6 @@ export const catalogService = catalogServiceBuilder(
   readModelService,
   fileManager
 );
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
 
 export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockContext,
   getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
@@ -24,7 +25,6 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockContext,
   getMockDescriptor,
   randomArrayItem,
@@ -25,7 +26,6 @@ import {
   addOneEService,
   buildDescriptorSeedForEserviceCreation,
   catalogService,
-  getMockAuthData,
   getMockEService,
   postgresDB,
   readLastEserviceEvent,
