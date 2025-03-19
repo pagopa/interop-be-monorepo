@@ -17,6 +17,7 @@ import { aggregateTenant, toTenantAggregator } from "./tenant/aggregators.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertTenant(tenant: Tenant, metadataVersion: number): Promise<void> {
       const {
         tenantSQL,
@@ -30,48 +31,62 @@ export function tenantReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
       } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
       await db.transaction(async (tx) => {
-        await tx
-          .delete(tenantInReadmodelTenant)
-          .where(eq(tenantInReadmodelTenant.id, tenant.id));
-
-        await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
-
-        for (const mailSQL of mailsSQL) {
-          await tx.insert(tenantMailInReadmodelTenant).values(mailSQL);
-        }
-
-        for (const certifiedAttributeSQL of certifiedAttributesSQL) {
+        const existingMetadataVersion: number | undefined = (
           await tx
-            .insert(tenantCertifiedAttributeInReadmodelTenant)
-            .values(certifiedAttributeSQL);
-        }
+            .select({
+              metadataVersion: tenantInReadmodelTenant.metadataVersion,
+            })
+            .from(tenantInReadmodelTenant)
+            .where(eq(tenantInReadmodelTenant.id, tenant.id))
+        )[0]?.metadataVersion;
 
-        for (const declaredAttributeSQL of declaredAttributesSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(tenantDeclaredAttributeInReadmodelTenant)
-            .values(declaredAttributeSQL);
-        }
+            .delete(tenantInReadmodelTenant)
+            .where(eq(tenantInReadmodelTenant.id, tenant.id));
 
-        for (const verifiedAttributeSQL of verifiedAttributesSQL) {
-          await tx
-            .insert(tenantVerifiedAttributeInReadmodelTenant)
-            .values(verifiedAttributeSQL);
-        }
+          await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
 
-        for (const verifierSQL of verifiedAttributeVerifiersSQL) {
-          await tx
-            .insert(tenantVerifiedAttributeVerifierInReadmodelTenant)
-            .values(verifierSQL);
-        }
+          for (const mailSQL of mailsSQL) {
+            await tx.insert(tenantMailInReadmodelTenant).values(mailSQL);
+          }
 
-        for (const revokerSQL of verifiedAttributeRevokersSQL) {
-          await tx
-            .insert(tenantVerifiedAttributeRevokerInReadmodelTenant)
-            .values(revokerSQL);
-        }
+          for (const certifiedAttributeSQL of certifiedAttributesSQL) {
+            await tx
+              .insert(tenantCertifiedAttributeInReadmodelTenant)
+              .values(certifiedAttributeSQL);
+          }
 
-        for (const featureSQL of featuresSQL) {
-          await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
+          for (const declaredAttributeSQL of declaredAttributesSQL) {
+            await tx
+              .insert(tenantDeclaredAttributeInReadmodelTenant)
+              .values(declaredAttributeSQL);
+          }
+
+          for (const verifiedAttributeSQL of verifiedAttributesSQL) {
+            await tx
+              .insert(tenantVerifiedAttributeInReadmodelTenant)
+              .values(verifiedAttributeSQL);
+          }
+
+          for (const verifierSQL of verifiedAttributeVerifiersSQL) {
+            await tx
+              .insert(tenantVerifiedAttributeVerifierInReadmodelTenant)
+              .values(verifierSQL);
+          }
+
+          for (const revokerSQL of verifiedAttributeRevokersSQL) {
+            await tx
+              .insert(tenantVerifiedAttributeRevokerInReadmodelTenant)
+              .values(revokerSQL);
+          }
+
+          for (const featureSQL of featuresSQL) {
+            await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
+          }
         }
       });
     },
