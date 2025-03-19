@@ -14,7 +14,7 @@ import {
   getMockAuthData,
   getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { eServiceNotFound } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,

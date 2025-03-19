@@ -14,7 +14,7 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementSetDraftByPlatformV2,

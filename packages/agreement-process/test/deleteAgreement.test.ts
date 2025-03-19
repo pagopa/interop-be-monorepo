@@ -8,7 +8,7 @@ import {
   getMockDelegation,
   getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   AgreementDeletedV2,
   AgreementId,

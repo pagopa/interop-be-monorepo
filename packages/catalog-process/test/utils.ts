@@ -36,7 +36,7 @@ import {
   setupTestContainersVitest,
   writeInEventstore,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { inject, afterEach } from "vitest";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";

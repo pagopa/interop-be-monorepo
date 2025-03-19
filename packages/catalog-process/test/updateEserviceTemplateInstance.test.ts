@@ -6,7 +6,7 @@ import {
   getMockEServiceTemplate,
   getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,

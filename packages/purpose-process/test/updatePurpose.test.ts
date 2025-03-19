@@ -15,7 +15,7 @@ import {
   addSomeRandomDelegations,
   getMockAgreement,
   getMockContext,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   tenantKind,
   Tenant,

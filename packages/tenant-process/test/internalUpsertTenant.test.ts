@@ -7,7 +7,7 @@ import {
   getMockTenant,
   readEventByStreamIdAndVersion,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   tenantKind,

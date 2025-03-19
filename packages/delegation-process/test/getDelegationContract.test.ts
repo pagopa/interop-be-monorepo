@@ -3,7 +3,7 @@ import {
   getMockContext,
   getMockDelegation,
   getMockAuthData,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   DelegationContractDocument,
   DelegationContractId,

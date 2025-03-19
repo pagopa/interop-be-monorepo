@@ -12,7 +12,7 @@ import {
   getMockTenant,
   getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementConsumerDocumentAddedV2,
