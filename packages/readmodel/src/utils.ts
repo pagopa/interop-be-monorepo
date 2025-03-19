@@ -1,10 +1,11 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
+import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
 import pg from "pg";
 
 export const makeDrizzleConnection = (
   readModelSQLDbConfig: ReadModelSQLDbConfig
-): ReturnType<typeof drizzle> => {
+): DrizzleReturnType => {
   const pool = new pg.Pool({
     host: readModelSQLDbConfig.readModelSQLDbHost,
     port: readModelSQLDbConfig.readModelSQLDbPort,

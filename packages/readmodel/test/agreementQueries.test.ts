@@ -3,15 +3,15 @@ import { Agreement, WithMetadata } from "pagopa-interop-models";
 import {
   getMockAgreementDocument,
   getMockAgreementStamp,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   agreementReadModelService,
+  getCustomMockAgreement,
   readAgreementAttributesSQLByAgreementId,
   readAgreementConsumerDocumentSQLByAgreementId,
   readAgreementContractQLByAgreementId,
   readAgreementStampsSQLByAgreementId,
-} from "./utils.js";
-import { getCustomMockAgreement } from "./utils.js";
+} from "./agreementUtils.js";
 
 describe("Agreement queries", () => {
   describe("upsertAgreement", () => {

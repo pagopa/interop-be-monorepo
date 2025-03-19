@@ -276,7 +276,7 @@ describe("Agreement Splitter", () => {
     expect(consumerDocumentsSQL).toStrictEqual([
       expectedAgreementConsumerDocumentSQL,
     ]);
-    expect(contractSQL).toBeNull();
+    expect(contractSQL).toBeUndefined();
     expect(attributesSQL).toStrictEqual(
       expect.arrayContaining([
         expectedAgreementVerifiedAttributeSQL,
