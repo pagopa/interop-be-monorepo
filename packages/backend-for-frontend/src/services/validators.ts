@@ -7,6 +7,7 @@ import {
 import {
   delegationKind,
   delegationState,
+  EService,
   EServiceId,
   TenantId,
 } from "pagopa-interop-models";
@@ -23,6 +24,7 @@ import {
   eserviceIsNotDraft,
   invalidEServiceRequester,
   notValidDescriptor,
+  templateInstanceNotAllowed,
 } from "../model/errors.js";
 import {
   agreementApiState,
@@ -206,5 +208,15 @@ export function assertIsDraftEservice(eservice: catalogApi.EService): void {
     )
   ) {
     throw eserviceIsNotDraft(eservice.id);
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  eservice: catalogApi.EService
+): asserts eservice is catalogApi.EService & {
+  templateRef: NonNullable<EService["templateRef"]>;
+} {
+  if (eservice.templateRef !== undefined) {
+    throw templateInstanceNotAllowed(eservice.id, eservice.templateRef.id);
   }
 }
