@@ -136,19 +136,6 @@ export const getTenantOneCertifierFeature = (
   return certifiedFeatures[0];
 };
 
-export const getMockAuthData = (
-  organizationId: TenantId = generateId<TenantId>()
-): AuthData => ({
-  organizationId,
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
-
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
   certifiedAttributes: EServiceAttribute[][] = [],
@@ -392,6 +379,19 @@ export const getMockKey = (): Key => ({
   encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
+});
+
+export const getMockAuthData = (
+  organizationId: TenantId = generateId<TenantId>()
+): AuthData => ({
+  organizationId,
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
 });
 
 export const getMockDelegation = ({
