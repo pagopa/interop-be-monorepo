@@ -45,10 +45,10 @@ export type EServiceDocument = {
 };
 
 export type EServiceTemplateReferences = {
-  readonly templateId: EServiceTemplateId;
-  readonly templateVersionId: EServiceTemplateVersionId;
+  readonly id: EServiceTemplateId;
+  readonly versionId: EServiceTemplateVersionId;
+  readonly attributes: EserviceAttributes;
   readonly instanceLabel?: string;
-  readonly templateAttributes: EserviceAttributes;
 };
 
 export const consumer = z.object({

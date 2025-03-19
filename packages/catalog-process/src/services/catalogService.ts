@@ -479,9 +479,12 @@ function isTenantInSignalHubWhitelist(
 }
 
 async function innerCreateEService(
-  seed: {
-    eServiceSeed: catalogApi.EServiceSeed;
-    eServiceTemplateReferences: EServiceTemplateReferences | undefined;
+  {
+    seed,
+    template,
+  }: {
+    seed: catalogApi.EServiceSeed;
+    template: EServiceTemplateReferences | undefined;
   },
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
@@ -492,21 +495,21 @@ async function innerCreateEService(
 
   const eserviceWithSameName =
     await readModelService.getEServiceByNameAndProducerId({
-      name: seed.eServiceSeed.name,
+      name: seed.name,
       producerId: authData.organizationId,
     });
   if (eserviceWithSameName) {
-    throw eServiceNameDuplicate(seed.eServiceSeed.name);
+    throw eServiceNameDuplicate(seed.name);
   }
 
   const creationDate = new Date();
   const newEService: EService = {
     id: generateId(),
     producerId: authData.organizationId,
-    name: seed.eServiceSeed.name,
-    description: seed.eServiceSeed.description,
-    technology: apiTechnologyToTechnology(seed.eServiceSeed.technology),
-    mode: apiEServiceModeToEServiceMode(seed.eServiceSeed.mode),
+    name: seed.name,
+    description: seed.description,
+    technology: apiTechnologyToTechnology(seed.technology),
+    mode: apiEServiceModeToEServiceMode(seed.mode),
     attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
@@ -514,19 +517,19 @@ async function innerCreateEService(
     isSignalHubEnabled: config.featureFlagSignalhubWhitelist
       ? isTenantInSignalHubWhitelist(
           authData.organizationId,
-          seed.eServiceSeed.isSignalHubEnabled
+          seed.isSignalHubEnabled
         )
-      : seed.eServiceSeed.isSignalHubEnabled,
-    isConsumerDelegable: seed.eServiceSeed.isConsumerDelegable,
-    isClientAccessDelegable: match(seed.eServiceSeed.isConsumerDelegable)
+      : seed.isSignalHubEnabled,
+    isConsumerDelegable: seed.isConsumerDelegable,
+    isClientAccessDelegable: match(seed.isConsumerDelegable)
       .with(P.nullish, () => undefined)
       .with(false, () => false)
-      .with(true, () => seed.eServiceSeed.isClientAccessDelegable)
+      .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
-    templateRef: seed.eServiceTemplateReferences
+    templateRef: template
       ? {
-          id: seed.eServiceTemplateReferences.templateId,
-          instanceLabel: seed.eServiceTemplateReferences.instanceLabel,
+          id: template.id,
+          instanceLabel: template.instanceLabel,
         }
       : undefined,
   };
@@ -536,24 +539,24 @@ async function innerCreateEService(
     correlationId
   );
 
-  assertConsistentDailyCalls(seed.eServiceSeed.descriptor);
+  assertConsistentDailyCalls(seed.descriptor);
 
-  const templateVersionId = seed.eServiceTemplateReferences?.templateVersionId;
+  const templateVersionId = template?.versionId;
 
   const draftDescriptor: Descriptor = {
     id: generateId(),
-    description: seed.eServiceSeed.descriptor.description,
+    description: seed.descriptor.description,
     version: "1",
     interface: undefined,
     docs: [],
     state: descriptorState.draft,
-    voucherLifespan: seed.eServiceSeed.descriptor.voucherLifespan,
-    audience: seed.eServiceSeed.descriptor.audience,
-    dailyCallsPerConsumer: seed.eServiceSeed.descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: seed.eServiceSeed.descriptor.dailyCallsTotal,
+    voucherLifespan: seed.descriptor.voucherLifespan,
+    audience: seed.descriptor.audience,
+    dailyCallsPerConsumer: seed.descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.descriptor.dailyCallsTotal,
     agreementApprovalPolicy:
       apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-        seed.eServiceSeed.descriptor.agreementApprovalPolicy
+        seed.descriptor.agreementApprovalPolicy
       ),
     serverUrls: [],
     publishedAt: undefined,
@@ -561,9 +564,11 @@ async function innerCreateEService(
     deprecatedAt: undefined,
     archivedAt: undefined,
     createdAt: creationDate,
-    attributes: seed.eServiceTemplateReferences
-      ? seed.eServiceTemplateReferences.templateAttributes
-      : { certified: [], declared: [], verified: [] },
+    attributes: template?.attributes ?? {
+      certified: [],
+      declared: [],
+      verified: [],
+    },
     rejectionReasons: undefined,
     templateVersionRef: templateVersionId
       ? { id: templateVersionId }
@@ -811,7 +816,7 @@ export function catalogServiceBuilder(
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
       const { eService, events } = await innerCreateEService(
-        { eServiceSeed: seed, eServiceTemplateReferences: undefined },
+        { seed, template: undefined },
         readModelService,
         ctx
       );
@@ -2931,7 +2936,7 @@ export function catalogServiceBuilder(
 
       const { eService: createdEService, events } = await innerCreateEService(
         {
-          eServiceSeed: {
+          seed: {
             name: `${template.name} ${seed.instanceLabel ?? ""}`.trim(),
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
@@ -2953,11 +2958,11 @@ export function catalogServiceBuilder(
             isConsumerDelegable: seed.isConsumerDelegable ?? false,
             isClientAccessDelegable: seed.isClientAccessDelegable ?? false,
           },
-          eServiceTemplateReferences: {
-            templateId: template.id,
-            templateVersionId: publishedVersion.id,
+          template: {
+            id: template.id,
+            versionId: publishedVersion.id,
             instanceLabel: seed.instanceLabel,
-            templateAttributes: publishedVersion.attributes,
+            attributes: publishedVersion.attributes,
           },
         },
         readModelService,
