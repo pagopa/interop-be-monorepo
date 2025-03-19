@@ -2,7 +2,6 @@ import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
-  ClientKind,
   CorrelationId,
   Delegation,
   delegationKind,
@@ -63,10 +62,7 @@ export const assertOrganizationIsClientConsumer = (
   organizationId: TenantId,
   client: Client
 ): void => {
-  if (
-    client.kind !== ClientKind.Enum.Consumer ||
-    client.consumerId !== organizationId
-  ) {
+  if (client.consumerId !== organizationId) {
     throw organizationNotAllowedOnClient(organizationId, client.id);
   }
 };

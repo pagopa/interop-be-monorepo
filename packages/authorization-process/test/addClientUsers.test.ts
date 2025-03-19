@@ -12,7 +12,6 @@ import {
   UserId,
   generateId,
   toClientV2,
-  ClientKind,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthData, genericLogger } from "pagopa-interop-commons";
@@ -169,30 +168,6 @@ describe("addClientUsers", () => {
         {
           clientId: mockClient.id,
           userIds: userIdsToAdd,
-          authData: getRandomAuthData(organizationId),
-        },
-        generateId(),
-        genericLogger
-      )
-    ).rejects.toThrowError(
-      organizationNotAllowedOnClient(organizationId, mockClient.id)
-    );
-  });
-  it("should throw organizationNotAllowedOnClient if the requester is the client api", async () => {
-    const mockClient: Client = {
-      ...getMockClient(),
-      kind: ClientKind.Enum.Api,
-    };
-
-    const organizationId: TenantId = generateId();
-
-    await addOneClient(mockClient);
-
-    expect(
-      authorizationService.addClientUsers(
-        {
-          clientId: mockClient.id,
-          userIds: [],
           authData: getRandomAuthData(organizationId),
         },
         generateId(),

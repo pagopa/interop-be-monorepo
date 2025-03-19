@@ -40,6 +40,7 @@ import {
   organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
+  purposeAdditionNotAllowedForClient,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -395,7 +396,7 @@ describe("addClientPurpose", async () => {
       organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
     );
   });
-  it("should throw organizationNotAllowedOnClient if the requester is the client api", async () => {
+  it("should throw purposeAdditionNotAllowedForClient if the requester is the client api", async () => {
     const mockConsumerId: TenantId = generateId();
 
     const mockPurpose: Purpose = {
@@ -422,9 +423,7 @@ describe("addClientPurpose", async () => {
           logger: genericLogger,
         },
       })
-    ).rejects.toThrowError(
-      organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
-    );
+    ).rejects.toThrowError(purposeAdditionNotAllowedForClient(mockClient.id));
   });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const mockDescriptor: Descriptor = {

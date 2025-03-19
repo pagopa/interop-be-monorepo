@@ -43,6 +43,7 @@ export const errorCodes = {
   userNotAllowedToDeleteProducerKeychainKey: "0028",
   purposeDelegationNotFound: "0029",
   eserviceNotDelegableForClientAccess: "0030",
+  purposeAdditionNotAllowedForClient: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -367,5 +368,15 @@ export function eserviceNotDelegableForClientAccess(
     detail: `EService ${eservice.id} is not delegable for client access`,
     code: "eserviceNotDelegableForClientAccess",
     title: "EService not delegable for client access",
+  });
+}
+
+export function purposeAdditionNotAllowedForClient(
+  clientId: ClientId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose addition not allowed for client ${clientId}`,
+    code: "purposeAdditionNotAllowedForClient",
+    title: "Purpose addition not allowed for client",
   });
 }

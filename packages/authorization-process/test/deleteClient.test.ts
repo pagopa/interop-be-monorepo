@@ -8,9 +8,7 @@ import {
 import {
   Client,
   ClientDeletedV2,
-  ClientKind,
   generateId,
-  TenantId,
   toClientV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
@@ -94,27 +92,6 @@ describe("delete client", () => {
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
-    );
-  });
-  it("should throw organizationNotAllowedOnClient if teh requester is the client api", async () => {
-    const mockClient: Client = {
-      ...getMockClient(),
-      kind: ClientKind.Enum.Api,
-    };
-
-    const mockOrganizationId: TenantId = generateId();
-
-    await addOneClient(mockClient);
-
-    expect(
-      authorizationService.deleteClient({
-        clientId: mockClient.id,
-        organizationId: mockOrganizationId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(
-      organizationNotAllowedOnClient(mockOrganizationId, mockClient.id)
     );
   });
 });
