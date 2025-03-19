@@ -47,9 +47,7 @@ const logFormat = (
     : undefined;
   const eventTypePart = eventType ? `[ET=${eventType}]` : undefined;
   const eventVersionPart = eventVersion ? `[EV=${eventVersion}]` : undefined;
-  const streamVersionPart = streamVersion
-    ? `[SV=${streamVersion}]`
-    : undefined;
+  const streamVersionPart = streamVersion ? `[SV=${streamVersion}]` : undefined;
   const streamIdPart = streamId ? `[SID=${streamId}]` : undefined;
 
   const firstPart = [timestamp, level.toUpperCase(), serviceLogPart]
