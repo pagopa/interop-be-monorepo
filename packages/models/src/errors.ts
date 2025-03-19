@@ -198,6 +198,7 @@ const errorCodes = {
   interfaceExtractingInfoError: "10007",
   invalidInterfaceContentTypeDetected: "10008",
   tokenVerificationFailed: "10009",
+  invalidEserviceInterfaceData: "10010",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -467,6 +468,16 @@ export function invalidInterfaceFileDetected(
     detail: `The interface file for EService or EserveiceTemplate with ID ${resourceId} is invalid`,
     code: "invalidEserviceInterfaceFileDetected",
     title: "Invalid interface file detected",
+  });
+}
+
+export function invalidInterfaceData(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface data provided for EService ${resourceId} is invalid`,
+    code: "invalidEserviceInterfaceData",
+    title: "Invalid interface file data provided",
   });
 }
 
