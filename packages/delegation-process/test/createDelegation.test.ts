@@ -5,7 +5,7 @@ import {
   getMockDelegation,
   getMockEService,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -100,7 +100,7 @@ describe.each([
       vi.setSystemTime(currentExecutionTime);
 
       const delegatorId = generateId<TenantId>();
-      const authData = getRandomAuthData(delegatorId);
+      const authData = getMockAuthData(delegatorId);
       const delegator = {
         ...getMockTenant(delegatorId),
         externalId: {
@@ -164,7 +164,7 @@ describe.each([
       vi.setSystemTime(currentExecutionTime);
 
       const delegatorId = generateId<TenantId>();
-      const authData = getRandomAuthData(delegatorId);
+      const authData = getMockAuthData(delegatorId);
       const delegator = {
         ...getMockTenant(delegatorId),
         externalId: {
@@ -238,7 +238,7 @@ describe.each([
     `should throw a delegationAlreadyExists error when a ${kind} in state %s already exists with same delegator, delegate and eservice`,
     async (activeDelegationState) => {
       const delegatorId = generateId<TenantId>();
-      const authData = getRandomAuthData(delegatorId);
+      const authData = getMockAuthData(delegatorId);
       const delegator = {
         ...getMockTenant(delegatorId),
         externalId: {
@@ -334,7 +334,7 @@ describe.each([
 
   it("should throw a tenantNotFound error if delegated tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -361,7 +361,7 @@ describe.each([
 
   it("should throw a tenantNotFound error if delegator tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
 
     const delegate = {
       ...getMockTenant(),
@@ -390,7 +390,7 @@ describe.each([
 
   it("should throw an invalidDelegatorAndDelegateAreSame error if delegatorId and delegateId is the same", async () => {
     const sameTenantId = generateId<TenantId>();
-    const authData = getRandomAuthData(sameTenantId);
+    const authData = getMockAuthData(sameTenantId);
 
     await expect(
       createFn(
@@ -405,7 +405,7 @@ describe.each([
 
   it("should throw a originNotCompliant error if delegator has externalId origin not compliant", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -445,7 +445,7 @@ describe.each([
 
   it("should throw a originNotCompliant error if delegate has externalId origin not compliant", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -489,7 +489,7 @@ describe.each([
 
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -525,7 +525,7 @@ describe.each([
 
   it(`should throw a tenantNotAllowedToDelegation error if delegate tenant has no ${kind} feature`, async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {

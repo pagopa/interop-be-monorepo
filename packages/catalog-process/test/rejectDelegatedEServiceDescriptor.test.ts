@@ -3,8 +3,8 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -63,7 +63,7 @@ describe("reject descriptor", () => {
       eservice.id,
       descriptor.id,
       { rejectionReason: newRejectionReason.rejectionReason },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -99,7 +99,7 @@ describe("reject descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         { rejectionReason: "test" },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -115,7 +115,7 @@ describe("reject descriptor", () => {
         eservice.id,
         mockDescriptor.id,
         { rejectionReason: "test" },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -167,7 +167,7 @@ describe("reject descriptor", () => {
         descriptor.id,
 
         { rejectionReason: "test" },
-        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -195,7 +195,7 @@ describe("reject descriptor", () => {
           descriptor.id,
 
           { rejectionReason: "test" },
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

@@ -2,12 +2,12 @@
 import { fail } from "assert";
 import { AuthData } from "pagopa-interop-commons";
 import {
-  getRandomAuthData,
+  getMockAuthData,
   getMockContext,
   getMockTenant,
   readEventByStreamIdAndVersion,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   tenantKind,
@@ -74,7 +74,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["internal"],
     };
@@ -133,7 +133,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["internal"],
     };
@@ -239,7 +239,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: tenantAlreadyAssigned.id,
       userRoles: ["internal"],
     };
@@ -269,7 +269,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["internal"],
     };
@@ -297,7 +297,7 @@ describe("internalUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["internal"],
     };

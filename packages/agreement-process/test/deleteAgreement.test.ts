@@ -6,9 +6,9 @@ import {
   getMockAgreement,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   AgreementDeletedV2,
   AgreementId,
@@ -61,7 +61,7 @@ describe("delete agreement", () => {
         )
       );
 
-      const authData = getRandomAuthData(agreement.consumerId);
+      const authData = getMockAuthData(agreement.consumerId);
       await agreementService.deleteAgreementById(
         agreement.id,
         getMockContext({ authData })
@@ -116,7 +116,7 @@ describe("delete agreement", () => {
     };
 
     const delegateId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegateId);
+    const authData = getMockAuthData(delegateId);
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -175,7 +175,7 @@ describe("delete agreement", () => {
   });
 
   it("should throw organizationIsNotTheConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
 
     const agreement = {
       ...getMockAgreement(),
@@ -207,7 +207,7 @@ describe("delete agreement", () => {
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
       agreementService.deleteAgreementById(
@@ -218,7 +218,7 @@ describe("delete agreement", () => {
   });
 
   it("should throw organizationIsNotTheConsumer when the requester is not the Consumer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreement = getMockAgreement();
     await addOneAgreement(agreement);
     await expect(
@@ -241,7 +241,7 @@ describe("delete agreement", () => {
       ),
     };
     await addOneAgreement(agreement);
-    const authData = getRandomAuthData(agreement.consumerId);
+    const authData = getMockAuthData(agreement.consumerId);
     await expect(
       agreementService.deleteAgreementById(
         agreement.id,
@@ -267,7 +267,7 @@ describe("delete agreement", () => {
     await expect(
       agreementService.deleteAgreementById(
         agreement.id,
-        getMockContext({ authData: getRandomAuthData(agreement.consumerId) })
+        getMockContext({ authData: getMockAuthData(agreement.consumerId) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(

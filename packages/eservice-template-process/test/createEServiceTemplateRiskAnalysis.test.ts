@@ -12,7 +12,7 @@ import {
   getMockEServiceTemplateVersion,
   getMockTenant,
   getMockValidRiskAnalysis,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -92,7 +92,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplate.id,
       riskAnalysisSeed,
       getMockContext({
-        authData: getRandomAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -172,7 +172,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
@@ -198,7 +198,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getRandomAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -223,7 +223,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -251,7 +251,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));
@@ -275,7 +275,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
@@ -305,7 +305,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getRandomAuthData(creator.id) })
+        getMockContext({ authData: getMockAuthData(creator.id) })
       )
     ).rejects.toThrowError(tenantKindNotFound(creator.id));
   });
@@ -345,7 +345,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysisSeed,
-        getMockContext({ authData: getRandomAuthData(creator.id) })
+        getMockContext({ authData: getMockAuthData(creator.id) })
       )
     ).rejects.toThrowError(
       eserviceTemaplateRiskAnalysisNameDuplicate(riskAnalysis.name)
@@ -401,7 +401,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         invalidRiskAnalysisSeed,
-        getMockContext({ authData: getRandomAuthData(creator.id) })
+        getMockContext({ authData: getMockAuthData(creator.id) })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([

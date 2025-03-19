@@ -6,7 +6,7 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
@@ -81,7 +81,7 @@ describe("delete Document", () => {
         eserviceTemplateVersion.id,
         document.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       );
       const writtenEvent = await readLastEserviceTemplateEvent(
@@ -161,7 +161,7 @@ describe("delete Document", () => {
       eserviceTemplateVersion.id,
       interfaceDocument.id,
       getMockContext({
-        authData: getRandomAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -247,7 +247,7 @@ describe("delete Document", () => {
         mockEServiceTemplateVersion.id,
         mockDocument.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -277,7 +277,7 @@ describe("delete Document", () => {
           eserviceTemplateVersion.id,
           mockDocument.id,
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
@@ -309,7 +309,7 @@ describe("delete Document", () => {
           eserviceTemplateVersion.id,
           mockDocument.id,
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
@@ -336,7 +336,7 @@ describe("delete Document", () => {
         eserviceTemplateVersion.id,
         mockDocument.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -368,7 +368,7 @@ describe("delete Document", () => {
         eserviceTemplateVersion.id,
         mockDocument.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(

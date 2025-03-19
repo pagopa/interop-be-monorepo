@@ -1,7 +1,4 @@
-import {
-  AuthData,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-} from "pagopa-interop-commons";
+import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import {
   Agreement,
   Attribute,
@@ -39,7 +36,7 @@ import {
   setupTestContainersVitest,
   writeInEventstore,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { inject, afterEach } from "vitest";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -68,17 +65,6 @@ export const catalogService = catalogServiceBuilder(
   readModelService,
   fileManager
 );
-
-export const getRandomAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
 
 export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor

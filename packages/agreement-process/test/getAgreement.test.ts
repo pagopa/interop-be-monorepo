@@ -6,8 +6,8 @@ import {
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
-  getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   delegationKind,
@@ -73,28 +73,28 @@ describe("get agreement", () => {
     const retrievedAgreementByConsumer =
       await agreementService.getAgreementById(
         agreement.id,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       );
     expect(retrievedAgreementByConsumer).toEqual(agreement);
 
     const retrievedAgreementByProducer =
       await agreementService.getAgreementById(
         agreement.id,
-        getMockContext({ authData: getRandomAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData(producer.id) })
       );
     expect(retrievedAgreementByProducer).toEqual(agreement);
 
     const retrievedAgreementByProducerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
-        getMockContext({ authData: getRandomAuthData(producerDelegate.id) })
+        getMockContext({ authData: getMockAuthData(producerDelegate.id) })
       );
     expect(retrievedAgreementByProducerDelegate).toEqual(agreement);
 
     const retrievedAgreementByConsumerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
-        getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
+        getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
       );
     expect(retrievedAgreementByConsumerDelegate).toEqual(agreement);
   });
@@ -105,7 +105,7 @@ describe("get agreement", () => {
 
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     await expect(
       agreementService.getAgreementById(
         agreement.id,

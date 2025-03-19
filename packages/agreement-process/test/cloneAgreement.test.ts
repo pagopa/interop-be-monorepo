@@ -13,9 +13,9 @@ import {
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   AgreementAddedV2,
   AgreementDocument,
@@ -73,7 +73,7 @@ describe("clone agreement", () => {
   });
 
   it("should succeed when requester is Consumer and the Agreement is in a clonable state", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = authData.organizationId;
 
     const validCertifiedTenantAttribute = {
@@ -211,7 +211,7 @@ describe("clone agreement", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the Agreement is in a clonable state", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = generateId<TenantId>();
 
     const validCertifiedTenantAttribute = {
@@ -360,7 +360,7 @@ describe("clone agreement", () => {
 
   it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
       agreementService.cloneAgreement(agreementId, getMockContext({ authData }))
@@ -368,7 +368,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw an organizationIsNotTheConsumer error when the requester is not the Consumer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
       generateId<TenantId>(),
@@ -386,7 +386,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the Consumer but there is a Consumer Delegation", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -417,7 +417,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw an agreementNotInExpectedState error when the Agreement is not in a clonable state", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = authData.organizationId;
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -441,7 +441,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw an eserviceNotFound error when the EService does not exist", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = authData.organizationId;
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -459,7 +459,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw an agreementAlreadyExists error when a conflicting Agreement already exists", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = authData.organizationId;
     const eservice = getMockEService();
     const agreement = {
@@ -492,7 +492,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = authData.organizationId;
 
     const descriptor = getMockDescriptorPublished();
@@ -536,7 +536,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = authData.organizationId;
     const consumer = getMockTenant(consumerId);
     const eservice = getMockEService();
@@ -563,7 +563,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw a missingCertifiedAttributesError when the Consumer has invalid certified attributes", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = authData.organizationId;
 
     const invalidCertifiedTenantAttribute = {
@@ -616,7 +616,7 @@ describe("clone agreement", () => {
   });
 
   it("should throw a FileManagerError error when document copy fails", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const consumerId = authData.organizationId;
 
     const consumer = getMockTenant(consumerId);

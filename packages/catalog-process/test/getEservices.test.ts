@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 import { genericLogger, AuthData, userRoles } from "pagopa-interop-commons";
 import {
+  getMockAuthData,
   getMockEServiceTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
@@ -24,7 +25,6 @@ import {
   addOneTenant,
   addOneAgreement,
   catalogService,
-  getRandomAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
@@ -187,7 +187,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: eservicesIds)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [eservice1.id, eservice2.id],
         producersIds: [],
@@ -205,7 +205,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: producersIds)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId1],
@@ -252,7 +252,7 @@ describe("get eservices", () => {
     await addOneDelegation(delegation3);
 
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [
@@ -280,7 +280,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: states)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -303,7 +303,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: agreementStates)", async () => {
     const result1 = await catalogService.getEServices(
-      getRandomAuthData(organizationId3),
+      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -318,7 +318,7 @@ describe("get eservices", () => {
     );
 
     const result2 = await catalogService.getEServices(
-      getRandomAuthData(organizationId3),
+      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -339,7 +339,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: name)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -393,7 +393,7 @@ describe("get eservices", () => {
     await addOneDelegation(delegation3);
 
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -450,7 +450,7 @@ describe("get eservices", () => {
     await addOneDelegation(delegation4);
 
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -474,7 +474,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: statestates, name)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(organizationId3),
+      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -493,7 +493,7 @@ describe("get eservices", () => {
   });
   it("should not get the eServices if they don't exist (parameters: statestates, name)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -512,7 +512,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: producersIds, states, name)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId2],
@@ -656,7 +656,7 @@ describe("get eservices", () => {
     await addOneDelegation(delegation5);
 
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [
@@ -683,7 +683,7 @@ describe("get eservices", () => {
   });
   it("should not get the eServices if they don't exist (parameters: producersIds, states, name)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId2],
@@ -702,7 +702,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (pagination: limit)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -720,7 +720,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (pagination: offset, limit)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -738,7 +738,7 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: attributesIds)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -766,7 +766,7 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: mode)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -788,7 +788,7 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -810,7 +810,7 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: producersIds, mode)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId2],
@@ -849,7 +849,7 @@ describe("get eservices", () => {
     await addOneDelegation(delegation2);
 
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId2],
@@ -972,7 +972,7 @@ describe("get eservices", () => {
     await addOneDelegation(delegation4);
 
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [
@@ -998,7 +998,7 @@ describe("get eservices", () => {
 
   it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1017,7 +1017,7 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: attributesIds, name)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1037,7 +1037,7 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: attributesIds, states)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(),
+      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1060,7 +1060,7 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: attributesIdstates, producersIds)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(organizationId3),
+      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [organizationId1],
@@ -1079,7 +1079,7 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: attributesIdstates, eservicesIds)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(organizationId3),
+      getMockAuthData(organizationId3),
       {
         eservicesIds: [eservice1.id, eservice4.id],
         producersIds: [organizationId1, organizationId2],
@@ -1101,7 +1101,7 @@ describe("get eservices", () => {
 
   it("should not get the eServices if they don't exist (parameters: attributesIdstates)", async () => {
     const result = await catalogService.getEServices(
-      getRandomAuthData(organizationId3),
+      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1146,7 +1146,7 @@ describe("get eservices", () => {
     await addOneEService(eserviceInstance3);
 
     const result = await catalogService.getEServices(
-      getRandomAuthData(organizationId3),
+      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1191,7 +1191,7 @@ describe("get eservices", () => {
     await addOneEService(eserviceInstance3);
 
     const result = await catalogService.getEServices(
-      getRandomAuthData(organizationId3),
+      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1217,7 +1217,7 @@ describe("get eservices", () => {
       descriptors: [],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(organizationId1),
+      ...getMockAuthData(organizationId1),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice7);
@@ -1255,7 +1255,7 @@ describe("get eservices", () => {
       descriptors: [],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(organizationId1),
+      ...getMockAuthData(organizationId1),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice7);
@@ -1292,7 +1292,7 @@ describe("get eservices", () => {
       descriptors: [],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice7);
@@ -1336,7 +1336,7 @@ describe("get eservices", () => {
         descriptors: [descriptor8],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(organizationId1),
+        ...getMockAuthData(organizationId1),
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice8);
@@ -1390,7 +1390,7 @@ describe("get eservices", () => {
         state: delegationState.active,
       });
       const authData: AuthData = {
-        ...getRandomAuthData(organizationId2),
+        ...getMockAuthData(organizationId2),
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
@@ -1437,7 +1437,7 @@ describe("get eservices", () => {
         descriptors: [descriptor8],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(organizationId1),
+        ...getMockAuthData(organizationId1),
         userRoles: [userRoles.SECURITY_ROLE],
       };
       await addOneEService(eservice8);
@@ -1482,7 +1482,7 @@ describe("get eservices", () => {
         descriptors: [descriptor8],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(),
+        ...getMockAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice8);
@@ -1535,7 +1535,7 @@ describe("get eservices", () => {
         descriptors: [descriptor9a, descriptor9b],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(organizationId1),
+        ...getMockAuthData(organizationId1),
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
@@ -1589,7 +1589,7 @@ describe("get eservices", () => {
         descriptors: [descriptor9a, descriptor9b],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(organizationId1),
+        ...getMockAuthData(organizationId1),
         userRoles: [userRoles.SECURITY_ROLE],
       };
       await addOneEService(eservice9);
@@ -1643,7 +1643,7 @@ describe("get eservices", () => {
         descriptors: [descriptor9a, descriptor9b],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(),
+        ...getMockAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
@@ -1703,7 +1703,7 @@ describe("get eservices", () => {
         state: delegationState.active,
       });
       const authData: AuthData = {
-        ...getRandomAuthData(organizationId2),
+        ...getMockAuthData(organizationId2),
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice9);

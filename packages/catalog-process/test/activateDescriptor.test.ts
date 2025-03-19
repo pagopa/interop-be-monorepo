@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -23,7 +24,6 @@ import {
 import {
   addOneEService,
   catalogService,
-  getRandomAuthData,
   readLastEserviceEvent,
   getMockEService,
   getMockDescriptor,
@@ -49,7 +49,7 @@ describe("activate descriptor", () => {
     await catalogService.activateDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const expectedDescriptor = {
@@ -82,7 +82,7 @@ describe("activate descriptor", () => {
       state: descriptorState.suspended,
     };
 
-    const delegate = getRandomAuthData();
+    const delegate = getMockAuthData();
 
     const eservice: EService = {
       ...mockEService,
@@ -133,7 +133,7 @@ describe("activate descriptor", () => {
       catalogService.activateDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -149,7 +149,7 @@ describe("activate descriptor", () => {
       catalogService.activateDescriptor(
         eservice.id,
         mockDescriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -199,7 +199,7 @@ describe("activate descriptor", () => {
       catalogService.activateDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -226,7 +226,7 @@ describe("activate descriptor", () => {
         catalogService.activateDescriptor(
           mockEService.id,
           mockDescriptor.id,
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

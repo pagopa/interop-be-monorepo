@@ -6,7 +6,7 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplateVersionAddedV2,
@@ -57,7 +57,7 @@ describe("createEServiceTemplateVersion", async () => {
       await eserviceTemplateService.createEServiceTemplateVersion(
         eserviceTemplate.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       );
     const newEServiceTemplateVersionId = returnedEServiceTemplateVersion.id;
@@ -115,7 +115,7 @@ describe("createEServiceTemplateVersion", async () => {
       eserviceTemplateService.createEServiceTemplateVersion(
         eserviceTemplate.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -140,7 +140,7 @@ describe("createEServiceTemplateVersion", async () => {
       eserviceTemplateService.createEServiceTemplateVersion(
         eserviceTemplate.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -157,7 +157,7 @@ describe("createEServiceTemplateVersion", async () => {
       eserviceTemplateService.createEServiceTemplateVersion(
         mockEServiceTemplate.id,
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));

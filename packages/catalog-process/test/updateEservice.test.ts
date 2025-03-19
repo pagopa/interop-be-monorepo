@@ -5,9 +5,9 @@ import {
   getMockContext,
   getMockDelegation,
   getMockValidRiskAnalysis,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -81,7 +81,7 @@ describe("update eService", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     const updatedEService: EService = {
@@ -144,7 +144,7 @@ describe("update eService", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     const updatedEService: EService = {
@@ -217,7 +217,7 @@ describe("update eService", () => {
         technology: "SOAP",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -279,7 +279,7 @@ describe("update eService", () => {
           technology: "SOAP",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -304,7 +304,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     const updatedEService: EService = {
@@ -345,7 +345,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const updatedEService: EService = {
@@ -392,7 +392,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const expectedEservice: EService = {
@@ -427,7 +427,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -468,7 +468,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -497,7 +497,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicate("ESERVICE NAME ALREADY IN USE")
@@ -524,7 +524,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -549,7 +549,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -574,7 +574,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -599,7 +599,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -630,7 +630,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });

@@ -4,7 +4,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockContext,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
   eserviceTemplateVersionState,

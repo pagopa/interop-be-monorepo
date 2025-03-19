@@ -3,8 +3,8 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -65,7 +65,7 @@ describe("update Document", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       const expectedEservice = toEServiceV2({
@@ -139,7 +139,7 @@ describe("update Document", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       const expectedEservice = toEServiceV2({
@@ -238,7 +238,7 @@ describe("update Document", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -254,7 +254,7 @@ describe("update Document", () => {
         mockDescriptor.id,
         generateId(),
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -284,7 +284,7 @@ describe("update Document", () => {
           descriptor.id,
           generateId(),
           { prettyName: "updated prettyName" },
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -306,7 +306,7 @@ describe("update Document", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
@@ -338,7 +338,7 @@ describe("update Document", () => {
         descriptor.id,
         document2.id,
         { prettyName: document1.prettyName.toLowerCase() },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       documentPrettyNameDuplicate(
@@ -367,7 +367,7 @@ describe("update Document", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(eService.producerId) })
+        getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });

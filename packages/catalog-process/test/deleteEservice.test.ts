@@ -4,9 +4,9 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
   readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   EService,
   EServiceDeletedV1,
@@ -49,7 +49,7 @@ describe("delete eservice", () => {
     await addOneEService(eservice);
     await catalogService.deleteEService(
       eservice.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -123,7 +123,7 @@ describe("delete eservice", () => {
     await addOneEService(eservice);
     await catalogService.deleteEService(
       eservice.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
@@ -189,7 +189,7 @@ describe("delete eservice", () => {
     void expect(
       catalogService.deleteEService(
         mockEService.id,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -216,7 +216,7 @@ describe("delete eservice", () => {
         catalogService.deleteEService(
           mockEService.id,
           getMockContext({
-            authData: getRandomAuthData(mockEService.producerId),
+            authData: getMockAuthData(mockEService.producerId),
           })
         )
       ).rejects.toThrowError(
@@ -240,7 +240,7 @@ describe("delete eservice", () => {
         catalogService.deleteEService(
           mockEService.id,
           getMockContext({
-            authData: getRandomAuthData(mockEService.producerId),
+            authData: getMockAuthData(mockEService.producerId),
           })
         )
       ).resolves.not.toThrowError(
@@ -269,7 +269,7 @@ describe("delete eservice", () => {
     expect(
       catalogService.deleteEService(
         eservice.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });

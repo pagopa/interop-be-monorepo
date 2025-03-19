@@ -9,7 +9,7 @@ import {
   getMockEServiceTemplateVersion,
   getMockTenant,
   getMockValidRiskAnalysis,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -94,7 +94,7 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
       getMockContext({
-        authData: getRandomAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
 
@@ -149,7 +149,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
@@ -188,7 +188,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersionId,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -220,7 +220,7 @@ describe("publishEServiceTemplateVersion", () => {
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
@@ -247,7 +247,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -277,7 +277,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
@@ -308,7 +308,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(tenantKindNotFound(eserviceTemplate.creatorId));
@@ -342,7 +342,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(missingRiskAnalysis(eserviceTemplate.id));
@@ -385,7 +385,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -421,7 +421,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).equal(undefined);
@@ -464,7 +464,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).equal(undefined);

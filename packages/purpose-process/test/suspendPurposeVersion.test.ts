@@ -5,7 +5,7 @@ import {
   getMockPurpose,
   decodeProtobufPayload,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
   addSomeRandomDelegations,
   getMockAgreement,
   getMockTenant,
@@ -79,7 +79,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion1.id,
         },
-        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       );
 
       const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -142,7 +142,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -213,7 +213,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -276,7 +276,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -320,7 +320,7 @@ describe("suspendPurposeVersion", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -352,7 +352,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -396,7 +396,7 @@ describe("suspendPurposeVersion", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const mockEService = {
       ...getMockEService(),
       producerId: authData.organizationId,
@@ -554,7 +554,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: delegatePurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -629,7 +629,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: randomVersionId,
         },
-        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -637,7 +637,7 @@ describe("suspendPurposeVersion", () => {
   });
   it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", async () => {
     const mockEService = getMockEService();
-    const randomAuthData = getRandomAuthData();
+    const randomAuthData = getMockAuthData();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       state: randomArrayItem(isSuspendable),
@@ -688,7 +688,7 @@ describe("suspendPurposeVersion", () => {
 
     await addOneDelegation(delegation);
 
-    const randomCaller = getRandomAuthData();
+    const randomCaller = getMockAuthData();
 
     expect(
       purposeService.suspendPurposeVersion(
@@ -718,7 +718,7 @@ describe("suspendPurposeVersion", () => {
       await addOnePurpose(mockPurpose);
       await addOneEService(mockEService);
 
-      const delegateAuthData = getRandomAuthData();
+      const delegateAuthData = getMockAuthData();
       const delegation = getMockDelegation({
         delegatorId: mockEService.producerId,
         kind: delegationKind.delegatedProducer,
@@ -773,7 +773,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(organizationNotAllowed(mockEService.producerId));
   });
@@ -805,7 +805,7 @@ describe("suspendPurposeVersion", () => {
             versionId: mockPurposeVersion.id,
           },
           getMockContext({
-            authData: getRandomAuthData(mockPurpose.consumerId),
+            authData: getMockAuthData(mockPurpose.consumerId),
           })
         )
       ).rejects.toThrowError(
@@ -846,13 +846,13 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(organizationNotAllowed(mockPurpose.consumerId));
   });
 
   it("should throw organizationNotAllowed when the requester is the Consumer, is suspending a purpose version created by a delegate in suspendPurposeVersion, but the delegation cannot be found", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const mockEService = getMockEService();
 
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
@@ -881,7 +881,7 @@ describe("suspendPurposeVersion", () => {
   });
 
   it("should throw organizationNotAllowed when the requester is the Delegate and is suspending a purpose version created by the Consumer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -913,7 +913,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });
@@ -949,7 +949,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });

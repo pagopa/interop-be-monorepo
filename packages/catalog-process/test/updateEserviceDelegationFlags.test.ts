@@ -3,8 +3,8 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -53,7 +53,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -95,7 +95,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: false,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -138,7 +138,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
       },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -181,7 +181,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -215,7 +215,7 @@ describe("update eService flags", () => {
           isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -252,7 +252,7 @@ describe("update eService flags", () => {
           isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -267,7 +267,7 @@ describe("update eService flags", () => {
           isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
@@ -291,7 +291,7 @@ describe("update eService flags", () => {
             isConsumerDelegable: true,
             isClientAccessDelegable: false,
           },
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
@@ -315,7 +315,7 @@ describe("update eService flags", () => {
           isConsumerDelegable: false,
           isClientAccessDelegable: true,
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(invalidEServiceFlags(eservice.id));
   });

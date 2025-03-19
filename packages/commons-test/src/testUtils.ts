@@ -80,13 +80,13 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
-  CorrelationId,
 } from "pagopa-interop-models";
 import {
   AppContext,
   AuthData,
   dateToSeconds,
   genericLogger,
+  userRoles,
   WithLogger,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -136,30 +136,6 @@ export const getTenantOneCertifierFeature = (
   }
   return certifiedFeatures[0];
 };
-
-// export const getRandomAuthData = (organizationId?: TenantId): AuthData => ({
-//   organizationId: organizationId || generateId(),
-//   userId: generateId(),
-//   userRoles: [],
-//   externalId: {
-//     value: "123456",
-//     origin: "IPA",
-//   },
-//   selfcareId: generateId(),
-// });
-
-export const getRandomAuthData = (
-  organizationId: TenantId = generateId<TenantId>()
-): AuthData => ({
-  organizationId,
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
 
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
@@ -404,6 +380,17 @@ export const getMockKey = (): Key => ({
   encodedPem: "encodedPem",
   algorithm: "",
   use: keyUse.sig,
+});
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
+  userRoles: [userRoles.ADMIN_ROLE],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
 });
 
 export const getMockDelegation = ({
@@ -744,15 +731,13 @@ export const getMockEServiceTemplate = (
 export const getMockContext = ({
   authData,
   serviceName,
-  correlationId,
 }: {
   authData?: AuthData;
   serviceName?: string;
-  correlationId?: CorrelationId;
 }): WithLogger<AppContext> => ({
-  authData: authData || getRandomAuthData(),
-  serviceName: serviceName || "",
-  correlationId: correlationId || generateId(),
+  authData: authData || getMockAuthData(),
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });

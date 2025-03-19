@@ -1,7 +1,7 @@
 /* eslint-disable functional/no-let */
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
-  getRandomAuthData,
+  getMockAuthData,
   getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
@@ -296,7 +296,7 @@ describe("get eservices", () => {
       versions: [],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(organizationId1),
+      ...getMockAuthData(organizationId1),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -334,7 +334,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(organizationId1),
+      ...getMockAuthData(organizationId1),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -372,7 +372,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(organizationId1),
+      ...getMockAuthData(organizationId1),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -409,7 +409,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -454,7 +454,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(organizationId1),
+      ...getMockAuthData(organizationId1),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -500,7 +500,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(organizationId1),
+      ...getMockAuthData(organizationId1),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);
@@ -546,7 +546,7 @@ describe("get eservices", () => {
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEServiceTemplate(eserviceTemplate6);

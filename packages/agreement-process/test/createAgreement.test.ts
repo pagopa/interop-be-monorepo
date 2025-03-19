@@ -11,7 +11,7 @@ import {
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -128,7 +128,7 @@ const expectedAgreementCreation = async (
 
 describe("create agreement", () => {
   it("should succeed when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
     const attributeId = generateId<AttributeId>();
@@ -162,7 +162,7 @@ describe("create agreement", () => {
   });
 
   it("should succeed when EService producer and Agreement consumer are different Tenants, and the consumer has all Descriptor certified Attributes not revoked", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceProducer: Tenant = getMockTenant();
 
     const certifiedDescriptorAttribute1: EServiceAttribute =
@@ -218,7 +218,7 @@ describe("create agreement", () => {
     );
   });
   it("should succeed when the delegationId is provided, the requester is the delegate and the delegator has all Descriptor certified Attributes not revoked", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceProducer: Tenant = getMockTenant();
 
     const certifiedDescriptorAttribute1: EServiceAttribute =
@@ -311,7 +311,7 @@ describe("create agreement", () => {
     await addOneTenant(consumer);
     await addOneEService(eservice);
 
-    const authData = getRandomAuthData(consumer.id); // different from eserviceProducer
+    const authData = getMockAuthData(consumer.id); // different from eserviceProducer
 
     const createdAgreement = await agreementService.createAgreement(
       {
@@ -355,7 +355,7 @@ describe("create agreement", () => {
     await addOneTenant(tenant);
     await addOneEService(eservice);
 
-    const authData = getRandomAuthData(tenant.id);
+    const authData = getMockAuthData(tenant.id);
 
     const createdAgreement = await agreementService.createAgreement(
       {
@@ -396,7 +396,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(otherAgreement);
 
-    const authData = getRandomAuthData(tenant.id);
+    const authData = getMockAuthData(tenant.id);
 
     const createdAgreement = await agreementService.createAgreement(
       {
@@ -416,7 +416,7 @@ describe("create agreement", () => {
   });
 
   it("should throw an eServiceNotFound error when the EService does not exist", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
 
@@ -432,7 +432,7 @@ describe("create agreement", () => {
   });
 
   it("should throw a notLatestEServiceDescriptor error when the EService has no Descriptor", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
     const descriptorId = generateId<DescriptorId>();
 
@@ -454,7 +454,7 @@ describe("create agreement", () => {
   });
 
   it("should throw a notLatestEServiceDescriptor error when the EService Descriptor is not the latest non-draft Descriptor", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
     const notDraftDescriptorStates = Object.values(descriptorState).filter(
       (state) =>
@@ -495,7 +495,7 @@ describe("create agreement", () => {
   });
 
   it("should throw a descriptorNotInExpectedState error when the EService's latest non-draft Descriptor is not published", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
     const descriptor: Descriptor = {
@@ -551,7 +551,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(conflictingAgreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.createAgreement(
@@ -565,7 +565,7 @@ describe("create agreement", () => {
   });
 
   it("should throw an agreementAlreadyExists when the delegationId is provided, the requester is the delegate and an Agreement in a conflicting state already exists for the same EService and the delegator as Consumer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceProducer: Tenant = getMockTenant();
 
     const delegator = getMockTenant(generateId<TenantId>(), [
@@ -626,7 +626,7 @@ describe("create agreement", () => {
 
     await addOneEService(eservice);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(() =>
       agreementService.createAgreement(
@@ -672,7 +672,7 @@ describe("create agreement", () => {
     await addOneTenant(consumer);
     await addOneEService(eservice);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
     await expect(
       agreementService.createAgreement(
         {
@@ -727,7 +727,7 @@ describe("create agreement", () => {
     await addOneTenant(consumer);
     await addOneEService(eservice);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.createAgreement(
@@ -742,7 +742,7 @@ describe("create agreement", () => {
     );
   });
   it("should throw organizationIsNotTheDelegateConsumer error when there is an active delegation and the requester is the delegator", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
 
     const eservice = getMockEService(
       generateId<EServiceId>(),
@@ -804,7 +804,7 @@ describe("create agreement", () => {
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
   it("should throw organizationIsNotTheDelegateConsumer error when the requester is not the delegate if delegationId is provided", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),

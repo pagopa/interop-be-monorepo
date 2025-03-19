@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockContext,
   getMockDescriptor,
   randomArrayItem,
   readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   EServiceAddedV2,
   EService,
@@ -25,7 +26,6 @@ import {
   addOneEService,
   buildDescriptorSeedForEserviceCreation,
   catalogService,
-  getRandomAuthData,
   getMockEService,
   postgresDB,
   readLastEserviceEvent,
@@ -64,7 +64,7 @@ describe("create eservice", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -144,7 +144,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -165,7 +165,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -186,7 +186,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -216,7 +216,7 @@ describe("create eservice", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -296,7 +296,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -317,7 +317,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -338,7 +338,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         isSignalHubEnabled,
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eservice).toBeDefined();
@@ -359,7 +359,7 @@ describe("create eservice", () => {
           mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicate(mockEService.name.toLowerCase())
@@ -378,7 +378,7 @@ describe("create eservice", () => {
         },
         getMockContext({
           authData: {
-            ...getRandomAuthData(mockEService.producerId),
+            ...getMockAuthData(mockEService.producerId),
             externalId: {
               value: "123456",
               origin: "not-allowed-origin",
@@ -403,7 +403,7 @@ describe("create eservice", () => {
             dailyCallsTotal: 99,
           },
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });

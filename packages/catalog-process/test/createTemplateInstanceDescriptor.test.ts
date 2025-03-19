@@ -6,7 +6,7 @@ import {
   getMockDelegation,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -88,7 +88,7 @@ describe("create descriptor", async () => {
       await catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -189,7 +189,7 @@ describe("create descriptor", async () => {
       await catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -285,7 +285,7 @@ describe("create descriptor", async () => {
         catalogService.createTemplateInstanceDescriptor(
           eservice.id,
           descriptorSeed,
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
     }
@@ -331,7 +331,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -417,7 +417,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 60 },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -456,7 +456,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 50 },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });

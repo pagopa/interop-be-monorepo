@@ -7,7 +7,7 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -111,7 +111,7 @@ describe("deleteEServiceTemplateVersion", () => {
       eserviceTemplate.id,
       eserviceTemplateVersion2.id,
       getMockContext({
-        authData: getRandomAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
 
@@ -228,7 +228,7 @@ describe("deleteEServiceTemplateVersion", () => {
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
       getMockContext({
-        authData: getRandomAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
 
@@ -311,7 +311,7 @@ describe("deleteEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         versionId,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -341,7 +341,7 @@ describe("deleteEServiceTemplateVersion", () => {
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(

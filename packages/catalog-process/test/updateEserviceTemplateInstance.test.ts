@@ -4,9 +4,9 @@ import {
   getMockContext,
   getMockDelegation,
   getMockEServiceTemplate,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -81,7 +81,7 @@ describe("update eService Instance", () => {
           isConsumerDelegable,
           isClientAccessDelegable,
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
     const updatedEService: EService = {
@@ -145,7 +145,7 @@ describe("update eService Instance", () => {
           isConsumerDelegable,
           isClientAccessDelegable,
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
     const updatedEService: EService = {
@@ -197,7 +197,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test 2",
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
 
     const updatedEService: EService = {
@@ -252,7 +252,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test 2",
         },
-        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
 
     const updatedEService: EService = {
@@ -288,7 +288,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -339,7 +339,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -370,7 +370,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        getMockContext({ authData: getRandomAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
       )
     ).rejects.toThrowError(eServiceNameDuplicate(`${template.name} test`));
   });
@@ -406,7 +406,7 @@ describe("update eService Instance", () => {
           {
             instanceLabel: "test",
           },
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
     }
@@ -431,7 +431,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
   });

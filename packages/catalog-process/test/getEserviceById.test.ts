@@ -11,15 +11,15 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
+  getMockAuthData,
   getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { eServiceNotFound } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getRandomAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -46,7 +46,7 @@ describe("get eservice by id", () => {
     };
     await addOneEService(eservice1);
     const authData: AuthData = {
-      ...getRandomAuthData(eservice1.producerId),
+      ...getMockAuthData(eservice1.producerId),
       userRoles: [userRoles.ADMIN_ROLE],
     };
 
@@ -120,7 +120,7 @@ describe("get eservice by id", () => {
         descriptors: [descriptor],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(),
+        ...getMockAuthData(),
         userRoles: [userRoles.SECURITY_ROLE],
       };
       await addOneEService(mockEService);
@@ -152,7 +152,7 @@ describe("get eservice by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(eservice.producerId),
+      ...getMockAuthData(eservice.producerId),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(mockEService);
@@ -178,7 +178,7 @@ describe("get eservice by id", () => {
         descriptors: [descriptorA, descriptorB],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(),
+        ...getMockAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice);
@@ -207,7 +207,7 @@ describe("get eservice by id", () => {
         descriptors: [descriptorA, descriptorB],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(eservice.producerId),
+        ...getMockAuthData(eservice.producerId),
         userRoles: [userRoles.SECURITY_ROLE],
       };
       await addOneEService(eservice);
@@ -236,7 +236,7 @@ describe("get eservice by id", () => {
         descriptors: [descriptorA, descriptorB],
       };
       const authData: AuthData = {
-        ...getRandomAuthData(),
+        ...getMockAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
       };
       const delegation = getMockDelegation({
@@ -271,7 +271,7 @@ describe("get eservice by id", () => {
       descriptors: [descriptorA, descriptorB],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice);
@@ -297,7 +297,7 @@ describe("get eservice by id", () => {
       descriptors: [descriptorA, descriptorB],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(eservice.producerId),
+      ...getMockAuthData(eservice.producerId),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice);
@@ -323,7 +323,7 @@ describe("get eservice by id", () => {
       descriptors: [descriptorA, descriptorB],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     const delegation = getMockDelegation({

@@ -2,12 +2,12 @@
 import { fail } from "assert";
 import { AuthData } from "pagopa-interop-commons";
 import {
-  getRandomAuthData,
+  getMockAuthData,
   getMockContext,
   getMockTenant,
   readEventByStreamIdAndVersion,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   tenantKind,
@@ -91,7 +91,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -201,7 +201,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -306,7 +306,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -333,7 +333,7 @@ describe("m2mUpsertTenant", async () => {
   });
   it("Should throw tenantNotFound if the requester doesn't exist", async () => {
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: getMockTenant().id,
       userRoles: ["m2m"],
     };
@@ -360,7 +360,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -403,7 +403,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: mockTenant.id,
       userRoles: ["m2m"],
     };
@@ -420,7 +420,7 @@ describe("m2mUpsertTenant", async () => {
   it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
     const tenant: Tenant = getMockTenant();
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       organizationId: tenant.id,
       userRoles: ["m2m"],
     };

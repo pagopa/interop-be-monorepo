@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
-  getRandomAuthData,
+  getMockAuthData,
   getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   randomArrayItem,
   readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
   toEServiceTemplateV2,
@@ -45,7 +45,7 @@ describe("create eservice template", () => {
           isSignalHubEnabled,
         }),
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       );
 
@@ -96,7 +96,7 @@ describe("create eservice template", () => {
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
         getMockContext({
           authData: {
-            ...getRandomAuthData(mockEServiceTemplate.creatorId),
+            ...getMockAuthData(mockEServiceTemplate.creatorId),
             externalId: { origin: "not-allowed-origin", value: "aaa" },
           },
         })
@@ -110,7 +110,7 @@ describe("create eservice template", () => {
       eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -128,7 +128,7 @@ describe("create eservice template", () => {
           ],
         }),
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());

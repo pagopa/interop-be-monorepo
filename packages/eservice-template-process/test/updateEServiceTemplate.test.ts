@@ -7,7 +7,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockValidRiskAnalysis,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
@@ -63,7 +63,7 @@ describe("update EService template", () => {
           updatedEServiceTemplate
         ),
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       );
 
@@ -144,7 +144,7 @@ describe("update EService template", () => {
           updatedEServiceTemplate
         ),
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       );
 
@@ -203,7 +203,7 @@ describe("update EService template", () => {
           isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
         },
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       );
 
@@ -268,7 +268,7 @@ describe("update EService template", () => {
           eserviceTemplate.id,
           eserviceTemplateToApiUpdateEServiceTemplateSeed(eserviceTemplate),
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
@@ -283,7 +283,7 @@ describe("update EService template", () => {
         mockEServiceTemplate.id,
         eserviceTemplateToApiUpdateEServiceTemplateSeed(mockEServiceTemplate),
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
@@ -315,7 +315,7 @@ describe("update EService template", () => {
           mode: "DELIVER",
         },
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate1.creatorId),
+          authData: getMockAuthData(eserviceTemplate1.creatorId),
         })
       )
     ).rejects.toThrowError(

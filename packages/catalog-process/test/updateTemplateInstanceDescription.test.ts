@@ -2,8 +2,8 @@
 import {
   decodeProtobufPayload,
   getMockContext,
-  getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -39,7 +39,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
     await catalogService.internalUpdateTemplateInstanceDescription(
       eservice.id,
       updatedDescription,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -69,7 +69,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
       catalogService.internalUpdateTemplateInstanceDescription(
         eservice.id,
         "eservice new description",
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });

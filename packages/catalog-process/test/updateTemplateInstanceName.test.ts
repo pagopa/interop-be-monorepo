@@ -1,8 +1,8 @@
 import {
   decodeProtobufPayload,
   getMockContext,
-  getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -45,7 +45,7 @@ describe("updateTemplateInstanceName", () => {
     await catalogService.internalUpdateTemplateInstanceName(
       eservice.id,
       updatedName,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -88,7 +88,7 @@ describe("updateTemplateInstanceName", () => {
     await catalogService.internalUpdateTemplateInstanceName(
       eservice.id,
       updatedName,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -132,7 +132,7 @@ describe("updateTemplateInstanceName", () => {
     await catalogService.internalUpdateTemplateInstanceName(
       eservice.id,
       updatedName,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -149,7 +149,7 @@ describe("updateTemplateInstanceName", () => {
       catalogService.internalUpdateTemplateInstanceName(
         eservice.id,
         "eservice new name",
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -181,7 +181,7 @@ describe("updateTemplateInstanceName", () => {
       catalogService.internalUpdateTemplateInstanceName(
         eservice.id,
         updatedName,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNameDuplicate(duplicateName));
   });
