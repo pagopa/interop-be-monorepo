@@ -232,6 +232,7 @@ const enhanceProducerEService = (
             },
           }
         : undefined,
+    isTemplateInstance: eserviceTemplate !== undefined,
     isNewTemplateVersionAvailable:
       eserviceTemplate !== undefined &&
       activeDescriptor !== undefined &&

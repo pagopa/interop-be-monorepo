@@ -18815,6 +18815,7 @@ components:
         - id
         - name
         - mode
+        - isTemplateInstance
       properties:
         id:
           type: string
@@ -18829,6 +18830,8 @@ components:
           $ref: "#/components/schemas/CompactProducerDescriptor"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        isTemplateInstance:
+          type: boolean
         isNewTemplateVersionAvailable:
           type: boolean
     ProducerEServices:
