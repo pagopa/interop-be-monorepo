@@ -51,14 +51,14 @@ export const splitEserviceIntoObjectsSQL = (
         },
         currentRiskAnalysis: RiskAnalysis
       ) => {
-        const { eserviceRiskAnalysisSQL, riskAnalysisAnswersSQL } =
+        const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
           splitRiskAnalysisIntoObjectsSQL(
             currentRiskAnalysis,
             eservice.id,
             version
           );
         return {
-          riskAnalysesSQL: acc.riskAnalysesSQL.concat(eserviceRiskAnalysisSQL),
+          riskAnalysesSQL: acc.riskAnalysesSQL.concat(riskAnalysisSQL),
           riskAnalysisAnswersSQL: acc.riskAnalysisAnswersSQL.concat(
             riskAnalysisAnswersSQL
           ),
@@ -254,10 +254,10 @@ export const splitRiskAnalysisIntoObjectsSQL = (
   eserviceId: EServiceId,
   version: number
 ): {
-  eserviceRiskAnalysisSQL: EServiceRiskAnalysisSQL;
+  riskAnalysisSQL: EServiceRiskAnalysisSQL;
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
 } => {
-  const eserviceRiskAnalysisSQL: EServiceRiskAnalysisSQL = {
+  const riskAnalysisSQL: EServiceRiskAnalysisSQL = {
     id: riskAnalysis.id,
     metadataVersion: version,
     eserviceId,
@@ -295,7 +295,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     );
 
   return {
-    eserviceRiskAnalysisSQL,
+    riskAnalysisSQL,
     riskAnalysisAnswersSQL: [
       ...riskAnalysisSingleAnswers,
       ...riskAnalysisMultiAnswers,
