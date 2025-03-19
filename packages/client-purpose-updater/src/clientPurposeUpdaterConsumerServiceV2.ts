@@ -40,7 +40,7 @@ export async function handleMessageV2({
           eventType: purposeMsg.type,
           eventVersion: purposeMsg.event_version,
           streamId: purposeMsg.stream_id,
-          eventVersionForStreamId: purposeMsg.version,
+          streamVersion: purposeMsg.version,
           correlationId,
         });
 

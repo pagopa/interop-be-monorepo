@@ -45,7 +45,7 @@ async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-    eventVersionForStreamId: decodedMessage.version,
+    streamVersion: decodedMessage.version,
     correlationId,
   });
   loggerInstance.debug(decodedMessage);
