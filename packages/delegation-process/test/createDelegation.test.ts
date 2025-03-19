@@ -137,7 +137,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -219,7 +218,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       );
 
@@ -337,7 +335,6 @@ describe.each([
             logger: genericLogger,
             correlationId: generateId(),
             serviceName: "DelegationServiceTest",
-            requestTimestamp: Date.now(),
           }
         )
       ).rejects.toThrowError(
@@ -377,7 +374,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(delegateId));
@@ -412,7 +408,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotFound(delegatorId));
@@ -433,7 +428,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
@@ -479,7 +473,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(originNotCompliant(delegator, "Delegator"));
@@ -529,7 +522,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(originNotCompliant(delegate, "Delegate"));
@@ -571,7 +563,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(eserviceNotFound(eserviceId));
@@ -609,7 +600,6 @@ describe.each([
           logger: genericLogger,
           correlationId: generateId(),
           serviceName: "DelegationServiceTest",
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(tenantNotAllowedToDelegation(delegate.id, kind));
