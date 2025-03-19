@@ -381,10 +381,8 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
-export const getMockAuthData = (
-  organizationId: TenantId = generateId<TenantId>()
-): AuthData => ({
-  organizationId,
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
   userId: generateId(),
   userRoles: [],
   externalId: {
@@ -740,5 +738,4 @@ export const getMockContext = ({
   serviceName: serviceName || "test",
   correlationId: generateId(),
   logger: genericLogger,
-  requestTimestamp: Date.now(),
 });
