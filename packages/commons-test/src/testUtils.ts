@@ -86,6 +86,7 @@ import {
   AuthData,
   dateToSeconds,
   genericLogger,
+  userRoles,
   WithLogger,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -384,7 +385,7 @@ export const getMockKey = (): Key => ({
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: [],
+  userRoles: [userRoles.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
