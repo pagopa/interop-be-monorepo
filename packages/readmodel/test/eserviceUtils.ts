@@ -18,6 +18,8 @@ import {
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  EServiceDescriptorTemplateVersionRefSQL,
   eserviceInReadmodelCatalog,
   EServiceItemsSQL,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
@@ -25,6 +27,8 @@ import {
   eserviceRiskAnalysisInReadmodelCatalog,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
+  eserviceTemplateRefInReadmodelCatalog,
+  EServiceTemplateRefSQL,
 } from "pagopa-interop-readmodel-models";
 import { expect } from "vitest";
 import { catalogReadModelServiceBuilder } from "../src/catalogReadModelService.js";
@@ -93,6 +97,12 @@ export const checkCompleteEService = async (
   );
   const riskAnalysisAnswersSQL =
     await retrieveEserviceRiskAnalysisAnswersSQLById(eservice.id, readModelDB);
+  const templateRefsSQL = await retrieveEServiceTemplateRefSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const templateVersionRefsSQL =
+    await retrieveEServiceTemplateVersionRefsSQLById(eservice.id, readModelDB);
 
   expect(eserviceSQL).toBeDefined();
   expect(descriptorsSQL).toHaveLength(eservice.descriptors.length);
@@ -114,6 +124,8 @@ export const checkCompleteEService = async (
       0
     )
   );
+  expect(templateRefsSQL).toBeDefined();
+  expect(templateVersionRefsSQL).toHaveLength(eservice.descriptors.length);
 
   return {
     eserviceSQL: eserviceSQL!,
@@ -124,6 +136,8 @@ export const checkCompleteEService = async (
     rejectionReasonsSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
+    templateRefSQL: templateRefsSQL!,
+    templateVersionRefsSQL,
   };
 };
 
@@ -213,4 +227,30 @@ export const retrieveEserviceRiskAnalysisAnswersSQLById = async (
     .from(eserviceRiskAnalysisAnswerInReadmodelCatalog)
     .where(
       eq(eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId, eserviceId)
+    );
+
+export const retrieveEServiceTemplateRefSQLById = async (
+  eserviceId: EServiceId,
+  db: DrizzleReturnType
+): Promise<EServiceTemplateRefSQL | undefined> => {
+  const result = await db
+    .select()
+    .from(eserviceTemplateRefInReadmodelCatalog)
+    .where(eq(eserviceTemplateRefInReadmodelCatalog.eserviceId, eserviceId));
+
+  return result[0];
+};
+
+export const retrieveEServiceTemplateVersionRefsSQLById = async (
+  eserviceId: EServiceId,
+  db: DrizzleReturnType
+): Promise<EServiceDescriptorTemplateVersionRefSQL[]> =>
+  await db
+    .select()
+    .from(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+    .where(
+      eq(
+        eserviceDescriptorTemplateVersionRefInReadmodelCatalog.eserviceId,
+        eserviceId
+      )
     );

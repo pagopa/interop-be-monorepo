@@ -343,7 +343,8 @@ export const toEServiceAggregator = (
     rejection: EServiceDescriptorRejectionReasonSQL | null;
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
-    // templateBinding: EServiceTemplateBindingSQL | null;
+    templateRef: EServiceTemplateRefSQL | null;
+    templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
   }>
 ): EServiceItemsSQL => {
   const {
@@ -355,6 +356,8 @@ export const toEServiceAggregator = (
     documentsSQL,
     attributesSQL,
     rejectionReasonsSQL,
+    templateRefsSQL,
+    templateVersionRefsSQL,
   } = toEServiceAggregatorArray(queryRes);
 
   return {
@@ -366,7 +369,8 @@ export const toEServiceAggregator = (
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
-    // templateBindingSQL: [],
+    templateRefSQL: templateRefsSQL[0],
+    templateVersionRefsSQL,
   };
 };
 
@@ -380,7 +384,8 @@ export const toEServiceAggregatorArray = (
     rejection: EServiceDescriptorRejectionReasonSQL | null;
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
-    // templateBinding: EServiceTemplateBindingSQL | null;
+    templateRef: EServiceTemplateRefSQL | null;
+    templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
   }>
 ): {
   eservicesSQL: EServiceSQL[];
@@ -391,7 +396,8 @@ export const toEServiceAggregatorArray = (
   interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  // templateBindingSQL: EServiceTemplateBindingSQL[];
+  templateRefsSQL: EServiceTemplateRefSQL[];
+  templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
 } => {
   const eserviceIdSet = new Set<string>();
   const eservicesSQL: EServiceSQL[] = [];
@@ -416,6 +422,12 @@ export const toEServiceAggregatorArray = (
 
   const rejectionReasonsSet = new Set<string>();
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
+
+  const templateRefIdSet = new Set<string>();
+  const templateRefsSQL: EServiceTemplateRefSQL[] = [];
+
+  const templateVersionRefIdSet = new Set<string>();
+  const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   queryRes.forEach((row) => {
@@ -493,6 +505,26 @@ export const toEServiceAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         rejectionReasonsSQL.push(rejectionReasonSQL);
       }
+
+      const templateVersionRefSQL = row.templateVersionRef;
+      if (
+        templateVersionRefSQL &&
+        !templateVersionRefIdSet.has(
+          uniqueKey([
+            templateVersionRefSQL.id,
+            templateVersionRefSQL.descriptorId,
+          ])
+        )
+      ) {
+        templateVersionRefIdSet.add(
+          uniqueKey([
+            templateVersionRefSQL.id,
+            templateVersionRefSQL.descriptorId,
+          ])
+        );
+        // eslint-disable-next-line functional/immutable-data
+        templateVersionRefsSQL.push(templateVersionRefSQL);
+      }
     }
 
     const riskAnalysisSQL = row.riskAnalysis;
@@ -512,6 +544,20 @@ export const toEServiceAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
       }
+
+      const templateRefSQL = row.templateRef;
+      if (
+        templateRefSQL &&
+        !templateRefIdSet.has(
+          uniqueKey([templateRefSQL.id, templateRefSQL.eserviceId])
+        )
+      ) {
+        templateRefIdSet.add(
+          uniqueKey([templateRefSQL.id, templateRefSQL.eserviceId])
+        );
+        // eslint-disable-next-line functional/immutable-data
+        templateRefsSQL.push(templateRefSQL);
+      }
     }
   });
 
@@ -524,7 +570,8 @@ export const toEServiceAggregatorArray = (
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
-    // templateBindingSQL: [],
+    templateRefsSQL,
+    templateVersionRefsSQL,
   };
 };
 

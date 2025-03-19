@@ -7,9 +7,11 @@ import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateRefInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import {
@@ -52,6 +54,8 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
             interfacesSQL,
             documentsSQL,
             rejectionReasonsSQL,
+            templateRefSQL,
+            templateVersionRefsSQL,
           } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
           await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -97,6 +101,18 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
               .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
               .values(rejectionReasonSQL);
           }
+
+          if (templateRefSQL) {
+            await tx
+              .insert(eserviceTemplateRefInReadmodelCatalog)
+              .values(templateRefSQL);
+          }
+
+          for (const templateVersionRefSQL of templateVersionRefsSQL) {
+            await tx
+              .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+              .values(templateVersionRefSQL);
+          }
         }
       });
     },
@@ -108,8 +124,9 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
                       descriptor ->3 document
                       descriptor ->4 attribute
                       descriptor ->5 rejection reason
-                  ->6 risk analysis ->7 answer
-                  ->8 template binding
+                      descriptor ->6 template version ref
+                  ->7 risk analysis ->8 answers
+                  ->9 template ref
       */
       const queryResult = await db
         .select({
@@ -121,7 +138,9 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          // templateBinding: eserviceTemplateBindingInReadmodelCatalog,
+          templateRef: eserviceTemplateRefInReadmodelCatalog,
+          templateVersionRef:
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .where(eq(eserviceInReadmodelCatalog.id, eserviceId))
@@ -167,6 +186,14 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
         )
         .leftJoin(
           // 6
+          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 7
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -174,21 +201,21 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 7
+          // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
           )
+        )
+        .leftJoin(
+          // 9
+          eserviceTemplateRefInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceTemplateRefInReadmodelCatalog.eserviceId
+          )
         );
-      // .leftJoin(
-      //   // 8
-      //   eserviceTemplateBindingInReadmodelCatalog,
-      //   eq(
-      //     eserviceInReadmodelCatalog.id,
-      //     eserviceTemplateBindingInReadmodelCatalog.eserviceId
-      //   )
-      // );
 
       if (queryResult.length === 0) {
         return undefined;
