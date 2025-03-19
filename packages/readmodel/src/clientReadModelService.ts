@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Client, ClientId, WithMetadata } from "pagopa-interop-models";
 import {
   clientInReadmodelClient,
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientUserInReadmodelClient,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
@@ -14,29 +14,43 @@ import {
 } from "./authorization/clientAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function clientReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertClient(client: Client, metadataVersion: number): Promise<void> {
       const { clientSQL, usersSQL, purposesSQL, keysSQL } =
         splitClientIntoObjectsSQL(client, metadataVersion);
 
       await db.transaction(async (tx) => {
-        await tx
-          .delete(clientInReadmodelClient)
-          .where(eq(clientInReadmodelClient.id, client.id));
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion: clientInReadmodelClient.metadataVersion,
+            })
+            .from(clientInReadmodelClient)
+            .where(eq(clientInReadmodelClient.id, client.id))
+        )[0]?.metadataVersion;
 
-        await tx.insert(clientInReadmodelClient).values(clientSQL);
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx
+            .delete(clientInReadmodelClient)
+            .where(eq(clientInReadmodelClient.id, client.id));
 
-        for (const userSQL of usersSQL) {
-          await tx.insert(clientUserInReadmodelClient).values(userSQL);
-        }
+          await tx.insert(clientInReadmodelClient).values(clientSQL);
 
-        for (const purposeSQL of purposesSQL) {
-          await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
-        }
+          for (const userSQL of usersSQL) {
+            await tx.insert(clientUserInReadmodelClient).values(userSQL);
+          }
 
-        for (const keySQL of keysSQL) {
-          await tx.insert(clientKeyInReadmodelClient).values(keySQL);
+          for (const purposeSQL of purposesSQL) {
+            await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+          }
+
+          for (const keySQL of keysSQL) {
+            await tx.insert(clientKeyInReadmodelClient).values(keySQL);
+          }
         }
       });
     },
