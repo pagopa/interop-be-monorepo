@@ -1,5 +1,8 @@
-import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockContext,
+  getRandomAuthData,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
@@ -17,7 +20,6 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDocument,
   getMockDescriptor,
@@ -43,12 +45,7 @@ describe("updateTemplateInstanceName", () => {
     await catalogService.internalUpdateTemplateInstanceName(
       eservice.id,
       updatedName,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -91,12 +88,7 @@ describe("updateTemplateInstanceName", () => {
     await catalogService.internalUpdateTemplateInstanceName(
       eservice.id,
       updatedName,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -140,12 +132,7 @@ describe("updateTemplateInstanceName", () => {
     await catalogService.internalUpdateTemplateInstanceName(
       eservice.id,
       updatedName,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -162,12 +149,7 @@ describe("updateTemplateInstanceName", () => {
       catalogService.internalUpdateTemplateInstanceName(
         eservice.id,
         "eservice new name",
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -199,12 +181,7 @@ describe("updateTemplateInstanceName", () => {
       catalogService.internalUpdateTemplateInstanceName(
         eservice.id,
         updatedName,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNameDuplicate(duplicateName));
   });

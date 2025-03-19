@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
   getMockEServiceTemplate,
+  getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -30,7 +31,6 @@ import { config } from "../src/config/config.js";
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDocument,
   getMockDescriptor,
@@ -81,12 +81,7 @@ describe("update eService Instance", () => {
           isConsumerDelegable,
           isClientAccessDelegable,
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       );
 
     const updatedEService: EService = {
@@ -150,12 +145,7 @@ describe("update eService Instance", () => {
           isConsumerDelegable,
           isClientAccessDelegable,
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       );
 
     const updatedEService: EService = {
@@ -207,12 +197,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test 2",
         },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
       );
 
     const updatedEService: EService = {
@@ -267,12 +252,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test 2",
         },
-        {
-          authData: getMockAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       );
 
     const updatedEService: EService = {
@@ -308,12 +288,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -335,12 +310,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -369,12 +339,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -405,12 +370,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        {
-          authData: getMockAuthData(eservice1.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(eservice1.producerId) })
       )
     ).rejects.toThrowError(eServiceNameDuplicate(`${template.name} test`));
   });
@@ -446,12 +406,7 @@ describe("update eService Instance", () => {
           {
             instanceLabel: "test",
           },
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
     }
@@ -476,12 +431,7 @@ describe("update eService Instance", () => {
         {
           instanceLabel: "test",
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
   });

@@ -7,6 +7,7 @@ import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
@@ -141,12 +142,7 @@ describe("clone agreement", () => {
 
     const returnedAgreement = await agreementService.cloneAgreement(
       agreementToBeCloned.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
@@ -294,12 +290,7 @@ describe("clone agreement", () => {
 
     const returnedAgreement = await agreementService.cloneAgreement(
       agreementToBeCloned.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
@@ -372,12 +363,7 @@ describe("clone agreement", () => {
     const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
-      agreementService.cloneAgreement(agreementId, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(agreementId, getMockContext({ authData }))
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
@@ -390,12 +376,10 @@ describe("clone agreement", () => {
     );
     await addOneAgreement(agreement);
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
     );
@@ -420,12 +404,10 @@ describe("clone agreement", () => {
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(agreement, addOneDelegation);
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
         authData.organizationId,
@@ -449,12 +431,10 @@ describe("clone agreement", () => {
 
     await addOneAgreement(agreement);
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
     );
@@ -471,12 +451,10 @@ describe("clone agreement", () => {
 
     await addOneAgreement(agreement);
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
@@ -506,12 +484,10 @@ describe("clone agreement", () => {
     await addOneAgreement(agreement);
     await addOneAgreement(conflictingAgreement);
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(agreementAlreadyExists(consumerId, eservice.id));
   });
 
@@ -552,12 +528,10 @@ describe("clone agreement", () => {
     await addOneAgreement(agreement);
     await addOneAgreement(conflictingAgreement);
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(tenantNotFound(consumerId));
   });
 
@@ -579,12 +553,10 @@ describe("clone agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(agreement);
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
     );
@@ -634,12 +606,10 @@ describe("clone agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(descriptor.id, consumerId)
     );
@@ -677,12 +647,10 @@ describe("clone agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.cloneAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.cloneAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(FileManagerError);
   });
 });

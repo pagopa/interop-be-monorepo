@@ -80,8 +80,15 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
+  CorrelationId,
 } from "pagopa-interop-models";
-import { AuthData, dateToSeconds } from "pagopa-interop-commons";
+import {
+  AppContext,
+  AuthData,
+  dateToSeconds,
+  genericLogger,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
@@ -727,4 +734,19 @@ export const getMockEServiceTemplate = (
   riskAnalysis: [],
   mode: "Deliver",
   isSignalHubEnabled: true,
+});
+
+export const getMockContext = ({
+  authData,
+  serviceName,
+  correlationId,
+}: {
+  authData?: AuthData;
+  serviceName?: string;
+  correlationId?: CorrelationId;
+}): WithLogger<AppContext> => ({
+  authData: authData || getMockAuthData(),
+  serviceName: serviceName || "",
+  correlationId: correlationId || generateId(),
+  logger: genericLogger,
 });

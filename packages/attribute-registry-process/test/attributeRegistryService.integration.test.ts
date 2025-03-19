@@ -6,15 +6,15 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
   getMockAuthData,
+  getMockContext,
+  getRandomAuthData,
   getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeAddedV1,
   Tenant,
   attributeKind,
-  generateId,
   toAttributeV1,
 } from "pagopa-interop-models";
 import {
@@ -45,12 +45,7 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            {
-              authData: getMockAuthData(),
-              correlationId: generateId(),
-              logger: genericLogger,
-              serviceName: "",
-            }
+            getMockContext({})
           );
         expect(attribute).toBeDefined();
 
@@ -86,7 +81,7 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            {
+            getMockContext({
               authData: {
                 ...getMockAuthData(),
                 externalId: {
@@ -94,10 +89,7 @@ describe("database test", () => {
                   origin: "not-allowed-origin",
                 },
               },
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            })
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -114,12 +106,7 @@ describe("database test", () => {
               name: attribute.name.toLowerCase(),
               description: attribute.description,
             },
-            {
-              authData: getMockAuthData(),
-              correlationId: generateId(),
-              logger: genericLogger,
-              serviceName: "",
-            }
+            getMockContext({})
           )
         ).rejects.toThrowError(
           attributeDuplicateByName(attribute.name.toLowerCase())
@@ -134,12 +121,7 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            {
-              authData: getMockAuthData(),
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            getMockContext({})
           );
         expect(attribute).toBeDefined();
 
@@ -175,7 +157,7 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            {
+            getMockContext({
               authData: {
                 ...getMockAuthData(),
                 externalId: {
@@ -183,10 +165,7 @@ describe("database test", () => {
                   origin: "not-allowed-origin",
                 },
               },
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            })
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -203,12 +182,7 @@ describe("database test", () => {
               name: attribute.name.toLowerCase(),
               description: attribute.description,
             },
-            {
-              authData: getMockAuthData(),
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            getMockContext({})
           )
         ).rejects.toThrowError(
           attributeDuplicateByName(attribute.name.toLowerCase())
@@ -236,12 +210,7 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            {
-              authData: getMockAuthData(tenant.id),
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            getMockContext({ authData: getRandomAuthData(tenant.id) })
           );
         expect(attribute).toBeDefined();
 
@@ -297,12 +266,7 @@ describe("database test", () => {
               code: attribute.code.toLowerCase(),
               description: attribute.description,
             },
-            {
-              authData: getMockAuthData(tenant.id),
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            getMockContext({ authData: getRandomAuthData(tenant.id) })
           )
         ).rejects.toThrowError(
           attributeDuplicateByNameAndCode(
@@ -321,12 +285,7 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            {
-              authData: getMockAuthData(mockTenant.id),
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            getMockContext({ authData: getRandomAuthData(mockTenant.id) })
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -339,12 +298,7 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            {
-              authData: getMockAuthData(mockTenant.id),
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            getMockContext({ authData: getRandomAuthData(mockTenant.id) })
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
@@ -371,12 +325,7 @@ describe("database test", () => {
               origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: mockAttribute.description,
             },
-            {
-              authData: getMockAuthData(),
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            getMockContext({})
           );
         expect(attribute).toBeDefined();
 
@@ -433,12 +382,7 @@ describe("database test", () => {
               origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: attribute.description,
             },
-            {
-              authData: getMockAuthData(),
-              logger: genericLogger,
-              correlationId: generateId(),
-              serviceName: "",
-            }
+            getMockContext({})
           )
         ).rejects.toThrowError(
           attributeDuplicateByNameAndCode(

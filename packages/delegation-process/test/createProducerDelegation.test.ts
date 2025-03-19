@@ -1,5 +1,5 @@
-import { genericLogger } from "pagopa-interop-commons";
 import {
+  getMockContext,
   getMockEService,
   getMockTenant,
   getRandomAuthData,
@@ -49,12 +49,7 @@ describe("create producer delegation", () => {
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(differentEServiceProducer(delegatorId));
 

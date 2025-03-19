@@ -15,6 +15,7 @@ import {
   getMockAgreement,
   getMockAttribute,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockDescriptorPublished,
@@ -227,12 +228,7 @@ describe("upgrade Agreement", () => {
 
       const returnedAgreement = await agreementService.upgradeAgreement(
         agreement.id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
       const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
@@ -488,12 +484,7 @@ describe("upgrade Agreement", () => {
           vi.spyOn(pdfGenerator, "generate");
           const returnedAgreement = await agreementService.upgradeAgreement(
             agreement.id,
-            {
-              authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
-            }
+            getMockContext({ authData })
           );
           const newAgreementId = unsafeBrandId<AgreementId>(
             returnedAgreement.id
@@ -815,12 +806,7 @@ describe("upgrade Agreement", () => {
 
       const returnedAgreement = await agreementService.upgradeAgreement(
         agreement.id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
       const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
@@ -890,12 +876,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(getMockAgreement());
 
     await expect(
-      agreementService.upgradeAgreement(agreementId, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreementId,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
@@ -910,12 +894,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
     );
@@ -939,12 +921,10 @@ describe("upgrade Agreement", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
         authData.organizationId,
@@ -970,12 +950,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
     );
@@ -993,12 +971,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
@@ -1030,12 +1006,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(publishedDescriptorNotFound(agreement.eserviceId));
   });
 
@@ -1064,12 +1038,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       unexpectedVersionFormat(agreement.eserviceId, publishedDescriptor.id)
     );
@@ -1101,12 +1073,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
     );
@@ -1144,12 +1114,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       unexpectedVersionFormat(eservice.id, agreement.descriptorId)
     );
@@ -1187,12 +1155,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       noNewerDescriptor(eservice.id, agreement.descriptorId)
     );
@@ -1230,12 +1196,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(tenantNotFound(consumerId));
   });
 
@@ -1272,12 +1236,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
   });
 
@@ -1333,12 +1295,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(newPublishedDescriptor.id, consumer.id)
     );
@@ -1390,12 +1350,10 @@ describe("upgrade Agreement", () => {
 
     // trying to copy a document not present in the S3 bucket - no upload was performed
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(FileManagerError);
   });
 
@@ -1459,12 +1417,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(conflictingAgreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       agreementAlreadyExists(agreement.consumerId, agreement.eserviceId)
     );

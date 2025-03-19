@@ -1,7 +1,7 @@
-import { genericLogger } from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
   getMockAgreement,
+  getMockContext,
   getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
@@ -71,39 +71,31 @@ describe("get agreement", () => {
     await addSomeRandomDelegations(agreement, addOneDelegation);
 
     const retrievedAgreementByConsumer =
-      await agreementService.getAgreementById(agreement.id, {
-        authData: getRandomAuthData(consumer.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await agreementService.getAgreementById(
+        agreement.id,
+        getMockContext({ authData: getRandomAuthData(consumer.id) })
+      );
     expect(retrievedAgreementByConsumer).toEqual(agreement);
 
     const retrievedAgreementByProducer =
-      await agreementService.getAgreementById(agreement.id, {
-        authData: getRandomAuthData(producer.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await agreementService.getAgreementById(
+        agreement.id,
+        getMockContext({ authData: getRandomAuthData(producer.id) })
+      );
     expect(retrievedAgreementByProducer).toEqual(agreement);
 
     const retrievedAgreementByProducerDelegate =
-      await agreementService.getAgreementById(agreement.id, {
-        authData: getRandomAuthData(producerDelegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await agreementService.getAgreementById(
+        agreement.id,
+        getMockContext({ authData: getRandomAuthData(producerDelegate.id) })
+      );
     expect(retrievedAgreementByProducerDelegate).toEqual(agreement);
 
     const retrievedAgreementByConsumerDelegate =
-      await agreementService.getAgreementById(agreement.id, {
-        authData: getRandomAuthData(consumerDelegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await agreementService.getAgreementById(
+        agreement.id,
+        getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
+      );
     expect(retrievedAgreementByConsumerDelegate).toEqual(agreement);
   });
 
@@ -115,12 +107,10 @@ describe("get agreement", () => {
 
     const authData = getRandomAuthData();
     await expect(
-      agreementService.getAgreementById(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.getAgreementById(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 
@@ -130,12 +120,7 @@ describe("get agreement", () => {
     await addOneAgreement(getMockAgreement());
 
     await expect(
-      agreementService.getAgreementById(agreementId, {
-        authData: getRandomAuthData(),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.getAgreementById(agreementId, getMockContext({}))
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 });

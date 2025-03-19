@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
   toEServiceTemplateV2,
   operationForbidden,
-  generateId,
   EServiceTemplate,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
@@ -52,12 +51,9 @@ describe("updateEServiceTemplateVersionQuotas", () => {
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
       { voucherLifespan: 60 },
-      {
-        authData: getMockAuthData(eserviceTemplate.creatorId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({
+        authData: getRandomAuthData(eserviceTemplate.creatorId),
+      })
     );
 
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -94,12 +90,9 @@ describe("updateEServiceTemplateVersionQuotas", () => {
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id,
         { voucherLifespan: 60 },
-        {
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({
+          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
   });
@@ -120,12 +113,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         { voucherLifespan: 60 },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -142,12 +130,9 @@ describe("updateEServiceTemplateVersionQuotas", () => {
         eserviceTemplate.id,
         mockEServiceTemplateVersion.id,
         { voucherLifespan: 60 },
-        {
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({
+          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(
@@ -177,12 +162,9 @@ describe("updateEServiceTemplateVersionQuotas", () => {
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
           { voucherLifespan: 60 },
-          {
-            authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({
+            authData: getRandomAuthData(eserviceTemplate.creatorId),
+          })
         )
       ).rejects.toThrowError(
         notValidEServiceTemplateVersionState(eserviceTemplateVersion.id, state)
@@ -211,12 +193,9 @@ describe("updateEServiceTemplateVersionQuotas", () => {
           dailyCallsPerConsumer: 11,
           dailyCallsTotal: 10,
         },
-        {
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({
+          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+        })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });

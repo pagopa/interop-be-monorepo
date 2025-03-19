@@ -1,10 +1,10 @@
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockDescriptorPublished,
@@ -207,12 +207,7 @@ describe("reject agreement", () => {
       const returnedAgreement = await agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -271,12 +266,7 @@ describe("reject agreement", () => {
       agreementService.rejectAgreement(
         agreementId,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
@@ -293,12 +283,7 @@ describe("reject agreement", () => {
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheProducer(authData.organizationId)
@@ -320,12 +305,7 @@ describe("reject agreement", () => {
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -344,12 +324,7 @@ describe("reject agreement", () => {
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
@@ -380,12 +355,7 @@ describe("reject agreement", () => {
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
   });
@@ -412,12 +382,7 @@ describe("reject agreement", () => {
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
@@ -457,12 +422,7 @@ describe("reject agreement", () => {
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateProducer(
@@ -504,12 +464,7 @@ describe("reject agreement", () => {
         agreement.id,
         "Rejected by producer due to test reasons",
 
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheProducer(authData.organizationId)

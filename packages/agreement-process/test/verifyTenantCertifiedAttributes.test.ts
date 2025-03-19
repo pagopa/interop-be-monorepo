@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
@@ -8,7 +9,6 @@ import {
   getMockTenant,
   getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   CertifiedTenantAttribute,
   delegationState,
@@ -91,12 +91,7 @@ describe("Verify Tenant Certified Attributes", () => {
           descriptorId: mockDescriptor.id,
           eserviceId: mockEService.id,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          serviceName: "agreement-process",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       );
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
@@ -118,12 +113,7 @@ describe("Verify Tenant Certified Attributes", () => {
             descriptorId: mockDescriptor.id,
             eserviceId: mockEService.id,
           },
-          {
-            authData,
-            serviceName: "agreement-process",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         organizationIsNotTheDelegateConsumer(
@@ -144,12 +134,7 @@ describe("Verify Tenant Certified Attributes", () => {
           descriptorId: mockDescriptor.id,
           eserviceId: mockEService.id,
         },
-        {
-          authData: getRandomAuthData(mockTenant.id),
-          serviceName: "agreement-process",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(mockTenant.id) })
       );
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
@@ -164,12 +149,7 @@ describe("Verify Tenant Certified Attributes", () => {
             descriptorId: mockDescriptor.id,
             eserviceId: mockEService.id,
           },
-          {
-            authData,
-            serviceName: "agreement-process",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         organizationIsNotTheConsumer(authData.organizationId)
@@ -190,12 +170,7 @@ describe("Verify Tenant Certified Attributes", () => {
           descriptorId: mockDescriptor.id,
           eserviceId: mockEService.id,
         },
-        {
-          authData: getRandomAuthData(tenant.id),
-          serviceName: "agreement-process",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getRandomAuthData(tenant.id) })
       );
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
@@ -210,12 +185,7 @@ describe("Verify Tenant Certified Attributes", () => {
             descriptorId: mockDescriptor.id,
             eserviceId: mockEService.id,
           },
-          {
-            authData: getRandomAuthData(tenantId),
-            serviceName: "agreement-process",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getRandomAuthData(tenantId) })
         )
       ).rejects.toThrowError(tenantNotFound(tenantId));
     });
@@ -231,12 +201,7 @@ describe("Verify Tenant Certified Attributes", () => {
             descriptorId: mockDescriptor.id,
             eserviceId,
           },
-          {
-            authData: getRandomAuthData(mockTenant.id),
-            serviceName: "agreement-process",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getRandomAuthData(mockTenant.id) })
         )
       ).rejects.toThrowError(eServiceNotFound(eserviceId));
     });
@@ -253,12 +218,7 @@ describe("Verify Tenant Certified Attributes", () => {
             descriptorId,
             eserviceId: mockEService.id,
           },
-          {
-            authData: getRandomAuthData(mockTenant.id),
-            serviceName: "agreement-process",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getRandomAuthData(mockTenant.id) })
         )
       ).rejects.toThrowError(descriptorNotFound(mockEService.id, descriptorId));
     });

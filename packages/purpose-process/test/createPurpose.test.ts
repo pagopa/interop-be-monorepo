@@ -35,11 +35,9 @@ import {
   getMockDescriptor,
   getRandomAuthData,
   getMockDelegation,
+  getMockContext,
 } from "pagopa-interop-commons-test";
-import {
-  genericLogger,
-  unexpectedRulesVersionError,
-} from "pagopa-interop-commons";
+import { unexpectedRulesVersionError } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
@@ -112,14 +110,11 @@ describe("createPurpose", () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       purposeSeed,
-      {
+      getMockContext({
         authData: getRandomAuthData(
           unsafeBrandId<TenantId>(purposeSeed.consumerId)
         ),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      })
     );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -202,12 +197,7 @@ describe("createPurpose", () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       purposeSeed,
-      {
-        authData: getRandomAuthData(delegateTenant.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(delegateTenant.id) })
     );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -342,12 +332,7 @@ describe("createPurpose", () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       delegatePurposeSeed,
-      {
-        authData: getRandomAuthData(consumerDelegate.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
     );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -417,14 +402,14 @@ describe("createPurpose", () => {
     };
 
     expect(
-      purposeService.createPurpose(seed, {
-        authData: getRandomAuthData(
-          unsafeBrandId<TenantId>(purposeSeed.consumerId)
-        ),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getRandomAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
+      )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
   it("should throw tenantKindNotFound if the kind doesn't exists", async () => {
@@ -454,26 +439,26 @@ describe("createPurpose", () => {
     await writeInReadmodel(toReadModelEService(eService), eservices);
 
     expect(
-      purposeService.createPurpose(seed, {
-        authData: getRandomAuthData(
-          unsafeBrandId<TenantId>(purposeSeed.consumerId)
-        ),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getRandomAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
+      )
     ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
   });
   it("should throw tenantNotFound if the tenant doesn't exists", async () => {
     expect(
-      purposeService.createPurpose(purposeSeed, {
-        authData: getRandomAuthData(
-          unsafeBrandId<TenantId>(purposeSeed.consumerId)
-        ),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.createPurpose(
+        purposeSeed,
+        getMockContext({
+          authData: getRandomAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
+      )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
   it("should throw agreementNotFound if the agreement doesn't exists ", async () => {
@@ -510,12 +495,12 @@ describe("createPurpose", () => {
     await writeInReadmodel(toReadModelEService(eService), eservices);
 
     expect(
-      purposeService.createPurpose(seed, {
-        authData: getRandomAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getRandomAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+        })
+      )
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
   });
   it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
@@ -532,14 +517,14 @@ describe("createPurpose", () => {
     };
 
     expect(
-      purposeService.createPurpose(seed, {
-        authData: getRandomAuthData(
-          unsafeBrandId<TenantId>(purposeSeed.consumerId)
-        ),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getRandomAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
+      )
     ).rejects.toThrowError(organizationIsNotTheConsumer(tenant.id));
   });
   it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
@@ -561,12 +546,12 @@ describe("createPurpose", () => {
     };
 
     expect(
-      purposeService.createPurpose(seed, {
-        authData: getRandomAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getRandomAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+        })
+      )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
         unexpectedRulesVersionError(mockInvalidRiskAnalysisForm.version),
@@ -590,14 +575,14 @@ describe("createPurpose", () => {
     await writeInReadmodel(toReadModelEService(eService1), eservices);
 
     expect(
-      purposeService.createPurpose(purposeSeed, {
-        authData: getRandomAuthData(
-          unsafeBrandId<TenantId>(purposeSeed.consumerId)
-        ),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.createPurpose(
+        purposeSeed,
+        getMockContext({
+          authData: getRandomAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
+      )
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
   });
 });

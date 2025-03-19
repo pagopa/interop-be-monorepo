@@ -18,6 +18,7 @@ import {
   getMockDelegation,
   getRandomAuthData,
   addSomeRandomDelegations,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -150,12 +151,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(mockProducer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockProducer.id) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -247,12 +243,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(delegate.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(delegate.id) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -342,12 +333,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(mockConsumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -403,12 +389,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(mockProducer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockProducer.id) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -465,12 +446,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(mockConsumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -536,12 +512,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(mockConsumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -596,12 +567,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(mockConsumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -654,12 +620,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(mockConsumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
     );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -764,12 +725,7 @@ describe("activatePurposeVersion", () => {
         purposeId: purpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
     );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -918,12 +874,7 @@ describe("activatePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
-      {
-        authData: getRandomAuthData(consumerDelegate.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
     );
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
@@ -1006,12 +957,7 @@ describe("activatePurposeVersion", () => {
           purposeId: purpose.id,
           versionId: purposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockConsumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
       );
     }).rejects.toThrowError(organizationIsNotTheProducer(mockConsumer.id));
   });
@@ -1035,12 +981,7 @@ describe("activatePurposeVersion", () => {
           purposeId: purpose.id,
           versionId: purposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockProducer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockProducer.id) })
       );
     }).rejects.toThrowError(organizationIsNotTheConsumer(mockProducer.id));
   });
@@ -1074,12 +1015,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(consumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(consumer.id) })
       );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
@@ -1107,12 +1043,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockConsumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
       );
     }).rejects.toThrowError(missingRiskAnalysis(mockPurpose.id));
   });
@@ -1129,12 +1060,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockConsumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
       );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
@@ -1157,12 +1083,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockConsumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
       );
     }).rejects.toThrowError(
       agreementNotFound(mockEService.id, mockConsumer.id)
@@ -1196,12 +1117,7 @@ describe("activatePurposeVersion", () => {
             purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
           },
-          {
-            authData: getRandomAuthData(mockConsumer.id),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
         );
       }).rejects.toThrowError(
         agreementNotFound(mockEService.id, mockConsumer.id)
@@ -1225,12 +1141,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(anotherTenant.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(anotherTenant.id) })
       );
     }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
   });
@@ -1257,12 +1168,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockProducer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockProducer.id) })
       );
     }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
   });
@@ -1293,12 +1199,7 @@ describe("activatePurposeVersion", () => {
             purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
           },
-          {
-            authData: getRandomAuthData(delegation.delegateId),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
         );
       }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
     }
@@ -1327,12 +1228,7 @@ describe("activatePurposeVersion", () => {
           purposeId: purpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockConsumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
       );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
   });
@@ -1368,12 +1264,7 @@ describe("activatePurposeVersion", () => {
           purposeId: purpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockConsumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
       );
     }).rejects.toThrowError(
       riskAnalysisValidationFailed(
@@ -1403,12 +1294,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockConsumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
       );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
@@ -1425,12 +1311,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockProducer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockProducer.id) })
       );
     }).rejects.toThrowError(tenantNotFound(mockProducer.id));
   });
@@ -1454,12 +1335,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockProducer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockProducer.id) })
       );
     }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
@@ -1483,12 +1359,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockProducer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockProducer.id) })
       );
     }).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -1518,12 +1389,7 @@ describe("activatePurposeVersion", () => {
             purposeId: purpose.id,
             versionId: purposeVersion.id,
           },
-          {
-            authData: getRandomAuthData(mockProducer.id),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          getMockContext({ authData: getRandomAuthData(mockProducer.id) })
         );
       }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
     }
@@ -1554,12 +1420,7 @@ describe("activatePurposeVersion", () => {
             purposeId: purpose.id,
             versionId: purposeVersion.id,
           },
-          {
-            authData: getRandomAuthData(mockConsumer.id),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
         );
       }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
     }
@@ -1599,12 +1460,7 @@ describe("activatePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockConsumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockConsumer.id) })
       );
     }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
   });
@@ -1642,12 +1498,7 @@ describe("activatePurposeVersion", () => {
           purposeId: purpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       );
     }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });
@@ -1686,12 +1537,7 @@ describe("activatePurposeVersion", () => {
           purposeId: purpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       );
     }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });

@@ -1,7 +1,7 @@
 import { fail } from "assert";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
   getMockEService,
   getMockTenant,
@@ -132,12 +132,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       );
 
       const expectedDelegation: Delegation = {
@@ -213,12 +208,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       );
 
       const expectedDelegation: Delegation = {
@@ -330,12 +320,7 @@ describe.each([
             delegateId: delegate.id,
             eserviceId: eservice.id,
           },
-          {
-            authData,
-            logger: genericLogger,
-            correlationId: generateId(),
-            serviceName: "DelegationServiceTest",
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         delegationAlreadyExists(
@@ -369,12 +354,7 @@ describe.each([
           delegateId,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(delegateId));
   });
@@ -403,12 +383,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(delegatorId));
   });
@@ -423,12 +398,7 @@ describe.each([
           delegateId: sameTenantId,
           eserviceId: generateId<EServiceId>(),
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
@@ -468,12 +438,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(originNotCompliant(delegator, "Delegator"));
   });
@@ -517,12 +482,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(originNotCompliant(delegate, "Delegate"));
   });
@@ -558,12 +518,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eserviceNotFound(eserviceId));
   });
@@ -595,12 +550,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotAllowedToDelegation(delegate.id, kind));
   });

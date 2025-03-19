@@ -6,8 +6,8 @@ import {
   getMockAgreement,
   getMockDelegation,
   getRandomAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   Tenant,
   Descriptor,
@@ -273,12 +273,7 @@ describe("get agreements", () => {
       {},
       20,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant1, [
       agreement1,
@@ -292,12 +287,7 @@ describe("get agreements", () => {
       {},
       20,
       0,
-      {
-        authData: getRandomAuthData(tenant2.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant2.id) })
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant2, [
       agreement2,
@@ -309,12 +299,7 @@ describe("get agreements", () => {
       {},
       20,
       0,
-      {
-        authData: getRandomAuthData(tenant3.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant3.id) })
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant3, [
       agreement5,
@@ -328,12 +313,12 @@ describe("get agreements", () => {
 
   it("should get all agreements visible to delegate producer requester if no filters are provided", async () => {
     const allAgreementsVisibleToDelegateProducer1 =
-      await agreementService.getAgreements({}, 20, 0, {
-        authData: getRandomAuthData(delegateProducer1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await agreementService.getAgreements(
+        {},
+        20,
+        0,
+        getMockContext({ authData: getRandomAuthData(delegateProducer1.id) })
+      );
     expectSinglePageListResult(allAgreementsVisibleToDelegateProducer1, [
       agreement1,
       agreement2,
@@ -343,12 +328,12 @@ describe("get agreements", () => {
 
   it("should get all agreements visible to delegate consumer requester if no filters are provided", async () => {
     const allAgreementsVisibleToDelegateConsumer1 =
-      await agreementService.getAgreements({}, 20, 0, {
-        authData: getRandomAuthData(delegateConsumer1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await agreementService.getAgreements(
+        {},
+        20,
+        0,
+        getMockContext({ authData: getRandomAuthData(delegateConsumer1.id) })
+      );
 
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer1, [
       agreement5,
@@ -356,12 +341,12 @@ describe("get agreements", () => {
     ]);
 
     const allAgreementsVisibleToDelegateConsumer2 =
-      await agreementService.getAgreements({}, 20, 0, {
-        authData: getRandomAuthData(delegateConsumer2.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await agreementService.getAgreements(
+        {},
+        20,
+        0,
+        getMockContext({ authData: getRandomAuthData(delegateConsumer2.id) })
+      );
 
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer2, [
       agreement6,
@@ -376,12 +361,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements1, [agreement1, agreement2]);
 
@@ -391,12 +371,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements2, [
       agreement1,
@@ -412,12 +387,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements1, [
       agreement1,
@@ -432,12 +402,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements2, [
       agreement1,
@@ -455,12 +420,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements1, [agreement1, agreement2]);
 
@@ -470,12 +430,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements2, [
       agreement1,
@@ -491,12 +446,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements1, [agreement1]);
 
@@ -506,12 +456,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements2, [
       agreement1,
@@ -528,12 +473,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements1, [agreement1]);
 
@@ -543,12 +483,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements2, [agreement1, agreement2]);
 
@@ -558,12 +493,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements3, [agreement1, agreement2]);
   });
@@ -575,12 +505,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements, [agreement2, agreement3]);
   });
@@ -592,12 +517,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements, [
       agreement1,
@@ -614,12 +534,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements, [agreement1, agreement3]);
   });
@@ -634,12 +549,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements, [agreement1]);
   });
@@ -652,12 +562,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements, [agreement2]);
   });
@@ -671,12 +576,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements1, [agreement1]);
 
@@ -688,23 +588,18 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
     expectSinglePageListResult(agreements2, []);
   });
 
   it("should get agreements with limit", async () => {
-    const agreements = await agreementService.getAgreements({}, 2, 0, {
-      authData: getRandomAuthData(tenant1.id),
-      serviceName: "",
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const agreements = await agreementService.getAgreements(
+      {},
+      2,
+      0,
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
+    );
     expect(agreements).toEqual({
       totalCount: 5,
       results: [agreement1, agreement2],
@@ -712,12 +607,12 @@ describe("get agreements", () => {
   });
 
   it("should get agreements with offset and limit", async () => {
-    const agreements = await agreementService.getAgreements({}, 2, 2, {
-      authData: getRandomAuthData(tenant1.id),
-      serviceName: "",
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const agreements = await agreementService.getAgreements(
+      {},
+      2,
+      2,
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
+    );
     expect(agreements).toEqual({
       totalCount: 5,
       results: [agreement3, agreement5],
@@ -731,12 +626,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(tenant1.id) })
     );
 
     expect(agreements).toEqual({
@@ -752,12 +642,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(delegateProducer1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(delegateProducer1.id) })
     );
     expectSinglePageListResult(agreements, [agreement1, agreement2]);
   });
@@ -769,12 +654,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(delegateConsumer1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getRandomAuthData(delegateConsumer1.id) })
     );
     expectSinglePageListResult(agreements, [agreement5]);
   });

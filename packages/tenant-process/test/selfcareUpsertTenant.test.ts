@@ -11,20 +11,21 @@ import {
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   toTenantV2,
-  CorrelationId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   SCP,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockContext,
+  getMockTenant,
+  getRandomAuthData,
+} from "pagopa-interop-commons-test";
 import { selfcareIdConflict } from "../src/model/domain/errors.js";
 import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
 
 describe("selfcareUpsertTenant", async () => {
   const mockTenant = getMockTenant();
-  const correlationId: CorrelationId = generateId();
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -48,12 +49,10 @@ describe("selfcareUpsertTenant", async () => {
       onboardedAt: mockTenant.onboardedAt!.toISOString(),
       subUnitType: mockTenant.subUnitType,
     };
-    await tenantService.selfcareUpsertTenant(tenantSeed, {
-      authData: getMockAuthData(mockTenant.id),
-      correlationId,
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await tenantService.selfcareUpsertTenant(
+      tenantSeed,
+      getMockContext({ authData: getRandomAuthData(mockTenant.id) })
+    );
 
     const writtenEvent = await readLastTenantEvent(mockTenant.id);
     if (!writtenEvent) {
@@ -89,12 +88,10 @@ describe("selfcareUpsertTenant", async () => {
         onboardedAt: mockTenant.onboardedAt!.toISOString(),
         subUnitType: mockTenant.subUnitType,
       };
-      const id = await tenantService.selfcareUpsertTenant(tenantSeed, {
-        authData: getMockAuthData(),
-        correlationId,
-        serviceName: "",
-        logger: genericLogger,
-      });
+      const id = await tenantService.selfcareUpsertTenant(
+        tenantSeed,
+        getMockContext({})
+      );
       expect(id).toBeDefined();
       const writtenEvent = await readLastTenantEvent(unsafeBrandId(id));
       if (!writtenEvent) {
@@ -138,12 +135,7 @@ describe("selfcareUpsertTenant", async () => {
       subUnitType: mockTenant.subUnitType,
     };
     expect(
-      tenantService.selfcareUpsertTenant(tenantSeed, {
-        authData: getMockAuthData(),
-        correlationId,
-        serviceName: "",
-        logger: genericLogger,
-      })
+      tenantService.selfcareUpsertTenant(tenantSeed, getMockContext({}))
     ).rejects.toThrowError(operationForbidden);
   });
   it("should throw selfcareIdConflict error if the given and existing selfcareId differ", async () => {
@@ -160,12 +152,10 @@ describe("selfcareUpsertTenant", async () => {
       subUnitType: mockTenant.subUnitType,
     };
     expect(
-      tenantService.selfcareUpsertTenant(newTenantSeed, {
-        authData: getMockAuthData(mockTenant.id),
-        correlationId,
-        serviceName: "",
-        logger: genericLogger,
-      })
+      tenantService.selfcareUpsertTenant(
+        newTenantSeed,
+        getMockContext({ authData: getRandomAuthData(mockTenant.id) })
+      )
     ).rejects.toThrowError(
       selfcareIdConflict({
         tenantId: mockTenant.id,

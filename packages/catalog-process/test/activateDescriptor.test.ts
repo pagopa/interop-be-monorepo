@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
+  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -12,7 +13,6 @@ import {
   toEServiceV2,
   operationForbidden,
   delegationState,
-  generateId,
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -47,12 +47,11 @@ describe("activate descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.activateDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.activateDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+    );
 
     const expectedDescriptor = {
       ...descriptor,
@@ -101,12 +100,11 @@ describe("activate descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.activateDescriptor(eservice.id, descriptor.id, {
-      authData: delegate,
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.activateDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: delegate })
+    );
 
     const expectedDescriptor = {
       ...descriptor,
@@ -133,12 +131,11 @@ describe("activate descriptor", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
-      catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.activateDescriptor(
+        mockEService.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
@@ -150,12 +147,11 @@ describe("activate descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.activateDescriptor(eservice.id, mockDescriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.activateDescriptor(
+        eservice.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
@@ -173,12 +169,11 @@ describe("activate descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.activateDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.activateDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({})
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -202,12 +197,11 @@ describe("activate descriptor", () => {
     await addOneDelegation(delegation);
 
     expect(
-      catalogService.activateDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.activateDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -230,12 +224,11 @@ describe("activate descriptor", () => {
       };
       await addOneEService(eservice);
       expect(
-        catalogService.activateDescriptor(mockEService.id, mockDescriptor.id, {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        })
+        catalogService.activateDescriptor(
+          mockEService.id,
+          mockDescriptor.id,
+          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );

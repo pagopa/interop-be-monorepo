@@ -10,6 +10,7 @@ import {
   getMockAgreement,
   getMockTenant,
   randomArrayItem,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -32,7 +33,6 @@ import {
   agreementState,
   DelegationId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   purposeVersionNotFound,
@@ -79,12 +79,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion1.id,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       );
 
       const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -147,12 +142,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData: getRandomAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -223,12 +213,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData: getRandomAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -291,12 +276,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData: getRandomAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -372,12 +352,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData: getRandomAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -455,12 +430,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -584,12 +554,7 @@ describe("suspendPurposeVersion", () => {
         purposeId: delegatePurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData: getRandomAuthData(consumerDelegate.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
     );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -641,12 +606,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: randomPurposeId,
           versionId: randomVersionId,
         },
-        {
-          authData: getRandomAuthData(),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(purposeNotFound(randomPurposeId));
   });
@@ -669,12 +629,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: randomVersionId,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -702,12 +657,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: randomAuthData,
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: randomAuthData })
       )
     ).rejects.toThrowError(
       organizationNotAllowed(randomAuthData.organizationId)
@@ -746,12 +696,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: randomCaller,
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: randomCaller })
       )
     ).rejects.toThrowError(organizationNotAllowed(randomCaller.organizationId));
   });
@@ -790,12 +735,7 @@ describe("suspendPurposeVersion", () => {
             purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
           },
-          {
-            authData: delegateAuthData,
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          getMockContext({ authData: delegateAuthData })
         )
       ).rejects.toThrowError(
         organizationNotAllowed(delegateAuthData.organizationId)
@@ -833,12 +773,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(organizationNotAllowed(mockEService.producerId));
   });
@@ -869,12 +804,9 @@ describe("suspendPurposeVersion", () => {
             purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
           },
-          {
+          getMockContext({
             authData: getRandomAuthData(mockPurpose.consumerId),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          })
         )
       ).rejects.toThrowError(
         notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
@@ -914,12 +846,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(organizationNotAllowed(mockPurpose.consumerId));
   });
@@ -948,12 +875,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
@@ -991,12 +913,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });
@@ -1032,12 +949,7 @@ describe("suspendPurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });

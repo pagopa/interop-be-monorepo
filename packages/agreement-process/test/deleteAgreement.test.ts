@@ -4,6 +4,7 @@ import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
+  getMockContext,
   getMockDelegation,
   getRandomAuthData,
   randomArrayItem,
@@ -61,12 +62,10 @@ describe("delete agreement", () => {
       );
 
       const authData = getRandomAuthData(agreement.consumerId);
-      await agreementService.deleteAgreementById(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await agreementService.deleteAgreementById(
+        agreement.id,
+        getMockContext({ authData })
+      );
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -137,12 +136,10 @@ describe("delete agreement", () => {
       )
     );
 
-    await agreementService.deleteAgreementById(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await agreementService.deleteAgreementById(
+      agreement.id,
+      getMockContext({ authData })
+    );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -196,12 +193,10 @@ describe("delete agreement", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      agreementService.deleteAgreementById(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.deleteAgreementById(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
         authData.organizationId,
@@ -215,12 +210,10 @@ describe("delete agreement", () => {
     const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
-      agreementService.deleteAgreementById(agreementId, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.deleteAgreementById(
+        agreementId,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
@@ -229,12 +222,10 @@ describe("delete agreement", () => {
     const agreement = getMockAgreement();
     await addOneAgreement(agreement);
     await expect(
-      agreementService.deleteAgreementById(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.deleteAgreementById(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
     );
@@ -252,12 +243,10 @@ describe("delete agreement", () => {
     await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.consumerId);
     await expect(
-      agreementService.deleteAgreementById(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.deleteAgreementById(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
     );
@@ -276,12 +265,10 @@ describe("delete agreement", () => {
     };
     await addOneAgreement(agreement);
     await expect(
-      agreementService.deleteAgreementById(agreement.id, {
-        authData: getRandomAuthData(agreement.consumerId),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.deleteAgreementById(
+        agreement.id,
+        getMockContext({ authData: getRandomAuthData(agreement.consumerId) })
+      )
     ).rejects.toThrowError(
       fileManagerDeleteError(
         agreement.consumerDocuments[0].path,

@@ -3,12 +3,12 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockAgreementAttribute,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockDescriptorPublished,
@@ -125,12 +125,7 @@ describe("suspend agreement", () => {
 
     const returnedAgreement = await agreementService.suspendAgreement(
       agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -246,12 +241,7 @@ describe("suspend agreement", () => {
 
     const returnedAgreement = await agreementService.suspendAgreement(
       agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -335,12 +325,7 @@ describe("suspend agreement", () => {
 
     const returnedAgreement = await agreementService.suspendAgreement(
       agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -491,12 +476,7 @@ describe("suspend agreement", () => {
 
         const actualAgreement = await agreementService.suspendAgreement(
           agreement.id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
         expect(actualAgreement).toEqual(expectedAgreement);
       });
@@ -508,12 +488,10 @@ describe("suspend agreement", () => {
     const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
-      agreementService.suspendAgreement(agreementId, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.suspendAgreement(
+        agreementId,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
@@ -526,12 +504,10 @@ describe("suspend agreement", () => {
     );
     await addOneAgreement(agreement);
     await expect(
-      agreementService.suspendAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.suspendAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
   });
 
@@ -547,12 +523,10 @@ describe("suspend agreement", () => {
     await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.producerId);
     await expect(
-      agreementService.suspendAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.suspendAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
     );
@@ -567,12 +541,10 @@ describe("suspend agreement", () => {
     await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.producerId);
     await expect(
-      agreementService.suspendAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.suspendAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
@@ -598,12 +570,10 @@ describe("suspend agreement", () => {
     const authData = getRandomAuthData(agreement.producerId);
 
     await expect(
-      agreementService.suspendAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.suspendAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
   });
 
@@ -626,12 +596,10 @@ describe("suspend agreement", () => {
     const authData = getRandomAuthData(agreement.producerId);
 
     await expect(
-      agreementService.suspendAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.suspendAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
     );
@@ -681,12 +649,10 @@ describe("suspend agreement", () => {
       await addOneDelegation(delegation);
 
       await expect(
-        agreementService.suspendAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.suspendAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     }
   );
@@ -725,12 +691,10 @@ describe("suspend agreement", () => {
       await addOneDelegation(delegation);
 
       await expect(
-        agreementService.suspendAgreement(agreement.id, {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        agreementService.suspendAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     }
   );

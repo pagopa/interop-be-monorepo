@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { AuthData, userRoles, genericLogger } from "pagopa-interop-commons";
+import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
   Descriptor,
   EService,
@@ -9,7 +9,10 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockContext,
+  getMockDelegation,
+} from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -51,12 +54,7 @@ describe("get document by id", () => {
         descriptorId: descriptor.id,
         documentId: mockDocument.id,
       },
-      {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result).toEqual(mockDocument);
   });
@@ -84,12 +82,7 @@ describe("get document by id", () => {
         descriptorId: descriptor.id,
         documentId: mockDocument.id,
       },
-      {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result).toEqual(mockDocument);
   });
@@ -127,12 +120,7 @@ describe("get document by id", () => {
         descriptorId: descriptor.id,
         documentId: mockDocument.id,
       },
-      {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result).toEqual(mockDocument);
   });
@@ -149,12 +137,7 @@ describe("get document by id", () => {
           descriptorId: mockDescriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -177,12 +160,7 @@ describe("get document by id", () => {
           descriptorId: mockDescriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -213,12 +191,7 @@ describe("get document by id", () => {
           descriptorId: mockDescriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, mockDescriptor.id, mockDocument.id)
@@ -246,12 +219,7 @@ describe("get document by id", () => {
           descriptorId: descriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -277,12 +245,7 @@ describe("get document by id", () => {
           descriptorId: descriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -308,12 +271,7 @@ describe("get document by id", () => {
           descriptorId: descriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });

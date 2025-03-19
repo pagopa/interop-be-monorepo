@@ -9,6 +9,7 @@ import {
   addSomeRandomDelegations,
   getMockTenant,
   getMockAgreement,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -28,7 +29,6 @@ import {
   PurposeVersion,
   DelegationId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   purposeVersionNotFound,
@@ -74,12 +74,7 @@ describe("deletePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData: getRandomAuthData(mockPurpose.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -145,12 +140,7 @@ describe("deletePurposeVersion", () => {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -263,12 +253,7 @@ describe("deletePurposeVersion", () => {
         purposeId: delegatePurpose.id,
         versionId: mockPurposeVersion1.id,
       },
-      {
-        authData: getRandomAuthData(consumerDelegate.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
     );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -314,12 +299,7 @@ describe("deletePurposeVersion", () => {
           purposeId: randomId,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
@@ -341,12 +321,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: randomVersionId,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -373,12 +348,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(mockEService.producerId)
@@ -411,12 +381,9 @@ describe("deletePurposeVersion", () => {
             purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
           },
-          {
+          getMockContext({
             authData: getRandomAuthData(mockPurpose.consumerId),
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          })
         )
       ).rejects.toThrowError(
         purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
@@ -443,12 +410,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(
       purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
@@ -487,12 +449,7 @@ describe("deletePurposeVersion", () => {
             purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
           },
-          {
-            authData,
-            correlationId: generateId(),
-            logger: genericLogger,
-            serviceName: "",
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         organizationIsNotTheDelegatedConsumer(
@@ -525,12 +482,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -566,12 +518,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
@@ -617,12 +564,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
