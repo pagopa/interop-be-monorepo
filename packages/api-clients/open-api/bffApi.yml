@@ -5632,7 +5632,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreatedEServiceDescriptor"
+                $ref: "#/components/schemas/CreatedResource"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -18161,8 +18161,8 @@ components:
           type: string
         instanceLabel:
           type: string
-        templateInterfaceId:
-          type: string
+        templateInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         interfaceMetadata:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
         isNewTemplateVersionAvailable:
@@ -18815,6 +18815,7 @@ components:
         - id
         - name
         - mode
+        - isTemplateInstance
       properties:
         id:
           type: string
@@ -18829,6 +18830,8 @@ components:
           $ref: "#/components/schemas/CompactProducerDescriptor"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        isTemplateInstance:
+          type: boolean
         isNewTemplateVersionAvailable:
           type: boolean
     ProducerEServices:

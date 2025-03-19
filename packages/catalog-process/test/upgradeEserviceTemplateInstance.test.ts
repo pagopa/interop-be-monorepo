@@ -136,13 +136,13 @@ describe("upgrade eservice template instance", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document2.path);
 
-    const upgradedEService = await catalogService.upgradeEServiceInstance(
+    await catalogService.upgradeEServiceInstance(
       eservice.id,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
-    const writtenEvent = await readLastEserviceEvent(upgradedEService.id);
-    expect(writtenEvent.stream_id).toBe(upgradedEService.id);
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
     expect(writtenEvent.version).toBe("1");
     expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
     expect(writtenEvent.event_version).toBe(2);
@@ -310,13 +310,13 @@ describe("upgrade eservice template instance", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document2.path);
 
-    const upgradedEService = await catalogService.upgradeEServiceInstance(
+    await catalogService.upgradeEServiceInstance(
       eservice.id,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
-    const writtenEvent = await readLastEserviceEvent(upgradedEService.id);
-    expect(writtenEvent.stream_id).toBe(upgradedEService.id);
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
     expect(writtenEvent.version).toBe("1");
     expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
     expect(writtenEvent.event_version).toBe(2);
