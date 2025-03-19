@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { Client, ClientId, WithMetadata } from "pagopa-interop-models";
 import {
   clientInReadmodelClient,
@@ -96,10 +96,18 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateClient(toClientAggregator(queryResult));
     },
-    async deleteClientById(clientId: ClientId): Promise<void> {
+    async deleteClientById(
+      clientId: ClientId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(clientInReadmodelClient)
-        .where(eq(clientInReadmodelClient.id, clientId));
+        .where(
+          and(
+            eq(clientInReadmodelClient.id, clientId),
+            lte(clientInReadmodelClient.metadataVersion, metadataVersion)
+          )
+        );
     },
   };
 }
