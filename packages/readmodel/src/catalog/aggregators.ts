@@ -16,6 +16,8 @@ import {
   DescriptorState,
   AgreementApprovalPolicy,
   stringToDate,
+  EServiceTemplateVersionRef,
+  EServiceTemplateRef,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -23,10 +25,12 @@ import {
   EServiceDescriptorInterfaceSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  EServiceDescriptorTemplateVersionRefSQL,
   EServiceItemsSQL,
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
+  EServiceTemplateRefSQL,
   // EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 
@@ -48,12 +52,14 @@ export const aggregateDescriptor = ({
   documentsSQL,
   attributesSQL,
   rejectionReasonsSQL,
+  templateVersionRefSQL,
 }: {
   descriptorSQL: EServiceDescriptorSQL;
   interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
   documentsSQL: EServiceDescriptorDocumentSQL[];
   attributesSQL: EServiceDescriptorAttributeSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
 }): Descriptor => {
   const parsedInterface = interfaceSQL
     ? documentSQLtoDocument(interfaceSQL)
@@ -80,6 +86,20 @@ export const aggregateDescriptor = ({
 
   const rejectionReasons =
     rejectionReasonsArray.length > 0 ? rejectionReasonsArray : undefined;
+
+  const templateVersionRef: EServiceTemplateVersionRef | undefined =
+    templateVersionRefSQL
+      ? {
+          id: unsafeBrandId(templateVersionRefSQL.id),
+          interfaceMetadata: {
+            contactName: templateVersionRefSQL.contactName ?? undefined,
+            contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
+            contactUrl: templateVersionRefSQL.contactUrl ?? undefined,
+            termsAndConditionsUrl:
+              templateVersionRefSQL.termsAndConditionsUrl ?? undefined,
+          },
+        }
+      : undefined;
 
   return {
     id: unsafeBrandId(descriptorSQL.id),
@@ -121,6 +141,7 @@ export const aggregateDescriptor = ({
       ? { archivedAt: stringToDate(descriptorSQL.archivedAt) }
       : {}),
     ...(rejectionReasons ? { rejectionReasons } : {}),
+    ...(templateVersionRef ? { templateVersionRef } : {}),
   };
 };
 
@@ -133,8 +154,9 @@ export const aggregateEservice = ({
   attributesSQL,
   documentsSQL,
   rejectionReasonsSQL,
-}: // TODO add template
-EServiceItemsSQL): WithMetadata<EService> => {
+  templateRefSQL,
+  templateVersionRefsSQL,
+}: EServiceItemsSQL): WithMetadata<EService> => {
   const descriptors = descriptorsSQL.map((descriptorSQL) =>
     aggregateDescriptor({
       descriptorSQL,
@@ -151,6 +173,9 @@ EServiceItemsSQL): WithMetadata<EService> => {
       rejectionReasonsSQL: rejectionReasonsSQL.filter(
         (r) => r.descriptorId === descriptorSQL.id
       ),
+      templateVersionRefSQL: templateVersionRefsSQL.find(
+        (t) => t.descriptorId === descriptorSQL.id
+      ),
     })
   );
 
@@ -162,6 +187,14 @@ EServiceItemsSQL): WithMetadata<EService> => {
       )
     )
   );
+
+  const templateRef: EServiceTemplateRef | undefined = templateRefSQL
+    ? {
+        id: unsafeBrandId(templateRefSQL.id),
+        instanceLabel: templateRefSQL.instanceLabel ?? undefined,
+      }
+    : undefined;
+
   const eservice: EService = {
     id: unsafeBrandId(eserviceSQL.id),
     name: eserviceSQL.name,
@@ -177,6 +210,7 @@ EServiceItemsSQL): WithMetadata<EService> => {
       : {}),
     ...(eserviceSQL.isConsumerDelegable ? { isConsumerDelegable: true } : {}),
     ...(eserviceSQL.isSignalHubEnabled ? { isSignalHubEnabled: true } : {}),
+    ...(templateRef ? { templateRef } : {}),
   };
   return {
     data: eservice,
@@ -193,6 +227,8 @@ export const aggregateEserviceArray = ({
   interfacesSQL,
   documentsSQL,
   rejectionReasonsSQL,
+  templateRefsSQL,
+  templateVersionRefsSQL,
 }: {
   eservicesSQL: EServiceSQL[];
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
@@ -202,7 +238,8 @@ export const aggregateEserviceArray = ({
   interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  // templateBindingSQL: EServiceTemplateBindingSQL[];
+  templateRefsSQL: EServiceTemplateRefSQL[];
+  templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
 }): Array<WithMetadata<EService>> =>
   eservicesSQL.map((eserviceSQL) =>
     aggregateEservice({
@@ -229,7 +266,12 @@ export const aggregateEserviceArray = ({
       rejectionReasonsSQL: rejectionReasonsSQL.filter(
         (rejectionReason) => rejectionReason.eserviceId === eserviceSQL.id
       ),
-      // templateBindingSQL: [],
+      templateRefSQL: templateRefsSQL.find(
+        (t) => t.eserviceId === eserviceSQL.id
+      ),
+      templateVersionRefsSQL: templateVersionRefsSQL.filter(
+        (t) => t.eserviceId === eserviceSQL.id
+      ),
     })
   );
 
