@@ -24,7 +24,7 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getRandomAuthData,
+  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -49,7 +49,7 @@ describe("archive descriptor", () => {
     await catalogService.archiveDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -84,7 +84,7 @@ describe("archive descriptor", () => {
       interface: mockDocument,
       state: descriptorState.suspended,
     };
-    const delegate = getRandomAuthData();
+    const delegate = getMockAuthData();
 
     const eservice: EService = {
       ...mockEService,
@@ -103,7 +103,7 @@ describe("archive descriptor", () => {
     await catalogService.archiveDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getRandomAuthData(delegate.organizationId) })
+      getMockContext({ authData: getMockAuthData(delegate.organizationId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -137,7 +137,7 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -153,7 +153,7 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         eservice.id,
         mockDescriptor.id,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -201,7 +201,7 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });

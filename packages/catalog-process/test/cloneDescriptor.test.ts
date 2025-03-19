@@ -5,7 +5,7 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -129,7 +129,7 @@ describe("clone descriptor", () => {
     const newEService = await catalogService.cloneDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(newEService.id);
@@ -241,7 +241,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(FileManagerError);
   });
@@ -277,7 +277,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         eservice1.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicate(
@@ -337,7 +337,7 @@ describe("clone descriptor", () => {
         eservice.id,
         descriptor.id,
         getMockContext({
-          authData: getRandomAuthData(delegation.delegateId),
+          authData: getMockAuthData(delegation.delegateId),
         })
       )
     ).rejects.toThrowError(operationForbidden);
@@ -352,7 +352,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -374,7 +374,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });

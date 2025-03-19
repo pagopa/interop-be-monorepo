@@ -11,7 +11,7 @@ import {
   decodeProtobufPayload,
   getMockDelegation,
   getMockContext,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   TenantKind,
@@ -86,7 +86,7 @@ describe("create risk analysis", () => {
     await catalogService.createRiskAnalysis(
       eservice.id,
       riskAnalysisSeed,
-      getMockContext({ authData: getRandomAuthData(producer.id) })
+      getMockContext({ authData: getMockAuthData(producer.id) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -183,7 +183,7 @@ describe("create risk analysis", () => {
     await catalogService.createRiskAnalysis(
       eservice.id,
       riskAnalysisSeed,
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -248,7 +248,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         mockEService.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -275,7 +275,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         mockEService.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -295,7 +295,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         eservice.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -316,7 +316,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         eservice.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInReceiveMode(eservice.id));
   });
@@ -337,7 +337,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         eservice.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(tenantNotFound(eservice.producerId));
   });
@@ -366,7 +366,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         eservice.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getRandomAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -411,7 +411,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         eservice.id,
         riskAnalysisSeed,
-        getMockContext({ authData: getRandomAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(
       riskAnalysisDuplicated(riskAnalysis.name.toLowerCase(), eservice.id)
@@ -468,7 +468,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         eservice.id,
         invalidRiskAnalysisSeed,
-        getMockContext({ authData: getRandomAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
@@ -516,7 +516,7 @@ describe("create risk analysis", () => {
       catalogService.createRiskAnalysis(
         eservice.id,
         riskAnalysisSeed,
-        getMockContext({ authData: getRandomAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });

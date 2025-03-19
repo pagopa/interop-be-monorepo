@@ -6,7 +6,7 @@ import {
   getMockDelegation,
   getMockTenant,
   getMockEService,
-  getRandomAuthData,
+  getMockAuthData,
   getMockContext,
 } from "pagopa-interop-commons-test/index.js";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -78,7 +78,7 @@ describe.each([
   it("should approve delegation if validations succeed", async () => {
     vi.spyOn(pdfGenerator, "generate");
     const delegationId = generateId<DelegationId>();
-    const authData = getRandomAuthData(delegate.id);
+    const authData = getMockAuthData(delegate.id);
 
     const delegation = getMockDelegation({
       kind,
@@ -186,7 +186,7 @@ describe.each([
     await expect(
       approveFn(
         nonExistentDelegationId,
-        getMockContext({ authData: getRandomAuthData(delegateId) })
+        getMockContext({ authData: getMockAuthData(delegateId) })
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId, kind));
   });
@@ -207,7 +207,7 @@ describe.each([
     await expect(
       approveFn(
         delegation.id,
-        getMockContext({ authData: getRandomAuthData(delegate.id) })
+        getMockContext({ authData: getMockAuthData(delegate.id) })
       )
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
   });
@@ -227,7 +227,7 @@ describe.each([
     await expect(
       approveFn(
         delegation.id,
-        getMockContext({ authData: getRandomAuthData(wrongDelegate.id) })
+        getMockContext({ authData: getMockAuthData(wrongDelegate.id) })
       )
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegate.id, delegation.id)
@@ -253,7 +253,7 @@ describe.each([
       await expect(
         approveFn(
           delegation.id,
-          getMockContext({ authData: getRandomAuthData(delegate.id) })
+          getMockContext({ authData: getMockAuthData(delegate.id) })
         )
       ).rejects.toThrow(
         incorrectState(delegation.id, state, delegationState.waitingForApproval)
@@ -275,7 +275,7 @@ describe.each([
 
     await approveFn(
       delegation.id,
-      getMockContext({ authData: getRandomAuthData(delegate.id) })
+      getMockContext({ authData: getMockAuthData(delegate.id) })
     );
 
     const contracts = await fileManager.listFiles(

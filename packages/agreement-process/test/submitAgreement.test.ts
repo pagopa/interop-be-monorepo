@@ -25,7 +25,7 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test";
@@ -195,7 +195,7 @@ describe("submit agreement", () => {
     await addOneAgreement(getMockAgreement());
 
     const agreementId = generateId<AgreementId>();
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     await expect(
       agreementService.submitAgreement(
         agreementId,
@@ -222,7 +222,7 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
     await addOneDelegation(consumerDelegation);
 
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
 
     await expect(
       agreementService.submitAgreement(
@@ -255,7 +255,7 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
     await addOneDelegation(consumerDelegation);
 
-    const authData = getRandomAuthData(agreement.consumerId);
+    const authData = getMockAuthData(agreement.consumerId);
 
     await expect(
       agreementService.submitAgreement(
@@ -289,7 +289,7 @@ describe("submit agreement", () => {
     };
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -323,7 +323,7 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
     await addOneAgreement(pendingAgreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -354,7 +354,7 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -392,7 +392,7 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -428,7 +428,7 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -472,7 +472,7 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -516,7 +516,7 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -560,7 +560,7 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -626,7 +626,7 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -677,7 +677,7 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -722,7 +722,7 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -765,7 +765,7 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -815,7 +815,7 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -892,7 +892,7 @@ describe("submit agreement", () => {
     await addOneAttribute(attribute);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(

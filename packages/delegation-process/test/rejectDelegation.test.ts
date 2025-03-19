@@ -4,7 +4,7 @@ import {
   getMockContext,
   getMockDelegation,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -44,7 +44,7 @@ describe.each([
     vi.setSystemTime(currentExecutionTime);
 
     const delegate = getMockTenant();
-    const authData = getRandomAuthData(delegate.id);
+    const authData = getMockAuthData(delegate.id);
     const delegation = getMockDelegation({
       kind,
       state: delegationState.waitingForApproval,
@@ -108,7 +108,7 @@ describe.each([
         delegation.id,
         rejectionReason,
         getMockContext({
-          authData: getRandomAuthData(delegation.delegateId),
+          authData: getMockAuthData(delegation.delegateId),
         })
       )
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
@@ -126,7 +126,7 @@ describe.each([
       rejectFn(
         delegation.id,
         "",
-        getMockContext({ authData: getRandomAuthData(wrongDelegateId) })
+        getMockContext({ authData: getMockAuthData(wrongDelegateId) })
       )
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegateId, delegation.id)
@@ -150,7 +150,7 @@ describe.each([
         rejectFn(
           delegation.id,
           "",
-          getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+          getMockContext({ authData: getMockAuthData(delegation.delegateId) })
         )
       ).rejects.toThrow(
         incorrectState(delegation.id, state, delegationState.waitingForApproval)

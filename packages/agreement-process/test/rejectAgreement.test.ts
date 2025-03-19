@@ -12,7 +12,7 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -190,8 +190,8 @@ describe("reject agreement", () => {
 
       const authData =
         type === "producer"
-          ? getRandomAuthData(agreement.producerId)
-          : getRandomAuthData();
+          ? getMockAuthData(agreement.producerId)
+          : getMockAuthData();
 
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
@@ -260,7 +260,7 @@ describe("reject agreement", () => {
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
       agreementService.rejectAgreement(
@@ -272,7 +272,7 @@ describe("reject agreement", () => {
   });
 
   it("should throw organizationIsNotTheProducer when the requester is not the Producer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
       generateId<TenantId>(),
@@ -300,7 +300,7 @@ describe("reject agreement", () => {
       ),
     };
     await addOneAgreement(agreement);
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.rejectAgreement(
         agreement.id,
@@ -319,7 +319,7 @@ describe("reject agreement", () => {
       state: randomArrayItem(agreementRejectableStates),
     };
     await addOneAgreement(agreement);
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.rejectAgreement(
         agreement.id,
@@ -349,7 +349,7 @@ describe("reject agreement", () => {
     };
     await addOneAgreement(agreement);
     await addOneEService(eservice);
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
 
     await expect(
       agreementService.rejectAgreement(
@@ -376,7 +376,7 @@ describe("reject agreement", () => {
     await addOneAgreement(agreement);
     await addOneEService(eservice);
     await addOneTenant(consumer);
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
 
     await expect(
       agreementService.rejectAgreement(
@@ -404,7 +404,7 @@ describe("reject agreement", () => {
       consumerId: consumer.id,
       descriptorId: eservice.descriptors[0].id,
     };
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       delegateId: delegate.id,
@@ -446,7 +446,7 @@ describe("reject agreement", () => {
       consumerId: consumer.id,
       descriptorId: eservice.descriptors[0].id,
     };
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       delegateId: authData.organizationId,

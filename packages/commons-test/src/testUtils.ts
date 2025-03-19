@@ -80,7 +80,6 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
-  CorrelationId,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -137,8 +136,7 @@ export const getTenantOneCertifierFeature = (
   return certifiedFeatures[0];
 };
 
-
-export const getRandomAuthData = (
+export const getMockAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
   organizationId,
@@ -734,14 +732,13 @@ export const getMockEServiceTemplate = (
 export const getMockContext = ({
   authData,
   serviceName,
-  correlationId,
 }: {
   authData?: AuthData;
   serviceName?: string;
-  correlationId?: CorrelationId;
 }): WithLogger<AppContext> => ({
-  authData: authData || getRandomAuthData(),
-  serviceName: serviceName || "",
-  correlationId: correlationId || generateId(),
+  authData: authData || getMockAuthData(),
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
   logger: genericLogger,
+  requestTimestamp: Date.now(),
 });

@@ -19,7 +19,7 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockContext,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import { selfcareIdConflict } from "../src/model/domain/errors.js";
 import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
@@ -51,7 +51,7 @@ describe("selfcareUpsertTenant", async () => {
     };
     await tenantService.selfcareUpsertTenant(
       tenantSeed,
-      getMockContext({ authData: getRandomAuthData(mockTenant.id) })
+      getMockContext({ authData: getMockAuthData(mockTenant.id) })
     );
 
     const writtenEvent = await readLastTenantEvent(mockTenant.id);
@@ -154,7 +154,7 @@ describe("selfcareUpsertTenant", async () => {
     expect(
       tenantService.selfcareUpsertTenant(
         newTenantSeed,
-        getMockContext({ authData: getRandomAuthData(mockTenant.id) })
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
       )
     ).rejects.toThrowError(
       selfcareIdConflict({

@@ -5,7 +5,7 @@ import {
   getMockContext,
   getMockDelegation,
   getMockEServiceTemplate,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -90,7 +90,7 @@ describe("update draft descriptor instance", () => {
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -160,7 +160,7 @@ describe("update draft descriptor instance", () => {
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -187,7 +187,7 @@ describe("update draft descriptor instance", () => {
         mockEService.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -213,7 +213,7 @@ describe("update draft descriptor instance", () => {
         mockEService.id,
         mockDescriptor.id,
         buildUpdateDescriptorSeed(mockDescriptor),
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -252,7 +252,7 @@ describe("update draft descriptor instance", () => {
           eservice.id,
           descriptor.id,
           buildUpdateDescriptorSeed(descriptor),
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(
         notValidDescriptorState(mockDescriptor.id, descriptorState)
@@ -331,7 +331,7 @@ describe("update draft descriptor instance", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -366,7 +366,7 @@ describe("update draft descriptor instance", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -396,7 +396,7 @@ describe("update draft descriptor instance", () => {
         eservice.id,
         descriptor.id,
         descriptorSeed,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
   });

@@ -12,7 +12,7 @@ import { expect, describe, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockContext,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
@@ -57,7 +57,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
         eservice.id,
         descriptor.id,
         newDocument,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -122,7 +122,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
       eservice.id,
       descriptor.id,
       newDocument,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -153,7 +153,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
       eservice.id,
       descriptor.id,
       newDocument,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -188,7 +188,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
         eservice.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)

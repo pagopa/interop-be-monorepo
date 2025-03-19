@@ -16,7 +16,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockContext,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 
 import {
@@ -63,7 +63,7 @@ describe("upload Document", () => {
           version.id,
           buildInterfaceSeed(),
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         );
 
@@ -152,7 +152,7 @@ describe("upload Document", () => {
         mockVersion.id,
         buildInterfaceSeed(),
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -177,7 +177,7 @@ describe("upload Document", () => {
         version.id,
         buildInterfaceSeed(),
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(interfaceAlreadyExists(version.id));
@@ -208,7 +208,7 @@ describe("upload Document", () => {
           prettyName: document.prettyName.toLowerCase(),
         },
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -238,7 +238,7 @@ describe("upload Document", () => {
         mockVersion.id,
         buildDocumentSeed(),
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(

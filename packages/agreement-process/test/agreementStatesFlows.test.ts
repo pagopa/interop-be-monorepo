@@ -8,7 +8,7 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -146,7 +146,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
-    const consumerAuthData = getRandomAuthData(consumer.id);
+    const consumerAuthData = getMockAuthData(consumer.id);
     const createdAgreement = await agreementService.createAgreement(
       {
         eserviceId,
@@ -312,7 +312,7 @@ describe("Agreeement states flows", () => {
       During this execution flow, the newly created draft agreement still preserves the suspension flags and PENDING state.
     ================================= */
 
-    const producerAuthData = getRandomAuthData(producer.id);
+    const producerAuthData = getMockAuthData(producer.id);
 
     const activatedAgreement = await agreementService.activateAgreement(
       submittedUpgradedAgreement.id,
@@ -395,7 +395,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
-    const consumerAuthData = getRandomAuthData(consumer.id);
+    const consumerAuthData = getMockAuthData(consumer.id);
     const createdAgreement = await agreementService.createAgreement(
       {
         eserviceId,
@@ -541,7 +541,7 @@ describe("Agreeement states flows", () => {
       8) Agreement activation by producer (state becomes ACTIVE)
     ================================= */
 
-    const producerAuthData = getRandomAuthData(producer.id);
+    const producerAuthData = getMockAuthData(producer.id);
 
     const activatedAgreement = await agreementService.activateAgreement(
       submittedUpgradedAgreement.id,

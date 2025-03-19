@@ -6,7 +6,7 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -52,7 +52,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
       eserviceTemplateVersion.id,
       { voucherLifespan: 60 },
       getMockContext({
-        authData: getRandomAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
 
@@ -91,7 +91,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
         mockEServiceTemplateVersion.id,
         { voucherLifespan: 60 },
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
@@ -131,7 +131,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
         mockEServiceTemplateVersion.id,
         { voucherLifespan: 60 },
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -163,7 +163,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
           eserviceTemplateVersion.id,
           { voucherLifespan: 60 },
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
@@ -194,7 +194,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
           dailyCallsTotal: 10,
         },
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());

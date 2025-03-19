@@ -2,7 +2,7 @@ import {
   getMockContext,
   getMockEService,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import { generateId, TenantId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -19,7 +19,7 @@ describe("create producer delegation", () => {
     vi.setSystemTime(currentExecutionTime);
 
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {

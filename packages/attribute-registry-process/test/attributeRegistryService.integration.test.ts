@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   getMockContext,
   getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
@@ -82,7 +82,7 @@ describe("database test", () => {
             },
             getMockContext({
               authData: {
-                ...getRandomAuthData(),
+                ...getMockAuthData(),
                 externalId: {
                   value: "123456",
                   origin: "not-allowed-origin",
@@ -158,7 +158,7 @@ describe("database test", () => {
             },
             getMockContext({
               authData: {
-                ...getRandomAuthData(),
+                ...getMockAuthData(),
                 externalId: {
                   value: "123456",
                   origin: "not-allowed-origin",
@@ -209,7 +209,7 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockContext({ authData: getRandomAuthData(tenant.id) })
+            getMockContext({ authData: getMockAuthData(tenant.id) })
           );
         expect(attribute).toBeDefined();
 
@@ -265,7 +265,7 @@ describe("database test", () => {
               code: attribute.code.toLowerCase(),
               description: attribute.description,
             },
-            getMockContext({ authData: getRandomAuthData(tenant.id) })
+            getMockContext({ authData: getMockAuthData(tenant.id) })
           )
         ).rejects.toThrowError(
           attributeDuplicateByNameAndCode(
@@ -284,7 +284,7 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockContext({ authData: getRandomAuthData(mockTenant.id) })
+            getMockContext({ authData: getMockAuthData(mockTenant.id) })
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -297,7 +297,7 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockContext({ authData: getRandomAuthData(mockTenant.id) })
+            getMockContext({ authData: getMockAuthData(mockTenant.id) })
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });

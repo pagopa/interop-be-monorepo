@@ -20,7 +20,7 @@ import {
   getMockAttribute,
   getMockTenant,
   readEventByStreamIdAndVersion,
-  getRandomAuthData,
+  getMockAuthData,
   getTenantOneCertifierFeature,
   getMockContext,
 } from "pagopa-interop-commons-test";
@@ -49,7 +49,7 @@ describe("revokeCertifiedAttributeById", async () => {
       },
     ],
   };
-  const authData = getRandomAuthData(requesterTenant.id);
+  const authData = getMockAuthData(requesterTenant.id);
 
   const attribute: Attribute = {
     ...getMockAttribute(),
@@ -152,7 +152,7 @@ describe("revokeCertifiedAttributeById", async () => {
     const notCertifierTenant: Tenant = {
       ...getMockTenant(),
     };
-    const authData = getRandomAuthData(notCertifierTenant.id);
+    const authData = getMockAuthData(notCertifierTenant.id);
 
     await writeInReadmodel(toReadModelAttribute(attribute), attributes);
     await addOneTenant(targetTenant);

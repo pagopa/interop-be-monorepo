@@ -8,7 +8,7 @@ import {
   getMockEServiceTemplateVersion,
   getMockTenant,
   getMockValidRiskAnalysis,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -79,7 +79,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       eserviceTemplate.id,
       riskAnalysis.id,
       getMockContext({
-        authData: getRandomAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -132,7 +132,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysis.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
@@ -168,7 +168,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
-        getMockContext({ authData: getRandomAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -204,7 +204,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysis.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -243,7 +243,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysis.id,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));

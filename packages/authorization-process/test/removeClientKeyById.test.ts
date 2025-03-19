@@ -15,7 +15,7 @@ import {
   toClientV2,
 } from "pagopa-interop-models";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
-import { getRandomAuthData } from "pagopa-interop-commons-test";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   clientNotFound,
   clientKeyNotFound,
@@ -35,7 +35,7 @@ describe("remove client key", () => {
     const keyToRemove = getMockKey();
     const keyToNotRemove = getMockKey();
     const mockAuthData = {
-      ...getRandomAuthData(mockConsumer.id),
+      ...getMockAuthData(mockConsumer.id),
       userRoles: [userRoles.ADMIN_ROLE],
     };
 
@@ -92,7 +92,7 @@ describe("remove client key", () => {
       clientId: mockClient.id,
       keyIdToRemove: keyToRemove.kid,
       authData: {
-        ...getRandomAuthData(mockConsumer.id),
+        ...getMockAuthData(mockConsumer.id),
         userRoles: [userRoles.ADMIN_ROLE],
         userId: mockUserId,
       },
@@ -135,7 +135,7 @@ describe("remove client key", () => {
       authorizationService.deleteClientKeyById({
         clientId: mockClient.id,
         keyIdToRemove: keyToRemove.kid,
-        authData: getRandomAuthData(mockConsumer.id),
+        authData: getMockAuthData(mockConsumer.id),
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -158,7 +158,7 @@ describe("remove client key", () => {
       authorizationService.deleteClientKeyById({
         clientId: mockClient.id,
         keyIdToRemove: notExistingKeyId,
-        authData: getRandomAuthData(mockConsumer.id),
+        authData: getMockAuthData(mockConsumer.id),
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -180,7 +180,7 @@ describe("remove client key", () => {
       authorizationService.deleteClientKeyById({
         clientId: mockClient.id,
         keyIdToRemove: keyToRemove.kid,
-        authData: getRandomAuthData(mockConsumer2.id),
+        authData: getMockAuthData(mockConsumer2.id),
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -206,7 +206,7 @@ describe("remove client key", () => {
         clientId: mockClient.id,
         keyIdToRemove: keyToRemove.kid,
         authData: {
-          ...getRandomAuthData(mockConsumer.id),
+          ...getMockAuthData(mockConsumer.id),
           userRoles: [userRoles.SECURITY_ROLE],
           userId: mockUserId,
         },
@@ -233,7 +233,7 @@ describe("remove client key", () => {
         clientId: mockClient.id,
         keyIdToRemove: keyToRemove.kid,
         authData: {
-          ...getRandomAuthData(mockConsumer.id),
+          ...getMockAuthData(mockConsumer.id),
           userRoles: [userRoles.SECURITY_ROLE],
           userId: mockUserId,
         },

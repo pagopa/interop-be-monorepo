@@ -4,7 +4,7 @@ import {
   getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
+  getMockAuthData,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
@@ -62,7 +62,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       { instanceLabel: undefined },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eService).toBeDefined();
@@ -161,7 +161,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       { instanceLabel },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eService).toBeDefined();
@@ -305,7 +305,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       { instanceLabel: undefined },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eService).toBeDefined();
@@ -500,7 +500,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         generateId(),
         { instanceLabel: undefined },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({
       code: "eServiceTemplateNotFound",
@@ -518,7 +518,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         eServiceTemplate.id,
         { instanceLabel: undefined },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({
       code: "eServiceTemplateWithoutPublishedVersion",

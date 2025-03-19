@@ -15,7 +15,7 @@ import {
   toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
-import { getRandomAuthData } from "pagopa-interop-commons-test";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   producerKeychainNotFound,
   producerKeyNotFound,
@@ -36,7 +36,7 @@ describe("remove producer keychain key", () => {
     const keyToNotRemove = getMockKey();
 
     const authData = {
-      ...getRandomAuthData(mockProducer.id),
+      ...getMockAuthData(mockProducer.id),
       userRoles: [userRoles.ADMIN_ROLE],
     };
 
@@ -87,7 +87,7 @@ describe("remove producer keychain key", () => {
     const anotherUserId: UserId = generateId();
 
     const authData = {
-      ...getRandomAuthData(mockProducer.id),
+      ...getMockAuthData(mockProducer.id),
       userRoles: [userRoles.ADMIN_ROLE],
       userId: mockUserId,
     };
@@ -141,7 +141,7 @@ describe("remove producer keychain key", () => {
     const mockProducer = getMockTenant();
     const keyToRemove = getMockKey();
 
-    const authData = getRandomAuthData(mockProducer.id);
+    const authData = getMockAuthData(mockProducer.id);
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -167,7 +167,7 @@ describe("remove producer keychain key", () => {
     const notExistingKeyId = generateId();
     const keyToNotRemove = getMockKey();
 
-    const authData = getRandomAuthData(mockProducer.id);
+    const authData = getMockAuthData(mockProducer.id);
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -195,7 +195,7 @@ describe("remove producer keychain key", () => {
     const mockProducer2 = getMockTenant();
     const keyToRemove = getMockKey();
 
-    const authData = getRandomAuthData(mockProducer2.id);
+    const authData = getMockAuthData(mockProducer2.id);
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -242,7 +242,7 @@ describe("remove producer keychain key", () => {
         producerKeychainId: mockProducerKeychain.id,
         keyIdToRemove: keyToRemove.kid,
         authData: {
-          ...getRandomAuthData(mockProducer.id),
+          ...getMockAuthData(mockProducer.id),
           userRoles: [userRoles.SECURITY_ROLE],
           userId: mockUserId,
         },
@@ -271,7 +271,7 @@ describe("remove producer keychain key", () => {
         producerKeychainId: mockProducerKeychain.id,
         keyIdToRemove: keyToRemove.kid,
         authData: {
-          ...getRandomAuthData(mockProducer.id),
+          ...getMockAuthData(mockProducer.id),
           userRoles: [userRoles.SECURITY_ROLE],
           userId: mockUserId,
         },

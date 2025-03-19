@@ -33,7 +33,7 @@ import {
   getMockTenant,
   getMockPurpose,
   getMockDescriptor,
-  getRandomAuthData,
+  getMockAuthData,
   getMockDelegation,
   getMockContext,
 } from "pagopa-interop-commons-test";
@@ -111,7 +111,7 @@ describe("createPurpose", () => {
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       purposeSeed,
       getMockContext({
-        authData: getRandomAuthData(
+        authData: getMockAuthData(
           unsafeBrandId<TenantId>(purposeSeed.consumerId)
         ),
       })
@@ -197,7 +197,7 @@ describe("createPurpose", () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       purposeSeed,
-      getMockContext({ authData: getRandomAuthData(delegateTenant.id) })
+      getMockContext({ authData: getMockAuthData(delegateTenant.id) })
     );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -332,7 +332,7 @@ describe("createPurpose", () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       delegatePurposeSeed,
-      getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -405,7 +405,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getRandomAuthData(
+          authData: getMockAuthData(
             unsafeBrandId<TenantId>(purposeSeed.consumerId)
           ),
         })
@@ -442,7 +442,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getRandomAuthData(
+          authData: getMockAuthData(
             unsafeBrandId<TenantId>(purposeSeed.consumerId)
           ),
         })
@@ -454,7 +454,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         purposeSeed,
         getMockContext({
-          authData: getRandomAuthData(
+          authData: getMockAuthData(
             unsafeBrandId<TenantId>(purposeSeed.consumerId)
           ),
         })
@@ -498,7 +498,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getRandomAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
         })
       )
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
@@ -520,7 +520,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getRandomAuthData(
+          authData: getMockAuthData(
             unsafeBrandId<TenantId>(purposeSeed.consumerId)
           ),
         })
@@ -549,7 +549,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getRandomAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
         })
       )
     ).rejects.toThrowError(
@@ -578,7 +578,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         purposeSeed,
         getMockContext({
-          authData: getRandomAuthData(
+          authData: getMockAuthData(
             unsafeBrandId<TenantId>(purposeSeed.consumerId)
           ),
         })

@@ -4,7 +4,7 @@ import {
   decodeProtobufPayload,
   getMockDelegation,
   getMockContext,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   EService,
@@ -54,7 +54,7 @@ describe("delete risk analysis", () => {
     await catalogService.deleteRiskAnalysis(
       eservice.id,
       riskAnalysis.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -100,7 +100,7 @@ describe("delete risk analysis", () => {
     await catalogService.deleteRiskAnalysis(
       eservice.id,
       riskAnalysis.id,
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -139,7 +139,7 @@ describe("delete risk analysis", () => {
     await catalogService.deleteRiskAnalysis(
       eservice.id,
       riskAnalysis.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -170,7 +170,7 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         mockEService.id,
         generateId<RiskAnalysisId>(),
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -188,7 +188,7 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         eservice.id,
         riskAnalysisId,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
@@ -213,7 +213,7 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -267,7 +267,7 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -286,7 +286,7 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });

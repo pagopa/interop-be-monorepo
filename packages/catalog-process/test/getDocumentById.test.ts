@@ -22,7 +22,7 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getRandomAuthData,
+  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -44,7 +44,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(eservice.producerId),
+      ...getMockAuthData(eservice.producerId),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice);
@@ -72,7 +72,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(eservice.producerId),
+      ...getMockAuthData(eservice.producerId),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice);
@@ -107,7 +107,7 @@ describe("get document by id", () => {
     });
 
     const authData: AuthData = {
-      ...getRandomAuthData(delegation.delegateId),
+      ...getMockAuthData(delegation.delegateId),
       userRoles: [userRoles.ADMIN_ROLE],
     };
 
@@ -127,7 +127,7 @@ describe("get document by id", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     expect(
@@ -150,7 +150,7 @@ describe("get document by id", () => {
     };
     await addOneEService(eservice);
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     expect(
@@ -180,7 +180,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(eservice.producerId),
+      ...getMockAuthData(eservice.producerId),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice);
@@ -208,7 +208,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice);
@@ -234,7 +234,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(eservice.producerId),
+      ...getMockAuthData(eservice.producerId),
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice);
@@ -260,7 +260,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice);

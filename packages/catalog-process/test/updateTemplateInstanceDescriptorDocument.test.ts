@@ -2,7 +2,7 @@
 import {
   decodeProtobufPayload,
   getMockContext,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -47,7 +47,7 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
       descriptor.id,
       mockDocument.id,
       { prettyName: "updated prettyName" },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     const expectedEservice = toEServiceV2({
@@ -113,7 +113,7 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
       descriptor.id,
       mockDocument.id,
       { prettyName: "updated prettyName" },
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -149,7 +149,7 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
         mockDescriptor.id,
         generateId(),
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -173,7 +173,7 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)

@@ -5,7 +5,7 @@ import {
   getMockTenant,
   getMockValidRiskAnalysis,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
   getMockContext,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -75,7 +75,7 @@ describe("publish descriptor", () => {
     await catalogService.publishDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -136,7 +136,7 @@ describe("publish descriptor", () => {
     await catalogService.publishDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -210,7 +210,7 @@ describe("publish descriptor", () => {
     await catalogService.publishDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getRandomAuthData(delegate.id) })
+      getMockContext({ authData: getMockAuthData(delegate.id) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -261,7 +261,7 @@ describe("publish descriptor", () => {
     await catalogService.publishDescriptor(
       eservice.id,
       descriptor2.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -331,7 +331,7 @@ describe("publish descriptor", () => {
     await catalogService.publishDescriptor(
       eservice.id,
       descriptor2.id,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -373,7 +373,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -388,7 +388,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         mockDescriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -436,7 +436,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -456,7 +456,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.published)
@@ -478,7 +478,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.deprecated)
@@ -500,7 +500,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.suspended)
@@ -522,7 +522,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.archived)
@@ -544,7 +544,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceDescriptorWithoutInterface(descriptor.id));
   });
@@ -568,7 +568,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(tenantNotFound(eservice.producerId));
   });
@@ -599,7 +599,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -634,7 +634,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceRiskAnalysisIsRequired(eservice.id));
   });
@@ -680,7 +680,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(riskAnalysisNotValid());
   });
@@ -704,7 +704,7 @@ describe("publish descriptor", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(audienceCannotBeEmpty(descriptor.id));
   });

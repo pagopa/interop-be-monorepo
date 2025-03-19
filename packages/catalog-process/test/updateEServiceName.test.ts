@@ -3,7 +3,7 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -50,7 +50,7 @@ describe("update eService name on published eservice", () => {
     const returnedEService = await catalogService.updateEServiceName(
       eservice.id,
       updatedName,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const updatedEService: EService = {
       ...eservice,
@@ -90,7 +90,7 @@ describe("update eService name on published eservice", () => {
     const returnedEService = await catalogService.updateEServiceName(
       eservice.id,
       updatedName,
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
     const updatedEService: EService = {
       ...eservice,
@@ -116,7 +116,7 @@ describe("update eService name on published eservice", () => {
       catalogService.updateEServiceName(
         eservice.id,
         "eservice new name",
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -144,7 +144,7 @@ describe("update eService name on published eservice", () => {
       catalogService.updateEServiceName(
         eservice.id,
         "eservice new name",
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -155,7 +155,7 @@ describe("update eService name on published eservice", () => {
       catalogService.updateEServiceName(
         eservice.id,
         "eservice new name",
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
@@ -175,7 +175,7 @@ describe("update eService name on published eservice", () => {
         catalogService.updateEServiceName(
           eservice.id,
           "eservice new name",
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
@@ -208,7 +208,7 @@ describe("update eService name on published eservice", () => {
       catalogService.updateEServiceName(
         eservice.id,
         updatedName,
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNameDuplicate(duplicateName));
   });
@@ -228,7 +228,7 @@ describe("update eService name on published eservice", () => {
       catalogService.updateEServiceName(
         eService.id,
         "eservice new name",
-        getMockContext({ authData: getRandomAuthData(eService.producerId) })
+        getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });

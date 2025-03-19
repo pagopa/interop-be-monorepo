@@ -10,7 +10,7 @@ import {
   getMockPurpose,
   getMockTenant,
   getMockValidRiskAnalysis,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -106,7 +106,7 @@ describe("createReversePurpose", () => {
     const { purpose, isRiskAnalysisValid } =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -214,7 +214,7 @@ describe("createReversePurpose", () => {
     const { purpose, isRiskAnalysisValid } =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(delegateTenant.id) })
+        getMockContext({ authData: getMockAuthData(delegateTenant.id) })
       );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -352,7 +352,7 @@ describe("createReversePurpose", () => {
     const { purpose, isRiskAnalysisValid } =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumerDelegate.id) })
+        getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
       );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -446,7 +446,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(organizationIsNotTheConsumer(producer.id));
   });
@@ -496,7 +496,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       )
     ).rejects.toThrowError(
       eServiceModeNotAllowed(mockEService.id, eserviceMode.receive)
@@ -548,7 +548,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       )
     ).rejects.toThrowError(
       eserviceRiskAnalysisNotFound(mockEService.id, randomRiskAnalysisId)
@@ -600,7 +600,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
@@ -650,7 +650,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -692,7 +692,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       )
     ).rejects.toThrowError(agreementNotFound(mockEService.id, consumer.id));
   });
@@ -751,7 +751,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       )
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeTitle));
   });
@@ -809,7 +809,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getRandomAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData(consumer.id) })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([

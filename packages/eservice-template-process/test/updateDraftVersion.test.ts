@@ -6,7 +6,7 @@ import {
   getMockEServiceTemplateVersion,
   getMockDocument,
   getMockContext,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -93,7 +93,7 @@ describe("update draft version", () => {
       version.id,
       expectedVersionSeed,
       getMockContext({
-        authData: getRandomAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -126,7 +126,7 @@ describe("update draft version", () => {
         version.id,
         buildUpdateVersionSeed(version),
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
@@ -145,7 +145,7 @@ describe("update draft version", () => {
         mockVersion.id,
         buildUpdateVersionSeed(mockVersion),
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -177,7 +177,7 @@ describe("update draft version", () => {
           version.id,
           buildUpdateVersionSeed(version),
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
@@ -232,7 +232,7 @@ describe("update draft version", () => {
         eservice.id,
         version.id,
         buildUpdateVersionSeed(expectedVersion),
-        getMockContext({ authData: getRandomAuthData(eservice.creatorId) })
+        getMockContext({ authData: getMockAuthData(eservice.creatorId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -264,7 +264,7 @@ describe("update draft version", () => {
         version.id,
         buildUpdateVersionSeed(expectedVersion),
         getMockContext({
-          authData: getRandomAuthData(expectedEserviceTemplate.creatorId),
+          authData: getMockAuthData(expectedEserviceTemplate.creatorId),
         })
       );
 
@@ -340,7 +340,7 @@ describe("update draft version", () => {
         version.id,
         descriptorSeed,
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));

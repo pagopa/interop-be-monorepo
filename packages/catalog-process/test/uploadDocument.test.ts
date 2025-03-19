@@ -19,7 +19,7 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   eServiceNotFound,
@@ -68,7 +68,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -137,7 +137,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -249,7 +249,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -264,7 +264,7 @@ describe("upload Document", () => {
         eservice.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -293,7 +293,7 @@ describe("upload Document", () => {
           eservice.id,
           descriptor.id,
           buildInterfaceSeed(),
-          getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -314,7 +314,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
   });
@@ -342,7 +342,7 @@ describe("upload Document", () => {
           ...buildDocumentSeed(),
           prettyName: document.prettyName.toLowerCase(),
         },
-        getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       documentPrettyNameDuplicate(
@@ -370,7 +370,7 @@ describe("upload Document", () => {
         {
           ...buildDocumentSeed(),
         },
-        getMockContext({ authData: getRandomAuthData(eService.producerId) })
+        getMockContext({ authData: getMockAuthData(eService.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });

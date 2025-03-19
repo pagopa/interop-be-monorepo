@@ -3,7 +3,7 @@ import {
   getMockContext,
   getMockEService,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
@@ -43,7 +43,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       await purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion,
-        ctx: getMockContext({ authData: getRandomAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       });
 
     expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -64,7 +64,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       await purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion,
-        ctx: getMockContext({ authData: getRandomAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       });
 
     expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -79,7 +79,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
         eserviceId: randomId,
         riskAnalysisVersion: "1.0",
         ctx: getMockContext({
-          authData: getRandomAuthData(mockTenant.id),
+          authData: getMockAuthData(mockTenant.id),
         }),
       })
     ).rejects.toThrowError(eserviceNotFound(randomId));
@@ -94,7 +94,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
         eserviceId: mockEservice.id,
         riskAnalysisVersion: "1.0",
         ctx: getMockContext({
-          authData: getRandomAuthData(randomTenantId),
+          authData: getMockAuthData(randomTenantId),
         }),
       })
     ).rejects.toThrowError(tenantNotFound(randomTenantId));
@@ -113,7 +113,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
         eserviceId: mockEservice.id,
         riskAnalysisVersion: "1.0",
         ctx: getMockContext({
-          authData: getRandomAuthData(mockTenant.id),
+          authData: getMockAuthData(mockTenant.id),
         }),
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
@@ -133,7 +133,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion: wrongRiskAnalysisVersion,
-        ctx: getMockContext({ authData: getRandomAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(
       riskAnalysisConfigVersionNotFound(

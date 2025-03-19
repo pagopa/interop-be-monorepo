@@ -5,7 +5,7 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -61,7 +61,7 @@ describe("update Document", () => {
         mockDocument.id,
         { prettyName: "updated prettyName" },
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       );
       const writtenEvent = await readLastEserviceTemplateEvent(
@@ -155,7 +155,7 @@ describe("update Document", () => {
         generateId(),
         { prettyName: "updated prettyName" },
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -189,7 +189,7 @@ describe("update Document", () => {
           generateId(),
           { prettyName: "updated prettyName" },
           getMockContext({
-            authData: getRandomAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData(eserviceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
@@ -215,7 +215,7 @@ describe("update Document", () => {
         version.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getRandomAuthData(eservice.creatorId) })
+        getMockContext({ authData: getMockAuthData(eservice.creatorId) })
       )
     ).rejects.toThrowError(
       eserviceTemplateDocumentNotFound(eservice.id, version.id, mockDocument.id)
@@ -249,7 +249,7 @@ describe("update Document", () => {
         document2.id,
         { prettyName: document1.prettyName.toLowerCase() },
         getMockContext({
-          authData: getRandomAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(

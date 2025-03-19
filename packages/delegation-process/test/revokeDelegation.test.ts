@@ -6,7 +6,7 @@ import {
   getMockDelegation,
   getMockEService,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   Delegation,
@@ -77,7 +77,7 @@ describe.each([
     const eserviceId = generateId<EServiceId>();
     const delegatorId = generateId<TenantId>();
     const delegateId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
 
     const delegationCreationDate = new Date();
     delegationCreationDate.setMonth(currentExecutionTime.getMonth() - 2);
@@ -202,7 +202,7 @@ describe.each([
 
   it("should throw a delegationNotFound if Delegation does not exist", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegationId = generateId<DelegationId>();
     await expect(
       revokeFn(delegationId, getMockContext({ authData }))
@@ -224,7 +224,7 @@ describe.each([
     await expect(
       revokeFn(
         delegation.id,
-        getMockContext({ authData: getRandomAuthData(delegate.id) })
+        getMockContext({ authData: getMockAuthData(delegate.id) })
       )
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
   });
@@ -232,7 +232,7 @@ describe.each([
   it("should throw a delegatorNotAllowToRevoke if Requester is not Delegator", async () => {
     const delegatorId = generateId<TenantId>();
     const delegateId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegationId = generateId<DelegationId>();
 
     const existentDelegation = getMockDelegation({
@@ -256,7 +256,7 @@ describe.each([
     async (state) => {
       const delegatorId = generateId<TenantId>();
       const delegateId = generateId<TenantId>();
-      const authData = getRandomAuthData(delegatorId);
+      const authData = getMockAuthData(delegatorId);
 
       const existentDelegation: Delegation = getMockDelegation({
         kind,

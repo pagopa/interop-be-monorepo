@@ -2,7 +2,7 @@
 import {
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   DelegationContractDocument,
@@ -42,7 +42,7 @@ describe("getDelegationContract", () => {
     const returnedContract = await delegationService.getDelegationContract(
       delegation.id,
       mockContract.id,
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     expect(returnedContract).toEqual(mockContract);
@@ -59,7 +59,7 @@ describe("getDelegationContract", () => {
     const returnedContract = delegationService.getDelegationContract(
       notFoundId,
       mockContract.id,
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     await expect(returnedContract).rejects.toThrow(
@@ -81,7 +81,7 @@ describe("getDelegationContract", () => {
     const returnedContract = delegationService.getDelegationContract(
       delegation.id,
       falseContractId,
-      getMockContext({ authData: getRandomAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     await expect(returnedContract).rejects.toThrow(

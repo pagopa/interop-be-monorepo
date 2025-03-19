@@ -69,7 +69,7 @@ export const catalogService = catalogServiceBuilder(
   fileManager
 );
 
-export const getRandomAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
   userRoles: [],

@@ -3,7 +3,7 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
   getMockContext,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -142,7 +142,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -189,7 +189,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -228,7 +228,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         verified: validMockDescriptorVerifiedAttributes,
         declared: [],
       },
-      getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -261,7 +261,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -289,7 +289,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(mockEService.id, mockDescriptor.id)
@@ -338,7 +338,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
             ],
           ],
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingAttributeId));
   });
@@ -378,7 +378,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
           ],
           declared: [],
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       inconsistentAttributesSeedGroupsCount(mockEService.id, mockDescriptor.id)
@@ -425,7 +425,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
           ],
           declared: [],
         },
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       descriptorAttributeGroupSupersetMissingInAttributesSeed(

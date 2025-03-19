@@ -2,7 +2,7 @@
 import {
   getMockContext,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 import {
@@ -35,7 +35,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
         await purposeService.retrieveLatestRiskAnalysisConfiguration({
           tenantKind: kind,
           ctx: getMockContext({
-            authData: getRandomAuthData(mockTenant.id),
+            authData: getMockAuthData(mockTenant.id),
           }),
         });
 
@@ -48,7 +48,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
     expect(
       purposeService.retrieveLatestRiskAnalysisConfiguration({
         tenantKind: undefined,
-        ctx: getMockContext({ authData: getRandomAuthData(randomTenantId) }),
+        ctx: getMockContext({ authData: getMockAuthData(randomTenantId) }),
       })
     ).rejects.toThrowError(tenantNotFound(randomTenantId));
   });
@@ -62,7 +62,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
     expect(
       purposeService.retrieveLatestRiskAnalysisConfiguration({
         tenantKind: undefined,
-        ctx: getMockContext({ authData: getRandomAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
@@ -79,7 +79,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
       purposeService.retrieveLatestRiskAnalysisConfiguration({
         tenantKind: kind,
         ctx: getMockContext({
-          authData: getRandomAuthData(mockTenant.id),
+          authData: getMockAuthData(mockTenant.id),
         }),
       })
     ).rejects.toThrowError(riskAnalysisConfigLatestVersionNotFound(kind));

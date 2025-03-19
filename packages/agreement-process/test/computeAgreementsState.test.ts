@@ -11,7 +11,7 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test/index.js";
@@ -44,7 +44,7 @@ import {
 describe("compute Agreements state by attribute", () => {
   describe("when the given attribute is not satisfied", async () => {
     const authData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.INTERNAL_ROLE],
     };
 
@@ -220,7 +220,7 @@ describe("compute Agreements state by attribute", () => {
 
   describe("when the given attribute is satisfied", async () => {
     const authData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.INTERNAL_ROLE],
     };
 
@@ -430,7 +430,7 @@ describe("compute Agreements state by attribute", () => {
 
   it("updates the state of multiple updatable Agreements for multiple Eservices, without modifying non-updatable Agreements", async () => {
     const authData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.INTERNAL_ROLE],
     };
 

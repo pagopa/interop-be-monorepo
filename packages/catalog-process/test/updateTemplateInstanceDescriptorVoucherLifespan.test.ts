@@ -2,7 +2,7 @@
 import {
   decodeProtobufPayload,
   getMockContext,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -53,7 +53,7 @@ describe("update descriptor", () => {
       eservice.id,
       descriptor.id,
       1000,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -86,7 +86,7 @@ describe("update descriptor", () => {
       eservice.id,
       descriptor.id,
       1000,
-      getMockContext({ authData: getRandomAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).not.toMatchObject({
@@ -103,7 +103,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         1000,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -120,7 +120,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         1000,
-        getMockContext({ authData: getRandomAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)

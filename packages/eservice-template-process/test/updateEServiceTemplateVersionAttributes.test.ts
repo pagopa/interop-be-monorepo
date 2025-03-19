@@ -5,7 +5,7 @@ import {
   getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -151,7 +151,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           mockEServiceTemplateVersion.id,
           validMockVersionAttributeSeed,
           getMockContext({
-            authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+            authData: getMockAuthData(mockEServiceTemplate.creatorId),
           })
         );
 
@@ -199,7 +199,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplateVersion.id,
         validMockVersionAttributeSeed,
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
@@ -229,7 +229,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplateVersion.id,
         validMockVersionAttributeSeed,
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -283,7 +283,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           ],
         },
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingAttributeId));
@@ -346,7 +346,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           mockEServiceTemplateVersion.id,
           validMockVersionAttributeSeed,
           getMockContext({
-            authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+            authData: getMockAuthData(mockEServiceTemplate.creatorId),
           })
         )
       ).rejects.toThrowError(
@@ -386,7 +386,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           declared: [],
         },
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -433,7 +433,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           declared: [],
         },
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -485,7 +485,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           declared: [],
         },
         getMockContext({
-          authData: getRandomAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
