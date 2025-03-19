@@ -10,7 +10,7 @@ import {
   FileManager,
   formatDateddMMyyyyHHmmss,
   hasPermission,
-  interpolateOpenApiSpec,
+  interpolateApiSpec,
   Logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
@@ -3002,7 +3002,9 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
-      eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
+      eserviceInstanceInterfaceData:
+        | catalogApi.TemplateInstanceInterfaceRESTSeed
+        | catalogApi.TemplateInstanceInterfaceSOAPSeed,
       ctx: WithLogger<AppContext>
     ): Promise<EService> {
       const { logger, authData } = ctx;
@@ -3047,12 +3049,17 @@ export function catalogServiceBuilder(
         );
       }
 
+      const contactDataRestApi = match(eserviceInstanceInterfaceData)
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
+        .otherwise(() => undefined);
+
       const { eService: updatedEService, event: addDocumentEvent } =
         await createOpenApiInterfaceByTemplate(
           eserviceWithMetadata,
           descriptor.id,
           templateInterface,
-          eserviceInstanceInterfaceData,
+          eserviceInstanceInterfaceData.serverUrls,
+          contactDataRestApi,
           config.eserviceTemplateDocumentsContainer,
           fileManager,
           ctx
@@ -3194,12 +3201,19 @@ export function catalogServiceBuilder(
   };
 }
 
-// eslint-disable-next-line max-params
 export async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  eserviceInstanceInterfaceData: catalogApi.TemplateInstanceInterfaceMetadata,
+  serverUrls: string[],
+  eserviceInstanceInterfaceRestData:
+    | {
+        contactEmail: string;
+        contactName: string;
+        contactUrl?: string;
+        termsAndConditionsUrl?: string;
+      }
+    | undefined,
   bucket: string,
   fileManager: FileManager,
   ctx: WithLogger<AppContext>
@@ -3211,16 +3225,17 @@ export async function createOpenApiInterfaceByTemplate(
     ctx.logger
   );
 
-  if (eserviceInstanceInterfaceData.serverUrls.length < 1) {
+  if (serverUrls.length < 1) {
     throw eserviceInterfaceDataNotValid();
   }
 
   const documentId = unsafeBrandId<EServiceDocumentId>(randomUUID());
-  const newInterfaceFile = await interpolateOpenApiSpec(
+  const newInterfaceFile = await interpolateApiSpec(
     eservice,
     Buffer.from(interfaceTemplate).toString(),
     eserviceTemplateInterface,
-    eserviceInstanceInterfaceData
+    serverUrls,
+    eserviceInstanceInterfaceRestData
   );
 
   return await verifyAndCreateDocument(
@@ -3255,7 +3270,7 @@ export async function createOpenApiInterfaceByTemplate(
           contentType,
           checksum,
           serverUrls,
-          interfaceTemplateMetadata: eserviceInstanceInterfaceData,
+          interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
         },
         ctx
       ),
@@ -3448,13 +3463,8 @@ function evaluateTemplateVersionRef(
     return descriptor.templateVersionRef;
   }
 
-  const {
-    contactEmail,
-    contactName,
-    contactUrl,
-    serverUrls,
-    termsAndConditionsUrl,
-  } = documentSeed.interfaceTemplateMetadata;
+  const { contactEmail, contactName, contactUrl, termsAndConditionsUrl } =
+    documentSeed.interfaceTemplateMetadata;
 
   return {
     id: descriptor.templateVersionRef.id,
@@ -3462,7 +3472,6 @@ function evaluateTemplateVersionRef(
       contactEmail,
       contactName,
       contactUrl,
-      serverUrls,
       termsAndConditionsUrl,
     },
   };
