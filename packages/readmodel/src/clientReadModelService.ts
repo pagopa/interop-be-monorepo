@@ -1,11 +1,11 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Client, ClientId, WithMetadata } from "pagopa-interop-models";
 import {
   clientInReadmodelClient,
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientUserInReadmodelClient,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
@@ -14,7 +14,7 @@ import {
 } from "./authorization/clientAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function clientReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertClient(client: Client, metadataVersion: number): Promise<void> {
       const { clientSQL, usersSQL, purposesSQL, keysSQL } =
