@@ -1,17 +1,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   Tenant,
   generateId,
   protobufDecoder,
   toTenantV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
-  CorrelationId,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { getMockAuthData, getMockTenant } from "pagopa-interop-commons-test";
+import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
   expirationDateCannotBeInThePast,
@@ -29,7 +27,6 @@ import {
 } from "./utils.js";
 
 describe("updateTenantVerifiedAttribute", async () => {
-  const correlationId: CorrelationId = generateId();
   const expirationDate = new Date(
     currentDate.setDate(currentDate.getDate() + 1)
   );
@@ -68,12 +65,7 @@ describe("updateTenantVerifiedAttribute", async () => {
         attributeId,
         updateVerifiedTenantAttributeSeed,
       },
-      {
-        correlationId,
-        logger: genericLogger,
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
+      getMockContext({})
     );
     const writtenEvent = await readLastTenantEvent(tenant.id);
     if (!writtenEvent) {
@@ -112,12 +104,7 @@ describe("updateTenantVerifiedAttribute", async () => {
           attributeId,
           updateVerifiedTenantAttributeSeed,
         },
-        {
-          correlationId,
-          logger: genericLogger,
-          serviceName: "",
-          authData: getMockAuthData(),
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -141,12 +128,7 @@ describe("updateTenantVerifiedAttribute", async () => {
           attributeId,
           updateVerifiedTenantAttributeSeed,
         },
-        {
-          correlationId,
-          logger: genericLogger,
-          serviceName: "",
-          authData: getMockAuthData(),
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(
       expirationDateCannotBeInThePast(expirationDateinPast)
@@ -170,12 +152,7 @@ describe("updateTenantVerifiedAttribute", async () => {
           attributeId,
           updateVerifiedTenantAttributeSeed,
         },
-        {
-          correlationId,
-          logger: genericLogger,
-          serviceName: "",
-          authData: getMockAuthData(),
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(
       verifiedAttributeNotFoundInTenant(updatedCertifiedTenant.id, attributeId)
@@ -192,12 +169,7 @@ describe("updateTenantVerifiedAttribute", async () => {
           attributeId,
           updateVerifiedTenantAttributeSeed,
         },
-        {
-          correlationId,
-          logger: genericLogger,
-          serviceName: "",
-          authData: getMockAuthData(),
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(
       organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
