@@ -11,6 +11,8 @@ COPY .npmrc /app/
 COPY ./packages/client-readmodel-writer-sql/package.json /app/packages/client-readmodel-writer-sql/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
+COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
+COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
