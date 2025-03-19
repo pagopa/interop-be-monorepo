@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
@@ -9,8 +8,8 @@ import {
   AWSSesConfig,
   EventStoreConfig,
   FileManagerConfig,
-  LoggerConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
   TokenGenerationReadModelDbConfig,
@@ -33,6 +32,7 @@ import {
   mailpitContainer,
   minioContainer,
   mongoDBContainer,
+  postgreSQLReadModelContainer,
   postgreSQLContainer,
   redisContainer,
 } from "./containerTestUtils.js";
@@ -49,9 +49,10 @@ type EnhancedTokenGenerationReadModelDbConfig = z.infer<
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
+    readModelSQLConfig?: ReadModelSQLDbConfig;
     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
     eventStoreConfig?: EventStoreConfig;
-    fileManagerConfig?: FileManagerConfig & LoggerConfig & S3Config;
+    fileManagerConfig?: FileManagerConfig & S3Config;
     redisRateLimiterConfig?: RedisRateLimiterConfig;
     emailManagerConfig?: PecEmailManagerConfigTest;
     sesEmailManagerConfig?: AWSSesConfig;
@@ -70,9 +71,8 @@ export function setupTestContainersVitestGlobal() {
   dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
-  const fileManagerConfig = FileManagerConfig.and(S3Config)
-    .and(LoggerConfig)
-    .safeParse(process.env);
+  const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
+  const fileManagerConfig = FileManagerConfig.safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
   const awsSESConfig = AWSSesConfig.safeParse(process.env);
@@ -83,6 +83,7 @@ export function setupTestContainersVitestGlobal() {
     provide,
   }: GlobalSetupContext): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
@@ -118,6 +119,19 @@ export function setupTestContainersVitestGlobal() {
       provide("eventStoreConfig", eventStoreConfig.data);
     }
 
+    if (readModelSQLConfig.success) {
+      startedPostgreSqlReadModelContainer = await postgreSQLReadModelContainer(
+        readModelSQLConfig.data
+      ).start();
+
+      readModelSQLConfig.data.readModelSQLDbPort =
+        startedPostgreSqlReadModelContainer.getMappedPort(
+          TEST_POSTGRES_DB_PORT
+        );
+
+      provide("readModelSQLConfig", readModelSQLConfig.data);
+    }
+
     // Setting up the MongoDB container if the config is provided
     if (readModelConfig.success) {
       startedMongodbContainer = await mongoDBContainer(
@@ -132,14 +146,22 @@ export function setupTestContainersVitestGlobal() {
 
     // Setting up the Minio container if the config is provided
     if (fileManagerConfig.success) {
-      startedMinioContainer = await minioContainer(
-        fileManagerConfig.data
-      ).start();
+      const s3Bucket =
+        S3Config.safeParse(process.env)?.data?.s3Bucket ??
+        "interop-local-bucket";
+
+      startedMinioContainer = await minioContainer({
+        ...fileManagerConfig.data,
+        s3Bucket,
+      }).start();
 
       fileManagerConfig.data.s3ServerPort =
         startedMinioContainer?.getMappedPort(TEST_MINIO_PORT);
 
-      provide("fileManagerConfig", fileManagerConfig.data);
+      provide("fileManagerConfig", {
+        ...fileManagerConfig.data,
+        s3Bucket,
+      });
     }
 
     if (emailManagerConfig.success) {
@@ -183,6 +205,7 @@ export function setupTestContainersVitestGlobal() {
 
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
+      await startedPostgreSqlReadModelContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
