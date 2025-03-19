@@ -1636,16 +1636,21 @@ export function catalogServiceBuilder(
     upgradeEServiceInstance: async (
       eServiceId: EServiceId,
       { headers, logger }: WithLogger<BffAppContext>
-    ): Promise<void> => {
+    ): Promise<bffApi.CreatedResource> => {
       logger.info(
         `Upgrading EService ${eServiceId} to latest template version `
       );
-      await catalogProcessClient.upgradeEServiceInstance(undefined, {
-        headers,
-        params: {
-          eServiceId,
-        },
-      });
+      const { id } = await catalogProcessClient.upgradeEServiceInstance(
+        undefined,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+
+      return { id };
     },
     createEServiceInstanceFromTemplate: async (
       templateId: EServiceTemplateId,

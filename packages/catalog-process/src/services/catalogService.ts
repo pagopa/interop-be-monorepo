@@ -2824,7 +2824,7 @@ export function catalogServiceBuilder(
     async upgradeEServiceInstance(
       eserviceId: EServiceId,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<EService> {
+    ): Promise<Descriptor> {
       logger.info(`Upgrading EService ${eserviceId} instance`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2909,7 +2909,7 @@ export function catalogServiceBuilder(
         )
       );
 
-      return upgradedEService;
+      return newDescriptor;
     },
     async createEServiceInstanceFromTemplate(
       templateId: EServiceTemplateId,
