@@ -5,7 +5,6 @@ import {
   getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getRandomAuthData,
   randomArrayItem,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test/index.js";

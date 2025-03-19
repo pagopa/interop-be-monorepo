@@ -7,7 +7,6 @@ import {
   getMockAttribute,
   getRandomAuthData,
   getMockContext,
-  getRandomAuthData,
   getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
 import {

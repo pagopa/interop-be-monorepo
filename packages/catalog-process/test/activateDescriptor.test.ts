@@ -3,7 +3,6 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockDelegation,
-  getRandomAuthData,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
