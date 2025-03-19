@@ -69,7 +69,6 @@ describe("create eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -155,7 +154,6 @@ describe("create eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -182,7 +180,6 @@ describe("create eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -209,7 +206,6 @@ describe("create eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -245,7 +241,6 @@ describe("create eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -331,7 +326,6 @@ describe("create eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -358,7 +352,6 @@ describe("create eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -385,7 +378,6 @@ describe("create eservice", () => {
         correlationId: generateId(),
         serviceName: "",
         logger: genericLogger,
-        requestTimestamp: Date.now(),
       }
     );
 
@@ -412,7 +404,6 @@ describe("create eservice", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(
@@ -441,7 +432,6 @@ describe("create eservice", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
@@ -466,7 +456,6 @@ describe("create eservice", () => {
           correlationId: generateId(),
           serviceName: "",
           logger: genericLogger,
-          requestTimestamp: Date.now(),
         }
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
