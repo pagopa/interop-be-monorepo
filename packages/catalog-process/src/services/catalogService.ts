@@ -1088,11 +1088,6 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertEServiceNotTemplateInstance(
-        eservice.data.id,
-        eservice.data.templateRef?.id
-      );
-
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
@@ -1107,6 +1102,10 @@ export function catalogServiceBuilder(
       if (isInterface) {
         assertInterfaceDeletableDescriptorState(descriptor);
       } else {
+        assertEServiceNotTemplateInstance(
+          eservice.data.id,
+          eservice.data.templateRef?.id
+        );
         assertDocumentDeletableDescriptorState(descriptor);
       }
 
