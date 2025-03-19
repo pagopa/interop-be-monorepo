@@ -1,7 +1,7 @@
 import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   FileManager,
@@ -99,7 +99,8 @@ const eserviceTemplateRouter = (
       try {
         await eserviceTemplateService.updateEServiceTemplate(
           unsafeBrandId(req.params.eServiceTemplateId),
-          req.body,
+          // TODO: This will be removed when eservice template will support DELIVER mode
+          { ...req.body, mode: catalogApi.EServiceMode.Values.DELIVER },
           ctx
         );
         return res.status(204).send();

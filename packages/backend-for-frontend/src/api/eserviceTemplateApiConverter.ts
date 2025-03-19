@@ -1,5 +1,6 @@
 import {
   bffApi,
+  catalogApi,
   eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -118,6 +119,8 @@ export function toCatalogCreateEServiceTemplateSeed(
 ): eserviceTemplateApi.EServiceTemplateSeed {
   return {
     ...eServiceTemplateSeed,
+    // TODO: This will be removed when eservice template will support DELIVER mode
+    mode: catalogApi.EServiceMode.Values.RECEIVE,
     version: {
       voucherLifespan: 60,
     },

@@ -20528,8 +20528,6 @@ components:
           maxLength: 250
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
-        mode:
-          $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
           type: boolean
     EServiceTemplateSeed:
@@ -20540,7 +20538,6 @@ components:
         - intendedTarget
         - description
         - technology
-        - mode
       properties:
         name:
           type: string
@@ -20556,8 +20553,6 @@ components:
           maxLength: 250
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
-        mode:
-          $ref: "#/components/schemas/EServiceMode"
         version:
           $ref: "#/components/schemas/VersionSeedForEServiceTemplateCreation"
         isSignalHubEnabled:
