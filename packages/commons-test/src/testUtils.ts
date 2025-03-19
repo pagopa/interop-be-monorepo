@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
