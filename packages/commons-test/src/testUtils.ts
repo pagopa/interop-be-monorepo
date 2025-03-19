@@ -137,16 +137,6 @@ export const getTenantOneCertifierFeature = (
   return certifiedFeatures[0];
 };
 
-// export const getRandomAuthData = (organizationId?: TenantId): AuthData => ({
-//   organizationId: organizationId || generateId(),
-//   userId: generateId(),
-//   userRoles: [],
-//   externalId: {
-//     value: "123456",
-//     origin: "IPA",
-//   },
-//   selfcareId: generateId(),
-// });
 
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
