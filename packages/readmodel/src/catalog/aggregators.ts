@@ -7,22 +7,14 @@ import {
   RiskAnalysis,
   riskAnalysisAnswerKind,
   RiskAnalysisSingleAnswer,
-  RiskAnalysisSingleAnswerId,
   RiskAnalysisMultiAnswer,
   RiskAnalysisMultiAnswerId,
   WithMetadata,
-  EServiceId,
   unsafeBrandId,
-  TenantId,
   Technology,
   EServiceMode,
-  EServiceDocumentId,
-  DescriptorId,
   DescriptorState,
   AgreementApprovalPolicy,
-  RiskAnalysisId,
-  RiskAnalysisFormId,
-  AttributeId,
   stringToDate,
 } from "pagopa-interop-models";
 import {
@@ -41,7 +33,7 @@ import {
 export const documentSQLtoDocument = (
   documentSQL: EServiceDescriptorDocumentSQL
 ): Document => ({
-  id: unsafeBrandId<EServiceDocumentId>(documentSQL.id),
+  id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
   prettyName: documentSQL.prettyName,
@@ -89,12 +81,8 @@ export const aggregateDescriptor = ({
   const rejectionReasons =
     rejectionReasonsArray.length > 0 ? rejectionReasonsArray : undefined;
 
-  // const rejectionReasons = rejectionReasonsSQL.map((rejectionReason) => ({
-  //   rejectionReason: rejectionReason.rejectionReason,
-  //   rejectedAt: stringToDate(rejectionReason.rejectedAt),
-  // }));
   return {
-    id: unsafeBrandId<DescriptorId>(descriptorSQL.id),
+    id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
     docs: documentsSQL.map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
@@ -175,10 +163,10 @@ EServiceItemsSQL): WithMetadata<EService> => {
     )
   );
   const eservice: EService = {
-    id: unsafeBrandId<EServiceId>(eserviceSQL.id),
+    id: unsafeBrandId(eserviceSQL.id),
     name: eserviceSQL.name,
     createdAt: stringToDate(eserviceSQL.createdAt),
-    producerId: unsafeBrandId<TenantId>(eserviceSQL.producerId),
+    producerId: unsafeBrandId(eserviceSQL.producerId),
     description: eserviceSQL.description,
     technology: Technology.parse(eserviceSQL.technology), // TODO use safeParse?
     descriptors,
@@ -216,48 +204,34 @@ export const aggregateEserviceArray = ({
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   // templateBindingSQL: EServiceTemplateBindingSQL[];
 }): Array<WithMetadata<EService>> =>
-  eservicesSQL.map((eserviceSQL) => {
-    const riskAnalysesSQLOfCurrentEservice = riskAnalysesSQL.filter(
-      (ra) => ra.eserviceId === eserviceSQL.id
-    );
-
-    const riskAnalysisAnswersSQLOfCurrentEservice =
-      riskAnalysisAnswersSQL.filter(
-        (answer) => answer.eserviceId === eserviceSQL.id
-      );
-
-    const descriptorsSQLOfCurrentEservice = descriptorsSQL.filter(
-      (d) => d.eserviceId === eserviceSQL.id
-    );
-
-    const interfacesSQLOfCurrentEservice = interfacesSQL.filter(
-      (descriptorInterface) => descriptorInterface.eserviceId === eserviceSQL.id
-    );
-
-    const documentsSQLOfCurrentEservice = documentsSQL.filter(
-      (doc) => doc.eserviceId === eserviceSQL.id
-    );
-
-    const attributesSQLOfCurrentEservice = attributesSQL.filter(
-      (attr) => attr.eserviceId === eserviceSQL.id
-    );
-
-    const rejectionReasonsSQLOfCurrentEservice = rejectionReasonsSQL.filter(
-      (rejectionReason) => rejectionReason.eserviceId === eserviceSQL.id
-    );
-
-    return aggregateEservice({
+  eservicesSQL.map((eserviceSQL) =>
+    aggregateEservice({
       eserviceSQL,
-      riskAnalysesSQL: riskAnalysesSQLOfCurrentEservice,
-      riskAnalysisAnswersSQL: riskAnalysisAnswersSQLOfCurrentEservice,
-      descriptorsSQL: descriptorsSQLOfCurrentEservice,
-      interfacesSQL: interfacesSQLOfCurrentEservice,
-      documentsSQL: documentsSQLOfCurrentEservice,
-      attributesSQL: attributesSQLOfCurrentEservice,
-      rejectionReasonsSQL: rejectionReasonsSQLOfCurrentEservice,
+      riskAnalysesSQL: riskAnalysesSQL.filter(
+        (ra) => ra.eserviceId === eserviceSQL.id
+      ),
+      riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.filter(
+        (answer) => answer.eserviceId === eserviceSQL.id
+      ),
+      descriptorsSQL: descriptorsSQL.filter(
+        (d) => d.eserviceId === eserviceSQL.id
+      ),
+      interfacesSQL: interfacesSQL.filter(
+        (descriptorInterface) =>
+          descriptorInterface.eserviceId === eserviceSQL.id
+      ),
+      documentsSQL: documentsSQL.filter(
+        (doc) => doc.eserviceId === eserviceSQL.id
+      ),
+      attributesSQL: attributesSQL.filter(
+        (attr) => attr.eserviceId === eserviceSQL.id
+      ),
+      rejectionReasonsSQL: rejectionReasonsSQL.filter(
+        (rejectionReason) => rejectionReason.eserviceId === eserviceSQL.id
+      ),
       // templateBindingSQL: [],
-    });
-  });
+    })
+  );
 
 export const aggregateRiskAnalysis = (
   riskAnalysisSQL: EServiceRiskAnalysisSQL,
@@ -266,32 +240,30 @@ export const aggregateRiskAnalysis = (
   const singleAnswers = answers
     .filter((a) => a.kind === riskAnalysisAnswerKind.single)
     .map(
-      (a) =>
-        ({
-          id: unsafeBrandId<RiskAnalysisSingleAnswerId>(a.id),
-          key: a.key,
-          value: a.value.length > 0 ? a.value[0] : undefined,
-        } satisfies RiskAnalysisSingleAnswer)
+      (a): RiskAnalysisSingleAnswer => ({
+        id: unsafeBrandId(a.id),
+        key: a.key,
+        value: a.value.length > 0 ? a.value[0] : undefined,
+      })
     );
 
   const multiAnswers = answers
     .filter((a) => a.kind === riskAnalysisAnswerKind.multi)
     .map(
-      (a) =>
-        ({
-          id: a.id as RiskAnalysisMultiAnswerId,
-          key: a.key,
-          values: a.value,
-        } satisfies RiskAnalysisMultiAnswer)
+      (a): RiskAnalysisMultiAnswer => ({
+        id: a.id as RiskAnalysisMultiAnswerId,
+        key: a.key,
+        values: a.value,
+      })
     );
 
   const riskAnalysis: RiskAnalysis = {
-    id: unsafeBrandId<RiskAnalysisId>(riskAnalysisSQL.id),
+    id: unsafeBrandId(riskAnalysisSQL.id),
     name: riskAnalysisSQL.name,
     createdAt: stringToDate(riskAnalysisSQL.createdAt),
     riskAnalysisForm: {
       version: riskAnalysisSQL.riskAnalysisFormVersion,
-      id: unsafeBrandId<RiskAnalysisFormId>(riskAnalysisSQL.riskAnalysisFormId),
+      id: unsafeBrandId(riskAnalysisSQL.riskAnalysisFormId),
       singleAnswers,
       multiAnswers,
     },
@@ -305,7 +277,7 @@ export const attributesSQLtoAttributes = (
   const attributesMap = new Map<number, EServiceAttribute[]>();
   attributesSQL.forEach((current) => {
     const currentAttribute: EServiceAttribute = {
-      id: unsafeBrandId<AttributeId>(current.attributeId),
+      id: unsafeBrandId(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
     };
     const group = attributesMap.get(current.groupId);
