@@ -511,14 +511,14 @@ export const toEServiceAggregatorArray = (
         templateVersionRefSQL &&
         !templateVersionRefIdSet.has(
           uniqueKey([
-            templateVersionRefSQL.id,
+            templateVersionRefSQL.eserviceTemplateVersionId,
             templateVersionRefSQL.descriptorId,
           ])
         )
       ) {
         templateVersionRefIdSet.add(
           uniqueKey([
-            templateVersionRefSQL.id,
+            templateVersionRefSQL.eserviceTemplateVersionId,
             templateVersionRefSQL.descriptorId,
           ])
         );
@@ -549,11 +549,17 @@ export const toEServiceAggregatorArray = (
       if (
         templateRefSQL &&
         !templateRefIdSet.has(
-          uniqueKey([templateRefSQL.id, templateRefSQL.eserviceId])
+          uniqueKey([
+            templateRefSQL.eserviceTemplateId,
+            templateRefSQL.eserviceId,
+          ])
         )
       ) {
         templateRefIdSet.add(
-          uniqueKey([templateRefSQL.id, templateRefSQL.eserviceId])
+          uniqueKey([
+            templateRefSQL.eserviceTemplateId,
+            templateRefSQL.eserviceId,
+          ])
         );
         // eslint-disable-next-line functional/immutable-data
         templateRefsSQL.push(templateRefSQL);
