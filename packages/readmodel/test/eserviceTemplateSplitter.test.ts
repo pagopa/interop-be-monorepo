@@ -175,9 +175,33 @@ describe("E-service template splitter", () => {
   });
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
+    const doc = getMockDocument();
+    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
+    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+
+    const version: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      attributes: {
+        certified: [[]],
+        declared: [],
+        verified: [],
+      },
+      docs: [doc],
+      interface: undefined,
+      description: undefined,
+      publishedAt: undefined,
+      suspendedAt: undefined,
+      deprecatedAt: undefined,
+      agreementApprovalPolicy: undefined,
+      dailyCallsPerConsumer: undefined,
+      dailyCallsTotal: undefined,
+    };
+
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
-      versions: [],
+      versions: [version],
+      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      isSignalHubEnabled: undefined,
     };
 
     const {
@@ -203,12 +227,73 @@ describe("E-service template splitter", () => {
       isSignalHubEnabled: null,
     };
 
+    const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {
+      id: riskAnalysis1.id,
+      metadataVersion: 1,
+      name: riskAnalysis1.name,
+      createdAt: riskAnalysis1.createdAt.toISOString(),
+      eserviceTemplateId: eserviceTemplate.id,
+      riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
+      riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+    };
+
+    const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
+      id: riskAnalysis2.id,
+      metadataVersion: 1,
+      name: riskAnalysis2.name,
+      createdAt: riskAnalysis2.createdAt.toISOString(),
+      eserviceTemplateId: eserviceTemplate.id,
+      riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
+      riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+    };
+
+    const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =
+      generateEServiceTemplateRiskAnalysisAnswersSQL(
+        eserviceTemplate.id,
+        [riskAnalysis1, riskAnalysis2],
+        1
+      );
+
+    const expectedEServiceTemplateVersionSQL: EServiceTemplateVersionSQL = {
+      metadataVersion: 1,
+      createdAt: version.createdAt.toISOString(),
+      eserviceTemplateId: eserviceTemplate.id,
+      description: null,
+      publishedAt: null,
+      suspendedAt: null,
+      deprecatedAt: null,
+      agreementApprovalPolicy: null,
+      id: version.id,
+      version: version.version,
+      state: version.state,
+      voucherLifespan: version.voucherLifespan,
+      dailyCallsPerConsumer: null,
+      dailyCallsTotal: null,
+    };
+
+    const expectedDocumentSQL: EServiceTemplateVersionDocumentSQL = {
+      ...doc,
+      metadataVersion: 1,
+      eserviceTemplateId: eserviceTemplate.id,
+      versionId: version.id,
+      uploadDate: doc.uploadDate.toISOString(),
+    };
+
     expect(eserviceTemplateSQL).toStrictEqual(expectedEServiceTemplateSQL);
-    expect(riskAnalysesSQL).toHaveLength(0);
-    expect(riskAnalysisAnswersSQL).toHaveLength(0);
-    expect(versionsSQL).toHaveLength(0);
+    expect(riskAnalysesSQL).toStrictEqual(
+      expect.arrayContaining([
+        expectedRiskAnalysisSQL1,
+        expectedRiskAnalysisSQL2,
+      ])
+    );
+    expect(riskAnalysisAnswersSQL).toStrictEqual(
+      expectedRiskAnalysisAnswersSQL
+    );
+    expect(versionsSQL).toStrictEqual([expectedEServiceTemplateVersionSQL]);
     expect(attributesSQL).toHaveLength(0);
     expect(interfacesSQL).toHaveLength(0);
-    expect(documentsSQL).toHaveLength(0);
+    expect(documentsSQL).toStrictEqual(
+      expect.arrayContaining([expectedDocumentSQL])
+    );
   });
 });
