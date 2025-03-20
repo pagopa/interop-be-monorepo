@@ -1,7 +1,7 @@
 import { pgSchema } from "drizzle-orm/pg-core";
-import { ReadModelWriterConfigSQL } from "pagopa-interop-commons";
+import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
 
-const config = ReadModelWriterConfigSQL.parse(process.env);
+const config = ReadModelSQLDbConfig.parse(process.env);
 
 export const readmodelAgreement = pgSchema(
   `${config.readModelSQLDbSchemaNamespace}_readmodel_agreement`
