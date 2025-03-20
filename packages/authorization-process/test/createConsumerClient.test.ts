@@ -13,7 +13,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   readLastEventByStreamId,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { authorizationService, postgresDB } from "./utils.js";
 

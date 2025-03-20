@@ -452,8 +452,7 @@ const authorizationRouter = (
           const keys = await authorizationService.getClientKeys({
             clientId: unsafeBrandId(req.params.clientId),
             userIds: req.query.userIds.map(unsafeBrandId<UserId>),
-            organizationId: ctx.authData.organizationId,
-            logger: ctx.logger,
+            ctx,
           });
 
           return res.status(200).send(
