@@ -1,6 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS readmodel_client_jwk_key;
+CREATE SCHEMA IF NOT EXISTS dev_readmodel_client_jwk_key;
 
-CREATE TABLE IF NOT EXISTS readmodel_client_jwk_key.client_jwk_key (
+CREATE TABLE IF NOT EXISTS dev_readmodel_client_jwk_key.client_jwk_key (
   client_id UUID NOT NULL,
   metadata_version INTEGER NOT NULL,
   alg VARCHAR NOT NULL,
