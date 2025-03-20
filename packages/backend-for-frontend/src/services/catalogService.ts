@@ -1806,7 +1806,7 @@ export function catalogServiceBuilder(
         })
       );
 
-      return templateInstances.some((e) => e.name === name);
+      return !templateInstances.some((e) => e.name === name);
     },
   };
 }
