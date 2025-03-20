@@ -725,5 +725,4 @@ export const getMockEServiceTemplate = (
   versions,
   riskAnalysis: [],
   mode: "Deliver",
-  isSignalHubEnabled: true,
 });
