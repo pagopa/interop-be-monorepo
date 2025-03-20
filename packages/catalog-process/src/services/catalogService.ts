@@ -162,6 +162,7 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
+  assertIsDraftDescriptor,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -3019,7 +3020,7 @@ export function catalogServiceBuilder(
 
       const eservice = eserviceWithMetadata.data;
       const descriptor = retrieveDescriptor(descriptorId, eserviceWithMetadata);
-      assertIsDraftEservice(eservice);
+      assertIsDraftDescriptor(descriptor);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.producerId,
