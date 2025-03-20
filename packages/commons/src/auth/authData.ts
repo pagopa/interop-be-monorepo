@@ -25,6 +25,7 @@ export type UserRole = z.infer<typeof UserRole>;
 const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
   z
     .string()
+    .min(1)
     .transform((s: string) => s.split(","))
     .pipe(z.array(t));
 
