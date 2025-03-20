@@ -17359,7 +17359,7 @@ paths:
             type: string
       responses:
         "200":
-          description: EService Descriptor updated.
+          description: EService name available.
           content:
             application/json:
               schema:
