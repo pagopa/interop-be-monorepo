@@ -4,21 +4,19 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import { AuthData } from "pagopa-interop-commons";
 import { EService, generateId, tenantKind } from "pagopa-interop-models";
-import { getMockValidRiskAnalysis } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockAuthData,
+  getMockValidRiskAnalysis,
+} from "pagopa-interop-commons-test/index.js";
 import { catalogApi } from "pagopa-interop-api-clients";
-// import { catalogService } from "../../src/routers/EServiceRouter.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { EServiceSeed } from "../../../api-clients/dist/catalogApi.js";
-
 import { createPayload } from "../mockedPayloadForToken.js";
 import { api } from "../vitest.api.setup.js";
 import { eServiceNameDuplicate } from "../../src/model/domain/errors.js";
-import {
-  getMockAuthData,
-  getMockDescriptor,
-  getMockEService,
-} from "../mockUtils.js";
+import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
+
 describe("API /eservices authorization test", async () => {
   const mockEService: EService = {
     ...getMockEService(),
