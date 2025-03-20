@@ -53,10 +53,20 @@ const assertIsAuthorized = (
     authDataRoles.length === 0 ||
     !authDataRoles.some((role) => admittedRoles.includes(role))
   ) {
+    const userRolesErrorString = match(authData)
+      .with(
+        { tokenType: "ui" },
+        ({ userRoles }) => ` and user roles '${userRoles}'`
+      )
+      .with(
+        { tokenType: "m2m" },
+        { tokenType: "internal" },
+        { tokenType: "maintenance" },
+        () => ""
+      )
+      .exhaustive();
     throw unauthorizedError(
-      `Invalid token type '${authData.tokenType}' and user roles '${
-        authData.tokenType === "ui" ? authData.userRoles : []
-      }' for this operation`
+      `Invalid token type '${authData.tokenType}'${userRolesErrorString} for this operation`
     );
   }
 };
