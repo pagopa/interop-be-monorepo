@@ -718,7 +718,7 @@ export const getMockEServiceTemplate = (
   id: eserviceTemplateId,
   creatorId,
   name: "eService template name",
-  intendedTarget: "eService template inteded target",
+  intendedTarget: "eService template intended target",
   description: "eService template description",
   createdAt: new Date(),
   technology: technology.rest,
