@@ -493,7 +493,7 @@ const eserviceTemplatesRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -519,7 +519,7 @@ const eserviceTemplatesRouter = (
             req.body,
             ctx
           );
-          return res.status(204);
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -614,7 +614,7 @@ const eserviceTemplatesRouter = (
           const updatedEServiceTemplate =
             await eserviceTemplateService.updateEServiceTemplateIntendedTarget(
               unsafeBrandId(req.params.templateId),
-              req.body.description,
+              req.body.intendedTarget,
               ctx
             );
           return res
@@ -728,7 +728,7 @@ const eserviceTemplatesRouter = (
       }
     )
     .get(
-      "/templates/creators",
+      "/creators",
       authorizationMiddleware([
         ADMIN_ROLE,
         API_ROLE,
@@ -744,8 +744,8 @@ const eserviceTemplatesRouter = (
           const { results, totalCount } =
             await eserviceTemplateService.getEServiceTemplateCreators(
               creatorName,
-              offset,
               limit,
+              offset,
               ctx
             );
 

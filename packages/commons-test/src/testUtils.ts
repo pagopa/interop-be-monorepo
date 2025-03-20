@@ -81,7 +81,15 @@ import {
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
 } from "pagopa-interop-models";
-import { AuthData, dateToSeconds } from "pagopa-interop-commons";
+import {
+  AppContext,
+  dateToSeconds,
+  genericLogger,
+  InternalAuthData,
+  UIAuthData,
+  userRole,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
@@ -129,10 +137,6 @@ export const getTenantOneCertifierFeature = (
   }
   return certifiedFeatures[0];
 };
-
-export const getRandomAuthData = (
-  organizationId: TenantId = generateId<TenantId>()
-): AuthData => getMockAuthData(organizationId);
 
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
@@ -266,8 +270,6 @@ export const getMockAttribute = (
   kind,
   description: "attribute description",
   creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
 });
 
 export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
@@ -381,11 +383,11 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockAuthData = (organizationId?: TenantId): UIAuthData => ({
   tokenType: "ui",
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: ["admin"],
+  userRoles: [userRole.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -726,4 +728,30 @@ export const getMockEServiceTemplate = (
   riskAnalysis: [],
   mode: "Deliver",
   isSignalHubEnabled: true,
+});
+
+export const getMockContext = ({
+  authData,
+  serviceName,
+}: {
+  authData?: UIAuthData;
+  serviceName?: string;
+}): WithLogger<AppContext<UIAuthData>> => ({
+  authData: authData || getMockAuthData(),
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+});
+
+export const getMockContextInternal = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<InternalAuthData>> => ({
+  authData: {
+    tokenType: "internal",
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
 });

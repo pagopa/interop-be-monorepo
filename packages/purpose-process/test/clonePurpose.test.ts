@@ -4,14 +4,14 @@ import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
-  getMockAuthData,
+  getMockContext,
   getMockDelegation,
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
   getMockTenant,
-  getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Purpose,
   PurposeClonedV2,
@@ -29,10 +29,7 @@ import {
   Agreement,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  formatDateddMMyyyyHHmmss,
-  genericLogger,
-} from "pagopa-interop-commons";
+import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
   duplicatedPurposeTitle,
   organizationIsNotTheConsumer,
@@ -89,12 +86,7 @@ describe("clonePurpose", async () => {
       seed: {
         eserviceId: mockEService.id,
       },
-      ctx: {
-        authData: getMockAuthData(mockTenant.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "test",
-      },
+      ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -162,12 +154,7 @@ describe("clonePurpose", async () => {
       seed: {
         eserviceId: mockEService.id,
       },
-      ctx: {
-        authData: getMockAuthData(mockTenant.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "test",
-      },
+      ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -254,12 +241,9 @@ describe("clonePurpose", async () => {
       seed: {
         eserviceId: mockEService.id,
       },
-      ctx: {
+      ctx: getMockContext({
         authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "test",
-      },
+      }),
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -376,12 +360,9 @@ describe("clonePurpose", async () => {
       seed: {
         eserviceId: eservice.id,
       },
-      ctx: {
+      ctx: getMockContext({
         authData: getMockAuthData(consumerDelegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "test",
-      },
+      }),
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -449,12 +430,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getMockAuthData(mockTenant.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
   });
@@ -488,12 +464,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getMockAuthData(mockTenant.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
@@ -527,12 +498,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getMockAuthData(mockTenant.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
@@ -566,12 +532,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getMockAuthData(mockTenant.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
@@ -615,12 +576,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getMockAuthData(mockTenant.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(
       duplicatedPurposeTitle(mockPurposeWithSameName.title)
@@ -656,12 +612,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getMockAuthData(mockTenant.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
@@ -713,12 +664,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getRandomAuthData(consumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({ authData: getMockAuthData(consumer.id) }),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(consumer.id, delegation.id)
@@ -762,12 +708,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getRandomAuthData(consumer.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({ authData: getMockAuthData(consumer.id) }),
       })
     ).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -821,12 +762,9 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getRandomAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({
+          authData: getMockAuthData(delegation.delegateId),
+        }),
       })
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
@@ -886,12 +824,9 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: {
-          authData: getRandomAuthData(consumerDelegate.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "test",
-        },
+        ctx: getMockContext({
+          authData: getMockAuthData(consumerDelegate.id),
+        }),
       })
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
