@@ -1,4 +1,3 @@
-import { genericLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplateId,
   EServiceTemplateVersion,
@@ -9,7 +8,7 @@ import {
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
@@ -58,12 +57,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
         eServiceDocumentId: unsafeBrandId(documentId),
       },
-      {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({})
     );
 
     expect(document).toBeDefined();
@@ -85,12 +79,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
           eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
           eServiceDocumentId: unsafeBrandId(generateId()),
         },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(invalidEServiceTemplateId));
   });
@@ -112,12 +101,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
           eServiceTemplateVersionId: invalidEServiceTemplateVersionId,
           eServiceDocumentId: unsafeBrandId(generateId()),
         },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(
@@ -150,12 +134,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
           eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
           eServiceDocumentId: unsafeBrandId(documentId),
         },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -181,12 +160,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
           eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
           eServiceDocumentId: unsafeBrandId(documentId),
         },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(
       eserviceTemplateDocumentNotFound(
