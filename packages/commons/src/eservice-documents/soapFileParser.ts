@@ -18,40 +18,49 @@ type SoapFieldPort = { "soap:address": { location: string } };
 type SoapFieldOperation = { "soap:operation": { soapAction: string } };
 
 const extractAddress = (parsedXml: any): string[] => {
-  const port = parsedXml["wsdl:definitions"]["wsdl:service"]["wsdl:port"];
-  return match(port)
-    .with(
-      P.shape({ "soap:address": { location: P.string } }),
-      (port: SoapFieldPort) => [port["soap:address"].location]
-    )
-    .with(
-      P.array(P.shape({ "soap:address": { location: P.string } })),
-      (port: SoapFieldPort[]) => port.map((add) => add["soap:address"].location)
-    )
-    .otherwise(() => {
-      throw interfaceExtractingSoapFiledError("soap:address");
-    });
+  try {
+    const port = parsedXml["wsdl:definitions"]["wsdl:service"]["wsdl:port"];
+    return match(port)
+      .with(
+        P.shape({ "soap:address": { location: P.string } }),
+        (port: SoapFieldPort) => [port["soap:address"].location]
+      )
+      .with(
+        P.array(P.shape({ "soap:address": { location: P.string } })),
+        (port: SoapFieldPort[]) =>
+          port.map((add) => add["soap:address"].location)
+      )
+      .otherwise(() => {
+        throw interfaceExtractingSoapFiledError("soap:address");
+      });
+  } catch (e) {
+    throw interfaceExtractingSoapFiledError("soap:operation");
+  }
 };
 
 // Improvement: use a more specific type for parsed SOAP xml than any
 const extractEndpoints = (parsedXml: any): string[] => {
-  const operation =
-    parsedXml["wsdl:definitions"]["wsdl:binding"]["wsdl:operation"];
-  return match(operation)
-    .with(
-      P.shape({ "soap:operation": { soapAction: P.string } }),
-      (operation: SoapFieldOperation) => [
-        operation["soap:operation"].soapAction,
-      ]
-    )
-    .with(
-      P.array(P.shape({ "soap:operation": { soapAction: P.string } })),
-      (operations: SoapFieldOperation[]) =>
-        operations.map((o) => o["soap:operation"].soapAction)
-    )
-    .otherwise(() => {
-      throw interfaceExtractingSoapFiledError("soap:operation");
-    });
+  try {
+    const operation =
+      parsedXml["wsdl:definitions"]["wsdl:binding"]["wsdl:operation"];
+    return match(operation)
+      .with(
+        P.shape({ "soap:operation": { soapAction: P.string } }),
+        (operation: SoapFieldOperation) => [
+          operation["soap:operation"].soapAction,
+        ]
+      )
+      .with(
+        P.array(P.shape({ "soap:operation": { soapAction: P.string } })),
+        (operations: SoapFieldOperation[]) =>
+          operations.map((o) => o["soap:operation"].soapAction)
+      )
+      .otherwise(() => {
+        throw interfaceExtractingSoapFiledError("soap:operation");
+      });
+  } catch (e) {
+    throw interfaceExtractingSoapFiledError("soap:operation");
+  }
 };
 
 export const soapParse = (file: string) => {
