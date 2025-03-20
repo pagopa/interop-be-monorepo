@@ -7,6 +7,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockAuthData,
+  getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -27,17 +28,15 @@ import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,
   inconsistentDailyCalls,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
+import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import {
+  addOneDelegation,
   addOneEService,
+  addOneEServiceTemplate,
   catalogService,
   readLastEserviceEvent,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-  addOneDelegation,
-  addOneEServiceTemplate,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("create descriptor", async () => {
   beforeAll(() => {
