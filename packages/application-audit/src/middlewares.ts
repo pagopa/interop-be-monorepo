@@ -4,6 +4,10 @@ import { genericInternalError } from "pagopa-interop-models";
 import {
   AppContext,
   ApplicationAuditProducerConfig,
+  fromAppContext,
+  JWTConfig,
+  readAuthDataFromJwtToken,
+  verifyJwtToken,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -178,7 +182,7 @@ export async function applicationAuditEndMiddleware(
     if (
       !config.endpointsWithCustomAudit ||
       (config.endpointsWithCustomAudit &&
-        !config.endpointsWithCustomAudit.includes(req.route.path))
+        !config.endpointsWithCustomAudit.includes(req.path))
     ) {
       res.on("finish", async () => {
         const context = (req as Request & { ctx?: AppContext }).ctx;
@@ -232,11 +236,11 @@ export async function applicationAuditEndMiddleware(
 
 export async function applicationAuditEndSessionTokenExchangeMiddleware(
   serviceName: string,
-  config: ApplicationAuditProducerConfig
+  config: ApplicationAuditProducerConfig & JWTConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
   return async (req, res, next): Promise<void> => {
-    if (config.endpointsWithCustomAudit?.includes(req.route.path)) {
+    if (config.endpointsWithCustomAudit?.includes(req.path)) {
       res.on("finish", async () => {
         const context = (req as Request & { ctx?: AppContext }).ctx;
         if (!context) {
@@ -246,6 +250,24 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
         const correlationId = context.correlationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
         const forwardedFor = parseForwardedForHeader(req);
+
+        const ctxWithLogger = fromAppContext(context);
+
+        /*
+
+        body = {
+          "session_token": "token"
+        }
+
+        */
+
+        const token: string | undefined = "todo";
+
+        const authData = token
+          ? readAuthDataFromJwtToken(
+              await verifyJwtToken(token, config, ctxWithLogger.logger)
+            )
+          : undefined;
 
         if (!forwardedFor) {
           throw genericInternalError("The forwardedFor header is missing");
@@ -266,8 +288,8 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
-          organizationId: context.authData.organizationId,
-          selfcareId: context.authData.selfcareId,
+          organizationId: authData?.organizationId,
+          selfcareId: authData?.selfcareId,
           httpResponseStatus: res.statusCode,
           executionTimeMs: endTimestamp - context.requestTimestamp,
         };
