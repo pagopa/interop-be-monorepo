@@ -34,7 +34,7 @@ const extractAddress = (parsedXml: any): string[] => {
         throw interfaceExtractingSoapFiledError("soap:address");
       });
   } catch (e) {
-    throw interfaceExtractingSoapFiledError("soap:operation");
+    throw interfaceExtractingSoapFiledError("soap:address");
   }
 };
 

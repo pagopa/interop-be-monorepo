@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from "vitest";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   generateId,
+  interfaceExtractingSoapFiledError,
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
 } from "pagopa-interop-models";
@@ -156,7 +157,7 @@ describe("extractEServiceUrlsFrom", () => {
 
     await expect(
       extractEServiceUrlsFrom(soapDoc.doc, "INTERFACE", "Soap", eserviceId)
-    ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
+    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:address"));
   });
 
   it("should throw an error if there are no operations in WSDL", async () => {
@@ -164,15 +165,14 @@ describe("extractEServiceUrlsFrom", () => {
       doc: {
         name: "test.wsdl",
         text: vi.fn().mockResolvedValue(`
-          <definitions>
-            <service>
-              <port>
-                <address location="http://example.com"/>
-              </port>
-            </service>
-            <binding>
-            </binding>
-          </definitions>
+          <wsdl:definitions>
+            <wsdl:service name="TestWS">
+                <wsdl:port name="TestWS" binding="tns:TestWS">
+                        <soap:address location="https://host.com/TestWS/v1"/>
+                </wsdl:port>
+            </wsdl:service>
+            <wsdl:binding></wsdl:binding>
+          </wsdl:definitions>
         `),
       },
       kind: "INTERFACE",
@@ -180,7 +180,7 @@ describe("extractEServiceUrlsFrom", () => {
 
     await expect(
       extractEServiceUrlsFrom(soapDoc.doc, "INTERFACE", "Soap", eserviceId)
-    ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
+    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:operation"));
   });
 
   it("should process REST interface with OpenAPI 2.0", async () => {
