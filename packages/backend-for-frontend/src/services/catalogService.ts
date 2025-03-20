@@ -1806,7 +1806,9 @@ export function catalogServiceBuilder(
         })
       );
 
-      return !eservices.some((e) => e.name === name);
+      return !eservices.some(
+        (e) => e.name.toLowerCase() === name.toLowerCase()
+      );
     },
   };
 }
