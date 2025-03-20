@@ -68,6 +68,7 @@ export function toOutboundEventV2(
             msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -80,6 +81,7 @@ export function toOutboundEventV2(
         eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "EServiceCloned" }, (msg) => ({
@@ -94,6 +96,7 @@ export function toOutboundEventV2(
         eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with(
@@ -118,6 +121,7 @@ export function toOutboundEventV2(
             msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -139,6 +143,7 @@ export function toOutboundEventV2(
             msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -152,6 +157,7 @@ export function toOutboundEventV2(
         eservice: msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with(
