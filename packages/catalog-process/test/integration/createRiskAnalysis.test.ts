@@ -52,7 +52,6 @@ import {
   getMockDescriptor,
   getMockEService,
   buildRiskAnalysisSeed,
-  getMockAuthData,
 } from "../mockUtils.js";
 
 describe("create risk analysis", () => {

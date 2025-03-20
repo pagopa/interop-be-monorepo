@@ -19,7 +19,6 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockDocument,
   getMockDescriptor,
   getMockEService,

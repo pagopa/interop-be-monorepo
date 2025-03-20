@@ -45,7 +45,6 @@ import {
   addOneDelegation,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
