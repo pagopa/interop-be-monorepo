@@ -10,6 +10,7 @@ export const ReadModelSQLDbConfig = z
     READMODEL_SQL_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
+    READMODEL_SQL_DB_SCHEMA_NAMESPACE: z.string(),
   })
   .transform((c) => ({
     readModelSQLDbHost: c.READMODEL_SQL_DB_HOST,
@@ -18,6 +19,7 @@ export const ReadModelSQLDbConfig = z
     readModelSQLDbPassword: c.READMODEL_SQL_DB_PASSWORD,
     readModelSQLDbPort: c.READMODEL_SQL_DB_PORT,
     readModelSQLDbUseSSL: c.READMODEL_SQL_DB_USE_SSL,
+    readModelSQLDbSchemaNamespace: c.READMODEL_SQL_DB_SCHEMA_NAMESPACE,
   }));
 
 export type ReadModelSQLDbConfig = z.infer<typeof ReadModelSQLDbConfig>;
