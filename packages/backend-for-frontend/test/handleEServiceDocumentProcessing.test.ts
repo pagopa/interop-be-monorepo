@@ -1,3 +1,6 @@
+import { fileURLToPath } from "url";
+import fs from "fs/promises";
+import path from "path";
 import { describe, it, expect, vi } from "vitest";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
@@ -7,6 +10,15 @@ import {
 } from "pagopa-interop-models";
 import { ZodError } from "zod";
 import { extractEServiceUrlsFrom } from "pagopa-interop-commons";
+
+const readFileContent = async (fileName: string): Promise<string> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `./resources/${fileName}`;
+
+  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return htmlTemplateBuffer.toString();
+};
 
 describe("extractEServiceUrlsFrom", () => {
   const eserviceId = generateId();
@@ -50,21 +62,11 @@ describe("extractEServiceUrlsFrom", () => {
   });
 
   it("should process SOAP interface with WSDL", async () => {
+    const soapfileContent = await readFileContent("interface-test.wsdl");
     const soapDoc = {
       doc: {
         name: "test.wsdl",
-        text: vi.fn().mockResolvedValue(`
-          <definitions>
-            <service>
-              <port>
-                <address location="http://example.com"/>
-              </port>
-            </service>
-            <binding>
-              <operation name="testOperation"/>
-            </binding>
-          </definitions>
-        `),
+        text: vi.fn().mockResolvedValue(soapfileContent),
       },
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
@@ -75,7 +77,7 @@ describe("extractEServiceUrlsFrom", () => {
       "Soap",
       eserviceId
     );
-    expect(result).toEqual(["http://example.com"]);
+    expect(result).toEqual(["https://host.com/TestWS/v1"]);
   });
 
   it("should return an empty array for DOCUMENT kind", async () => {
@@ -94,24 +96,13 @@ describe("extractEServiceUrlsFrom", () => {
   });
 
   it("should process WSDL with multiple addresses", async () => {
+    const soapfileContent = await readFileContent(
+      "interface-test-multi-server-urls.wsdl"
+    );
     const soapDoc = {
       doc: {
         name: "test.wsdl",
-        text: vi.fn().mockResolvedValue(`
-          <definitions>
-            <service>
-              <port>
-                <address location="http://example1.com"/>
-              </port>
-              <port>
-                <address location="http://example2.com"/>
-              </port>
-            </service>
-            <binding>
-              <operation name="testOperation"/>
-            </binding>
-          </definitions>
-        `),
+        text: vi.fn().mockResolvedValue(soapfileContent),
       },
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
@@ -126,33 +117,23 @@ describe("extractEServiceUrlsFrom", () => {
   });
 
   it("should process WSDL with multiple operations", async () => {
+    const soapfileContent = await readFileContent(
+      "interface-test-multi-operation.wsdl"
+    );
     const soapDoc = {
       doc: {
         name: "test.wsdl",
-        text: vi.fn().mockResolvedValue(`
-          <definitions>
-            <service>
-              <port>
-                <address location="http://example.com"/>
-              </port>
-            </service>
-            <binding>
-              <operation name="operation1"/>
-              <operation name="operation2"/>
-            </binding>
-          </definitions>
-        `),
+        text: vi.fn().mockResolvedValue(soapfileContent),
       },
       kind: "INTERFACE",
     } as unknown as bffApi.createEServiceDocument_Body;
-
     const result = await extractEServiceUrlsFrom(
       soapDoc.doc,
       "INTERFACE",
       "Soap",
       eserviceId
     );
-    expect(result).toEqual(["http://example.com"]);
+    expect(result).toEqual(["http://example1.com"]);
   });
 
   it("should throw an error if there are no addresses in WSDL", async () => {
@@ -176,7 +157,7 @@ describe("extractEServiceUrlsFrom", () => {
 
     await expect(
       extractEServiceUrlsFrom(soapDoc.doc, "INTERFACE", "Soap", eserviceId)
-    ).rejects.toThrow(ZodError);
+    ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
   });
 
   it("should throw an error if there are no operations in WSDL", async () => {
@@ -200,7 +181,7 @@ describe("extractEServiceUrlsFrom", () => {
 
     await expect(
       extractEServiceUrlsFrom(soapDoc.doc, "INTERFACE", "Soap", eserviceId)
-    ).rejects.toThrow(ZodError);
+    ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
   });
 
   it("should process REST interface with OpenAPI 2.0", async () => {
