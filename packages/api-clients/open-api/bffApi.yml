@@ -17340,7 +17340,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/name/check:
+  /eservices/names/availability:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
@@ -17349,7 +17349,7 @@ paths:
       tags:
         - eservices
       summary: Check if the e-service name is available
-      operationId: checkEServiceNameAvailability
+      operationId: isEServiceNameAvailable
       parameters:
         - name: name
           in: query

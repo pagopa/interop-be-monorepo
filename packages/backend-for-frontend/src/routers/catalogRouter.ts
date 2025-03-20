@@ -1040,15 +1040,12 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get("/eservices/name/check", async (req, res) => {
+    .get("/eservices/names/availability", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       const { name } = req.query;
 
       try {
-        const result = await catalogService.checkEServiceNameAvailability(
-          name,
-          ctx
-        );
+        const result = await catalogService.isEServiceNameAvailable(name, ctx);
         return res.status(200).send(result);
       } catch (error) {
         const errorRes = makeApiProblem(

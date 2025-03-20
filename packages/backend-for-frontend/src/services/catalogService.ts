@@ -1786,7 +1786,7 @@ export function catalogServiceBuilder(
 
       return { id: descriptorId };
     },
-    async checkEServiceNameAvailability(
+    async isEServiceNameAvailable(
       name: string,
       { headers, logger, authData }: WithLogger<BffAppContext>
     ): Promise<boolean> {
