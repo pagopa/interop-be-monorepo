@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
   getMockEServiceTemplate,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -98,12 +99,7 @@ describe("update draft descriptor", () => {
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -176,12 +172,7 @@ describe("update draft descriptor", () => {
       eservice.id,
       descriptor.id,
       expectedDescriptorSeed,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -208,12 +199,7 @@ describe("update draft descriptor", () => {
         mockEService.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -230,12 +216,7 @@ describe("update draft descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         buildUpdateDescriptorSeed(mockDescriptor),
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -259,12 +240,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(mockDescriptor.id, descriptorState.published)
@@ -288,12 +264,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(mockDescriptor.id, descriptorState.deprecated)
@@ -317,12 +288,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(mockDescriptor.id, descriptorState.suspended)
@@ -346,12 +312,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(mockDescriptor.id, descriptorState.archived)
@@ -378,12 +339,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -416,12 +372,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -447,12 +398,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(expectedDescriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -510,12 +456,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         descriptorSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
   });
@@ -581,12 +522,7 @@ describe("update draft descriptor", () => {
         eservice.id,
         descriptor.id,
         descriptorSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       templateInstanceNotAllowed(eservice.id, template.id)

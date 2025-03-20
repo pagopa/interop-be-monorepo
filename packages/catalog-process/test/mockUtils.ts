@@ -1,8 +1,5 @@
 import { catalogApi } from "pagopa-interop-api-clients";
-import {
-  AuthData,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-} from "pagopa-interop-commons";
+import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -22,16 +19,6 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  selfcareId: generateId(),
-});
 export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor
 ): catalogApi.DescriptorSeedForEServiceCreation => ({
@@ -42,6 +29,7 @@ export const buildDescriptorSeedForEserviceCreation = (
   agreementApprovalPolicy: "AUTOMATIC",
   description: descriptor.description,
 });
+
 export const buildCreateDescriptorSeed = (
   descriptor: Descriptor
 ): catalogApi.EServiceDescriptorSeed => ({
@@ -65,6 +53,7 @@ export const buildCreateDescriptorSeed = (
     fileName: d.name,
   })),
 });
+
 export const buildUpdateDescriptorSeed = (
   descriptor: Descriptor
 ): catalogApi.UpdateEServiceDescriptorSeed => ({
@@ -80,6 +69,7 @@ export const buildUpdateDescriptorSeed = (
     verified: [],
   },
 });
+
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
 ): catalogApi.EServiceRiskAnalysisSeed => ({
@@ -88,6 +78,7 @@ export const buildRiskAnalysisSeed = (
     riskAnalysis.riskAnalysisForm
   ),
 });
+
 export const getMockEService = (): EService => ({
   id: generateId(),
   name: "eservice name",
@@ -100,6 +91,7 @@ export const getMockEService = (): EService => ({
   mode: eserviceMode.deliver,
   riskAnalysis: [],
 });
+
 export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   id: generateId(),
   version: "1",
@@ -123,15 +115,18 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
   rejectionReasons: [],
 });
+
 export const getMockEServiceAttribute = (): EServiceAttribute => ({
   id: generateId(),
   explicitAttributeVerification: false,
 });
+
 export const getMockEServiceAttributes = (): EserviceAttributes => ({
   certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
   declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
   verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
 });
+
 export const buildInterfaceSeed =
   (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
     contentType: "json",
@@ -143,6 +138,7 @@ export const buildInterfaceSeed =
     fileName: "fileName",
     checksum: "checksum",
   });
+
 export const buildDocumentSeed =
   (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
     contentType: "json",
@@ -154,6 +150,7 @@ export const buildDocumentSeed =
     fileName: "fileName",
     checksum: "checksum",
   });
+
 export const getMockDocument = (): Document => ({
   name: "fileName",
   path: "filePath",
@@ -163,6 +160,7 @@ export const getMockDocument = (): Document => ({
   checksum: "checksum",
   uploadDate: new Date(),
 });
+
 export const getMockAgreement = ({
   eserviceId,
   descriptorId,

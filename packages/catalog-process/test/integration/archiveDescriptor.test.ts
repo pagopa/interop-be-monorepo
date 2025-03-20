@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -13,7 +14,6 @@ import {
   toEServiceV2,
   operationForbidden,
   delegationState,
-  generateId,
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -29,7 +29,6 @@ import {
 } from "../integrationUtils.js";
 import {
   getMockEService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
 } from "../mockUtils.js";
@@ -49,12 +48,11 @@ describe("archive descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.archiveDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -104,12 +102,11 @@ describe("archive descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(delegate.organizationId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.archiveDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(delegate.organizationId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -139,12 +136,11 @@ describe("archive descriptor", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
-      catalogService.archiveDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.archiveDescriptor(
+        mockEService.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
@@ -156,12 +152,11 @@ describe("archive descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.archiveDescriptor(eservice.id, mockDescriptor.id, {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.archiveDescriptor(
+        eservice.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
@@ -178,12 +173,11 @@ describe("archive descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.archiveDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({})
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -206,12 +200,11 @@ describe("archive descriptor", () => {
     await addOneDelegation(delegation);
 
     expect(
-      catalogService.archiveDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.archiveDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 });

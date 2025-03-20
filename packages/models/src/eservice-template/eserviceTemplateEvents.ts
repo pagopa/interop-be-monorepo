@@ -247,11 +247,11 @@ export const EServiceTemplateEvent = z
 
 export type EServiceTemplateEvent = z.infer<typeof EServiceTemplateEvent>;
 
-export const EServiceTemplateEnvelopeV2 = EventEnvelope(
+export const EServiceTemplateEventEnvelopeV2 = EventEnvelope(
   EServiceTemplateEventV2
 );
-export type EServiceTemplateEnvelopeV2 = z.infer<
-  typeof EServiceTemplateEnvelopeV2
+export type EServiceTemplateEventEnvelopeV2 = z.infer<
+  typeof EServiceTemplateEventEnvelopeV2
 >;
 
 export const EServiceTemplateEventEnvelope = EventEnvelope(

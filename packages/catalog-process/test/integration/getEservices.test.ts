@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 import { genericLogger, AuthData, userRoles } from "pagopa-interop-commons";
 import {
+  getMockAuthData,
   getMockEServiceTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
@@ -28,7 +29,6 @@ import {
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,

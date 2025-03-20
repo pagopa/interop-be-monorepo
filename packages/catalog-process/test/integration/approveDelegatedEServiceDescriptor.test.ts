@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockDelegation,
   getMockTenant,
-} from "pagopa-interop-commons-test/index.js";
+  getMockContext,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -25,16 +26,15 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  addOneAgreement,
-  addOneDelegation,
-  addOneTenant,
   catalogService,
   readLastEserviceEvent,
+  addOneTenant,
+  addOneAgreement,
+  addOneDelegation,
 } from "../integrationUtils.js";
 import {
   getMockEService,
   getMockAgreement,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
 } from "../mockUtils.js";
@@ -64,12 +64,7 @@ describe("publish descriptor", () => {
     await catalogService.approveDelegatedEServiceDescriptor(
       eservice.id,
       descriptor.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -121,12 +116,7 @@ describe("publish descriptor", () => {
     await catalogService.approveDelegatedEServiceDescriptor(
       eservice.id,
       descriptor2.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -196,12 +186,7 @@ describe("publish descriptor", () => {
     await catalogService.approveDelegatedEServiceDescriptor(
       eservice.id,
       descriptor2.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -242,12 +227,7 @@ describe("publish descriptor", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -262,12 +242,7 @@ describe("publish descriptor", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         mockDescriptor.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -288,12 +263,7 @@ describe("publish descriptor", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -320,12 +290,7 @@ describe("publish descriptor", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        {
-          authData: getMockAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -351,12 +316,7 @@ describe("publish descriptor", () => {
         catalogService.approveDelegatedEServiceDescriptor(
           eservice.id,
           descriptor.id,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

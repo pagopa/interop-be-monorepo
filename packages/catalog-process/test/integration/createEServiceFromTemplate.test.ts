@@ -1,8 +1,10 @@
 import { afterAll, beforeAll, describe, vi, it, expect } from "vitest";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockAuthData,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
@@ -29,7 +31,6 @@ import {
   fileManager,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -63,12 +64,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       { instanceLabel: undefined },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eService).toBeDefined();
@@ -167,12 +163,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       { instanceLabel },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eService).toBeDefined();
@@ -316,12 +307,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       { instanceLabel: undefined },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     expect(eService).toBeDefined();
@@ -516,12 +502,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         generateId(),
         { instanceLabel: undefined },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({
       code: "eServiceTemplateNotFound",
@@ -539,12 +520,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         eServiceTemplate.id,
         { instanceLabel: undefined },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({
       code: "eServiceTemplateWithoutPublishedVersion",

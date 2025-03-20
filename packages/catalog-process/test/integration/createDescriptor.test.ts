@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
+  getMockAuthData,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
@@ -39,7 +40,6 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -85,12 +85,7 @@ describe("create descriptor", async () => {
     const returnedDescriptor = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -178,12 +173,7 @@ describe("create descriptor", async () => {
     const returnedDescriptor = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const newDescriptorId = returnedDescriptor.id;
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
@@ -303,12 +293,7 @@ describe("create descriptor", async () => {
     const returnedDescriptor = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
     const newDescriptorId = returnedDescriptor.id;
     const descriptorCreationEvent = await readEventByStreamIdAndVersion(
@@ -399,12 +384,7 @@ describe("create descriptor", async () => {
         catalogService.createDescriptor(
           eservice.id,
           buildCreateDescriptorSeed(descriptor),
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
     }
@@ -416,12 +396,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         mockEService.id,
         buildCreateDescriptorSeed(getMockDescriptor()),
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -464,12 +439,11 @@ describe("create descriptor", async () => {
     };
 
     expect(
-      catalogService.createDescriptor(eservice.id, descriptorSeed, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
   });
   it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -487,12 +461,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         buildCreateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -519,12 +488,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         buildCreateDescriptorSeed(descriptor),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -541,12 +505,11 @@ describe("create descriptor", async () => {
 
     await addOneEService(eservice);
     expect(
-      catalogService.createDescriptor(eservice.id, descriptorSeed, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
   it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
@@ -562,12 +525,11 @@ describe("create descriptor", async () => {
 
     await addOneEService(eservice);
     expect(
-      catalogService.createDescriptor(eservice.id, descriptorSeed, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
 });

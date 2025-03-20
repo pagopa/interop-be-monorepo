@@ -3,7 +3,7 @@
 import {
   decodeProtobufPayload,
   getMockClient,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   Client,
@@ -67,7 +67,7 @@ describe("addClientUsers", () => {
       {
         clientId: mockClient.id,
         userIds: usersToAdd,
-        authData: getRandomAuthData(consumerId),
+        authData: getMockAuthData(consumerId),
       },
       generateId(),
       genericLogger
@@ -112,7 +112,7 @@ describe("addClientUsers", () => {
         {
           clientId: mockClient.id,
           userIds: [userIdToAdd],
-          authData: getRandomAuthData(consumerId),
+          authData: getMockAuthData(consumerId),
         },
         generateId(),
         genericLogger
@@ -142,7 +142,7 @@ describe("addClientUsers", () => {
         {
           clientId: mockClient.id,
           userIds: userIdsToAdd,
-          authData: getRandomAuthData(consumerId),
+          authData: getMockAuthData(consumerId),
         },
         generateId(),
         genericLogger
@@ -168,7 +168,7 @@ describe("addClientUsers", () => {
         {
           clientId: mockClient.id,
           userIds: userIdsToAdd,
-          authData: getRandomAuthData(organizationId),
+          authData: getMockAuthData(organizationId),
         },
         generateId(),
         genericLogger
