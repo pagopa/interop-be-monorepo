@@ -26,14 +26,12 @@ export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export type WithLogger<T> = T & { logger: Logger };
 
-export function fromAppContext(
-  ctx: AppContext<AuthData>
-): WithLogger<AppContext<AuthData>> {
+export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
   return { ...ctx, logger: logger({ ...ctx }) };
 }
 
 export function assertContextHasTokenTypeIn<T extends AuthData["tokenType"]>(
-  ctx: AppContext<AuthData>,
+  ctx: AppContext,
   tokenTypes: ReadonlyArray<T>
 ): asserts ctx is AppContext<Extract<AuthData, { tokenType: T }>> {
   assertAuthDataTokenTypeIn(ctx.authData, tokenTypes);
