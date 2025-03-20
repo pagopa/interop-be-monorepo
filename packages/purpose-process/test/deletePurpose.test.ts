@@ -23,13 +23,13 @@ import {
   writeInReadmodel,
   decodeProtobufPayload,
   getMockPurposeVersion,
-  getRandomAuthData,
+  getMockAuthData,
   getMockDelegation,
   addSomeRandomDelegations,
   getMockTenant,
   getMockAgreement,
+  getMockContext,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   organizationIsNotTheConsumer,
@@ -61,12 +61,10 @@ describe("deletePurpose", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.deletePurpose(mockPurpose.id, {
-      authData: getRandomAuthData(mockPurpose.consumerId),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    await purposeService.deletePurpose(
+      mockPurpose.id,
+      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -96,12 +94,10 @@ describe("deletePurpose", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.deletePurpose(mockPurpose.id, {
-      authData: getRandomAuthData(mockPurpose.consumerId),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    await purposeService.deletePurpose(
+      mockPurpose.id,
+      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -133,12 +129,10 @@ describe("deletePurpose", () => {
     await addOnePurpose(mockPurpose);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.deletePurpose(mockPurpose.id, {
-      authData: getRandomAuthData(mockPurpose.consumerId),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    await purposeService.deletePurpose(
+      mockPurpose.id,
+      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -157,7 +151,7 @@ describe("deletePurpose", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a deletable state", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion = getMockPurposeVersion(purposeVersionState.draft);
     const mockPurpose: Purpose = {
@@ -181,12 +175,10 @@ describe("deletePurpose", () => {
     await addSomeRandomDelegations(mockPurpose, addOneDelegation);
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-    await purposeService.deletePurpose(mockPurpose.id, {
-      authData,
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    await purposeService.deletePurpose(
+      mockPurpose.id,
+      getMockContext({ authData })
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -275,12 +267,10 @@ describe("deletePurpose", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    await purposeService.deletePurpose(delegatePurpose.id, {
-      authData: getRandomAuthData(consumerDelegate.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    await purposeService.deletePurpose(
+      delegatePurpose.id,
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+    );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
 
@@ -304,12 +294,10 @@ describe("deletePurpose", () => {
 
     await addOnePurpose(mockPurpose);
     expect(
-      purposeService.deletePurpose(randomId, {
-        authData: getRandomAuthData(mockPurpose.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.deletePurpose(
+        randomId,
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
   it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
@@ -327,12 +315,10 @@ describe("deletePurpose", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.deletePurpose(mockPurpose.id, {
-        authData: getRandomAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.deletePurpose(
+        mockPurpose.id,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(mockEService.producerId)
     );
@@ -359,17 +345,17 @@ describe("deletePurpose", () => {
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
       expect(
-        purposeService.deletePurpose(mockPurpose.id, {
-          authData: getRandomAuthData(mockPurpose.consumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        })
+        purposeService.deletePurpose(
+          mockPurpose.id,
+          getMockContext({
+            authData: getMockAuthData(mockPurpose.consumerId),
+          })
+        )
       ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
     }
   );
   it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is deleting a purpose created by the delegate in deletePurpose", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
@@ -395,12 +381,7 @@ describe("deletePurpose", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.deletePurpose(mockPurpose.id, {
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.deletePurpose(mockPurpose.id, getMockContext({ authData }))
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
         authData.organizationId,
@@ -410,7 +391,7 @@ describe("deletePurpose", () => {
   });
 
   it("should throw puroposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
@@ -427,12 +408,10 @@ describe("deletePurpose", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.deletePurpose(mockPurpose.id, {
-        authData: getRandomAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.deletePurpose(
+        mockPurpose.id,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       puroposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
@@ -462,12 +441,10 @@ describe("deletePurpose", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.deletePurpose(mockPurpose.id, {
-        authData: getRandomAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.deletePurpose(
+        mockPurpose.id,
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      )
     ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
   });
 
@@ -507,12 +484,10 @@ describe("deletePurpose", () => {
     await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
     expect(
-      purposeService.deletePurpose(mockPurpose.id, {
-        authData: getRandomAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.deletePurpose(
+        mockPurpose.id,
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheDelegatedConsumer(
         delegation.delegateId,
