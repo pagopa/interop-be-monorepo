@@ -18,10 +18,12 @@ import {
   descriptorState,
   eserviceMode,
   operationForbidden,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
+  eServiceNameDuplicate,
   eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -30,6 +32,9 @@ import {
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
+  templateInstanceNotAllowed,
+  eServiceNotAnInstance,
+  inconsistentDailyCalls,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -250,4 +255,57 @@ export function assertDocumentDeletableDescriptorState(
       throw notValidDescriptorState(descriptor.id, descriptor.state);
     })
     .exhaustive();
+}
+
+export async function assertNotDuplicatedEServiceName(
+  name: string,
+  eservice: EService,
+  readModelService: ReadModelService
+): Promise<void> {
+  if (name !== eservice.name) {
+    const eserviceWithSameName =
+      await readModelService.getEServiceByNameAndProducerId({
+        name,
+        producerId: eservice.producerId,
+      });
+    if (eserviceWithSameName !== undefined) {
+      throw eServiceNameDuplicate(name);
+    }
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId | undefined
+): void {
+  if (templateId !== undefined) {
+    throw templateInstanceNotAllowed(eserviceId, templateId);
+  }
+}
+
+export function assertEServiceIsTemplateInstance(
+  eservice: EService
+): asserts eservice is EService & {
+  templateRef: NonNullable<EService["templateRef"]>;
+  descriptors: Array<
+    Descriptor & {
+      templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
+    }
+  >;
+} {
+  if (eservice.templateRef === undefined) {
+    throw eServiceNotAnInstance(eservice.id);
+  }
+}
+
+export function assertConsistentDailyCalls({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+}: {
+  dailyCallsPerConsumer: number;
+  dailyCallsTotal: number;
+}): void {
+  if (dailyCallsPerConsumer > dailyCallsTotal) {
+    throw inconsistentDailyCalls();
+  }
 }

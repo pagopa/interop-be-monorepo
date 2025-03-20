@@ -33,7 +33,6 @@ import {
   generateId,
   CompactTenant,
   CorrelationId,
-  Delegation,
   DelegationId,
 } from "pagopa-interop-models";
 import {
@@ -91,7 +90,7 @@ import {
   assertActivableState,
   assertRequesterCanActAsProducer,
   assertRequesterCanActAsConsumerOrProducer,
-  assertRequesterCanRetrieveConsumerDocuments,
+  assertRequesterCanRetrieveAgreement,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
   assertRequesterIsDelegateConsumer,
@@ -193,21 +192,6 @@ export const retrieveDescriptor = (
   return descriptor;
 };
 
-const retrieveConsumerDelegationById = async (
-  delegationId: DelegationId,
-  readModelService: ReadModelService
-): Promise<Delegation> => {
-  const delegation = await readModelService.getConsumerDelegationById(
-    delegationId
-  );
-
-  if (!delegation) {
-    throw delegationNotFound(delegationId);
-  }
-
-  return delegation;
-};
-
 function retrieveAgreementDocument(
   agreement: Agreement,
   documentId: AgreementDocumentId
@@ -248,18 +232,34 @@ export function agreementServiceBuilder(
       filters: AgreementQueryFilters,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<Agreement>> {
-      logger.info("Retrieving agreements");
-      return await readModelService.getAgreements(filters, limit, offset);
+      logger.info(
+        `Getting agreements with filters: ${JSON.stringify(
+          filters
+        )}, offset = ${offset}, limit = ${limit}`
+      );
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreements(
+        authData.organizationId,
+        filters,
+        limit,
+        offset
+      );
     },
     async getAgreementById(
       agreementId: AgreementId,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      await assertRequesterCanRetrieveAgreement(
+        agreement.data,
+        authData,
+        readModelService
+      );
       return agreement.data;
     },
     async createAgreement(
@@ -322,27 +322,41 @@ export function agreementServiceBuilder(
 
       return agreement;
     },
-    async getAgreementProducers(
+    async getAgreementsProducers(
       producerName: string | undefined,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
-      return await readModelService.getProducers(producerName, limit, offset);
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreementsProducers(
+        authData.organizationId,
+        producerName,
+        limit,
+        offset
+      );
     },
-    async getAgreementConsumers(
+    async getAgreementsConsumers(
       consumerName: string | undefined,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
       );
-      return await readModelService.getConsumers(consumerName, limit, offset);
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreementsConsumers(
+        authData.organizationId,
+        consumerName,
+        limit,
+        offset
+      );
     },
     async updateAgreement(
       agreementId: AgreementId,
@@ -440,9 +454,6 @@ export function agreementServiceBuilder(
         agreement.data.state,
         agreementDeletableStates
       );
-
-      // Check that the delegation exists
-      await retrieveConsumerDelegationById(delegationId, readModelService);
 
       for (const d of agreement.data.consumerDocuments) {
         await fileManager.delete(config.s3Bucket, d.path, logger);
@@ -895,7 +906,7 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      await assertRequesterCanRetrieveConsumerDocuments(
+      await assertRequesterCanRetrieveAgreement(
         agreement.data,
         authData,
         readModelService
@@ -962,17 +973,21 @@ export function agreementServiceBuilder(
 
       return updatedAgreement;
     },
-    async getAgreementEServices(
+    async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactEService>> {
       logger.info(
-        `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
+        `Retrieving EServices from agreements with filters: ${JSON.stringify(
+          filters
+        )}, offset ${offset}, limit ${limit}`
       );
 
+      // Permissions are checked in the readModelService
       return await readModelService.getAgreementsEServices(
+        authData.organizationId,
         filters,
         limit,
         offset
@@ -1337,9 +1352,6 @@ export function agreementServiceBuilder(
         agreementArchivableStates
       );
 
-      // Check that the delegation exists
-      await retrieveConsumerDelegationById(delegationId, readModelService);
-
       const updatedAgreement: Agreement = {
         ...agreement.data,
         state: agreementState.archived,
@@ -1354,7 +1366,7 @@ export function agreementServiceBuilder(
         )
       );
     },
-    async computeAgreementsStateByAttribute(
+    async internalComputeAgreementsStateByAttribute(
       attributeId: AttributeId,
       consumer: CompactTenant,
       { logger, correlationId }: WithLogger<AppContext>

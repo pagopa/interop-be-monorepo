@@ -25,9 +25,7 @@ export const getConsumerDelegatorsWithAgreementsErrorMapper =
 export const getConsumerEservicesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code)
-    .with("requesterIsNotConsumerDelegate", () => HTTP_STATUS_FORBIDDEN)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getDelegationByIdErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -63,6 +61,7 @@ export const createConsumerDelegationErrorMapper = (
       "eserviceNotFound",
       "tenantNotFound",
       "invalidDelegatorAndDelegateIds",
+      "eserviceNotConsumerDelegable",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -70,7 +69,11 @@ export const createConsumerDelegationErrorMapper = (
       "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("delegationAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "delegationAlreadyExists",
+      "delegationRelatedAgreementExists",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeDelegationErrorMapper = (

@@ -1,3 +1,4 @@
+/* eslint-disable fp/no-delete */
 import { apiGatewayApi } from "pagopa-interop-api-clients";
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
@@ -27,6 +28,13 @@ export function readModelServiceBuilder(
         keyData?.data ?? producerKeyData?.data;
 
       if (data) {
+        if ("clientId" in data) {
+          delete data?.clientId;
+        }
+        if ("producerKeychainId" in data) {
+          delete data?.producerKeychainId;
+        }
+
         const result = apiGatewayApi.JWK.safeParse(data);
 
         if (!result.success) {

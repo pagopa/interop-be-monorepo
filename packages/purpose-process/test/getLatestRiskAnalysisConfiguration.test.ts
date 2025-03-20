@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockContext,
   getMockTenant,
+  getMockAuthData,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   TenantId,
   TenantKind,
@@ -11,10 +13,7 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import {
-  genericLogger,
-  getLatestVersionFormRules,
-} from "pagopa-interop-commons";
+import { getLatestVersionFormRules } from "pagopa-interop-commons";
 import {
   tenantKindNotFound,
   tenantNotFound,
@@ -35,23 +34,23 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
       const result =
         await purposeService.retrieveLatestRiskAnalysisConfiguration({
           tenantKind: kind,
-          organizationId: mockTenant.id,
-          logger: genericLogger,
+          ctx: getMockContext({
+            authData: getMockAuthData(mockTenant.id),
+          }),
         });
 
       expect(result).toEqual(getLatestVersionFormRules(kind));
     }
   );
   it("should throw tenantNotFound if the tenant doesn't exist", async () => {
-    const randomId = generateId<TenantId>();
+    const randomTenantId = generateId<TenantId>();
 
     expect(
       purposeService.retrieveLatestRiskAnalysisConfiguration({
         tenantKind: undefined,
-        organizationId: randomId,
-        logger: genericLogger,
+        ctx: getMockContext({ authData: getMockAuthData(randomTenantId) }),
       })
-    ).rejects.toThrowError(tenantNotFound(randomId));
+    ).rejects.toThrowError(tenantNotFound(randomTenantId));
   });
   it("should throw tenantKindNotFound if the tenant kind is undefined", async () => {
     const mockTenant = {
@@ -63,8 +62,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
     expect(
       purposeService.retrieveLatestRiskAnalysisConfiguration({
         tenantKind: undefined,
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
@@ -80,8 +78,9 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
     expect(
       purposeService.retrieveLatestRiskAnalysisConfiguration({
         tenantKind: kind,
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: getMockContext({
+          authData: getMockAuthData(mockTenant.id),
+        }),
       })
     ).rejects.toThrowError(riskAnalysisConfigLatestVersionNotFound(kind));
   });

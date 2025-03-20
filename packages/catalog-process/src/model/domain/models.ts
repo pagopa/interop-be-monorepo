@@ -11,6 +11,9 @@ import {
   EServiceMode,
   AttributeId,
   TenantId,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  EserviceAttributes,
 } from "pagopa-interop-models";
 
 export type ApiGetEServicesFilters = {
@@ -23,6 +26,7 @@ export type ApiGetEServicesFilters = {
   mode?: EServiceMode;
   isConsumerDelegable?: boolean;
   delegated?: boolean;
+  templatesIds: EServiceTemplateId[];
 };
 
 export type EServiceDocument = {
@@ -38,6 +42,13 @@ export type EServiceDocument = {
   };
   readonly isInterface: boolean;
   readonly serverUrls: string[];
+};
+
+export type EServiceTemplateReferences = {
+  readonly id: EServiceTemplateId;
+  readonly versionId: EServiceTemplateVersionId;
+  readonly attributes: EserviceAttributes;
+  readonly instanceLabel?: string;
 };
 
 export const consumer = z.object({

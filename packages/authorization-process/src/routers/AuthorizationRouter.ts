@@ -44,7 +44,7 @@ import {
   getClientUsersErrorMapper,
   removeClientPurposeErrorMapper,
   removeClientUserErrorMapper,
-  createKeysErrorMapper,
+  createKeyErrorMapper,
   getClientKeyWithClientErrorMapper,
   getClientsWithKeysErrorMapper,
   addClientPurposeErrorMapper,
@@ -417,22 +417,20 @@ const authorizationRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          const { client } = await authorizationService.createKeys({
+          const key = await authorizationService.createKey({
             clientId: unsafeBrandId(req.params.clientId),
             authData: req.ctx.authData,
-            keysSeeds: req.body,
+            keySeed: req.body,
             correlationId: req.ctx.correlationId,
             logger: ctx.logger,
           });
-          return res.status(200).send(
-            authorizationApi.Keys.parse({
-              keys: client.keys.map((key) => keyToApiKey(key)),
-            })
-          );
+          return res
+            .status(200)
+            .send(authorizationApi.Key.parse(keyToApiKey(key)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createKeysErrorMapper,
+            createKeyErrorMapper,
             ctx.logger,
             ctx.correlationId
           );
@@ -454,8 +452,7 @@ const authorizationRouter = (
           const keys = await authorizationService.getClientKeys({
             clientId: unsafeBrandId(req.params.clientId),
             userIds: req.query.userIds.map(unsafeBrandId<UserId>),
-            organizationId: ctx.authData.organizationId,
-            logger: ctx.logger,
+            ctx,
           });
 
           return res.status(200).send(

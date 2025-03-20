@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
-  genericLogger,
   unexpectedFieldValueError,
   unexpectedFieldError,
 } from "pagopa-interop-commons";
@@ -11,7 +10,9 @@ import {
   getMockValidRiskAnalysis,
   decodeProtobufPayload,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockContext,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   TenantKind,
   tenantKind,
@@ -30,6 +31,7 @@ import {
   RiskAnalysisId,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -42,13 +44,13 @@ import {
   eServiceRiskAnalysisNotFound,
   riskAnalysisValidationFailed,
   riskAnalysisDuplicated,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
   addOneEService,
   buildRiskAnalysisSeed,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockEService,
@@ -105,12 +107,7 @@ describe("update risk analysis", () => {
       eservice.id,
       riskAnalysis.id,
       riskAnalysisUpdatedSeed,
-      {
-        authData: getMockAuthData(producer.id),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(producer.id) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -230,12 +227,7 @@ describe("update risk analysis", () => {
       eservice.id,
       riskAnalysis.id,
       riskAnalysisUpdatedSeed,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -307,12 +299,7 @@ describe("update risk analysis", () => {
         mockEService.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -323,12 +310,7 @@ describe("update risk analysis", () => {
         mockEService.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -347,12 +329,7 @@ describe("update risk analysis", () => {
         mockEService.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -373,12 +350,7 @@ describe("update risk analysis", () => {
         eservice.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -400,12 +372,7 @@ describe("update risk analysis", () => {
         eservice.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInReceiveMode(eservice.id));
   });
@@ -427,12 +394,7 @@ describe("update risk analysis", () => {
         eservice.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(tenantNotFound(eservice.producerId));
   });
@@ -462,12 +424,7 @@ describe("update risk analysis", () => {
         eservice.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(producer.id),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -501,12 +458,7 @@ describe("update risk analysis", () => {
         eservice.id,
         riskAnalysisId,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(producer.id),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(
       eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
@@ -555,12 +507,7 @@ describe("update risk analysis", () => {
         eservice.id,
         riskAnalysis_1.id,
         riskAnalysisSeed,
-        {
-          authData: getMockAuthData(producer.id),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(
       riskAnalysisDuplicated(riskAnalysis_2.name.toLowerCase(), eservice.id)
@@ -619,12 +566,7 @@ describe("update risk analysis", () => {
         eservice.id,
         riskAnalysis.id,
         riskAnalysisUpdatedSeed,
-        {
-          authData: getMockAuthData(producer.id),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
@@ -635,5 +577,50 @@ describe("update risk analysis", () => {
         unexpectedFieldError("unexpectedField"),
       ])
     );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
+    };
+
+    const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+    const eService: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        },
+      ],
+      riskAnalysis: [
+        {
+          ...riskAnalysis,
+        },
+      ],
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eService);
+
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
+      buildRiskAnalysisSeed(riskAnalysis);
+
+    expect(
+      catalogService.updateRiskAnalysis(
+        eService.id,
+        riskAnalysis.id,
+        riskAnalysisSeed,
+        getMockContext({ authData: getMockAuthData(producer.id) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });

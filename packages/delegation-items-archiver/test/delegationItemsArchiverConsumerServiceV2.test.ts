@@ -20,7 +20,7 @@ import {
   getMockDelegation,
   getMockPurpose,
   getMockPurposeVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { handleMessageV2 } from "../src/delegationItemsArchiverConsumerServiceV2.js";
 import {
   AgreementProcessClient,

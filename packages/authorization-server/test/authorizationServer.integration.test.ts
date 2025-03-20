@@ -594,7 +594,7 @@ describe("authorization server tests", () => {
       correlationId,
       issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
       clientId,
-      organizationId: tokenClientKidPurposeEntry.consumerId,
+      organizationId: tokenClientKidPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
         tokenClientKidPurposeEntry.agreementId!
       ),
@@ -733,7 +733,7 @@ describe("authorization server tests", () => {
       correlationId,
       issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
-      organizationId: tokenClientPurposeEntry.consumerId,
+      organizationId: tokenClientPurposeEntry.consumerId!,
       agreementId: unsafeBrandId<AgreementId>(
         tokenClientPurposeEntry.agreementId!
       ),

@@ -5,12 +5,11 @@ import {
   getMockAgreement,
   getMockDelegation,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   AgreementDeletedByRevokedDelegationV2,
   AgreementId,
   agreementState,
-  DelegationId,
   delegationKind,
   delegationState,
   EServiceId,
@@ -23,7 +22,6 @@ import { agreementDeletableStates } from "../src/model/domain/agreement-validato
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  delegationNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
@@ -204,25 +202,5 @@ describe("internal delete agreement", () => {
         new Error("The specified bucket does not exist")
       )
     );
-  });
-  it("should throw delegationNotFound when the delegation is not present", async () => {
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      randomArrayItem(agreementDeletableStates)
-    );
-
-    await addOneAgreement(agreement);
-
-    const invalidDelegationid = generateId<DelegationId>();
-
-    await expect(
-      agreementService.internalDeleteAgreementAfterDelegationRevocation(
-        agreement.id,
-        invalidDelegationid,
-        generateId(),
-        genericLogger
-      )
-    ).rejects.toThrowError(delegationNotFound(invalidDelegationid));
   });
 });

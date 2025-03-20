@@ -17,8 +17,6 @@ import {
   authorizationEventToBinaryData,
   clientKind,
   generateId,
-  genericInternalError,
-  invalidKey,
   purposeVersionState,
   unsafeBrandId,
   ProducerKeychain,
@@ -103,6 +101,7 @@ import {
   assertOrganizationIsEServiceProducer,
   assertKeyDoesNotAlreadyExist,
   assertRequesterIsDelegateConsumer,
+  assertSecurityRoleIsClientMember,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -578,17 +577,18 @@ export function authorizationServiceBuilder(
     async getClientKeys({
       clientId,
       userIds,
-      organizationId,
-      logger,
+      ctx: { authData, logger },
     }: {
       clientId: ClientId;
       userIds: UserId[];
-      organizationId: TenantId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<Key[]> {
       logger.info(`Retrieving keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      assertSecurityRoleIsClientMember(authData, client.data);
+
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
       if (userIds.length > 0) {
         return client.data.keys.filter((k) => userIds.includes(k.userId));
       } else {
@@ -678,19 +678,19 @@ export function authorizationServiceBuilder(
       );
     },
 
-    async createKeys({
+    async createKey({
       clientId,
       authData,
-      keysSeeds,
+      keySeed,
       correlationId,
       logger,
     }: {
       clientId: ClientId;
       authData: AuthData;
-      keysSeeds: authorizationApi.KeysSeed;
+      keySeed: authorizationApi.KeySeed;
       correlationId: CorrelationId;
       logger: Logger;
-    }): Promise<{ client: Client; showUsers: boolean }> {
+    }): Promise<Key> {
       logger.info(`Creating keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(
@@ -699,7 +699,7 @@ export function authorizationServiceBuilder(
       );
       assertClientKeysCountIsBelowThreshold(
         clientId,
-        client.data.keys.length + keysSeeds.length
+        client.data.keys.length + 1
       );
       if (!client.data.users.includes(authData.userId)) {
         throw userNotFound(authData.userId, authData.selfcareId);
@@ -714,14 +714,7 @@ export function authorizationServiceBuilder(
         correlationId,
       });
 
-      if (keysSeeds.length !== 1) {
-        throw genericInternalError("Wrong number of keys");
-      }
-      const keySeed = keysSeeds[0];
       const jwk = createJWK(keySeed.key);
-      if (jwk.kty !== "RSA") {
-        throw invalidKey(keySeed.key, "Not an RSA key");
-      }
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -747,10 +740,7 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return {
-        client: updatedClient,
-        showUsers: true,
-      };
+      return newKey;
     },
     async getClientKeyById({
       clientId,
@@ -1095,11 +1085,6 @@ export function authorizationServiceBuilder(
       });
 
       const jwk = createJWK(keySeed.key);
-
-      if (jwk.kty !== "RSA") {
-        throw invalidKey(keySeed.key, "Not an RSA key");
-      }
-
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),

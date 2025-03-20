@@ -1,11 +1,11 @@
 import { fail } from "assert";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
   getMockEService,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -100,7 +100,7 @@ describe.each([
       vi.setSystemTime(currentExecutionTime);
 
       const delegatorId = generateId<TenantId>();
-      const authData = getRandomAuthData(delegatorId);
+      const authData = getMockAuthData(delegatorId);
       const delegator = {
         ...getMockTenant(delegatorId),
         externalId: {
@@ -132,12 +132,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       );
 
       const expectedDelegation: Delegation = {
@@ -148,7 +143,6 @@ describe.each([
         kind,
         state: delegationState.waitingForApproval,
         createdAt: currentExecutionTime,
-        submittedAt: currentExecutionTime,
         stamps: {
           submission: {
             who: authData.userId,
@@ -170,7 +164,7 @@ describe.each([
       vi.setSystemTime(currentExecutionTime);
 
       const delegatorId = generateId<TenantId>();
-      const authData = getRandomAuthData(delegatorId);
+      const authData = getMockAuthData(delegatorId);
       const delegator = {
         ...getMockTenant(delegatorId),
         externalId: {
@@ -214,12 +208,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       );
 
       const expectedDelegation: Delegation = {
@@ -230,7 +219,6 @@ describe.each([
         kind,
         state: delegationState.waitingForApproval,
         createdAt: currentExecutionTime,
-        submittedAt: currentExecutionTime,
         stamps: {
           submission: {
             who: authData.userId,
@@ -250,7 +238,7 @@ describe.each([
     `should throw a delegationAlreadyExists error when a ${kind} in state %s already exists with same delegator, delegate and eservice`,
     async (activeDelegationState) => {
       const delegatorId = generateId<TenantId>();
-      const authData = getRandomAuthData(delegatorId);
+      const authData = getMockAuthData(delegatorId);
       const delegator = {
         ...getMockTenant(delegatorId),
         externalId: {
@@ -332,12 +320,7 @@ describe.each([
             delegateId: delegate.id,
             eserviceId: eservice.id,
           },
-          {
-            authData,
-            logger: genericLogger,
-            correlationId: generateId(),
-            serviceName: "DelegationServiceTest",
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         delegationAlreadyExists(
@@ -351,7 +334,7 @@ describe.each([
 
   it("should throw a tenantNotFound error if delegated tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -371,19 +354,14 @@ describe.each([
           delegateId,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(delegateId));
   });
 
   it("should throw a tenantNotFound error if delegator tenant does not exist", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
 
     const delegate = {
       ...getMockTenant(),
@@ -405,19 +383,14 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(delegatorId));
   });
 
   it("should throw an invalidDelegatorAndDelegateAreSame error if delegatorId and delegateId is the same", async () => {
     const sameTenantId = generateId<TenantId>();
-    const authData = getRandomAuthData(sameTenantId);
+    const authData = getMockAuthData(sameTenantId);
 
     await expect(
       createFn(
@@ -425,19 +398,14 @@ describe.each([
           delegateId: sameTenantId,
           eserviceId: generateId<EServiceId>(),
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(delegatorAndDelegateSameIdError());
   });
 
   it("should throw a originNotCompliant error if delegator has externalId origin not compliant", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -470,19 +438,14 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(originNotCompliant(delegator, "Delegator"));
   });
 
   it("should throw a originNotCompliant error if delegate has externalId origin not compliant", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -519,19 +482,14 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(originNotCompliant(delegate, "Delegate"));
   });
 
   it("should throw an eserviceNotFound error if Eservice does not exist", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -560,19 +518,14 @@ describe.each([
           delegateId: delegate.id,
           eserviceId,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eserviceNotFound(eserviceId));
   });
 
   it(`should throw a tenantNotAllowedToDelegation error if delegate tenant has no ${kind} feature`, async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegator = {
       ...getMockTenant(delegatorId),
       externalId: {
@@ -597,12 +550,7 @@ describe.each([
           delegateId: delegate.id,
           eserviceId: eservice.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotAllowedToDelegation(delegate.id, kind));
   });

@@ -12,7 +12,7 @@ import {
   randomArrayItem,
   getMockDelegation,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -36,6 +36,7 @@ import {
   UserId,
   delegationKind,
   delegationState,
+  ListResult,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -300,14 +301,14 @@ export const authDataAndDelegationsFromRequesterIs = (
 } =>
   match(requesterIs)
     .with("Producer", () => ({
-      authData: getRandomAuthData(agreement.producerId),
+      authData: getMockAuthData(agreement.producerId),
       producerDelegation: undefined,
       delegateProducer: undefined,
       consumerDelegation: undefined,
       delegateConsumer: undefined,
     }))
     .with("Consumer", () => ({
-      authData: getRandomAuthData(agreement.consumerId),
+      authData: getMockAuthData(agreement.consumerId),
       producerDelegation: undefined,
       delegateProducer: undefined,
       consumerDelegation: undefined,
@@ -324,7 +325,7 @@ export const authDataAndDelegationsFromRequesterIs = (
       });
 
       return {
-        authData: getRandomAuthData(delegateProducer.id),
+        authData: getMockAuthData(delegateProducer.id),
         producerDelegation,
         delegateProducer,
         consumerDelegation: undefined,
@@ -341,7 +342,7 @@ export const authDataAndDelegationsFromRequesterIs = (
         eserviceId: agreement.eserviceId,
       });
       return {
-        authData: getRandomAuthData(delegateConsumer.id),
+        authData: getMockAuthData(delegateConsumer.id),
         consumerDelegation,
         delegateConsumer,
         producerDelegation: undefined,
@@ -370,4 +371,15 @@ export async function addDelegationsAndDelegates({
     await addOneDelegation(consumerDelegation);
     await addOneTenant(delegateConsumer);
   }
+}
+
+export function expectSinglePageListResult<T>(
+  actual: ListResult<T>,
+  expected: T[]
+): void {
+  expect(actual).toEqual({
+    totalCount: expected.length,
+    results: expect.arrayContaining(expected),
+  });
+  expect(actual.results).toHaveLength(expected.length);
 }

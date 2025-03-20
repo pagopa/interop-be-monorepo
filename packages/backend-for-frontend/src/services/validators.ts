@@ -7,6 +7,7 @@ import {
 import {
   delegationKind,
   delegationState,
+  EService,
   EServiceId,
   TenantId,
 } from "pagopa-interop-models";
@@ -20,8 +21,10 @@ import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
 import { DelegationProcessClient } from "../clients/clientsProvider.js";
 import {
   delegatedEserviceNotExportable,
+  eserviceIsNotDraft,
   invalidEServiceRequester,
   notValidDescriptor,
+  templateInstanceNotAllowed,
 } from "../model/errors.js";
 import {
   agreementApiState,
@@ -193,7 +196,27 @@ export function hasCertifiedAttributes(
 export function verifyExportEligibility(
   descriptor: catalogApi.EServiceDescriptor
 ): void {
-  if (isValidDescriptor(descriptor)) {
+  if (!isValidDescriptor(descriptor)) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertIsDraftEservice(eservice: catalogApi.EService): void {
+  if (
+    eservice.descriptors.some(
+      (d) => d.state !== catalogApi.EServiceDescriptorState.Values.DRAFT
+    )
+  ) {
+    throw eserviceIsNotDraft(eservice.id);
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  eservice: catalogApi.EService
+): asserts eservice is catalogApi.EService & {
+  templateRef: NonNullable<EService["templateRef"]>;
+} {
+  if (eservice.templateRef !== undefined) {
+    throw templateInstanceNotAllowed(eservice.id, eservice.templateRef.id);
   }
 }
