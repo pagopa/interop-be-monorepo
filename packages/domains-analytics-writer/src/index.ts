@@ -1,4 +1,4 @@
-import { EachMessagePayload } from "kafkajs";
+import { EachBatchPayload, EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
   genericLogger,
@@ -9,7 +9,6 @@ import {
   unsafeBrandId,
   generateId,
   CorrelationId,
-  kafkaMessageProcessError,
   EServiceEvent,
   AgreementEvent,
   PurposeEvent,
@@ -18,9 +17,13 @@ import {
   DelegationEvent,
   TenantEvent,
 } from "pagopa-interop-models";
-import { runConsumer } from "kafka-iam-auth";
+import { runBatchConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
-import { config } from "./config/config.js";
+import {
+  baseConsumerConfig,
+  config,
+  batchConsumerConfig,
+} from "./config/config.js";
 import { handleCatalogMessageV1 } from "./handlers/catalog/consumerServiceV1.js";
 import { handleAgreementMessageV1 } from "./handlers/agreement/consumerServiceV1.js";
 import { handleAgreementMessageV2 } from "./handlers/agreement/consumerServiceV2.js";
@@ -34,11 +37,9 @@ import { handleCatalogMessageV2 } from "./handlers/catalog/consumerServiceV2.js"
 import { handleAttributeMessageV1 } from "./handlers/attribute/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "./handlers/tenant/consumerServiceV2.js";
 
-export async function processMessage(
+async function processMessage(
   messagePayload: EachMessagePayload
 ): Promise<void> {
-  const { partition, message } = messagePayload;
-
   const { decodedMessage, handler } = match(messagePayload.topic)
     .with(config.catalogTopic, () => {
       const decodedMessage = decodeKafkaMessage(
@@ -168,37 +169,45 @@ export async function processMessage(
   });
 
   loggerInstance.info(
-    `Processing ${decodedMessage.type} message - Partition ${partition} - Offset ${message.offset}`
+    `Processing ${decodedMessage.type} message - Partition ${messagePayload.partition} - Offset ${messagePayload.message.offset}`
   );
 
   await handler();
 }
 
-try {
-  await runConsumer(
-    config,
-    [
-      config.attributeTopic,
-      config.agreementTopic,
-      config.catalogTopic,
-      config.purposeTopic,
-      config.tenantTopic,
-      config.delegationTopic,
-      config.authorizationTopic,
-    ],
-    async (payload) => {
-      try {
-        await processMessage(payload);
-      } catch (err) {
-        throw kafkaMessageProcessError(
-          payload.topic,
-          payload.partition,
-          payload.message.offset,
-          err
-        );
-      }
-    }
+async function processBatch({
+  batch,
+  heartbeat,
+  pause,
+}: EachBatchPayload): Promise<void> {
+  for (const message of batch.messages) {
+    await processMessage({
+      topic: batch.topic,
+      partition: batch.partition,
+      heartbeat,
+      pause,
+      message,
+    });
+  }
+
+  genericLogger.info(
+    `Handling audit messages. Partition number: ${
+      batch.partition
+    }. Offset: ${batch.firstOffset()} -> ${batch.lastOffset()}`
   );
-} catch (e) {
-  genericLogger.error(`An error occurred during initialization:\n${e}`);
 }
+
+await runBatchConsumer(
+  baseConsumerConfig,
+  batchConsumerConfig,
+  [
+    config.attributeTopic,
+    config.agreementTopic,
+    config.catalogTopic,
+    config.purposeTopic,
+    config.tenantTopic,
+    config.delegationTopic,
+    config.authorizationTopic,
+  ],
+  processBatch
+);
