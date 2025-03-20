@@ -385,11 +385,11 @@ paths:
             format: uuid
       responses:
         "200":
-          description: Upgraded EService Instance
+          description: Upgraded EService Descriptor created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceDescriptor"
         "404":
           description: E-Service not found
           content:

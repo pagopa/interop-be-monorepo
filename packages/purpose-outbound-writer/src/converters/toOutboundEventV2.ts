@@ -50,6 +50,7 @@ export function toOutboundEventV2(
           purpose: msg.data.purpose && toOutboundPurposeV2(msg.data.purpose),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -74,6 +75,7 @@ export function toOutboundEventV2(
           versionId: msg.data.versionId,
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -87,6 +89,7 @@ export function toOutboundEventV2(
         purpose: msg.data.purpose && toOutboundPurposeV2(msg.data.purpose),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "PurposeDeletedByRevokedDelegation" }, (msg) => ({
@@ -98,6 +101,7 @@ export function toOutboundEventV2(
         delegationId: msg.data.delegationId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "PurposeVersionArchivedByRevokedDelegation" }, (msg) => ({
@@ -110,6 +114,7 @@ export function toOutboundEventV2(
         delegationId: msg.data.delegationId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .exhaustive();

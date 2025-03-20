@@ -2,14 +2,15 @@
 import {
   decodeProtobufPayload,
   getMockAgreement,
-  getMockAuthData,
   getMockClient,
+  getMockContext,
   getMockDelegation,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
@@ -27,7 +28,6 @@ import {
   purposeVersionState,
   toClientV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   purposeDelegationNotFound,
@@ -93,12 +93,7 @@ describe("addClientPurpose", async () => {
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
       seed: { purposeId: mockPurpose.id },
-      ctx: {
-        serviceName: "test",
-        authData: getMockAuthData(mockConsumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-      },
+      ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
     });
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -176,12 +171,9 @@ describe("addClientPurpose", async () => {
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
       seed: { purposeId: mockPurpose.id },
-      ctx: {
-        serviceName: "test",
+      ctx: getMockContext({
         authData: getMockAuthData(mockClient.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-      },
+      }),
     });
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -258,12 +250,9 @@ describe("addClientPurpose", async () => {
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
       seed: { purposeId: mockPurpose.id },
-      ctx: {
-        serviceName: "test",
+      ctx: getMockContext({
         authData: getMockAuthData(mockClient.consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-      },
+      }),
     });
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -331,12 +320,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
@@ -383,12 +367,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
@@ -436,12 +415,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
   });
@@ -488,12 +462,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnPurpose(mockConsumerId, mockPurpose.id)
@@ -541,12 +510,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(eserviceNotFound(mockEservice.id));
   });
@@ -583,12 +547,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(
       noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId)
@@ -642,12 +601,7 @@ describe("addClientPurpose", async () => {
         authorizationService.addClientPurpose({
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
-          ctx: {
-            serviceName: "test",
-            authData: getMockAuthData(mockConsumerId),
-            correlationId: generateId(),
-            logger: genericLogger,
-          },
+          ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
         })
       ).rejects.toThrowError(
         noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId)
@@ -698,12 +652,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(mockDescriptor.id);
   });
@@ -751,12 +700,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(
       noPurposeVersionsFoundInRequiredState(mockPurpose.id)
@@ -814,12 +758,7 @@ describe("addClientPurpose", async () => {
         authorizationService.addClientPurpose({
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
-          ctx: {
-            serviceName: "test",
-            authData: getMockAuthData(mockConsumerId),
-            correlationId: generateId(),
-            logger: genericLogger,
-          },
+          ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
         })
       ).rejects.toThrowError(
         noPurposeVersionsFoundInRequiredState(mockPurpose.id)
@@ -870,12 +809,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(
       purposeAlreadyLinkedToClient(mockPurpose.id, mockClient.id)
@@ -935,12 +869,7 @@ describe("addClientPurpose", async () => {
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
       seed: { purposeId: mockPurpose.id },
-      ctx: {
-        serviceName: "test",
-        authData: getMockAuthData(delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-      },
+      ctx: getMockContext({ authData: getMockAuthData(delegateId) }),
     });
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -1018,12 +947,7 @@ describe("addClientPurpose", async () => {
     await authorizationService.addClientPurpose({
       clientId: mockClient.id,
       seed: { purposeId: mockPurpose.id },
-      ctx: {
-        serviceName: "test",
-        authData: getMockAuthData(consumerId),
-        correlationId: generateId(),
-        logger: genericLogger,
-      },
+      ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
     });
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -1103,12 +1027,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(delegateId) }),
       })
     ).rejects.toThrowError(purposeDelegationNotFound(delegation.id));
   });
@@ -1167,12 +1086,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(delegateId) }),
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnPurpose(delegateId, mockPurpose.id, delegation.id)
@@ -1233,12 +1147,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(delegateId) }),
       })
     ).rejects.toThrowError(eserviceNotDelegableForClientAccess(mockEservice));
   });
@@ -1297,12 +1206,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(delegateId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(delegateId) }),
       })
     ).rejects.toThrowError(
       noAgreementFoundInRequiredState(mockEservice.id, delegation.delegatorId)
