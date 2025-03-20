@@ -1,0 +1,6 @@
+description: QA Team
+conditions:
+  - attribute: userId
+    operator: in
+    value:
+      - "efff86e9-1145-447f-a54a-85ac7f72e8b2"

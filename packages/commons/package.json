@@ -21,11 +21,12 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@apidevtools/swagger-parser": "10.1.0",
-    "@types/adm-zip": "0.5.5",
     "@aws-sdk/client-kms": "3.693.0",
     "@aws-sdk/client-s3": "3.693.0",
     "@aws-sdk/client-sesv2": "3.693.0",
     "@aws-sdk/s3-request-presigner": "3.693.0",
+    "@featurevisor/types": "1.33.0",
+    "@types/adm-zip": "0.5.5",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "adm-zip": "0.5.15",

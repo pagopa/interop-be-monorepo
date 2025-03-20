@@ -1,0 +1,18 @@
+{
+  "features": {
+    "notification": {
+      "traffic": [
+        {
+          "key": "1",
+          "percentage": 100000,
+          "allocation": []
+        },
+        {
+          "key": "2",
+          "percentage": 0,
+          "allocation": []
+        }
+      ]
+    }
+  }
+}

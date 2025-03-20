@@ -1,0 +1,27 @@
+description: Notification
+tags:
+  - all
+
+bucketBy: userId
+
+environments:
+  dev:
+    rules:
+      - key: "1"
+        segments: "*"
+        percentage: 100
+  att:
+    rules:
+      - key: "1"
+        segments: "*"
+        percentage: 100
+  prod:
+    rules:
+      - key: "1"
+        segments:
+          - qa
+        percentage: 100
+
+      - key: "2"
+        segments: "*"
+        percentage: 0
