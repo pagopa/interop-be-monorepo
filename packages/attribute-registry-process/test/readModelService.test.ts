@@ -8,7 +8,7 @@ import {
   attributeKind,
   generateId,
 } from "pagopa-interop-models";
-import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
+import { getMockAttribute } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import { attributeNotFound } from "../src/model/domain/errors.js";
 import {
