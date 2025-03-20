@@ -1794,7 +1794,7 @@ export function catalogServiceBuilder(
         `Checking e-service name availability ${name} for producer ${authData.organizationId}`
       );
 
-      const templateInstances = await getAllFromPaginated((offset, limit) =>
+      const eservices = await getAllFromPaginated((offset, limit) =>
         catalogProcessClient.getEServices({
           headers,
           queries: {
@@ -1806,7 +1806,7 @@ export function catalogServiceBuilder(
         })
       );
 
-      return !templateInstances.some((e) => e.name === name);
+      return !eservices.some((e) => e.name === name);
     },
   };
 }
