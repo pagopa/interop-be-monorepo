@@ -1769,5 +1769,27 @@ export function catalogServiceBuilder(
 
       return { id: descriptorId };
     },
+    async checkEServiceNameAvailability(
+      name: string,
+      { headers, logger, authData }: WithLogger<BffAppContext>
+    ): Promise<boolean> {
+      logger.info(
+        `Checking e-service name availability ${name} for producer ${authData.organizationId}`
+      );
+
+      const templateInstances = await getAllFromPaginated((offset, limit) =>
+        catalogProcessClient.getEServices({
+          headers,
+          queries: {
+            limit,
+            offset,
+            producersIds: [authData.organizationId],
+            name,
+          },
+        })
+      );
+
+      return templateInstances.some((e) => e.name === name);
+    },
   };
 }
