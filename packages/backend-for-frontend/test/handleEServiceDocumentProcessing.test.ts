@@ -8,7 +8,6 @@ import {
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
 } from "pagopa-interop-models";
-import { ZodError } from "zod";
 import { extractEServiceUrlsFrom } from "pagopa-interop-commons";
 
 const readFileContent = async (fileName: string): Promise<string> => {
