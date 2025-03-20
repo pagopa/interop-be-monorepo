@@ -3,22 +3,22 @@ import { randomUUID } from "crypto";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
+  CreateEvent,
   DB,
+  eventRepository,
   FileManager,
+  formatDateddMMyyyyHHmmss,
+  hasUserRole,
   InternalAuthData,
   interpolateApiSpec,
   Logger,
   M2MAuthData,
-  UIAuthData,
-  WithLogger,
-  CreateEvent,
-  eventRepository,
-  formatDateddMMyyyyHHmmss,
-  hasUserRole,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
+  UIAuthData,
   userRole,
   verifyAndCreateDocument,
+  WithLogger,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
