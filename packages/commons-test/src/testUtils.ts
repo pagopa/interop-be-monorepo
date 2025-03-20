@@ -78,6 +78,7 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
+  agreementApprovalPolicy,
   EServiceTemplateVersionState,
 } from "pagopa-interop-models";
 import { AuthData, dateToSeconds } from "pagopa-interop-commons";
@@ -706,6 +707,7 @@ export const getMockEServiceTemplateVersion = (
   docs: [],
   state,
   voucherLifespan: 60,
+  agreementApprovalPolicy: agreementApprovalPolicy.automatic,
 });
 
 export const getMockEServiceTemplate = (
@@ -716,12 +718,11 @@ export const getMockEServiceTemplate = (
   id: eserviceTemplateId,
   creatorId,
   name: "eService template name",
-  intendedTarget: "eService template inteded target",
+  intendedTarget: "eService template intended target",
   description: "eService template description",
   createdAt: new Date(),
   technology: technology.rest,
   versions,
   riskAnalysis: [],
   mode: "Deliver",
-  isSignalHubEnabled: true,
 });
