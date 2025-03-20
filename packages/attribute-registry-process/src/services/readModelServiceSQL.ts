@@ -13,7 +13,7 @@ import {
   aggregateAttribute,
   aggregateAttributeArray,
   AttributeReadModelServiceSQL,
-  TenantReadModelServiceSQL,
+  TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
 import { and, count, ilike, inArray } from "drizzle-orm";
@@ -22,7 +22,7 @@ import { and, count, ilike, inArray } from "drizzle-orm";
 export function readModelServiceBuilderSQL(
   readModelDB: ReturnType<typeof drizzle>,
   attributeReadModelService: AttributeReadModelServiceSQL,
-  tenantReadModelService: TenantReadModelServiceSQL
+  tenantReadModelService: TenantReadModelService
 ) {
   return {
     async getAttributesByIds({

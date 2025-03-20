@@ -9,15 +9,13 @@ import {
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
-  ReadModelSQLDbConfig,
-  FeatureFlagSQL,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   attributeReadModelServiceBuilderSQL,
   makeDrizzleConnection,
-  tenantReadModelServiceBuilderSQL,
+  tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
@@ -40,7 +38,7 @@ import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
 const db = makeDrizzleConnection(config);
 const attributeReadModelServiceSQL = attributeReadModelServiceBuilderSQL(db);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilderSQL(db);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
 
 const readModelRepository = ReadModelRepository.init(config);
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
@@ -50,15 +48,10 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   tenantReadModelServiceSQL
 );
 
-const SQLFeatureFlagEnabled =
-  FeatureFlagSQL.safeParse(process.env).success && config.featureFlagSQL;
-
-const SQLReadModelConfigured = ReadModelSQLDbConfig.safeParse(
-  process.env
-).success;
-
 const readModelService =
-  SQLFeatureFlagEnabled && SQLReadModelConfigured
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
     ? readModelServiceSQL
     : oldReadModelService;
 
