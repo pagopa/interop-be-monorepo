@@ -37,6 +37,14 @@ export async function handleCatalogMessageV2(
       { type: "EServiceIsConsumerDelegableDisabled" },
       { type: "EServiceIsClientAccessDelegableEnabled" },
       { type: "EServiceIsClientAccessDelegableDisabled" },
+      { type: "EServiceNameUpdatedByTemplateUpdate" },
+      { type: "EServiceNameUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
+      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
       async () => Promise.resolve()
     )
     .exhaustive();
