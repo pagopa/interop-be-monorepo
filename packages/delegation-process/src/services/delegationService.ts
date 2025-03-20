@@ -29,6 +29,7 @@ import {
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { delegationApi } from "pagopa-interop-api-clients";
+import { Unleash } from "unleash-client";
 import { config } from "../config/config.js";
 import {
   delegationNotFound,
@@ -110,7 +111,8 @@ export function delegationServiceBuilder(
   readModelService: ReadModelService,
   dbInstance: DB,
   pdfGenerator: PDFGenerator,
-  fileManager: FileManager
+  fileManager: FileManager,
+  _: Unleash
 ) {
   const repository = eventRepository(dbInstance, delegationEventToBinaryDataV2);
 
@@ -119,10 +121,12 @@ export function delegationServiceBuilder(
       delegateId,
       eserviceId,
       kind,
+      delegationReason,
     }: {
       delegateId: TenantId;
       eserviceId: EServiceId;
       kind: DelegationKind;
+      delegationReason: string | undefined;
     },
     { authData, logger, correlationId }: WithLogger<AppContext>
   ): Promise<Delegation> {
@@ -182,6 +186,7 @@ export function delegationServiceBuilder(
           when: creationDate,
         },
       },
+      delegationReason,
     };
 
     await repository.createEvent(
@@ -494,9 +499,11 @@ export function delegationServiceBuilder(
       {
         delegateId,
         eserviceId,
+        delegationReason,
       }: {
         delegateId: TenantId;
         eserviceId: EServiceId;
+        delegationReason: string | undefined;
       },
       ctx: WithLogger<AppContext>
     ): Promise<Delegation> {
@@ -505,6 +512,7 @@ export function delegationServiceBuilder(
           delegateId,
           eserviceId,
           kind: delegationKind.delegatedProducer,
+          delegationReason,
         },
         ctx
       );
@@ -513,9 +521,11 @@ export function delegationServiceBuilder(
       {
         delegateId,
         eserviceId,
+        delegationReason,
       }: {
         delegateId: TenantId;
         eserviceId: EServiceId;
+        delegationReason: string | undefined;
       },
       ctx: WithLogger<AppContext>
     ): Promise<Delegation> {
@@ -524,6 +534,7 @@ export function delegationServiceBuilder(
           delegateId,
           eserviceId,
           kind: delegationKind.delegatedConsumer,
+          delegationReason,
         },
         ctx
       );
@@ -645,6 +656,10 @@ export function delegationServiceBuilder(
       );
 
       return await readModelService.getConsumerEservices(filters);
+    },
+
+    async updateDelegationReason(_: DelegationId, __: string): Promise<void> {
+      // TODO: implement
     },
   };
 }

@@ -118,5 +118,6 @@ export const fromDelegationV2 = (input: DelegationV2): Delegation => {
       input.revocationContract &&
       fromDelegationContractDocumentV2(input.revocationContract),
     stamps: fromDelegationStampsV2(input.stamps),
+    delegationReason: input.delegationReason,
   };
 };

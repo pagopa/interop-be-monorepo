@@ -754,6 +754,62 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /delegations/{delegationId}/delegationReason/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      description: Update a delegation reason
+      summary: Update a delegation reason
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationReason"
+        required: true
+        description: Payload for delegation rejection
+      tags:
+        - delegation
+      operationId: updateDelegationReason
+      responses:
+        "204":
+          description: Delegation reason updated
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Delegation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       description: Returns ok
@@ -885,6 +941,8 @@ components:
           $ref: "#/components/schemas/DelegationContractDocument"
         stamps:
           $ref: "#/components/schemas/DelegationStamps"
+        delegationReason:
+          type: string
       required:
         - id
         - delegatorId
@@ -968,6 +1026,8 @@ components:
         delegateId:
           type: string
           format: uuid
+        delegationReason:
+          type: string
       required:
         - eserviceId
         - delegateId
@@ -979,6 +1039,14 @@ components:
           type: string
       required:
         - rejectionReason
+    DelegationReason:
+      type: object
+      additionalProperties: false
+      properties:
+        delegationReason:
+          type: string
+      required:
+        - delegationReason
     Problem:
       properties:
         type:

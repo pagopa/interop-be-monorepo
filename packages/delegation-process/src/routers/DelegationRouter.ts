@@ -13,7 +13,13 @@ import {
   userRoles,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceId,
+  TenantId,
+  genericError,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { Unleash } from "unleash-client";
 import { ReadModelService } from "../services/readModelService.js";
 import {
   apiDelegationKindToDelegationKind,
@@ -45,7 +51,9 @@ const delegationRouter = (
   readModelService: ReadModelService,
   eventStore: DB,
   pdfGenerator: PDFGenerator,
-  fileManager: FileManager
+  fileManager: FileManager,
+  f: Unleash
+  // eslint-disable-next-line max-params
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -55,7 +63,8 @@ const delegationRouter = (
     readModelService,
     eventStore,
     pdfGenerator,
-    fileManager
+    fileManager,
+    f
   );
 
   delegationRouter
@@ -191,6 +200,43 @@ const delegationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/delegations/:delegationId/delegationReason/update",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const { delegationId } = req.params;
+
+        try {
+          if (!f.isEnabled("delegation-reason")) {
+            throw genericError("Feature delegation-reason is not enabled");
+          }
+
+          await delegationService.updateDelegationReason(
+            unsafeBrandId(delegationId),
+            req.body.delegationReason
+          );
+
+          return res.status(200).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            () => 500,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating delegationReason of delegation ${req.params.delegationId}`
+          );
+
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   const delegationProducerRouter = ctx.router(delegationApi.producerApi.api, {
@@ -209,6 +255,7 @@ const delegationRouter = (
             {
               delegateId: unsafeBrandId<TenantId>(req.body.delegateId),
               eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+              delegationReason: req.body.delegationReason,
             },
             ctx
           );
@@ -328,6 +375,9 @@ const delegationRouter = (
             {
               delegateId: unsafeBrandId<TenantId>(req.body.delegateId),
               eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+              delegationReason: f.isEnabled("delegation-reason")
+                ? req.body.delegationReason
+                : undefined,
             },
             ctx
           );

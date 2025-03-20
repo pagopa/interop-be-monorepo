@@ -56,6 +56,7 @@ function toOutboundDelegationV2(
       delegation.revocationContract &&
       toOuboundDelegationContractDocumentV2(delegation.revocationContract),
     stamps: delegation.stamps && toOutboundStampsV2(delegation.stamps),
+    delegationReason: undefined, // TODO: update outbound models
   };
 }
 
