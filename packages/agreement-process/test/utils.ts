@@ -12,7 +12,7 @@ import {
   randomArrayItem,
   getMockDelegation,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -301,14 +301,14 @@ export const authDataAndDelegationsFromRequesterIs = (
 } =>
   match(requesterIs)
     .with("Producer", () => ({
-      authData: getRandomAuthData(agreement.producerId),
+      authData: getMockAuthData(agreement.producerId),
       producerDelegation: undefined,
       delegateProducer: undefined,
       consumerDelegation: undefined,
       delegateConsumer: undefined,
     }))
     .with("Consumer", () => ({
-      authData: getRandomAuthData(agreement.consumerId),
+      authData: getMockAuthData(agreement.consumerId),
       producerDelegation: undefined,
       delegateProducer: undefined,
       consumerDelegation: undefined,
@@ -325,7 +325,7 @@ export const authDataAndDelegationsFromRequesterIs = (
       });
 
       return {
-        authData: getRandomAuthData(delegateProducer.id),
+        authData: getMockAuthData(delegateProducer.id),
         producerDelegation,
         delegateProducer,
         consumerDelegation: undefined,
@@ -342,7 +342,7 @@ export const authDataAndDelegationsFromRequesterIs = (
         eserviceId: agreement.eserviceId,
       });
       return {
-        authData: getRandomAuthData(delegateConsumer.id),
+        authData: getMockAuthData(delegateConsumer.id),
         consumerDelegation,
         delegateConsumer,
         producerDelegation: undefined,

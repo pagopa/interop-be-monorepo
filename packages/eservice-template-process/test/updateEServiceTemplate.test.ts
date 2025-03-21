@@ -2,11 +2,12 @@
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockValidRiskAnalysis,
+  getMockAuthData,
   randomArrayItem,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
@@ -61,12 +62,9 @@ describe("update EService template", () => {
         eserviceTemplateToApiUpdateEServiceTemplateSeed(
           updatedEServiceTemplate
         ),
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -145,12 +143,9 @@ describe("update EService template", () => {
         eserviceTemplateToApiUpdateEServiceTemplateSeed(
           updatedEServiceTemplate
         ),
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -207,12 +202,9 @@ describe("update EService template", () => {
           mode: "DELIVER",
           isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
         },
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       );
 
     const expectedEserviceTemplate: EServiceTemplate = {
@@ -252,12 +244,7 @@ describe("update EService template", () => {
       eserviceTemplateService.updateEServiceTemplate(
         mockEServiceTemplate.id,
         eserviceTemplateToApiUpdateEServiceTemplateSeed(mockEServiceTemplate),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -280,12 +267,9 @@ describe("update EService template", () => {
         eserviceTemplateService.updateEServiceTemplate(
           eserviceTemplate.id,
           eserviceTemplateToApiUpdateEServiceTemplateSeed(eserviceTemplate),
-          {
+          getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         )
       ).rejects.toThrowError(
         eserviceTemplateNotInDraftState(eserviceTemplate.id)
@@ -298,12 +282,9 @@ describe("update EService template", () => {
       eserviceTemplateService.updateEServiceTemplate(
         mockEServiceTemplate.id,
         eserviceTemplateToApiUpdateEServiceTemplateSeed(mockEServiceTemplate),
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
   });
@@ -333,12 +314,9 @@ describe("update EService template", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate1.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateDuplicate("ESERVICE NAME ALREADY IN USE")
