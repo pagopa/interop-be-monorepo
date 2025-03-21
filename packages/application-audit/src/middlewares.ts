@@ -4,6 +4,7 @@ import { genericInternalError } from "pagopa-interop-models";
 import {
   AppContext,
   ApplicationAuditProducerConfig,
+  AuthData,
   fromAppContext,
   JWTConfig,
   readAuthDataFromJwtToken,
@@ -263,11 +264,17 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
 
         const token: string | undefined = "todo";
 
-        const authData = token
-          ? readAuthDataFromJwtToken(
-              await verifyJwtToken(token, config, ctxWithLogger.logger)
-            )
-          : undefined;
+        // eslint-disable-next-line functional/no-let
+        let authData: AuthData | undefined;
+
+        if (token) {
+          const { decoded } = await verifyJwtToken(
+            token,
+            config,
+            ctxWithLogger.logger
+          );
+          authData = readAuthDataFromJwtToken(decoded);
+        }
 
         if (!forwardedFor) {
           throw genericInternalError("The forwardedFor header is missing");
