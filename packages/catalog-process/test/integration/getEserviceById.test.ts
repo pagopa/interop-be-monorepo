@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { AuthData, userRoles, genericLogger } from "pagopa-interop-commons";
+import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
   Descriptor,
   descriptorState,
@@ -10,19 +10,22 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
-import { eServiceNotFound } from "../../src/model/domain/errors.js";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockDelegation,
+} from "pagopa-interop-commons-test";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
 } from "../mockUtils.js";
+import { eServiceNotFound } from "../../src/model/domain/errors.js";
 
 describe("get eservice by id", () => {
   const mockDescriptor = getMockDescriptor();
@@ -75,12 +78,10 @@ describe("get eservice by id", () => {
     };
     await addOneEService(eservice3);
 
-    const result = await catalogService.getEServiceById(eservice1.id, {
-      authData,
-      logger: genericLogger,
-      correlationId: generateId(),
-      serviceName: "",
-    });
+    const result = await catalogService.getEServiceById(
+      eservice1.id,
+      getMockContext({ authData })
+    );
     expect(result).toEqual(eservice1);
   });
 
@@ -88,12 +89,7 @@ describe("get eservice by id", () => {
     await addOneEService(mockEService);
     const notExistingId: EServiceId = generateId();
     expect(
-      catalogService.getEServiceById(notExistingId, {
-        authData: getMockAuthData(),
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      })
+      catalogService.getEServiceById(notExistingId, getMockContext({}))
     ).rejects.toThrowError(eServiceNotFound(notExistingId));
   });
 
@@ -110,12 +106,7 @@ describe("get eservice by id", () => {
       };
       await addOneEService(mockEService);
       expect(
-        catalogService.getEServiceById(eservice.id, {
-          authData: getMockAuthData(),
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        })
+        catalogService.getEServiceById(eservice.id, getMockContext({}))
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
     }
   );
@@ -136,12 +127,10 @@ describe("get eservice by id", () => {
       };
       await addOneEService(mockEService);
       expect(
-        catalogService.getEServiceById(eservice.id, {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        })
+        catalogService.getEServiceById(
+          eservice.id,
+          getMockContext({ authData })
+        )
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
     }
   );
@@ -152,12 +141,7 @@ describe("get eservice by id", () => {
     };
     await addOneEService(mockEService);
     expect(
-      catalogService.getEServiceById(eservice.id, {
-        authData: getMockAuthData(),
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      })
+      catalogService.getEServiceById(eservice.id, getMockContext({}))
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
   it("should throw eServiceNotFound if there are no descriptors (requester is the producer but not admin, nor api, nor support)", async () => {
@@ -175,12 +159,7 @@ describe("get eservice by id", () => {
     };
     await addOneEService(mockEService);
     expect(
-      catalogService.getEServiceById(eservice.id, {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      })
+      catalogService.getEServiceById(eservice.id, getMockContext({ authData }))
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -205,12 +184,10 @@ describe("get eservice by id", () => {
         userRoles: [userRoles.ADMIN_ROLE],
       };
       await addOneEService(eservice);
-      const result = await catalogService.getEServiceById(eservice.id, {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      });
+      const result = await catalogService.getEServiceById(
+        eservice.id,
+        getMockContext({ authData })
+      );
       expect(result.descriptors).toEqual([descriptorB]);
     }
   );
@@ -236,12 +213,10 @@ describe("get eservice by id", () => {
         userRoles: [userRoles.SECURITY_ROLE],
       };
       await addOneEService(eservice);
-      const result = await catalogService.getEServiceById(eservice.id, {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      });
+      const result = await catalogService.getEServiceById(
+        eservice.id,
+        getMockContext({ authData })
+      );
       expect(result.descriptors).toEqual([descriptorB]);
     }
   );
@@ -275,12 +250,10 @@ describe("get eservice by id", () => {
 
       await addOneEService(eservice);
       await addOneDelegation(delegation);
-      const result = await catalogService.getEServiceById(eservice.id, {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      });
+      const result = await catalogService.getEServiceById(
+        eservice.id,
+        getMockContext({ authData })
+      );
       expect(result.descriptors).toEqual([descriptorA, descriptorB]);
     }
   );
@@ -304,12 +277,10 @@ describe("get eservice by id", () => {
       userRoles: [userRoles.ADMIN_ROLE],
     };
     await addOneEService(eservice);
-    const result = await catalogService.getEServiceById(eservice.id, {
-      authData,
-      logger: genericLogger,
-      correlationId: generateId(),
-      serviceName: "",
-    });
+    const result = await catalogService.getEServiceById(
+      eservice.id,
+      getMockContext({ authData })
+    );
     expect(result.descriptors).toEqual([descriptorB]);
   });
   it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is the producer but not admin nor api, nor support)", async () => {
@@ -332,12 +303,10 @@ describe("get eservice by id", () => {
       userRoles: [userRoles.SECURITY_ROLE],
     };
     await addOneEService(eservice);
-    const result = await catalogService.getEServiceById(eservice.id, {
-      authData,
-      logger: genericLogger,
-      correlationId: generateId(),
-      serviceName: "",
-    });
+    const result = await catalogService.getEServiceById(
+      eservice.id,
+      getMockContext({ authData })
+    );
     expect(result.descriptors).toEqual([descriptorB]);
   });
   it("should not filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is delegate)", async () => {
@@ -367,12 +336,10 @@ describe("get eservice by id", () => {
     });
     await addOneEService(eservice);
     await addOneDelegation(delegation);
-    const result = await catalogService.getEServiceById(eservice.id, {
-      authData,
-      logger: genericLogger,
-      correlationId: generateId(),
-      serviceName: "",
-    });
+    const result = await catalogService.getEServiceById(
+      eservice.id,
+      getMockContext({ authData })
+    );
     expect(result.descriptors).toEqual([descriptorA, descriptorB]);
   });
 });

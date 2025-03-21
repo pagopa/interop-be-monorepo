@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockContext,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
   EService,
   toEServiceV2,
   EServiceDescriptionUpdatedByTemplateUpdateV2,
-  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import { eServiceNotFound } from "../../src/model/domain/errors.js";
@@ -17,7 +19,6 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockDocument,
   getMockDescriptor,
   getMockEService,
@@ -40,12 +41,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
     await catalogService.internalUpdateTemplateInstanceDescription(
       eservice.id,
       updatedDescription,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -75,12 +71,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
       catalogService.internalUpdateTemplateInstanceDescription(
         eservice.id,
         "eservice new description",
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });

@@ -1,12 +1,15 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockContext,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
   EService,
   EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
   toEServiceV2,
-  generateId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import {
@@ -21,7 +24,6 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockDescriptor,
   getMockEService,
   getMockDocument,
@@ -68,12 +70,7 @@ describe("delete Document", () => {
       eservice.id,
       descriptor.id,
       document.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -130,12 +127,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -152,12 +144,7 @@ describe("delete Document", () => {
         mockEService.id,
         mockDescriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -174,12 +161,7 @@ describe("delete Document", () => {
         eservice.id,
         mockDescriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)

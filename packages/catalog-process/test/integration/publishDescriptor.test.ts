@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   randomArrayItem,
   getMockTenant,
   getMockValidRiskAnalysis,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+  getMockContext,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -44,7 +45,6 @@ import {
   addOneDelegation,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
@@ -74,12 +74,11 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    await catalogService.publishDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.publishDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -136,12 +135,11 @@ describe("publish descriptor", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    await catalogService.publishDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.publishDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -211,12 +209,11 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.publishDescriptor(eservice.id, descriptor.id, {
-      authData: getMockAuthData(delegate.id),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.publishDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(delegate.id) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -263,12 +260,11 @@ describe("publish descriptor", () => {
       descriptors: [descriptor1, descriptor2],
     };
     await addOneEService(eservice);
-    await catalogService.publishDescriptor(eservice.id, descriptor2.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.publishDescriptor(
+      eservice.id,
+      descriptor2.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
     expect(writtenEvent).toMatchObject({
@@ -334,12 +330,11 @@ describe("publish descriptor", () => {
       consumerId: tenant.id,
     });
     await addOneAgreement(agreement);
-    await catalogService.publishDescriptor(eservice.id, descriptor2.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.publishDescriptor(
+      eservice.id,
+      descriptor2.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
     expect(writtenEvent).toMatchObject({
@@ -377,12 +372,11 @@ describe("publish descriptor", () => {
 
   it("should throw eServiceNotFound if the eService doesn't exist", async () => {
     await expect(
-      catalogService.publishDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        mockEService.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
@@ -393,12 +387,11 @@ describe("publish descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.publishDescriptor(eservice.id, mockDescriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
@@ -415,12 +408,11 @@ describe("publish descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({})
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -443,12 +435,11 @@ describe("publish descriptor", () => {
     await addOneDelegation(delegation);
 
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -464,12 +455,11 @@ describe("publish descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.published)
     );
@@ -487,12 +477,11 @@ describe("publish descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.deprecated)
     );
@@ -510,12 +499,11 @@ describe("publish descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.suspended)
     );
@@ -533,12 +521,11 @@ describe("publish descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptorState.archived)
     );
@@ -556,12 +543,11 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(eServiceDescriptorWithoutInterface(descriptor.id));
   });
 
@@ -581,12 +567,11 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(tenantNotFound(eservice.producerId));
   });
 
@@ -613,12 +598,11 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
 
@@ -649,12 +633,11 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(eServiceRiskAnalysisIsRequired(eservice.id));
   });
 
@@ -696,12 +679,11 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(riskAnalysisNotValid());
   });
 
@@ -721,12 +703,11 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
 
     expect(
-      catalogService.publishDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.publishDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(audienceCannotBeEmpty(descriptor.id));
   });
 });

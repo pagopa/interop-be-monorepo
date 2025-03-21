@@ -17,6 +17,7 @@ import {
   getMockAgreement,
   getMockAttribute,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockDescriptor,
@@ -24,7 +25,7 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test";
@@ -194,17 +195,12 @@ describe("submit agreement", () => {
     await addOneAgreement(getMockAgreement());
 
     const agreementId = generateId<AgreementId>();
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     await expect(
       agreementService.submitAgreement(
         agreementId,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
@@ -226,18 +222,13 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
     await addOneDelegation(consumerDelegation);
 
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
@@ -264,18 +255,13 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
     await addOneDelegation(consumerDelegation);
 
-    const authData = getRandomAuthData(agreement.consumerId);
+    const authData = getMockAuthData(agreement.consumerId);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
@@ -303,18 +289,13 @@ describe("submit agreement", () => {
     };
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -342,18 +323,13 @@ describe("submit agreement", () => {
     await addOneAgreement(agreement);
     await addOneAgreement(pendingAgreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       agreementAlreadyExists(consumer.id, agreement.eserviceId)
@@ -378,18 +354,13 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       consumerWithNotValidEmail(agreement.id, consumer.id)
@@ -421,18 +392,13 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       consumerWithNotValidEmail(agreement.id, consumer.id)
@@ -462,18 +428,13 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
@@ -511,18 +472,13 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
   });
@@ -560,18 +516,13 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
   });
@@ -609,18 +560,13 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
   });
@@ -680,18 +626,13 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(notLatestEServiceDescriptor(agreement.descriptorId));
   });
@@ -736,18 +677,13 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       descriptorNotInExpectedState(eservice.id, descriptor.id, allowedState)
@@ -786,18 +722,13 @@ describe("submit agreement", () => {
     await addOneTenant(consumer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
   });
@@ -834,18 +765,13 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
   });
@@ -889,18 +815,13 @@ describe("submit agreement", () => {
     await addOneTenant(producer);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
         agreement.id,
         { consumerNotes: "This is a test" },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementSubmissionFailed(agreement.id));
   });
@@ -971,7 +892,7 @@ describe("submit agreement", () => {
     await addOneAttribute(attribute);
     await addOneAgreement(agreement);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     await expect(
       agreementService.submitAgreement(
@@ -979,12 +900,7 @@ describe("submit agreement", () => {
         {
           consumerNotes: consumerNotesText,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementSubmissionFailed(agreement.id));
 
@@ -1102,12 +1018,7 @@ describe("submit agreement", () => {
         {
           consumerNotes: consumerNotesText,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
@@ -1287,12 +1198,7 @@ describe("submit agreement", () => {
             {
               consumerNotes: consumerNotesText,
             },
-            {
-              authData,
-              correlationId: generateId(),
-              serviceName: "AgreementServiceTest",
-              logger: genericLogger,
-            }
+            getMockContext({ authData })
           );
 
           const uploadedFiles = await fileManager.listFiles(
@@ -1535,12 +1441,7 @@ describe("submit agreement", () => {
         {
           consumerNotes: consumerNotesText,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
@@ -1730,12 +1631,7 @@ describe("submit agreement", () => {
             {
               consumerNotes: consumerNotesText,
             },
-            {
-              authData,
-              correlationId: generateId(),
-              serviceName: "AgreementServiceTest",
-              logger: genericLogger,
-            }
+            getMockContext({ authData })
           );
 
           const uploadedFiles = await fileManager.listFiles(
@@ -2012,12 +1908,7 @@ describe("submit agreement", () => {
         {
           consumerNotes: consumerNotesText,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
@@ -2168,12 +2059,7 @@ describe("submit agreement", () => {
         {
           consumerNotes: consumerNotesText,
         },
-        {
-          authData,
-          correlationId: generateId(),
-          serviceName: "AgreementServiceTest",
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const actualAgreementData = await readLastAgreementEvent(agreement.id);

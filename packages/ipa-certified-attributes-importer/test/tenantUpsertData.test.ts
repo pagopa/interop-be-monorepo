@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { expect, describe, it } from "vitest";
-import { getMockTenant } from "pagopa-interop-commons-test/index.js";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import { Tenant, TenantId, generateId } from "pagopa-interop-models";
 import {
   TenantSeed,

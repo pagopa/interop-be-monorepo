@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -33,7 +34,6 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import {
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -84,12 +84,7 @@ describe("update descriptor", () => {
         eservice.id,
         descriptor.id,
         expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
@@ -155,12 +150,7 @@ describe("update descriptor", () => {
         eservice.id,
         descriptor.id,
         expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
@@ -190,12 +180,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -219,12 +204,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -260,12 +240,7 @@ describe("update descriptor", () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorQuotasSeed,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(mockDescriptor.id, state));
     }
@@ -293,12 +268,7 @@ describe("update descriptor", () => {
         eservice.id,
         descriptor.id,
         expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -332,12 +302,7 @@ describe("update descriptor", () => {
         eservice.id,
         descriptor.id,
         expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -366,12 +331,7 @@ describe("update descriptor", () => {
         eservice.id,
         descriptor.id,
         expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -401,12 +361,7 @@ describe("update descriptor", () => {
         eservice.id,
         descriptor.id,
         expectedDescriptorQuotasSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
