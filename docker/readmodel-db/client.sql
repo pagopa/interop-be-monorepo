@@ -1,6 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS dev_readmodel_client;
+CREATE SCHEMA IF NOT EXISTS local_readmodel_client;
 
-CREATE TABLE IF NOT EXISTS dev_readmodel_client.client (
+CREATE TABLE IF NOT EXISTS local_readmodel_client.client (
   id UUID,
   metadata_version INTEGER NOT NULL,
   consumer_id UUID NOT NULL,
@@ -12,25 +12,25 @@ CREATE TABLE IF NOT EXISTS dev_readmodel_client.client (
   CONSTRAINT client_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS dev_readmodel_client.client_user (
+CREATE TABLE IF NOT EXISTS local_readmodel_client.client_user (
   metadata_version INTEGER NOT NULL,
-  client_id UUID NOT NULL REFERENCES dev_readmodel_client.client (id) ON DELETE CASCADE,
+  client_id UUID NOT NULL REFERENCES local_readmodel_client.client (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   PRIMARY KEY (client_id, user_id),
-  FOREIGN KEY (client_id, metadata_version) REFERENCES dev_readmodel_client.client (id, metadata_version)
+  FOREIGN KEY (client_id, metadata_version) REFERENCES local_readmodel_client.client (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS dev_readmodel_client.client_purpose (
+CREATE TABLE IF NOT EXISTS local_readmodel_client.client_purpose (
   metadata_version INTEGER NOT NULL,
-  client_id UUID NOT NULL REFERENCES dev_readmodel_client.client (id) ON DELETE CASCADE,
+  client_id UUID NOT NULL REFERENCES local_readmodel_client.client (id) ON DELETE CASCADE,
   purpose_id UUID NOT NULL,
   PRIMARY KEY (client_id, purpose_id),
-  FOREIGN KEY (client_id, metadata_version) REFERENCES dev_readmodel_client.client (id, metadata_version)
+  FOREIGN KEY (client_id, metadata_version) REFERENCES local_readmodel_client.client (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS dev_readmodel_client.client_key (
+CREATE TABLE IF NOT EXISTS local_readmodel_client.client_key (
   metadata_version INTEGER NOT NULL,
-  client_id UUID NOT NULL REFERENCES dev_readmodel_client.client (id) ON DELETE CASCADE,
+  client_id UUID NOT NULL REFERENCES local_readmodel_client.client (id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
   kid VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
@@ -39,5 +39,5 @@ CREATE TABLE IF NOT EXISTS dev_readmodel_client.client_key (
   "use" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (client_id, kid),
-  FOREIGN KEY (client_id, metadata_version) REFERENCES dev_readmodel_client.client (id, metadata_version)
+  FOREIGN KEY (client_id, metadata_version) REFERENCES local_readmodel_client.client (id, metadata_version)
 );

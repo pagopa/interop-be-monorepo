@@ -27,19 +27,7 @@ import {
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
-import {
-  agreementInReadmodelAgreement,
-  attributeInReadmodelAttribute,
-  clientInReadmodelClient,
-  clientJwkKeyInReadmodelClientJwkKey,
-  delegationInReadmodelDelegation,
-  DrizzleReturnType,
-  eserviceInReadmodelCatalog,
-  producerJwkKeyInReadmodelProducerJwkKey,
-  producerKeychainInReadmodelProducerKeychain,
-  purposeInReadmodelPurpose,
-  tenantInReadmodelTenant,
-} from "pagopa-interop-readmodel-models";
+import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
 import pg from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
@@ -251,18 +239,38 @@ export async function setupTestContainersVitest(
         "TRUNCATE TABLE eservice_template.events RESTART IDENTITY"
       );
 
-      await readModelDB?.delete(eserviceInReadmodelCatalog);
-      await readModelDB?.delete(agreementInReadmodelAgreement);
-      await readModelDB?.delete(attributeInReadmodelAttribute);
-      await readModelDB?.delete(purposeInReadmodelPurpose);
-      await readModelDB?.delete(tenantInReadmodelTenant);
-      await readModelDB?.delete(clientInReadmodelClient);
-      await readModelDB?.delete(producerKeychainInReadmodelProducerKeychain);
-      await readModelDB?.delete(clientJwkKeyInReadmodelClientJwkKey);
-      await readModelDB?.delete(producerJwkKeyInReadmodelProducerJwkKey);
-      await readModelDB?.delete(delegationInReadmodelDelegation);
+      // CLEANUP READMODEL-SQL TABLES
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_agreement.agreement CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_attribute.attribute CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_catalog.eservice CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_client_jwk_key.client_jwk_key CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_client.client CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_delegation.delegation CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_producer_jwk_key.producer_jwk_key CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_producer_keychain.producer_keychain  CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_purpose.purpose CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE local_readmodel_tenant.tenant CASCADE"
+      );
       // TODO: add eservice-template
-      // await readModelDB?.delete(eserviceTemplateInReadmodelEserviceTemplate);
 
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =

@@ -1,6 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS dev_readmodel_delegation;
+CREATE SCHEMA IF NOT EXISTS local_readmodel_delegation;
 
-CREATE TABLE IF NOT EXISTS dev_readmodel_delegation.delegation (
+CREATE TABLE IF NOT EXISTS local_readmodel_delegation.delegation (
   id UUID,
   metadata_version INTEGER NOT NULL,
   delegator_id UUID NOT NULL,
@@ -15,19 +15,19 @@ CREATE TABLE IF NOT EXISTS dev_readmodel_delegation.delegation (
   CONSTRAINT delegation_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS dev_readmodel_delegation.delegation_stamp (
-  delegation_id UUID NOT NULL REFERENCES dev_readmodel_delegation.delegation (id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS local_readmodel_delegation.delegation_stamp (
+  delegation_id UUID NOT NULL REFERENCES local_readmodel_delegation.delegation (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   who UUID NOT NULL,
   "when" TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (delegation_id, kind),
-  FOREIGN KEY (delegation_id, metadata_version) REFERENCES dev_readmodel_delegation.delegation (id, metadata_version)
+  FOREIGN KEY (delegation_id, metadata_version) REFERENCES local_readmodel_delegation.delegation (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS dev_readmodel_delegation.delegation_contract_document (
+CREATE TABLE IF NOT EXISTS local_readmodel_delegation.delegation_contract_document (
   id UUID,
-  delegation_id UUID NOT NULL REFERENCES dev_readmodel_delegation.delegation (id) ON DELETE CASCADE,
+  delegation_id UUID NOT NULL REFERENCES local_readmodel_delegation.delegation (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
@@ -36,6 +36,6 @@ CREATE TABLE IF NOT EXISTS dev_readmodel_delegation.delegation_contract_document
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (delegation_id, metadata_version) REFERENCES dev_readmodel_delegation.delegation (id, metadata_version),
+  FOREIGN KEY (delegation_id, metadata_version) REFERENCES local_readmodel_delegation.delegation (id, metadata_version),
   CONSTRAINT delegation_contract_document_delegation_id_kind_unique UNIQUE (delegation_id, kind)
 );
