@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import request from "supertest";
-import { AuthData, UserRole } from "pagopa-interop-commons";
+import { AuthData, UserRole, userRoles } from "pagopa-interop-commons";
 import jwt from "jsonwebtoken";
 import { generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -62,15 +62,7 @@ const cases = Object.entries(routesConfig).flatMap(([route, configs]) =>
   )
 );
 
-const allRoles: UserRole[] = [
-  "admin",
-  "security",
-  "api",
-  "support",
-  "m2m",
-  "internal",
-  "maintenance",
-];
+const allRoles: UserRole[] = Object.values(userRoles);
 
 const errorRoleCases = Object.entries(routesConfig).flatMap(
   ([route, configs]) =>
