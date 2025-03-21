@@ -46,6 +46,7 @@ export const documentSQLtoDocument = (
   uploadDate: stringToDate(documentSQL.uploadDate),
 });
 
+// eslint-disable-next-line complexity
 export const aggregateDescriptor = ({
   descriptorSQL,
   interfaceSQL,
@@ -60,6 +61,7 @@ export const aggregateDescriptor = ({
   attributesSQL: EServiceDescriptorAttributeSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
   const parsedInterface = interfaceSQL
     ? documentSQLtoDocument(interfaceSQL)
@@ -91,13 +93,20 @@ export const aggregateDescriptor = ({
     templateVersionRefSQL
       ? {
           id: unsafeBrandId(templateVersionRefSQL.eserviceTemplateVersionId),
-          interfaceMetadata: {
-            contactName: templateVersionRefSQL.contactName ?? undefined,
-            contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
-            contactUrl: templateVersionRefSQL.contactUrl ?? undefined,
-            termsAndConditionsUrl:
-              templateVersionRefSQL.termsAndConditionsUrl ?? undefined,
-          },
+          ...(templateVersionRefSQL.contactName ||
+          templateVersionRefSQL.contactEmail ||
+          templateVersionRefSQL.contactUrl ||
+          templateVersionRefSQL.termsAndConditionsUrl
+            ? {
+                interfaceMetadata: {
+                  contactName: templateVersionRefSQL.contactName ?? undefined,
+                  contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
+                  contactUrl: templateVersionRefSQL.contactUrl ?? undefined,
+                  termsAndConditionsUrl:
+                    templateVersionRefSQL.termsAndConditionsUrl ?? undefined,
+                },
+              }
+            : {}),
         }
       : undefined;
 
@@ -191,7 +200,9 @@ export const aggregateEservice = ({
   const templateRef: EServiceTemplateRef | undefined = templateRefSQL
     ? {
         id: unsafeBrandId(templateRefSQL.eserviceTemplateId),
-        instanceLabel: templateRefSQL.instanceLabel ?? undefined,
+        ...(templateRefSQL.instanceLabel !== null
+          ? { instanceLabel: templateRefSQL.instanceLabel }
+          : {}),
       }
     : undefined;
 
