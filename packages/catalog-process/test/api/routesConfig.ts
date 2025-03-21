@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { userRoles } from "pagopa-interop-commons";
+import { UserRole, userRoles } from "pagopa-interop-commons";
+import { catalogService } from "../integrationUtils.js";
 import {
   mockEService,
   mockEserviceSeed,
@@ -9,15 +10,17 @@ import {
   mockApiEServicesResponse,
 } from "./routesBody.js";
 
+export type CatalogServiceFunctionNames = keyof typeof catalogService;
+
 export const routesConfig: Record<
   string,
   Array<{
     method: "get" | "post" | "put" | "delete";
-    roles: string[];
+    roles: UserRole[];
     mock: any;
     routeInput: any;
     expectedOutput: any;
-    serviceFunctionName: any;
+    serviceFunctionName: CatalogServiceFunctionNames;
   }>
 > = {
   "/eservices": [
@@ -45,3 +48,5 @@ export const routesConfig: Record<
     },
   ],
 };
+
+export type Config = (typeof routesConfig)[string][number];

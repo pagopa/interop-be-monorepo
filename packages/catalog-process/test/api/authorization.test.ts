@@ -1,7 +1,3 @@
-/* eslint-disable max-params */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-console */
-/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import request from "supertest";
 import { AuthData, UserRole } from "pagopa-interop-commons";
@@ -12,16 +8,11 @@ import { getMockAuthData } from "../mockUtils.js";
 import { api } from "../vitest.api.setup.js";
 import { createPayload } from "../mockedPayloadForToken.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
-import { routesConfig } from "./routesConfig.js";
+import { Config, routesConfig } from "./routesConfig.js";
 
-async function testRoute(
-  route: string,
-  role: UserRole,
-  serviceFunctionName: any,
-  mock: any,
-  method: "get" | "post" | "put" | "delete",
-  input: any
-) {
+async function testRoute(route: string, role: UserRole, config: Config) {
+  const { serviceFunctionName, mock, method, routeInput } = config;
+
   vi.spyOn(catalogService, serviceFunctionName).mockImplementation(() =>
     Promise.resolve(mock)
   );
@@ -39,66 +30,34 @@ async function testRoute(
     .set("X-Correlation-Id", generateId());
 
   if (method === "get") {
-    void req.query(input);
+    void req.query(routeInput);
   } else {
-    void req.send(input);
+    void req.send(routeInput);
   }
 
   return await req;
 }
 
-async function successCase(
-  route: string,
-  role: UserRole,
-  serviceFunctionName: any,
-  mock: any,
-  method: "get" | "post" | "put" | "delete",
-  input: any,
-  output: any
-) {
-  const res = await testRoute(
-    route,
-    role,
-    serviceFunctionName,
-    mock,
-    method,
-    input
-  );
+async function successCase(route: string, role: UserRole, config: Config) {
+  const res = await testRoute(route, role, config);
 
   expect(res.status).toBe(200);
-  expect(res.body).toEqual(output);
+  expect(res.body).toEqual(config.expectedOutput);
   vi.clearAllMocks();
 }
 
-async function errorCase(
-  route: string,
-  role: UserRole,
-  serviceFunctionName: any,
-  mock: any,
-  method: "get" | "post" | "put" | "delete",
-  input: any
-) {
-  const res = await testRoute(
-    route,
-    role,
-    serviceFunctionName,
-    mock,
-    method,
-    input
-  );
+async function errorCase(route: string, role: UserRole, config: Config) {
+  const res = await testRoute(route, role, config);
+
   expect(res.status).toBe(403);
 }
 
-const cases = Object.entries(routesConfig).flatMap(([key, value]) =>
-  value.flatMap((config) =>
-    config.roles.flatMap((role) => ({
-      route: key,
-      method: config.method,
+const cases = Object.entries(routesConfig).flatMap(([route, configs]) =>
+  configs.flatMap((config) =>
+    config.roles.map((role) => ({
+      route,
       role,
-      expected: config.expectedOutput,
-      input: config.routeInput,
-      serviceFunctionName: config.serviceFunctionName,
-      mock: config.mock,
+      config,
     }))
   )
 );
@@ -113,47 +72,29 @@ const allRoles: UserRole[] = [
   "maintenance",
 ];
 
-const errorRoleCases = Object.entries(routesConfig).flatMap(([key, value]) =>
-  value.flatMap((config) =>
-    allRoles
-      .filter((role) => !config.roles.includes(role))
-      .map((role) => ({
-        route: key,
-        method: config.method,
-        role,
-        expected: config.expectedOutput,
-        input: config.routeInput,
-        serviceFunctionName: config.serviceFunctionName,
-        mock: config.mock,
-      }))
-  )
+const errorRoleCases = Object.entries(routesConfig).flatMap(
+  ([route, configs]) =>
+    configs.flatMap((config) =>
+      allRoles
+        .filter((role) => !config.roles.includes(role))
+        .map((role) => ({
+          route,
+          role,
+          config,
+        }))
+    )
 );
 
 describe("API Routes", () => {
-  cases.forEach((c) => {
-    it(`should allow ${c.role} to access ${c.route} with ${c.method}`, async () => {
-      await successCase(
-        c.route,
-        c.role as UserRole,
-        c.serviceFunctionName,
-        c.mock,
-        c.method,
-        c.input,
-        c.expected
-      );
+  cases.forEach(({ route, role, config }) => {
+    it(`should allow ${role} to access ${route} with ${config.method}`, async () => {
+      await successCase(route, role, config);
     });
   });
 
-  errorRoleCases.forEach((c) => {
-    it(`should return 403 if role is not authorized for ${c.method} ${c.route}`, async () => {
-      await errorCase(
-        c.route,
-        c.role,
-        c.serviceFunctionName,
-        c.mock,
-        c.method,
-        c.input
-      );
+  errorRoleCases.forEach(({ route, role, config }) => {
+    it(`should return 403 if role ${role} is not authorized for ${config.method} ${route}`, async () => {
+      await errorCase(route, role, config);
     });
   });
 });
