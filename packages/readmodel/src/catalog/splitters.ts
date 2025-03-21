@@ -390,7 +390,7 @@ export const eserviceToEserviceSQL = (
   mode: eservice.mode,
   isSignalHubEnabled: eservice.isSignalHubEnabled ?? null,
   isConsumerDelegable: eservice.isConsumerDelegable ?? null,
-  isClientAccessDelegable: eservice.isConsumerDelegable ?? null,
+  isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (
