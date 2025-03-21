@@ -563,15 +563,14 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "eserviceTemplateInterfaceDataNotValid",
       "invalidInterfaceContentTypeDetected",
       "documentPrettyNameDuplicate",
+      "notValidDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "eserviceNotInDraftState",
       "eServiceNotAnInstance",
       "eServiceTemplateWithoutPublishedVersion",
       "invalidEserviceInterfaceFileDetected",
       "interfaceAlreadyExists",
-      "notValidDescriptor",
       () => HTTP_STATUS_CONFLICT
     )
     .with(

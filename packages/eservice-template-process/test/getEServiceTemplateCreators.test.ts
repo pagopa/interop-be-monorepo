@@ -2,18 +2,16 @@
 import {
   getMockTenant,
   getMockEServiceTemplate,
-  getMockAuthData,
   getMockEServiceTemplateVersion,
-} from "pagopa-interop-commons-test/index.js";
+  getMockContext,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
   eserviceTemplateVersionState,
-  generateId,
   Tenant,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   addOneEServiceTemplate,
   addOneTenant,
@@ -117,12 +115,7 @@ describe("getEServiceTemplateCreators", () => {
       undefined,
       10,
       0,
-      {
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
+      getMockContext({})
     );
 
     expect(creators).toEqual({
@@ -168,12 +161,7 @@ describe("getEServiceTemplateCreators", () => {
       undefined,
       10,
       0,
-      {
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
+      getMockContext({})
     );
 
     expect(creators).toEqual({
@@ -188,12 +176,7 @@ describe("getEServiceTemplateCreators", () => {
       "Foo",
       10,
       0,
-      {
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
+      getMockContext({})
     );
 
     expect(creators).toEqual({
@@ -208,12 +191,7 @@ describe("getEServiceTemplateCreators", () => {
       undefined,
       2,
       0,
-      {
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
+      getMockContext({})
     );
 
     expect(creators).toEqual({
@@ -228,12 +206,7 @@ describe("getEServiceTemplateCreators", () => {
       undefined,
       2,
       1,
-      {
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
+      getMockContext({})
     );
 
     expect(creators).toEqual({
@@ -248,12 +221,7 @@ describe("getEServiceTemplateCreators", () => {
       "Foo",
       1,
       1,
-      {
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
+      getMockContext({})
     );
 
     expect(creators).toEqual({
@@ -266,12 +234,7 @@ describe("getEServiceTemplateCreators", () => {
       "Not existing name",
       10,
       0,
-      {
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-        authData: getMockAuthData(),
-      }
+      getMockContext({})
     );
 
     expect(producers).toEqual({

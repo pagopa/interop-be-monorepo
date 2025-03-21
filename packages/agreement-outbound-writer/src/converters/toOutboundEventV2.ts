@@ -102,6 +102,7 @@ export function toOutboundEventV2(
             toOutboundAgreementV2(message.data.agreement),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -118,6 +119,7 @@ export function toOutboundEventV2(
             msg.data.agreement && toOutboundAgreementV2(msg.data.agreement),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -134,6 +136,7 @@ export function toOutboundEventV2(
             msg.data.agreement && toOutboundAgreementV2(msg.data.agreement),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
