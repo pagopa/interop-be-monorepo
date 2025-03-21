@@ -1,12 +1,11 @@
 import { pgSchema } from "drizzle-orm/pg-core";
-import { genericInternalError } from "pagopa-interop-models";
 
 const readModelSQLDbSchemaNamespace =
   process.env.READMODEL_SQL_DB_SCHEMA_NAMESPACE || "fallback";
 
-if (process.env.READMODEL_SQL_DB_SCHEMA_NAMESPACE) {
-  throw genericInternalError("Schema namespace is missing in env");
-}
+// if (process.env.READMODEL_SQL_DB_SCHEMA_NAMESPACE) {
+//   throw genericInternalError("Schema namespace is missing in env");
+// }
 
 export const readmodelAgreement = pgSchema(
   `${readModelSQLDbSchemaNamespace}_readmodel_agreement`
