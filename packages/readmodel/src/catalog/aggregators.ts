@@ -205,11 +205,15 @@ export const aggregateEservice = ({
     descriptors,
     riskAnalysis,
     mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
-    ...(eserviceSQL.isClientAccessDelegable
-      ? { isClientAccessDelegable: true }
+    ...(eserviceSQL.isClientAccessDelegable !== null
+      ? { isClientAccessDelegable: eserviceSQL.isClientAccessDelegable }
       : {}),
-    ...(eserviceSQL.isConsumerDelegable ? { isConsumerDelegable: true } : {}),
-    ...(eserviceSQL.isSignalHubEnabled ? { isSignalHubEnabled: true } : {}),
+    ...(eserviceSQL.isConsumerDelegable !== null
+      ? { isConsumerDelegable: eserviceSQL.isConsumerDelegable }
+      : {}),
+    ...(eserviceSQL.isSignalHubEnabled !== null
+      ? { isSignalHubEnabled: eserviceSQL.isSignalHubEnabled }
+      : {}),
     ...(templateRef ? { templateRef } : {}),
   };
   return {
