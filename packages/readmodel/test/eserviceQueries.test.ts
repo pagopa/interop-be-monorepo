@@ -291,17 +291,42 @@ describe("E-service queries", () => {
           declared: [],
           verified: [],
         },
-        interface: getMockDocument(),
         docs: [getMockDocument()],
+        interface: getMockDocument(),
         rejectionReasons: [getMockDescriptorRejectionReason()],
+        description: "description test",
+        publishedAt: new Date(),
+        suspendedAt: new Date(),
+        deprecatedAt: new Date(),
+        archivedAt: new Date(),
+        agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+        templateVersionRef: {
+          id: generateId(),
+          interfaceMetadata: {
+            contactEmail: "contact email",
+            contactName: "contact name",
+            contactUrl: "contact url",
+            termsAndConditionsUrl: "terms and conditions url",
+          },
+        },
       };
+
       const eservice: WithMetadata<EService> = {
         data: {
           ...getMockEService(),
           descriptors: [descriptor],
           riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+          isSignalHubEnabled: true,
+          isConsumerDelegable: true,
+          isClientAccessDelegable: true,
+          templateRef: {
+            id: generateId(),
+            instanceLabel: "instance label",
+          },
         },
-        metadata: { version: 1 },
+        metadata: {
+          version: 1,
+        },
       };
       await catalogReadModelService.upsertEService(
         eservice.data,
