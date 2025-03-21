@@ -1,35 +1,40 @@
 import { pgSchema } from "drizzle-orm/pg-core";
-import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
+import { genericInternalError } from "pagopa-interop-models";
 
-const config = ReadModelSQLDbConfig.parse(process.env);
+const readModelSQLDbSchemaNamespace =
+  process.env.READMODEL_SQL_DB_SCHEMA_NAMESPACE || "fallback";
+
+if (process.env.READMODEL_SQL_DB_SCHEMA_NAMESPACE) {
+  throw genericInternalError("Schema namespace is missing in env");
+}
 
 export const readmodelAgreement = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_agreement`
+  `${readModelSQLDbSchemaNamespace}_readmodel_agreement`
 );
 export const readmodelProducerKeychain = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_producer_keychain`
+  `${readModelSQLDbSchemaNamespace}_readmodel_producer_keychain`
 );
 export const readmodelClient = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_client`
+  `${readModelSQLDbSchemaNamespace}_readmodel_client`
 );
 export const readmodelAttribute = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_attribute`
+  `${readModelSQLDbSchemaNamespace}_readmodel_attribute`
 );
 export const readmodelDelegation = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_delegation`
+  `${readModelSQLDbSchemaNamespace}_readmodel_delegation`
 );
 export const readmodelCatalog = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_catalog`
+  `${readModelSQLDbSchemaNamespace}_readmodel_catalog`
 );
 export const readmodelPurpose = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_purpose`
+  `${readModelSQLDbSchemaNamespace}_readmodel_purpose`
 );
 export const readmodelClientJwkKey = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_client_jwk_key`
+  `${readModelSQLDbSchemaNamespace}_readmodel_client_jwk_key`
 );
 export const readmodelProducerJwkKey = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_producer_jwk_key`
+  `${readModelSQLDbSchemaNamespace}_readmodel_producer_jwk_key`
 );
 export const readmodelTenant = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_tenant`
+  `${readModelSQLDbSchemaNamespace}_readmodel_tenant`
 );
