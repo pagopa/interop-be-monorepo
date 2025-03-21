@@ -4,7 +4,7 @@ import { AuthData, UserRole } from "pagopa-interop-commons";
 import jwt from "jsonwebtoken";
 import { generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { getMockAuthData } from "../mockUtils.js";
+import { getMockAuthData } from "pagopa-interop-commons-test/index.js";
 import { api } from "../vitest.api.setup.js";
 import { createPayload } from "../mockedPayloadForToken.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";

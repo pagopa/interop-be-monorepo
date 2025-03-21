@@ -4,10 +4,10 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import { AuthData } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
+import { getMockAuthData } from "pagopa-interop-commons-test/index.js";
 import { createPayload } from "../mockedPayloadForToken.js";
 import { api } from "../vitest.api.setup.js";
 import { eServiceNameDuplicate } from "../../src/model/domain/errors.js";
-import { getMockAuthData } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 import {
   mockEService,
