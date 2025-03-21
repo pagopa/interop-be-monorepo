@@ -410,7 +410,7 @@ export const toEServiceAggregatorArray = (
   const descriptorsSQL: EServiceDescriptorSQL[] = [];
 
   const interfaceIdSet = new Set<string>();
-  const interfacesSQL: EServiceDescriptorDocumentSQL[] = [];
+  const interfacesSQL: EServiceDescriptorInterfaceSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
@@ -548,26 +548,26 @@ export const toEServiceAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
       }
+    }
 
-      const templateRefSQL = row.templateRef;
-      if (
-        templateRefSQL &&
-        !templateRefIdSet.has(
-          uniqueKey([
-            templateRefSQL.eserviceTemplateId,
-            templateRefSQL.eserviceId,
-          ])
-        )
-      ) {
-        templateRefIdSet.add(
-          uniqueKey([
-            templateRefSQL.eserviceTemplateId,
-            templateRefSQL.eserviceId,
-          ])
-        );
-        // eslint-disable-next-line functional/immutable-data
-        templateRefsSQL.push(templateRefSQL);
-      }
+    const templateRefSQL = row.templateRef;
+    if (
+      templateRefSQL &&
+      !templateRefIdSet.has(
+        uniqueKey([
+          templateRefSQL.eserviceTemplateId,
+          templateRefSQL.eserviceId,
+        ])
+      )
+    ) {
+      templateRefIdSet.add(
+        uniqueKey([
+          templateRefSQL.eserviceTemplateId,
+          templateRefSQL.eserviceId,
+        ])
+      );
+      // eslint-disable-next-line functional/immutable-data
+      templateRefsSQL.push(templateRefSQL);
     }
   });
 
