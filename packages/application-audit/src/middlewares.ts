@@ -5,10 +5,10 @@ import {
   AppContext,
   ApplicationAuditProducerConfig,
   AuthData,
+  decodeJwtToken,
   fromAppContext,
   JWTConfig,
   readAuthDataFromJwtToken,
-  verifyJwtToken,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -242,6 +242,17 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
   const producer = await initProducer(config, config.applicationAuditTopic);
   return async (req, res, next): Promise<void> => {
     if (config.endpointsWithCustomAudit?.includes(req.path)) {
+      const defaultSend = res.send;
+
+      // eslint-disable-next-line functional/no-let
+      let sentBody: string | null = null;
+      // eslint-disable-next-line functional/immutable-data
+      res.send = function (body: string): ReturnType<typeof defaultSend> {
+        sentBody = body;
+
+        return defaultSend.call(this, body);
+      };
+
       res.on("finish", async () => {
         const context = (req as Request & { ctx?: AppContext }).ctx;
         if (!context) {
@@ -254,26 +265,14 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
 
         const ctxWithLogger = fromAppContext(context);
 
-        /*
-
-        body = {
-          "session_token": "token"
-        }
-
-        */
-
-        const token: string | undefined = "todo";
+        const token = sentBody && JSON.parse(sentBody).session_token;
 
         // eslint-disable-next-line functional/no-let
-        let authData: AuthData | undefined;
+        let authData: AuthData | null = null;
 
         if (token) {
-          const { decoded } = await verifyJwtToken(
-            token,
-            config,
-            ctxWithLogger.logger
-          );
-          authData = readAuthDataFromJwtToken(decoded);
+          const decoded = decodeJwtToken(token, ctxWithLogger.logger);
+          authData = decoded && readAuthDataFromJwtToken(decoded);
         }
 
         if (!forwardedFor) {
