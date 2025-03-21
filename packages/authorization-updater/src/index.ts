@@ -564,6 +564,7 @@ function processMessage(
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,
         streamId: decodedMessage.stream_id,
+        streamVersion: decodedMessage.version,
         correlationId,
       });
 
