@@ -28,6 +28,7 @@ import {
   AgreementAttribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateAgreementArray = ({
   agreementsSQL,
@@ -299,77 +300,106 @@ export const toAgreementAggregatorArray = (
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractsSQL: AgreementContractSQL[];
 } => {
-  const agreementIdSet = new Set<string>();
-  const agreementsSQL: AgreementSQL[] = [];
+  const result = queryRes.reduce(
+    (
+      acc: {
+        agreementIds: Set<string>;
+        stampIds: Set<string>;
+        attributeIds: Set<string>;
+        contractIds: Set<string>;
+        documentIds: Set<string>;
+        agreementsSQL: AgreementSQL[];
+        stampsSQL: AgreementStampSQL[];
+        attributesSQL: AgreementAttributeSQL[];
+        consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+        contractsSQL: AgreementContractSQL[];
+      },
+      row
+    ) => {
+      const agreementSQL = row.agreement;
+      const isNewAgreement = !acc.agreementIds.has(agreementSQL.id);
+      const agreementsSQL = isNewAgreement
+        ? [...acc.agreementsSQL, agreementSQL]
+        : acc.agreementsSQL;
+      const agreementIds = isNewAgreement
+        ? new Set([...acc.agreementIds, agreementSQL.id])
+        : acc.agreementIds;
 
-  const contractIdSet = new Set<string>();
-  const contractsSQL: AgreementContractSQL[] = [];
+      const stampSQL = row.stamp;
+      const stampKey = stampSQL
+        ? makeUniqueKey([stampSQL.agreementId, stampSQL.kind])
+        : undefined;
+      const isNewStamp = stampSQL && !!stampKey && !acc.stampIds.has(stampKey);
+      const stampsSQL = isNewStamp
+        ? [...acc.stampsSQL, stampSQL]
+        : acc.stampsSQL;
+      const stampIds = isNewStamp
+        ? new Set([...acc.stampIds, stampKey])
+        : acc.stampIds;
 
-  const stampIdSet = new Set<string>();
-  const stampsSQL: AgreementStampSQL[] = [];
+      const attributeSQL = row.attribute;
+      const attributeKey = attributeSQL
+        ? makeUniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
+        : undefined;
+      const isNewAttribute =
+        attributeSQL && !!attributeKey && !acc.attributeIds.has(attributeKey);
+      const attributesSQL = isNewAttribute
+        ? [...acc.attributesSQL, attributeSQL]
+        : acc.attributesSQL;
+      const attributeIds = isNewAttribute
+        ? new Set([...acc.attributeIds, attributeKey])
+        : acc.attributeIds;
 
-  const attributeIdSet = new Set<string>();
-  const attributesSQL: AgreementAttributeSQL[] = [];
+      const contractSQL = row.contract;
+      const isNewContract = contractSQL && !acc.contractIds.has(contractSQL.id);
+      const contractsSQL = isNewContract
+        ? [...acc.contractsSQL, contractSQL]
+        : acc.contractsSQL;
+      const contractIds = isNewContract
+        ? new Set([...acc.contractIds, contractSQL.id])
+        : acc.contractIds;
 
-  const consumerDocumentIdSet = new Set<string>();
-  const consumerDocumentsSQL: AgreementConsumerDocumentSQL[] = [];
+      const documentSQL = row.consumerDocument;
+      const isNewDocument = documentSQL && !acc.documentIds.has(documentSQL.id);
+      const consumerDocumentsSQL = isNewDocument
+        ? [...acc.consumerDocumentsSQL, documentSQL]
+        : acc.consumerDocumentsSQL;
+      const documentIds = isNewDocument
+        ? new Set([...acc.documentIds, documentSQL.id])
+        : acc.documentIds;
 
-  queryRes.forEach((row) => {
-    const agreementSQL = row.agreement;
-
-    if (!agreementIdSet.has(agreementSQL.id)) {
-      agreementIdSet.add(agreementSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      agreementsSQL.push(agreementSQL);
+      return {
+        agreementIds,
+        stampIds,
+        attributeIds,
+        contractIds,
+        documentIds,
+        agreementsSQL,
+        stampsSQL,
+        attributesSQL,
+        consumerDocumentsSQL,
+        contractsSQL,
+      };
+    },
+    {
+      agreementIds: new Set<string>(),
+      stampIds: new Set<string>(),
+      attributeIds: new Set<string>(),
+      contractIds: new Set<string>(),
+      documentIds: new Set<string>(),
+      agreementsSQL: [],
+      stampsSQL: [],
+      attributesSQL: [],
+      consumerDocumentsSQL: [],
+      contractsSQL: [],
     }
-
-    const stampSQL = row.stamp;
-    if (
-      stampSQL &&
-      !stampIdSet.has(uniqueKey([stampSQL.agreementId, stampSQL.kind]))
-    ) {
-      stampIdSet.add(uniqueKey([stampSQL.agreementId, stampSQL.kind]));
-      // eslint-disable-next-line functional/immutable-data
-      stampsSQL.push(stampSQL);
-    }
-
-    const attributeSQL = row.attribute;
-
-    if (
-      attributeSQL &&
-      !attributeIdSet.has(
-        uniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
-      )
-    ) {
-      attributeIdSet.add(
-        uniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
-      );
-      // eslint-disable-next-line functional/immutable-data
-      attributesSQL.push(attributeSQL);
-    }
-
-    const contractSQL = row.contract;
-    if (contractSQL && !contractIdSet.has(contractSQL.id)) {
-      contractIdSet.add(contractSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      contractsSQL.push(contractSQL);
-    }
-
-    const documentSQL = row.consumerDocument;
-    if (documentSQL && !consumerDocumentIdSet.has(documentSQL.id)) {
-      consumerDocumentIdSet.add(documentSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      consumerDocumentsSQL.push(documentSQL);
-    }
-  });
+  );
 
   return {
-    agreementsSQL,
-    stampsSQL,
-    attributesSQL,
-    consumerDocumentsSQL,
-    contractsSQL,
+    agreementsSQL: result.agreementsSQL,
+    stampsSQL: result.stampsSQL,
+    attributesSQL: result.attributesSQL,
+    consumerDocumentsSQL: result.consumerDocumentsSQL,
+    contractsSQL: result.contractsSQL,
   };
 };
-
-const uniqueKey = (ids: string[]): string => ids.join("#");
