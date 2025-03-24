@@ -103,6 +103,7 @@ import {
   assertOrganizationIsEServiceProducer,
   assertKeyDoesNotAlreadyExist,
   assertRequesterIsDelegateConsumer,
+  assertSecurityRoleIsClientMember,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -583,17 +584,18 @@ export function authorizationServiceBuilder(
     async getClientKeys({
       clientId,
       userIds,
-      organizationId,
-      logger,
+      ctx: { authData, logger },
     }: {
       clientId: ClientId;
       userIds: UserId[];
-      organizationId: TenantId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<Key[]> {
       logger.info(`Retrieving keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      assertSecurityRoleIsClientMember(authData, client.data);
+
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
       if (userIds.length > 0) {
         return client.data.keys.filter((k) => userIds.includes(k.userId));
       } else {

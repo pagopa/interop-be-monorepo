@@ -44,6 +44,7 @@ export const errorCodes = {
   purposeDelegationNotFound: "0029",
   eserviceNotDelegableForClientAccess: "0030",
   purposeAdditionNotAllowedForClient: "0031",
+  securityUserNotMember: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -378,5 +379,13 @@ export function purposeAdditionNotAllowedForClient(
     detail: `Purpose addition not allowed for client ${clientId}`,
     code: "purposeAdditionNotAllowedForClient",
     title: "Purpose addition not allowed for client",
+  });
+}
+
+export function securityUserNotMember(userId: UserId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} with user role "security" is not a member of the client`,
+    code: "securityUserNotMember",
+    title: "Security user not member",
   });
 }
