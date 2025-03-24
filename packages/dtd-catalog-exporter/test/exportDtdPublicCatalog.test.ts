@@ -1,21 +1,52 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   getMockAttribute,
+  getMockCertifiedTenantAttribute,
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { Descriptor, EService, genericError } from "pagopa-interop-models";
+import {
+  Attribute,
+  attributeKind,
+  Descriptor,
+  EService,
+  generateId,
+  genericError,
+  TenantId,
+} from "pagopa-interop-models";
+import { PublicEService, PublicTenant } from "../src/models/models.js";
+import {
+  convertEservicesToCSV,
+  convertTenantsToCSV,
+} from "../src/services/dtdCatalogExporterService.js";
 import {
   addOneAttribute,
   addOneEService,
   addOneTenant,
   dtdCatalogExporterService,
-  getExportDtdPublicCatalogResult,
+  getExportedDtdPublicCatalogFromJson,
 } from "./utils.js";
 
 describe("exportDtdPublicCatalog", () => {
-  it("should correctly retrieve and remap eservices", async () => {
+  vi.mock("../src/services/github-client.services.ts", () => ({
+    GithubClient: class MockGithubClient {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      constructor(_accessToken: string) {}
+
+      public async createOrUpdateRepoFile(
+        _content: string,
+        _owner: string,
+        _repo: string,
+        _path: string,
+        _message?: string
+      ): Promise<void> {
+        return Promise.resolve();
+      }
+    },
+  }));
+
+  it("should correctly retrieve and remap eservices from json file", async () => {
     const producerMock = getMockTenant();
     const attribute1Mock = getMockAttribute("Declared");
     const attribute2Mock = getMockAttribute("Declared");
@@ -47,19 +78,19 @@ describe("exportDtdPublicCatalog", () => {
     await addOneAttribute(attribute2Mock);
     await addOneAttribute(attribute3Mock);
 
-    await dtdCatalogExporterService.exportDtdPublicCatalog();
-    const result = await getExportDtdPublicCatalogResult();
+    await dtdCatalogExporterService.exportDtdData();
 
-    expect(result.length).toBe(1);
-    expect(result[0]).toEqual({
+    const expectedEService: PublicEService = {
       activeDescriptor: {
         id: descriptorMock.id,
-        state: descriptorMock.state.toUpperCase(),
+        state: descriptorMock.state.toUpperCase() as "PUBLISHED" | "SUSPENDED",
         version: descriptorMock.version,
       },
-      technology: eserviceMock.technology.toUpperCase(),
+      technology: eserviceMock.technology.toUpperCase() as "REST" | "SOAP",
       producerId: producerMock.id,
       producerName: producerMock.name,
+      producerIpaCode: producerMock.externalId.value,
+      producerFiscalCode: null,
       id: eserviceMock.id,
       name: eserviceMock.name,
       description: eserviceMock.description,
@@ -87,7 +118,113 @@ describe("exportDtdPublicCatalog", () => {
           },
         ],
       },
-    });
+    };
+
+    const jsonResult = await getExportedDtdPublicCatalogFromJson();
+    expect(jsonResult.length).toBe(1);
+    expect(jsonResult[0]).toEqual(expectedEService);
+  });
+
+  it("should correctly convert eservices to a csv", async () => {
+    const producerMock = getMockTenant();
+    const attribute1Mock = getMockAttribute("Declared");
+    const attribute2Mock = getMockAttribute("Declared");
+    const attribute3Mock = getMockAttribute("Declared");
+
+    const descriptorMock: Descriptor = {
+      ...getMockDescriptorPublished(),
+      attributes: {
+        certified: [],
+        verified: [],
+        declared: [
+          [
+            { id: attribute1Mock.id, explicitAttributeVerification: false },
+            { id: attribute2Mock.id, explicitAttributeVerification: false },
+          ],
+          [{ id: attribute3Mock.id, explicitAttributeVerification: false }],
+        ],
+      },
+    };
+    const eserviceMock: EService = {
+      ...getMockEService(),
+      producerId: producerMock.id,
+      descriptors: [descriptorMock],
+    };
+
+    const publicEservice: PublicEService = {
+      activeDescriptor: {
+        id: descriptorMock.id,
+        state: descriptorMock.state.toUpperCase() as "PUBLISHED" | "SUSPENDED",
+        version: descriptorMock.version,
+      },
+      technology: eserviceMock.technology.toUpperCase() as "REST" | "SOAP",
+      producerId: producerMock.id,
+      producerName: producerMock.name,
+      producerIpaCode: producerMock.externalId.value,
+      producerFiscalCode: null,
+      id: eserviceMock.id,
+      name: eserviceMock.name,
+      description: eserviceMock.description,
+      attributes: {
+        certified: [],
+        verified: [],
+        declared: [
+          {
+            group: [
+              {
+                description: attribute1Mock.description,
+                name: attribute1Mock.name,
+              },
+              {
+                description: attribute2Mock.description,
+                name: attribute2Mock.name,
+              },
+            ],
+          },
+          {
+            single: {
+              description: attribute3Mock.description,
+              name: attribute3Mock.name,
+            },
+          },
+        ],
+      },
+    };
+
+    const csvContent = convertEservicesToCSV([publicEservice]);
+
+    const csvAttributes = `"${JSON.stringify(publicEservice.attributes).replace(
+      /"/g,
+      '""'
+    )}"`;
+    const expectedCsv = `id,name,description,technology,producerId,producerName,producerFiscalCode,producerIpaCode,attributes,activeDescriptorId,activeDescriptorState,activeDescriptorVersion\n${publicEservice.id},${publicEservice.name},${publicEservice.description},${publicEservice.technology},${publicEservice.producerId},${publicEservice.producerName},,${publicEservice.producerIpaCode},${csvAttributes},${publicEservice.activeDescriptor.id},${publicEservice.activeDescriptor.state},${publicEservice.activeDescriptor.version}\n`;
+
+    expect(csvContent).toEqual(expectedCsv);
+  });
+
+  it("should correctly convert tenants to a csv", async () => {
+    const producerId = generateId<TenantId>();
+    const producerAttribute = getMockCertifiedTenantAttribute();
+    const producerMock = getMockTenant(producerId, [producerAttribute]);
+
+    const attribute: Attribute = getMockAttribute(
+      attributeKind.certified,
+      producerAttribute.id
+    );
+
+    const publicTenant: PublicTenant = {
+      id: producerMock.id,
+      name: producerMock.name,
+      ipaCode: producerMock.externalId.value,
+      fiscalCode: null,
+      attributes: [{ name: attribute.name, type: attribute.kind }],
+    };
+
+    const csvContent = convertTenantsToCSV([publicTenant]);
+
+    const expectedCsv = `id,name,fiscalCode,ipaCode,attributes\n${producerMock.id},${producerMock.name},,${producerMock.externalId.value},"[{""name"":""${attribute.name}"",""type"":""${attribute.kind}""}]"\n`;
+
+    expect(csvContent).toEqual(expectedCsv);
   });
 
   it("should ignore eservices with no active descriptor", async () => {
@@ -113,8 +250,8 @@ describe("exportDtdPublicCatalog", () => {
     await addOneEService(eserviceWithNoActiveDescriptorMock);
     await addOneTenant(producerMock);
 
-    await dtdCatalogExporterService.exportDtdPublicCatalog();
-    const result = await getExportDtdPublicCatalogResult();
+    await dtdCatalogExporterService.exportDtdData();
+    const result = await getExportedDtdPublicCatalogFromJson();
 
     expect(result.length).toBe(1);
     expect(
@@ -134,7 +271,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneEService(eserviceMock);
 
     await expect(async () => {
-      await dtdCatalogExporterService.exportDtdPublicCatalog();
+      await dtdCatalogExporterService.exportDtdData();
     }).rejects.toThrowError(
       genericError(`Producer for e-service ${eserviceMock.id} not found`)
     );
@@ -165,7 +302,7 @@ describe("exportDtdPublicCatalog", () => {
     await addOneTenant(producerMock);
 
     await expect(async () => {
-      await dtdCatalogExporterService.exportDtdPublicCatalog();
+      await dtdCatalogExporterService.exportDtdData();
     }).rejects.toThrowError(
       genericError(`Attribute with id ${attributeMock.id} not found`)
     );

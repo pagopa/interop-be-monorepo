@@ -82,6 +82,7 @@ export function toOutboundEventV2(
             msg.data.delegation && toOutboundDelegationV2(msg.data.delegation),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )

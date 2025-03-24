@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
-  generateId,
   eserviceTemplateVersionState,
   EServiceTemplate,
   EServiceTemplateVersion,
@@ -17,6 +15,7 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockContext,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
 
@@ -63,12 +62,9 @@ describe("upload Document", () => {
           eserviceTemplate.id,
           version.id,
           buildInterfaceSeed(),
-          {
+          getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         );
 
       const writtenEvent = await readLastEserviceTemplateEvent(
@@ -118,12 +114,7 @@ describe("upload Document", () => {
         mockEServiceTemplate.id,
         mockVersion.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
   });
@@ -144,12 +135,7 @@ describe("upload Document", () => {
         eserviceTemplate.id,
         version.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -165,12 +151,9 @@ describe("upload Document", () => {
         eserviceTemplate.id,
         mockVersion.id,
         buildInterfaceSeed(),
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
@@ -193,12 +176,9 @@ describe("upload Document", () => {
         eserviceTemplate.id,
         version.id,
         buildInterfaceSeed(),
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(interfaceAlreadyExists(version.id));
   });
@@ -227,12 +207,9 @@ describe("upload Document", () => {
           ...buildDocumentSeed(),
           prettyName: document.prettyName.toLowerCase(),
         },
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       documentPrettyNameDuplicate(document.prettyName.toLowerCase(), version.id)
@@ -260,12 +237,9 @@ describe("upload Document", () => {
         eserviceTemplate.id,
         mockVersion.id,
         buildDocumentSeed(),
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       checksumDuplicate(document.name, eserviceTemplate.id, mockVersion.id)
