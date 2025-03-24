@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -78,12 +78,9 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
     await eserviceTemplateService.deleteRiskAnalysis(
       eserviceTemplate.id,
       riskAnalysis.id,
-      {
+      getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -134,12 +131,9 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
   });
@@ -174,12 +168,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
-        {
-          authData: getMockAuthData(requesterId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -214,12 +203,9 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eserviceTemplateNotInDraftState(eserviceTemplate.id)
@@ -256,12 +242,9 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));
   });

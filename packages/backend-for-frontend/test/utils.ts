@@ -1,4 +1,4 @@
-import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import { FileManager } from "pagopa-interop-commons";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
