@@ -3,7 +3,7 @@
 import {
   decodeProtobufPayload,
   getMockProducerKeychain,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   ProducerKeychain,
@@ -67,7 +67,7 @@ describe("addProducerKeychainUsers", () => {
       {
         producerKeychainId: mockProducerKeychain.id,
         userIds: userIdsToAdd,
-        authData: getRandomAuthData(producerId),
+        authData: getMockAuthData(producerId),
       },
       generateId(),
       genericLogger
@@ -116,7 +116,7 @@ describe("addProducerKeychainUsers", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
           userIds: userIdsToAdd,
-          authData: getRandomAuthData(producerId),
+          authData: getMockAuthData(producerId),
         },
         generateId(),
         genericLogger
@@ -143,7 +143,7 @@ describe("addProducerKeychainUsers", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
           userIds: [userIdAlreadyAssigned],
-          authData: getRandomAuthData(producerId),
+          authData: getMockAuthData(producerId),
         },
         generateId(),
         genericLogger
@@ -172,7 +172,7 @@ describe("addProducerKeychainUsers", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
           userIds: [userIdToAdd],
-          authData: getRandomAuthData(organizationId),
+          authData: getMockAuthData(organizationId),
         },
         generateId(),
         genericLogger
