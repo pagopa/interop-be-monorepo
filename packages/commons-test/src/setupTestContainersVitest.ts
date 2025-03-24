@@ -241,34 +241,34 @@ export async function setupTestContainersVitest(
 
       // CLEANUP READMODEL-SQL TABLES
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_agreement.agreement CASCADE"
+        "TRUNCATE TABLE readmodel_agreement.agreement CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_attribute.attribute CASCADE"
+        "TRUNCATE TABLE readmodel_attribute.attribute CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_catalog.eservice CASCADE"
+        "TRUNCATE TABLE readmodel_catalog.eservice CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_client_jwk_key.client_jwk_key CASCADE"
+        "TRUNCATE TABLE readmodel_client_jwk_key.client_jwk_key CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_client.client CASCADE"
+        "TRUNCATE TABLE readmodel_client.client CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_delegation.delegation CASCADE"
+        "TRUNCATE TABLE readmodel_delegation.delegation CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_producer_jwk_key.producer_jwk_key CASCADE"
+        "TRUNCATE TABLE readmodel_producer_jwk_key.producer_jwk_key CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_producer_keychain.producer_keychain  CASCADE"
+        "TRUNCATE TABLE readmodel_producer_keychain.producer_keychain CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_purpose.purpose CASCADE"
+        "TRUNCATE TABLE readmodel_purpose.purpose CASCADE"
       );
       await readModelDB?.execute(
-        "TRUNCATE TABLE local_readmodel_tenant.tenant CASCADE"
+        "TRUNCATE TABLE readmodel_tenant.tenant CASCADE"
       );
       // TODO: add eservice-template
 
