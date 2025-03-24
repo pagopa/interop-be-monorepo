@@ -21,7 +21,7 @@ import {
   readmodelTenant,
   readmodelClientJwkKey,
   readmodelProducerJwkKey,
-} from "../pg_schema.js";
+} from "../pgSchema.js";
 
 export const agreementInReadmodelAgreement = readmodelAgreement.table(
   "agreement",
