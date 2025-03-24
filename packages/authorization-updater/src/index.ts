@@ -557,14 +557,14 @@ function processMessage(
       ? unsafeBrandId(decodedMessage.correlation_id)
       : generateId();
 
-      const loggerInstance = logger({
-        serviceName: "authorization-updater",
-        eventType: decodedMessage.type,
-        eventVersion: decodedMessage.event_version,
-        streamId: decodedMessage.stream_id,
-        streamVersion: decodedMessage.version,
-        correlationId,
-      });
+    const loggerInstance = logger({
+      serviceName: "authorization-updater",
+      eventType: decodedMessage.type,
+      eventVersion: decodedMessage.event_version,
+      streamId: decodedMessage.stream_id,
+      streamVersion: decodedMessage.version,
+      correlationId,
+    });
 
     loggerInstance.info(
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
