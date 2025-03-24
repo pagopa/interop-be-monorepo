@@ -101,6 +101,7 @@ import {
   assertProducerKeychainKeysCountIsBelowThreshold,
   assertRequesterIsDelegateConsumer,
   assertUserSelfcareSecurityPrivileges,
+  assertSecurityRoleIsClientMember,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -592,6 +593,7 @@ export function authorizationServiceBuilder(
         `Retrieving keys for client ${clientId}, limit = ${limit}, offset = ${offset}`
       );
       const client = await retrieveClient(clientId, readModelService);
+      assertSecurityRoleIsClientMember(authData, client.data);
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       return await readModelService.getClientKeys(

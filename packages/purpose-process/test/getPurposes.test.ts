@@ -12,9 +12,9 @@ import {
   getMockPurposeVersion,
   getMockPurpose,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   addOneDelegation,
   addOneEService,
@@ -200,12 +200,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(allPurposesVisibleToProducer1, [
@@ -225,12 +220,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId2),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId2) })
     );
 
     expectSinglePageListResult(allPurposesVisibleToProducer2, [
@@ -249,12 +239,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(consumerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(consumerId1) })
     );
 
     expectSinglePageListResult(allPurposesVisibleToConsumer1, [
@@ -274,12 +259,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(consumerId2),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(consumerId2) })
     );
 
     expectSinglePageListResult(allPurposesVisibleToConsumer2, [
@@ -301,12 +281,7 @@ describe("getPurposes", async () => {
           excludeDraft: undefined,
         },
         { offset: 0, limit: 50 },
-        {
-          authData: getRandomAuthData(delegateProducerId1),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getMockAuthData(delegateProducerId1) })
       );
 
     expectSinglePageListResult(allPurposesVisibleToDelegateProducer1, [
@@ -328,12 +303,7 @@ describe("getPurposes", async () => {
           excludeDraft: undefined,
         },
         { offset: 0, limit: 50 },
-        {
-          authData: getRandomAuthData(delegateConsumerId1),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getMockAuthData(delegateConsumerId1) })
       );
 
     expectSinglePageListResult(allPurposesVisibleToDelegateConsumer1, [
@@ -351,12 +321,7 @@ describe("getPurposes", async () => {
           excludeDraft: undefined,
         },
         { offset: 0, limit: 50 },
-        {
-          authData: getRandomAuthData(delegateConsumerId2),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        }
+        getMockContext({ authData: getMockAuthData(delegateConsumerId2) })
       );
 
     expectSinglePageListResult(allPurposesVisibleToDelegateConsumer2, [
@@ -375,12 +340,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
@@ -396,12 +356,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(result, [
@@ -420,12 +375,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
     expect(result.totalCount).toBe(3);
 
@@ -446,12 +396,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(result, [mockPurpose2]);
@@ -467,12 +412,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(result, [
@@ -493,12 +433,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
     expectSinglePageListResult(result, [mockPurpose1, mockDelegatedPurpose1]);
 
@@ -515,12 +450,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId2),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId2) })
     );
     expectSinglePageListResult(result2, [
       mockPurpose4,
@@ -559,12 +489,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(result, [mockArchivedPurpose]);
@@ -580,12 +505,7 @@ describe("getPurposes", async () => {
         excludeDraft: true,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
     expectSinglePageListResult(result, [mockPurpose3, mockDelegatedPurpose1]);
   });
@@ -600,12 +520,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(result, [
@@ -626,12 +541,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 2, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expect(result).toEqual({
@@ -650,12 +560,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 2 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expect(result).toEqual({
@@ -674,12 +579,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expect(result).toEqual({
@@ -699,12 +599,7 @@ describe("getPurposes", async () => {
         excludeDraft: true,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(result, [mockPurpose3]);
@@ -721,12 +616,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(producerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
     expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
@@ -742,12 +632,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(delegateProducerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(delegateProducerId1) })
     );
 
     expectSinglePageListResult(results, [
@@ -767,12 +652,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(delegateProducerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(delegateProducerId1) })
     );
 
     expectSinglePageListResult(results, [
@@ -792,12 +672,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(delegateConsumerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(delegateConsumerId1) })
     );
 
     expectSinglePageListResult(results, [mockDelegatedPurpose1]);
@@ -813,12 +688,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      {
-        authData: getRandomAuthData(delegateConsumerId1),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(delegateConsumerId1) })
     );
 
     expectSinglePageListResult(results, [mockDelegatedPurpose1]);

@@ -1,4 +1,5 @@
 import {
+  getMockAuthData,
   getMockClient,
   getMockKey,
 } from "pagopa-interop-commons-test/src/testUtils.js";
@@ -10,10 +11,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
+import { AuthData, genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
+  securityUserNotMember,
 } from "../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
@@ -24,6 +26,11 @@ describe("getClientKeys", async () => {
     ...getMockClient(),
     keys: [mockKey],
     consumerId: unsafeBrandId(consumerId),
+  };
+  const authData: AuthData = {
+    ...getMockAuthData(),
+    organizationId: unsafeBrandId(consumerId),
+    userRoles: ["admin"],
   };
 
   it("should get the keys in the specified client", async () => {
@@ -105,6 +112,7 @@ describe("getClientKeys", async () => {
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(mockClient);
     const clientId = generateId();
+
     await expect(
       authorizationService.getClientKeys({
         clientId: unsafeBrandId(clientId),
@@ -116,9 +124,38 @@ describe("getClientKeys", async () => {
       })
     ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
   });
+  it("should throw securityUserNotMember if the requester has SECURITY_ROLE and the user is not a member of the organization", async () => {
+    await addOneClient(mockClient);
+
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      userRoles: ["security"],
+    };
+
+    await expect(
+      authorizationService.getClientKeys({
+        clientId: mockClient.id,
+        userIds: [],
+        ctx: {
+          serviceName: "test",
+          authData,
+          correlationId: generateId(),
+          logger: genericLogger,
+        },
+      })
+    ).rejects.toThrowError(
+      securityUserNotMember(unsafeBrandId(authData.userId))
+    );
+  });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
     await addOneClient(mockClient);
     const organizationId = generateId();
+
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      organizationId: unsafeBrandId(organizationId),
+    };
+
     await expect(
       authorizationService.getClientKeys({
         clientId: mockClient.id,

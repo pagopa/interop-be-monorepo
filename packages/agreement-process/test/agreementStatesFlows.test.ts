@@ -1,16 +1,16 @@
 /* eslint-disable functional/immutable-data */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   CertifiedTenantAttribute,
@@ -146,18 +146,13 @@ describe("Agreeement states flows", () => {
     /* =================================
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
-    const consumerAuthData = getRandomAuthData(consumer.id);
+    const consumerAuthData = getMockAuthData(consumer.id);
     const createdAgreement = await agreementService.createAgreement(
       {
         eserviceId,
         descriptorId,
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
@@ -171,12 +166,7 @@ describe("Agreeement states flows", () => {
       {
         consumerNotes: "Some notes here!",
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(submittedAgreement.state).toEqual(agreementState.active);
@@ -187,12 +177,7 @@ describe("Agreeement states flows", () => {
     ================================= */
     const suspendedAgreement = await agreementService.suspendAgreement(
       submittedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(suspendedAgreement.state).toEqual(agreementState.suspended);
@@ -248,12 +233,7 @@ describe("Agreeement states flows", () => {
     ================================= */
     const upgradedAgreement = await agreementService.upgradeAgreement(
       suspendedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(upgradedAgreement.state).toEqual(agreementState.draft);
@@ -272,12 +252,7 @@ describe("Agreeement states flows", () => {
         consumerNotes:
           "This upgrade is for transit agreement state to PENDING!",
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
@@ -337,16 +312,11 @@ describe("Agreeement states flows", () => {
       During this execution flow, the newly created draft agreement still preserves the suspension flags and PENDING state.
     ================================= */
 
-    const producerAuthData = getRandomAuthData(producer.id);
+    const producerAuthData = getMockAuthData(producer.id);
 
     const activatedAgreement = await agreementService.activateAgreement(
       submittedUpgradedAgreement.id,
-      {
-        authData: producerAuthData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: producerAuthData })
     );
 
     await updateAgreementInReadModel(activatedAgreement);
@@ -425,18 +395,13 @@ describe("Agreeement states flows", () => {
     /* =================================
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
-    const consumerAuthData = getRandomAuthData(consumer.id);
+    const consumerAuthData = getMockAuthData(consumer.id);
     const createdAgreement = await agreementService.createAgreement(
       {
         eserviceId,
         descriptorId,
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
@@ -450,12 +415,7 @@ describe("Agreeement states flows", () => {
       {
         consumerNotes: "Some notes here!",
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "AgreementService",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(submittedAgreement.state).toEqual(agreementState.active);
@@ -508,12 +468,7 @@ describe("Agreeement states flows", () => {
     ================================= */
     const upgradedAgreement = await agreementService.upgradeAgreement(
       submittedAgreement.id,
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(upgradedAgreement.state).toEqual(agreementState.draft);
@@ -532,12 +487,7 @@ describe("Agreeement states flows", () => {
         consumerNotes:
           "This upgrade is for transit agreement state to PENDING!",
       },
-      {
-        authData: consumerAuthData,
-        serviceName: "Agreement Service",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: consumerAuthData })
     );
 
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
@@ -591,16 +541,11 @@ describe("Agreeement states flows", () => {
       8) Agreement activation by producer (state becomes ACTIVE)
     ================================= */
 
-    const producerAuthData = getRandomAuthData(producer.id);
+    const producerAuthData = getMockAuthData(producer.id);
 
     const activatedAgreement = await agreementService.activateAgreement(
       submittedUpgradedAgreement.id,
-      {
-        authData: producerAuthData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: producerAuthData })
     );
 
     await updateAgreementInReadModel(activatedAgreement);

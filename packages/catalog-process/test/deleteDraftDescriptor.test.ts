@@ -2,9 +2,11 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
+  getMockAuthData,
   readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -29,7 +31,6 @@ import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockEService,
   getMockDescriptor,
@@ -61,12 +62,7 @@ describe("delete draft descriptor", () => {
     await catalogService.deleteDraftDescriptor(
       eservice.id,
       descriptorToDelete.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -174,12 +170,7 @@ describe("delete draft descriptor", () => {
     await catalogService.deleteDraftDescriptor(
       eservice.id,
       descriptorToDelete.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -243,12 +234,7 @@ describe("delete draft descriptor", () => {
     await catalogService.deleteDraftDescriptor(
       eservice.id,
       draftDescriptor.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
@@ -318,12 +304,7 @@ describe("delete draft descriptor", () => {
     await catalogService.deleteDraftDescriptor(
       eservice.id,
       draftDescriptor.id,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
@@ -391,12 +372,11 @@ describe("delete draft descriptor", () => {
     await addOneEService(eservice);
 
     await expect(
-      catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.deleteDraftDescriptor(
+        eservice.id,
+        descriptorToDelete.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       fileManagerDeleteError(
         mockDocument.path,
@@ -410,12 +390,11 @@ describe("delete draft descriptor", () => {
     const mockEService = getMockEService();
     const mockDescriptorId: DescriptorId = generateId();
     expect(
-      catalogService.deleteDraftDescriptor(mockEService.id, mockDescriptorId, {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.deleteDraftDescriptor(
+        mockEService.id,
+        mockDescriptorId,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
 
@@ -427,12 +406,11 @@ describe("delete draft descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.deleteDraftDescriptor(eservice.id, descriptorIdToDelete, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.deleteDraftDescriptor(
+        eservice.id,
+        descriptorIdToDelete,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, descriptorIdToDelete)
     );
@@ -453,12 +431,11 @@ describe("delete draft descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.deleteDraftDescriptor(
+        eservice.id,
+        descriptorToDelete.id,
+        getMockContext({})
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -484,12 +461,11 @@ describe("delete draft descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
     expect(
-      catalogService.deleteDraftDescriptor(eservice.id, descriptorToDelete.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.deleteDraftDescriptor(
+        eservice.id,
+        descriptorToDelete.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 
@@ -507,12 +483,11 @@ describe("delete draft descriptor", () => {
       await addOneEService(eservice);
 
       expect(
-        catalogService.deleteDraftDescriptor(eservice.id, descriptor.id, {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        })
+        catalogService.deleteDraftDescriptor(
+          eservice.id,
+          descriptor.id,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
@@ -539,12 +514,7 @@ describe("delete draft descriptor", () => {
         catalogService.deleteDraftDescriptor(
           eservice.id,
           descriptorToDelete.id,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(
         notValidDescriptorState(descriptorToDelete.id, state)

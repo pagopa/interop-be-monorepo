@@ -5,13 +5,14 @@ import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
+  getMockContext,
   getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementConsumerDocumentAddedV2,
@@ -65,34 +66,24 @@ describe("agreement consumer document", () => {
 
       await addOneAgreement(agreement);
 
-      const consumerAuthData = getRandomAuthData(agreement.consumerId);
+      const consumerAuthData = getMockAuthData(agreement.consumerId);
       for (const document of agreement.consumerDocuments) {
         const retrievedDocument =
           await agreementService.getAgreementConsumerDocument(
             agreement.id,
             document.id,
-            {
-              authData: consumerAuthData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
-            }
+            getMockContext({ authData: consumerAuthData })
           );
         expect(retrievedDocument).toEqual(document);
       }
 
-      const producerAuthData = getRandomAuthData(agreement.producerId);
+      const producerAuthData = getMockAuthData(agreement.producerId);
       for (const document of agreement.consumerDocuments) {
         const retrievedDocument =
           await agreementService.getAgreementConsumerDocument(
             agreement.id,
             document.id,
-            {
-              authData: producerAuthData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
-            }
+            getMockContext({ authData: producerAuthData })
           );
         expect(retrievedDocument).toEqual(document);
       }
@@ -101,7 +92,7 @@ describe("agreement consumer document", () => {
     it("should succeed when the requester is the producer delegate", async () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const eservice = {
         ...getMockEService(),
         producerId: producer.id,
@@ -133,12 +124,7 @@ describe("agreement consumer document", () => {
       const result = await agreementService.getAgreementConsumerDocument(
         agreement.id,
         agreement.consumerDocuments[0].id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       expect(result).toEqual(agreement.consumerDocuments[0]);
@@ -156,7 +142,7 @@ describe("agreement consumer document", () => {
         consumerDocuments,
       };
 
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const delegateId = authData.organizationId;
 
       const delegation = getMockDelegation({
@@ -175,12 +161,7 @@ describe("agreement consumer document", () => {
         const result = await agreementService.getAgreementConsumerDocument(
           agreement.id,
           document.id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
 
         expect(result).toEqual(document);
@@ -188,7 +169,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should succeed when the requester is the consumer, even if there is an active consumer delegation", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
 
       const agreement = {
         ...getMockAgreement(),
@@ -210,12 +191,7 @@ describe("agreement consumer document", () => {
       const result = await agreementService.getAgreementConsumerDocument(
         agreement.id,
         agreement.consumerDocuments[0].id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       expect(result).toEqual(agreement.consumerDocuments[0]);
@@ -224,7 +200,7 @@ describe("agreement consumer document", () => {
     it("should succeed when the requester is the producer, even if there is an active producer delegation", async () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
-      const authData = getRandomAuthData(producer.id);
+      const authData = getMockAuthData(producer.id);
       const eservice = {
         ...getMockEService(),
         producerId: producer.id,
@@ -253,12 +229,7 @@ describe("agreement consumer document", () => {
       const result = await agreementService.getAgreementConsumerDocument(
         agreement.id,
         agreement.consumerDocuments[0].id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       expect(result).toEqual(agreement.consumerDocuments[0]);
@@ -277,18 +248,13 @@ describe("agreement consumer document", () => {
       await addOneAgreement(getMockAgreement());
 
       const randomAgreementId = generateId<AgreementId>();
-      const authData = getRandomAuthData(agreement.consumerId);
+      const authData = getMockAuthData(agreement.consumerId);
 
       await expect(
         agreementService.getAgreementConsumerDocument(
           randomAgreementId,
           agreement.consumerDocuments[0].id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(agreementNotFound(randomAgreementId));
     });
@@ -304,18 +270,13 @@ describe("agreement consumer document", () => {
 
       await addOneAgreement(agreement);
 
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
 
       await expect(
         agreementService.getAgreementConsumerDocument(
           agreement.id,
           agreement.consumerDocuments[0].id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
     });
@@ -332,19 +293,14 @@ describe("agreement consumer document", () => {
       await addOneAgreement(agreement);
       await addOneAgreement(getMockAgreement());
 
-      const authData = getRandomAuthData(agreement.consumerId);
+      const authData = getMockAuthData(agreement.consumerId);
       const randomDocumentId = generateId<AgreementDocumentId>();
 
       await expect(
         agreementService.getAgreementConsumerDocument(
           agreement.id,
           randomDocumentId,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         agreementDocumentNotFound(randomDocumentId, agreement.id)
@@ -354,7 +310,7 @@ describe("agreement consumer document", () => {
 
   describe("add", () => {
     it("should succeed on happy path when the requester is the Consumer", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const organizationId = authData.organizationId;
       const agreement = getMockAgreement(
         generateId<EServiceId>(),
@@ -369,12 +325,7 @@ describe("agreement consumer document", () => {
         await agreementService.addConsumerDocument(
           agreement.id,
           consumerDocument,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
       const { data: payload } = await readLastAgreementEvent(agreement.id);
 
@@ -414,7 +365,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should succeed on happy path when the requester is the Consumer Delegate", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const consumerId = generateId<TenantId>();
       const organizationId = authData.organizationId;
       const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
@@ -437,12 +388,7 @@ describe("agreement consumer document", () => {
         await agreementService.addConsumerDocument(
           agreement.id,
           consumerDocument,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
       const { data: payload } = await readLastAgreementEvent(agreement.id);
 
@@ -482,7 +428,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       await addOneAgreement(getMockAgreement());
 
       const wrongAgreementId = generateId<AgreementId>();
@@ -490,12 +436,7 @@ describe("agreement consumer document", () => {
       const actualConsumerDocument = agreementService.addConsumerDocument(
         wrongAgreementId,
         consumerDocument,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
@@ -504,7 +445,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw an organizationIsNotTheConsumer if is not consumer", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const organizationId = authData.organizationId;
       const agreement = getMockAgreement();
 
@@ -515,12 +456,7 @@ describe("agreement consumer document", () => {
       const actualConsumerDocument = agreementService.addConsumerDocument(
         agreement.id,
         consumerDocument,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
@@ -529,7 +465,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw an organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
       const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
 
@@ -550,12 +486,7 @@ describe("agreement consumer document", () => {
       const actualConsumerDocument = agreementService.addConsumerDocument(
         agreement.id,
         consumerDocument,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
@@ -564,7 +495,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw a documentChangeNotAllowed if state not draft or pending", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const organizationId = authData.organizationId;
 
       const agreementConsumerDocumentChangeFailureState = randomArrayItem(
@@ -586,12 +517,7 @@ describe("agreement consumer document", () => {
       const actualConsumerDocument = agreementService.addConsumerDocument(
         agreement.id,
         consumerDocument,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
@@ -600,7 +526,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw a agreementDocumentAlreadyExists if document already exists", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const organizationId = authData.organizationId;
       let agreement = getMockAgreement(
         generateId<EServiceId>(),
@@ -617,12 +543,7 @@ describe("agreement consumer document", () => {
       const actualConsumerDocument = agreementService.addConsumerDocument(
         agreement.id,
         consumerDocument,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
       await expect(actualConsumerDocument).rejects.toThrowError(
         agreementDocumentAlreadyExists(agreement.id)
@@ -644,7 +565,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should succeed on happy path when the requester is the consumer", async () => {
-      const authData = getRandomAuthData(agreement1.consumerId);
+      const authData = getMockAuthData(agreement1.consumerId);
       const consumerDocument = agreement1.consumerDocuments[0];
 
       await uploadDocument(
@@ -657,12 +578,7 @@ describe("agreement consumer document", () => {
         await agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           consumerDocument.id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
 
       // Check that the file is removed from the bucket after removing it
@@ -687,7 +603,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should succeed on happy path when the requester is the consumer delegate", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const delegateId = authData.organizationId;
 
       const consumerDocument = agreement1.consumerDocuments[0];
@@ -713,12 +629,7 @@ describe("agreement consumer document", () => {
         await agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           consumerDocument.id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
 
       expect(
@@ -742,7 +653,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw organizationIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
-      const authData = getRandomAuthData(agreement1.consumerId);
+      const authData = getMockAuthData(agreement1.consumerId);
 
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedConsumer,
@@ -758,12 +669,7 @@ describe("agreement consumer document", () => {
         agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           agreement1.consumerDocuments[0].id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         organizationIsNotTheDelegateConsumer(
@@ -774,19 +680,14 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
       const nonExistentAgreement = getMockAgreement();
 
       const removeAgreementConsumerDocument =
         agreementService.removeAgreementConsumerDocument(
           nonExistentAgreement.id,
           getMockConsumerDocument(nonExistentAgreement.id).id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
 
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
@@ -795,18 +696,13 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw an organizationIsNotTheConsumer if is not consumer", async () => {
-      const authData = getRandomAuthData();
+      const authData = getMockAuthData();
 
       const removeAgreementConsumerDocument =
         agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           agreement1.consumerDocuments[0].id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
 
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
@@ -815,7 +711,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw a documentChangeNotAllowed if state not draft or pending", async () => {
-      const authData = getRandomAuthData(agreement1.consumerId);
+      const authData = getMockAuthData(agreement1.consumerId);
 
       const agreementConsumerDocumentChangeFailureState = randomArrayItem(
         Object.values(agreementState).filter(
@@ -834,12 +730,7 @@ describe("agreement consumer document", () => {
         agreementService.removeAgreementConsumerDocument(
           agreement.id,
           agreement.consumerDocuments[0].id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
 
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
@@ -848,19 +739,14 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw a agreementDocumentNotFound if document does not exist", async () => {
-      const authData = getRandomAuthData(agreement1.consumerId);
+      const authData = getMockAuthData(agreement1.consumerId);
       const nonExistentDocumentId = generateId<AgreementDocumentId>();
 
       const removeAgreementConsumerDocument =
         agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           nonExistentDocumentId,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
         agreementDocumentNotFound(nonExistentDocumentId, agreement1.id)
@@ -870,19 +756,14 @@ describe("agreement consumer document", () => {
     it("should fail if the file deletion fails", async () => {
       // eslint-disable-next-line functional/immutable-data
       config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
-      const authData = getRandomAuthData(agreement1.consumerId);
+      const authData = getMockAuthData(agreement1.consumerId);
       const consumerDocument = agreement1.consumerDocuments[0];
 
       await expect(
         agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           consumerDocument.id,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         fileManagerDeleteError(
