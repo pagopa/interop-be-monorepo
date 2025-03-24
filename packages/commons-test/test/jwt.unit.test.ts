@@ -40,11 +40,11 @@ const mockUiToken = {
 
 const mockM2MToken = {
   organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
-  aud: "refactor.dev.interop.pagopa.it/m2m",
+  aud: "dev.interop.pagopa.it/m2m",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
   role: "m2m",
   nbf: 1710511524,
-  iss: "refactor.dev.interop.pagopa.it",
+  iss: "dev.interop.pagopa.it",
   exp: 1810511523,
   iat: 1710511524,
   client_id: "227cadc9-1a2c-4612-b100-a247b48d0464",
@@ -52,29 +52,29 @@ const mockM2MToken = {
 };
 
 const mockInternalToken = {
-  aud: "refactor.dev.interop.pagopa.it/m2m",
+  aud: "dev.interop.pagopa.it/m2m",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
   role: "internal",
   nbf: 1710511524,
-  iss: "refactor.dev.interop.pagopa.it",
+  iss: "dev.interop.pagopa.it",
   exp: 1810511523,
   iat: 1710511524,
   jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
 };
 
 const mockMaintenanceToken = {
-  aud: "refactor.dev.interop.pagopa.it/fake",
+  aud: "dev.interop.pagopa.it/fake",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
   role: "maintenance",
   nbf: 1710511524,
-  iss: "refactor.dev.interop.pagopa.it",
+  iss: "dev.interop.pagopa.it",
   exp: 1810511523,
   iat: 1710511524,
   jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
 };
 
 const mockSupportToken = {
-  iss: "refactor.dev.interop.pagopa.it",
+  iss: "dev.interop.pagopa.it",
   externalId: {
     origin: "IPA",
     value: "5N2TR557",
