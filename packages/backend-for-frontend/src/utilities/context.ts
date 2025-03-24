@@ -12,14 +12,14 @@ export type BffAppContext = AppContext & { headers: Headers };
 
 export function fromBffAppContext(
   ctx: AppContext,
-  headers: IncomingHttpHeaders
+  headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): WithLogger<BffAppContext> {
   return {
     ...ctx,
     headers: {
       "X-Correlation-Id": ctx.correlationId,
       Authorization: headers.authorization,
-      "X-Forwarded-For": ctx.xForwardedForHeader,
+      "X-Forwarded-For": headers["x-forwarded-for"],
     },
     logger: logger({ ...ctx }),
   };

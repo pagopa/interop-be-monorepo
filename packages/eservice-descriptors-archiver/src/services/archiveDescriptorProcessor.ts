@@ -58,7 +58,6 @@ export async function archiveDescriptorForArchivedAgreement(
   const getHeaders = (correlationId: CorrelationId, token: string) => ({
     "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${token}`,
-    "X-Forwarded-For": "forwarded TODO",
   });
 
   return await match(descriptor)

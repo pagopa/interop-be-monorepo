@@ -12,14 +12,14 @@ export type ApiGatewayAppContext = AppContext & { headers: Headers };
 
 export function fromApiGatewayAppContext(
   ctx: AppContext,
-  headers: IncomingHttpHeaders
+  headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): WithLogger<ApiGatewayAppContext> {
   return {
     ...ctx,
     headers: {
       "X-Correlation-Id": ctx.correlationId,
       Authorization: headers.authorization,
-      "X-Forwarded-For": ctx.xForwardedForHeader,
+      "X-Forwarded-For": headers["x-forwarded-for"],
     },
     logger: logger({ ...ctx }),
   };
