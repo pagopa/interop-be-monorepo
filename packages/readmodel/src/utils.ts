@@ -16,5 +16,3 @@ export const makeDrizzleConnection = (
   });
   return drizzle({ client: pool });
 };
-
-export const makeUniqueKey = (ids: string[]): string => ids.join("#");
