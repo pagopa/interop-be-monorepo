@@ -1,11 +1,12 @@
 /* eslint-disable functional/no-let */
 import {
   getMockAgreement,
-  getRandomAuthData,
+  getMockAuthData,
   decodeProtobufPayload,
   randomArrayItem,
   getMockDelegation,
   addSomeRandomDelegations,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -18,7 +19,6 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -40,16 +40,11 @@ describe("update agreement", () => {
       state: randomArrayItem(agreementUpdatableStates),
     };
     await addOneAgreement(agreement);
-    const authData = getRandomAuthData(agreement.consumerId);
+    const authData = getMockAuthData(agreement.consumerId);
     const returnedAgreement = await agreementService.updateAgreement(
       agreement.id,
       { consumerNotes: "Updated consumer notes" },
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -78,36 +73,26 @@ describe("update agreement", () => {
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
 
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
       agreementService.updateAgreement(
         agreementId,
         { consumerNotes: "Updated consumer notes" },
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
   it("should throw organizationIsNotTheConsumer when the requester is not the Consumer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreement = getMockAgreement();
     await addOneAgreement(agreement);
     await expect(
       agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
@@ -124,17 +109,12 @@ describe("update agreement", () => {
       ),
     };
     await addOneAgreement(agreement);
-    const authData = getRandomAuthData(agreement.consumerId);
+    const authData = getMockAuthData(agreement.consumerId);
     await expect(
       agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -142,7 +122,7 @@ describe("update agreement", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the Agreement is in an updatable state", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementUpdatableStates),
@@ -161,12 +141,7 @@ describe("update agreement", () => {
     const returnedAgreement = await agreementService.updateAgreement(
       agreement.id,
       { consumerNotes: "Updated consumer notes" },
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -193,7 +168,7 @@ describe("update agreement", () => {
   });
 
   it("should throw organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreement = {
       ...getMockAgreement(),
       consumerId: authData.organizationId,
@@ -211,12 +186,7 @@ describe("update agreement", () => {
       agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
