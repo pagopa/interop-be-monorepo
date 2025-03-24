@@ -60,7 +60,9 @@ describe("events V1", async () => {
 
     const agreement = await agreementReadModelService.getAgreementById(id);
 
-    expect(agreement?.data).toEqual(fromAgreementV1(newAgreement.agreement!));
+    expect(agreement?.data).toStrictEqual(
+      fromAgreementV1(newAgreement.agreement!)
+    );
   });
 
   it("should delete an agreement", async () => {
@@ -126,7 +128,7 @@ describe("events V1", async () => {
 
     expect(actualAgreement).not.toBeNull();
 
-    expect(actualAgreement?.data).toEqual(
+    expect(actualAgreement?.data).toStrictEqual(
       fromAgreementV1(agreementUpdated.agreement!)
     );
   });
@@ -159,7 +161,7 @@ describe("events V1", async () => {
 
     expect(actualAgreement).not.toBeNull();
 
-    expect(actualAgreement?.data).toMatchObject({
+    expect(actualAgreement?.data).toStrictEqual({
       ...agreement,
       consumerDocuments: [
         ...agreement.consumerDocuments,
@@ -232,7 +234,7 @@ describe("events V1", async () => {
     );
     expect(actualAgreement).not.toBeNull();
 
-    expect(actualAgreement?.data).toEqual({
+    expect(actualAgreement?.data).toStrictEqual({
       ...agreement,
       contract: agreementContract,
     });
@@ -270,7 +272,7 @@ describe("events V1", async () => {
 
     expect(retrievedAgreement).not.toBeNull();
 
-    expect(retrievedAgreement?.data).toEqual(activatedAgreement);
+    expect(retrievedAgreement?.data).toStrictEqual(activatedAgreement);
   });
 
   it("should suspend an agreement", async () => {
@@ -305,7 +307,7 @@ describe("events V1", async () => {
 
     expect(retrievedAgreement).not.toBeNull();
 
-    expect(retrievedAgreement?.data).toEqual(suspendedAgreement);
+    expect(retrievedAgreement?.data).toStrictEqual(suspendedAgreement);
   });
 
   it("should deactivate an agreement", async () => {
@@ -340,7 +342,7 @@ describe("events V1", async () => {
 
     expect(retrievedAgreement).not.toBeNull();
 
-    expect(retrievedAgreement?.data).toMatchObject(deactivatedAgreement);
+    expect(retrievedAgreement?.data).toStrictEqual(deactivatedAgreement);
   });
 
   it("should update the verified attributes of an agreement", async () => {
@@ -375,6 +377,6 @@ describe("events V1", async () => {
 
     expect(retrievedAgreement).not.toBeNull();
 
-    expect(retrievedAgreement?.data).toEqual(updatedAgreement);
+    expect(retrievedAgreement?.data).toStrictEqual(updatedAgreement);
   });
 });
