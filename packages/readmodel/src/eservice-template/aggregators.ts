@@ -131,8 +131,8 @@ export const aggregateEServiceTemplate = ({
     versions,
     riskAnalysis,
     mode: EServiceMode.parse(eserviceTemplateSQL.mode), // TODO use safeParse?
-    ...(eserviceTemplateSQL.isSignalHubEnabled
-      ? { isSignalHubEnabled: true }
+    ...(eserviceTemplateSQL.isSignalHubEnabled !== null
+      ? { isSignalHubEnabled: eserviceTemplateSQL.isSignalHubEnabled }
       : {}),
   };
   return {
