@@ -924,7 +924,6 @@ describe("upgrade Agreement", () => {
       stamps: {
         suspensionByConsumer: agreement.stamps.suspensionByConsumer,
         suspensionByProducer: agreement.stamps.suspensionByProducer,
-        upgrade: createStamp(authData.userId),
       },
       suspendedByPlatform: undefined,
       updatedAt: undefined,
