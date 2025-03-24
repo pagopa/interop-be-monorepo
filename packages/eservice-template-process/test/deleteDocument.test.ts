@@ -2,10 +2,11 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
@@ -13,7 +14,6 @@ import {
   EServiceTemplateVersionDocumentDeletedV2,
   EServiceTemplateVersionInterfaceDeletedV2,
   eserviceTemplateVersionState,
-  generateId,
   operationForbidden,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
@@ -80,12 +80,9 @@ describe("delete Document", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         document.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       );
       const writtenEvent = await readLastEserviceTemplateEvent(
         eserviceTemplate.id
@@ -163,12 +160,9 @@ describe("delete Document", () => {
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
       interfaceDocument.id,
-      {
+      getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -214,12 +208,7 @@ describe("delete Document", () => {
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
   });
@@ -240,12 +229,7 @@ describe("delete Document", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -262,12 +246,9 @@ describe("delete Document", () => {
         eserviceTemplate.id,
         mockEServiceTemplateVersion.id,
         mockDocument.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(
@@ -295,12 +276,9 @@ describe("delete Document", () => {
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
           mockDocument.id,
-          {
+          getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         )
       ).rejects.toThrowError(
         notValidEServiceTemplateVersionState(eserviceTemplateVersion.id, state)
@@ -330,12 +308,9 @@ describe("delete Document", () => {
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
           mockDocument.id,
-          {
+          getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         )
       ).rejects.toThrowError(
         notValidEServiceTemplateVersionState(eserviceTemplateVersion.id, state)
@@ -360,12 +335,9 @@ describe("delete Document", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         mockDocument.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eserviceTemplateDocumentNotFound(
@@ -395,12 +367,9 @@ describe("delete Document", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         mockDocument.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
