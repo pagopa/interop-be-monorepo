@@ -99,11 +99,21 @@ export const aggregateDescriptor = ({
           templateVersionRefSQL.termsAndConditionsUrl
             ? {
                 interfaceMetadata: {
-                  contactName: templateVersionRefSQL.contactName ?? undefined,
-                  contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
-                  contactUrl: templateVersionRefSQL.contactUrl ?? undefined,
-                  termsAndConditionsUrl:
-                    templateVersionRefSQL.termsAndConditionsUrl ?? undefined,
+                  ...(templateVersionRefSQL.contactName
+                    ? { contactName: templateVersionRefSQL.contactName }
+                    : {}),
+                  ...(templateVersionRefSQL.contactEmail
+                    ? { contactEmail: templateVersionRefSQL.contactEmail }
+                    : {}),
+                  ...(templateVersionRefSQL.contactUrl
+                    ? { contactUrl: templateVersionRefSQL.contactUrl }
+                    : {}),
+                  ...(templateVersionRefSQL.termsAndConditionsUrl
+                    ? {
+                        termsAndConditionsUrl:
+                          templateVersionRefSQL.termsAndConditionsUrl,
+                      }
+                    : {}),
                 },
               }
             : {}),
