@@ -75,10 +75,6 @@ export const convertEservicesToCSV = (
   return stringify(records, { header: true, columns });
 };
 
-export const convertEservicesToJSON = (
-  publicEServices: PublicEService[]
-): string => JSON.stringify(publicEServices);
-
 export function dtdCatalogExporterServiceBuilder({
   readModelService,
   fileManager,
@@ -142,7 +138,7 @@ export function dtdCatalogExporterServiceBuilder({
       const githubClient = new GithubClient(config.githubAccessToken);
 
       loggerInstance.info("\nUploading Eservices JSON result to S3 bucket...");
-      const eservicesJsonContent = convertEservicesToJSON(eservices);
+      const eservicesJsonContent = JSON.stringify(eservices);
       await fileManager.storeBytes(
         {
           bucket: config.s3Bucket,
