@@ -43,7 +43,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
         currentRiskAnalysis: RiskAnalysis
       ) => {
         const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
-          splitRiskAnalysisIntoObjectsSQL(
+          splitEServiceTemplateRiskAnalysisIntoObjectsSQL(
             currentRiskAnalysis,
             eserviceTemplate.id,
             metadataVersion
@@ -127,7 +127,7 @@ const eserviceTemplateVersionAttributeToEServiceTemplateVersionAttributeSQL = ({
   metadataVersion: number;
 }): EServiceTemplateVersionAttributeSQL => ({
   eserviceTemplateId,
-  metadataVersion: metadataVersion,
+  metadataVersion,
   attributeId: attribute.id,
   versionId: eserviceTemplateVersionId,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
@@ -220,7 +220,7 @@ export const splitEServiceTemplateVersionIntoObjectsSQL = (
   };
 };
 
-export const splitRiskAnalysisIntoObjectsSQL = (
+export const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
   riskAnalysis: RiskAnalysis,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
@@ -230,8 +230,8 @@ export const splitRiskAnalysisIntoObjectsSQL = (
 } => {
   const riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL = {
     id: riskAnalysis.id,
-    metadataVersion: metadataVersion,
-    eserviceTemplateId: eserviceTemplateId,
+    metadataVersion,
+    eserviceTemplateId,
     name: riskAnalysis.name,
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
@@ -242,8 +242,8 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     riskAnalysis.riskAnalysisForm.singleAnswers.map(
       (a): EServiceTemplateRiskAnalysisAnswerSQL => ({
         id: a.id,
-        eserviceTemplateId: eserviceTemplateId,
-        metadataVersion: metadataVersion,
+        eserviceTemplateId,
+        metadataVersion,
         key: a.key,
         value: a.value ? [a.value] : [],
         riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
@@ -254,8 +254,8 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     riskAnalysis.riskAnalysisForm.multiAnswers.map(
       (a): EServiceTemplateRiskAnalysisAnswerSQL => ({
         id: a.id,
-        eserviceTemplateId: eserviceTemplateId,
-        metadataVersion: metadataVersion,
+        eserviceTemplateId,
+        metadataVersion,
         key: a.key,
         value: a.values,
         riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
@@ -281,8 +281,8 @@ export const eserviceTemplateVersionDocumentToEServiceTemplateVersionDocumentSQL
     metadataVersion: number
   ): EServiceTemplateVersionDocumentSQL => ({
     id: document.id,
-    eserviceTemplateId: eserviceTemplateId,
-    metadataVersion: metadataVersion,
+    eserviceTemplateId,
+    metadataVersion,
     versionId: eserviceTemplateVersionId,
     name: document.name,
     contentType: document.contentType,
@@ -299,7 +299,7 @@ export const eserviceTemplateVersionToEServiceTemplateVersionSQL = (
 ): EServiceTemplateVersionSQL => ({
   id: eserviceTemplateVersion.id,
   eserviceTemplateId,
-  metadataVersion: metadataVersion,
+  metadataVersion,
   version: eserviceTemplateVersion.version,
   description: eserviceTemplateVersion.description || null,
   createdAt: dateToString(eserviceTemplateVersion.createdAt),
@@ -319,7 +319,7 @@ export const eserviceTemplateToEServiceTemplateSQL = (
   metadataVersion: number
 ): EServiceTemplateSQL => ({
   id: eserviceTemplate.id,
-  metadataVersion: metadataVersion,
+  metadataVersion,
   name: eserviceTemplate.name,
   createdAt: dateToString(eserviceTemplate.createdAt),
   creatorId: eserviceTemplate.creatorId,
