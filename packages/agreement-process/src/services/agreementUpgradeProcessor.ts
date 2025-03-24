@@ -60,13 +60,13 @@ export async function createUpgradeOrNewDraft({
   logger: Logger;
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const newAgreementId = generateId<AgreementId>();
-  const stamp = createStamp(authData.userId);
 
   if (canBeUpgraded) {
     // Upgrade Agreement case:
     // Creates a new Agreement linked to the new descriptor version,
     // with the same state of the old agreement, and archives the old agreement.
 
+    const stamp = createStamp(authData.userId);
     const archived: Agreement = {
       ...agreement.data,
       state: agreementState.archived,
