@@ -45,7 +45,11 @@ export const aggregateClient = ({
       consumerId: unsafeBrandId<TenantId>(clientSQL.consumerId),
       name: clientSQL.name,
       purposes,
-      description: clientSQL.description || undefined,
+      ...(clientSQL.description !== null
+        ? {
+            description: clientSQL.description,
+          }
+        : {}),
       users,
       kind: ClientKind.parse(clientSQL.kind),
       createdAt: stringToDate(clientSQL.createdAt),
