@@ -55,6 +55,7 @@ const ApplicationAuditEndRequest = z.object({
 });
 type ApplicationAuditEndRequest = z.infer<typeof ApplicationAuditEndRequest>;
 
+// TODO use this for auth server audit
 // const ApplicationAuditEndRequestAuthServer = z.object({
 //   correlationId: z.string(),
 //   service: z.string(),
@@ -62,7 +63,7 @@ type ApplicationAuditEndRequest = z.infer<typeof ApplicationAuditEndRequest>;
 //   endpoint: z.string(),
 //   httpMethod: z.string(),
 //   phase: z.literal(phase.END_REQUEST),
-//   requesterIpAddress: z.string(),
+//   requesterIpAddress: z.string().optional(),
 //   nodeIp: z.string(),
 //   podName: z.string(),
 //   uptimeSeconds: z.number(),
