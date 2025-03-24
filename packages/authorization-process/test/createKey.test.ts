@@ -1,5 +1,3 @@
-/* eslint-disable functional/no-let */
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
 import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 import {
@@ -166,7 +164,7 @@ describe("createKey", () => {
   it("should throw clientNotFound if the client doesn't exist ", async () => {
     await addOneClient(getMockClient());
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: mockClient.id,
         authData: mockAuthData,
@@ -185,7 +183,7 @@ describe("createKey", () => {
     await addOneClient(notConsumerClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: notConsumerClient.id,
         authData: mockAuthData,
@@ -202,7 +200,7 @@ describe("createKey", () => {
 
     mockSelfcareV2ClientCall([]);
 
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: mockClient.id,
         authData: mockAuthData,
@@ -217,6 +215,7 @@ describe("createKey", () => {
   it("should throw tooManyKeysPerClient if the keys number is greater than maxKeysPerClient ", async () => {
     function get100Keys(): Key[] {
       const arrayKeys = [];
+      // eslint-disable-next-line functional/no-let
       for (let index = 0; index < 101; index++) {
         arrayKeys.push(getMockKey());
       }
@@ -233,7 +232,7 @@ describe("createKey", () => {
 
     await addOneClient(clientWith100Keys);
 
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: clientWith100Keys.id,
         authData: mockAuthData,
@@ -256,7 +255,7 @@ describe("createKey", () => {
 
     await addOneClient(noUsersClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: noUsersClient.id,
         authData: mockAuthData,
@@ -286,7 +285,7 @@ describe("createKey", () => {
 
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: mockClient.id,
         authData: mockAuthData,
@@ -309,7 +308,7 @@ describe("createKey", () => {
     await addOneClient(clientWithDuplicateKey);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: clientWithDuplicateKey.id,
         authData: mockAuthData,
@@ -340,7 +339,7 @@ describe("createKey", () => {
 
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: client.id,
         authData: mockAuthData,
@@ -370,7 +369,7 @@ describe("createKey", () => {
 
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: client.id,
         authData: mockAuthData,
@@ -398,7 +397,7 @@ describe("createKey", () => {
 
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: mockClient.id,
         authData: mockAuthData,
@@ -408,7 +407,7 @@ describe("createKey", () => {
       })
     ).rejects.toThrowError(notAnRSAKey());
   });
-  it("should throw invalidKey if the key is invalid", async () => {
+  it("should throw invalidPublicKey if the key is invalid", async () => {
     await addOneClient(mockClient);
 
     const keys = [
@@ -421,23 +420,19 @@ describe("createKey", () => {
     ];
 
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
-    keys.forEach((key) => {
-      expect(
-        authorizationService.createKeys({
+    keys.forEach(async (key) => {
+      await expect(
+        authorizationService.createKey({
           clientId: mockClient.id,
           authData: mockAuthData,
-          keysSeeds: [
-            {
-              ...keySeed,
-              key,
-            },
-          ],
+          keySeed: {
+            ...keySeed,
+            key,
+          },
           correlationId: generateId(),
           logger: genericLogger,
         })
-      ).rejects.toThrowError(
-        invalidKey(key, "error:1E08010C:DECODER routines::unsupported")
-      );
+      ).rejects.toThrowError(invalidPublicKey());
     });
   });
   it("should throw notAllowedCertificateException if the key contains a certificate", async () => {
@@ -445,16 +440,14 @@ describe("createKey", () => {
 
     await addOneClient(mockClient);
 
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: mockClient.id,
         authData: mockAuthData,
-        keysSeeds: [
-          {
-            ...keySeed,
-            key: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUROakNDQWg2Z0F3SUJBZ0lHQVpJQXNpaThNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1Gd3hEakFNQmdOVkJBTU1CVkJ5YjNaaE1Rc3dDUVlEVlFRR0V3SlZVekVPTUF3R0ExVUVDd3dGY0hKdmRtRXhEakFNQmdOVkJBY01CWEJ5YjNaaE1SMHdHd1lKS29aSWh2Y05BUWtCRmc1d2NtOTJZVUJ0WVdsc0xtTnZiVEFlRncweU5EQTVNVGN4TlRVMU1qaGFGdzB5TlRBNU1UY3hOVFUxTWpoYU1Gd3hEakFNQmdOVkJBTU1CVkJ5YjNaaE1Rc3dDUVlEVlFRR0V3SlZVekVPTUF3R0ExVUVDd3dGY0hKdmRtRXhEakFNQmdOVkJBY01CWEJ5YjNaaE1SMHdHd1lKS29aSWh2Y05BUWtCRmc1d2NtOTJZVUJ0WVdsc0xtTnZiVENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLR0xCZHJacmpRLzRqd2h3Y1ZhU0kvTlgyV1ozMGx3VE5wVHlhMjhXSDhEOGlHVTlZdG1CL0s3cXUxQjhaOGtGaWJtditteGh1dS8rbStGRTg4SmIwM3pnU0liT1JwY0FSaThmWGFuZzM1eG8rdmh1bE5iL2x5bWthaFZ5ekRCSER0aXl5WUlUZTdsMmNPT0hPdm5MbDhRZERpZUhjOUNmcVJYTDhVeFlNaG1wd2QyMlVOK1BsNE1SNXFhbVFFZkp4cGxLdllva1NYTUdrb1QxWEJHcitmSDBsL0ZKRmxZT3R6QUdvSm5xUkNwTDRiNlZUeGxZZlZuUXhaNnpSQkRlbTd0dDhraGJncm1Va2hIWG1YaTNuL1A2RktEQnNyNG9WbjlUU2QyUENwL1VzQmtiKzB1RktuVFlyZyt5aSt5NVBZb2NmbTZUbnl1bUVOU2VHNGZxSUVDQXdFQUFUQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFGdDRjOUs0TWJOV0Ewb1k1RzdiWHQ1RW5FeXNLNTh0R1RSU2xpTG14aTRxSXE3eTNQMjExTUcvTDhpc211WVNybkF2Q29Yb1ZJbDZldzloOGh4eGl4N2QvR3dNc3lISzhQcm5SamZIU2pmL1ZzcGJXdTVPOEQzV1RtanNjOTVnMTZIbmgrS2NiaWFzN0FFNi95d2EvK1ZrdG55dnROL21vQzdtc2R3eForS3o1Nld0WTkzWVpBTkQwSUx2Y1pVRlNMbUdsNTI5Q2lxdlByVURlY2RFVWFob3J4VXozdWJ1ZmJjNW5PWTV6RU1FNkNWNG9SUWJzWTBmbWxoU1Q5Y20xc1ZSUmJsV1VNSTcyeGRGZFJIc04wcFpNaWYvVWpKTGhBTTQ0SUxSZXYwenRjMnlYMGtZUXBSejJmcWtucnY3S1ZRU1dwcjM4QlZSV3NJU0J5NnFZbHc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t",
-          },
-        ],
+        keySeed: {
+          ...keySeed,
+          key: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUROakNDQWg2Z0F3SUJBZ0lHQVpJQXNpaThNQTBHQ1NxR1NJYjNEUUVCQ3dVQU1Gd3hEakFNQmdOVkJBTU1CVkJ5YjNaaE1Rc3dDUVlEVlFRR0V3SlZVekVPTUF3R0ExVUVDd3dGY0hKdmRtRXhEakFNQmdOVkJBY01CWEJ5YjNaaE1SMHdHd1lKS29aSWh2Y05BUWtCRmc1d2NtOTJZVUJ0WVdsc0xtTnZiVEFlRncweU5EQTVNVGN4TlRVMU1qaGFGdzB5TlRBNU1UY3hOVFUxTWpoYU1Gd3hEakFNQmdOVkJBTU1CVkJ5YjNaaE1Rc3dDUVlEVlFRR0V3SlZVekVPTUF3R0ExVUVDd3dGY0hKdmRtRXhEakFNQmdOVkJBY01CWEJ5YjNaaE1SMHdHd1lKS29aSWh2Y05BUWtCRmc1d2NtOTJZVUJ0WVdsc0xtTnZiVENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLR0xCZHJacmpRLzRqd2h3Y1ZhU0kvTlgyV1ozMGx3VE5wVHlhMjhXSDhEOGlHVTlZdG1CL0s3cXUxQjhaOGtGaWJtditteGh1dS8rbStGRTg4SmIwM3pnU0liT1JwY0FSaThmWGFuZzM1eG8rdmh1bE5iL2x5bWthaFZ5ekRCSER0aXl5WUlUZTdsMmNPT0hPdm5MbDhRZERpZUhjOUNmcVJYTDhVeFlNaG1wd2QyMlVOK1BsNE1SNXFhbVFFZkp4cGxLdllva1NYTUdrb1QxWEJHcitmSDBsL0ZKRmxZT3R6QUdvSm5xUkNwTDRiNlZUeGxZZlZuUXhaNnpSQkRlbTd0dDhraGJncm1Va2hIWG1YaTNuL1A2RktEQnNyNG9WbjlUU2QyUENwL1VzQmtiKzB1RktuVFlyZyt5aSt5NVBZb2NmbTZUbnl1bUVOU2VHNGZxSUVDQXdFQUFUQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFGdDRjOUs0TWJOV0Ewb1k1RzdiWHQ1RW5FeXNLNTh0R1RSU2xpTG14aTRxSXE3eTNQMjExTUcvTDhpc211WVNybkF2Q29Yb1ZJbDZldzloOGh4eGl4N2QvR3dNc3lISzhQcm5SamZIU2pmL1ZzcGJXdTVPOEQzV1RtanNjOTVnMTZIbmgrS2NiaWFzN0FFNi95d2EvK1ZrdG55dnROL21vQzdtc2R3eForS3o1Nld0WTkzWVpBTkQwSUx2Y1pVRlNMbUdsNTI5Q2lxdlByVURlY2RFVWFob3J4VXozdWJ1ZmJjNW5PWTV6RU1FNkNWNG9SUWJzWTBmbWxoU1Q5Y20xc1ZSUmJsV1VNSTcyeGRGZFJIc04wcFpNaWYvVWpKTGhBTTQ0SUxSZXYwenRjMnlYMGtZUXBSejJmcWtucnY3S1ZRU1dwcjM4QlZSV3NJU0J5NnFZbHc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t",
+        },
         correlationId: generateId(),
         logger: genericLogger,
       })
@@ -474,22 +467,21 @@ describe("createKey", () => {
       "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyaVM2elVMWUtKMUJydEZLczBwVwowQzZhZ1BSdU9qSCt2Mk11N0Y4cUlIQk5NNmNFb0MvMkxLR3drUEd2ajcvdllyTFFrWHJJSGFSUHh0NXpIdVRiCnAxcVJRS05tVFRaOFk1WUNFOHYrVEYzWEMrZkc1RTNCQ3JnQXdXRE1wZUZYS1dSa2xuM0ZSbjZyMGZTZmd4cnAKTy9DZXFDVGFRTVhLRCtTVHA1ZklvQTdqWGpibTRTUmdQK1dDakdHajhEU0I1YlBESndJVFFiS0gxYklHNHBOZwpXQk5oQ1VRQTJLUWFkSERIYTQvT1MzSk92V25KRXd6NUhRbkZpTlNOQ25UWENIa2NXZ0t6Q09WUkdZNFRadG0wCis1enhLazhKVmNtcXk1ellhZExoUFpxT04vMkpKNFZqRlhzY2t4ZEpSVEVnWHBaWHlMdUVwTlNzNEh2SitRVm0KWFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCi0tLS0tQkVHSU4gUFJJVkFURSBLRVktLS0tLQpNSUlFdlFJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLY3dnZ1NqQWdFQUFvSUJBUUN1SkxyTlF0Z29uVUd1CjBVcXpTbGJRTHBxQTlHNDZNZjYvWXk3c1h5b2djRTB6cHdTZ0wvWXNvYkNROGErUHYrOWlzdENSZXNnZHBFL0cKM25NZTVOdW5XcEZBbzJaTk5ueGpsZ0lUeS81TVhkY0w1OGJrVGNFS3VBREJZTXlsNFZjcFpHU1dmY1ZHZnF2Ugo5SitER3VrNzhKNm9KTnBBeGNvUDVKT25sOGlnRHVOZU51YmhKR0EvNVlLTVlhUHdOSUhsczhNbkFoTkJzb2ZWCnNnYmlrMkJZRTJFSlJBRFlwQnAwY01kcmo4NUxjazY5YWNrVERQa2RDY1dJMUkwS2ROY0llUnhhQXJNSTVWRVoKamhObTJiVDduUEVxVHdsVnlhckxuTmhwMHVFOW1vNDMvWWtuaFdNVmV4eVRGMGxGTVNCZWxsZgpJdTRTazFLemdlOG41QldaZEFnTUJBQUVDZ2dFQUhHU1paRHZsd1FOMVp3R25rWERSWXlQOHZ3TDNUWk1zS1FJMgpCWkcwa1VoQ2pFWGpwMVM3SzZXVEtPUVpkSmp6S0pTcVdxWVVpT1ppU05aRTRRTjdVWXhuSEpGWDJZUXpYV3d2Cm1VY1hNd3huUlV2T1ZTcUVXZzB5NE5IV3hlM2IzdHpnRlUxbVBKQ3JGTlBEOHJ1QlpxeUJjVHhDZlhGSEo0V0QKdkxoWlhMMkJMbUJHeERYSGxGY3FtL1pSd1B3cVlKNnZIVVpNUTRPSUVxWXMzQStiWmhzTjl4V1I1L0U3dGVEWQpiV0Y0ekx4Vlp0VlR6TzVuRHBCd09iQ1hzcUVWQms3OVhSaGlJYVdPVlZFTkVRRHNLV2dDRGpnRlQzRjQrc1QyCnhJeEl1VUJaY0FCNExMZ0RYdDVjOEgzZFVZL0xwVVd4VlhGSlBFK3A4UUtCZ1FEMFdKSHdiVDdwV3FGZHdCbUwKUVRhVk5OaHVqZnpwWjRwRk1EdUFZL3UxRWlIOEo2Z0VuOGZ3UUtoSVZiUlo1RGRYaE16RVgzU1lmVGtWcGdSNgpEbFc2SVpFRVJNZ056MFFPNGdLSGN1Um5GYkp0V2tMUmNUN2g4aUdYQ0laeU5NUWlWbk5rTEZkaWJLWS9MKzVTCm05L0pFM3A0Slc4dkVLbHdEYVpaR3EvbjF3S0JnUUMycVovS1BBVW9BMXdKYlRwUmRWN3BTL3BUaStOM2RHRTkKWk8rbUd4K1VrQk1YVWRKbFVhWTkrVlJVVWhXOHR4RnhiR3BPRUNNbnBVT1hRclBxUHRLV0o1VUw1VzVaUzhTdwpwbkJMK1R6QmRGd200WGczaG1ESkRWblBKUUV6cUNHL05TRFZ5cVFOTlpNaUptb0d4Q3ZRRDBhNXVTVnZqVUJ4ClBnV3dYTFVMaXdLQmdRREVGcXlKcVliUzdqQk9Ra0Z3SEJaKytVQnc3RGhQUGpEQzhRNkhoWDROUkdsd1BMVVkKWlVNbFZHNndFZlRFQlV4UkNQTlVjU2M3cTNsVHNpRlNvSEx0L3FVd1pIL2tLVVpHam9RaDBwUzVPL3RGZ0loUwpHS0RrZ2ZNQWw1SEJ2R3RXWlhiaGlFN3EwR1VnTE5XR3BWNVNCcklvTTNGK0RRaE0vRmlRK0c5bEF3S0JnQ2tiCkRRMVZUVWFVOGNPQUZac1pLQTJ1UkhGd3F5WE40RTF4MnkvT1k3VkhrMHhDSFFBTEVJcC9Yb1M5ZUtuWk5WR1cKVkx6S3JXR0tHSEZYS1VkT0p0bTRFZVpJSmtyWUM0SGRIUEtJdUhoTGFaNzV1M3hXc0YxM0VYamR6QVE2dXFBbwpVdkdrazFKaFk4Z0pMaFd6Sk9RTnRhckRTYUFjbFFrSlpXbnBuSkk5QW9HQVcrMnFIakkyM1hGUE1nQnh2NmMvCmlaYVdid3dFT1JiNjJ2Zlo0c1hLNXJCYkpnWEIwUFZUVklaU1VDbTRDVU9iM1o4RldBeGJWa0R6TXd3KzVaUFgKdHpxd21YaEorVWNMSVFsa0xGUHg0U0lUelZHUFFaQnZSeG1Wc002TWxSVVdCTEFHTUk1WjdZVGovWnVSTG5ZdgpFN2JabCtaZlJ1R1BSVi9YNStRaExMaz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ==",
     ];
 
-    keys.forEach((key) => {
-      expect(
-        authorizationService.createKeys({
+    keys.forEach(async (key) => {
+      await expect(
+        authorizationService.createKey({
           clientId: mockClient.id,
           authData: mockAuthData,
-          keysSeeds: [
-            {
-              ...keySeed,
-              key,
-            },
-          ],
+          keySeed: {
+            ...keySeed,
+            key,
+          },
           correlationId: generateId(),
           logger: genericLogger,
         })
       ).rejects.toThrowError(notAllowedMultipleKeysException());
     });
+  });
 
   it("should throw invalidKeyLength if the key doesn't have 2048 bites", async () => {
     const key = crypto.generateKeyPairSync("rsa", {
@@ -509,7 +501,7 @@ describe("createKey", () => {
 
     await addOneClient(mockClient);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
-    expect(
+    await expect(
       authorizationService.createKey({
         clientId: mockClient.id,
         authData: mockAuthData,

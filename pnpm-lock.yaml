@@ -15,72 +15,8 @@ importers:
         specifier: 2.0.5
         version: 2.0.5
       turbo:
-        specifier: 2.0.4
-        version: 2.0.4
-
-  packages/agreement-email-sender:
-    dependencies:
-      '@protobuf-ts/runtime':
-        specifier: 2.9.4
-        version: 2.9.4
-      dotenv-flow:
-        specifier: 4.1.0
-        version: 4.1.0
-      kafka-iam-auth:
-        specifier: workspace:*
-        version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
-      pagopa-interop-commons:
-        specifier: workspace:*
-        version: link:../commons
-      pagopa-interop-models:
-        specifier: workspace:*
-        version: link:../models
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
-      zod:
-        specifier: 3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@pagopa/eslint-config':
-        specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      '@types/node':
-        specifier: 20.14.6
-        version: 20.14.6
-      '@types/uuid':
-        specifier: 9.0.8
-        version: 9.0.8
-      axios:
-        specifier: 1.7.4
-        version: 1.7.4
-      cpx2:
-        specifier: 7.0.1
-        version: 7.0.1
-      pagopa-interop-commons-test:
-        specifier: workspace:*
-        version: link:../commons-test
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      testcontainers:
-        specifier: 10.9.0
-        version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
-      vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 2.2.3
+        version: 2.2.3
 
   packages/agreement-lifecycle:
     dependencies:
@@ -143,7 +79,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -205,7 +140,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -236,7 +170,6 @@ importers:
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -248,7 +181,6 @@ importers:
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
@@ -277,7 +209,6 @@ importers:
         version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 4.17.21
@@ -358,7 +289,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -407,7 +337,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -467,7 +396,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -504,7 +432,6 @@ importers:
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -532,7 +459,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 4.17.21
@@ -564,7 +490,6 @@ importers:
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -579,7 +504,6 @@ importers:
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       openapi-zod-client:
         specifier: 1.18.1
@@ -611,7 +535,6 @@ importers:
         version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@protobuf-ts/runtime':
         specifier: 2.9.4
@@ -674,7 +597,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -687,9 +609,125 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/attribute-registry-readmodel-writer-sql:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/authorization-platformstate-writer:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0(@aws-sdk/client-dynamodb@3.693.0)
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -720,7 +758,6 @@ importers:
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       openapi-zod-client:
         specifier: 1.18.1
         version: 1.18.1
@@ -739,15 +776,6 @@ importers:
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
-      xml-crypto:
-        specifier: 6.0.1
-        version: 6.0.1
-      yaml:
-        specifier: 2.4.5
-        version: 2.4.5
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -770,9 +798,94 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/authorization-server:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0
+      '@aws-sdk/client-kms':
+        specifier: 3.693.0
+        version: 3.693.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0(@aws-sdk/client-dynamodb@3.693.0)
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      openapi-zod-client:
+        specifier: 1.18.1
+        version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-client-assertion-validation:
+        specifier: workspace:*
+        version: link:../client-assertion-validation
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      jose:
+        specifier: 5.9.4
+        version: 5.9.4
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -821,7 +934,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -877,12 +989,18 @@ importers:
       express:
         specifier: 4.20.0
         version: 4.20.0
-      mongodb:
-        specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
+      fast-xml-parser:
+        specifier: 4.4.1
+        version: 4.4.1
+      mime:
+        specifier: 4.0.4
+        version: 4.0.4
+      multer:
+        specifier: 1.4.5-lts.1
+        version: 1.4.5-lts.1
+      pagopa-interop-agreement-lifecycle:
+        specifier: workspace:*
+        version: link:../agreement-lifecycle
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -993,7 +1111,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1055,7 +1172,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1089,7 +1205,6 @@ importers:
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -1101,7 +1216,6 @@ importers:
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       openapi-zod-client:
         specifier: 1.18.1
@@ -1130,7 +1244,6 @@ importers:
         version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@protobuf-ts/runtime':
         specifier: 2.9.4
@@ -1198,7 +1311,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -1365,7 +1477,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1418,7 +1529,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1470,7 +1580,6 @@ importers:
       adm-zip:
         specifier: 0.5.15
         version: 0.5.15
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -1506,7 +1615,6 @@ importers:
         version: 4.0.4
       mongodb:
         specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       nodemailer:
         specifier: 6.9.14
@@ -1586,7 +1694,6 @@ importers:
         version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@protobuf-ts/runtime':
         specifier: 2.9.4
@@ -1682,7 +1789,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1707,7 +1813,6 @@ importers:
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1721,6 +1826,106 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/datalake-interface-exporter:
+    dependencies:
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/delegation-items-archiver:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -1731,6 +1936,204 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/delegation-outbound-writer:
+    dependencies:
+      '@pagopa/interop-outbound-models':
+        specifier: 1.4.2
+        version: 1.4.2
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.13.4
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
+      '@faker-js/faker':
+        specifier: 8.4.1
+        version: 8.4.1
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/delegation-process:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      mongodb:
+        specifier: 6.7.0
+        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
+      openapi-zod-client:
+        specifier: 1.18.1
+        version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.13.4
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
+      '@faker-js/faker':
+        specifier: 8.4.1
+        version: 8.4.1
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      cpx2:
+        specifier: 7.0.1
+        version: 7.0.1
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pg-promise:
+        specifier: 11.8.0
+        version: 11.8.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      puppeteer:
+        specifier: 22.11.2
+        version: 22.11.2(typescript@5.4.5)
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/delegation-readmodel-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
       tsx:
         specifier: 4.19.1
         version: 4.19.1
@@ -1755,7 +2158,6 @@ importers:
       octokit:
         specifier: 4.1.2
         version: 4.1.2
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1830,7 +2232,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1843,9 +2244,259 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@20.14.6)(typescript@5.4.5)
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/eservice-template-instances-updater:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/eservice-template-outbound-writer:
+    dependencies:
+      '@pagopa/interop-outbound-models':
+        specifier: 1.5.1
+        version: 1.5.1
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.13.4
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
+      '@faker-js/faker':
+        specifier: 8.4.1
+        version: 8.4.1
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/eservice-template-process:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      mongodb:
+        specifier: 6.7.0
+        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
+      openapi-zod-client:
+        specifier: 1.18.1
+        version: 1.18.1
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@faker-js/faker':
+        specifier: 8.4.1
+        version: 8.4.1
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pg-promise:
+        specifier: 11.8.0
+        version: 11.8.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/eservice-template-readmodel-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1873,7 +2524,58 @@ importers:
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pg-promise:
+        specifier: 11.8.0
+        version: 11.8.0
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@types/json-diff':
+        specifier: 1.0.3
+        version: 1.0.3
+      '@types/lodash.isequal':
+        specifier: 4.5.8
+        version: 4.5.8
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/ipa-certified-attributes-importer:
+    dependencies:
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1945,7 +2647,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/adm-zip':
         specifier: 0.5.5
         version: 0.5.5
@@ -1984,7 +2685,6 @@ importers:
         version: 3.693.0
       aws-msk-iam-sasl-signer-js:
         specifier: 1.0.0
-        version: 1.0.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
         version: 1.0.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       kafkajs:
         specifier: 2.2.4
@@ -2032,7 +2732,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -2196,7 +2895,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -2252,7 +2950,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/html2json':
         specifier: 1.0.1
         version: 1.0.1
@@ -2298,7 +2995,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -2355,7 +3051,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -2404,7 +3099,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -2457,7 +3151,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -2523,7 +3216,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -2585,7 +3277,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -2616,7 +3307,6 @@ importers:
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -2631,7 +3321,6 @@ importers:
         version: 4.7.8
       mongodb:
         specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       openapi-zod-client:
         specifier: 1.18.1
@@ -2657,7 +3346,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 4.17.21
@@ -2719,7 +3407,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -2880,7 +3567,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -2939,7 +3625,6 @@ importers:
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -2970,7 +3655,6 @@ importers:
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -2982,7 +3666,6 @@ importers:
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       openapi-zod-client:
         specifier: 1.18.1
@@ -3005,7 +3688,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/express':
         specifier: 4.17.21
@@ -3067,7 +3749,6 @@ importers:
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
-        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/node':
         specifier: 20.14.6
@@ -4316,8 +4997,8 @@ packages:
     resolution: {integrity: sha512-4e6OjVe5rZ8yBe8w7byBjpKtSXFuro7gqeGAAZc7QYltOF8wB93rJl2FE0a4U1Mt88xxPv/mS+25/0DuLk0Ewg==}
     engines: {node: '>= 18'}
 
-  '@octokit/auth-oauth-device@7.1.3':
-    resolution: {integrity: sha512-BECO/N4B/Uikj0w3GCvjf/odMujtYTP3q82BJSjxC2J3rxTEiZIJ+z2xnRlDb0IE9dQSaTgRqUPVOieSbFcVzg==}
+  '@octokit/auth-oauth-device@7.1.4':
+    resolution: {integrity: sha512-yK35I9VGDGjYxu0NPZ9Rl+zXM/+DO/Hu1VR5FUNz+ZsU6i8B8oQ43TPwci9nuH8bAF6rQrKDNR9F0r0+kzYJhA==}
     engines: {node: '>= 18'}
 
   '@octokit/auth-oauth-user@5.1.3':
@@ -4356,11 +5037,11 @@ packages:
     resolution: {integrity: sha512-Jc/ycnePClOvO1WL7tlC+TRxOFtyJBGuTDsL4dzXNiVZvzZdrPuNw7zHI3qJSUX2n6RLXE5L0SkFmYyNaVUFoQ==}
     engines: {node: '>= 18'}
 
-  '@octokit/openapi-types@23.0.1':
-    resolution: {integrity: sha512-izFjMJ1sir0jn0ldEKhZ7xegCTj/ObmEDlEfpFrx4k/JyZSMRHbO3/rBwgE7f3m2DHt+RrNGIVw4wSmwnm3t/g==}
+  '@octokit/openapi-types@24.2.0':
+    resolution: {integrity: sha512-9sIH3nSUttelJSXUrmGzl7QUBFul0/mB8HRYl3fOlgHbIWG+WnYDXU3v/2zMtAvuzZ/ed00Ei6on975FhBfzrg==}
 
-  '@octokit/openapi-webhooks-types@10.1.1':
-    resolution: {integrity: sha512-qBfqQVIDQaCFeGCofXieJDwvXcGgDn17+UwZ6WW6lfEvGYGreLFzTiaz9xjet9Us4zDf8iasoW3ixUj/R5lMhA==}
+  '@octokit/openapi-webhooks-types@10.3.0':
+    resolution: {integrity: sha512-Dog+FB4pvsfcGZ9CFyYwb7I6K4QkzCDuN0H3hh5Nr9mMQ4wbBceqUKyJNKN2A0SQ6j4UU3CYNuvfoX9mQlhLUQ==}
 
   '@octokit/plugin-paginate-graphql@5.2.4':
     resolution: {integrity: sha512-pLZES1jWaOynXKHOqdnwZ5ULeVR6tVVCMm+AUbp0htdcyXDU95WbkYdU4R2ej1wKj5Tu94Mee2Ne0PjPO9cCyA==}
@@ -4368,26 +5049,26 @@ packages:
     peerDependencies:
       '@octokit/core': '>=6'
 
-  '@octokit/plugin-paginate-rest@11.4.3':
-    resolution: {integrity: sha512-tBXaAbXkqVJlRoA/zQVe9mUdb8rScmivqtpv3ovsC5xhje/a+NOCivs7eUhWBwCApJVsR4G5HMeaLbq7PxqZGA==}
+  '@octokit/plugin-paginate-rest@11.6.0':
+    resolution: {integrity: sha512-n5KPteiF7pWKgBIBJSk8qzoZWcUkza2O6A0za97pMGVrGfPdltxrfmfF5GucHYvHGZD8BdaZmmHGz5cX/3gdpw==}
     engines: {node: '>= 18'}
     peerDependencies:
       '@octokit/core': '>=6'
 
-  '@octokit/plugin-rest-endpoint-methods@13.3.1':
-    resolution: {integrity: sha512-o8uOBdsyR+WR8MK9Cco8dCgvG13H1RlM1nWnK/W7TEACQBFux/vPREgKucxUfuDQ5yi1T3hGf4C5ZmZXAERgwQ==}
+  '@octokit/plugin-rest-endpoint-methods@13.5.0':
+    resolution: {integrity: sha512-9Pas60Iv9ejO3WlAX3maE1+38c5nqbJXV5GrncEfkndIpZrJ/WPMRd2xYDcPPEt5yzpxcjw9fWNoPhsSGzqKqw==}
     engines: {node: '>= 18'}
     peerDependencies:
       '@octokit/core': '>=6'
 
-  '@octokit/plugin-retry@7.1.4':
-    resolution: {integrity: sha512-7AIP4p9TttKN7ctygG4BtR7rrB0anZqoU9ThXFk8nETqIfvgPUANTSYHqWYknK7W3isw59LpZeLI8pcEwiJdRg==}
+  '@octokit/plugin-retry@7.2.0':
+    resolution: {integrity: sha512-psMbEYb/Fh+V+ZaFo8J16QiFz4sVTv3GntCSU+hYqzHiMdc3P+hhHLVv+dJt0PGIPAGoIA5u+J2DCJdK6lEPsQ==}
     engines: {node: '>= 18'}
     peerDependencies:
       '@octokit/core': '>=6'
 
-  '@octokit/plugin-throttling@9.4.0':
-    resolution: {integrity: sha512-IOlXxXhZA4Z3m0EEYtrrACkuHiArHLZ3CvqWwOez/pURNqRuwfoFlTPbN5Muf28pzFuztxPyiUiNwz8KctdZaQ==}
+  '@octokit/plugin-throttling@9.6.0':
+    resolution: {integrity: sha512-zn7m1N3vpJDaVzLqjCRdJ0cRzNiekHEWPi8Ww9xyPNrDt5PStHvVE0eR8wy4RSU8Eg7YO8MHyvn6sv25EGVhhg==}
     engines: {node: '>= 18'}
     peerDependencies:
       '@octokit/core': ^6.1.3
@@ -4400,15 +5081,15 @@ packages:
     resolution: {integrity: sha512-dZl0ZHx6gOQGcffgm1/Sf6JfEpmh34v3Af2Uci02vzUYz6qEN6zepoRtmybWXIGXFIK8K9ylE3b+duCWqhArtg==}
     engines: {node: '>= 18'}
 
-  '@octokit/types@13.8.0':
-    resolution: {integrity: sha512-x7DjTIbEpEWXK99DMd01QfWy0hd5h4EN+Q7shkdKds3otGQP+oWE/y0A76i1OvH9fygo4ddvNf7ZvF0t78P98A==}
+  '@octokit/types@13.10.0':
+    resolution: {integrity: sha512-ifLaO34EbbPj0Xgro4G5lP5asESjwHracYJvVaPIyXMuiuXLlhic3S47cBdTb+jfODkTE5YtGCLt3Ay3+J97sA==}
 
   '@octokit/webhooks-methods@5.1.1':
     resolution: {integrity: sha512-NGlEHZDseJTCj8TMMFehzwa9g7On4KJMPVHDSrHxCQumL6uSQR8wIkP/qesv52fXqV1BPf4pTxwtS31ldAt9Xg==}
     engines: {node: '>= 18'}
 
-  '@octokit/webhooks@13.7.4':
-    resolution: {integrity: sha512-f386XyLTieQbgKPKS6ZMlH4dq8eLsxNddwofiKRZCq0bZ2gikoFwMD99K6l1oAwqe/KZNzrEziGicRgnzplplQ==}
+  '@octokit/webhooks@13.7.5':
+    resolution: {integrity: sha512-qmmu4cfKmm58RWyDPUDoI7ls9JWw88qbqPzEi+TDBaSirHQPsixxdPU4OjPDcnDnjee7JXv525yv4qNN3BRlyg==}
     engines: {node: '>= 18'}
 
   '@pagopa/eslint-config@3.0.0':
@@ -4849,8 +5530,8 @@ packages:
   '@types/adm-zip@0.5.5':
     resolution: {integrity: sha512-YCGstVMjc4LTY5uK9/obvxBya93axZOVOyf2GSUulADzmLhYE45u2nAssCs/fWBs1Ifq5Vat75JTPwd5XZoPJw==}
 
-  '@types/aws-lambda@8.10.147':
-    resolution: {integrity: sha512-nD0Z9fNIZcxYX5Mai2CTmFD7wX7UldCkW2ezCF8D1T5hdiLsnTWDGRpfRYntU6VjTdLQjOvyszru7I1c1oCQew==}
+  '@types/aws-lambda@8.10.148':
+    resolution: {integrity: sha512-JL+2cfkY9ODQeE06hOxSFNkafjNk4JRBgY837kpoq1GHDttq2U3BA9IzKOWxS4DLjKoymGB4i9uBrlCkjUl1yg==}
 
   '@types/body-parser@1.19.5':
     resolution: {integrity: sha512-fB3Zu92ucau0iQ0JMCFQE7b/dv8Ot07NI3KaZIkIUNXq82k4eBAqUaneXfleGY9JWskeS9y+u0nXMyspcuQrCg==}
@@ -5319,7 +6000,6 @@ packages:
   bson@6.8.0:
     resolution: {integrity: sha512-iOJg8pr7wq2tg/zSlCCHMi3hMm5JTOxLTagf3zxhcenHsFp+c6uOs6K7W5UE7A4QIJGtqh/ZovFNMP4mOPJynQ==}
     engines: {node: '>=16.20.1'}
-    deprecated: a critical bug affecting only useBigInt64=true deserialization usage is fixed in bson@6.10.3
 
   buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
@@ -8223,7 +8903,6 @@ snapshots:
       '@aws-sdk/client-sts': 3.609.0
       '@aws-sdk/core': 3.609.0
       '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/middleware-host-header': 3.609.0
       '@aws-sdk/middleware-logger': 3.609.0
       '@aws-sdk/middleware-recursion-detection': 3.609.0
@@ -8269,7 +8948,6 @@ snapshots:
       '@aws-sdk/client-sso-oidc': 3.693.0(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/client-sts': 3.693.0
       '@aws-sdk/core': 3.693.0
-      '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/middleware-endpoint-discovery': 3.693.0
       '@aws-sdk/middleware-host-header': 3.693.0
@@ -8321,7 +8999,6 @@ snapshots:
       '@aws-sdk/client-sts': 3.693.0
       '@aws-sdk/core': 3.693.0
       '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
-      '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/middleware-host-header': 3.693.0
       '@aws-sdk/middleware-logger': 3.693.0
       '@aws-sdk/middleware-recursion-detection': 3.693.0
@@ -8368,7 +9045,6 @@ snapshots:
       '@aws-sdk/client-sso-oidc': 3.693.0(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/client-sts': 3.693.0
       '@aws-sdk/core': 3.693.0
-      '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/middleware-bucket-endpoint': 3.693.0
       '@aws-sdk/middleware-expect-continue': 3.693.0
@@ -8432,7 +9108,6 @@ snapshots:
       '@aws-sdk/client-sts': 3.693.0
       '@aws-sdk/core': 3.693.0
       '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
-      '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/middleware-host-header': 3.693.0
       '@aws-sdk/middleware-logger': 3.693.0
       '@aws-sdk/middleware-recursion-detection': 3.693.0
@@ -8478,7 +9153,6 @@ snapshots:
       '@aws-sdk/client-sso-oidc': 3.693.0(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/client-sts': 3.693.0
       '@aws-sdk/core': 3.693.0
-      '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/middleware-host-header': 3.693.0
       '@aws-sdk/middleware-logger': 3.693.0
@@ -8527,7 +9201,6 @@ snapshots:
       '@aws-sdk/client-sts': 3.609.0
       '@aws-sdk/core': 3.609.0
       '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/middleware-host-header': 3.609.0
       '@aws-sdk/middleware-logger': 3.609.0
       '@aws-sdk/middleware-recursion-detection': 3.609.0
@@ -8572,7 +9245,6 @@ snapshots:
       '@aws-crypto/sha256-js': 5.2.0
       '@aws-sdk/client-sts': 3.693.0
       '@aws-sdk/core': 3.693.0
-      '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/middleware-host-header': 3.693.0
       '@aws-sdk/middleware-logger': 3.693.0
@@ -8705,7 +9377,6 @@ snapshots:
       '@aws-sdk/client-sso-oidc': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/core': 3.609.0
       '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/middleware-host-header': 3.609.0
       '@aws-sdk/middleware-logger': 3.609.0
       '@aws-sdk/middleware-recursion-detection': 3.609.0
@@ -8750,7 +9421,6 @@ snapshots:
       '@aws-crypto/sha256-js': 5.2.0
       '@aws-sdk/client-sso-oidc': 3.693.0(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/core': 3.693.0
-      '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/credential-provider-node': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/middleware-host-header': 3.693.0
       '@aws-sdk/middleware-logger': 3.693.0
@@ -8865,13 +9535,11 @@ snapshots:
       tslib: 2.6.3
 
   '@aws-sdk/credential-provider-ini@3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)':
-  '@aws-sdk/credential-provider-ini@3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)':
     dependencies:
       '@aws-sdk/client-sts': 3.609.0
       '@aws-sdk/credential-provider-env': 3.609.0
       '@aws-sdk/credential-provider-http': 3.609.0
       '@aws-sdk/credential-provider-process': 3.609.0
-      '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))
       '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))
       '@aws-sdk/credential-provider-web-identity': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/types': 3.609.0
@@ -8885,13 +9553,11 @@ snapshots:
       - aws-crt
 
   '@aws-sdk/credential-provider-ini@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.609.0)':
-  '@aws-sdk/credential-provider-ini@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.609.0)':
     dependencies:
       '@aws-sdk/client-sts': 3.609.0
       '@aws-sdk/credential-provider-env': 3.609.0
       '@aws-sdk/credential-provider-http': 3.609.0
       '@aws-sdk/credential-provider-process': 3.609.0
-      '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-provider-web-identity': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/types': 3.609.0
@@ -8903,28 +9569,7 @@ snapshots:
     transitivePeerDependencies:
       - '@aws-sdk/client-sso-oidc'
       - aws-crt
-    optional: true
 
-  '@aws-sdk/credential-provider-ini@3.609.0(@aws-sdk/client-sts@3.609.0)':
-    dependencies:
-      '@aws-sdk/client-sts': 3.609.0
-      '@aws-sdk/credential-provider-env': 3.609.0
-      '@aws-sdk/credential-provider-http': 3.609.0
-      '@aws-sdk/credential-provider-process': 3.609.0
-      '@aws-sdk/credential-provider-sso': 3.609.0
-      '@aws-sdk/credential-provider-web-identity': 3.609.0(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/types': 3.609.0
-      '@smithy/credential-provider-imds': 3.2.7
-      '@smithy/property-provider': 3.1.10
-      '@smithy/shared-ini-file-loader': 3.1.11
-      '@smithy/types': 3.7.1
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
-      - aws-crt
-    optional: true
-
-  '@aws-sdk/credential-provider-ini@3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)':
   '@aws-sdk/credential-provider-ini@3.609.0(@aws-sdk/client-sts@3.609.0)':
     dependencies:
       '@aws-sdk/client-sts': 3.609.0
@@ -8952,7 +9597,6 @@ snapshots:
       '@aws-sdk/credential-provider-http': 3.693.0
       '@aws-sdk/credential-provider-process': 3.693.0
       '@aws-sdk/credential-provider-sso': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
-      '@aws-sdk/credential-provider-sso': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-provider-web-identity': 3.693.0(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/types': 3.692.0
       '@smithy/credential-provider-imds': 3.2.7
@@ -8965,14 +9609,11 @@ snapshots:
       - aws-crt
 
   '@aws-sdk/credential-provider-node@3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)':
-  '@aws-sdk/credential-provider-node@3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)':
     dependencies:
       '@aws-sdk/credential-provider-env': 3.609.0
       '@aws-sdk/credential-provider-http': 3.609.0
       '@aws-sdk/credential-provider-ini': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-ini': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/credential-provider-process': 3.609.0
-      '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))
       '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))
       '@aws-sdk/credential-provider-web-identity': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/types': 3.609.0
@@ -8987,14 +9628,11 @@ snapshots:
       - aws-crt
 
   '@aws-sdk/credential-provider-node@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.609.0)':
-  '@aws-sdk/credential-provider-node@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.609.0)':
     dependencies:
       '@aws-sdk/credential-provider-env': 3.609.0
       '@aws-sdk/credential-provider-http': 3.609.0
       '@aws-sdk/credential-provider-ini': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-ini': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/credential-provider-process': 3.609.0
-      '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-provider-web-identity': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/types': 3.609.0
@@ -9007,29 +9645,7 @@ snapshots:
       - '@aws-sdk/client-sso-oidc'
       - '@aws-sdk/client-sts'
       - aws-crt
-    optional: true
 
-  '@aws-sdk/credential-provider-node@3.609.0(@aws-sdk/client-sts@3.609.0)':
-    dependencies:
-      '@aws-sdk/credential-provider-env': 3.609.0
-      '@aws-sdk/credential-provider-http': 3.609.0
-      '@aws-sdk/credential-provider-ini': 3.609.0(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-process': 3.609.0
-      '@aws-sdk/credential-provider-sso': 3.609.0
-      '@aws-sdk/credential-provider-web-identity': 3.609.0(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/types': 3.609.0
-      '@smithy/credential-provider-imds': 3.2.7
-      '@smithy/property-provider': 3.1.10
-      '@smithy/shared-ini-file-loader': 3.1.11
-      '@smithy/types': 3.7.1
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
-      - '@aws-sdk/client-sts'
-      - aws-crt
-    optional: true
-
-  '@aws-sdk/credential-provider-node@3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)':
   '@aws-sdk/credential-provider-node@3.609.0(@aws-sdk/client-sts@3.609.0)':
     dependencies:
       '@aws-sdk/credential-provider-env': 3.609.0
@@ -9055,9 +9671,7 @@ snapshots:
       '@aws-sdk/credential-provider-env': 3.693.0
       '@aws-sdk/credential-provider-http': 3.693.0
       '@aws-sdk/credential-provider-ini': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
-      '@aws-sdk/credential-provider-ini': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/credential-provider-process': 3.693.0
-      '@aws-sdk/credential-provider-sso': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-provider-sso': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-provider-web-identity': 3.693.0(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/types': 3.692.0
@@ -9089,10 +9703,8 @@ snapshots:
       tslib: 2.6.3
 
   '@aws-sdk/credential-provider-sso@3.609.0':
-  '@aws-sdk/credential-provider-sso@3.609.0':
     dependencies:
       '@aws-sdk/client-sso': 3.609.0
-      '@aws-sdk/token-providers': 3.609.0
       '@aws-sdk/token-providers': 3.609.0
       '@aws-sdk/types': 3.609.0
       '@smithy/property-provider': 3.1.10
@@ -9103,13 +9715,10 @@ snapshots:
       - '@aws-sdk/client-sso-oidc'
       - aws-crt
     optional: true
-    optional: true
 
-  '@aws-sdk/credential-provider-sso@3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))':
   '@aws-sdk/credential-provider-sso@3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))':
     dependencies:
       '@aws-sdk/client-sso': 3.609.0
-      '@aws-sdk/token-providers': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))
       '@aws-sdk/token-providers': 3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))
       '@aws-sdk/types': 3.609.0
       '@smithy/property-provider': 3.1.10
@@ -9120,20 +9729,6 @@ snapshots:
       - '@aws-sdk/client-sso-oidc'
       - aws-crt
 
-  '@aws-sdk/credential-provider-sso@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))':
-    dependencies:
-      '@aws-sdk/client-sso': 3.609.0
-      '@aws-sdk/token-providers': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
-      '@aws-sdk/types': 3.609.0
-      '@smithy/property-provider': 3.1.10
-      '@smithy/shared-ini-file-loader': 3.1.11
-      '@smithy/types': 3.7.1
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
-      - aws-crt
-
-  '@aws-sdk/credential-provider-sso@3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))':
   '@aws-sdk/credential-provider-sso@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))':
     dependencies:
       '@aws-sdk/client-sso': 3.609.0
@@ -9151,7 +9746,6 @@ snapshots:
     dependencies:
       '@aws-sdk/client-sso': 3.693.0
       '@aws-sdk/core': 3.693.0
-      '@aws-sdk/token-providers': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/token-providers': 3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/types': 3.692.0
       '@smithy/property-provider': 3.1.10
@@ -9180,7 +9774,6 @@ snapshots:
       tslib: 2.6.3
 
   '@aws-sdk/credential-providers@3.609.0':
-  '@aws-sdk/credential-providers@3.609.0':
     dependencies:
       '@aws-sdk/client-cognito-identity': 3.609.0
       '@aws-sdk/client-sso': 3.609.0
@@ -9190,33 +9783,7 @@ snapshots:
       '@aws-sdk/credential-provider-http': 3.609.0
       '@aws-sdk/credential-provider-ini': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-ini': 3.609.0(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/credential-provider-process': 3.609.0
-      '@aws-sdk/credential-provider-sso': 3.609.0
-      '@aws-sdk/credential-provider-web-identity': 3.609.0(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/types': 3.609.0
-      '@smithy/credential-provider-imds': 3.1.3
-      '@smithy/property-provider': 3.1.3
-      '@smithy/types': 3.7.1
-      tslib: 2.6.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
-      - aws-crt
-    optional: true
-
-  '@aws-sdk/credential-providers@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))':
-    dependencies:
-      '@aws-sdk/client-cognito-identity': 3.609.0
-      '@aws-sdk/client-sso': 3.609.0
-      '@aws-sdk/client-sts': 3.609.0
-      '@aws-sdk/credential-provider-cognito-identity': 3.609.0
-      '@aws-sdk/credential-provider-env': 3.609.0
-      '@aws-sdk/credential-provider-http': 3.609.0
-      '@aws-sdk/credential-provider-ini': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-node': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))(@aws-sdk/client-sts@3.609.0)
-      '@aws-sdk/credential-provider-process': 3.609.0
-      '@aws-sdk/credential-provider-sso': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-provider-sso': 3.609.0
       '@aws-sdk/credential-provider-web-identity': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/types': 3.609.0
@@ -9442,16 +10009,6 @@ snapshots:
     optional: true
 
   '@aws-sdk/token-providers@3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))':
-  '@aws-sdk/token-providers@3.609.0':
-    dependencies:
-      '@aws-sdk/types': 3.609.0
-      '@smithy/property-provider': 3.1.10
-      '@smithy/shared-ini-file-loader': 3.1.11
-      '@smithy/types': 3.7.1
-      tslib: 2.6.3
-    optional: true
-
-  '@aws-sdk/token-providers@3.609.0(@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0))':
     dependencies:
       '@aws-sdk/client-sso-oidc': 3.609.0(@aws-sdk/client-sts@3.609.0)
       '@aws-sdk/types': 3.609.0
@@ -9461,7 +10018,6 @@ snapshots:
       tslib: 2.6.3
 
   '@aws-sdk/token-providers@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))':
-  '@aws-sdk/token-providers@3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))':
     dependencies:
       '@aws-sdk/client-sso-oidc': 3.693.0(@aws-sdk/client-sts@3.693.0)
       '@aws-sdk/types': 3.609.0
@@ -9470,7 +10026,6 @@ snapshots:
       '@smithy/types': 3.7.1
       tslib: 2.6.3
 
-  '@aws-sdk/token-providers@3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))':
   '@aws-sdk/token-providers@3.693.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))':
     dependencies:
       '@aws-sdk/client-sso-oidc': 3.693.0(@aws-sdk/client-sts@3.693.0)
@@ -10109,6 +10664,153 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
 
+  '@octokit/app@15.1.5':
+    dependencies:
+      '@octokit/auth-app': 7.1.5
+      '@octokit/auth-unauthenticated': 6.1.2
+      '@octokit/core': 6.1.4
+      '@octokit/oauth-app': 7.1.6
+      '@octokit/plugin-paginate-rest': 11.6.0(@octokit/core@6.1.4)
+      '@octokit/types': 13.10.0
+      '@octokit/webhooks': 13.7.5
+
+  '@octokit/auth-app@7.1.5':
+    dependencies:
+      '@octokit/auth-oauth-app': 8.1.3
+      '@octokit/auth-oauth-user': 5.1.3
+      '@octokit/request': 9.2.2
+      '@octokit/request-error': 6.1.7
+      '@octokit/types': 13.10.0
+      toad-cache: 3.7.0
+      universal-github-app-jwt: 2.2.2
+      universal-user-agent: 7.0.2
+
+  '@octokit/auth-oauth-app@8.1.3':
+    dependencies:
+      '@octokit/auth-oauth-device': 7.1.4
+      '@octokit/auth-oauth-user': 5.1.3
+      '@octokit/request': 9.2.2
+      '@octokit/types': 13.10.0
+      universal-user-agent: 7.0.2
+
+  '@octokit/auth-oauth-device@7.1.4':
+    dependencies:
+      '@octokit/oauth-methods': 5.1.4
+      '@octokit/request': 9.2.2
+      '@octokit/types': 13.10.0
+      universal-user-agent: 7.0.2
+
+  '@octokit/auth-oauth-user@5.1.3':
+    dependencies:
+      '@octokit/auth-oauth-device': 7.1.4
+      '@octokit/oauth-methods': 5.1.4
+      '@octokit/request': 9.2.2
+      '@octokit/types': 13.10.0
+      universal-user-agent: 7.0.2
+
+  '@octokit/auth-token@5.1.2': {}
+
+  '@octokit/auth-unauthenticated@6.1.2':
+    dependencies:
+      '@octokit/request-error': 6.1.7
+      '@octokit/types': 13.10.0
+
+  '@octokit/core@6.1.4':
+    dependencies:
+      '@octokit/auth-token': 5.1.2
+      '@octokit/graphql': 8.2.1
+      '@octokit/request': 9.2.2
+      '@octokit/request-error': 6.1.7
+      '@octokit/types': 13.10.0
+      before-after-hook: 3.0.2
+      universal-user-agent: 7.0.2
+
+  '@octokit/endpoint@10.1.3':
+    dependencies:
+      '@octokit/types': 13.10.0
+      universal-user-agent: 7.0.2
+
+  '@octokit/graphql@8.2.1':
+    dependencies:
+      '@octokit/request': 9.2.2
+      '@octokit/types': 13.10.0
+      universal-user-agent: 7.0.2
+
+  '@octokit/oauth-app@7.1.6':
+    dependencies:
+      '@octokit/auth-oauth-app': 8.1.3
+      '@octokit/auth-oauth-user': 5.1.3
+      '@octokit/auth-unauthenticated': 6.1.2
+      '@octokit/core': 6.1.4
+      '@octokit/oauth-authorization-url': 7.1.1
+      '@octokit/oauth-methods': 5.1.4
+      '@types/aws-lambda': 8.10.148
+      universal-user-agent: 7.0.2
+
+  '@octokit/oauth-authorization-url@7.1.1': {}
+
+  '@octokit/oauth-methods@5.1.4':
+    dependencies:
+      '@octokit/oauth-authorization-url': 7.1.1
+      '@octokit/request': 9.2.2
+      '@octokit/request-error': 6.1.7
+      '@octokit/types': 13.10.0
+
+  '@octokit/openapi-types@24.2.0': {}
+
+  '@octokit/openapi-webhooks-types@10.3.0': {}
+
+  '@octokit/plugin-paginate-graphql@5.2.4(@octokit/core@6.1.4)':
+    dependencies:
+      '@octokit/core': 6.1.4
+
+  '@octokit/plugin-paginate-rest@11.6.0(@octokit/core@6.1.4)':
+    dependencies:
+      '@octokit/core': 6.1.4
+      '@octokit/types': 13.10.0
+
+  '@octokit/plugin-rest-endpoint-methods@13.5.0(@octokit/core@6.1.4)':
+    dependencies:
+      '@octokit/core': 6.1.4
+      '@octokit/types': 13.10.0
+
+  '@octokit/plugin-retry@7.2.0(@octokit/core@6.1.4)':
+    dependencies:
+      '@octokit/core': 6.1.4
+      '@octokit/request-error': 6.1.7
+      '@octokit/types': 13.10.0
+      bottleneck: 2.19.5
+
+  '@octokit/plugin-throttling@9.6.0(@octokit/core@6.1.4)':
+    dependencies:
+      '@octokit/core': 6.1.4
+      '@octokit/types': 13.10.0
+      bottleneck: 2.19.5
+
+  '@octokit/request-error@6.1.7':
+    dependencies:
+      '@octokit/types': 13.10.0
+
+  '@octokit/request@9.2.2':
+    dependencies:
+      '@octokit/endpoint': 10.1.3
+      '@octokit/request-error': 6.1.7
+      '@octokit/types': 13.10.0
+      fast-content-type-parse: 2.0.1
+      universal-user-agent: 7.0.2
+
+  '@octokit/types@13.10.0':
+    dependencies:
+      '@octokit/openapi-types': 24.2.0
+
+  '@octokit/webhooks-methods@5.1.1': {}
+
+  '@octokit/webhooks@13.7.5':
+    dependencies:
+      '@octokit/openapi-webhooks-types': 10.3.0
+      '@octokit/request-error': 6.1.7
+      '@octokit/webhooks-methods': 5.1.1
+
   '@pagopa/eslint-config@3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)':
     dependencies:
       '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)
@@ -10119,11 +10821,8 @@ snapshots:
       eslint-plugin-fp: 2.3.0(eslint@8.57.0)
       eslint-plugin-functional: 4.4.1(eslint@8.57.0)(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       eslint-plugin-import: 2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)
-      eslint-plugin-functional: 4.4.1(eslint@8.57.0)(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)
       eslint-plugin-jsdoc: 39.9.1(eslint@8.57.0)
       eslint-plugin-prefer-arrow: 1.2.3(eslint@8.57.0)
-      eslint-plugin-prettier: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.0))(eslint@8.57.0)(prettier@2.8.8)
       eslint-plugin-prettier: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.0))(eslint@8.57.0)(prettier@2.8.8)
       eslint-plugin-react: 7.34.3(eslint@8.57.0)
       eslint-plugin-sonarjs: 0.13.0(eslint@8.57.0)
@@ -10712,7 +11411,7 @@ snapshots:
     dependencies:
       '@types/node': 20.14.6
 
-  '@types/aws-lambda@8.10.147': {}
+  '@types/aws-lambda@8.10.148': {}
 
   '@types/body-parser@1.19.5':
     dependencies:
@@ -10864,7 +11563,6 @@ snapshots:
     optional: true
 
   '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)':
-  '@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)':
     dependencies:
       '@eslint-community/regexpp': 4.11.0
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.0)(typescript@5.4.5)
@@ -10879,7 +11577,6 @@ snapshots:
       semver: 7.6.2
       tsutils: 3.21.0(typescript@5.4.5)
     optionalDependencies:
-    optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
@@ -10891,7 +11588,6 @@ snapshots:
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.4.5)
       debug: 4.3.5
       eslint: 8.57.0
-    optionalDependencies:
     optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
@@ -10910,7 +11606,6 @@ snapshots:
       eslint: 8.57.0
       tsutils: 3.21.0(typescript@5.4.5)
     optionalDependencies:
-    optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
@@ -10926,7 +11621,6 @@ snapshots:
       is-glob: 4.0.3
       semver: 7.6.2
       tsutils: 3.21.0(typescript@5.4.5)
-    optionalDependencies:
     optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
@@ -10995,7 +11689,6 @@ snapshots:
       zod: 3.23.8
 
   '@zodios/express@10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)':
-  '@zodios/express@10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)':
     dependencies:
       '@zodios/core': 10.9.6(axios@1.7.4)(zod@3.23.8)
       express: 4.20.0
@@ -11031,7 +11724,6 @@ snapshots:
       - supports-color
 
   ajv-draft-04@1.0.0(ajv@8.16.0):
-    optionalDependencies:
     optionalDependencies:
       ajv: 8.16.0
 
@@ -11210,11 +11902,9 @@ snapshots:
       possible-typed-array-names: 1.0.0
 
   aws-msk-iam-sasl-signer-js@1.0.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0)):
-  aws-msk-iam-sasl-signer-js@1.0.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0)):
     dependencies:
       '@aws-crypto/sha256-js': 4.0.0
       '@aws-sdk/client-sts': 3.693.0
-      '@aws-sdk/credential-providers': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/credential-providers': 3.609.0(@aws-sdk/client-sso-oidc@3.693.0(@aws-sdk/client-sts@3.693.0))
       '@aws-sdk/util-format-url': 3.609.0
       '@smithy/signature-v4': 2.3.0
@@ -11492,7 +12182,6 @@ snapshots:
       import-fresh: 3.3.0
       js-yaml: 4.1.0
       parse-json: 5.2.0
-    optionalDependencies:
     optionalDependencies:
       typescript: 5.4.5
 
@@ -11970,11 +12659,8 @@ snapshots:
       - supports-color
 
   eslint-module-utils@2.8.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0):
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0):
     dependencies:
       debug: 3.2.7
-    optionalDependencies:
-      '@typescript-eslint/parser': 5.62.0(eslint@8.57.0)(typescript@5.4.5)
     optionalDependencies:
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.0)(typescript@5.4.5)
       eslint: 8.57.0
@@ -11997,7 +12683,6 @@ snapshots:
       req-all: 0.1.0
 
   eslint-plugin-functional@4.4.1(eslint@8.57.0)(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5):
-  eslint-plugin-functional@4.4.1(eslint@8.57.0)(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5):
     dependencies:
       '@typescript-eslint/utils': 5.62.0(eslint@8.57.0)(typescript@5.4.5)
       deepmerge-ts: 4.3.0
@@ -12006,13 +12691,10 @@ snapshots:
       semver: 7.6.2
     optionalDependencies:
       tsutils: 3.21.0(typescript@5.4.5)
-    optionalDependencies:
-      tsutils: 3.21.0(typescript@5.4.5)
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0):
   eslint-plugin-import@2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0):
     dependencies:
       array-includes: 3.1.8
@@ -12024,7 +12706,6 @@ snapshots:
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
       eslint-module-utils: 2.8.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0)
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@5.62.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0)
       hasown: 2.0.2
       is-core-module: 2.14.0
       is-glob: 4.0.3
@@ -12034,8 +12715,6 @@ snapshots:
       object.values: 1.2.0
       semver: 6.3.1
       tsconfig-paths: 3.15.0
-    optionalDependencies:
-      '@typescript-eslint/parser': 5.62.0(eslint@8.57.0)(typescript@5.4.5)
     optionalDependencies:
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.0)(typescript@5.4.5)
     transitivePeerDependencies:
@@ -12061,13 +12740,10 @@ snapshots:
       eslint: 8.57.0
 
   eslint-plugin-prettier@4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.0))(eslint@8.57.0)(prettier@2.8.8):
-  eslint-plugin-prettier@4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.0))(eslint@8.57.0)(prettier@2.8.8):
     dependencies:
       eslint: 8.57.0
       prettier: 2.8.8
       prettier-linter-helpers: 1.0.0
-    optionalDependencies:
-      eslint-config-prettier: 8.10.0(eslint@8.57.0)
     optionalDependencies:
       eslint-config-prettier: 8.10.0(eslint@8.57.0)
 
@@ -12982,14 +13658,10 @@ snapshots:
       whatwg-url: 13.0.0
 
   mongodb@6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3):
-  mongodb@6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3):
     dependencies:
       '@mongodb-js/saslprep': 1.1.7
       bson: 6.8.0
       mongodb-connection-string-url: 3.0.1
-    optionalDependencies:
-      '@aws-sdk/credential-providers': 3.609.0
-      socks: 2.8.3
     optionalDependencies:
       '@aws-sdk/credential-providers': 3.609.0
       socks: 2.8.3
@@ -13103,12 +13775,12 @@ snapshots:
       '@octokit/core': 6.1.4
       '@octokit/oauth-app': 7.1.6
       '@octokit/plugin-paginate-graphql': 5.2.4(@octokit/core@6.1.4)
-      '@octokit/plugin-paginate-rest': 11.4.3(@octokit/core@6.1.4)
-      '@octokit/plugin-rest-endpoint-methods': 13.3.1(@octokit/core@6.1.4)
-      '@octokit/plugin-retry': 7.1.4(@octokit/core@6.1.4)
-      '@octokit/plugin-throttling': 9.4.0(@octokit/core@6.1.4)
+      '@octokit/plugin-paginate-rest': 11.6.0(@octokit/core@6.1.4)
+      '@octokit/plugin-rest-endpoint-methods': 13.5.0(@octokit/core@6.1.4)
+      '@octokit/plugin-retry': 7.2.0(@octokit/core@6.1.4)
+      '@octokit/plugin-throttling': 9.6.0(@octokit/core@6.1.4)
       '@octokit/request-error': 6.1.7
-      '@octokit/types': 13.8.0
+      '@octokit/types': 13.10.0
 
   on-finished@2.4.1:
     dependencies:
@@ -14226,6 +14898,15 @@ snapshots:
       '@types/node': 20.14.6
       fsevents: 2.3.3
 
+  vite@5.3.3(@types/node@20.4.9):
+    dependencies:
+      esbuild: 0.21.5
+      postcss: 8.4.39
+      rollup: 4.18.1
+    optionalDependencies:
+      '@types/node': 20.4.9
+      fsevents: 2.3.3
+
   vitest@1.6.0(@types/node@20.14.6):
     dependencies:
       '@vitest/expect': 1.6.0
@@ -14250,6 +14931,39 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.14.6
+    transitivePeerDependencies:
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+
+  vitest@1.6.0(@types/node@20.4.9):
+    dependencies:
+      '@vitest/expect': 1.6.0
+      '@vitest/runner': 1.6.0
+      '@vitest/snapshot': 1.6.0
+      '@vitest/spy': 1.6.0
+      '@vitest/utils': 1.6.0
+      acorn-walk: 8.3.3
+      chai: 4.4.1
+      debug: 4.3.5
+      execa: 8.0.1
+      local-pkg: 0.5.0
+      magic-string: 0.30.10
+      pathe: 1.1.2
+      picocolors: 1.0.1
+      std-env: 3.7.0
+      strip-literal: 2.1.0
+      tinybench: 2.8.0
+      tinypool: 0.8.4
+      vite: 5.3.3(@types/node@20.4.9)
+      vite-node: 1.6.0(@types/node@20.4.9)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@types/node': 20.4.9
     transitivePeerDependencies:
       - less
       - lightningcss
