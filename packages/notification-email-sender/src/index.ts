@@ -103,7 +103,15 @@ export async function handleCatalogMessage(
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
-          "EServiceIsClientAccessDelegableDisabled"
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
         ),
       },
       () => {
@@ -305,18 +313,19 @@ function processMessage(topicHandlers: TopicHandlers) {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
 
-    const loggerInstance = logger({
-      serviceName: "notification-email-sender",
-      eventType: decodedMessage.type,
-      eventVersion: decodedMessage.event_version,
-      streamId: decodedMessage.stream_id,
-      correlationId: decodedMessage.correlation_id
-        ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
-        : generateId<CorrelationId>(),
-    });
-    loggerInstance.info(
-      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
-    );
+      const loggerInstance = logger({
+        serviceName: "notification-email-sender",
+        eventType: decodedMessage.type,
+        eventVersion: decodedMessage.event_version,
+        streamId: decodedMessage.stream_id,
+        streamVersion: decodedMessage.version,
+        correlationId: decodedMessage.correlation_id
+          ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+          : generateId<CorrelationId>(),
+      });
+      loggerInstance.info(
+        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+      );
 
     await handleMessage(loggerInstance);
   };

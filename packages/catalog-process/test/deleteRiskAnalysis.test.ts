@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockValidRiskAnalysis,
   decodeProtobufPayload,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockContext,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   EService,
   toEServiceV2,
@@ -16,18 +17,20 @@ import {
   operationForbidden,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceNotInDraftState,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -48,12 +51,11 @@ describe("delete risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.deleteRiskAnalysis(
+      eservice.id,
+      riskAnalysis.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     const expectedEservice = toEServiceV2({
@@ -95,12 +97,11 @@ describe("delete risk analysis", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
-      authData: getMockAuthData(delegation.delegateId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.deleteRiskAnalysis(
+      eservice.id,
+      riskAnalysis.id,
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     const expectedEservice = toEServiceV2({
@@ -135,12 +136,11 @@ describe("delete risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id, {
-      authData: getMockAuthData(eservice.producerId),
-      correlationId: generateId(),
-      serviceName: "",
-      logger: genericLogger,
-    });
+    await catalogService.deleteRiskAnalysis(
+      eservice.id,
+      riskAnalysis.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     const expectedEservice = toEServiceV2({
@@ -170,12 +170,7 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         mockEService.id,
         generateId<RiskAnalysisId>(),
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -190,12 +185,11 @@ describe("delete risk analysis", () => {
 
     const riskAnalysisId = generateId<RiskAnalysisId>();
     expect(
-      catalogService.deleteRiskAnalysis(eservice.id, riskAnalysisId, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.deleteRiskAnalysis(
+        eservice.id,
+        riskAnalysisId,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
     );
@@ -219,12 +213,7 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -248,12 +237,7 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -283,13 +267,27 @@ describe("delete risk analysis", () => {
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const eservice: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [],
+      riskAnalysis: [getMockValidRiskAnalysis("PA")],
+      mode: "Receive",
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.deleteRiskAnalysis(
+        eservice.id,
+        generateId<RiskAnalysisId>(),
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
 });

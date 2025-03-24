@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -14,16 +15,18 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eserviceWithoutValidDescriptors,
   eServiceNotFound,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDocument,
   getMockDescriptor,
@@ -47,12 +50,7 @@ describe("update eService description", () => {
     const returnedEService = await catalogService.updateEServiceDescription(
       eservice.id,
       updatedDescription,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -97,12 +95,7 @@ describe("update eService description", () => {
     const returnedEService = await catalogService.updateEServiceDescription(
       eservice.id,
       updatedDescription,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
 
     const updatedEService: EService = {
@@ -132,12 +125,7 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -150,12 +138,7 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -174,12 +157,7 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -191,12 +169,7 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
@@ -221,14 +194,30 @@ describe("update eService description", () => {
         catalogService.updateEServiceDescription(
           eservice.id,
           "eservice new description",
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eService: EService = {
+      ...getMockEService(),
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+
+    expect(
+      catalogService.updateEServiceDescription(
+        eService.id,
+        "eservice new description",
+        getMockContext({ authData: getMockAuthData(eService.producerId) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
 });

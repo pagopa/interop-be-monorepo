@@ -1,6 +1,7 @@
 import {
   EventStoreConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
@@ -26,6 +27,7 @@ export const TEST_REDIS_IMAGE = "redis:7.2.5-alpine3.20";
 export const TEST_REDIS_PORT = 6379;
 
 export const TEST_NODE_IMAGE = "node:20";
+export const TEST_AWS_SES_VERSION = "2.4";
 export const TEST_AWS_SES_PORT = 8021;
 
 /**
@@ -62,6 +64,29 @@ export const postgreSQLContainer = (
       {
         source: "../../docker/event-store-init.sql",
         target: "/docker-entrypoint-initdb.d/01-init.sql",
+      },
+    ])
+    .withExposedPorts(TEST_POSTGRES_DB_PORT);
+
+/**
+ * Starts a PostgreSQL container for testing purposes.
+ *
+ * @param config - The configuration for the ReadModel PostgreSQL container.
+ * @returns A promise that resolves to the started test container.
+ */
+export const postgreSQLReadModelContainer = (
+  config: ReadModelSQLDbConfig
+): GenericContainer =>
+  new GenericContainer(TEST_POSTGRES_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.readModelSQLDbName,
+      POSTGRES_USER: config.readModelSQLDbUsername,
+      POSTGRES_PASSWORD: config.readModelSQLDbPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/readmodel-db",
+        target: "/docker-entrypoint-initdb.d",
       },
     ])
     .withExposedPorts(TEST_POSTGRES_DB_PORT);
@@ -135,6 +160,6 @@ export const awsSESContainer = (): GenericContainer =>
   new GenericContainer(TEST_NODE_IMAGE)
     .withEntrypoint(["bash", "-c"])
     .withCommand([
-      `npm install -g aws-ses-v2-local; aws-ses-v2-local --port=${TEST_AWS_SES_PORT} --host=0.0.0.0`,
+      `npm install -g aws-ses-v2-local@${TEST_AWS_SES_VERSION}; aws-ses-v2-local --port=${TEST_AWS_SES_PORT} --host=0.0.0.0`,
     ])
     .withExposedPorts(TEST_AWS_SES_PORT);

@@ -77,6 +77,8 @@ export const {{@key}}Endpoints = makeApi([
 			response: z.instanceof(Buffer),
 		{{else if (and (eq method "get") (eq path "/delegations/:delegationId/contracts/:contractId"))}}
 			response: z.instanceof(Buffer),
+        {{else if (and (eq method "get") (eq path "/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId"))}}
+            response: z.instanceof(Buffer),
 		{{else}}
 			response: {{{response}}},
 		{{/if}}

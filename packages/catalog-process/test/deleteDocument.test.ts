@@ -2,8 +2,10 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -15,6 +17,8 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import {
@@ -22,13 +26,13 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   eServiceDocumentNotFound,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockEService,
@@ -84,12 +88,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         document.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -163,12 +162,7 @@ describe("delete Document", () => {
       eservice.id,
       descriptor.id,
       interfaceDocument.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -249,12 +243,7 @@ describe("delete Document", () => {
       eservice.id,
       descriptor.id,
       interfaceDocument.id,
-      {
-        authData: getMockAuthData(delegation.delegateId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -310,12 +299,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -331,12 +315,7 @@ describe("delete Document", () => {
         mockEService.id,
         mockDescriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -356,12 +335,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -388,12 +362,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -409,12 +378,7 @@ describe("delete Document", () => {
         eservice.id,
         mockDescriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -437,12 +401,7 @@ describe("delete Document", () => {
           eservice.id,
           descriptor.id,
           mockDocument.id,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -468,12 +427,7 @@ describe("delete Document", () => {
           eservice.id,
           descriptor.id,
           mockDocument.id,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -495,15 +449,35 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined and we are deleting a document with kind DOCUMENT", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const document = { ...mockDocument, kind: "DOCUMENT" };
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      docs: [document],
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+
+    expect(
+      catalogService.deleteDocument(
+        eService.id,
+        descriptor.id,
+        mockDocument.id,
+        getMockContext({ authData: getMockAuthData(eService.producerId) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });

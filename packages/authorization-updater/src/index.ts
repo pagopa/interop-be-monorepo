@@ -103,18 +103,22 @@ export async function sendCatalogAuthUpdate(
         );
       }
     )
-    .with({ type: "EServiceDescriptorQuotasUpdated" }, async (msg) => {
-      const data = getDescriptorFromEvent(msg, decodedMessage.type);
-      await authService.updateEServiceState(
-        descriptorStateToClientState(data.descriptor.state),
-        data.descriptor.id,
-        data.eserviceId,
-        data.descriptor.audience,
-        data.descriptor.voucherLifespan,
-        logger,
-        correlationId
-      );
-    })
+    .with(
+      { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        await authService.updateEServiceState(
+          descriptorStateToClientState(data.descriptor.state),
+          data.descriptor.id,
+          data.eserviceId,
+          data.descriptor.audience,
+          data.descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+      }
+    )
     .with(
       {
         type: P.union(
@@ -142,7 +146,13 @@ export async function sendCatalogAuthUpdate(
           "EServiceIsClientAccessDelegableDisabled",
           "EServiceNameUpdated",
           "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator"
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate"
         ),
       },
       () => {
@@ -547,13 +557,14 @@ function processMessage(
       ? unsafeBrandId(decodedMessage.correlation_id)
       : generateId();
 
-    const loggerInstance = logger({
-      serviceName: "authorization-updater",
-      eventType: decodedMessage.type,
-      eventVersion: decodedMessage.event_version,
-      streamId: decodedMessage.stream_id,
-      correlationId,
-    });
+      const loggerInstance = logger({
+        serviceName: "authorization-updater",
+        eventType: decodedMessage.type,
+        eventVersion: decodedMessage.event_version,
+        streamId: decodedMessage.stream_id,
+        streamVersion: decodedMessage.version,
+        correlationId,
+      });
 
     loggerInstance.info(
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
