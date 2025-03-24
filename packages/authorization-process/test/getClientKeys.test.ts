@@ -55,8 +55,13 @@ describe("getClientKeys", async () => {
       userIds: [keyUserId1, keyUserId2, keyUserId3],
       organizationId: unsafeBrandId(consumerId),
       logger: genericLogger,
+      offset: 0,
+      limit: 50,
     });
-    expect(keys).toEqual([keyWithUser1, keyWithUser2, keyWithUser3]);
+    expect(keys).toEqual({
+      results: [keyWithUser1, keyWithUser2, keyWithUser3],
+      totalCount: 3,
+    });
   });
   it("should get the keys of the specified client, but only limited to the keys belonging to specific users", async () => {
     const keyUserId1: UserId = generateId();
@@ -89,8 +94,13 @@ describe("getClientKeys", async () => {
       userIds: [keyUserId1],
       organizationId: unsafeBrandId(consumerId),
       logger: genericLogger,
+      offset: 0,
+      limit: 50,
     });
-    expect(keys).toEqual([keyWithUser1]);
+    expect(keys).toEqual({
+      results: [keyWithUser1],
+      totalCount: 1,
+    });
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(mockClient);
@@ -101,6 +111,8 @@ describe("getClientKeys", async () => {
         userIds: [],
         organizationId: generateId(),
         logger: genericLogger,
+        offset: 0,
+        limit: 50,
       })
     ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
   });
@@ -113,6 +125,8 @@ describe("getClientKeys", async () => {
         userIds: [],
         organizationId: unsafeBrandId(organizationId),
         logger: genericLogger,
+        offset: 0,
+        limit: 50,
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(
@@ -120,5 +134,66 @@ describe("getClientKeys", async () => {
         unsafeBrandId(mockClient.id)
       )
     );
+  });
+  it("should get the keys in the specified client with offset and limit", async () => {
+    const keyUserId1: UserId = generateId();
+    const keyUserId2: UserId = generateId();
+    const keyUserId3: UserId = generateId();
+    const keyUserId4: UserId = generateId();
+    const keyUserId5: UserId = generateId();
+    const keyUserId6: UserId = generateId();
+
+    const keyWithUser1: Key = {
+      ...mockKey,
+      userId: keyUserId1,
+    };
+    const keyWithUser2: Key = {
+      ...mockKey,
+      userId: keyUserId2,
+    };
+    const keyWithUser3: Key = {
+      ...mockKey,
+      userId: keyUserId3,
+    };
+    const keyWithUser4: Key = {
+      ...mockKey,
+      userId: keyUserId4,
+    };
+    const keyWithUser5: Key = {
+      ...mockKey,
+      userId: keyUserId5,
+    };
+    const keyWithUser6: Key = {
+      ...mockKey,
+      userId: keyUserId6,
+    };
+
+    const clientWithKeyUser: Client = {
+      ...mockClient,
+      keys: [
+        keyWithUser1,
+        keyWithUser2,
+        keyWithUser3,
+        keyWithUser4,
+        keyWithUser5,
+        keyWithUser6,
+      ],
+      users: [keyUserId1, keyUserId2, keyUserId3],
+    };
+
+    await addOneClient(clientWithKeyUser);
+
+    const keys = await authorizationService.getClientKeys({
+      clientId: mockClient.id,
+      userIds: [keyUserId1, keyUserId2, keyUserId3, keyUserId4, keyUserId5],
+      organizationId: unsafeBrandId(consumerId),
+      logger: genericLogger,
+      offset: 2,
+      limit: 1,
+    });
+    expect(keys).toEqual({
+      results: [keyWithUser3],
+      totalCount: 5,
+    });
   });
 });

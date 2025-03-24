@@ -437,6 +437,83 @@ export function readModelServiceBuilder(
       }
       return undefined;
     },
+    async getClientKeys(
+      clientId: ClientId,
+      { offset, limit }: { offset: number; limit: number },
+      options?: { userIds?: UserId[] }
+    ): Promise<ListResult<Key>> {
+      const userIdsFilter =
+        options?.userIds && options.userIds.length > 0
+          ? { "data.keys.userId": { $in: options.userIds } }
+          : {};
+
+      const aggregationPipeline = [
+        {
+          $match: {
+            "data.id": clientId,
+            ...userIdsFilter,
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            keys: {
+              $filter: {
+                input: "$data.keys",
+                as: "key",
+                cond:
+                  options?.userIds && options.userIds.length > 0
+                    ? { $in: ["$$key.userId", options.userIds] }
+                    : { $eq: [true, true] },
+              },
+            },
+          },
+        },
+        {
+          $unwind: "$keys",
+        },
+        {
+          $group: {
+            _id: null,
+            totalCount: { $sum: 1 },
+            keys: { $push: "$keys" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            totalCount: 1,
+            keys: {
+              $slice: ["$keys", offset, limit],
+            },
+          },
+        },
+      ];
+
+      const data = await clients
+        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .toArray();
+
+      if (data.length === 0) {
+        return { results: [], totalCount: 0 };
+      }
+
+      const { totalCount, keys } = data[0];
+
+      const result = z.array(Key).safeParse(keys);
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse client keys: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount,
+      };
+    },
   };
 }
 
