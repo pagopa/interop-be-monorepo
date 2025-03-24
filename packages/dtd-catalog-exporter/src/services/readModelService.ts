@@ -46,7 +46,7 @@ export function readModelServiceBuilder(
      * @param attributeIds - The array of attributes ids
      * @returns The array of attributes
      * */
-    async getEServicesAttributes(
+    async getAttributes(
       attributeIds: AttributeId[]
     ): Promise<AttributeReadmodel[]> {
       const data = await attributes

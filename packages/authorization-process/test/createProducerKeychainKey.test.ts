@@ -27,7 +27,7 @@ import {
   getMockClient,
   getMockKey,
   readLastEventByStreamId,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { getMockProducerKeychain } from "pagopa-interop-commons-test";
 import {
   authorizationApi,

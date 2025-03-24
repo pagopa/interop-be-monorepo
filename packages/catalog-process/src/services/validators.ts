@@ -162,6 +162,11 @@ export function assertIsDraftEservice(eservice: EService): void {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
+export function assertIsDraftDescriptor(descriptor: Descriptor): void {
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
 
 export function assertIsReceiveEservice(eservice: EService): void {
   if (eservice.mode !== eserviceMode.receive) {

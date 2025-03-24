@@ -1,13 +1,13 @@
 import { fail } from "assert";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
   getMockAgreement,
+  getMockContext,
   getMockDelegation,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementArchivedByConsumerV2,
@@ -41,7 +41,7 @@ describe("archive agreement", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
     const agreement = getMockAgreement(
@@ -54,12 +54,7 @@ describe("archive agreement", () => {
 
     const returnedAgreement = await agreementService.archiveAgreement(
       agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
     const agreementId = returnedAgreement.id;
 
@@ -108,7 +103,7 @@ describe("archive agreement", () => {
     vi.setSystemTime(new Date());
 
     const delegateId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegateId);
+    const authData = getMockAuthData(delegateId);
 
     const agreement = {
       ...getMockAgreement(),
@@ -129,12 +124,7 @@ describe("archive agreement", () => {
 
     const returnedAgreement = await agreementService.archiveAgreement(
       agreement.id,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const agreementId = returnedAgreement.id;
@@ -181,7 +171,7 @@ describe("archive agreement", () => {
   });
 
   it("should throw organizationIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
 
     const agreement = {
       ...getMockAgreement(),
@@ -201,12 +191,10 @@ describe("archive agreement", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      agreementService.archiveAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.archiveAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
         authData.organizationId,
@@ -216,7 +204,7 @@ describe("archive agreement", () => {
   });
 
   it("should throw a agreementNotFound error when the Agreement doesn't exist", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
     const agreement = getMockAgreement(
@@ -230,17 +218,15 @@ describe("archive agreement", () => {
     const agreementToArchiveId = generateId<AgreementId>();
 
     await expect(
-      agreementService.archiveAgreement(agreementToArchiveId, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.archiveAgreement(
+        agreementToArchiveId,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
   });
 
   it("should throw a organizationIsNotTheConsumer error when the requester is not the Agreement consumer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
     const agreement = getMockAgreement(
@@ -252,19 +238,17 @@ describe("archive agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.archiveAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.archiveAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
     );
   });
 
   it("should throw a agreementNotInExpectedState error when the Agreement is not in a archivable states", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
     const notArchivableState = randomArrayItem(
@@ -281,12 +265,10 @@ describe("archive agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.archiveAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.archiveAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, notArchivableState)
     );
