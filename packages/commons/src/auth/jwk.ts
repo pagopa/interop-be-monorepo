@@ -1,7 +1,9 @@
 import crypto, { JsonWebKey, KeyObject } from "crypto";
 import jwksClient, { JwksClient } from "jwks-rsa";
 import {
-  invalidKey,
+  notAnRSAKey,
+  invalidKeyLength,
+  invalidPublicKey,
   jwkDecodingError,
   notAllowedCertificateException,
   notAllowedMultipleKeysException,
@@ -54,18 +56,40 @@ function assertSingleKey(keyString: string): void {
   }
 }
 
+export function assertValidRSAKey(key: KeyObject): void {
+  if (key.asymmetricKeyType !== "rsa") {
+    throw notAnRSAKey();
+  }
+}
+
+export function assertValidRSAKeyLength(
+  key: KeyObject,
+  minLength: number = 2048
+): void {
+  const length = key.asymmetricKeyDetails?.modulusLength;
+  if (!length || length < minLength) {
+    throw invalidKeyLength(length, minLength);
+  }
+}
+
+function tryToCreatePublicKey(key: string): KeyObject {
+  try {
+    return crypto.createPublicKey(key);
+  } catch {
+    throw invalidPublicKey();
+  }
+}
+
 export function createPublicKey(key: string): KeyObject {
   const pemKey = decodeBase64ToPem(key);
 
   assertSingleKey(pemKey);
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
-
-  try {
-    return crypto.createPublicKey(pemKey);
-  } catch (error) {
-    throw invalidKey(key, error);
-  }
+  const publicKey = tryToCreatePublicKey(pemKey);
+  assertValidRSAKey(publicKey);
+  assertValidRSAKeyLength(publicKey);
+  return publicKey;
 }
 
 export function sortJWK(jwk: JsonWebKey): JsonWebKey {
@@ -77,16 +101,20 @@ export function sortJWK(jwk: JsonWebKey): JsonWebKey {
     );
 }
 
-export function getJwksClients(config: JWTConfig): JwksClient[] {
+export function buildJwksClients(config: JWTConfig): JwksClient[] {
   return config.wellKnownUrls.map((url) =>
     jwksClient({
-      cache: true,
-      rateLimit: true,
       jwksUri: url,
-      /* If JWKS_CACHE_MAX_AGE_MILLIS not provided using 10 minute like default value: 
-      https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration 
+      /* If JWKS_CACHE_MAX_AGE_MILLIS not provided using 10 minutes as default value:
+      https://github.com/auth0/node-jwks-rsa/blob/master/EXAMPLES.md#configuration
       */
-      cacheMaxAge: config.jwksCacheMaxAge ?? 600000,
+
+      // Caching is not being leveraged at the moment since we are building
+      // a new client for each request.
+      // Building clients only once at startup caused https://pagopa.atlassian.net/browse/PIN-5682
+      // cache: true,
+      // rateLimit: true,
+      // cacheMaxAge: config.jwksCacheMaxAge ?? 600000,
     })
   );
 }

@@ -28,6 +28,10 @@ import {
 } from "./utilities/middlewares.js";
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
+import delegationRouter from "./routers/delegationRouter.js";
+import producerDelegationRouter from "./routers/producerDelegationRouter.js";
+import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
+import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 
 const serviceName = "backend-for-frontend";
 const fileManager = initFileManager(config);
@@ -80,7 +84,11 @@ app.use(
   tenantRouter(zodiosCtx, clients),
   clientRouter(zodiosCtx, clients),
   privacyNoticeRouter(zodiosCtx),
-  producerKeychainRouter(zodiosCtx, clients)
+  producerKeychainRouter(zodiosCtx, clients),
+  delegationRouter(zodiosCtx, clients, fileManager),
+  producerDelegationRouter(zodiosCtx, clients, fileManager),
+  consumerDelegationRouter(zodiosCtx, clients, fileManager),
+  eserviceTemplateRouter(zodiosCtx, clients, fileManager)
 );
 
 export default app;

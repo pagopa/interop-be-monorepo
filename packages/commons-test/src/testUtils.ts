@@ -1,3 +1,6 @@
+/* eslint-disable fp/no-delete */
+import crypto from "crypto";
+import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -37,20 +40,58 @@ import {
   itemState,
   ClientId,
   PurposeId,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
   makeGSIPKConsumerIdEServiceId,
   makeGSIPKClientIdPurposeId,
   makeGSIPKEServiceIdDescriptorId,
   TokenGenerationStatesClientKidPurposePK,
   makeTokenGenerationStatesClientKidPurposePK,
-  clientKindTokenStates,
+  clientKindTokenGenStates,
   AgreementId,
   PurposeVersionId,
   ProducerKeychain,
+  Delegation,
+  DelegationId,
+  DelegationContractDocument,
+  DelegationContractId,
+  DelegationState,
+  TenantFeatureCertifier,
+  TenantFeature,
   DescriptorState,
+  PlatformStatesAgreementEntry,
+  PlatformStatesAgreementPK,
+  makeGSIPKClientIdKid,
+  TokenGenerationStatesClientKidPK,
+  TokenGenerationStatesApiClient,
+  makeTokenGenerationStatesClientKidPK,
+  PlatformStatesClientPK,
+  PlatformStatesClientEntry,
+  makePlatformStatesClientPK,
+  AgreementStamps,
+  DelegationKind,
+  unsafeBrandId,
+  UserId,
+  delegationState,
+  delegationKind,
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
+  agreementApprovalPolicy,
+  EServiceTemplateVersionState,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
+import {
+  AppContext,
+  AuthData,
+  dateToSeconds,
+  genericLogger,
+  userRoles,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { z } from "zod";
+import * as jose from "jose";
+import { match } from "ts-pattern";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -70,13 +111,31 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export const getRandomAuthData = (
-  organizationId: TenantId = generateId<TenantId>()
-): AuthData => ({
-  ...generateMock(AuthData),
-  userRoles: ["admin"],
-  organizationId,
-});
+export const getTenantCertifierFeatures = (
+  tenant: Tenant
+): TenantFeatureCertifier[] =>
+  tenant.features.reduce(
+    (acc: TenantFeatureCertifier[], feature: TenantFeature) =>
+      match(feature.type)
+        .with("PersistentCertifier", () => [
+          ...acc,
+          feature as TenantFeatureCertifier,
+        ])
+        .with("DelegatedProducer", () => acc)
+        .with("DelegatedConsumer", () => acc)
+        .exhaustive(),
+    []
+  );
+
+export const getTenantOneCertifierFeature = (
+  tenant: Tenant
+): TenantFeatureCertifier => {
+  const certifiedFeatures = getTenantCertifierFeatures(tenant);
+  if (certifiedFeatures.length === 0) {
+    fail("Expected certifier feature not found in Tenant");
+  }
+  return certifiedFeatures[0];
+};
 
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
@@ -92,6 +151,7 @@ export const getMockDescriptorPublished = (
     declared: declaredAttributes,
     verified: verifiedAttributes,
   },
+  rejectionReasons: undefined,
 });
 
 export const getMockEServiceAttribute = (
@@ -176,6 +236,18 @@ export const getMockTenantMail = (
   address: generateMock(z.string().email()),
 });
 
+export const getMockAgreementStamps = (): AgreementStamps => {
+  const stamps = generateMock(AgreementStamps);
+  delete stamps.submission?.delegationId;
+  delete stamps.activation?.delegationId;
+  delete stamps.rejection?.delegationId;
+  delete stamps.suspensionByConsumer?.delegationId;
+  delete stamps.suspensionByProducer?.delegationId;
+  delete stamps.upgrade?.delegationId;
+  delete stamps.archiving?.delegationId;
+  return stamps;
+};
+
 export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
@@ -185,6 +257,7 @@ export const getMockAgreement = (
   eserviceId,
   consumerId,
   state,
+  stamps: getMockAgreementStamps(),
 });
 
 export const getMockAttribute = (
@@ -196,8 +269,6 @@ export const getMockAttribute = (
   kind,
   description: "attribute description",
   creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
 });
 
 export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
@@ -260,6 +331,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
     verified: [],
     declared: [],
   },
+  rejectionReasons: undefined,
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {
@@ -313,7 +385,7 @@ export const getMockKey = (): Key => ({
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: [],
+  userRoles: [userRoles.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -321,50 +393,350 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   selfcareId: generateId(),
 });
 
-export const getMockTokenStatesClientPurposeEntry = (
-  tokenStateEntryPK?: TokenGenerationStatesClientKidPurposePK
-): TokenGenerationStatesClientPurposeEntry => {
-  const clientId = generateId<ClientId>();
+export const getMockDelegation = ({
+  kind,
+  id = generateId<DelegationId>(),
+  delegatorId = generateId<TenantId>(),
+  delegateId = generateId<TenantId>(),
+  eserviceId = generateId<EServiceId>(),
+  state = "WaitingForApproval",
+  submitterId = generateId<UserId>(),
+  activationContract = undefined,
+  revocationContract = undefined,
+}: {
+  kind: DelegationKind;
+  id?: DelegationId;
+  delegatorId?: TenantId;
+  delegateId?: TenantId;
+  eserviceId?: EServiceId;
+  state?: DelegationState;
+  submitterId?: UserId;
+  activationContract?: DelegationContractDocument;
+  revocationContract?: DelegationContractDocument;
+}): Delegation => {
+  const creationTime = new Date();
+
+  return {
+    id,
+    delegatorId,
+    delegateId,
+    eserviceId,
+    createdAt: creationTime,
+    state,
+    activationContract,
+    revocationContract,
+    kind,
+    stamps: {
+      submission: {
+        who: submitterId,
+        when: creationTime,
+      },
+    },
+  };
+};
+
+export const getMockDelegationDocument = (
+  id?: DelegationContractId
+): DelegationContractDocument => ({
+  id: id ?? generateId(),
+  name: "Test document",
+  prettyName: "Test document",
+  contentType: "json",
+  path: "path",
+  createdAt: new Date(),
+});
+
+export const getMockTokenGenStatesConsumerClient = (
+  tokenGenStatesEntryPK?:
+    | TokenGenerationStatesClientKidPurposePK
+    | TokenGenerationStatesClientKidPK
+): TokenGenerationStatesConsumerClient => {
+  const clientId = tokenGenStatesEntryPK
+    ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
+    : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
   const descriptorId = generateId<DescriptorId>();
   const agreementId = generateId<AgreementId>();
   const purposeVersionId = generateId<PurposeVersionId>();
+  const kid = `kid ${Math.random()}`;
+
+  if (
+    !tokenGenStatesEntryPK ||
+    TokenGenerationStatesClientKidPurposePK.safeParse(tokenGenStatesEntryPK)
+      .success
+  ) {
+    return {
+      PK:
+        tokenGenStatesEntryPK ||
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId,
+          kid,
+          purposeId,
+        }),
+      descriptorState: itemState.active,
+      descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+      descriptorVoucherLifespan: 60,
+      updatedAt: new Date().toISOString(),
+      consumerId,
+      agreementId,
+      purposeVersionId,
+      GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+        consumerId,
+        eserviceId,
+      }),
+      clientKind: clientKindTokenGenStates.consumer,
+      publicKey: "PEM",
+      GSIPK_clientId: clientId,
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
+      agreementState: itemState.active,
+      GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+        eserviceId,
+        descriptorId,
+      }),
+      GSIPK_purposeId: purposeId,
+      purposeState: itemState.active,
+      GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+        clientId,
+        purposeId,
+      }),
+    };
+  } else {
+    return {
+      PK: tokenGenStatesEntryPK,
+      updatedAt: new Date().toISOString(),
+      consumerId,
+      clientKind: clientKindTokenGenStates.consumer,
+      publicKey: "PEM",
+      GSIPK_clientId: clientId,
+      GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
+    };
+  }
+};
+
+export const getMockPlatformStatesAgreementEntry = (
+  primaryKey: PlatformStatesAgreementPK,
+  agreementId: AgreementId
+): PlatformStatesAgreementEntry => ({
+  PK: primaryKey,
+  state: itemState.inactive,
+  version: 1,
+  updatedAt: new Date().toISOString(),
+  agreementId,
+  agreementTimestamp: new Date().toISOString(),
+  agreementDescriptorId: generateId<DescriptorId>(),
+});
+
+export const getMockTokenGenStatesApiClient = (
+  tokenGenStatesEntryPK?: TokenGenerationStatesClientKidPK
+): TokenGenerationStatesApiClient => {
+  const clientId = tokenGenStatesEntryPK
+    ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
+    : generateId<ClientId>();
+
+  const consumerId = generateId<TenantId>();
+  const kid = `kid ${Math.random()}`;
 
   return {
     PK:
-      tokenStateEntryPK ||
-      makeTokenGenerationStatesClientKidPurposePK({
+      tokenGenStatesEntryPK ||
+      makeTokenGenerationStatesClientKidPK({
         clientId,
-        kid: `kid ${Math.random()}`,
-        purposeId,
+        kid,
       }),
-    descriptorState: itemState.inactive,
-    descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-    descriptorVoucherLifespan: 60,
     updatedAt: new Date().toISOString(),
     consumerId,
-    agreementId,
-    purposeVersionId,
-    GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-      consumerId,
-      eserviceId,
-    }),
-    clientKind: clientKindTokenStates.consumer,
+    clientKind: clientKindTokenGenStates.api,
     publicKey: "PEM",
     GSIPK_clientId: clientId,
-    GSIPK_kid: "KID",
-    agreementState: "ACTIVE",
-    GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-      eserviceId,
-      descriptorId,
-    }),
-    GSIPK_purposeId: purposeId,
-    purposeState: itemState.inactive,
-    GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-      clientId,
-      purposeId,
-    }),
+    GSIPK_clientId_kid: makeGSIPKClientIdKid({ clientId, kid }),
   };
 };
+
+export const getMockPlatformStatesClientEntry = (
+  pk?: PlatformStatesClientPK
+): PlatformStatesClientEntry => ({
+  PK: pk || makePlatformStatesClientPK(generateId<ClientId>()),
+  version: 0,
+  state: "ACTIVE",
+  updatedAt: new Date().toISOString(),
+  clientKind: "CONSUMER",
+  clientConsumerId: generateId<TenantId>(),
+  clientPurposesIds: [],
+});
+
+export const getMockClientAssertion = async (props?: {
+  standardClaimsOverride?: Partial<jose.JWTPayload>;
+  customClaims?: { [k: string]: unknown };
+  customHeader?: { [k: string]: unknown };
+}): Promise<{
+  jws: string;
+  clientAssertion: {
+    payload: jose.JWTPayload;
+    header: jose.JWTHeaderParameters;
+  };
+  publicKeyEncodedPem: string;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet();
+
+  const threeHourLater = new Date();
+  threeHourLater.setHours(threeHourLater.getHours() + 3);
+
+  const clientId = generateId<ClientId>();
+  const defaultPayload: jose.JWTPayload = {
+    iss: clientId,
+    sub: clientId,
+    aud: ["test.interop.pagopa.it", "dev.interop.pagopa.it"],
+    exp: dateToSeconds(threeHourLater),
+    jti: generateId(),
+    iat: dateToSeconds(new Date()),
+  };
+
+  const actualPayload: jose.JWTPayload = {
+    ...defaultPayload,
+    ...props?.standardClaimsOverride,
+    ...props?.customClaims,
+  };
+
+  const headers: jose.JWTHeaderParameters = {
+    alg: "RS256",
+    kid: "kid",
+    ...props?.customHeader,
+  };
+
+  const jws = await signClientAssertion({
+    payload: actualPayload,
+    headers,
+    keySet,
+  });
+
+  return {
+    jws,
+    clientAssertion: {
+      payload: actualPayload,
+      header: headers,
+    },
+    publicKeyEncodedPem,
+  };
+};
+
+export const generateKeySet = (): {
+  keySet: crypto.KeyPairKeyObjectResult;
+  publicKeyEncodedPem: string;
+} => {
+  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
+    "rsa",
+    {
+      modulusLength: 2048,
+    }
+  );
+
+  const pemPublicKey = keySet.publicKey
+    .export({
+      type: "spki",
+      format: "pem",
+    })
+    .toString();
+
+  const publicKeyEncodedPem = Buffer.from(pemPublicKey).toString("base64");
+  return {
+    keySet,
+    publicKeyEncodedPem,
+  };
+};
+
+const signClientAssertion = async ({
+  payload,
+  headers,
+  keySet,
+}: {
+  payload: jose.JWTPayload;
+  headers: jose.JWTHeaderParameters;
+  keySet: crypto.KeyPairKeyObjectResult;
+}): Promise<string> => {
+  const pemPrivateKey = keySet.privateKey.export({
+    type: "pkcs8",
+    format: "pem",
+  });
+
+  const privateKey = crypto.createPrivateKey(pemPrivateKey);
+  return await new jose.SignJWT(payload)
+    .setProtectedHeader(headers)
+    .sign(privateKey);
+};
+
+export const addSomeRandomDelegations = async <
+  T extends { eserviceId: EServiceId }
+>(
+  domainObject: T,
+  addOneDelegation: (delegation: Delegation) => Promise<void>
+): Promise<void> => {
+  const states = [delegationState.rejected, delegationState.revoked];
+  const kinds = [
+    delegationKind.delegatedProducer,
+    delegationKind.delegatedConsumer,
+  ];
+
+  for (const state of states) {
+    for (const kind of kinds) {
+      await addOneDelegation(
+        getMockDelegation({
+          eserviceId: domainObject.eserviceId,
+          kind,
+          state,
+        })
+      );
+    }
+  }
+};
+
+export const getMockEServiceTemplateVersion = (
+  eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>(),
+  state: EServiceTemplateVersionState = eserviceTemplateVersionState.draft
+): EServiceTemplateVersion => ({
+  id: eserviceTemplateVersionId,
+  version: 1,
+  description: "eService template version description",
+  createdAt: new Date(),
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+  docs: [],
+  state,
+  voucherLifespan: 60,
+  agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+});
+
+export const getMockEServiceTemplate = (
+  eserviceTemplateId: EServiceTemplateId = generateId<EServiceTemplateId>(),
+  creatorId: TenantId = generateId<TenantId>(),
+  versions: EServiceTemplateVersion[] = [getMockEServiceTemplateVersion()]
+): EServiceTemplate => ({
+  id: eserviceTemplateId,
+  creatorId,
+  name: "eService template name",
+  intendedTarget: "eService template inteded target",
+  description: "eService template description",
+  createdAt: new Date(),
+  technology: technology.rest,
+  versions,
+  riskAnalysis: [],
+  mode: "Deliver",
+  isSignalHubEnabled: true,
+});
+
+export const getMockContext = ({
+  authData,
+  serviceName,
+}: {
+  authData?: AuthData;
+  serviceName?: string;
+}): WithLogger<AppContext> => ({
+  authData: authData || getMockAuthData(),
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+});

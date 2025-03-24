@@ -9,4 +9,7 @@ export * as selfcareV2ClientApi from "./generated/selfcareV2ClientApi.js";
 export * as tenantApi from "./generated/tenantApi.js";
 export * as apiGatewayApi from "./apiGatewayApi.js";
 export * as notifierApi from "./generated/notifierApi.js";
+export * as delegationApi from "./generated/delegationApi.js";
 export * from "./selfcareClients.js";
+export * as authorizationServerApi from "./generated/authorizationServerApi.js";
+export * as eserviceTemplateApi from "./generated/eserviceTemplateApi.js";

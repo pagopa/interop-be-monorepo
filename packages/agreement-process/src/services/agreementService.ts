@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   AppContext,
+  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -9,10 +10,7 @@ import {
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
-import {
-  agreementApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   AgreementDocument,
@@ -28,17 +26,17 @@ import {
   ListResult,
   Tenant,
   TenantId,
-  UserId,
   WithMetadata,
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
   generateId,
-  unsafeBrandId,
   CompactTenant,
   CorrelationId,
+  DelegationId,
 } from "pagopa-interop-models";
 import {
+  certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-agreement-lifecycle";
@@ -50,14 +48,17 @@ import {
   agreementDocumentNotFound,
   agreementNotFound,
   agreementSubmissionFailed,
+  delegationNotFound,
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
+  organizationIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
+  ActiveDelegations,
   CompactEService,
   CompactOrganization,
   UpdateAgreementSeed,
@@ -66,10 +67,12 @@ import {
   toCreateEventAgreementActivated,
   toCreateEventAgreementAdded,
   toCreateEventAgreementArchivedByConsumer,
+  toCreateEventAgreementArchivedByRevokedDelegation,
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementConsumerDocumentAdded,
   toCreateEventAgreementConsumerDocumentRemoved,
   toCreateEventAgreementDeleted,
+  toCreateEventAgreementDeletedByRevokedDelegation,
   toCreateEventAgreementRejected,
   toCreateEventAgreementSetMissingCertifiedAttributesByPlatform,
   toCreateEventAgreementSubmitted,
@@ -85,11 +88,12 @@ import {
   agreementUpdatableStates,
   agreementUpgradableStates,
   assertActivableState,
+  assertRequesterCanActAsProducer,
+  assertRequesterCanActAsConsumerOrProducer,
+  assertRequesterCanRetrieveAgreement,
   assertCanWorkOnConsumerDocuments,
   assertExpectedState,
-  assertRequesterIsConsumer,
-  assertRequesterIsConsumerOrProducer,
-  assertRequesterIsProducer,
+  assertRequesterIsDelegateConsumer,
   assertSubmittableState,
   failOnActivationFailure,
   matchingCertifiedAttributes,
@@ -100,9 +104,9 @@ import {
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   validateSubmitOnDescriptor,
-  verifyConsumerDoesNotActivatePending,
   verifyCreationConflictingAgreements,
   verifySubmissionConflictingAgreements,
+  assertRequesterCanActAsConsumer,
 } from "../model/domain/agreement-validators.js";
 import { config } from "../config/config.js";
 import {
@@ -158,6 +162,7 @@ export const retrieveAgreement = async (
   if (!agreement) {
     throw agreementNotFound(agreementId);
   }
+
   return agreement;
 };
 
@@ -172,7 +177,7 @@ export const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveDescriptor = (
+export const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
 ): Descriptor => {
@@ -199,13 +204,27 @@ function retrieveAgreementDocument(
   return document;
 }
 
+export const getActiveConsumerAndProducerDelegations = async (
+  agreement: Agreement,
+  readModelService: ReadModelService,
+  cachedActiveDelegations?: ActiveDelegations
+): Promise<ActiveDelegations> => ({
+  producerDelegation:
+    cachedActiveDelegations?.producerDelegation ??
+    (await readModelService.getActiveProducerDelegationByEserviceId(
+      agreement.eserviceId
+    )),
+  consumerDelegation:
+    cachedActiveDelegations?.consumerDelegation ??
+    (await readModelService.getActiveConsumerDelegationByAgreement(agreement)),
+});
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelService,
   fileManager: FileManager,
-  pdfGenerator: PDFGenerator,
-  selfcareV2Client: SelfcareV2UsersClient
+  pdfGenerator: PDFGenerator
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -213,48 +232,71 @@ export function agreementServiceBuilder(
       filters: AgreementQueryFilters,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<Agreement>> {
-      logger.info("Retrieving agreements");
-      return await readModelService.getAgreements(filters, limit, offset);
+      logger.info(
+        `Getting agreements with filters: ${JSON.stringify(
+          filters
+        )}, offset = ${offset}, limit = ${limit}`
+      );
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreements(
+        authData.organizationId,
+        filters,
+        limit,
+        offset
+      );
     },
     async getAgreementById(
       agreementId: AgreementId,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
+      await assertRequesterCanRetrieveAgreement(
+        agreement.data,
+        authData,
+        readModelService
+      );
       return agreement.data;
     },
     async createAgreement(
-      agreementPayload: agreementApi.AgreementPayload,
+      {
+        eserviceId,
+        descriptorId,
+        delegationId,
+      }: {
+        eserviceId: EServiceId;
+        descriptorId: DescriptorId;
+        delegationId?: DelegationId;
+      },
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(
-        `Creating agreement for EService ${agreementPayload.eserviceId} and Descriptor ${agreementPayload.descriptorId}`
-      );
-
-      const eserviceId: EServiceId = unsafeBrandId<EServiceId>(
-        agreementPayload.eserviceId
-      );
-      const descriptorId: DescriptorId = unsafeBrandId<DescriptorId>(
-        agreementPayload.descriptorId
+        `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       const descriptor = validateCreationOnDescriptor(eservice, descriptorId);
 
+      const consumer = await getConsumerFromDelegationOrRequester(
+        eserviceId,
+        delegationId,
+        authData,
+        readModelService
+      );
+
       await verifyCreationConflictingAgreements(
-        authData.organizationId,
-        agreementPayload,
+        consumer.id,
+        eserviceId,
         readModelService
       );
-      const consumer = await retrieveTenant(
-        authData.organizationId,
-        readModelService
-      );
+
       if (eservice.producerId !== consumer.id) {
         validateCertifiedAttributes({ descriptor, consumer });
       }
@@ -264,7 +306,7 @@ export function agreementServiceBuilder(
         eserviceId,
         descriptorId,
         producerId: eservice.producerId,
-        consumerId: authData.organizationId,
+        consumerId: consumer.id,
         state: agreementState.draft,
         verifiedAttributes: [],
         certifiedAttributes: [],
@@ -280,27 +322,41 @@ export function agreementServiceBuilder(
 
       return agreement;
     },
-    async getAgreementProducers(
+    async getAgreementsProducers(
       producerName: string | undefined,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
-      return await readModelService.getProducers(producerName, limit, offset);
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreementsProducers(
+        authData.organizationId,
+        producerName,
+        limit,
+        offset
+      );
     },
-    async getAgreementConsumers(
+    async getAgreementsConsumers(
       consumerName: string | undefined,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
       );
-      return await readModelService.getConsumers(consumerName, limit, offset);
+
+      // Permissions are checked in the readModelService
+      return await readModelService.getAgreementsConsumers(
+        authData.organizationId,
+        consumerName,
+        limit,
+        offset
+      );
     },
     async updateAgreement(
       agreementId: AgreementId,
@@ -308,17 +364,27 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement> {
       logger.info(`Updating agreement ${agreementId}`);
+
       const agreementToBeUpdated = await retrieveAgreement(
         agreementId,
         readModelService
       );
 
-      assertRequesterIsConsumer(agreementToBeUpdated.data, authData);
-
       assertExpectedState(
         agreementId,
         agreementToBeUpdated.data.state,
         agreementUpdatableStates
+      );
+
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreement(
+          agreementToBeUpdated.data
+        );
+      assertRequesterCanActAsConsumer(
+        agreementToBeUpdated.data.consumerId,
+        agreementToBeUpdated.data.eserviceId,
+        authData,
+        activeConsumerDelegation
       );
 
       const updatedAgreement: Agreement = {
@@ -341,14 +407,22 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Deleting agreement ${agreementId}`);
-      const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      assertRequesterIsConsumer(agreement.data, authData);
+      const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertExpectedState(
         agreementId,
         agreement.data.state,
         agreementDeletableStates
+      );
+
+      assertRequesterCanActAsConsumer(
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
+        authData,
+        await readModelService.getActiveConsumerDelegationByAgreement(
+          agreement.data
+        )
       );
 
       for (const d of agreement.data.consumerDocuments) {
@@ -363,6 +437,37 @@ export function agreementServiceBuilder(
         )
       );
     },
+    async internalDeleteAgreementAfterDelegationRevocation(
+      agreementId: AgreementId,
+      delegationId: DelegationId,
+      correlationId: CorrelationId,
+      logger: Logger
+    ): Promise<void> {
+      logger.info(
+        `Deleting agreement ${agreementId} due to revocation of delegation ${delegationId}`
+      );
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertExpectedState(
+        agreementId,
+        agreement.data.state,
+        agreementDeletableStates
+      );
+
+      for (const d of agreement.data.consumerDocuments) {
+        await fileManager.delete(config.s3Bucket, d.path, logger);
+      }
+
+      await repository.createEvent(
+        toCreateEventAgreementDeletedByRevokedDelegation(
+          agreement.data,
+          delegationId,
+          agreement.metadata.version,
+          correlationId
+        )
+      );
+    },
     async submitAgreement(
       agreementId: AgreementId,
       payload: agreementApi.AgreementSubmissionPayload,
@@ -372,8 +477,19 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      assertRequesterIsConsumer(agreement.data, authData);
       assertSubmittableState(agreement.data.state, agreement.data.id);
+
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
+        agreement.data,
+        readModelService
+      );
+      assertRequesterCanActAsConsumer(
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
+        authData,
+        activeDelegations.consumerDelegation
+      );
+
       await verifySubmissionConflictingAgreements(
         agreement.data,
         readModelService
@@ -449,8 +565,9 @@ export function agreementServiceBuilder(
         agreement.data,
         payload,
         newState,
-        authData.userId,
-        suspendedByPlatform
+        authData,
+        suspendedByPlatform,
+        activeDelegations.consumerDelegation
       );
 
       const agreements = (
@@ -471,10 +588,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const isFirstActivation =
@@ -487,7 +602,8 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreement
+        updatedAgreement,
+        activeDelegations
       );
 
       const agreementEvent =
@@ -517,7 +633,8 @@ export function agreementServiceBuilder(
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(
                 agreement,
-                authData.userId,
+                authData,
+                activeDelegations,
                 correlationId
               )
             )
@@ -541,12 +658,21 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
-
       assertExpectedState(
         agreementId,
         agreementToBeUpgraded.data.state,
         agreementUpgradableStates
+      );
+
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
+        agreementToBeUpgraded.data,
+        readModelService
+      );
+      assertRequesterCanActAsConsumer(
+        agreementToBeUpgraded.data.consumerId,
+        agreementToBeUpgraded.data.eserviceId,
+        authData,
+        activeDelegations.consumerDelegation
       );
 
       const eservice = await retrieveEService(
@@ -615,10 +741,8 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const [agreement, events] = await createUpgradeOrNewDraft({
@@ -631,6 +755,7 @@ export function agreementServiceBuilder(
         canBeUpgraded: verifiedValid && declaredValid,
         copyFile: fileManager.copy,
         authData,
+        activeDelegations,
         contractBuilder: contractBuilderInstance,
         correlationId,
         logger,
@@ -650,12 +775,22 @@ export function agreementServiceBuilder(
         agreementId,
         readModelService
       );
-      assertRequesterIsConsumer(agreementToBeCloned.data, authData);
 
       assertExpectedState(
         agreementId,
         agreementToBeCloned.data.state,
         agreementClonableStates
+      );
+
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreement(
+          agreementToBeCloned.data
+        );
+      assertRequesterCanActAsConsumer(
+        agreementToBeCloned.data.consumerId,
+        agreementToBeCloned.data.eserviceId,
+        authData,
+        activeConsumerDelegation
       );
 
       const activeAgreement = await readModelService.getAllAgreements({
@@ -720,7 +855,7 @@ export function agreementServiceBuilder(
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      assertRequesterIsConsumer(agreement.data, authData);
+
       assertCanWorkOnConsumerDocuments(agreement.data.state);
 
       const existentDocument = agreement.data.consumerDocuments.find(
@@ -730,6 +865,18 @@ export function agreementServiceBuilder(
       if (existentDocument) {
         throw agreementDocumentAlreadyExists(agreementId);
       }
+
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreement(
+          agreement.data
+        );
+      assertRequesterCanActAsConsumer(
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
+        authData,
+        activeConsumerDelegation
+      );
+
       const newDocument = apiAgreementDocumentToAgreementDocument(documentSeed);
 
       const updatedAgreement = {
@@ -756,8 +903,14 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
+
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+
+      await assertRequesterCanRetrieveAgreement(
+        agreement.data,
+        authData,
+        readModelService
+      );
 
       return retrieveAgreementDocument(agreement.data, documentId);
     },
@@ -769,12 +922,20 @@ export function agreementServiceBuilder(
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
-
       assertExpectedState(
         agreementId,
         agreement.data.state,
         agreementSuspendableStates
+      );
+
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
+        agreement.data,
+        readModelService
+      );
+      assertRequesterCanActAsConsumerOrProducer(
+        agreement.data,
+        authData,
+        activeDelegations
       );
 
       const eservice = await retrieveEService(
@@ -797,30 +958,36 @@ export function agreementServiceBuilder(
         authData,
         descriptor,
         consumer,
+        activeDelegations,
       });
 
       await repository.createEvent(
         createAgreementSuspendedEvent(
-          authData.organizationId,
+          authData,
           correlationId,
           updatedAgreement,
-          agreement
+          agreement,
+          activeDelegations
         )
       );
 
       return updatedAgreement;
     },
-    async getAgreementEServices(
+    async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<ListResult<CompactEService>> {
       logger.info(
-        `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
+        `Retrieving EServices from agreements with filters: ${JSON.stringify(
+          filters
+        )}, offset ${offset}, limit ${limit}`
       );
 
+      // Permissions are checked in the readModelService
       return await readModelService.getAgreementsEServices(
+        authData.organizationId,
         filters,
         limit,
         offset
@@ -836,8 +1003,19 @@ export function agreementServiceBuilder(
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      assertRequesterIsConsumer(agreement.data, authData);
+
       assertCanWorkOnConsumerDocuments(agreement.data.state);
+
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreement(
+          agreement.data
+        );
+      assertRequesterCanActAsConsumer(
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
+        authData,
+        activeConsumerDelegation
+      );
 
       const existentDocument = retrieveAgreementDocument(
         agreement.data,
@@ -874,12 +1052,20 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      assertRequesterIsProducer(agreementToBeRejected.data, authData);
-
       assertExpectedState(
         agreementId,
         agreementToBeRejected.data.state,
         agreementRejectableStates
+      );
+
+      const activeProducerDelegation =
+        await readModelService.getActiveProducerDelegationByEserviceId(
+          agreementToBeRejected.data.eserviceId
+        );
+      assertRequesterCanActAsProducer(
+        agreementToBeRejected.data,
+        authData,
+        activeProducerDelegation
       );
 
       const eservice = await retrieveEService(
@@ -913,7 +1099,10 @@ export function agreementServiceBuilder(
         suspendedByPlatform: undefined,
         stamps: {
           ...agreementToBeRejected.data.stamps,
-          rejection: createStamp(authData.userId),
+          rejection: createStamp(authData, {
+            producerDelegation: activeProducerDelegation,
+            consumerDelegation: undefined,
+          }),
         },
       };
 
@@ -936,17 +1125,32 @@ export function agreementServiceBuilder(
         readModelService,
         pdfGenerator,
         fileManager,
-        selfcareV2Client,
         config,
-        logger,
-        correlationId
+        logger
       );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
-      assertRequesterIsConsumerOrProducer(agreement.data, authData);
-      verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
+
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
+        agreement.data,
+        readModelService
+      );
+
+      if (agreement.data.state === agreementState.pending) {
+        assertRequesterCanActAsProducer(
+          agreement.data,
+          authData,
+          activeDelegations.producerDelegation
+        );
+      } else {
+        assertRequesterCanActAsConsumerOrProducer(
+          agreement.data,
+          authData,
+          activeDelegations
+        );
+      }
 
       const eservice = await retrieveEService(
         agreement.data.eserviceId,
@@ -1003,12 +1207,14 @@ export function agreementServiceBuilder(
       const suspendedByConsumer = suspendedByConsumerFlag(
         agreement.data,
         authData.organizationId,
-        targetDestinationState
+        targetDestinationState,
+        activeDelegations.consumerDelegation?.delegateId
       );
       const suspendedByProducer = suspendedByProducerFlag(
         agreement.data,
         authData.organizationId,
-        targetDestinationState
+        targetDestinationState,
+        activeDelegations.producerDelegation?.delegateId
       );
 
       const newState = agreementStateByFlags(
@@ -1036,6 +1242,7 @@ export function agreementServiceBuilder(
           suspendedByConsumer,
           suspendedByProducer,
           suspendedByPlatform,
+          activeDelegations,
         });
 
       const updatedAgreementWithoutContract: Agreement = {
@@ -1049,7 +1256,8 @@ export function agreementServiceBuilder(
         eservice,
         consumer,
         producer,
-        updatedAgreementWithoutContract
+        updatedAgreementWithoutContract,
+        activeDelegations
       );
 
       const suspendedByPlatformChanged =
@@ -1063,12 +1271,14 @@ export function agreementServiceBuilder(
         suspendedByPlatformChanged,
         agreement.metadata.version,
         authData,
-        correlationId
+        correlationId,
+        activeDelegations
       );
 
       const archiveEvents = await archiveRelatedToAgreements(
         agreement.data,
-        authData.userId,
+        authData,
+        activeDelegations,
         readModelService,
         correlationId
       );
@@ -1084,11 +1294,22 @@ export function agreementServiceBuilder(
       logger.info(`Archiving agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
-      assertRequesterIsConsumer(agreement.data, authData);
+
       assertExpectedState(
         agreementId,
         agreement.data.state,
         agreementArchivableStates
+      );
+
+      const activeConsumerDelegation =
+        await readModelService.getActiveConsumerDelegationByAgreement(
+          agreement.data
+        );
+      assertRequesterCanActAsConsumer(
+        agreement.data.consumerId,
+        agreement.data.eserviceId,
+        authData,
+        activeConsumerDelegation
       );
 
       const updatedAgreement: Agreement = {
@@ -1096,7 +1317,10 @@ export function agreementServiceBuilder(
         state: agreementState.archived,
         stamps: {
           ...agreement.data.stamps,
-          archiving: createStamp(authData.userId),
+          archiving: createStamp(authData, {
+            consumerDelegation: activeConsumerDelegation,
+            producerDelegation: undefined,
+          }),
         },
       };
 
@@ -1110,7 +1334,39 @@ export function agreementServiceBuilder(
 
       return updatedAgreement;
     },
-    async computeAgreementsStateByAttribute(
+    async internalArchiveAgreementAfterDelegationRevocation(
+      agreementId: AgreementId,
+      delegationId: DelegationId,
+      correlationId: CorrelationId,
+      logger: Logger
+    ): Promise<void> {
+      logger.info(
+        `Archiving agreement ${agreementId} due to revocation of delegation ${delegationId}`
+      );
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertExpectedState(
+        agreementId,
+        agreement.data.state,
+        agreementArchivableStates
+      );
+
+      const updatedAgreement: Agreement = {
+        ...agreement.data,
+        state: agreementState.archived,
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementArchivedByRevokedDelegation(
+          updatedAgreement,
+          delegationId,
+          agreement.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async internalComputeAgreementsStateByAttribute(
       attributeId: AttributeId,
       consumer: CompactTenant,
       { logger, correlationId }: WithLogger<AppContext>
@@ -1130,6 +1386,45 @@ export function agreementServiceBuilder(
       for (const event of events) {
         await repository.createEvent(event);
       }
+    },
+    async verifyTenantCertifiedAttributes(
+      {
+        tenantId,
+        descriptorId,
+        eserviceId,
+      }: {
+        tenantId: TenantId;
+        descriptorId: DescriptorId;
+        eserviceId: EServiceId;
+      },
+      { logger, authData }: WithLogger<AppContext>
+    ): Promise<agreementApi.HasCertifiedAttributes> {
+      logger.info(
+        `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
+      );
+
+      assertRequesterCanActAsConsumer(
+        tenantId,
+        eserviceId,
+        authData,
+        await readModelService.getActiveConsumerDelegationByAgreement({
+          consumerId: tenantId,
+          eserviceId,
+        })
+      );
+
+      const consumer = await retrieveTenant(tenantId, readModelService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      return {
+        hasCertifiedAttributes:
+          eservice.producerId === consumer.id || // in case the consumer is also the producer, we don't need to check the attributes
+          certifiedAttributesSatisfied(
+            descriptor.attributes,
+            consumer.attributes
+          ),
+      };
     },
   };
 }
@@ -1173,14 +1468,15 @@ export async function createAndCopyDocumentsForClonedAgreement(
 
 export function createAgreementArchivedByUpgradeEvent(
   agreement: WithMetadata<Agreement>,
-  userId: UserId,
+  authData: AuthData,
+  activeDelegations: ActiveDelegations,
   correlationId: CorrelationId
 ): CreateEvent<AgreementEvent> {
   const updateSeed: UpdateAgreementSeed = {
     state: agreementState.archived,
     stamps: {
       ...agreement.data.stamps,
-      archiving: createStamp(userId),
+      archiving: createStamp(authData, activeDelegations),
     },
   };
 
@@ -1230,14 +1526,16 @@ async function addContractOnFirstActivation(
   eservice: EService,
   consumer: Tenant,
   producer: Tenant,
-  agreement: Agreement
+  agreement: Agreement,
+  activeDelegations: ActiveDelegations
 ): Promise<Agreement> {
   if (isFirstActivation) {
     const contract = await contractBuilder.createContract(
       agreement,
       eservice,
       consumer,
-      producer
+      producer,
+      activeDelegations
     );
 
     return {
@@ -1247,4 +1545,46 @@ async function addContractOnFirstActivation(
   }
 
   return agreement;
+}
+
+async function getConsumerFromDelegationOrRequester(
+  eserviceId: EServiceId,
+  delegationId: DelegationId | undefined,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<Tenant> {
+  const delegations =
+    await readModelService.getActiveConsumerDelegationsByEserviceId(eserviceId);
+
+  if (delegationId) {
+    // If a delegation has been passed, the consumer is the delegator
+
+    const delegation = delegations.find((d) => d.id === delegationId);
+
+    if (!delegation) {
+      throw delegationNotFound(delegationId);
+    }
+
+    assertRequesterIsDelegateConsumer(
+      delegation.delegatorId,
+      eserviceId,
+      authData,
+      delegation
+    );
+    return retrieveTenant(delegation.delegatorId, readModelService);
+  } else {
+    const delegation = delegations.find(
+      (d) => d.delegatorId === authData.organizationId
+    );
+
+    if (delegation) {
+      // If a delegation exists, the delegator cannot create the agreement
+      throw organizationIsNotTheDelegateConsumer(
+        authData.organizationId,
+        delegation.id
+      );
+    }
+
+    return retrieveTenant(authData.organizationId, readModelService);
+  }
 }

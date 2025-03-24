@@ -118,6 +118,37 @@ message EServiceDescriptionUpdatedV2 {
     EServiceV2 eservice = 1;
 }
 
+message EServiceDescriptorSubmittedByDelegateV2 {
+    string descriptorId = 1;
+    EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorApprovedByDelegatorV2 {
+    string descriptorId = 1;
+    EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorRejectedByDelegatorV2 {
+    string descriptorId = 1;
+    EServiceV2 eservice = 2;
+}
+
+message EServiceIsConsumerDelegableEnabledV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServiceIsConsumerDelegableDisabledV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServiceIsClientAccessDelegableEnabledV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServiceIsClientAccessDelegableDisabledV2 {
+    EServiceV2 eservice = 1;
+}
+
 message EServiceDescriptorAttributesUpdatedV2 {
   string descriptorId = 1;
   repeated string attributeIds = 2;
@@ -126,4 +157,41 @@ message EServiceDescriptorAttributesUpdatedV2 {
 
 message EServiceNameUpdatedV2 {
     EServiceV2 eservice = 1;
+}
+
+message EServiceNameUpdatedByTemplateUpdateV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServiceDescriptionUpdatedByTemplateUpdateV2 {
+    EServiceV2 eservice = 1;
+}
+
+message EServiceDescriptorQuotasUpdatedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorAttributesUpdatedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  repeated string attributeIds = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentAddedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentUpdatedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentDeletedByTemplateUpdateV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
 }

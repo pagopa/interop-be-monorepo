@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { match } from "ts-pattern";
-import { unsafeBrandId } from "../brandedIds.js";
+import { DelegationId, unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {
   TenantKindV2,
@@ -20,7 +20,6 @@ import {
   TenantMailKind,
   tenantMailKind,
   TenantMail,
-  TenantFeatureCertifier,
   TenantVerifier,
   TenantRevoker,
   TenantAttribute,
@@ -29,6 +28,7 @@ import {
   tenantAttributeType,
   TenantUnitType,
   tenantUnitType,
+  TenantFeature,
 } from "./tenant.js";
 
 export const fromTenantKindV2 = (input: TenantKindV2): TenantKind => {
@@ -62,15 +62,23 @@ export const fromTenantMailV2 = (input: TenantMailV2): TenantMail => ({
   kind: fromTenantMailKindV2(input.kind),
 });
 
-export const fromTenantFeatureV2 = (
-  input: TenantFeatureV2
-): TenantFeatureCertifier =>
-  match<TenantFeatureV2["sealedValue"], TenantFeatureCertifier>(
-    input.sealedValue
-  )
+export const fromTenantFeatureV2 = (input: TenantFeatureV2): TenantFeature =>
+  match<TenantFeatureV2["sealedValue"], TenantFeature>(input.sealedValue)
     .with({ oneofKind: "certifier" }, ({ certifier }) => ({
       type: "PersistentCertifier",
       certifierId: certifier.certifierId,
+    }))
+    .with({ oneofKind: "delegatedProducer" }, ({ delegatedProducer }) => ({
+      type: "DelegatedProducer",
+      availabilityTimestamp: bigIntToDate(
+        delegatedProducer.availabilityTimestamp
+      ),
+    }))
+    .with({ oneofKind: "delegatedConsumer" }, ({ delegatedConsumer }) => ({
+      type: "DelegatedConsumer",
+      availabilityTimestamp: bigIntToDate(
+        delegatedConsumer.availabilityTimestamp
+      ),
     }))
     .with({ oneofKind: undefined }, () => {
       throw new Error("Unable to deserialize TenantFeature");
@@ -82,6 +90,9 @@ export const fromTenantVerifierV2 = (
 ): TenantVerifier => ({
   ...input,
   id: unsafeBrandId(input.id),
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
+    : undefined,
   verificationDate: bigIntToDate(input.verificationDate),
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),
@@ -90,6 +101,9 @@ export const fromTenantVerifierV2 = (
 export const fromTenantRevokerV2 = (input: TenantRevokerV2): TenantRevoker => ({
   ...input,
   id: unsafeBrandId(input.id),
+  delegationId: input.delegationId
+    ? unsafeBrandId<DelegationId>(input.delegationId)
+    : undefined,
   expirationDate: bigIntToDate(input.expirationDate),
   extensionDate: bigIntToDate(input.extensionDate),
   revocationDate: bigIntToDate(input.revocationDate),
@@ -135,6 +149,9 @@ export const fromTenantAttributesV2 = (
         revocationTimestamp: bigIntToDate(
           declaredAttribute.revocationTimestamp
         ),
+        delegationId: declaredAttribute.delegationId
+          ? unsafeBrandId<DelegationId>(declaredAttribute.delegationId)
+          : undefined,
         type: tenantAttributeType.DECLARED,
       };
     default:

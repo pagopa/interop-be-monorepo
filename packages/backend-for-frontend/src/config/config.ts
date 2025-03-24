@@ -8,6 +8,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
+import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -101,6 +102,41 @@ export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
+export const DelegationProcessServerConfig = z
+  .object({
+    DELEGATION_PROCESS_URL: APIEndpoint,
+    DELEGATION_CONTRACTS_CONTAINER: z.string(),
+  })
+  .transform((c) => ({
+    delegationProcessUrl: c.DELEGATION_PROCESS_URL,
+    delegationContractsContainer: c.DELEGATION_CONTRACTS_CONTAINER,
+  }));
+export type DelegationProcessServerConfig = z.infer<
+  typeof DelegationProcessServerConfig
+>;
+
+export const EServiceTemplateProcessServerConfig = z
+  .object({
+    ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
+  }));
+export type EServiceTemplateProcessServerConfig = z.infer<
+  typeof EServiceTemplateProcessServerConfig
+>;
+
+export const EServiceTemplateS3Config = z
+  .object({
+    ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
+    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
+  }));
+export type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
+
 export const S3PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_CONTAINER: z.string(),
@@ -188,6 +224,7 @@ export const SelfcareProcessConfig = z
     selfcareProductName: c.INTEROP_SELFCARE_PRODUCT_NAME,
   }));
 export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -196,6 +233,8 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
+  .and(DelegationProcessServerConfig)
+  .and(EServiceTemplateProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
@@ -205,7 +244,9 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ExportFileConfig)
   .and(ImportFileConfig)
   .and(InterfaceVersion)
-  .and(SelfcareProcessConfig);
+  .and(SelfcareProcessConfig)
+  .and(ClientAssertionValidationConfig)
+  .and(EServiceTemplateS3Config);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);

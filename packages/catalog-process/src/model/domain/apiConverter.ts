@@ -43,6 +43,7 @@ export function descriptorStateToApiEServiceDescriptorState(
     .with(descriptorState.suspended, () => "SUSPENDED")
     .with(descriptorState.deprecated, () => "DEPRECATED")
     .with(descriptorState.archived, () => "ARCHIVED")
+    .with(descriptorState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
     .exhaustive();
 }
 
@@ -55,6 +56,7 @@ export function apiDescriptorStateToDescriptorState(
     .with("SUSPENDED", () => descriptorState.suspended)
     .with("DEPRECATED", () => descriptorState.deprecated)
     .with("ARCHIVED", () => descriptorState.archived)
+    .with("WAITING_FOR_APPROVAL", () => descriptorState.waitingForApproval)
     .exhaustive();
 }
 
@@ -172,6 +174,11 @@ export const descriptorToApiDescriptor = (
     declared: descriptor.attributes.declared,
     verified: descriptor.attributes.verified,
   },
+  rejectionReasons: descriptor.rejectionReasons?.map((reason) => ({
+    rejectionReason: reason.rejectionReason,
+    rejectedAt: reason.rejectedAt.toJSON(),
+  })),
+  templateVersionRef: descriptor.templateVersionRef,
 });
 
 export const eServiceToApiEService = (
@@ -196,4 +203,7 @@ export const eServiceToApiEService = (
   })),
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
   isSignalHubEnabled: eservice.isSignalHubEnabled,
+  isConsumerDelegable: eservice.isConsumerDelegable,
+  isClientAccessDelegable: eservice.isClientAccessDelegable,
+  templateRef: eservice.templateRef,
 });

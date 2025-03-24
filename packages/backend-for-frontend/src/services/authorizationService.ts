@@ -15,19 +15,16 @@ import {
   UID,
   USER_ROLES,
   WithLogger,
-  decodeJwtToken,
-  getJwksClients,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { TenantId, genericError, unsafeBrandId } from "pagopa-interop-models";
+import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
-  missingClaim,
   missingSelfcareId,
+  missingUserRolesInIdentityToken,
   tenantLoginNotAllowed,
-  tokenVerificationFailed,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
@@ -54,8 +51,6 @@ export function authorizationServiceBuilder(
   allowList: string[],
   rateLimiter: RateLimiter
 ) {
-  const jwksClients = getJwksClients(config);
-
   const readJwt = async (
     identityToken: string,
     logger: Logger
@@ -64,42 +59,26 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const verified = await verifyJwtToken(
-      identityToken,
-      jwksClients,
-      config,
-      logger
-    );
-    if (!verified) {
-      throw tokenVerificationFailed();
-    }
-
-    const decoded = decodeJwtToken(identityToken, logger);
-
-    const userRoles: string[] = decoded?.organization?.roles
-      ? decoded.organization.roles.map((r: { role: string }) => r.role)
-      : decoded?.[USER_ROLES]
-      ? decoded[USER_ROLES].split(",")
-      : decoded?.role
-      ? decoded.role.split(",")
-      : [];
-
-    if (userRoles.length === 0) {
-      throw genericError("Unable to extract userRoles from claims");
-    }
+    const { decoded } = await verifyJwtToken(identityToken, config, logger);
 
     const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
+
     if (error) {
-      const claim = error.errors[0].path.join(".");
-      throw missingClaim(claim);
+      throw invalidClaim(error);
     }
 
-    const selfcareId = sessionClaims[ORGANIZATION].id;
+    const userRoles: string[] = sessionClaims.organization.roles.map(
+      (r: { role: string }) => r.role
+    );
+
+    if (userRoles.length === 0) {
+      throw missingUserRolesInIdentityToken();
+    }
 
     return {
       roles: userRoles.join(","),
       sessionClaims,
-      selfcareId,
+      selfcareId: sessionClaims.organization.id,
     };
   };
 

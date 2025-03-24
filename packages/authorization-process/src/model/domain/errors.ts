@@ -1,7 +1,9 @@
 import {
   ApiError,
   ClientId,
+  DelegationId,
   DescriptorId,
+  EService,
   EServiceId,
   ProducerKeychainId,
   PurposeId,
@@ -39,6 +41,9 @@ export const errorCodes = {
   eserviceAlreadyLinkedToProducerKeychain: "0026",
   userNotAllowedToDeleteClientKey: "0027",
   userNotAllowedToDeleteProducerKeychainKey: "0028",
+  purposeDelegationNotFound: "0029",
+  eserviceNotDelegableForClientAccess: "0030",
+  securityUserNotMember: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -180,10 +185,15 @@ export function purposeAlreadyLinkedToClient(
 
 export function organizationNotAllowedOnPurpose(
   organizationId: TenantId,
-  purposeId: PurposeId
+  purposeId: PurposeId,
+  delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId}`,
+    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId} ${
+      delegationId
+        ? `as delegate for delegation ${delegationId}`
+        : `as consumer`
+    }`,
     code: "organizationNotAllowedOnPurpose",
     title: "Organization not allowed on purpose",
   });
@@ -338,5 +348,33 @@ export function eserviceAlreadyLinkedToProducerKeychain(
     detail: `EService ${eserviceId} is already linked to producer keychain ${producerKeychainId}`,
     code: "eserviceAlreadyLinkedToProducerKeychain",
     title: "EService already linked to producer keychain",
+  });
+}
+
+export function purposeDelegationNotFound(
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "purposeDelegationNotFound",
+    title: "Deleagtion not found",
+  });
+}
+
+export function eserviceNotDelegableForClientAccess(
+  eservice: EService
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eservice.id} is not delegable for client access`,
+    code: "eserviceNotDelegableForClientAccess",
+    title: "EService not delegable for client access",
+  });
+}
+
+export function securityUserNotMember(userId: UserId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} with user role "security" is not a member of the client`,
+    code: "securityUserNotMember",
+    title: "Security user not member",
   });
 }

@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AuthData,
   RiskAnalysisValidatedForm,
@@ -5,43 +6,165 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
-  TenantId,
-  operationForbidden,
+  Descriptor,
+  DescriptorState,
   EService,
+  EServiceId,
+  Tenant,
+  TenantId,
+  TenantKind,
+  delegationKind,
+  delegationState,
   descriptorState,
   eserviceMode,
-  Tenant,
-  TenantKind,
-  Descriptor,
+  operationForbidden,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
+  draftDescriptorAlreadyExists,
+  eServiceNameDuplicate,
+  eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
-  tenantKindNotFound,
-  riskAnalysisValidationFailed,
-  draftDescriptorAlreadyExists,
-  eServiceRiskAnalysisIsRequired,
+  eserviceWithActiveOrPendingDelegation,
+  notValidDescriptorState,
   riskAnalysisNotValid,
-  notValidDescriptor,
+  riskAnalysisValidationFailed,
+  tenantKindNotFound,
+  templateInstanceNotAllowed,
+  eServiceNotAnInstance,
+  inconsistentDailyCalls,
 } from "../model/domain/errors.js";
+import { ReadModelService } from "./readModelService.js";
 
-export function assertRequesterAllowed(
+export function descriptorStatesNotAllowingDocumentOperations(
+  descriptor: Descriptor
+): boolean {
+  return match(descriptor.state)
+    .with(
+      descriptorState.draft,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => false
+    )
+    .with(
+      descriptorState.archived,
+      descriptorState.waitingForApproval,
+      () => true
+    )
+    .exhaustive();
+}
+
+export const notActiveDescriptorState: DescriptorState[] = [
+  descriptorState.draft,
+  descriptorState.waitingForApproval,
+];
+
+export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
+  return match(descriptor.state)
+    .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
+    .with(
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => false
+    )
+    .exhaustive();
+}
+
+export function isActiveDescriptor(descriptor: Descriptor): boolean {
+  return !isNotActiveDescriptor(descriptor);
+}
+
+export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
+  return match(descriptor.state)
+    .with(
+      descriptorState.deprecated,
+      descriptorState.published,
+      descriptorState.suspended,
+      () => true
+    )
+    .with(
+      descriptorState.draft,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      () => false
+    )
+    .exhaustive();
+}
+
+export async function assertRequesterIsDelegateProducerOrProducer(
+  producerId: TenantId,
+  eserviceId: EServiceId,
+  authData: AuthData,
+  readModelService: ReadModelService
+): Promise<void> {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
+
+  // Search for active producer delegation
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    kind: delegationKind.delegatedProducer,
+    states: [delegationState.active],
+  });
+
+  // If an active producer delegation exists, check if the requester is the delegate
+  if (producerDelegation) {
+    const isRequesterDelegateProducer =
+      authData.organizationId === producerDelegation.delegateId;
+
+    if (!isRequesterDelegateProducer) {
+      throw operationForbidden;
+    }
+  } else {
+    // If no active producer delegation exists, ensure the requester is the producer
+    assertRequesterIsProducer(producerId, authData);
+  }
+}
+
+export function assertRequesterIsProducer(
   producerId: TenantId,
   authData: AuthData
 ): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    producerId !== authData.organizationId
-  ) {
+  if (authData.userRoles.includes("internal")) {
+    return;
+  }
+  if (producerId !== authData.organizationId) {
     throw operationForbidden;
+  }
+}
+
+export async function assertNoExistingProducerDelegationInActiveOrPendingState(
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<void> {
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    kind: delegationKind.delegatedProducer,
+    states: [delegationState.active, delegationState.waitingForApproval],
+  });
+
+  if (producerDelegation) {
+    throw eserviceWithActiveOrPendingDelegation(
+      eserviceId,
+      producerDelegation.id
+    );
   }
 }
 
 export function assertIsDraftEservice(eservice: EService): void {
   if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
     throw eserviceNotInDraftState(eservice.id);
+  }
+}
+export function assertIsDraftDescriptor(descriptor: Descriptor): void {
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
@@ -59,11 +182,11 @@ export function assertTenantKindExists(
   }
 }
 
-export function assertHasNoDraftDescriptor(eservice: EService): void {
-  const hasDraftDescriptor = eservice.descriptors.some(
-    (d: Descriptor) => d.state === descriptorState.draft
-  );
-  if (hasDraftDescriptor) {
+export function assertHasNoDraftOrWaitingForApprovalDescriptor(
+  eservice: EService
+): void {
+  const hasInvalidDescriptor = eservice.descriptors.some(isNotActiveDescriptor);
+  if (hasInvalidDescriptor) {
     throw draftDescriptorAlreadyExists(eservice.id);
   }
 }
@@ -113,8 +236,9 @@ export function assertInterfaceDeletableDescriptorState(
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.waitingForApproval,
       () => {
-        throw notValidDescriptor(descriptor.id, descriptor.state);
+        throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
     )
     .exhaustive();
@@ -129,10 +253,64 @@ export function assertDocumentDeletableDescriptorState(
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.waitingForApproval,
       () => void 0
     )
     .with(descriptorState.archived, () => {
-      throw notValidDescriptor(descriptor.id, descriptor.state);
+      throw notValidDescriptorState(descriptor.id, descriptor.state);
     })
     .exhaustive();
+}
+
+export async function assertNotDuplicatedEServiceName(
+  name: string,
+  eservice: EService,
+  readModelService: ReadModelService
+): Promise<void> {
+  if (name !== eservice.name) {
+    const eserviceWithSameName =
+      await readModelService.getEServiceByNameAndProducerId({
+        name,
+        producerId: eservice.producerId,
+      });
+    if (eserviceWithSameName !== undefined) {
+      throw eServiceNameDuplicate(name);
+    }
+  }
+}
+
+export function assertEServiceNotTemplateInstance(
+  eserviceId: EServiceId,
+  templateId: EServiceTemplateId | undefined
+): void {
+  if (templateId !== undefined) {
+    throw templateInstanceNotAllowed(eserviceId, templateId);
+  }
+}
+
+export function assertEServiceIsTemplateInstance(
+  eservice: EService
+): asserts eservice is EService & {
+  templateRef: NonNullable<EService["templateRef"]>;
+  descriptors: Array<
+    Descriptor & {
+      templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
+    }
+  >;
+} {
+  if (eservice.templateRef === undefined) {
+    throw eServiceNotAnInstance(eservice.id);
+  }
+}
+
+export function assertConsistentDailyCalls({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+}: {
+  dailyCallsPerConsumer: number;
+  dailyCallsTotal: number;
+}): void {
+  if (dailyCallsPerConsumer > dailyCallsTotal) {
+    throw inconsistentDailyCalls();
+  }
 }

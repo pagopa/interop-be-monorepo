@@ -11,9 +11,10 @@
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
     "start:agreement-readmodel-writer": "turbo start --filter pagopa-interop-agreement-readmodel-writer",
     "start:agreement-platformstate-writer": "turbo start --filter pagopa-interop-agreement-platformstate-writer",
-    "start:agreement-email-sender": "turbo start --filter pagopa-interop-agreement-email-sender",
+    "start:certified-email-sender": "turbo start --filter pagopa-interop-certified-email-sender",
     "start:attribute": "turbo start --filter pagopa-interop-attribute-registry-process",
     "start:attribute-readmodel-writer": "turbo start --filter pagopa-interop-attribute-registry-readmodel-writer",
+    "start:attribute-readmodel-writer-sql": "turbo start --filter pagopa-interop-attribute-registry-readmodel-writer-sql",
     "start:tenant": "turbo start --filter pagopa-interop-tenant-process",
     "start:tenant-readmodel-writer": "turbo start --filter pagopa-interop-tenant-readmodel-writer",
     "start:auth-updater": "turbo start --filter pagopa-interop-authorization-updater",
@@ -32,12 +33,23 @@
     "start:ivass-certified-attributes-importer": "turbo start --filter pagopa-interop-ivass-certified-attributes-importer",
     "start:pn-consumers": "turbo start --filter pagopa-interop-pn-consumers",
     "start:one-trust-notices": "turbo start --filter pagopa-interop-one-trust-notices",
+    "start:delegation": "turbo start --filter pagopa-interop-delegation-process",
+    "start:delegation-readmodel-writer": "turbo start --filter pagopa-interop-delegation-readmodel-writer",
     "start:datalake-data-export": "turbo start --filter pagopa-interop-datalake-data-export",
     "start:client-purpose-updater": "turbo start --filter pagopa-interop-client-purpose-updater",
-    "test": "turbo test",
+    "start:authorization-server": "turbo start --filter pagopa-interop-authorization-server",
+    "start:token-details-persister": "turbo start --filter pagopa-interop-token-details-persister",
+    "start:token-generation-readmodel-checker": "turbo start --filter pagopa-interop-token-generation-readmodel-checker",
+    "start:process": "turbo start --concurrency 20 --filter pagopa-interop-*-process",
+    "start:readmodel-writer": "turbo start --concurrency 20 --filter pagopa-interop-*-readmodel-writer",
+    "start:ipa-certified-attributes-importer": "turbo start --filter pagopa-interop-ipa-certified-attributes-importer",
+    "start:eservice-template": "turbo start --filter pagopa-interop-eservice-template-process",
+    "start:eservice-template-readmodel-writer": "turbo start --filter pagopa-interop-eservice-template-readmodel-writer",
+    "start:notification-email-sender": "turbo start --filter pagopa-interop-notification-email-sender",
+    "test": "turbo test -- --watch=false",
     "build": "turbo build",
     "check": "turbo check",
-    "lint": "turbo lint",
+    "lint": "turbo lint -- --cache --cache-strategy content --cache-location .eslintcache",
     "lint:autofix": "turbo lint:autofix",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
@@ -50,8 +62,9 @@
     "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +"
   },
   "devDependencies": {
+    "@tsconfig/strictest": "2.0.5",
     "@tsconfig/node-lts": "20.1.3",
-    "turbo": "2.0.4"
+    "turbo": "2.2.3"
   },
   "config": {
     "protocVersion": "26.1"

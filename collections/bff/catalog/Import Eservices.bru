@@ -1,7 +1,7 @@
 meta {
   name: Import Eservices
   type: http
-  seq: 1
+  seq: 10
 }
 
 post {
@@ -15,8 +15,7 @@ headers {
   X-Correlation-Id: {{correlation-id}}
 }
 
-
 body:multipart-form {
   filename: f07b1c49-38fc-445e-a103-c2c156ae85ca_3bb5154d-eebc-42fd-9ea9-32b5be48e434.zip
-  url: http://localhost:9000/interop-application-import-export-local/local/eservices-import/69e2865e-65ab-4e48-a638-2037a9ee2ee7/f07b1c49-38fc-445e-a103-c2c156ae85ca_3bb5154d-eebc-42fd-9ea9-32b5be48e434.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=testawskey%2F20241001%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20241001T140847Z&X-Amz-Expires=5000&X-Amz-Signature=d57f527006fce0a819c381821c688aa9d211a38f250f8bc450ff661ca06923d2&X-Amz-SignedHeaders=host&x-id=PutObject
+  url: http://localhost:9000/interop-application-import-export-local/local/eservices-import/69e2865e-65ab-4e48-a638-2037a9ee2ee7/f07b1c49-38fc-445e-a103-c2c156ae85ca_3bb5154d-eebc-42fd-9ea9-32b5be48e434.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=testawskey%2F20241001%2Feu-south-1%2Fs3%2Faws4_request&X-Amz-Date=20241001T140847Z&X-Amz-Expires=5000&X-Amz-Signature=d57f527006fce0a819c381821c688aa9d211a38f250f8bc450ff661ca06923d2&X-Amz-SignedHeaders=host&x-id=PutObject
 }

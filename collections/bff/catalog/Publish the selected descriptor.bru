@@ -1,7 +1,7 @@
 meta {
   name: Publish the selected descriptor-
   type: http
-  seq: 1
+  seq: 11
 }
 
 post {
@@ -11,13 +11,11 @@ post {
 }
 
 params:path {
-  eServiceId: <uuid>
-  descriptorId: <uuid>
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
 }
 
 headers {
   Authorization: {{JWT}}
   x-correlation-id: {{correlation-id}}
 }
-
-

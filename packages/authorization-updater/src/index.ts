@@ -67,7 +67,8 @@ export async function sendCatalogAuthUpdate(
       {
         type: P.union(
           "EServiceDescriptorPublished",
-          "EServiceDescriptorActivated"
+          "EServiceDescriptorActivated",
+          "EServiceDescriptorApprovedByDelegator"
         ),
       },
       async (msg) => {
@@ -104,6 +105,22 @@ export async function sendCatalogAuthUpdate(
       }
     )
     .with(
+      { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      async (msg) => {
+        const data = getDescriptorFromEvent(msg, decodedMessage.type);
+        await authService.updateEServiceState(
+          descriptorStateToClientState(data.descriptor.state),
+          data.descriptor.id,
+          data.eserviceId,
+          data.descriptor.audience,
+          data.descriptor.voucherLifespan,
+          logger,
+          correlationId
+        );
+      }
+    )
+    .with(
       {
         type: P.union(
           "EServiceAdded",
@@ -122,10 +139,21 @@ export async function sendCatalogAuthUpdate(
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptionUpdated",
           "EServiceDescriptorAttributesUpdated",
-          "EServiceNameUpdated"
+          "EServiceDescriptionUpdated",
+          "EServiceIsConsumerDelegableEnabled",
+          "EServiceIsConsumerDelegableDisabled",
+          "EServiceIsClientAccessDelegableEnabled",
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceNameUpdated",
+          "EServiceDescriptorSubmittedByDelegate",
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate"
         ),
       },
       () => {
@@ -154,7 +182,8 @@ export async function sendAgreementAuthUpdate(
           "AgreementSuspendedByPlatform",
           "AgreementSuspendedByConsumer",
           "AgreementSuspendedByProducer",
-          "AgreementArchivedByConsumer"
+          "AgreementArchivedByConsumer",
+          "AgreementArchivedByRevokedDelegation"
         ),
       },
       async (msg) => {
@@ -218,7 +247,8 @@ export async function sendAgreementAuthUpdate(
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
           "AgreementSetMissingCertifiedAttributesByPlatform",
-          "AgreementArchivedByUpgrade"
+          "AgreementArchivedByUpgrade",
+          "AgreementDeletedByRevokedDelegation"
         ),
       },
       () => {
@@ -247,7 +277,8 @@ export async function sendPurposeAuthUpdate(
       {
         type: P.union(
           "DraftPurposeDeleted",
-          "WaitingForApprovalPurposeDeleted"
+          "WaitingForApprovalPurposeDeleted",
+          "PurposeDeletedByRevokedDelegation"
         ),
       },
       async (msg): Promise<void> => {
@@ -278,7 +309,8 @@ export async function sendPurposeAuthUpdate(
           "PurposeVersionOverQuotaUnsuspended",
           "NewPurposeVersionActivated",
           "PurposeVersionActivated",
-          "PurposeArchived"
+          "PurposeArchived",
+          "PurposeVersionArchivedByRevokedDelegation"
         ),
       },
       async (msg): Promise<void> => {
@@ -532,6 +564,7 @@ function processMessage(
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,
         streamId: decodedMessage.stream_id,
+        streamVersion: decodedMessage.version,
         correlationId,
       });
 

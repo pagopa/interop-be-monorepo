@@ -19,6 +19,7 @@ import {
   EServiceId,
   DescriptorId,
   agreementState,
+  Delegation,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -40,8 +41,14 @@ export const { cleanup, readModelRepository, postgresDB } =
 
 afterEach(cleanup);
 
-export const { agreements, clients, eservices, attributes, tenants } =
-  readModelRepository;
+export const {
+  agreements,
+  clients,
+  eservices,
+  attributes,
+  tenants,
+  delegations,
+} = readModelRepository;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -141,6 +148,12 @@ export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeTenantInEventstore(tenant);
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await writeInReadmodel(delegation, delegations);
 };
 
 export const readLastTenantEvent = async (

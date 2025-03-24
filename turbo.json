@@ -1,20 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
-  "globalDependencies": [
-    "tsconfig.json"
-  ],
+  "daemon": false,
+  "globalDependencies": ["tsconfig.json"],
   "globalEnv": ["CI"],
   "tasks": {
     "start": {
       "persistent": true,
       "cache": false,
-      "dependsOn": [
-        "^build",
-        "generate-model",
-        "generate-protobuf",
-        "//#infra:start"
-      ]
+      "dependsOn": ["^build", "//#infra:start"]
     },
     "//#infra:start": {
       "cache": false
@@ -26,62 +20,31 @@
       "cache": false
     },
     "build": {
-      "dependsOn": [
-        "generate-model",
-        "generate-protobuf",
-        "^build"
-      ],
-      "outputs": [
-        "dist"
-      ]
+      "dependsOn": ["generate-model", "generate-protobuf", "^build"],
+      "outputs": ["dist/**"]
     },
     "check": {
-      "dependsOn": [
-        "generate-model",
-        "generate-protobuf",
-        "^build"
-      ],
-      "outputs": [
-        "dist"
-      ]
+      "dependsOn": ["generate-model", "generate-protobuf", "^build", "^check"],
+      "outputs": ["dist/**"]
     },
     "generate-model": {
-      "dependsOn": [
-        "^generate-model"
-      ]
+      "dependsOn": ["^generate-model"],
+      "outputs": ["src/generated/**"]
     },
     "generate-protobuf": {
-      "dependsOn": [
-        "^generate-protobuf"
-      ],
-      "outputs": [
-        "src/gen"
-      ]
+      "dependsOn": ["^generate-protobuf"],
+      "outputs": ["src/gen/**"]
     },
     "test": {
-      "dependsOn": [
-        "build"
-      ]
+      "dependsOn": ["build"]
     },
     "lint": {
-      "dependsOn": [
-        "generate-model",
-        "generate-protobuf",
-        "^build"
-      ],
-      "outputs": [
-        "dist"
-      ]
+      "dependsOn": ["build", "^lint"],
+      "outputs": [".eslintcache"]
     },
     "lint:autofix": {
-      "dependsOn": [
-        "generate-model",
-        "generate-protobuf",
-        "^build"
-      ],
-      "outputs": [
-        "dist"
-      ]
+      "dependsOn": ["build"],
+      "outputs": ["dist"]
     },
     "format:check": {},
     "format:write": {}

@@ -89,15 +89,11 @@ export const addClientPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "clientNotFound",
-      "purposeNotFound",
-
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("clientNotFound", "purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "noAgreementFoundInRequiredState",
       "noPurposeVersionsFoundInRequiredState",
+      "eserviceNotDelegableForClientAccess",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeAlreadyLinkedToClient", () => HTTP_STATUS_CONFLICT)
@@ -106,15 +102,20 @@ export const addClientPurposeErrorMapper = (
       "organizationNotAllowedOnPurpose",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with("purposeDelegationNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "organizationNotAllowedOnClient",
+      "securityUserNotMember",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
+export const createKeyErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
@@ -123,7 +124,9 @@ export const createKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "notAllowedCertificateException",
       "notAllowedMultipleKeysException",
       "jwkDecodingError",
-      "invalidKey",
+      "invalidPublicKey",
+      "notAnRSAKey",
+      "invalidKeyLength",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
@@ -139,12 +142,18 @@ export const createProducerKeychainKeyErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number => {
   // since creation of keys is shared, they throw the same errors
-  const baseMapperResult = createKeysErrorMapper(error);
+  const baseMapperResult = createKeyErrorMapper(error);
 
   if (baseMapperResult === HTTP_STATUS_INTERNAL_SERVER_ERROR) {
     return match(error.code)
       .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
-      .with("tooManyKeysPerProducerKeychain", () => HTTP_STATUS_BAD_REQUEST)
+      .with(
+        "tooManyKeysPerProducerKeychain",
+        "invalidPublicKey",
+        "notAnRSAKey",
+        "invalidKeyLength",
+        () => HTTP_STATUS_BAD_REQUEST
+      )
       .with(
         "organizationNotAllowedOnProducerKeychain",
         () => HTTP_STATUS_FORBIDDEN

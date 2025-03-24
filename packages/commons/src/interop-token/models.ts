@@ -1,3 +1,9 @@
+import {
+  ClientAssertionDigest,
+  ClientId,
+  PurposeId,
+  TenantId,
+} from "pagopa-interop-models";
 import { z } from "zod";
 
 export const ORGANIZATION = "organization";
@@ -11,6 +17,9 @@ export const ORGANIZATION_EXTERNAL_ID_CLAIM = "externalId";
 export const ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM = "origin";
 export const ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM = "value";
 export const USER_ROLES = "user-roles";
+const PURPOSE_ID_CLAIM = "purposeId";
+export const GENERATED_INTEROP_TOKEN_M2M_ROLE = "m2m";
+export const ROLE_CLAIM = "role";
 
 export interface InteropJwtHeader {
   alg: string;
@@ -22,10 +31,24 @@ export interface InteropJwtHeader {
 export type InteropJwtCommonPayload = {
   jti: string;
   iss: string;
-  aud: string[];
+  aud: string[] | string;
   iat: number;
   nbf: number;
   exp: number;
+};
+
+export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
+  client_id: ClientId;
+  sub: ClientId;
+  [PURPOSE_ID_CLAIM]: PurposeId;
+  digest?: ClientAssertionDigest;
+};
+
+export type InteropJwtApiPayload = InteropJwtCommonPayload & {
+  client_id: ClientId;
+  sub: ClientId;
+  [ORGANIZATION_ID_CLAIM]: TenantId;
+  [ROLE_CLAIM]: string;
 };
 
 export type InteropJwtPayload = InteropJwtCommonPayload & {
@@ -36,6 +59,18 @@ export type InteropJwtPayload = InteropJwtCommonPayload & {
 export type InteropToken = {
   header: InteropJwtHeader;
   payload: InteropJwtPayload;
+  serialized: string;
+};
+
+export type InteropConsumerToken = {
+  header: InteropJwtHeader;
+  payload: InteropJwtConsumerPayload;
+  serialized: string;
+};
+
+export type InteropApiToken = {
+  header: InteropJwtHeader;
+  payload: InteropJwtApiPayload;
   serialized: string;
 };
 

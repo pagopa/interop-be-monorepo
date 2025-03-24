@@ -21,6 +21,7 @@ import {
   AgreementProcessClient,
   AuthorizationProcessClient,
   CatalogProcessClient,
+  DelegationProcessClient,
   PurposeProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -36,9 +37,56 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
+import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { isAgreementUpgradable } from "./validators.js";
+
+const enrichPurposeDelegation = async (
+  delegationId: string,
+  delegationProcessClient: DelegationProcessClient,
+  tenantProcessClient: TenantProcessClient,
+  headers: Headers
+): Promise<bffApi.DelegationWithCompactTenants> => {
+  const delegation = await delegationProcessClient.delegation.getDelegation({
+    headers,
+    params: {
+      delegationId,
+    },
+  });
+
+  const [delegate, delegator] = await Promise.all(
+    [delegation.delegateId, delegation.delegatorId].map((id) =>
+      tenantProcessClient.tenant.getTenant({
+        headers,
+        params: { id },
+      })
+    )
+  );
+
+  if (!delegate) {
+    throw tenantNotFound(delegation.delegateId);
+  }
+  if (!delegator) {
+    throw tenantNotFound(delegation.delegatorId);
+  }
+
+  return {
+    id: delegationId,
+    delegate: {
+      id: delegate.id,
+      name: delegate.name,
+      contactMail: getLatestTenantContactEmail(delegate),
+      kind: delegate.kind,
+    },
+    delegator: {
+      id: delegator.id,
+      name: delegator.name,
+      contactMail: getLatestTenantContactEmail(delegator),
+      kind: delegator.kind,
+    },
+  };
+};
 
 export const getCurrentVersion = (
   purposeVersions: purposeApi.PurposeVersion[]
@@ -62,6 +110,7 @@ export function purposeServiceBuilder(
   catalogProcessClient: CatalogProcessClient,
   tenantProcessClient: TenantProcessClient,
   agreementProcessClient: AgreementProcessClient,
+  delegationProcessClient: DelegationProcessClient,
   authorizationClient: AuthorizationProcessClient,
   fileManager: FileManager
 ) {
@@ -74,6 +123,31 @@ export function purposeServiceBuilder(
     headers: Headers
     // eslint-disable-next-line max-params
   ): Promise<bffApi.Purpose> => {
+    const getClientConsumerIds = (
+      delegation: bffApi.DelegationWithCompactTenants | undefined
+    ): string[] => {
+      if (delegation) {
+        if (requesterId === purpose.consumerId) {
+          // The requester is the delegator
+          // The delegator should see its own clients and the delegate
+          return [purpose.consumerId, delegation.delegate.id];
+        } else if (requesterId === delegation.delegate.id) {
+          // The requester is the delegate
+          // The delegate should see only its own clients
+          return [delegation.delegate.id];
+        }
+        return [];
+      }
+
+      if (requesterId === purpose.consumerId) {
+        // The purpose has no delegation and the requester is the consumer
+        // The consumer should see only its own clients
+        return [purpose.consumerId];
+      }
+
+      return [];
+    };
+
     const eservice = eservices.find((e) => e.id === purpose.eserviceId);
     if (!eservice) {
       throw eServiceNotFound(unsafeBrandId(purpose.eserviceId));
@@ -109,18 +183,6 @@ export function purposeServiceBuilder(
       );
     }
 
-    const clients =
-      requesterId === purpose.consumerId
-        ? (
-            await getAllClients(
-              authorizationClient,
-              purpose.consumerId,
-              purpose.id,
-              headers
-            )
-          ).map(toBffApiCompactClient)
-        : [];
-
     const currentVersion = getCurrentVersion(purpose.versions);
     const waitingForApprovalVersion = purpose.versions.find(
       (v) =>
@@ -138,11 +200,40 @@ export function purposeServiceBuilder(
         ? latestVersion
         : undefined;
 
+    const delegation = purpose.delegationId
+      ? await enrichPurposeDelegation(
+          purpose.delegationId,
+          delegationProcessClient,
+          tenantProcessClient,
+          headers
+        )
+      : undefined;
+
+    const clientConsumerIds = getClientConsumerIds(delegation);
+
+    const clients =
+      clientConsumerIds.length > 0
+        ? (
+            await Promise.all(
+              clientConsumerIds.map((id) =>
+                getAllClients(authorizationClient, id, purpose.id, headers)
+              )
+            )
+          )
+            .flat()
+            .map(toBffApiCompactClient)
+        : [];
+
     return {
       id: purpose.id,
       title: purpose.title,
       description: purpose.description,
-      consumer: { id: consumer.id, name: consumer.name },
+      consumer: {
+        id: consumer.id,
+        name: consumer.name,
+        kind: consumer.kind,
+        contactMail: getLatestTenantContactEmail(consumer),
+      },
       riskAnalysisForm: purpose.riskAnalysisForm,
       eservice: {
         id: eservice.id,
@@ -175,6 +266,7 @@ export function purposeServiceBuilder(
       dailyCallsTotal: currentDescriptor.dailyCallsTotal,
       rejectedVersion:
         rejectedVersion && toBffApiPurposeVersion(rejectedVersion),
+      delegation,
     };
   };
 
@@ -322,7 +414,6 @@ export function purposeServiceBuilder(
         name?: string | undefined;
         eservicesIds?: string[] | undefined;
         consumersIds?: string[] | undefined;
-        producersIds?: string[] | undefined;
         states?: purposeApi.PurposeVersionState[] | undefined;
       },
       offset: number,
@@ -330,11 +421,15 @@ export function purposeServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       logger.info(
-        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds}, offset ${offset}, limit ${limit}`
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds} offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
         authData.organizationId,
-        { ...filters, excludeDraft: true },
+        {
+          ...filters,
+          excludeDraft: true,
+          producersIds: [authData.organizationId],
+        },
         offset,
         limit,
         headers
@@ -344,7 +439,6 @@ export function purposeServiceBuilder(
       filters: {
         name?: string | undefined;
         eservicesIds?: string[] | undefined;
-        consumersIds?: string[] | undefined;
         producersIds?: string[] | undefined;
         states?: purposeApi.PurposeVersionState[] | undefined;
       },
@@ -353,11 +447,15 @@ export function purposeServiceBuilder(
       { headers, authData, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.Purposes> {
       logger.info(
-        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Consumers ${filters.consumersIds}, offset ${offset}, limit ${limit}`
+        `Retrieving Purposes for name ${filters.name}, EServices ${filters.eservicesIds}, Producers ${filters.producersIds} offset ${offset}, limit ${limit}`
       );
       return await getPurposes(
         authData.organizationId,
-        { ...filters, excludeDraft: false },
+        {
+          ...filters,
+          excludeDraft: false,
+          consumersIds: [authData.organizationId],
+        },
         offset,
         limit,
         headers
@@ -558,7 +656,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Updating Purpose ${id}`);
 
-      const result = await purposeProcessClient.updatePurpose(seed, {
+      const updatedPurpose = await purposeProcessClient.updatePurpose(seed, {
         params: {
           id,
         },
@@ -567,7 +665,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId: id,
-        versionId: result.id,
+        versionId: updatedPurpose.versions[0].id,
       };
     },
     async getPurpose(
@@ -601,19 +699,20 @@ export function purposeServiceBuilder(
         throw agreementNotFound(unsafeBrandId(purpose.consumerId));
       }
 
-      const consumer = await tenantProcessClient.tenant.getTenant({
-        params: {
-          id: agreement.consumerId,
-        },
-        headers,
-      });
-
-      const producer = await tenantProcessClient.tenant.getTenant({
-        params: {
-          id: agreement.producerId,
-        },
-        headers,
-      });
+      const [consumer, producer] = await Promise.all([
+        tenantProcessClient.tenant.getTenant({
+          params: {
+            id: agreement.consumerId,
+          },
+          headers,
+        }),
+        tenantProcessClient.tenant.getTenant({
+          params: {
+            id: agreement.producerId,
+          },
+          headers,
+        }),
+      ]);
 
       return await enhancePurpose(
         authData.organizationId,
@@ -624,15 +723,17 @@ export function purposeServiceBuilder(
         headers
       );
     },
-    async retrieveLatestRiskAnalysisConfiguration({
-      headers,
-      logger,
-    }: WithLogger<BffAppContext>): Promise<bffApi.RiskAnalysisFormConfig> {
+    async retrieveLatestRiskAnalysisConfiguration(
+      tenantKind: bffApi.TenantKind | undefined,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<bffApi.RiskAnalysisFormConfig> {
       logger.info(`Retrieving risk analysis latest configuration`);
 
       return await purposeProcessClient.retrieveLatestRiskAnalysisConfiguration(
         {
-          queries: undefined,
+          queries: {
+            tenantKind,
+          },
           headers,
         }
       );
