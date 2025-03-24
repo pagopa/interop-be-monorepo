@@ -43,7 +43,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
         currentRiskAnalysis: RiskAnalysis
       ) => {
         const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
-          splitRiskAnalysisIntoObjectsSQL(
+          splitEServiceTemplateRiskAnalysisIntoObjectsSQL(
             currentRiskAnalysis,
             eserviceTemplate.id,
             metadataVersion
@@ -220,7 +220,7 @@ export const splitEServiceTemplateVersionIntoObjectsSQL = (
   };
 };
 
-export const splitRiskAnalysisIntoObjectsSQL = (
+export const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
   riskAnalysis: RiskAnalysis,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
