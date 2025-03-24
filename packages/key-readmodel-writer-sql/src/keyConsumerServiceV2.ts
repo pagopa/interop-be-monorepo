@@ -16,10 +16,10 @@ export async function handleMessageV2(
       const client = message.data.client
         ? fromClientV2(message.data.client)
         : undefined;
-
       if (!client) {
         throw Error("Client not found in event");
       }
+
       const key = client?.keys.find((key) => key.kid === message.data.kid);
       if (!key) {
         throw Error(`Key not found in client: ${client?.id}`);
@@ -33,10 +33,10 @@ export async function handleMessageV2(
       const client = message.data.client
         ? fromClientV2(message.data.client)
         : undefined;
-
       if (!client) {
         throw Error("Client not found in event");
       }
+
       await clientJWKKeyReadModelService.deleteClientJWKKeyByKid(
         client.id,
         message.data.kid,
