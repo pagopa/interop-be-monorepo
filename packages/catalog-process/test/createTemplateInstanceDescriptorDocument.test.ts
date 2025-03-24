@@ -1,17 +1,19 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   Descriptor,
   descriptorState,
   EService,
   toEServiceV2,
   unsafeBrandId,
-  generateId,
   EServiceDescriptorDocumentAddedByTemplateUpdateV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockContext,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -20,7 +22,6 @@ import {
   addOneEService,
   catalogService,
   buildInterfaceSeed,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockDocument,
@@ -56,12 +57,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
         eservice.id,
         descriptor.id,
         newDocument,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -126,12 +122,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
       eservice.id,
       descriptor.id,
       newDocument,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -162,12 +153,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
       eservice.id,
       descriptor.id,
       newDocument,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -186,12 +172,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
         mockEService.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -207,12 +188,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
         eservice.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
