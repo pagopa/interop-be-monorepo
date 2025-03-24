@@ -329,7 +329,7 @@ export const toAgreementAggregatorArray = (
       const stampKey = stampSQL
         ? makeUniqueKey([stampSQL.agreementId, stampSQL.kind])
         : undefined;
-      const isNewStamp = stampSQL && stampKey && !acc.stampIds.has(stampKey);
+      const isNewStamp = stampSQL && !!stampKey && !acc.stampIds.has(stampKey);
       const stampsSQL = isNewStamp
         ? [...acc.stampsSQL, stampSQL]
         : acc.stampsSQL;
@@ -342,7 +342,7 @@ export const toAgreementAggregatorArray = (
         ? makeUniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
         : undefined;
       const isNewAttribute =
-        attributeSQL && attributeKey && !acc.attributeIds.has(attributeKey);
+        attributeSQL && !!attributeKey && !acc.attributeIds.has(attributeKey);
       const attributesSQL = isNewAttribute
         ? [...acc.attributesSQL, attributeSQL]
         : acc.attributesSQL;
