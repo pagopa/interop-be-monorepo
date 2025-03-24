@@ -177,7 +177,6 @@ export async function createUpgradeOrNewDraft({
       stamps: {
         suspensionByConsumer: agreement.data.stamps.suspensionByConsumer,
         suspensionByProducer: agreement.data.stamps.suspensionByProducer,
-        upgrade: stamp,
       },
     };
 
