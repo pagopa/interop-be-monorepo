@@ -177,11 +177,7 @@ export async function applicationAuditEndMiddleware(
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
   return async (req, res, next): Promise<void> => {
-    if (
-      !config.endpointsWithCustomAudit ||
-      (config.endpointsWithCustomAudit &&
-        !config.endpointsWithCustomAudit.includes(req.path))
-    ) {
+    if (req.path !== "/session/tokens") {
       res.on("finish", async () => {
         const context = (req as Request & { ctx?: AppContext }).ctx;
         if (!context) {
@@ -234,7 +230,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
   return async (req, res, next): Promise<void> => {
-    if (config.endpointsWithCustomAudit?.includes(req.path)) {
+    if (req.path === "/session/tokens") {
       const defaultSend = res.send;
 
       // eslint-disable-next-line functional/no-let

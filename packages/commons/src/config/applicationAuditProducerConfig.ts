@@ -7,13 +7,11 @@ export const ApplicationAuditProducerConfig = z
     SERVICE_VERSION: z.string(),
     NODE_IP: z.string(),
     POD_NAME: z.string(),
-    ENDPOINTS_WITH_CUSTOM_AUDIT: z.string().optional(),
   })
   .transform((c) => ({
     serviceVersion: c.SERVICE_VERSION,
     nodeIp: c.NODE_IP,
     podName: c.POD_NAME,
-    endpointsWithCustomAudit: c.ENDPOINTS_WITH_CUSTOM_AUDIT?.split(","),
   }))
   .and(KafkaProducerConfig)
   .and(ApplicationAuditTopicConfig);
