@@ -6,8 +6,8 @@ import {
   riskAnalysisAnswerKind,
 } from "pagopa-interop-models";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
+  DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   EServiceDescriptorAttributeSQL,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -18,12 +18,17 @@ import {
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  EServiceDescriptorTemplateVersionRefSQL,
   eserviceInReadmodelCatalog,
+  EServiceItemsSQL,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   EServiceRiskAnalysisAnswerSQL,
   eserviceRiskAnalysisInReadmodelCatalog,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
+  eserviceTemplateRefInReadmodelCatalog,
+  EServiceTemplateRefSQL,
 } from "pagopa-interop-readmodel-models";
 import { expect } from "vitest";
 import { catalogReadModelServiceBuilderSQL } from "../src/catalogReadModelService.js";
@@ -64,29 +69,53 @@ export const generateEServiceRiskAnalysisAnswersSQL = (
 
 export const checkCompleteEService = async (
   eservice: EService
-): Promise<void> => {
-  expect(await retrieveEServiceSQLById(eservice.id, readModelDB)).toBeDefined();
-  expect(
-    await retrieveEserviceDescriptorsSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors.length);
-  expect(
-    await retrieveEserviceInterfacesSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors.length);
-  expect(
-    await retrieveEserviceDocumentsSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors[0].docs.length);
-  expect(
-    await retrieveEserviceDescriptorAttributesSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors[0].attributes.certified.flat().length);
-  expect(
-    await retrieveEserviceRejectionReasonsSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.descriptors[0].rejectionReasons!.length);
-  expect(
-    await retrieveEserviceRiskAnalysesSQLById(eservice.id, readModelDB)
-  ).toHaveLength(eservice.riskAnalysis.length);
-  expect(
-    await retrieveEserviceRiskAnalysisAnswersSQLById(eservice.id, readModelDB)
-  ).toHaveLength(
+): Promise<EServiceItemsSQL> => {
+  const eserviceSQL = await retrieveEServiceSQLById(eservice.id, readModelDB);
+  const descriptorsSQL = await retrieveEserviceDescriptorsSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const interfacesSQL = await retrieveEserviceInterfacesSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const documentsSQL = await retrieveEserviceDocumentsSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const attributesSQL = await retrieveEserviceDescriptorAttributesSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const rejectionReasonsSQL = await retrieveEserviceRejectionReasonsSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const riskAnalysesSQL = await retrieveEserviceRiskAnalysesSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const riskAnalysisAnswersSQL =
+    await retrieveEserviceRiskAnalysisAnswersSQLById(eservice.id, readModelDB);
+  const templateRefsSQL = await retrieveEServiceTemplateRefSQLById(
+    eservice.id,
+    readModelDB
+  );
+  const templateVersionRefsSQL =
+    await retrieveEServiceTemplateVersionRefsSQLById(eservice.id, readModelDB);
+
+  expect(eserviceSQL).toBeDefined();
+  expect(descriptorsSQL).toHaveLength(eservice.descriptors.length);
+  expect(interfacesSQL).toHaveLength(eservice.descriptors.length);
+  expect(documentsSQL).toHaveLength(eservice.descriptors[0].docs.length);
+  expect(attributesSQL).toHaveLength(
+    eservice.descriptors[0].attributes.certified.flat().length
+  );
+  expect(rejectionReasonsSQL).toHaveLength(
+    eservice.descriptors[0].rejectionReasons!.length
+  );
+  expect(riskAnalysesSQL).toHaveLength(eservice.riskAnalysis.length);
+  expect(riskAnalysisAnswersSQL).toHaveLength(
     eservice.riskAnalysis.reduce(
       (sum, ra) =>
         sum +
@@ -95,11 +124,26 @@ export const checkCompleteEService = async (
       0
     )
   );
+  expect(templateRefsSQL).toBeDefined();
+  expect(templateVersionRefsSQL).toHaveLength(eservice.descriptors.length);
+
+  return {
+    eserviceSQL: eserviceSQL!,
+    descriptorsSQL,
+    interfacesSQL,
+    documentsSQL,
+    attributesSQL,
+    rejectionReasonsSQL,
+    riskAnalysesSQL,
+    riskAnalysisAnswersSQL,
+    templateRefSQL: templateRefsSQL!,
+    templateVersionRefsSQL,
+  };
 };
 
 export const retrieveEServiceSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceSQL | undefined> => {
   const result = await db
     .select()
@@ -111,7 +155,7 @@ export const retrieveEServiceSQLById = async (
 
 export const retrieveEserviceDescriptorsSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorSQL[]> =>
   await db
     .select()
@@ -120,7 +164,7 @@ export const retrieveEserviceDescriptorsSQLById = async (
 
 export const retrieveEserviceDocumentsSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorDocumentSQL[]> =>
   await db
     .select()
@@ -131,7 +175,7 @@ export const retrieveEserviceDocumentsSQLById = async (
 
 export const retrieveEserviceInterfacesSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorInterfaceSQL[]> =>
   await db
     .select()
@@ -142,7 +186,7 @@ export const retrieveEserviceInterfacesSQLById = async (
 
 export const retrieveEserviceDescriptorAttributesSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorAttributeSQL[]> =>
   await db
     .select()
@@ -153,7 +197,7 @@ export const retrieveEserviceDescriptorAttributesSQLById = async (
 
 export const retrieveEserviceRejectionReasonsSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceDescriptorRejectionReasonSQL[]> =>
   await db
     .select()
@@ -167,7 +211,7 @@ export const retrieveEserviceRejectionReasonsSQLById = async (
 
 export const retrieveEserviceRiskAnalysesSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceRiskAnalysisSQL[]> =>
   await db
     .select()
@@ -176,11 +220,37 @@ export const retrieveEserviceRiskAnalysesSQLById = async (
 
 export const retrieveEserviceRiskAnalysisAnswersSQLById = async (
   eserviceId: EServiceId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<EServiceRiskAnalysisAnswerSQL[]> =>
   await db
     .select()
     .from(eserviceRiskAnalysisAnswerInReadmodelCatalog)
     .where(
       eq(eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId, eserviceId)
+    );
+
+export const retrieveEServiceTemplateRefSQLById = async (
+  eserviceId: EServiceId,
+  db: DrizzleReturnType
+): Promise<EServiceTemplateRefSQL | undefined> => {
+  const result = await db
+    .select()
+    .from(eserviceTemplateRefInReadmodelCatalog)
+    .where(eq(eserviceTemplateRefInReadmodelCatalog.eserviceId, eserviceId));
+
+  return result[0];
+};
+
+export const retrieveEServiceTemplateVersionRefsSQLById = async (
+  eserviceId: EServiceId,
+  db: DrizzleReturnType
+): Promise<EServiceDescriptorTemplateVersionRefSQL[]> =>
+  await db
+    .select()
+    .from(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+    .where(
+      eq(
+        eserviceDescriptorTemplateVersionRefInReadmodelCatalog.eserviceId,
+        eserviceId
+      )
     );

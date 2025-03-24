@@ -29,6 +29,8 @@ import {
   retrieveEserviceDescriptorAttributesSQLById,
   catalogReadModelService,
   checkCompleteEService,
+  retrieveEServiceTemplateRefSQLById,
+  retrieveEServiceTemplateVersionRefsSQLById,
 } from "./eserviceUtils.js";
 import { readModelDB } from "./utils.js";
 
@@ -54,6 +56,15 @@ describe("E-service queries", () => {
         deprecatedAt: new Date(),
         archivedAt: new Date(),
         agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+        templateVersionRef: {
+          id: generateId(),
+          interfaceMetadata: {
+            contactEmail: "contact email",
+            contactName: "contact name",
+            contactUrl: "contact url",
+            termsAndConditionsUrl: "terms and conditions url",
+          },
+        },
       };
 
       const eservice: EService = {
@@ -66,48 +77,16 @@ describe("E-service queries", () => {
         isSignalHubEnabled: true,
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
+        templateRef: {
+          id: generateId(),
+          instanceLabel: "instance label",
+        },
       };
 
       await catalogReadModelService.upsertEService(eservice, 1);
 
-      const eserviceSQL = await retrieveEServiceSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const descriptorsSQL = await retrieveEserviceDescriptorsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const interfacesSQL = await retrieveEserviceInterfacesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const documentsSQL = await retrieveEserviceDocumentsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const attributesSQL = await retrieveEserviceDescriptorAttributesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const rejectionReasonsSQL = await retrieveEserviceRejectionReasonsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const riskAnalysesSQL = await retrieveEserviceRiskAnalysesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const riskAnalysisAnswersSQL =
-        await retrieveEserviceRiskAnalysisAnswersSQLById(
-          eservice.id,
-          readModelDB
-        );
-
-      await checkCompleteEService(eservice);
-
-      const retrievedEService = aggregateEservice({
-        eserviceSQL: eserviceSQL!,
+      const {
+        eserviceSQL,
         descriptorsSQL,
         interfacesSQL,
         documentsSQL,
@@ -115,6 +94,21 @@ describe("E-service queries", () => {
         rejectionReasonsSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        templateRefSQL,
+        templateVersionRefsSQL,
+      } = await checkCompleteEService(eservice);
+
+      const retrievedEService = aggregateEservice({
+        eserviceSQL,
+        descriptorsSQL,
+        interfacesSQL,
+        documentsSQL,
+        attributesSQL,
+        rejectionReasonsSQL,
+        riskAnalysesSQL,
+        riskAnalysisAnswersSQL,
+        templateRefSQL,
+        templateVersionRefsSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -163,6 +157,15 @@ describe("E-service queries", () => {
           eservice.id,
           readModelDB
         );
+      const templateRefSQL = await retrieveEServiceTemplateRefSQLById(
+        eservice.id,
+        readModelDB
+      );
+      const templateVersionRefsSQL =
+        await retrieveEServiceTemplateVersionRefsSQLById(
+          eservice.id,
+          readModelDB
+        );
 
       expect(eserviceSQL).toBeDefined();
       expect(descriptorsSQL).toHaveLength(0);
@@ -182,6 +185,8 @@ describe("E-service queries", () => {
         rejectionReasonsSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        templateRefSQL,
+        templateVersionRefsSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -212,6 +217,15 @@ describe("E-service queries", () => {
         deprecatedAt: new Date(),
         archivedAt: new Date(),
         agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+        templateVersionRef: {
+          id: generateId(),
+          interfaceMetadata: {
+            contactEmail: "contact email",
+            contactName: "contact name",
+            contactUrl: "contact url",
+            termsAndConditionsUrl: "terms and conditions url",
+          },
+        },
       };
 
       const eservice: EService = {
@@ -224,49 +238,17 @@ describe("E-service queries", () => {
         isSignalHubEnabled: true,
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
+        templateRef: {
+          id: generateId(),
+          instanceLabel: "instance label",
+        },
       };
 
       await catalogReadModelService.upsertEService(eservice, 1);
       await catalogReadModelService.upsertEService(eservice, 2);
 
-      const eserviceSQL = await retrieveEServiceSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const descriptorsSQL = await retrieveEserviceDescriptorsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const interfacesSQL = await retrieveEserviceInterfacesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const documentsSQL = await retrieveEserviceDocumentsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const attributesSQL = await retrieveEserviceDescriptorAttributesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const rejectionReasonsSQL = await retrieveEserviceRejectionReasonsSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const riskAnalysesSQL = await retrieveEserviceRiskAnalysesSQLById(
-        eservice.id,
-        readModelDB
-      );
-      const riskAnalysisAnswersSQL =
-        await retrieveEserviceRiskAnalysisAnswersSQLById(
-          eservice.id,
-          readModelDB
-        );
-
-      await checkCompleteEService(eservice);
-
-      const retrievedEService = aggregateEservice({
-        eserviceSQL: eserviceSQL!,
+      const {
+        eserviceSQL,
         descriptorsSQL,
         interfacesSQL,
         documentsSQL,
@@ -274,6 +256,21 @@ describe("E-service queries", () => {
         rejectionReasonsSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
+        templateRefSQL,
+        templateVersionRefsSQL,
+      } = await checkCompleteEService(eservice);
+
+      const retrievedEService = aggregateEservice({
+        eserviceSQL,
+        descriptorsSQL,
+        interfacesSQL,
+        documentsSQL,
+        attributesSQL,
+        rejectionReasonsSQL,
+        riskAnalysesSQL,
+        riskAnalysisAnswersSQL,
+        templateRefSQL,
+        templateVersionRefsSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -294,17 +291,42 @@ describe("E-service queries", () => {
           declared: [],
           verified: [],
         },
-        interface: getMockDocument(),
         docs: [getMockDocument()],
+        interface: getMockDocument(),
         rejectionReasons: [getMockDescriptorRejectionReason()],
+        description: "description test",
+        publishedAt: new Date(),
+        suspendedAt: new Date(),
+        deprecatedAt: new Date(),
+        archivedAt: new Date(),
+        agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+        templateVersionRef: {
+          id: generateId(),
+          interfaceMetadata: {
+            contactEmail: "contact email",
+            contactName: "contact name",
+            contactUrl: "contact url",
+            termsAndConditionsUrl: "terms and conditions url",
+          },
+        },
       };
+
       const eservice: WithMetadata<EService> = {
         data: {
           ...getMockEService(),
           descriptors: [descriptor],
           riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+          isSignalHubEnabled: true,
+          isConsumerDelegable: true,
+          isClientAccessDelegable: true,
+          templateRef: {
+            id: generateId(),
+            instanceLabel: "instance label",
+          },
         },
-        metadata: { version: 1 },
+        metadata: {
+          version: 1,
+        },
       };
       await catalogReadModelService.upsertEService(
         eservice.data,
@@ -342,9 +364,22 @@ describe("E-service queries", () => {
             interface: getMockDocument(),
             docs: [getMockDocument()],
             rejectionReasons: [getMockDescriptorRejectionReason()],
+            templateVersionRef: {
+              id: generateId(),
+              interfaceMetadata: {
+                contactEmail: "contact email",
+                contactName: "contact name",
+                contactUrl: "contact url",
+                termsAndConditionsUrl: "terms and conditions url",
+              },
+            },
           },
         ],
         riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+        templateRef: {
+          id: generateId(),
+          instanceLabel: "instance label",
+        },
       };
       await catalogReadModelService.upsertEService(eservice1, 1);
       await checkCompleteEService(eservice1);
@@ -362,9 +397,22 @@ describe("E-service queries", () => {
             interface: getMockDocument(),
             docs: [getMockDocument()],
             rejectionReasons: [getMockDescriptorRejectionReason()],
+            templateVersionRef: {
+              id: generateId(),
+              interfaceMetadata: {
+                contactEmail: "contact email",
+                contactName: "contact name",
+                contactUrl: "contact url",
+                termsAndConditionsUrl: "terms and conditions url",
+              },
+            },
           },
         ],
         riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+        templateRef: {
+          id: generateId(),
+          instanceLabel: "instance label",
+        },
       };
       await catalogReadModelService.upsertEService(eservice2, 1);
       await checkCompleteEService(eservice2);

@@ -12,14 +12,11 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import {
-  DescriptorId,
   EServiceDocumentId,
-  EServiceId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
-import { CreatedResource } from "../../../api-clients/dist/bffApi.js";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
@@ -33,7 +30,6 @@ import {
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   AttributeProcessClient,
-  CatalogProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -50,7 +46,6 @@ export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
   fileManager: FileManager
 ) {
   return {
@@ -172,7 +167,7 @@ export function eserviceTemplateServiceBuilder(
     },
     updateEServiceTemplateIntendedTarget: async (
       templateId: EServiceTemplateId,
-      seed: bffApi.EServiceTemplateDescriptionUpdateSeed,
+      seed: bffApi.EServiceTemplateIntendedTargetUpdateSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
@@ -614,26 +609,6 @@ export function eserviceTemplateServiceBuilder(
         );
 
       return { id, name, contentType, prettyName, checksum };
-    },
-    addEserviceInterfaceByTemplate: async (
-      eServiceId: EServiceId,
-      descriptorId: DescriptorId,
-      eserviceInstanceInterfaceData: bffApi.TemplateInstanceInterfaceMetadata,
-      { headers }: WithLogger<BffAppContext>
-    ): Promise<CreatedResource> => {
-      const { id } =
-        await catalogProcessClient.addEServiceTemplateInstanceInterface(
-          eserviceInstanceInterfaceData,
-          {
-            headers,
-            params: {
-              eServiceId,
-              descriptorId,
-            },
-          }
-        );
-
-      return { id };
     },
     deleteEServiceTemplateDocumentById: async (
       templateId: EServiceTemplateId,
