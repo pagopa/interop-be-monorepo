@@ -593,14 +593,21 @@ export function authorizationServiceBuilder(
         `Retrieving keys for client ${clientId}, limit = ${limit}, offset = ${offset}`
       );
       const client = await retrieveClient(clientId, readModelService);
+
       assertSecurityRoleIsClientMember(authData, client.data);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
-      return await readModelService.getClientKeys(
-        clientId,
-        { offset, limit },
-        { userIds: userIds.length > 0 ? userIds : undefined }
-      );
+      const allKeys = client.data.keys || [];
+
+      const filteredKeys =
+        userIds && userIds.length > 0
+          ? allKeys.filter((key) => userIds.includes(key.userId))
+          : allKeys;
+
+      return {
+        results: filteredKeys.slice(offset, offset + limit),
+        totalCount: filteredKeys.length,
+      };
     },
     async addClientPurpose({
       clientId,
