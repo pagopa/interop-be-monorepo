@@ -42,7 +42,10 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute);
 
-    await attributeReadModelServiceSQL.upsertAttribute(attribute);
+    await attributeReadModelServiceSQL.upsertAttribute(
+      attribute.data,
+      attribute.metadata.version
+    );
 
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
@@ -73,7 +76,10 @@ describe("Check attribute readmodels", () => {
     await addOneAttribute(attribute1);
     await addOneAttribute(attribute2);
 
-    await attributeReadModelServiceSQL.upsertAttribute(attribute2);
+    await attributeReadModelServiceSQL.upsertAttribute(
+      attribute2.data,
+      attribute2.metadata.version
+    );
 
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
@@ -103,8 +109,14 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(attribute1);
-    await attributeReadModelServiceSQL.upsertAttribute(attribute2);
+    await attributeReadModelServiceSQL.upsertAttribute(
+      attribute1.data,
+      attribute1.metadata.version
+    );
+    await attributeReadModelServiceSQL.upsertAttribute(
+      attribute2.data,
+      attribute2.metadata.version
+    );
 
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
@@ -140,7 +152,10 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(attribute1ForSQL);
+    await attributeReadModelServiceSQL.upsertAttribute(
+      attribute1ForSQL.data,
+      attribute1ForSQL.metadata.version
+    );
 
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();
@@ -172,7 +187,10 @@ describe("Check attribute readmodels", () => {
 
     await addOneAttribute(attribute1);
 
-    await attributeReadModelServiceSQL.upsertAttribute(attribute1ForSQL);
+    await attributeReadModelServiceSQL.upsertAttribute(
+      attribute1ForSQL.data,
+      attribute1ForSQL.metadata.version
+    );
 
     const collectionAttributes =
       await readModelService.getAllReadModelAttributes();

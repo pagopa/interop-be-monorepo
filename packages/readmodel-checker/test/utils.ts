@@ -25,8 +25,8 @@ import {
 import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilderSQL,
-  attributeReadModelServiceBuilderSQL,
-  catalogReadModelServiceBuilderSQL,
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
   clientJWKKeyReadModelServiceBuilder,
   clientReadModelServiceBuilderSQL,
   delegationReadModelServiceBuilder,
@@ -57,9 +57,9 @@ export const readModelService = readModelServiceBuilder(readModelRepository);
 export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const eserviceReadModelServiceSQL =
-  catalogReadModelServiceBuilderSQL(readModelDB);
+  catalogReadModelServiceBuilder(readModelDB);
 export const attributeReadModelServiceSQL =
-  attributeReadModelServiceBuilderSQL(readModelDB);
+  attributeReadModelServiceBuilder(readModelDB);
 export const tenantReadModelServiceSQL =
   tenantReadModelServiceBuilder(readModelDB);
 export const agreementReadModelServiceSQL =
