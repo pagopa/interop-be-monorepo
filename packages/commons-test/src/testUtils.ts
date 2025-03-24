@@ -757,3 +757,39 @@ export const getMockContext = ({
   correlationId: generateId(),
   logger: genericLogger,
 });
+
+export const sortAgreement = (
+  agreement: Agreement | undefined
+): Agreement | undefined =>
+  agreement
+    ? {
+        ...agreement,
+        verifiedAttributes: [...agreement.verifiedAttributes].sort(
+          sortBy<AgreementAttribute>((att) => att.id)
+        ),
+        certifiedAttributes: [...agreement.certifiedAttributes].sort(
+          sortBy<AgreementAttribute>((att) => att.id)
+        ),
+        declaredAttributes: [...agreement.declaredAttributes].sort(
+          sortBy<AgreementAttribute>((att) => att.id)
+        ),
+        consumerDocuments: [...agreement.consumerDocuments].sort(
+          sortBy<AgreementDocument>((doc) => doc.id)
+        ),
+      }
+    : undefined;
+
+export const sortBy =
+  <T>(getKey: (item: T) => string) =>
+  (a: T, b: T): number => {
+    const keyA = getKey(a);
+    const keyB = getKey(b);
+
+    if (keyA < keyB) {
+      return -1;
+    }
+    if (keyA > keyB) {
+      return 1;
+    }
+    return 0;
+  };

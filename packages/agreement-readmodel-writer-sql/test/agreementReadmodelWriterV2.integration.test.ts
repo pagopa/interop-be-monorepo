@@ -1,4 +1,4 @@
-import { getMockAgreement } from "pagopa-interop-commons-test";
+import { getMockAgreement, sortAgreement } from "pagopa-interop-commons-test";
 import {
   AgreementEventEnvelopeV2,
   generateId,
@@ -59,7 +59,9 @@ describe("events V2", async () => {
         agreement.id
       );
 
-      expect(actualAgreement?.data).toStrictEqual(agreement);
+      expect(sortAgreement(actualAgreement?.data)).toStrictEqual(
+        sortAgreement(agreement)
+      );
 
       expect(spyUpdate).toHaveBeenCalled();
     }
@@ -99,7 +101,9 @@ describe("events V2", async () => {
         agreement.id
       );
 
-      expect(actualAgreement?.data).toStrictEqual(agreement);
+      expect(sortAgreement(actualAgreement?.data)).toStrictEqual(
+        sortAgreement(agreement)
+      );
 
       expect(spyUpdate).toHaveBeenCalled();
       expect(spyDelete).not.toHaveBeenCalled();
