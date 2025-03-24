@@ -1,6 +1,7 @@
 import {
   getMockAuthData,
   getMockClient,
+  getMockContext,
   getMockKey,
 } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
@@ -11,7 +12,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
@@ -60,12 +61,7 @@ describe("getClientKeys", async () => {
     const keys = await authorizationService.getClientKeys({
       clientId: mockClient.id,
       userIds: [keyUserId1, keyUserId2, keyUserId3],
-      ctx: {
-        serviceName: "test",
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-      },
+      ctx: getMockContext({ authData }),
     });
     expect(keys).toEqual([keyWithUser1, keyWithUser2, keyWithUser3]);
   });
@@ -98,12 +94,7 @@ describe("getClientKeys", async () => {
     const keys = await authorizationService.getClientKeys({
       clientId: clientWithKeyUser.id,
       userIds: [keyUserId1],
-      ctx: {
-        serviceName: "test",
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-      },
+      ctx: getMockContext({ authData }),
     });
     expect(keys).toEqual([keyWithUser1]);
   });
@@ -115,12 +106,7 @@ describe("getClientKeys", async () => {
       authorizationService.getClientKeys({
         clientId: unsafeBrandId(clientId),
         userIds: [],
-        ctx: {
-          serviceName: "test",
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
   });
@@ -136,12 +122,7 @@ describe("getClientKeys", async () => {
       authorizationService.getClientKeys({
         clientId: mockClient.id,
         userIds: [],
-        ctx: {
-          serviceName: "test",
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(
       securityUserNotMember(unsafeBrandId(authData.userId))
@@ -160,12 +141,7 @@ describe("getClientKeys", async () => {
       authorizationService.getClientKeys({
         clientId: mockClient.id,
         userIds: [],
-        ctx: {
-          serviceName: "test",
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(
