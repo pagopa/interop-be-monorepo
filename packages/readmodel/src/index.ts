@@ -34,4 +34,5 @@ export * from "./delegation/aggregators.js";
 export * from "./delegationReadModelService.js";
 
 export * from "./eserviceTemplateReadModelService.js";
+export * from "./eservice-template/aggregators.js";
 export * from "./eservice-template/splitters.js";

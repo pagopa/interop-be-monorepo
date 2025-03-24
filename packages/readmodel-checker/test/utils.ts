@@ -9,6 +9,7 @@ import {
   ClientJWKKey,
   Delegation,
   EService,
+  EServiceTemplate,
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
@@ -24,9 +25,9 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
-  agreementReadModelServiceBuilderSQL,
-  attributeReadModelServiceBuilderSQL,
-  catalogReadModelServiceBuilderSQL,
+  agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
   clientJWKKeyReadModelServiceBuilder,
   clientReadModelServiceBuilderSQL,
   delegationReadModelServiceBuilder,
@@ -34,6 +35,7 @@ import {
   purposeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilder,
   producerJWKKeyReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -57,13 +59,15 @@ export const readModelService = readModelServiceBuilder(readModelRepository);
 export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const eserviceReadModelServiceSQL =
-  catalogReadModelServiceBuilderSQL(readModelDB);
+  catalogReadModelServiceBuilder(readModelDB);
+export const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
 export const attributeReadModelServiceSQL =
-  attributeReadModelServiceBuilderSQL(readModelDB);
+  attributeReadModelServiceBuilder(readModelDB);
 export const tenantReadModelServiceSQL =
   tenantReadModelServiceBuilder(readModelDB);
 export const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilderSQL(readModelDB);
+  agreementReadModelServiceBuilder(readModelDB);
 export const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilderSQL(readModelDB);
 export const delegationReadModelServiceSQL =
@@ -84,6 +88,16 @@ export const addOneEService = async (
     toReadModelEService(eservice.data),
     readModelRepository.eservices,
     eservice.metadata.version
+  );
+};
+
+export const addOneEServiceTemplate = async (
+  eServiceTemplate: WithMetadata<EServiceTemplate>
+): Promise<void> => {
+  await writeInReadmodel(
+    eServiceTemplate.data,
+    readModelRepository.eserviceTemplates,
+    eServiceTemplate.metadata.version
   );
 };
 

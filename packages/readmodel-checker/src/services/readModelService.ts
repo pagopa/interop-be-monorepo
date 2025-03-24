@@ -6,6 +6,7 @@ import {
   ClientJWKKey,
   Delegation,
   EService,
+  EServiceTemplate,
   genericInternalError,
   ProducerJWKKey,
   ProducerKeychain,
@@ -110,6 +111,33 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
         if (!results.success) {
           throw genericInternalError(
             `Unable to parse eservice items: results ${JSON.stringify(
+              results
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return results.data;
+      }
+    },
+
+    async getAllReadModelEServiceTemplates(): Promise<
+      Array<WithMetadata<EServiceTemplate>>
+    > {
+      const data = await readModel.eserviceTemplates.find().toArray();
+
+      if (!data) {
+        return [];
+      } else {
+        const results = z
+          .array(
+            z.object({
+              metadata: z.object({ version: z.number() }),
+              data: EServiceTemplate,
+            })
+          )
+          .safeParse(data);
+        if (!results.success) {
+          throw genericInternalError(
+            `Unable to parse eservice template items: results ${JSON.stringify(
               results
             )} - data ${JSON.stringify(data)} `
           );

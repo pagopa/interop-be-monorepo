@@ -51,6 +51,18 @@ async function main(): Promise<void> {
     loggerInstance,
   });
 
+  // ESERVICE TEMPLATE
+  const eserviceTemplates =
+    await readModelService.getAllReadModelEServiceTemplates();
+  const eserviceTemplatesPostgres =
+    await readModelServiceSQL.getAllEServiceTemplates();
+  compare({
+    collectionItems: eserviceTemplates,
+    postgresItems: eserviceTemplatesPostgres,
+    schema: "eservice templates",
+    loggerInstance,
+  });
+
   // ATTRIBUTE
   const attributes = await readModelService.getAllReadModelAttributes();
   const attributesPostgres = await readModelServiceSQL.getAllAttributes();
