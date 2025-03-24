@@ -4,32 +4,24 @@ import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
 const config = ReadModelSQLDbConfig.parse(process.env);
 
 export const readmodelAgreement = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_agreement`
+  config.readModelSQLDbSchemaAgreement
 );
 export const readmodelProducerKeychain = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_producer_keychain`
+  config.readModelSQLDbSchemaProducerKeychain
 );
-export const readmodelClient = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_client`
-);
+export const readmodelClient = pgSchema(config.readModelSQLDbSchemaClient);
 export const readmodelAttribute = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_attribute`
+  config.readModelSQLDbSchemaAttribute
 );
 export const readmodelDelegation = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_delegation`
+  config.readModelSQLDbSchemaDelegation
 );
-export const readmodelCatalog = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_catalog`
-);
-export const readmodelPurpose = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_purpose`
-);
+export const readmodelCatalog = pgSchema(config.readModelSQLDbSchemaCatalog);
+export const readmodelPurpose = pgSchema(config.readModelSQLDbSchemaPurpose);
 export const readmodelClientJwkKey = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_client_jwk_key`
+  config.readModelSQLDbSchemaClientJwkKey
 );
 export const readmodelProducerJwkKey = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_producer_jwk_key`
+  config.readModelSQLDbSchemaProducerJwkKey
 );
-export const readmodelTenant = pgSchema(
-  `${config.readModelSQLDbSchemaNamespace}_readmodel_tenant`
-);
+export const readmodelTenant = pgSchema(config.readModelSQLDbSchemaTenant);
