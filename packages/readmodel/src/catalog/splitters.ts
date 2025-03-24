@@ -18,41 +18,29 @@ import {
   EServiceDescriptorInterfaceSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  EServiceDescriptorTemplateVersionRefSQL,
   EServiceItemsSQL,
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
+  EServiceTemplateRefSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitEserviceIntoObjectsSQL = (
   eservice: EService,
   version: number
 ): EServiceItemsSQL => {
-  const eserviceSQL: EServiceSQL = {
-    id: eservice.id,
-    metadataVersion: version,
-    name: eservice.name,
-    createdAt: dateToString(eservice.createdAt),
-    producerId: eservice.producerId,
-    description: eservice.description,
-    technology: eservice.technology,
-    mode: eservice.mode,
-    isSignalHubEnabled: eservice.isSignalHubEnabled ?? null,
-    isConsumerDelegable: eservice.isConsumerDelegable ?? null,
-    isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
-  };
+  const eserviceSQL = eserviceToEserviceSQL(eservice, version);
 
-  // const eserviceTemplateBindingSQL: EServiceTemplateBindingSQL = {
-  //   eserviceId: eservice.id,
-  //   metadataVersion: version,
-  //   eserviceTemplateId: eservice.id, // TODO
-  //   instanceId: eservice.id, // TODO
-  //   name: "", // TODO,
-  //   email: "", // TODO,
-  //   url: "", // TODO,
-  //   termsAndConditionsUrl: "", // TODO,
-  //   serverUrl: "", // TODO
-  // };
+  const templateRefSQL: EServiceTemplateRefSQL | undefined =
+    eservice.templateRef
+      ? {
+          eserviceTemplateId: eservice.templateRef.id,
+          eserviceId: eservice.id,
+          metadataVersion: version,
+          instanceLabel: eservice.templateRef.instanceLabel ?? null,
+        }
+      : undefined;
 
   const { riskAnalysesSQL, riskAnalysisAnswersSQL } =
     eservice.riskAnalysis.reduce(
@@ -63,14 +51,14 @@ export const splitEserviceIntoObjectsSQL = (
         },
         currentRiskAnalysis: RiskAnalysis
       ) => {
-        const { eserviceRiskAnalysisSQL, riskAnalysisAnswersSQL } =
+        const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
           splitRiskAnalysisIntoObjectsSQL(
             currentRiskAnalysis,
             eservice.id,
             version
           );
         return {
-          riskAnalysesSQL: acc.riskAnalysesSQL.concat(eserviceRiskAnalysisSQL),
+          riskAnalysesSQL: acc.riskAnalysesSQL.concat(riskAnalysisSQL),
           riskAnalysisAnswersSQL: acc.riskAnalysisAnswersSQL.concat(
             riskAnalysisAnswersSQL
           ),
@@ -88,6 +76,7 @@ export const splitEserviceIntoObjectsSQL = (
     interfacesSQL,
     documentsSQL,
     rejectionReasonsSQL,
+    templateVersionRefsSQL,
   } = eservice.descriptors.reduce(
     (
       acc: {
@@ -96,6 +85,7 @@ export const splitEserviceIntoObjectsSQL = (
         interfacesSQL: EServiceDescriptorInterfaceSQL[];
         documentsSQL: EServiceDescriptorDocumentSQL[];
         rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+        templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
       },
       currentDescriptor: Descriptor
     ) => {
@@ -105,6 +95,7 @@ export const splitEserviceIntoObjectsSQL = (
         interfaceSQL,
         documentsSQL,
         rejectionReasonsSQL,
+        templateVersionRefSQL,
       } = splitDescriptorIntoObjectsSQL(
         eservice.id,
         currentDescriptor,
@@ -120,6 +111,9 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL: acc.documentsSQL.concat(documentsSQL),
         rejectionReasonsSQL:
           acc.rejectionReasonsSQL.concat(rejectionReasonsSQL),
+        templateVersionRefsSQL: templateVersionRefSQL
+          ? acc.templateVersionRefsSQL.concat(templateVersionRefSQL)
+          : acc.templateVersionRefsSQL,
       };
     },
     {
@@ -128,11 +122,13 @@ export const splitEserviceIntoObjectsSQL = (
       interfacesSQL: [],
       documentsSQL: [],
       rejectionReasonsSQL: [],
+      templateVersionRefsSQL: [],
     }
   );
 
   return {
     eserviceSQL,
+    templateRefSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     descriptorsSQL,
@@ -140,6 +136,7 @@ export const splitEserviceIntoObjectsSQL = (
     interfacesSQL,
     documentsSQL,
     rejectionReasonsSQL,
+    templateVersionRefsSQL,
   };
 };
 
@@ -197,6 +194,7 @@ export const splitDescriptorIntoObjectsSQL = (
   interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
 } => {
   const descriptorSQL = descriptorToDescriptorSQL(
     eserviceId,
@@ -252,12 +250,33 @@ export const splitDescriptorIntoObjectsSQL = (
         )
       : [];
 
+  const templateVersionRefSQL:
+    | EServiceDescriptorTemplateVersionRefSQL
+    | undefined = descriptor.templateVersionRef
+    ? {
+        eserviceTemplateVersionId: descriptor.templateVersionRef.id,
+        eserviceId,
+        metadataVersion: version,
+        descriptorId: descriptor.id,
+        contactName:
+          descriptor.templateVersionRef.interfaceMetadata?.contactName ?? null,
+        contactEmail:
+          descriptor.templateVersionRef.interfaceMetadata?.contactEmail ?? null,
+        contactUrl:
+          descriptor.templateVersionRef.interfaceMetadata?.contactUrl ?? null,
+        termsAndConditionsUrl:
+          descriptor.templateVersionRef.interfaceMetadata
+            ?.termsAndConditionsUrl ?? null,
+      }
+    : undefined;
+
   return {
     descriptorSQL,
     attributesSQL,
     interfaceSQL,
     documentsSQL,
     rejectionReasonsSQL,
+    templateVersionRefSQL,
   };
 };
 
@@ -266,10 +285,10 @@ export const splitRiskAnalysisIntoObjectsSQL = (
   eserviceId: EServiceId,
   version: number
 ): {
-  eserviceRiskAnalysisSQL: EServiceRiskAnalysisSQL;
+  riskAnalysisSQL: EServiceRiskAnalysisSQL;
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
 } => {
-  const eserviceRiskAnalysisSQL: EServiceRiskAnalysisSQL = {
+  const riskAnalysisSQL: EServiceRiskAnalysisSQL = {
     id: riskAnalysis.id,
     metadataVersion: version,
     eserviceId,
@@ -307,7 +326,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     );
 
   return {
-    eserviceRiskAnalysisSQL,
+    riskAnalysisSQL,
     riskAnalysisAnswersSQL: [
       ...riskAnalysisSingleAnswers,
       ...riskAnalysisMultiAnswers,
@@ -369,9 +388,9 @@ export const eserviceToEserviceSQL = (
   description: eservice.description,
   technology: eservice.technology,
   mode: eservice.mode,
-  isSignalHubEnabled: eservice.isSignalHubEnabled || null,
-  isConsumerDelegable: eservice.isConsumerDelegable || null,
-  isClientAccessDelegable: eservice.isConsumerDelegable || null,
+  isSignalHubEnabled: eservice.isSignalHubEnabled ?? null,
+  isConsumerDelegable: eservice.isConsumerDelegable ?? null,
+  isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

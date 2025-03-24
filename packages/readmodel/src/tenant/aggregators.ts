@@ -403,8 +403,8 @@ export const toTenantAggregatorArray = (
     }
     const mailSQL = row.mail;
 
-    if (mailSQL && !mailIdSet.has(mailSQL.id)) {
-      mailIdSet.add(mailSQL.id);
+    if (mailSQL && !mailIdSet.has(uniqueKey([mailSQL.id, mailSQL.tenantId]))) {
+      mailIdSet.add(uniqueKey([mailSQL.id, mailSQL.tenantId]));
       // eslint-disable-next-line functional/immutable-data
       mailsSQL.push(mailSQL);
     }

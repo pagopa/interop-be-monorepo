@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAttribute,
-  getMockAuthData,
+  getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -150,12 +150,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           updatedEServiceTemplate.id,
           mockEServiceTemplateVersion.id,
           validMockVersionAttributeSeed,
-          {
+          getMockContext({
             authData: getMockAuthData(mockEServiceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         );
 
       const writtenEvent = await readLastEserviceTemplateEvent(
@@ -201,12 +198,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id,
         validMockVersionAttributeSeed,
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
   });
@@ -234,12 +228,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id,
         validMockVersionAttributeSeed,
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(
@@ -291,12 +282,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
             ],
           ],
         },
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingAttributeId));
   });
@@ -324,12 +312,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id,
         validMockVersionAttributeSeed,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -362,12 +345,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           mockEServiceTemplate.id,
           mockEServiceTemplateVersion.id,
           validMockVersionAttributeSeed,
-          {
+          getMockContext({
             authData: getMockAuthData(mockEServiceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         )
       ).rejects.toThrowError(
         notValidEServiceTemplateVersionState(
@@ -405,12 +385,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           verified: validMockVersionVerifiedAttributes,
           declared: [],
         },
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       unchangedAttributes(
@@ -455,12 +432,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           ],
           declared: [],
         },
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       inconsistentAttributesSeedGroupsCount(
@@ -510,12 +484,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           ],
           declared: [],
         },
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       versionAttributeGroupSupersetMissingInAttributesSeed(

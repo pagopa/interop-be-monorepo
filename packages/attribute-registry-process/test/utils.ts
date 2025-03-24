@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
 import {
   Attribute,
@@ -17,7 +17,7 @@ import {
   readLastEventByStreamId,
   writeInEventstore,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   attributeReadModelServiceBuilderSQL,
   makeDrizzleConnection,

@@ -33,13 +33,13 @@ export const aggregateAgreementArray = ({
   agreementsSQL,
   stampsSQL,
   consumerDocumentsSQL,
-  contractSQL,
+  contractsSQL,
   attributesSQL,
 }: {
   agreementsSQL: AgreementSQL[];
   stampsSQL: AgreementStampSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
-  contractSQL: AgreementContractSQL | null;
+  contractsSQL: AgreementContractSQL[];
   attributesSQL: AgreementAttributeSQL[];
 }): Array<WithMetadata<Agreement>> =>
   agreementsSQL.map((agreementSQL) =>
@@ -51,7 +51,9 @@ export const aggregateAgreementArray = ({
       consumerDocumentsSQL: consumerDocumentsSQL.filter(
         (documentSQL) => documentSQL.agreementId === agreementSQL.id
       ),
-      contractSQL,
+      contractSQL: contractsSQL.find(
+        (contractSQL) => contractSQL.agreementId === agreementSQL.id
+      ),
       attributesSQL: attributesSQL.filter(
         (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
       ),
@@ -270,7 +272,7 @@ export const toAgreementAggregator = (
     stampsSQL,
     attributesSQL,
     consumerDocumentsSQL,
-    contractSQL,
+    contractsSQL,
   } = toAgreementAggregatorArray(queryRes);
 
   return {
@@ -278,7 +280,7 @@ export const toAgreementAggregator = (
     stampsSQL,
     attributesSQL,
     consumerDocumentsSQL,
-    contractSQL,
+    contractSQL: contractsSQL.length > 0 ? contractsSQL[0] : undefined,
   };
 };
 
@@ -295,12 +297,14 @@ export const toAgreementAggregatorArray = (
   stampsSQL: AgreementStampSQL[];
   attributesSQL: AgreementAttributeSQL[];
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
-  contractSQL: AgreementContractSQL | null;
+  contractsSQL: AgreementContractSQL[];
 } => {
   const agreementIdSet = new Set<string>();
   const agreementsSQL: AgreementSQL[] = [];
 
-  const contractSQL = queryRes?.length ? queryRes[0].contract : null;
+  // const contractSQL = queryRes?.length ? queryRes[0].contract : null;
+  const contractIdSet = new Set<string>();
+  const contractsSQL: AgreementContractSQL[] = [];
 
   const stampIdSet = new Set<string>();
   const stampsSQL: AgreementStampSQL[] = [];
@@ -345,6 +349,13 @@ export const toAgreementAggregatorArray = (
       attributesSQL.push(attributeSQL);
     }
 
+    const contractSQL = row.contract;
+    if (contractSQL && !contractIdSet.has(contractSQL.id)) {
+      contractIdSet.add(contractSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      contractsSQL.push(contractSQL);
+    }
+
     const documentSQL = row.consumerDocument;
     if (documentSQL && !consumerDocumentIdSet.has(documentSQL.id)) {
       consumerDocumentIdSet.add(documentSQL.id);
@@ -358,7 +369,7 @@ export const toAgreementAggregatorArray = (
     stampsSQL,
     attributesSQL,
     consumerDocumentsSQL,
-    contractSQL,
+    contractsSQL,
   };
 };
 

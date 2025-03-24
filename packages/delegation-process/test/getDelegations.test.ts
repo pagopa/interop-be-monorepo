@@ -1,5 +1,5 @@
 /* eslint-disable functional/no-let */
-import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
+import { getMockDelegation } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { delegationKind } from "pagopa-interop-models";

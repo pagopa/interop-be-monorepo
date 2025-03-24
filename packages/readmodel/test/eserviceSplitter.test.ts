@@ -11,6 +11,9 @@ import {
   attributeKind,
   Descriptor,
   EService,
+  EServiceTemplateRef,
+  EServiceTemplateVersionRef,
+  generateId,
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
@@ -19,9 +22,11 @@ import {
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  EServiceDescriptorTemplateVersionRefSQL,
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
+  EServiceTemplateRefSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import { generateEServiceRiskAnalysisAnswersSQL } from "./eserviceUtils.js";
@@ -41,6 +46,19 @@ describe("E-service splitter", () => {
     const isSignalHubEnabled = true;
     const isClientAccessDelegable = true;
     const isConsumerDelegable = true;
+    const templateRef: EServiceTemplateRef = {
+      id: generateId(),
+      instanceLabel: "test instance label",
+    };
+    const templateVersionRef: EServiceTemplateVersionRef = {
+      id: generateId(),
+      interfaceMetadata: {
+        contactName: "contact name",
+        contactEmail: "contact email",
+        contactUrl: "contact url",
+        termsAndConditionsUrl: "terms and conditions url",
+      },
+    };
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -58,6 +76,7 @@ describe("E-service splitter", () => {
       deprecatedAt,
       archivedAt,
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+      templateVersionRef,
     };
 
     const eservice: EService = {
@@ -67,6 +86,7 @@ describe("E-service splitter", () => {
       isSignalHubEnabled,
       isClientAccessDelegable,
       isConsumerDelegable,
+      templateRef,
     };
 
     const {
@@ -78,8 +98,8 @@ describe("E-service splitter", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      templateRefSQL,
+      templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
@@ -178,6 +198,27 @@ describe("E-service splitter", () => {
       rejectedAt: rejectionReason.rejectedAt.toISOString(),
     };
 
+    const expectedTemplateRefSQL: EServiceTemplateRefSQL = {
+      metadataVersion: 1,
+      eserviceId: eservice.id,
+      eserviceTemplateId: templateRef.id,
+      instanceLabel: templateRef.instanceLabel ?? null,
+    };
+
+    const expectedTemplateVersionRef: EServiceDescriptorTemplateVersionRefSQL =
+      {
+        eserviceTemplateVersionId: templateVersionRef.id,
+        contactName: templateVersionRef.interfaceMetadata?.contactName ?? null,
+        contactEmail:
+          templateVersionRef.interfaceMetadata?.contactEmail ?? null,
+        contactUrl: templateVersionRef.interfaceMetadata?.contactUrl ?? null,
+        termsAndConditionsUrl:
+          templateVersionRef.interfaceMetadata?.termsAndConditionsUrl ?? null,
+        metadataVersion: 1,
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      };
+
     expect(eserviceSQL).toStrictEqual(expectedEServiceSQL);
     expect(riskAnalysesSQL).toStrictEqual(
       expect.arrayContaining([
@@ -195,6 +236,8 @@ describe("E-service splitter", () => {
       expect.arrayContaining([expectedDocumentSQL])
     );
     expect(rejectionReasonsSQL).toStrictEqual([expectedRejectionReasonSQL]);
+    expect(templateRefSQL).toStrictEqual(expectedTemplateRefSQL);
+    expect(templateVersionRefsSQL).toStrictEqual([expectedTemplateVersionRef]);
   });
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
@@ -224,7 +267,7 @@ describe("E-service splitter", () => {
       ...getMockEService(),
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis1, riskAnalysis2],
-      isSignalHubEnabled: undefined,
+      isSignalHubEnabled: false,
       isClientAccessDelegable: undefined,
       isConsumerDelegable: undefined,
     };
@@ -238,8 +281,8 @@ describe("E-service splitter", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      templateRefSQL,
+      templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const expectedEServiceSQL: EServiceSQL = {
@@ -251,7 +294,7 @@ describe("E-service splitter", () => {
       description: eservice.description,
       technology: eservice.technology,
       mode: eservice.mode,
-      isSignalHubEnabled: null,
+      isSignalHubEnabled: false,
       isClientAccessDelegable: null,
       isConsumerDelegable: null,
     };
@@ -328,5 +371,7 @@ describe("E-service splitter", () => {
       expect.arrayContaining([expectedDocumentSQL])
     );
     expect(rejectionReasonsSQL).toHaveLength(0);
+    expect(templateRefSQL).toBeUndefined();
+    expect(templateVersionRefsSQL).toHaveLength(0);
   });
 });

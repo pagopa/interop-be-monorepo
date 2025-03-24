@@ -7,7 +7,7 @@ import {
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import pg from "pg";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { compare } from "./utils.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
@@ -27,7 +27,7 @@ const loggerInstance = logger({
   correlationId: generateId<CorrelationId>(),
 });
 
-const pool = new Pool({
+const pool = new pg.Pool({
   host: config.readModelSQLDbHost,
   port: config.readModelSQLDbPort,
   database: config.readModelSQLDbName,
@@ -143,6 +143,8 @@ async function main(): Promise<void> {
     schema: "delegations",
     loggerInstance,
   });
+
+  process.exit();
 }
 
 await main();

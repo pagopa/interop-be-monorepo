@@ -10,6 +10,9 @@ import {
   agreementApprovalPolicy,
   Descriptor,
   EService,
+  EServiceTemplateRef,
+  EServiceTemplateVersionRef,
+  generateId,
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
@@ -31,6 +34,19 @@ describe("E-service aggregator", () => {
     const isSignalHubEnabled = true;
     const isClientAccessDelegable = true;
     const isConsumerDelegable = true;
+    const templateRef: EServiceTemplateRef = {
+      id: generateId(),
+      instanceLabel: "test instance label",
+    };
+    const templateVersionRef: EServiceTemplateVersionRef = {
+      id: generateId(),
+      interfaceMetadata: {
+        contactName: "contact name",
+        contactEmail: "contact email",
+        contactUrl: "contact url",
+        termsAndConditionsUrl: "terms and conditions url",
+      },
+    };
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
@@ -48,6 +64,7 @@ describe("E-service aggregator", () => {
       deprecatedAt,
       archivedAt,
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+      templateVersionRef,
     };
 
     const eservice: EService = {
@@ -57,6 +74,7 @@ describe("E-service aggregator", () => {
       isSignalHubEnabled,
       isClientAccessDelegable,
       isConsumerDelegable,
+      templateRef,
     };
 
     const {
@@ -68,8 +86,8 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      templateRefSQL,
+      templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -81,8 +99,8 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      templateRefSQL,
+      templateVersionRefsSQL,
     });
 
     expect(aggregatedEservice).toStrictEqual({
@@ -92,25 +110,7 @@ describe("E-service aggregator", () => {
   });
 
   it("should convert an incomplete eservice items into an eservice(undefined -> null)", () => {
-    const doc = getMockDocument();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(),
-      attributes: {
-        certified: [],
-        declared: [],
-        verified: [],
-      },
-      docs: [doc],
-    };
-
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
-    };
+    const eservice = getMockEService();
 
     const {
       eserviceSQL,
@@ -121,7 +121,8 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
+      templateRefSQL,
+      templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -133,7 +134,8 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      // TODO: add eserviceTemplateBinding
+      templateRefSQL,
+      templateVersionRefsSQL,
     });
 
     expect(aggregatedEservice).toStrictEqual({

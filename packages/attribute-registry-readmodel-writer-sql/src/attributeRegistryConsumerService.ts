@@ -5,11 +5,11 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AttributeReadModelServiceSQL } from "pagopa-interop-readmodel";
+import { AttributeReadModelService } from "pagopa-interop-readmodel";
 
 export async function handleMessage(
   message: AttributeEventEnvelope,
-  attributeReadModelService: AttributeReadModelServiceSQL
+  attributeReadModelService: AttributeReadModelService
 ): Promise<void> {
   await match(message)
     .with({ type: "AttributeAdded" }, async (msg) => {

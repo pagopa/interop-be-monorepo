@@ -1,15 +1,17 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { EService, EServiceId, WithMetadata } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateRefInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import {
@@ -18,72 +20,99 @@ import {
 } from "./catalog/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function catalogReadModelServiceBuilderSQL(
-  db: ReturnType<typeof drizzle>
-) {
+export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertEService(
       eservice: EService,
       metadataVersion: number
     ): Promise<void> {
-      const {
-        eserviceSQL,
-        riskAnalysesSQL,
-        riskAnalysisAnswersSQL,
-        descriptorsSQL,
-        attributesSQL,
-        interfacesSQL,
-        documentsSQL,
-        rejectionReasonsSQL,
-      } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
-
       await db.transaction(async (tx) => {
-        await tx
-          .delete(eserviceInReadmodelCatalog)
-          .where(eq(eserviceInReadmodelCatalog.id, eserviceSQL.id));
-
-        await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
-
-        for (const descriptorSQL of descriptorsSQL) {
+        const existingMetadataVersion: number | undefined = (
           await tx
-            .insert(eserviceDescriptorInReadmodelCatalog)
-            .values(descriptorSQL);
-        }
+            .select({
+              metadataVersion: eserviceInReadmodelCatalog.metadataVersion,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(eq(eserviceInReadmodelCatalog.id, eservice.id))
+        )[0]?.metadataVersion;
 
-        for (const interfaceSQL of interfacesSQL) {
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
           await tx
-            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .values(interfaceSQL);
-        }
+            .delete(eserviceInReadmodelCatalog)
+            .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
 
-        for (const docSQL of documentsSQL) {
-          await tx
-            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-            .values(docSQL);
-        }
+          const {
+            eserviceSQL,
+            riskAnalysesSQL,
+            riskAnalysisAnswersSQL,
+            descriptorsSQL,
+            attributesSQL,
+            interfacesSQL,
+            documentsSQL,
+            rejectionReasonsSQL,
+            templateRefSQL,
+            templateVersionRefsSQL,
+          } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
-        for (const attributeSQL of attributesSQL) {
-          await tx
-            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-            .values(attributeSQL);
-        }
+          await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
 
-        for (const riskAnalysisSQL of riskAnalysesSQL) {
-          await tx
-            .insert(eserviceRiskAnalysisInReadmodelCatalog)
-            .values(riskAnalysisSQL);
-        }
+          for (const descriptorSQL of descriptorsSQL) {
+            await tx
+              .insert(eserviceDescriptorInReadmodelCatalog)
+              .values(descriptorSQL);
+          }
 
-        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
-          await tx
-            .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
-            .values(riskAnalysisAnswerSQL);
-        }
+          for (const interfaceSQL of interfacesSQL) {
+            await tx
+              .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+              .values(interfaceSQL);
+          }
 
-        for (const rejectionReasonSQL of rejectionReasonsSQL) {
-          await tx
-            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-            .values(rejectionReasonSQL);
+          for (const docSQL of documentsSQL) {
+            await tx
+              .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+              .values(docSQL);
+          }
+
+          for (const attributeSQL of attributesSQL) {
+            await tx
+              .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+              .values(attributeSQL);
+          }
+
+          for (const riskAnalysisSQL of riskAnalysesSQL) {
+            await tx
+              .insert(eserviceRiskAnalysisInReadmodelCatalog)
+              .values(riskAnalysisSQL);
+          }
+
+          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+            await tx
+              .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+              .values(riskAnalysisAnswerSQL);
+          }
+
+          for (const rejectionReasonSQL of rejectionReasonsSQL) {
+            await tx
+              .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+              .values(rejectionReasonSQL);
+          }
+
+          if (templateRefSQL) {
+            await tx
+              .insert(eserviceTemplateRefInReadmodelCatalog)
+              .values(templateRefSQL);
+          }
+
+          for (const templateVersionRefSQL of templateVersionRefsSQL) {
+            await tx
+              .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+              .values(templateVersionRefSQL);
+          }
         }
       });
     },
@@ -95,8 +124,9 @@ export function catalogReadModelServiceBuilderSQL(
                       descriptor ->3 document
                       descriptor ->4 attribute
                       descriptor ->5 rejection reason
-                  ->6 risk analysis ->7 answer
-                  ->8 template binding
+                      descriptor ->6 template version ref
+                  ->7 risk analysis ->8 answers
+                  ->9 template ref
       */
       const queryResult = await db
         .select({
@@ -108,7 +138,9 @@ export function catalogReadModelServiceBuilderSQL(
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          // templateBinding: eserviceTemplateBindingInReadmodelCatalog,
+          templateRef: eserviceTemplateRefInReadmodelCatalog,
+          templateVersionRef:
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .where(eq(eserviceInReadmodelCatalog.id, eserviceId))
@@ -154,6 +186,14 @@ export function catalogReadModelServiceBuilderSQL(
         )
         .leftJoin(
           // 6
+          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 7
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -161,21 +201,21 @@ export function catalogReadModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
+          // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
           )
+        )
+        .leftJoin(
+          // 9
+          eserviceTemplateRefInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceTemplateRefInReadmodelCatalog.eserviceId
+          )
         );
-      // .leftJoin(
-      //   // 8
-      //   eserviceTemplateBindingInReadmodelCatalog,
-      //   eq(
-      //     eserviceInReadmodelCatalog.id,
-      //     eserviceTemplateBindingInReadmodelCatalog.eserviceId
-      //   )
-      // );
 
       if (queryResult.length === 0) {
         return undefined;
@@ -200,5 +240,5 @@ export function catalogReadModelServiceBuilderSQL(
 }
 
 export type CatalogReadModelServiceSQL = ReturnType<
-  typeof catalogReadModelServiceBuilderSQL
+  typeof catalogReadModelServiceBuilder
 >;
