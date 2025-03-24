@@ -46,6 +46,7 @@ export const documentSQLtoDocument = (
   uploadDate: stringToDate(documentSQL.uploadDate),
 });
 
+// eslint-disable-next-line complexity
 export const aggregateDescriptor = ({
   descriptorSQL,
   interfaceSQL,
@@ -60,6 +61,7 @@ export const aggregateDescriptor = ({
   attributesSQL: EServiceDescriptorAttributeSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
   const parsedInterface = interfaceSQL
     ? documentSQLtoDocument(interfaceSQL)
@@ -91,13 +93,20 @@ export const aggregateDescriptor = ({
     templateVersionRefSQL
       ? {
           id: unsafeBrandId(templateVersionRefSQL.eserviceTemplateVersionId),
-          interfaceMetadata: {
-            contactName: templateVersionRefSQL.contactName ?? undefined,
-            contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
-            contactUrl: templateVersionRefSQL.contactUrl ?? undefined,
-            termsAndConditionsUrl:
-              templateVersionRefSQL.termsAndConditionsUrl ?? undefined,
-          },
+          ...(templateVersionRefSQL.contactName ||
+          templateVersionRefSQL.contactEmail ||
+          templateVersionRefSQL.contactUrl ||
+          templateVersionRefSQL.termsAndConditionsUrl
+            ? {
+                interfaceMetadata: {
+                  contactName: templateVersionRefSQL.contactName ?? undefined,
+                  contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
+                  contactUrl: templateVersionRefSQL.contactUrl ?? undefined,
+                  termsAndConditionsUrl:
+                    templateVersionRefSQL.termsAndConditionsUrl ?? undefined,
+                },
+              }
+            : {}),
         }
       : undefined;
 
@@ -191,7 +200,9 @@ export const aggregateEservice = ({
   const templateRef: EServiceTemplateRef | undefined = templateRefSQL
     ? {
         id: unsafeBrandId(templateRefSQL.eserviceTemplateId),
-        instanceLabel: templateRefSQL.instanceLabel ?? undefined,
+        ...(templateRefSQL.instanceLabel !== null
+          ? { instanceLabel: templateRefSQL.instanceLabel }
+          : {}),
       }
     : undefined;
 
@@ -410,7 +421,7 @@ export const toEServiceAggregatorArray = (
   const descriptorsSQL: EServiceDescriptorSQL[] = [];
 
   const interfaceIdSet = new Set<string>();
-  const interfacesSQL: EServiceDescriptorDocumentSQL[] = [];
+  const interfacesSQL: EServiceDescriptorInterfaceSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
@@ -548,26 +559,26 @@ export const toEServiceAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
       }
+    }
 
-      const templateRefSQL = row.templateRef;
-      if (
-        templateRefSQL &&
-        !templateRefIdSet.has(
-          uniqueKey([
-            templateRefSQL.eserviceTemplateId,
-            templateRefSQL.eserviceId,
-          ])
-        )
-      ) {
-        templateRefIdSet.add(
-          uniqueKey([
-            templateRefSQL.eserviceTemplateId,
-            templateRefSQL.eserviceId,
-          ])
-        );
-        // eslint-disable-next-line functional/immutable-data
-        templateRefsSQL.push(templateRefSQL);
-      }
+    const templateRefSQL = row.templateRef;
+    if (
+      templateRefSQL &&
+      !templateRefIdSet.has(
+        uniqueKey([
+          templateRefSQL.eserviceTemplateId,
+          templateRefSQL.eserviceId,
+        ])
+      )
+    ) {
+      templateRefIdSet.add(
+        uniqueKey([
+          templateRefSQL.eserviceTemplateId,
+          templateRefSQL.eserviceId,
+        ])
+      );
+      // eslint-disable-next-line functional/immutable-data
+      templateRefsSQL.push(templateRefSQL);
     }
   });
 
