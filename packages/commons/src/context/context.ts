@@ -20,6 +20,7 @@ export const AppContext = z.object({
   authData: AuthData,
   correlationId: CorrelationId,
   requestTimestamp: z.number(),
+  xForwardedForHeader: z.string().optional(),
 });
 export type AppContext = z.infer<typeof AppContext>;
 
@@ -41,13 +42,25 @@ export const contextMiddleware =
     readCorrelationIdFromHeader: boolean = true
   ): ZodiosRouterContextRequestHandler<ExpressContext> =>
   async (req, res, next): Promise<unknown> => {
-    const setCtx = (correlationId: string): void => {
+    const setCtx = (
+      correlationId: string,
+      forwarderFor: string | undefined
+    ): void => {
       // eslint-disable-next-line functional/immutable-data
       req.ctx = {
         serviceName,
         correlationId: unsafeBrandId<CorrelationId>(correlationId),
+        xForwardedForHeader: forwarderFor,
       } as AppContext;
     };
+
+    const parsedForwardedFor = z
+      .object({ "x-forwarded-for": z.string() })
+      .safeParse(req.headers);
+
+    const forwardedFor = parsedForwardedFor.success
+      ? parsedForwardedFor.data["x-forwarded-for"]
+      : undefined;
 
     if (readCorrelationIdFromHeader) {
       const correlationIdHeader = parseCorrelationIdHeader(req);
@@ -62,9 +75,9 @@ export const contextMiddleware =
         return res.status(problem.status).send(problem);
       }
 
-      setCtx(correlationIdHeader);
+      setCtx(correlationIdHeader, forwardedFor);
     } else {
-      setCtx(randomUUID());
+      setCtx(randomUUID(), forwardedFor);
     }
 
     return next();

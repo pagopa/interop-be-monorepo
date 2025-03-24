@@ -24,7 +24,7 @@ const ApplicationAuditBeginRequest = z.object({
   endpoint: z.string(),
   httpMethod: z.string(),
   phase: z.literal(Phase.BEGIN_REQUEST),
-  requesterIpAddress: z.string(),
+  requesterIpAddress: z.string().optional(),
   nodeIp: z.string(),
   podName: z.string(),
   uptimeSeconds: z.number(),
@@ -42,7 +42,7 @@ const ApplicationAuditEndRequest = z.object({
   endpoint: z.string(),
   httpMethod: z.string(),
   phase: z.literal(Phase.END_REQUEST),
-  requesterIpAddress: z.string(),
+  requesterIpAddress: z.string().optional(),
   nodeIp: z.string(),
   podName: z.string(),
   uptimeSeconds: z.number(),
@@ -84,7 +84,7 @@ export const ApplicationAuditEndRequestSessionTokenExchange = z.object({
   endpoint: z.string(),
   httpMethod: z.string(),
   phase: z.literal(Phase.END_REQUEST),
-  requesterIpAddress: z.string(),
+  requesterIpAddress: z.string().optional(),
   nodeIp: z.string(),
   podName: z.string(),
   uptimeSeconds: z.number(),
@@ -142,10 +142,6 @@ export async function applicationAuditBeginMiddleware(
     const amznTraceId = parseAmznTraceIdHeader(req);
     const forwardedFor = parseForwardedForHeader(req);
 
-    if (!forwardedFor) {
-      throw genericInternalError("The forwardedFor header is missing");
-    }
-
     const initialAudit: ApplicationAuditBeginRequest = {
       correlationId,
       service: serviceName,
@@ -194,10 +190,6 @@ export async function applicationAuditEndMiddleware(
         const correlationId = context.correlationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
         const forwardedFor = parseForwardedForHeader(req);
-
-        if (!forwardedFor) {
-          throw genericInternalError("The forwardedFor header is missing");
-        }
 
         const endTimestamp = Date.now();
 
@@ -273,10 +265,6 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
         if (token) {
           const decoded = decodeJwtToken(token, ctxWithLogger.logger);
           authData = decoded && readAuthDataFromJwtToken(decoded);
-        }
-
-        if (!forwardedFor) {
-          throw genericInternalError("The forwardedFor header is missing");
         }
 
         const endTimestamp = Date.now();
