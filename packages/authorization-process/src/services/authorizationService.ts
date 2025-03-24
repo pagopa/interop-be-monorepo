@@ -577,24 +577,24 @@ export function authorizationServiceBuilder(
     async getClientKeys({
       clientId,
       userIds,
-      organizationId,
-      logger,
       offset,
       limit,
+      authData,
+      logger,
     }: {
       clientId: ClientId;
       userIds: UserId[];
-      organizationId: TenantId;
-      logger: Logger;
       offset: number;
       limit: number;
+      authData: AuthData;
+      logger: Logger;
     }): Promise<ListResult<Key>> {
       logger.info(
         `Retrieving keys for client ${clientId}, limit = ${limit}, offset = ${offset}`
       );
       const client = await retrieveClient(clientId, readModelService);
       assertSecurityRoleIsClientMember(authData, client.data);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
       return await readModelService.getClientKeys(
         clientId,

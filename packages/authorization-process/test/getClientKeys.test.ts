@@ -60,10 +60,10 @@ describe("getClientKeys", async () => {
     const keys = await authorizationService.getClientKeys({
       clientId: mockClient.id,
       userIds: [keyUserId1, keyUserId2, keyUserId3],
-      organizationId: unsafeBrandId(consumerId),
-      logger: genericLogger,
       offset: 0,
       limit: 50,
+      authData,
+      logger: genericLogger,
     });
     expect(keys).toEqual({
       results: [keyWithUser1, keyWithUser2, keyWithUser3],
@@ -99,10 +99,10 @@ describe("getClientKeys", async () => {
     const keys = await authorizationService.getClientKeys({
       clientId: clientWithKeyUser.id,
       userIds: [keyUserId1],
-      organizationId: unsafeBrandId(consumerId),
-      logger: genericLogger,
       offset: 0,
       limit: 50,
+      authData,
+      logger: genericLogger,
     });
     expect(keys).toEqual({
       results: [keyWithUser1],
@@ -117,10 +117,10 @@ describe("getClientKeys", async () => {
       authorizationService.getClientKeys({
         clientId: unsafeBrandId(clientId),
         userIds: [],
-        organizationId: generateId(),
-        logger: genericLogger,
         offset: 0,
         limit: 50,
+        authData,
+        logger: genericLogger,
       })
     ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
   });
@@ -134,14 +134,12 @@ describe("getClientKeys", async () => {
 
     await expect(
       authorizationService.getClientKeys({
-        clientId: mockClient.id,
+        clientId: unsafeBrandId(mockClient.id),
         userIds: [],
-        ctx: {
-          serviceName: "test",
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        offset: 0,
+        limit: 50,
+        authData,
+        logger: genericLogger,
       })
     ).rejects.toThrowError(
       securityUserNotMember(unsafeBrandId(authData.userId))
@@ -160,10 +158,10 @@ describe("getClientKeys", async () => {
       authorizationService.getClientKeys({
         clientId: mockClient.id,
         userIds: [],
-        organizationId: unsafeBrandId(organizationId),
-        logger: genericLogger,
         offset: 0,
         limit: 50,
+        authData,
+        logger: genericLogger,
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(
@@ -223,10 +221,10 @@ describe("getClientKeys", async () => {
     const keys = await authorizationService.getClientKeys({
       clientId: mockClient.id,
       userIds: [keyUserId1, keyUserId2, keyUserId3, keyUserId4, keyUserId5],
-      organizationId: unsafeBrandId(consumerId),
-      logger: genericLogger,
       offset: 2,
       limit: 1,
+      authData,
+      logger: genericLogger,
     });
     expect(keys).toEqual({
       results: [keyWithUser3],
