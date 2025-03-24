@@ -1,14 +1,14 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { ClientId, ClientJWKKey, WithMetadata } from "pagopa-interop-models";
-import { clientJwkKeyInReadmodelClientJwkKey } from "pagopa-interop-readmodel-models";
+import {
+  clientJwkKeyInReadmodelClientJwkKey,
+  DrizzleReturnType,
+} from "pagopa-interop-readmodel-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
 import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function clientJWKKeyReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertClientJWKKey(
       clientJWKKey: ClientJWKKey,
