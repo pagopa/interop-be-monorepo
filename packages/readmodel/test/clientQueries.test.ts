@@ -10,7 +10,7 @@ import {
 
 describe("Client queries", () => {
   describe("should insert or update a client in the db", () => {
-    it.only("should add a complete (*all* fields) client", async () => {
+    it("should add a complete (*all* fields) client", async () => {
       const client = getCustomMockClient();
       await clientReadModelService.upsertClient(
         client.data,
@@ -29,9 +29,26 @@ describe("Client queries", () => {
       expect(keysSQL).toHaveLength(client.data.keys.length);
     });
 
-    it("should add an incomplete (*only* mandatory fields) client", async () => {});
+    it("should add an incomplete (*only* mandatory fields) client", async () => {
+      const client = getCustomMockClient(false);
+      await clientReadModelService.upsertClient(
+        client.data,
+        client.metadata.version
+      );
+      const retrievedClient = await clientReadModelService.getClientById(
+        client.data.id
+      );
+      const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+        await retrievedClientSQLObjects(client);
 
-    it.only("should update an client", async () => {
+      expect(retrievedClient).toStrictEqual(client);
+      expect(clientSQL).toBeDefined();
+      expect(usersSQL).toHaveLength(client.data.users.length);
+      expect(purposesSQL).toHaveLength(client.data.purposes.length);
+      expect(keysSQL).toHaveLength(client.data.keys.length);
+    });
+
+    it("should update an client", async () => {
       const client = getCustomMockClient();
       const updatedClient: WithMetadata<Client> = {
         data: {

@@ -26,7 +26,9 @@ import { readModelDB } from "./utils.js";
 export const clientReadModelService =
   clientReadModelServiceBuilder(readModelDB);
 
-export const getCustomMockClient = (): WithMetadata<Client> => {
+export const getCustomMockClient = (
+  isCompleteClient: boolean = true
+): WithMetadata<Client> => {
   const purposes: PurposeId[] = [
     generateId<PurposeId>(),
     generateId<PurposeId>(),
@@ -38,7 +40,11 @@ export const getCustomMockClient = (): WithMetadata<Client> => {
     consumerId: generateId(),
     name: "Test client",
     purposes,
-    description: "Client description",
+    ...(isCompleteClient
+      ? {
+          description: "Client description",
+        }
+      : {}),
     users,
     kind: clientKind.consumer,
     createdAt: new Date(),
