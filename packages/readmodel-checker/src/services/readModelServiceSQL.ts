@@ -52,9 +52,11 @@ import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateRefInReadmodelCatalog,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -99,7 +101,9 @@ export function readModelServiceBuilderSQL(
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          // templateBinding: eserviceTemplateBindingInReadmodelCatalog,
+          templateRef: eserviceTemplateRefInReadmodelCatalog,
+          templateVersionRef:
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .leftJoin(
@@ -144,6 +148,14 @@ export function readModelServiceBuilderSQL(
         )
         .leftJoin(
           // 6
+          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 7
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -151,21 +163,21 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
+          // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
           )
+        )
+        .leftJoin(
+          // 9
+          eserviceTemplateRefInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceTemplateRefInReadmodelCatalog.eserviceId
+          )
         );
-      // .leftJoin(
-      //   // 8
-      //   eserviceTemplateBindingInReadmodelCatalog,
-      //   eq(
-      //     eserviceInReadmodelCatalog.id,
-      //     eserviceTemplateBindingInReadmodelCatalog.eserviceId
-      //   )
-      // );
 
       return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
     },
