@@ -17,10 +17,10 @@ export async function handleMessage(
         throw genericInternalError(`Attribute not found in message data`);
       }
 
-      await attributeReadModelService.upsertAttribute({
-        data: fromAttributeV1(msg.data.attribute),
-        metadata: { version: msg.version },
-      });
+      await attributeReadModelService.upsertAttribute(
+        fromAttributeV1(msg.data.attribute),
+        msg.version
+      );
     })
     .with({ type: "MaintenanceAttributeDeleted" }, async (msg) => {
       await attributeReadModelService.deleteAttributeById(
