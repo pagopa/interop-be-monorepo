@@ -1,5 +1,4 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Agreement, AgreementId, WithMetadata } from "pagopa-interop-models";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -7,6 +6,7 @@ import {
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import {
@@ -15,9 +15,7 @@ import {
 } from "./agreement/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function agreementReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertAgreement(
       agreement: Agreement,
