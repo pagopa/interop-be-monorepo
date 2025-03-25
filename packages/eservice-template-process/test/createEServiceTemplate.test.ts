@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
+  getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   randomArrayItem,
   readEventByStreamIdAndVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
-  generateId,
   EServiceTemplate,
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
@@ -45,12 +44,9 @@ describe("create eservice template", () => {
           ...mockEServiceTemplate,
           isSignalHubEnabled,
         }),
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       );
 
     expect(eserviceTemplate).toBeDefined();
@@ -98,15 +94,12 @@ describe("create eservice template", () => {
     await expect(
       eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
-        {
+        getMockContext({
           authData: {
             ...getMockAuthData(mockEServiceTemplate.creatorId),
             externalId: { origin: "not-allowed-origin", value: "aaa" },
           },
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
   });
@@ -116,12 +109,9 @@ describe("create eservice template", () => {
     await expect(
       eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateDuplicate(mockEServiceTemplate.name)
@@ -137,12 +127,9 @@ describe("create eservice template", () => {
             { ...mockVersion, dailyCallsPerConsumer: 1, dailyCallsTotal: 0 },
           ],
         }),
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
