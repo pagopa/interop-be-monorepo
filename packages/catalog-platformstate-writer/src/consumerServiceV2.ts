@@ -43,7 +43,7 @@ export async function handleMessageV2(
           message.type
         );
         const previousDescriptor = eservice.descriptors.find(
-          (d) => d.version === (Number(descriptor.version) - 1).toString()
+          (d) => d.version === descriptor.version - 1
         );
 
         // flow for current descriptor

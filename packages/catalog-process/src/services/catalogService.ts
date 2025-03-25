@@ -547,7 +547,7 @@ async function innerCreateEService(
   const draftDescriptor: Descriptor = {
     id: generateId(),
     description: seed.descriptor.description,
-    version: "1",
+    version: 1,
     interface: undefined,
     docs: [],
     state: descriptorState.draft,
@@ -1696,14 +1696,14 @@ export function catalogServiceBuilder(
             d.state === descriptorState.deprecated ||
             d.state === descriptorState.published
         )
-        .map((d: Descriptor) => parseInt(d.version, 10));
+        .map((d: Descriptor) => d.version);
       const recentDescriptorVersion = Math.max(...descriptorVersions);
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const event = () => {
         if (
           recentDescriptorVersion !== null &&
-          parseInt(descriptor.version, 10) === recentDescriptorVersion
+          descriptor.version === recentDescriptorVersion
         ) {
           const newEservice = replaceDescriptor(
             eservice.data,
@@ -1837,7 +1837,7 @@ export function catalogServiceBuilder(
           {
             ...descriptor,
             id: generateId(),
-            version: "1",
+            version: 1,
             interface: clonedInterfaceDocument,
             docs: clonedDocuments,
             state: descriptorState.draft,
