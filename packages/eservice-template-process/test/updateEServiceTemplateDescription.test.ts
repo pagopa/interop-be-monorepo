@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   operationForbidden,
-  generateId,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   EServiceTemplate,
@@ -44,12 +43,9 @@ describe("updateEServiceTemplateDescription", () => {
       await eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         updatedDescription,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       );
     const updatedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
@@ -82,12 +78,9 @@ describe("updateEServiceTemplateDescription", () => {
       eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         "eservice template new eservice description",
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
   });
@@ -98,12 +91,7 @@ describe("updateEServiceTemplateDescription", () => {
       eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         "eservice template new eservice description",
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -114,12 +102,9 @@ describe("updateEServiceTemplateDescription", () => {
       eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         "eservice template new eservice description",
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id)
@@ -140,12 +125,9 @@ describe("updateEServiceTemplateDescription", () => {
       eserviceTemplateService.updateEServiceTemplateDescription(
         eserviceTemplate.id,
         "eservice template new eservice description",
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id)
