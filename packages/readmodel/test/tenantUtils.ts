@@ -21,6 +21,7 @@ import {
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
   tenantVerifiedAttributeInReadmodelTenant,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import {
   AttributeId,
@@ -29,7 +30,6 @@ import {
   DelegationId,
   ExternalId,
   generateId,
-  stringToDate,
   Tenant,
   TenantAttribute,
   tenantAttributeType,
@@ -47,7 +47,6 @@ import {
   VerifiedTenantAttribute,
   WithMetadata,
 } from "pagopa-interop-models";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { tenantReadModelServiceBuilder } from "../src/tenantReadModelService.js";
 import { readModelDB } from "./utils.js";
@@ -226,8 +225,7 @@ export const initMockTenant = (
 };
 
 export const retrieveTenantSQLObjects = async (
-  tenant: WithMetadata<Tenant>,
-  isTenantComplete: boolean
+  tenant: WithMetadata<Tenant>
 ): Promise<{
   retrievedTenantSQL: TenantSQL | undefined;
   retrievedMailsSQL: TenantMailSQL[] | undefined;
@@ -246,162 +244,46 @@ export const retrieveTenantSQLObjects = async (
     tenant.data.id,
     readModelDB
   );
-  const retrievedAndFormattedTenantSQL: TenantSQL | undefined =
-    retrievedTenantSQL
-      ? {
-          ...retrievedTenantSQL,
-          createdAt: stringToISOString(retrievedTenantSQL.createdAt),
-          ...(isTenantComplete
-            ? {
-                kind: retrievedTenantSQL.kind,
-                selfcareId: retrievedTenantSQL.selfcareId,
-                subUnitType: retrievedTenantSQL.subUnitType,
-                updatedAt: stringToISOString(retrievedTenantSQL.updatedAt),
-                onboardedAt: stringToISOString(retrievedTenantSQL.onboardedAt),
-              }
-            : {}),
-        }
-      : undefined;
-  const retrievedTenantMailsSQL = await retrieveTenantMailsSQL(
+  const retrievedMailsSQL = await retrieveTenantMailsSQL(
     tenant.data.id,
     readModelDB
   );
-  const retrievedAndFormattedTenantMailsSQL: TenantMailSQL[] | undefined =
-    retrievedTenantMailsSQL?.map((mail) => ({
-      ...mail,
-      createdAt: stringToISOString(mail.createdAt),
-    }));
-
   const retrievedCertifiedAttributesSQL =
     await retrieveTenantCertifiedAttributesSQL(tenant.data.id, readModelDB);
-
-  const retrievedAndFormattedCertifiedAttributesSQL:
-    | TenantCertifiedAttributeSQL[]
-    | undefined = retrievedCertifiedAttributesSQL?.map(
-    (attribute: TenantCertifiedAttributeSQL) => ({
-      ...attribute,
-      assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
-      ...(isTenantComplete
-        ? {
-            revocationTimestamp: stringToISOString(
-              attribute.revocationTimestamp
-            ),
-          }
-        : {}),
-    })
-  );
   const retrievedDeclaredAttributesSQL =
     await retrieveTenantDeclaredAttributesSQL(tenant.data.id, readModelDB);
-
-  const retrievedAndFormattedDeclaredAttributesSQL:
-    | TenantDeclaredAttributeSQL[]
-    | undefined = retrievedDeclaredAttributesSQL?.map(
-    (attribute: TenantDeclaredAttributeSQL) => ({
-      ...attribute,
-      assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
-      ...(isTenantComplete
-        ? {
-            revocationTimestamp: stringToISOString(
-              attribute.revocationTimestamp
-            ),
-            delegationId: attribute.delegationId,
-          }
-        : {}),
-    })
-  );
-
   const retrievedVerifiedAttributesSQL =
     await retrieveTenantVerifiedAttributesSQL(tenant.data.id, readModelDB);
-  const retrievedAndFormattedVerifiedAttributesSQL:
-    | TenantVerifiedAttributeSQL[]
-    | undefined = retrievedVerifiedAttributesSQL?.map(
-    (attribute: TenantVerifiedAttributeSQL) => ({
-      ...attribute,
-      assignmentTimestamp: stringToISOString(attribute.assignmentTimestamp),
-    })
-  );
-
   const retrievedVerifiedAttributeVerifiersSQL =
     await retrieveTenantVerifiedAttributeVerifiersSQL(
       tenant.data.id,
       readModelDB
     );
-
-  const retrievedAndFormattedVerifiedAttributeVerifiersSQL:
-    | TenantVerifiedAttributeVerifierSQL[]
-    | undefined = retrievedVerifiedAttributeVerifiersSQL?.map(
-    (verifier: TenantVerifiedAttributeVerifierSQL) => ({
-      ...verifier,
-      verificationDate: stringToISOString(verifier.verificationDate),
-      ...(isTenantComplete
-        ? {
-            expirationDate: stringToISOString(verifier.expirationDate),
-            extensionDate: stringToISOString(verifier.extensionDate),
-            delegationId: verifier.delegationId,
-          }
-        : {}),
-    })
-  );
-
   const retrievedVerifiedAttributeRevokersSQL =
     await retrieveTenantVerifiedAttributeRevokersSQL(
       tenant.data.id,
       readModelDB
     );
-
-  const retrievedAndFormattedVerifiedAttributeRevokesSQL:
-    | TenantVerifiedAttributeRevokerSQL[]
-    | undefined = retrievedVerifiedAttributeRevokersSQL?.map(
-    (revoker: TenantVerifiedAttributeRevokerSQL) => ({
-      ...revoker,
-      revocationDate: stringToISOString(revoker.revocationDate),
-      verificationDate: stringToISOString(revoker.verificationDate),
-      ...(isTenantComplete
-        ? {
-            expirationDate: stringToISOString(revoker.expirationDate),
-            extensionDate: stringToISOString(revoker.extensionDate),
-            delegationId: revoker.delegationId,
-          }
-        : {}),
-    })
-  );
-
   const retrievedFeaturesSQL = await retrieveTenantFeaturesSQL(
     tenant.data.id,
     readModelDB
   );
 
-  const retrievedAndFormattedFeaturesSQL: TenantFeatureSQL[] | undefined =
-    retrievedFeaturesSQL?.map((feature: TenantFeatureSQL) => ({
-      ...feature,
-      availabilityTimestamp: stringToISOString(feature.availabilityTimestamp),
-      certifierId: feature.certifierId,
-    }));
-
   return {
-    retrievedTenantSQL: retrievedAndFormattedTenantSQL,
-    retrievedMailsSQL: retrievedAndFormattedTenantMailsSQL,
-    retrievedCertifiedAttributesSQL:
-      retrievedAndFormattedCertifiedAttributesSQL,
-    retrievedDeclaredAttributesSQL: retrievedAndFormattedDeclaredAttributesSQL,
-    retrievedVerifiedAttributesSQL: retrievedAndFormattedVerifiedAttributesSQL,
-    retrievedVerifiedAttributeVerifiersSQL:
-      retrievedAndFormattedVerifiedAttributeVerifiersSQL,
-    retrievedVerifiedAttributeRevokersSQL:
-      retrievedAndFormattedVerifiedAttributeRevokesSQL,
-    retrievedFeaturesSQL: retrievedAndFormattedFeaturesSQL,
+    retrievedTenantSQL,
+    retrievedMailsSQL,
+    retrievedCertifiedAttributesSQL,
+    retrievedDeclaredAttributesSQL,
+    retrievedVerifiedAttributesSQL,
+    retrievedVerifiedAttributeVerifiersSQL,
+    retrievedVerifiedAttributeRevokersSQL,
+    retrievedFeaturesSQL,
   };
 };
 
-export function stringToISOString(input: string): string;
-export function stringToISOString(input: string | null): string | null;
-export function stringToISOString(input: string | null): string | null {
-  return input ? stringToDate(input).toISOString() : null;
-}
-
 export const retrieveTenantSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantSQL | undefined> => {
   const result = await db
     .select()
@@ -412,7 +294,7 @@ export const retrieveTenantSQL = async (
 
 export const retrieveTenantMailsSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantMailSQL[] | undefined> => {
   const result = await db
     .select()
@@ -423,7 +305,7 @@ export const retrieveTenantMailsSQL = async (
 
 export const retrieveTenantCertifiedAttributesSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantCertifiedAttributeSQL[] | undefined> => {
   const result = await db
     .select()
@@ -434,7 +316,7 @@ export const retrieveTenantCertifiedAttributesSQL = async (
 
 export const retrieveTenantDeclaredAttributesSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantDeclaredAttributeSQL[] | undefined> => {
   const result = await db
     .select()
@@ -445,7 +327,7 @@ export const retrieveTenantDeclaredAttributesSQL = async (
 
 export const retrieveTenantVerifiedAttributesSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeSQL[] | undefined> => {
   const result = await db
     .select()
@@ -456,7 +338,7 @@ export const retrieveTenantVerifiedAttributesSQL = async (
 
 export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeVerifierSQL[] | undefined> => {
   const result = await db
     .select()
@@ -469,7 +351,7 @@ export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
 
 export const retrieveTenantVerifiedAttributeRevokersSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeRevokerSQL[] | undefined> => {
   const result = await db
     .select()
@@ -482,7 +364,7 @@ export const retrieveTenantVerifiedAttributeRevokersSQL = async (
 
 export const retrieveTenantFeaturesSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantFeatureSQL[] | undefined> => {
   const result = await db
     .select()

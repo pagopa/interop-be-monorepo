@@ -1,7 +1,7 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Tenant, TenantId, WithMetadata } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   tenantCertifiedAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
@@ -15,7 +15,7 @@ import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import { aggregateTenant, toTenantAggregator } from "./tenant/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertTenant(tenant: Tenant, metadataVersion: number): Promise<void> {
