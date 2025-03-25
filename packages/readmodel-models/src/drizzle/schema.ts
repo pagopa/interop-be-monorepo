@@ -1001,6 +1001,14 @@ export const tenantCertifiedAttributeInReadmodelTenant = readmodelTenant.table(
       foreignColumns: [tenantInReadmodelTenant.id],
       name: "tenant_certified_attribute_tenant_id_fkey",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.metadataVersion],
+      foreignColumns: [
+        tenantInReadmodelTenant.id,
+        tenantInReadmodelTenant.metadataVersion,
+      ],
+      name: "tenant_certified_attribute_tenant_id_metadata_version_fkey",
+    }),
     primaryKey({
       columns: [table.attributeId, table.tenantId],
       name: "tenant_certified_attribute_pkey",
@@ -1061,6 +1069,14 @@ export const tenantDeclaredAttributeInReadmodelTenant = readmodelTenant.table(
       foreignColumns: [tenantInReadmodelTenant.id],
       name: "tenant_declared_attribute_tenant_id_fkey",
     }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.metadataVersion],
+      foreignColumns: [
+        tenantInReadmodelTenant.id,
+        tenantInReadmodelTenant.metadataVersion,
+      ],
+      name: "tenant_declared_attribute_tenant_id_metadata_version_fkey",
+    }),
     primaryKey({
       columns: [table.attributeId, table.tenantId],
       name: "tenant_declared_attribute_pkey",
