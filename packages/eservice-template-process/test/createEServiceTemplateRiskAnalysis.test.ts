@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
-  genericLogger,
   unexpectedFieldError,
   unexpectedFieldValueError,
 } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -91,12 +91,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     await eserviceTemplateService.createRiskAnalysis(
       eserviceTemplate.id,
       riskAnalysisSeed,
-      {
+      getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -174,12 +171,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
   });
@@ -204,12 +198,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(requesterId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -233,12 +222,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eserviceTemplateNotInDraftState(eserviceTemplate.id)
@@ -264,12 +250,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));
   });
@@ -291,12 +274,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
   });
@@ -325,12 +305,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        {
-          authData: getMockAuthData(creator.id),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(creator.id) })
       )
     ).rejects.toThrowError(tenantKindNotFound(creator.id));
   });
@@ -370,12 +345,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysisSeed,
-        {
-          authData: getMockAuthData(creator.id),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(creator.id) })
       )
     ).rejects.toThrowError(
       eserviceTemaplateRiskAnalysisNameDuplicate(riskAnalysis.name)
@@ -431,12 +401,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         invalidRiskAnalysisSeed,
-        {
-          authData: getMockAuthData(creator.id),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(creator.id) })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([

@@ -1016,14 +1016,16 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const upgradedEService = await catalogService.upgradeEServiceInstance(
+          const descriptor = await catalogService.upgradeEServiceInstance(
             unsafeBrandId(req.params.eServiceId),
             ctx
           );
           return res
             .status(200)
             .send(
-              catalogApi.EService.parse(eServiceToApiEService(upgradedEService))
+              catalogApi.EServiceDescriptor.parse(
+                descriptorToApiDescriptor(descriptor)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
