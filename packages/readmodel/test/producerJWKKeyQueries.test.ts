@@ -74,7 +74,7 @@ describe("Producer JWK key queries", () => {
       );
 
       const retrievedProducerJWKKey =
-        await producerJWKKeyReadModelService.getProducerJWKKeyByKid(
+        await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
           producerKeychainId,
           producerJWKKey.kid
         );
@@ -87,7 +87,7 @@ describe("Producer JWK key queries", () => {
     it("producer JWK key NOT found", async () => {
       const producerKeychainId = generateId<ProducerKeychainId>();
       const retrievedProducerJWKKey =
-        await producerJWKKeyReadModelService.getProducerJWKKeyByKid(
+        await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
           producerKeychainId,
           "fake kid"
         );
@@ -126,7 +126,7 @@ describe("Producer JWK key queries", () => {
         )
       ).toBeDefined();
 
-      await producerJWKKeyReadModelService.deleteProducerJWKKeyByKid(
+      await producerJWKKeyReadModelService.deleteProducerJWKKeyByProducerKeychainAndKid(
         producerKeychainId1,
         producerJWKKey1.kid,
         2

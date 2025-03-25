@@ -64,8 +64,7 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
         }
       });
     },
-    // TODO: name not accurate
-    async getProducerJWKKeyByKid(
+    async getProducerJWKKeyByProducerKeychainIdAndKid(
       producerKeychainId: ProducerKeychainId,
       kid: string
     ): Promise<WithMetadata<ProducerJWKKey> | undefined> {
@@ -86,7 +85,7 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       }
       return aggregateProducerJWKKey(queryResult[0]);
     },
-    async deleteProducerJWKKeyByKid(
+    async deleteProducerJWKKeyByProducerKeychainAndKid(
       producerKeychainId: ProducerKeychainId,
       kid: string,
       metadataVersion: number
