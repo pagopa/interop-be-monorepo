@@ -351,7 +351,7 @@ const eservicesRouter = (
           return res.status(200).send(
             catalogApi.EServiceConsumers.parse({
               results: consumers.results.map((c) => ({
-                descriptorVersion: parseInt(c.descriptorVersion, 10),
+                descriptorVersion: c.descriptorVersion,
                 descriptorState: descriptorStateToApiEServiceDescriptorState(
                   c.descriptorState
                 ),
