@@ -17340,6 +17340,62 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/names/availability:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Check if the e-service name is available
+      operationId: isEServiceNameAvailable
+      parameters:
+        - name: name
+          in: query
+          description: the e-service name to check for
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: EService name available.
+          content:
+            application/json:
+              schema:
+                type: boolean
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/status":
     get:
       security: []
