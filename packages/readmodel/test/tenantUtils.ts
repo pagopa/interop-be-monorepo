@@ -31,7 +31,6 @@ import {
   ExternalId,
   generateId,
   Tenant,
-  TenantAttribute,
   tenantAttributeType,
   TenantFeature,
   TenantFeatureCertifier,
@@ -371,43 +370,4 @@ export const retrieveTenantFeaturesSQL = async (
     .from(tenantFeatureInReadmodelTenant)
     .where(eq(tenantFeatureInReadmodelTenant.tenantId, tenantId));
   return result.length > 0 ? result : undefined;
-};
-
-export const sortATenant = (
-  tenant: WithMetadata<Tenant>
-): WithMetadata<Tenant> => ({
-  data: {
-    ...tenant.data,
-    attributes: tenant.data.attributes.sort(sortAttributes),
-    features: tenant.data.features.sort(sortFeatures),
-  },
-  metadata: tenant.metadata,
-});
-
-export const sortFeaturesSQL = (
-  a: TenantFeatureSQL,
-  b: TenantFeatureSQL
-): number => sortByString(a.kind, b.kind);
-
-export const sortFeatures = (a: TenantFeature, b: TenantFeature): number =>
-  sortByString(a.type, b.type);
-
-export const sortAttributes = (
-  a: TenantAttribute,
-  b: TenantAttribute
-): number => sortByString(a.type, b.type);
-
-export const sortTenants = (
-  a: WithMetadata<Tenant>,
-  b: WithMetadata<Tenant>
-): number => sortByString(a.data.id, b.data.id);
-
-const sortByString = (a: string, b: string): number => {
-  if (a < b) {
-    return -1;
-  }
-  if (a > b) {
-    return 1;
-  }
-  return 0;
 };
