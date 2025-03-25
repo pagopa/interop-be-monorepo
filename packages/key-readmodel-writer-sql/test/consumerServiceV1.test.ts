@@ -75,7 +75,7 @@ describe("Events V1", async () => {
       await handleMessageV1(message, readModelService);
 
       const retrievedKey =
-        await clientJWKKeyReadModelService.getClientJWKKeyByKid(
+        await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
           mockClient.id,
           addedKey.kid
         );
@@ -120,7 +120,7 @@ describe("Events V1", async () => {
     await handleMessageV1(message, readModelService);
 
     const retrievedKey =
-      await clientJWKKeyReadModelService.getClientJWKKeyByKid(
+      await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
         clientId,
         mockKey.kid
       );
@@ -160,12 +160,12 @@ describe("Events V1", async () => {
     await handleMessageV1(message, readModelService);
 
     const retrievedKey1 =
-      await clientJWKKeyReadModelService.getClientJWKKeyByKid(
+      await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
         clientId,
         mockKey1.kid
       );
     const retrievedKey2 =
-      await clientJWKKeyReadModelService.getClientJWKKeyByKid(
+      await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
         clientId,
         mockKey2.kid
       );

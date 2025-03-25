@@ -37,7 +37,7 @@ export async function handleMessageV2(
         throw Error("Client not found in event");
       }
 
-      await clientJWKKeyReadModelService.deleteClientJWKKeyByKid(
+      await clientJWKKeyReadModelService.deleteClientJWKKeyByClientIdAndKid(
         client.id,
         message.data.kid,
         message.version

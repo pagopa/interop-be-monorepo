@@ -31,7 +31,7 @@ export async function handleMessageV1(
       }
     })
     .with({ type: "KeyDeleted" }, async (message) => {
-      await clientJWKKeyReadModelService.deleteClientJWKKeyByKid(
+      await clientJWKKeyReadModelService.deleteClientJWKKeyByClientIdAndKid(
         unsafeBrandId(message.data.clientId),
         message.data.keyId,
         message.version

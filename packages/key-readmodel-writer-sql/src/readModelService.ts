@@ -22,12 +22,12 @@ export function customReadModelServiceBuilder(
       );
     },
 
-    async deleteClientJWKKeyByKid(
+    async deleteClientJWKKeyByClientIdAndKid(
       clientId: ClientId,
       kid: string,
       metadataVersion: number
     ): Promise<void> {
-      await clientJWKKeyReadModelService.deleteClientJWKKeyByKid(
+      await clientJWKKeyReadModelService.deleteClientJWKKeyByClientIdAndKid(
         clientId,
         kid,
         metadataVersion
