@@ -5,14 +5,14 @@ meta {
 }
 
 post {
-  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/activate
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/activate
   body: none
   auth: none
 }
 
 params:path {
-  eserviceId: {{eserviceId}}
-  descriptorId: {{descriptorId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
+  eserviceTemplateVersionId: {{eserviceTemplateVersionId}}
 }
 
 headers {
