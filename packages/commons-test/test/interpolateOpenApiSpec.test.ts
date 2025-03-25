@@ -52,16 +52,13 @@ describe("interpolateOpenApiSpec", async () => {
     const jsonString = new TextDecoder().decode(fileBuffer);
     const parsedJson = JSON.parse(jsonString);
 
-    expect(parsedJson.info.contact.name).toBe(
-      eserviceInstanceInterfaceData.contactName
-    );
-    expect(parsedJson.info.contact.email).toBe(
-      eserviceInstanceInterfaceData.contactEmail
-    );
-    expect(parsedJson.info.contact.url).toBe(
-      eserviceInstanceInterfaceData.contactUrl
-    );
-    expect(parsedJson.servers.length).toBe(
+    expect(parsedJson.info.contact).toMatchObject({
+      name: eserviceInstanceInterfaceData.contactName,
+      email: eserviceInstanceInterfaceData.contactEmail,
+      url: eserviceInstanceInterfaceData.contactUrl,
+    });
+
+    expect(parsedJson.servers).toHaveLength(
       eserviceInstanceInterfaceData.serverUrls.length
     );
 
@@ -91,19 +88,16 @@ describe("interpolateOpenApiSpec", async () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const parsedYaml = require("yaml").parse(yamlString);
 
-    expect(parsedYaml.info.termsOfService).toEqual(
-      eserviceInstanceInterfaceData.termsAndConditionsUrl
-    );
-    expect(parsedYaml.info.contact.name).toEqual(
-      eserviceInstanceInterfaceData.contactName
-    );
-    expect(parsedYaml.info.contact.email).toEqual(
-      eserviceInstanceInterfaceData.contactEmail
-    );
-    expect(parsedYaml.info.contact.url).toEqual(
-      eserviceInstanceInterfaceData.contactUrl
-    );
-    expect(parsedYaml.servers.length).toEqual(
+    expect(parsedYaml.info).toMatchObject({
+      termsOfService: eserviceInstanceInterfaceData.termsAndConditionsUrl,
+      contact: {
+        name: eserviceInstanceInterfaceData.contactName,
+        email: eserviceInstanceInterfaceData.contactEmail,
+        url: eserviceInstanceInterfaceData.contactUrl,
+      },
+    });
+
+    expect(parsedYaml.servers).toHaveLength(
       eserviceInstanceInterfaceData.serverUrls.length
     );
   });
