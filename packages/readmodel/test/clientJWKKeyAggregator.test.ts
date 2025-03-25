@@ -11,6 +11,9 @@ describe("Client JWK key aggregator", () => {
     const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(clientJWKKey, 1);
 
     const aggregatedClientJWKKey = aggregateClientJWKKey(clientJWKKeySQL);
-    expect(aggregatedClientJWKKey).toMatchObject(aggregatedClientJWKKey);
+    expect(aggregatedClientJWKKey).toStrictEqual({
+      data: clientJWKKey,
+      metadata: { version: 1 },
+    });
   });
 });
