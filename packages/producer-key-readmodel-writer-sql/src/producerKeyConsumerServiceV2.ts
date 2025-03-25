@@ -40,7 +40,7 @@ export async function handleMessageV2(
         throw genericInternalError("ProducerKeychain not found in message");
       }
 
-      await producerJWKKeyReadModelService.deleteProducerJWKKeyByKid(
+      await producerJWKKeyReadModelService.deleteProducerJWKKeyByProducerKeychainAndKid(
         unsafeBrandId(message.data.producerKeychain.id),
         message.data.kid,
         message.version

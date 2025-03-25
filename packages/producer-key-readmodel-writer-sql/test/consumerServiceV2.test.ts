@@ -82,7 +82,7 @@ describe("Events V2", () => {
     await handleMessageV2(message, readModelService);
 
     const retrievedKey =
-      await producerJWKKeyReadModelService.getProducerJWKKeyByKid(
+      await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
         producerKeychainId,
         addedKey.kid
       );
@@ -134,7 +134,7 @@ describe("Events V2", () => {
     await handleMessageV2(message, readModelService);
 
     const retrievedKey =
-      await producerJWKKeyReadModelService.getProducerJWKKeyByKid(
+      await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
         producerKeychainId,
         mockKey.kid
       );
@@ -185,13 +185,13 @@ describe("Events V2", () => {
     await handleMessageV2(message, readModelService);
 
     const retrievedKey1 =
-      await producerJWKKeyReadModelService.getProducerJWKKeyByKid(
+      await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
         producerKeychainId,
         mockKey1.kid
       );
 
     const retrievedKey2 =
-      await producerJWKKeyReadModelService.getProducerJWKKeyByKid(
+      await producerJWKKeyReadModelService.getProducerJWKKeyByProducerKeychainIdAndKid(
         producerKeychainId,
         mockKey2.kid
       );

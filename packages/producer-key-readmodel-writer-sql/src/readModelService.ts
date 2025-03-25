@@ -22,12 +22,12 @@ export function customReadModelServiceBuilder(
       );
     },
 
-    async deleteProducerJWKKeyByKid(
+    async deleteProducerJWKKeyByProducerKeychainAndKid(
       producerKeychainId: ProducerKeychainId,
       kid: string,
       metadataVersion: number
     ): Promise<void> {
-      await producerJWKKeyReadModelService.deleteProducerJWKKeyByKid(
+      await producerJWKKeyReadModelService.deleteProducerJWKKeyByProducerKeychainAndKid(
         producerKeychainId,
         kid,
         metadataVersion
