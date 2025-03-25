@@ -58,7 +58,7 @@ describe("Client JWK key queries", () => {
       await clientJWKKeyReadModelService.upsertClientJWKKey(clientJWKKey, 1);
 
       const retrievedClientJWKKey =
-        await clientJWKKeyReadModelService.getClientJWKKeyByKid(
+        await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
           clientKeychainId,
           clientJWKKey.kid
         );
@@ -71,7 +71,7 @@ describe("Client JWK key queries", () => {
     it("client JWK key NOT found", async () => {
       const clientId = generateId<ClientId>();
       const retrievedClientJWKKey =
-        await clientJWKKeyReadModelService.getClientJWKKeyByKid(
+        await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
           clientId,
           "fake kid"
         );
@@ -104,7 +104,7 @@ describe("Client JWK key queries", () => {
         )
       ).toBeDefined();
 
-      await clientJWKKeyReadModelService.deleteClientJWKKeyByKid(
+      await clientJWKKeyReadModelService.deleteClientJWKKeyByClientIdAndKid(
         clientId1,
         clientJWKKey1.kid,
         2

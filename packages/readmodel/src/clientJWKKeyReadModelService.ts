@@ -60,7 +60,7 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
         }
       });
     },
-    async getClientJWKKeyByKid(
+    async getClientJWKKeyByClientIdAndKid(
       clientId: ClientId,
       kid: string
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
@@ -80,7 +80,7 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateClientJWKKey(queryResult[0]);
     },
-    async deleteClientJWKKeyByKid(
+    async deleteClientJWKKeyByClientIdAndKid(
       clientId: ClientId,
       kid: string,
       metadataVersion: number
