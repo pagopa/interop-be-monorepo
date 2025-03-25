@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { KafkaConfig } from "./kafkaConfig.js";
+import { ReadModelDbConfig } from "./readmodelDbConfig.js";
 import { TokenGenerationReadModelDbConfig } from "./tokenGenerationReadmodelDbConfig.js";
 import { ReadModelSQLDbConfig } from "./readmodelSQLDbConfig.js";
-import { ReadModelDbConfig } from "./readmodelDbConfig.js";
 
 export const KafkaConsumerConfig = KafkaConfig.and(
   z
