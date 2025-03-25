@@ -80,6 +80,7 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -740,3 +741,49 @@ export const getMockContext = ({
   correlationId: generateId(),
   logger: genericLogger,
 });
+
+export const sortBy =
+  <T>(getKey: (item: T) => string) =>
+  (a: T, b: T): number => {
+    const keyA = getKey(a);
+    const keyB = getKey(b);
+
+    if (keyA < keyB) {
+      return -1;
+    }
+    if (keyA > keyB) {
+      return 1;
+    }
+    return 0;
+  };
+
+export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
+  tenant: T
+): T => {
+  if (tenant === undefined) {
+    return tenant;
+  } else if ("data" in tenant && "metadata" in tenant) {
+    return {
+      ...tenant,
+      data: {
+        ...tenant.data,
+        attributes: [...tenant.data.attributes].sort(
+          sortBy<TenantAttribute>((att) => att.id)
+        ),
+        features: [...tenant.data.features].sort(
+          sortBy<TenantFeature>((feature) => feature.type)
+        ),
+      },
+    };
+  } else {
+    return {
+      ...tenant,
+      attributes: [...tenant.attributes].sort(
+        sortBy<TenantAttribute>((att) => att.id)
+      ),
+      features: [...tenant.features].sort(
+        sortBy<TenantFeature>((feature) => feature.type)
+      ),
+    };
+  }
+};
