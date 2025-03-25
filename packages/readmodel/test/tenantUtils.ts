@@ -21,6 +21,7 @@ import {
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
   tenantVerifiedAttributeInReadmodelTenant,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import {
   AttributeId,
@@ -401,7 +402,7 @@ export function stringToISOString(input: string | null): string | null {
 
 export const retrieveTenantSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantSQL | undefined> => {
   const result = await db
     .select()
@@ -412,7 +413,7 @@ export const retrieveTenantSQL = async (
 
 export const retrieveTenantMailsSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantMailSQL[] | undefined> => {
   const result = await db
     .select()
@@ -423,7 +424,7 @@ export const retrieveTenantMailsSQL = async (
 
 export const retrieveTenantCertifiedAttributesSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantCertifiedAttributeSQL[] | undefined> => {
   const result = await db
     .select()
@@ -434,7 +435,7 @@ export const retrieveTenantCertifiedAttributesSQL = async (
 
 export const retrieveTenantDeclaredAttributesSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantDeclaredAttributeSQL[] | undefined> => {
   const result = await db
     .select()
@@ -445,7 +446,7 @@ export const retrieveTenantDeclaredAttributesSQL = async (
 
 export const retrieveTenantVerifiedAttributesSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeSQL[] | undefined> => {
   const result = await db
     .select()
@@ -456,7 +457,7 @@ export const retrieveTenantVerifiedAttributesSQL = async (
 
 export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeVerifierSQL[] | undefined> => {
   const result = await db
     .select()
@@ -469,7 +470,7 @@ export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
 
 export const retrieveTenantVerifiedAttributeRevokersSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeRevokerSQL[] | undefined> => {
   const result = await db
     .select()
@@ -482,7 +483,7 @@ export const retrieveTenantVerifiedAttributeRevokersSQL = async (
 
 export const retrieveTenantFeaturesSQL = async (
   tenantId: TenantId,
-  db: ReturnType<typeof drizzle>
+  db: DrizzleReturnType
 ): Promise<TenantFeatureSQL[] | undefined> => {
   const result = await db
     .select()
