@@ -3,7 +3,10 @@ import path from "path";
 import fs from "fs/promises";
 import { describe, expect, it } from "vitest";
 import { extractEServiceUrlsFrom } from "pagopa-interop-commons";
-import { invalidInterfaceFileDetected, technology } from "pagopa-interop-models";
+import {
+  invalidInterfaceFileDetected,
+  technology,
+} from "pagopa-interop-models";
 
 const readFileToFile = async (fileName: string): Promise<File> => {
   const filename = fileURLToPath(import.meta.url);
