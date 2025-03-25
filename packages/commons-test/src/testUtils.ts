@@ -82,6 +82,7 @@ import {
   EServiceTemplateVersionState,
   AgreementDocument,
   AgreementStamp,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -758,27 +759,6 @@ export const getMockContext = ({
   logger: genericLogger,
 });
 
-export const sortAgreement = (
-  agreement: Agreement | undefined
-): Agreement | undefined =>
-  agreement
-    ? {
-        ...agreement,
-        verifiedAttributes: [...agreement.verifiedAttributes].sort(
-          sortBy<AgreementAttribute>((att) => att.id)
-        ),
-        certifiedAttributes: [...agreement.certifiedAttributes].sort(
-          sortBy<AgreementAttribute>((att) => att.id)
-        ),
-        declaredAttributes: [...agreement.declaredAttributes].sort(
-          sortBy<AgreementAttribute>((att) => att.id)
-        ),
-        consumerDocuments: [...agreement.consumerDocuments].sort(
-          sortBy<AgreementDocument>((doc) => doc.id)
-        ),
-      }
-    : undefined;
-
 export const sortBy =
   <T>(getKey: (item: T) => string) =>
   (a: T, b: T): number => {
@@ -793,3 +773,34 @@ export const sortBy =
     }
     return 0;
   };
+
+export const sortAgreement = <
+  T extends Agreement | WithMetadata<Agreement> | undefined
+>(
+  agreement: T
+): T => {
+  if (!agreement) {
+    return agreement;
+  } else if ("data" in agreement) {
+    return {
+      ...agreement,
+      data: sortAgreement(agreement.data),
+    };
+  } else {
+    return {
+      ...agreement,
+      verifiedAttributes: [...agreement.verifiedAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      certifiedAttributes: [...agreement.certifiedAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      declaredAttributes: [...agreement.declaredAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      consumerDocuments: [...agreement.consumerDocuments].sort(
+        sortBy<AgreementDocument>((doc) => doc.id)
+      ),
+    };
+  }
+};
