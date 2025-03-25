@@ -16,17 +16,27 @@ import {
   DelegationKind,
   EServiceTemplate,
   EServiceTemplateId,
+  descriptorState,
+  agreementState,
+  DescriptorState,
 } from "pagopa-interop-models";
 import {
+  aggregateAgreementArray,
   aggregateAttributeArray,
   aggregateDelegation,
   aggregateEservice,
   CatalogReadModelServiceSQL,
   TenantReadModelService,
+  toAgreementAggregatorArray,
   toDelegationAggregator,
   toEServiceAggregator,
 } from "pagopa-interop-readmodel";
 import {
+  agreementAttributeInReadmodelAgreement,
+  agreementConsumerDocumentInReadmodelAgreement,
+  agreementContractInReadmodelAgreement,
+  agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
@@ -42,8 +52,9 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   eserviceTemplateRefInReadmodelCatalog,
+  tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, desc, eq, ilike, inArray } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray } from "drizzle-orm";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -432,120 +443,99 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
-      /* const aggregationPipeline = [
-        {
-          $match: {
-            "data.id": eserviceId,
-            "data.descriptors": {
-              $elemMatch: {
-                state: {
-                  $in: [
-                    descriptorState.published,
-                    descriptorState.deprecated,
-                    descriptorState.suspended,
-                  ],
-                },
-              },
-            },
-          } satisfies ReadModelFilter<EService>,
-        },
-        {
-          $lookup: {
-            from: "agreements",
-            localField: "data.id",
-            foreignField: "data.eserviceId",
-            as: "agreements",
-          },
-        },
-        {
-          $unwind: "$agreements",
-        },
-        {
-          $lookup: {
-            from: "tenants",
-            localField: "agreements.data.consumerId",
-            foreignField: "data.id",
-            as: "tenants",
-          },
-        },
-        { $unwind: "$tenants" },
-        {
-          $match: {
-            "agreements.data.state": {
-              $in: [agreementState.active, agreementState.suspended],
-            },
-          },
-        },
-        {
-          $addFields: {
-            validDescriptor: {
-              $filter: {
-                input: "$data.descriptors",
-                as: "fd",
-                cond: {
-                  $eq: ["$$fd.id", "$agreements.data.descriptorId"],
-                },
-              },
-            },
-          },
-        },
-        {
-          $unwind: "$validDescriptor",
-        },
-        {
-          $match: {
-            validDescriptor: { $exists: true },
-          },
-        },
-        {
-          $project: {
-            descriptorVersion: "$validDescriptor.version",
-            descriptorState: "$validDescriptor.state",
-            agreementState: "$agreements.data.state",
-            consumerName: "$tenants.data.name",
-            consumerExternalId: "$tenants.data.externalId.value",
-            lowerName: { $toLower: ["$tenants.data.name"] },
-          },
-        },
-        {
-          $sort: { lowerName: 1 },
-        },
-      ];
+      /*
+      nested queries:
+      easy but the info to aggregate might be missing
 
-      const data = await eservices
-        .aggregate(
-          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
-          { allowDiskUse: true }
+      join:
+      how to handle offset/limit?
+        - making the result "distinct", so each tenant appears only once in the results. Should this be unique dy default? Example: a tenant shouldn't have more than one agreement (active/suspended) towards the same eservice
+
+      */
+
+      const res = await readmodelDB
+        .select({
+          tenant: tenantInReadmodelTenant,
+          agreement: agreementInReadmodelAgreement,
+          descriptor: eserviceDescriptorInReadmodelCatalog,
+        })
+        .from(tenantInReadmodelTenant)
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(
+              tenantInReadmodelTenant.id,
+              agreementInReadmodelAgreement.consumerId
+            ),
+            inArray(agreementInReadmodelAgreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+            ])
+          )
         )
-        .toArray();
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              agreementInReadmodelAgreement.descriptorId,
+              eserviceDescriptorInReadmodelCatalog.id
+            ),
+            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
+            inArray(eserviceDescriptorInReadmodelCatalog.state, [
+              descriptorState.published,
+              descriptorState.deprecated,
+              descriptorState.suspended,
+            ])
+          )
+        )
+        .limit(limit)
+        .offset(offset);
 
-      const result = z.array(consumer).safeParse(data);
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse consumers: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+      // TODO optimize: this query is repeated to get the count
+      const totalCount = await readmodelDB
+        .select({ count: count() })
+        .from(tenantInReadmodelTenant)
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(
+              tenantInReadmodelTenant.id,
+              agreementInReadmodelAgreement.consumerId
+            ),
+            inArray(agreementInReadmodelAgreement.state, [
+              agreementState.active,
+              agreementState.suspended,
+            ])
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          and(
+            eq(
+              agreementInReadmodelAgreement.descriptorId,
+              eserviceDescriptorInReadmodelCatalog.id
+            ),
+            inArray(eserviceDescriptorInReadmodelCatalog.state, [
+              descriptorState.published,
+              descriptorState.deprecated,
+              descriptorState.suspended,
+            ])
+          )
         );
-      }
+
+      // TODO: without the aggregators, we have to parse the entries here
+      const consumers: Consumer[] = res.map((row) => ({
+        descriptorVersion: row.descriptor.version,
+        descriptorState: DescriptorState.parse(row.descriptor.state),
+        agreementState: AgreementState.parse(row.agreement.state),
+        consumerName: row.tenant.name,
+        consumerExternalId: row.tenant.externalIdValue,
+      }));
 
       return {
-        results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          eservices,
-          aggregationPipeline
-        ),
+        results: consumers,
+        totalCount: totalCount[0].count,
       };
-    },
-    async getDocumentById(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      documentId: EServiceDocumentId
-    ): Promise<Document | undefined> {
-      const eservice = await this.getEServiceById(eserviceId);
-      return eservice?.data.descriptors
-        .find((d) => d.id === descriptorId)
-        ?.docs.find((d) => d.id === documentId);
-    */
     },
     async listAgreements({
       eservicesIds,
@@ -562,54 +552,71 @@ export function readModelServiceBuilderSQL(
       limit?: number;
       descriptorId?: DescriptorId;
     }): Promise<Agreement[]> {
-      /*
-      const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
-        ? { "data.descriptorId": { $eq: descriptorId } }
-        : {};
+      const queryResult = await readmodelDB
+        .select({
+          agreement: agreementInReadmodelAgreement,
+          stamp: agreementStampInReadmodelAgreement,
+          attribute: agreementAttributeInReadmodelAgreement,
+          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+          contract: agreementContractInReadmodelAgreement,
+        })
+        .from(agreementInReadmodelAgreement)
+        .where(
+          and(
+            descriptorId
+              ? eq(agreementInReadmodelAgreement.descriptorId, descriptorId)
+              : undefined,
+            eservicesIds.length > 0
+              ? inArray(agreementInReadmodelAgreement.eserviceId, eservicesIds)
+              : undefined,
+            consumersIds.length > 0
+              ? inArray(agreementInReadmodelAgreement.consumerId, consumersIds)
+              : undefined,
+            producersIds.length > 0
+              ? inArray(agreementInReadmodelAgreement.producerId, producersIds)
+              : undefined,
+            states.length > 0
+              ? inArray(agreementInReadmodelAgreement.state, states)
+              : undefined
+          )
+        )
+        .leftJoin(
+          // 1
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 2
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 3
+          agreementConsumerDocumentInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementConsumerDocumentInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 4
+          agreementContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .limit(limit || 0);
 
-      const aggregationPipeline = [
-        {
-          $match: {
-            ...ReadModelRepository.arrayToFilter(eservicesIds, {
-              "data.eserviceId": { $in: eservicesIds },
-            }),
-            ...descriptorFilter,
-            ...ReadModelRepository.arrayToFilter(consumersIds, {
-              "data.consumerId": { $in: consumersIds },
-            }),
-            ...ReadModelRepository.arrayToFilter(producersIds, {
-              "data.producerId": { $in: producersIds },
-            }),
-            ...ReadModelRepository.arrayToFilter(states, {
-              "data.state": { $in: states },
-            }),
-          } satisfies ReadModelFilter<Agreement>,
-        },
-        {
-          $project: {
-            data: 1,
-          },
-        },
-      ];
-
-      const aggregationWithLimit = limit
-        ? [...aggregationPipeline, { $limit: limit }]
-        : aggregationPipeline;
-      const data = await agreements
-        .aggregate(aggregationWithLimit, { allowDiskUse: true })
-        .toArray();
-      const result = z.array(Agreement).safeParse(data.map((a) => a.data));
-
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse agreements: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-
-      return result.data;
-      */
+      return aggregateAgreementArray(
+        toAgreementAggregatorArray(queryResult)
+      ).map((agreementWithMetadata) => agreementWithMetadata.data);
     },
 
     async getAttributesByIds(
