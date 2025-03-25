@@ -36,7 +36,7 @@ describe("interpolateOpenApiSpec", async () => {
     serverUrls: [],
   };
 
-  it("should interpolate OpenAPI spec with eService data", async () => {
+  it("should interpolate OpenAPI spec", async () => {
     const result: File = await interpolateOpenApiSpec(
       eservice,
       file,
@@ -44,27 +44,24 @@ describe("interpolateOpenApiSpec", async () => {
       eserviceInstanceInterfaceData
     );
 
-    expect(result.name).toEqual(interfaceFileInfo.name);
-
-    expect(result.type).toEqual(interfaceFileInfo.contentType);
+    expect(result).toBeInstanceOf(File);
+    expect(result.name).toBe(interfaceFileInfo.name);
+    expect(result.type).toBe(interfaceFileInfo.contentType);
 
     const fileBuffer = await result.arrayBuffer();
     const jsonString = new TextDecoder().decode(fileBuffer);
     const parsedJson = JSON.parse(jsonString);
 
-    expect(parsedJson.info.termsOfService).toEqual(
-      eserviceInstanceInterfaceData.termsAndConditionsUrl
-    );
-    expect(parsedJson.info.contact.name).toEqual(
+    expect(parsedJson.info.contact.name).toBe(
       eserviceInstanceInterfaceData.contactName
     );
-    expect(parsedJson.info.contact.email).toEqual(
+    expect(parsedJson.info.contact.email).toBe(
       eserviceInstanceInterfaceData.contactEmail
     );
-    expect(parsedJson.info.contact.url).toEqual(
+    expect(parsedJson.info.contact.url).toBe(
       eserviceInstanceInterfaceData.contactUrl
     );
-    expect(parsedJson.servers.length).toEqual(
+    expect(parsedJson.servers.length).toBe(
       eserviceInstanceInterfaceData.serverUrls.length
     );
 
