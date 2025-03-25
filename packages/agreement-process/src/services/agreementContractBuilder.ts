@@ -177,7 +177,7 @@ const getPdfPayload = async (
     eserviceId: eservice.id,
     eserviceName: eservice.name,
     descriptorId: agreement.descriptorId,
-    descriptorVersion: descriptor.version.toString(),
+    descriptorVersion: descriptor.version,
     producerName: producer.name,
     producerIpaCode: getIpaCode(producer),
     consumerName: consumer.name,

@@ -54,7 +54,7 @@ export function toPublicEService(
     activeDescriptor: {
       id: activeDescriptor.id,
       state: activeDescriptor.state.toUpperCase() as "PUBLISHED" | "SUSPENDED",
-      version: activeDescriptor.version.toString(),
+      version: activeDescriptor.version,
     },
   };
 }

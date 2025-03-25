@@ -100,14 +100,14 @@ describe("read-model-queries.service", () => {
           {
             ...getMockDescriptor(),
             id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
-            version: "2",
+            version: 2,
             state: descriptorState.published,
           },
           {
             ...getMockDescriptor(),
             id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f3"),
             state: descriptorState.draft,
-            version: "1",
+            version: 1,
             attributes: {
               certified: [],
               verified: [],
@@ -131,14 +131,14 @@ describe("read-model-queries.service", () => {
           {
             ...getMockDescriptor(),
             id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
-            version: "2",
+            version: 2,
             state: descriptorState.published,
           },
           {
             ...getMockDescriptor(),
             id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f3"),
             state: descriptorState.waitingForApproval,
-            version: "1",
+            version: 1,
             attributes: {
               certified: [],
               verified: [],

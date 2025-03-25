@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   AppContext,
   AuthData,
@@ -686,10 +685,8 @@ export function agreementServiceBuilder(
       if (newDescriptor === undefined) {
         throw publishedDescriptorNotFound(eservice.id);
       }
-      const latestDescriptorVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(newDescriptor.version);
-      if (!latestDescriptorVersion.success) {
+
+      if (!Number.isInteger(newDescriptor.version)) {
         throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
       }
 
@@ -698,14 +695,11 @@ export function agreementServiceBuilder(
         eservice
       );
 
-      const currentVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(currentDescriptor.version);
-      if (!currentVersion.success) {
+      if (!Number.isInteger(currentDescriptor.version)) {
         throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
       }
 
-      if (latestDescriptorVersion.data <= currentVersion.data) {
+      if (newDescriptor.version <= currentDescriptor.version) {
         throw noNewerDescriptor(eservice.id, currentDescriptor.id);
       }
 
