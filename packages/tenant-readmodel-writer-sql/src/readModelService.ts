@@ -1,8 +1,9 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Tenant, TenantId, WithMetadata } from "pagopa-interop-models";
 import { TenantReadModelService } from "pagopa-interop-readmodel";
 import {
+  DrizzleReturnType,
+  DrizzleTransactionType,
   tenantCertifiedAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
@@ -15,7 +16,7 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
-  db: ReturnType<typeof drizzle>,
+  db: DrizzleReturnType,
   tenantReadModelService: TenantReadModelService
 ) {
   return {
@@ -79,13 +80,8 @@ export function readModelServiceBuilder(
   };
 }
 
-export type DrizzleReturnType = ReturnType<typeof drizzle>;
-export type TransactionType = Parameters<
-  Parameters<DrizzleReturnType["transaction"]>[0]
->[0];
-
 const updateTenantVersionInRelatedTable = async (
-  tx: TransactionType,
+  tx: DrizzleTransactionType,
   tenantId: TenantId,
   newVersion: number
 ): Promise<void> => {
