@@ -15,6 +15,6 @@ describe("Client JWK key splitter", () => {
       clientId,
       metadataVersion: 1,
     };
-    expect(clientJWKKeySQL).toEqual(expectedClientJWKKeySQL);
+    expect(clientJWKKeySQL).toStrictEqual(expectedClientJWKKeySQL);
   });
 });
