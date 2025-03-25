@@ -244,6 +244,7 @@ export function publishedDescriptorNotFound(
   });
 }
 
+// this can be deleted
 export function unexpectedVersionFormat(
   eserviceId: EServiceId,
   descriptorId: DescriptorId
