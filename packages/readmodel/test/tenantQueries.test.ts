@@ -52,7 +52,7 @@ describe("Tenant Queries", () => {
         retrievedVerifiedAttributeVerifiersSQL,
         retrievedVerifiedAttributeRevokersSQL,
         retrievedFeaturesSQL,
-      } = await retrieveTenantSQLObjects(tenant, isTenantComplete);
+      } = await retrieveTenantSQLObjects(tenant);
       expect(retrievedTenantSQL).toBeDefined();
       expect(retrievedMailsSQL).toHaveLength(tenantMails.length);
       expect(retrievedCertifiedAttributesSQL).toHaveLength(
@@ -109,7 +109,7 @@ describe("Tenant Queries", () => {
         retrievedVerifiedAttributeVerifiersSQL,
         retrievedVerifiedAttributeRevokersSQL,
         retrievedFeaturesSQL,
-      } = await retrieveTenantSQLObjects(tenant, isTenantComplete);
+      } = await retrieveTenantSQLObjects(tenant);
       expect(retrievedTenantSQL).toBeDefined();
       expect(retrievedMailsSQL).toHaveLength(tenantMails.length);
       expect(retrievedCertifiedAttributesSQL).toHaveLength(
@@ -179,7 +179,7 @@ describe("Tenant Queries", () => {
         retrievedVerifiedAttributeVerifiersSQL,
         retrievedVerifiedAttributeRevokersSQL,
         retrievedFeaturesSQL,
-      } = await retrieveTenantSQLObjects(tenant, isTenantComplete);
+      } = await retrieveTenantSQLObjects(tenant);
       expect(retrievedTenantSQL).toBeDefined();
       expect(retrievedMailsSQL).toHaveLength(tenantMails.length);
       expect(retrievedCertifiedAttributesSQL).toHaveLength(
@@ -246,7 +246,6 @@ describe("Tenant Queries", () => {
   });
   describe("Delete a Tenant", () => {
     it("should delete a tenant from a tenantId", async () => {
-      const isTenantComplete = true;
       const { tenant, tenantForVerifying, tenantForRevoking } =
         initMockTenant();
 
@@ -284,7 +283,7 @@ describe("Tenant Queries", () => {
         retrievedVerifiedAttributeVerifiersSQL,
         retrievedVerifiedAttributeRevokersSQL,
         retrievedFeaturesSQL,
-      } = await retrieveTenantSQLObjects(tenant, isTenantComplete);
+      } = await retrieveTenantSQLObjects(tenant);
 
       expect(sortATenant(retrievedInsertedTenant!)).toStrictEqual(
         sortATenant(tenant)
