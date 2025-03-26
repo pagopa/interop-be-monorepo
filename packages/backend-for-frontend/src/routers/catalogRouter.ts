@@ -1039,6 +1039,24 @@ const catalogRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .get("/eservices/names/availability", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { name } = req.query;
+
+      try {
+        const result = await catalogService.isEServiceNameAvailable(name, ctx);
+        return res.status(200).send(result);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error checking eservice name availability with name ${name}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return catalogRouter;
