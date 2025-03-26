@@ -2,6 +2,7 @@ import { keyToClientJWKKey } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
+  genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -17,12 +18,12 @@ export async function handleMessageV2(
         ? fromClientV2(message.data.client)
         : undefined;
       if (!client) {
-        throw Error("Client not found in event");
+        throw genericInternalError("Client not found in event");
       }
 
       const key = client?.keys.find((key) => key.kid === message.data.kid);
       if (!key) {
-        throw Error(`Key not found in client: ${client?.id}`);
+        throw genericInternalError(`Key not found in client: ${client?.id}`);
       }
       await clientJWKKeyReadModelService.upsertClientJWKKey(
         keyToClientJWKKey(key, client.id),
@@ -34,7 +35,7 @@ export async function handleMessageV2(
         ? fromClientV2(message.data.client)
         : undefined;
       if (!client) {
-        throw Error("Client not found in event");
+        throw genericInternalError("Client not found in event");
       }
 
       await clientJWKKeyReadModelService.deleteClientJWKKeyByClientIdAndKid(
