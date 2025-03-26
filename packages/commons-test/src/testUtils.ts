@@ -765,15 +765,7 @@ export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
   } else if ("data" in tenant && "metadata" in tenant) {
     return {
       ...tenant,
-      data: {
-        ...tenant.data,
-        attributes: [...tenant.data.attributes].sort(
-          sortBy<TenantAttribute>((att) => att.id)
-        ),
-        features: [...tenant.data.features].sort(
-          sortBy<TenantFeature>((feature) => feature.type)
-        ),
-      },
+      data: sortTenant(tenant.data),
     };
   } else {
     return {
