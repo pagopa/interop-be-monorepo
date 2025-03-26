@@ -4,7 +4,6 @@ import {
   DelegationId,
   delegationKind,
   generateId,
-  stringToDate,
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
@@ -117,9 +116,3 @@ const retrieveDelegationSQL = async (
     .where(eq(delegationInReadmodelDelegation.id, delegationId));
   return delegations[0];
 };
-
-export function stringToISOString(input: string): string;
-export function stringToISOString(input: string | null): string | null;
-export function stringToISOString(input: string | null): string | null {
-  return input ? stringToDate(input).toISOString() : null;
-}
