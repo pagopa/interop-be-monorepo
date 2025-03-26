@@ -1,5 +1,6 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  M2MAuthData,
   RiskAnalysisValidatedForm,
   UIAuthData,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -99,7 +100,7 @@ export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<void> {
   // Search for active producer delegation
@@ -125,7 +126,7 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: UIAuthData
+  authData: UIAuthData | M2MAuthData
 ): void {
   if (producerId !== authData.organizationId) {
     throw operationForbidden;

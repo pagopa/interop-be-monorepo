@@ -120,11 +120,7 @@ const attributeRouter = (
     .get("/attributes/origin/:origin/code/:code", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(
-          ctx,
-          ["ui", "m2m", "internal"],
-          ["admin", "support"]
-        );
+        validateAuthorization(ctx, ["ui", "m2m"], ["admin", "support"]);
 
         const { origin, code } = req.params;
         const attribute =

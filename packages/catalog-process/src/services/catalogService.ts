@@ -3,7 +3,6 @@ import { randomUUID } from "crypto";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
-  AuthData,
   CreateEvent,
   DB,
   eventRepository,
@@ -26,7 +25,6 @@ import {
   agreementState,
   AttributeId,
   catalogEventToBinaryData,
-  CorrelationId,
   Delegation,
   delegationKind,
   delegationState,
@@ -837,7 +835,7 @@ export function catalogServiceBuilder(
         authData,
         correlationId,
         logger,
-      }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
 
@@ -998,7 +996,7 @@ export function catalogServiceBuilder(
 
     async deleteEService(
       eserviceId: EServiceId,
-      { authData, correlationId, logger }: WithLogger<AppContext<AuthData>>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
 
