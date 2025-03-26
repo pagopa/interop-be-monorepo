@@ -318,7 +318,7 @@ describe("database test", () => {
         await addOneTenant(tenant);
 
         const attribute =
-          await attributeRegistryService.createInternalCertifiedAttribute(
+          await attributeRegistryService.internalCreateCertifiedAttribute(
             {
               name: mockAttribute.name,
               code: "code",
@@ -375,7 +375,7 @@ describe("database test", () => {
         await addOneTenant(tenant);
         await addOneAttribute(attribute);
         expect(
-          attributeRegistryService.createInternalCertifiedAttribute(
+          attributeRegistryService.internalCreateCertifiedAttribute(
             {
               name: attribute.name.toLowerCase(),
               code: attribute.code.toLowerCase(),
