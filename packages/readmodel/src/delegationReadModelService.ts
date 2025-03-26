@@ -1,0 +1,121 @@
+import { and, eq, lte } from "drizzle-orm";
+import { Delegation, DelegationId, WithMetadata } from "pagopa-interop-models";
+import {
+  delegationContractDocumentInReadmodelDelegation,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
+  DrizzleReturnType,
+} from "pagopa-interop-readmodel-models";
+import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
+import {
+  aggregateDelegation,
+  toDelegationAggregator,
+} from "./delegation/aggregators.js";
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
+  return {
+    async upsertDelegation(
+      delegation: Delegation,
+      metadataVersion: number
+    ): Promise<void> {
+      const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+        splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+
+      await db.transaction(async (tx) => {
+        const existingMetadataVersion: number | undefined = (
+          await tx
+            .select({
+              metadataVersion: delegationInReadmodelDelegation.metadataVersion,
+            })
+            .from(delegationInReadmodelDelegation)
+            .where(eq(delegationInReadmodelDelegation.id, delegation.id))
+        )[0]?.metadataVersion;
+
+        if (
+          !existingMetadataVersion ||
+          existingMetadataVersion <= metadataVersion
+        ) {
+          await tx
+            .delete(delegationInReadmodelDelegation)
+            .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+          await tx
+            .insert(delegationInReadmodelDelegation)
+            .values(delegationSQL);
+
+          for (const stampSQL of stampsSQL) {
+            await tx
+              .insert(delegationStampInReadmodelDelegation)
+              .values(stampSQL);
+          }
+
+          for (const docSQL of contractDocumentsSQL) {
+            await tx
+              .insert(delegationContractDocumentInReadmodelDelegation)
+              .values(docSQL);
+          }
+        }
+      });
+    },
+    async getDelegationById(
+      delegationId: DelegationId
+    ): Promise<WithMetadata<Delegation> | undefined> {
+      /*
+        delegation -> 1 delegation_stamp
+                  -> 2 delegation_contract_document
+      */
+      const queryResult = await db
+        .select({
+          delegation: delegationInReadmodelDelegation,
+          delegationStamp: delegationStampInReadmodelDelegation,
+          delegationContractDocument:
+            delegationContractDocumentInReadmodelDelegation,
+        })
+        .from(delegationInReadmodelDelegation)
+        .where(eq(delegationInReadmodelDelegation.id, delegationId))
+        .leftJoin(
+          // 1
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          // 2
+          delegationContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return aggregateDelegation(toDelegationAggregator(queryResult));
+    },
+    async deleteDelegationById(
+      delegationId: DelegationId,
+      metadataVersion: number
+    ): Promise<void> {
+      await db
+        .delete(delegationInReadmodelDelegation)
+        .where(
+          and(
+            eq(delegationInReadmodelDelegation.id, delegationId),
+            lte(
+              delegationInReadmodelDelegation.metadataVersion,
+              metadataVersion
+            )
+          )
+        );
+    },
+  };
+}
+
+export type DelegationReadModelService = ReturnType<
+  typeof delegationReadModelServiceBuilder
+>;
