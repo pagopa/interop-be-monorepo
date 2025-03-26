@@ -786,7 +786,7 @@ describe("get eservices", () => {
     });
   });
 
-  it.only("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
+  it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
     const result1 = await catalogService.getEServices(
       getMockAuthData(),
       {
