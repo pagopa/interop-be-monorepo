@@ -24,8 +24,8 @@ import {
   UserId,
   DelegationId,
   AgreementStampKind,
-  genericInternalError,
   AgreementAttribute,
+  AttributeKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -77,7 +77,7 @@ export const aggregateAgreement = ({
         },
         a
       ) =>
-        match(a.kind)
+        match(AttributeKind.parse(a.kind))
           .with(attributeKind.verified, () => ({
             ...acc,
             verifiedAttributes: [
@@ -99,9 +99,7 @@ export const aggregateAgreement = ({
               { id: unsafeBrandId<AttributeId>(a.attributeId) },
             ],
           }))
-          .otherwise(() => {
-            throw genericInternalError(`Unknown attribute kind: ${a.kind}`);
-          }),
+          .exhaustive(),
       {
         verifiedAttributes: [],
         certifiedAttributes: [],
@@ -123,7 +121,7 @@ export const aggregateAgreement = ({
     archiving: archivingStampSQL,
   } = stampsSQL.reduce(
     (acc: { [key in AgreementStampKind]?: AgreementStampSQL }, stamp) =>
-      match(stamp.kind)
+      match(AgreementStampKind.parse(stamp.kind))
         .with(AgreementStampKind.enum.submission, () => ({
           ...acc,
           submission: stamp,
@@ -152,9 +150,7 @@ export const aggregateAgreement = ({
           ...acc,
           archiving: stamp,
         }))
-        .otherwise(() => {
-          throw genericInternalError(`Unknown stamp kind: ${stamp.kind}`);
-        }),
+        .exhaustive(),
     {}
   );
 
