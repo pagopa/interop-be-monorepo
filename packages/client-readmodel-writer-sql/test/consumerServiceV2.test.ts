@@ -46,9 +46,9 @@ describe("Events V2", async () => {
       mockClient.id
     );
 
-    expect(retrievedClient?.data).toEqual(mockClient);
+    expect(retrievedClient?.data).toStrictEqual(mockClient);
 
-    expect(retrievedClient?.metadata).toEqual({
+    expect(retrievedClient?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -79,8 +79,8 @@ describe("Events V2", async () => {
       mockClient.id
     );
 
-    expect(retrievedClient?.data).toEqual(updatedClient);
-    expect(retrievedClient?.metadata).toEqual({
+    expect(retrievedClient?.data).toStrictEqual(updatedClient);
+    expect(retrievedClient?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -143,8 +143,8 @@ describe("Events V2", async () => {
       updatedClient.id
     );
 
-    expect(retrievedClient?.data).toEqual(updatedClient);
-    expect(retrievedClient?.metadata).toEqual({
+    expect(retrievedClient?.data).toStrictEqual(updatedClient);
+    expect(retrievedClient?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -207,8 +207,8 @@ describe("Events V2", async () => {
       updatedClient.id
     );
 
-    expect(retrievedClient?.data).toEqual(updatedClient);
-    expect(retrievedClient?.metadata).toEqual({
+    expect(retrievedClient?.data).toStrictEqual(updatedClient);
+    expect(retrievedClient?.metadata).toStrictEqual({
       version: 2,
     });
   });

@@ -59,7 +59,7 @@ describe("Events V1", async () => {
       mockClient.id
     );
 
-    expect(retrievedClient).toMatchObject({
+    expect(retrievedClient).toStrictEqual({
       data: mockClient,
       metadata: { version: 1 },
     });
@@ -83,7 +83,7 @@ describe("Events V1", async () => {
       mockClient.id
     );
 
-    expect(retrievedClient).toMatchObject({
+    expect(retrievedClient).toStrictEqual({
       data: mockClient,
       metadata: { version: 1 },
     });
@@ -115,8 +115,8 @@ describe("Events V1", async () => {
       updatedClient.id
     );
 
-    expect(retrievedClient?.data).toEqual(updatedClient);
-    expect(retrievedClient?.metadata).toEqual({
+    expect(retrievedClient?.data).toStrictEqual(updatedClient);
+    expect(retrievedClient?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -184,8 +184,8 @@ describe("Events V1", async () => {
     const retrievedClient = await clientReadModelService.getClientById(
       updatedClient.id
     );
-    expect(retrievedClient?.data).toEqual(updatedClient);
-    expect(retrievedClient?.metadata).toEqual({
+    expect(retrievedClient?.data).toStrictEqual(updatedClient);
+    expect(retrievedClient?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -302,7 +302,7 @@ describe("Events V1", async () => {
       updatedClient.id
     );
 
-    expect(retrievedClient).toMatchObject({
+    expect(retrievedClient).toStrictEqual({
       data: updatedClient,
       metadata: { version: 2 },
     });
@@ -365,7 +365,7 @@ describe("Events V1", async () => {
         updatedClient.id
       );
 
-      expect(retrievedClient).toMatchObject({
+      expect(retrievedClient).toStrictEqual({
         data: updatedClient,
         metadata: { version: 2 },
       });
