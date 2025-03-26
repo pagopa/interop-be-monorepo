@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 import { randomUUID } from "crypto";
 import { Readable } from "stream";
 import SwaggerParser from "@apidevtools/swagger-parser";
@@ -11,11 +12,11 @@ import {
   genericError,
   interfaceExtractingInfoError,
   invalidInterfaceContentTypeDetected,
+  invalidInterfaceData,
   invalidInterfaceFileDetected,
   openapiVersionNotRecognized,
   technology,
   Technology,
-  invalidInterfaceData,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z, ZodError } from "zod";
@@ -27,9 +28,9 @@ import {
   retrieveServerUrlsOpenApiV2,
 } from "./restFileParser.js";
 import {
-  parseSoapApi,
   retrieveServerUrlsSoapAPI,
   soapApiFileToBuffer,
+  soapParse,
 } from "./soapFileParser.js";
 
 export const eserviceInterfaceAllowedFileType = {
@@ -119,8 +120,8 @@ export const interpolateApiSpec = async (
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
   return match([fileType, eserviceInstanceInterfaceRestData])
     .with(
-      (eserviceInterfaceAllowedFileType.json, P.not(P.nullish)),
-      (eserviceInterfaceAllowedFileType.yaml, P.not(P.nullish)),
+      [eserviceInterfaceAllowedFileType.json, P.not(P.nullish)],
+      [eserviceInterfaceAllowedFileType.yaml, P.not(P.nullish)],
       ([_, contactData]) =>
         interpolateOpenApiSpec(eservice, file, interfaceFileInfo, {
           serverUrls,
@@ -128,8 +129,8 @@ export const interpolateApiSpec = async (
         })
     )
     .with(
-      (eserviceInterfaceAllowedFileType.wsdl, P.nullish),
-      (eserviceInterfaceAllowedFileType.xml, P.nullish),
+      [eserviceInterfaceAllowedFileType.wsdl, P.nullish],
+      [eserviceInterfaceAllowedFileType.xml, P.nullish],
       () =>
         interpolateSoapApiSpec(eservice, file, interfaceFileInfo, {
           serverUrls,
@@ -219,7 +220,7 @@ export const interpolateSoapApiSpec = async (
       eserviceInterfaceAllowedFileType.xml,
       (fileType) => ({
         concreteFileType: fileType,
-        jsonApi: parseSoapApi(fileType, file),
+        jsonApi: soapParse(file),
       })
     )
     .otherwise(() => {
@@ -235,20 +236,29 @@ export const interpolateSoapApiSpec = async (
     this data is not present in the final WSDL file
   ========================================================= */
 
+  const urlsPorts = eserviceInstanceInterfaceData.serverUrls.map((url) => ({
+    "soap:address": {
+      "@_location": url,
+    },
+  }));
+
   // eslint-disable-next-line functional/immutable-data
-  jsonApi.definitions.service.port =
-    eserviceInstanceInterfaceData.serverUrls.map((url) => ({
-      address: {
-        location: url,
+  const interpolatedJsonApi = {
+    ...jsonApi,
+    "wsdl:definitions": {
+      ...jsonApi["wsdl:definitions"],
+      "wsdl:service": {
+        "wsdl:port": [...urlsPorts],
       },
-    }));
+    },
+  };
 
   try {
     const updatedInterfaceBuffer = match(concreteFileType)
       .with(
         eserviceInterfaceAllowedFileType.wsdl,
         eserviceInterfaceAllowedFileType.xml,
-        (fileType) => soapApiFileToBuffer(fileType, jsonApi)
+        (fileType) => soapApiFileToBuffer(fileType, interpolatedJsonApi)
       )
       .otherwise(() => {
         throw interfaceExtractingInfoError();
