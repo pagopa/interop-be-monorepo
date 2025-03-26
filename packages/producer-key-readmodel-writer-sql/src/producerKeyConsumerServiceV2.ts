@@ -21,13 +21,13 @@ export async function handleMessageV2(
         (key) => key.kid === message.data.kid
       );
       if (!key) {
-        throw Error(
+        throw genericInternalError(
           `Key not found in producerKeychain: ${producerKeychain?.id}`
         );
       }
       const producerKeychainId = producerKeychain?.id;
       if (!producerKeychainId) {
-        throw Error("ProducerKeychainId not found");
+        throw genericInternalError("ProducerKeychainId not found");
       }
 
       await producerJWKKeyReadModelService.upsertProducerJWKKey(
