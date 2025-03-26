@@ -10,7 +10,7 @@ import {
   missingHeader,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData, assertAuthDataTokenTypeIn } from "../auth/authData.js";
+import { AuthData } from "../auth/authData.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
 
@@ -28,13 +28,6 @@ export type WithLogger<T> = T & { logger: Logger };
 
 export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
   return { ...ctx, logger: logger({ ...ctx }) };
-}
-
-export function assertContextHasTokenTypeIn<T extends AuthData["tokenType"]>(
-  ctx: AppContext,
-  tokenTypes: ReadonlyArray<T>
-): asserts ctx is AppContext<Extract<AuthData, { tokenType: T }>> {
-  assertAuthDataTokenTypeIn(ctx.authData, tokenTypes);
 }
 
 const makeApiProblem = makeApiProblemBuilder({});

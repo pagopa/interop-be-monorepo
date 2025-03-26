@@ -1,7 +1,6 @@
 import {
   AppContext,
   DB,
-  Logger,
   WithLogger,
   eventRepository,
   UIAuthData,
@@ -55,7 +54,7 @@ export function attributeRegistryServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<ListResult<Attribute>> {
       logger.info(
         `Getting attributes with name = ${name}, limit = ${limit}, offset = ${offset}, kinds = ${kinds}`
@@ -71,7 +70,7 @@ export function attributeRegistryServiceBuilder(
 
     async getAttributeByName(
       name: string,
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with name ${name}`);
       const attribute = await readModelService.getAttributeByName(name);
@@ -89,7 +88,7 @@ export function attributeRegistryServiceBuilder(
         origin: string;
         code: string;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute ${origin}/${code}`);
       const attribute = await readModelService.getAttributeByOriginAndCode({
@@ -104,7 +103,7 @@ export function attributeRegistryServiceBuilder(
 
     async getAttributeById(
       id: AttributeId,
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with ID ${id}`);
       const attribute = await readModelService.getAttributeById(id);
@@ -124,7 +123,7 @@ export function attributeRegistryServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<ListResult<Attribute>> {
       logger.info(`Retrieving attributes in bulk by id in [${ids}]`);
       return await readModelService.getAttributesByIds({ ids, offset, limit });
@@ -268,7 +267,7 @@ export function attributeRegistryServiceBuilder(
       return newCertifiedAttribute;
     },
 
-    async createInternalCertifiedAttribute(
+    async internalCreateCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<Attribute> {

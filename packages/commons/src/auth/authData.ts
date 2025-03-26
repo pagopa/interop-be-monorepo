@@ -3,7 +3,6 @@ import {
   UserId,
   unsafeBrandId,
   SelfcareId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -180,25 +179,4 @@ export function getUserInfoFromAuthData(authData: AuthData | undefined): {
       organizationId: t.organizationId,
     }))
     .exhaustive();
-}
-
-export function assertAuthDataTokenTypeIn<T extends AuthData["tokenType"]>(
-  authData: AuthData,
-  tokenTypes: ReadonlyArray<T>
-): asserts authData is Extract<AuthData, { tokenType: T }> {
-  if (!tokenTypes.includes(authData.tokenType as T)) {
-    throw unauthorizedError(
-      `Invalid token type '${authData.tokenType}' to execute this request`
-    );
-  }
-}
-
-export function hasUserRole(
-  authData: AuthData,
-  userRoles: UserRole[]
-): boolean {
-  return (
-    authData.tokenType === "ui" &&
-    authData.userRoles.some((role: UserRole) => userRoles.includes(role))
-  );
 }
