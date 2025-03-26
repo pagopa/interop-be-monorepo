@@ -1701,6 +1701,9 @@ importers:
       '@testcontainers/postgresql':
         specifier: 10.9.0
         version: 10.9.0
+      '@types/adm-zip':
+        specifier: 0.5.5
+        version: 0.5.5
       '@types/jsonwebtoken':
         specifier: 9.0.6
         version: 9.0.6
@@ -1710,6 +1713,9 @@ importers:
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.7.4)(zod@3.23.8)
+      adm-zip:
+        specifier: 0.5.15
+        version: 0.5.15
       aws-sdk-client-mock:
         specifier: 4.0.1
         version: 4.0.1
