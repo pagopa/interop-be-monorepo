@@ -1,12 +1,12 @@
 /* eslint-disable functional/no-let */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockTenant,
   getMockEService,
   getMockAgreement,
-  getRandomAuthData,
+  getMockAuthData,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockContext,
+} from "pagopa-interop-commons-test";
 import {
   EService,
   Tenant,
@@ -183,12 +183,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
 
     expectSinglePageListResult(
@@ -204,12 +199,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant2.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant2.id) })
     );
 
     expectSinglePageListResult(
@@ -225,12 +215,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant3.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
     expectSinglePageListResult(
@@ -249,12 +234,7 @@ describe("get agreements eservices", () => {
         },
         10,
         0,
-        {
-          authData: getRandomAuthData(delegateProducer1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(delegateProducer1.id) })
       );
     expectSinglePageListResult(
       resultsForDelegateProducer1,
@@ -272,12 +252,7 @@ describe("get agreements eservices", () => {
         },
         10,
         0,
-        {
-          authData: getRandomAuthData(delegateConsumer1.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(delegateConsumer1.id) })
       );
     expectSinglePageListResult(
       resultsForDelegateConsumer1,
@@ -293,12 +268,7 @@ describe("get agreements eservices", () => {
         },
         10,
         0,
-        {
-          authData: getRandomAuthData(delegateConsumer2.id),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
       );
     expectSinglePageListResult(
       resultsForDelegateConsumer2,
@@ -315,12 +285,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant3.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
     expectSinglePageListResult(
@@ -338,12 +303,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant3.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
     expectSinglePageListResult(
@@ -361,12 +321,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant2.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant2.id) })
     );
 
     expectSinglePageListResult(eservices, [eservice1].map(toCompactEService));
@@ -381,12 +336,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
 
     expect(eservices).toEqual({
@@ -404,12 +354,7 @@ describe("get agreements eservices", () => {
       },
       2,
       0,
-      {
-        authData: getRandomAuthData(tenant3.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
     expect(eservices).toEqual({
@@ -427,12 +372,7 @@ describe("get agreements eservices", () => {
       },
       2,
       1,
-      {
-        authData: getRandomAuthData(tenant3.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
     expect(eservices).toEqual({
@@ -450,12 +390,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant1.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
 
     expectSinglePageListResult(eservices, []);
@@ -470,12 +405,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant2.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant2.id) })
     );
 
     expectSinglePageListResult(eservices, [eservice1].map(toCompactEService));
@@ -490,12 +420,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      {
-        authData: getRandomAuthData(tenant3.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
     expectSinglePageListResult(
