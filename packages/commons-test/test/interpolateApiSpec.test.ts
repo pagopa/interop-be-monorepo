@@ -2,7 +2,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs/promises";
 import { describe, expect, it } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { generateId, invalidInterfaceData } from "pagopa-interop-models";
 import { interpolateApiSpec } from "pagopa-interop-commons";
 import { getMockEService } from "../src/index.js";
 
@@ -101,5 +101,22 @@ describe("interpolateApiSpec", async () => {
       .trim();
 
     expect(normalizedFileContent).toBe(normalizedExpectedContent);
+  });
+  it("should throw invalidInterfaceData error for unsupported file type", async () => {
+    const interfaceFileInfo = {
+      id: generateId(),
+      name: "txt",
+      contentType: "application/json",
+      prettyName: "Test Interface",
+    };
+    await expect(
+      interpolateApiSpec(
+        eservice,
+        file,
+        interfaceFileInfo,
+        serverUrls,
+        eserviceInstanceInterfaceRestData
+      )
+    ).rejects.toThrow(invalidInterfaceData(eservice.id));
   });
 });
