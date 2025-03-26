@@ -155,7 +155,6 @@ export function dtdCatalogExporterServiceBuilder({
         `data/${config.dtdCatalogCsvFilename}`
       );
 
-      // Tenants
       loggerInstance.info("\nUploading Tenants JSON result to GitHub repo...");
       const tenantsJsonContent = JSON.stringify(tenants);
       await githubClient.createOrUpdateRepoFile(
