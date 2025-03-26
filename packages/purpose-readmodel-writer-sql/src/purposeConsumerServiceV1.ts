@@ -8,7 +8,6 @@ import { match } from "ts-pattern";
 import { CustomReadModelService } from "./readModelService.js";
 import { getPurposeFromMessage } from "./utils.js";
 
-// TODO: difference from original code -> merged some events together
 export async function handleMessageV1(
   message: PurposeEventEnvelopeV1,
   purposeReadModelService: CustomReadModelService
