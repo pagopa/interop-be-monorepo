@@ -9,6 +9,7 @@ import {
   DelegationTopicConfig,
   KafkaBatchConsumerConfig,
   LoggerConfig,
+  EServiceTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -23,7 +24,8 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
   .and(CatalogTopicConfig)
   .and(TenantTopicConfig)
   .and(AuthorizationTopicConfig)
-  .and(DelegationTopicConfig);
+  .and(DelegationTopicConfig)
+  .and(EServiceTemplateTopicConfig);
 
 export type DomainsAnalyticsWriterConfig = z.infer<
   typeof DomainsAnalyticsWriterConfig

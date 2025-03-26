@@ -16,6 +16,7 @@ import {
   AttributeEvent,
   DelegationEvent,
   TenantEvent,
+  EServiceTemplateEvent,
 } from "pagopa-interop-models";
 import { runBatchConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
@@ -36,6 +37,7 @@ import { handleTenantMessageV1 } from "./handlers/tenant/consumerServiceV1.js";
 import { handleCatalogMessageV2 } from "./handlers/catalog/consumerServiceV2.js";
 import { handleAttributeMessageV1 } from "./handlers/attribute/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "./handlers/tenant/consumerServiceV2.js";
+import { handleEserviceTemplateMessageV2 } from "./handlers/eservice-template/consumerServiceV2.js";
 
 async function processMessage(
   messagePayload: EachMessagePayload
@@ -149,6 +151,19 @@ async function processMessage(
         .with({ event_version: 2 }, (decodedMessage) => ({
           decodedMessage,
           handler: handleDelegationMessageV2.bind(null, decodedMessage),
+        }))
+        .exhaustive();
+    })
+    .with(config.eserviceTemplateTopic, () => {
+      const decodedMessage = decodeKafkaMessage(
+        messagePayload.message,
+        EServiceTemplateEvent
+      );
+
+      return match(decodedMessage)
+        .with({ event_version: 2 }, (decodedMessage) => ({
+          decodedMessage,
+          handler: handleEserviceTemplateMessageV2.bind(null, decodedMessage),
         }))
         .exhaustive();
     })
