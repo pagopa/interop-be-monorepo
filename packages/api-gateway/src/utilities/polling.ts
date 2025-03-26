@@ -37,6 +37,8 @@ export async function pollUntilReady<T>(
     attempts++;
 
     try {
+      // This assumes the fetch function always needs a context and an id as the only 2 parameters
+      // This could be improved
       const result = await fetchFn(ctx, id);
 
       if (!result) {
