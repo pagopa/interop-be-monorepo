@@ -4,15 +4,15 @@ meta {
   seq: 12
 }
 
-post {
-  url: {{host-catalog}}/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId
+delete {
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId
   body: none
   auth: none
 }
 
 params:path {
-  eserviceId: {{eServiceTemplateId}}
-  versionId: {{eServiceTemplateVersionId}}
+  eserviceTemplateVersionId: {{eserviceTemplateVersionId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
 }
 
 headers {
