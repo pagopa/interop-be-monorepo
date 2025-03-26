@@ -38,6 +38,7 @@ import { attributeServiceBuilder } from "../services/attributeService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
+import { pollUntilReady } from "../utilities/polling.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -206,13 +207,26 @@ const apiGatewayRouter = (
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
         try {
-          const attribute = await attributeService.createCertifiedAttribute(
+          // Pretending this only returns the id of the object that will be created
+          const { id } = await attributeService.createCertifiedAttribute(
             ctx,
             req.body
           );
 
+          const attribute = await pollUntilReady(
+            attributeService.getAttribute,
+            ctx,
+            id,
+            {
+              maxAttempts: 5,
+              intervalMs: 100,
+              checkFn: (a) => a.id === id,
+            }
+          );
+
           return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
         } catch (error) {
+          // TODO: this should also manage the polling errors
           const errorRes = makeApiProblem(
             error,
             createCertifiedAttributeErrorMapper,
