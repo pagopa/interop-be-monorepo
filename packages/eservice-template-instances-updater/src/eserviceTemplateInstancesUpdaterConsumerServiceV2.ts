@@ -53,6 +53,7 @@ export async function handleMessageV2({
     eventType: decodedKafkaMessage.type,
     eventVersion: decodedKafkaMessage.event_version,
     streamId: decodedKafkaMessage.stream_id,
+    streamVersion: decodedKafkaMessage.version,
     correlationId,
   });
 

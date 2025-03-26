@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockContext,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   EService,
   EServiceDescriptorQuotasUpdatedByTemplateUpdateV2,
   toEServiceV2,
-  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -16,7 +18,6 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -52,12 +53,7 @@ describe("update descriptor", () => {
       eservice.id,
       descriptor.id,
       1000,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -90,12 +86,7 @@ describe("update descriptor", () => {
       eservice.id,
       descriptor.id,
       1000,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).not.toMatchObject({
@@ -112,12 +103,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         1000,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -134,12 +120,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         1000,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
