@@ -34,6 +34,7 @@ async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
+    streamVersion: decodedMessage.version,
     correlationId: decodedMessage.correlation_id
       ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
       : generateId<CorrelationId>(),
