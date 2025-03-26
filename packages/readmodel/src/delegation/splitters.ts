@@ -6,9 +6,7 @@ import {
   DelegationContractKind,
   DelegationId,
   DelegationStamp,
-  delegationStampKind,
   DelegationStampKind,
-  DelegationStamps,
 } from "pagopa-interop-models";
 import {
   DelegationContractDocumentSQL,
@@ -76,8 +74,6 @@ export const splitDelegationIntoObjectsSQL = (
     contractDocumentsSQL.push(revocationContractSQL);
   }
 
-  const stampsSQL: DelegationStampSQL[] = [];
-
   const makeStampSQL = (
     { who, when, ...stampRest }: DelegationStamp,
     delegationId: DelegationId,
@@ -94,20 +90,13 @@ export const splitDelegationIntoObjectsSQL = (
     };
   };
 
-  // TODO: improve?
-  // eslint-disable-next-line functional/no-let
-  let key: keyof DelegationStamps;
+  const stampsSQL: DelegationStampSQL[] = Object.entries(stamps)
+    .filter((entry): entry is [DelegationStampKind, DelegationStamp] => {
+      const [, stamp] = entry;
+      return stamp !== undefined;
+    })
+    .map(([key, stamp]) => makeStampSQL(stamp, id, metadataVersion, key));
 
-  // eslint-disable-next-line guard-for-in
-  for (key in stamps) {
-    const stamp = stamps[key];
-    if (stamp) {
-      // eslint-disable-next-line functional/immutable-data
-      stampsSQL.push(
-        makeStampSQL(stamp, id, metadataVersion, delegationStampKind[key])
-      );
-    }
-  }
   return {
     delegationSQL,
     contractDocumentsSQL,

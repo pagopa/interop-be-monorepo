@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
-  generateId,
   EService,
   EServiceDescriptorAddedV2,
   toEServiceV2,
@@ -31,7 +31,6 @@ import {
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockDocument,
@@ -89,12 +88,7 @@ describe("create descriptor", async () => {
       await catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -195,12 +189,7 @@ describe("create descriptor", async () => {
       await catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        {
-          authData: getMockAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -296,12 +285,7 @@ describe("create descriptor", async () => {
         catalogService.createTemplateInstanceDescriptor(
           eservice.id,
           descriptorSeed,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
     }
@@ -347,12 +331,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -392,12 +371,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 60 },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -443,12 +417,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 60 },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -487,12 +456,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 50 },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });

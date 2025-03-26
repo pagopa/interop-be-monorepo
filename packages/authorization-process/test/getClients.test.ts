@@ -6,7 +6,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { getMockClient, getRandomAuthData } from "pagopa-interop-commons-test";
+import { getMockClient, getMockAuthData } from "pagopa-interop-commons-test";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
 import { addOneClient, authorizationService } from "./utils.js";
 
@@ -63,7 +63,7 @@ describe("getClients", async () => {
         consumerId,
         purposeId: undefined,
       },
-      authData: getRandomAuthData(consumerId),
+      authData: getMockAuthData(consumerId),
       offset: 0,
       limit: 50,
       logger: genericLogger,
@@ -95,7 +95,7 @@ describe("getClients", async () => {
         purposeId: undefined,
       },
       authData: {
-        ...getRandomAuthData(consumerId),
+        ...getMockAuthData(consumerId),
         userRoles: [userRoles.SECURITY_ROLE],
         userId,
       },
@@ -126,7 +126,7 @@ describe("getClients", async () => {
         purposeId: undefined,
       },
       authData: {
-        ...getRandomAuthData(consumerId),
+        ...getMockAuthData(consumerId),
         userRoles: [userRoles.INTERNAL_ROLE],
         userId: generateId(),
       },
@@ -147,7 +147,7 @@ describe("getClients", async () => {
         consumerId,
         purposeId: undefined,
       },
-      authData: getRandomAuthData(consumerId),
+      authData: getMockAuthData(consumerId),
       offset: 0,
       limit: 50,
       logger: genericLogger,
@@ -165,7 +165,7 @@ describe("getClients", async () => {
         consumerId,
         purposeId,
       },
-      authData: getRandomAuthData(consumerId),
+      authData: getMockAuthData(consumerId),
       offset: 0,
       limit: 50,
       logger: genericLogger,
@@ -183,7 +183,7 @@ describe("getClients", async () => {
         purposeId: undefined,
         kind: "Consumer",
       },
-      authData: getRandomAuthData(consumerId),
+      authData: getMockAuthData(consumerId),
       offset: 0,
       limit: 50,
       logger: genericLogger,
@@ -215,7 +215,7 @@ describe("getClients", async () => {
         consumerId,
         purposeId: undefined,
       },
-      authData: getRandomAuthData(consumerId),
+      authData: getMockAuthData(consumerId),
       offset: 2,
       limit: 50,
       logger: genericLogger,
@@ -248,7 +248,7 @@ describe("getClients", async () => {
         consumerId,
         purposeId: undefined,
       },
-      authData: getRandomAuthData(consumerId),
+      authData: getMockAuthData(consumerId),
       offset: 0,
       limit: 2,
       logger: genericLogger,
@@ -263,7 +263,7 @@ describe("getClients", async () => {
         consumerId: generateId(),
         purposeId: undefined,
       },
-      authData: getRandomAuthData(consumerId),
+      authData: getMockAuthData(consumerId),
       offset: 0,
       limit: 50,
       logger: genericLogger,
@@ -296,7 +296,7 @@ describe("getClients", async () => {
         purposeId,
         kind: "Consumer",
       },
-      authData: getRandomAuthData(consumerId),
+      authData: getMockAuthData(consumerId),
       offset: 0,
       limit: 50,
       logger: genericLogger,
