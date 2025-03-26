@@ -50,6 +50,7 @@ export function toOutboundEventV1(
           (toOutboundTenantV1(msg.data.tenant) as OutboundTenantV1),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "TenantDeleted" }, (msg) => ({
@@ -60,6 +61,7 @@ export function toOutboundEventV1(
         tenantId: msg.data.tenantId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with(

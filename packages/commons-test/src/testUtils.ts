@@ -81,7 +81,14 @@ import {
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
 } from "pagopa-interop-models";
-import { AuthData, dateToSeconds } from "pagopa-interop-commons";
+import {
+  AppContext,
+  AuthData,
+  dateToSeconds,
+  genericLogger,
+  userRoles,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
@@ -129,14 +136,6 @@ export const getTenantOneCertifierFeature = (
   }
   return certifiedFeatures[0];
 };
-
-export const getRandomAuthData = (
-  organizationId: TenantId = generateId<TenantId>()
-): AuthData => ({
-  ...generateMock(AuthData),
-  userRoles: ["admin"],
-  organizationId,
-});
 
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
@@ -381,7 +380,7 @@ export const getMockKey = (): Key => ({
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: [],
+  userRoles: [userRoles.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -722,4 +721,17 @@ export const getMockEServiceTemplate = (
   riskAnalysis: [],
   mode: "Deliver",
   isSignalHubEnabled: true,
+});
+
+export const getMockContext = ({
+  authData,
+  serviceName,
+}: {
+  authData?: AuthData;
+  serviceName?: string;
+}): WithLogger<AppContext> => ({
+  authData: authData || getMockAuthData(),
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
 });

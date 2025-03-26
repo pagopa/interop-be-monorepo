@@ -191,13 +191,17 @@ const errorCodes = {
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
-  invalidKeyLength: "10003",
-  notAnRSAKey: "10004",
-  invalidEserviceInterfaceFileDetected: "10005",
-  openapiVersionNotRecognized: "10006",
-  interfaceExtractingInfoError: "10007",
-  invalidInterfaceContentTypeDetected: "10008",
-  tokenVerificationFailed: "10009",
+  invalidKeyLength: "10008",
+  notAnRSAKey: "10000",
+  invalidEserviceInterfaceFileDetected: "10010",
+  openapiVersionNotRecognized: "10011",
+  interfaceExtractingInfoError: "10012",
+  invalidInterfaceContentTypeDetected: "10013",
+  tokenVerificationFailed: "10014",
+  invalidEserviceInterfaceData: "10015",
+  soapFileParsingError: "10016",
+  interfaceExtractingSoapFieldValueError: "10017",
+  soapFileCreatingError: "10018",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -470,6 +474,16 @@ export function invalidInterfaceFileDetected(
   });
 }
 
+export function invalidInterfaceData(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface data provided for EService ${resourceId} is invalid`,
+    code: "invalidEserviceInterfaceData",
+    title: "Invalid interface file data provided",
+  });
+}
+
 export function openapiVersionNotRecognized(
   version: string
 ): ApiError<CommonErrorCodes> {
@@ -480,11 +494,36 @@ export function openapiVersionNotRecognized(
   });
 }
 
+export function parsingSoapFileError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error parsing SOAP file`,
+    code: "soapFileParsingError",
+    title: "Error parsing SOAP file",
+  });
+}
+
+export function buildingSoapFileError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error creating SOAP file`,
+    code: "soapFileCreatingError",
+    title: "Error creating SOAP file",
+  });
+}
+
 export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `Error extracting info from interface file`,
     code: "interfaceExtractingInfoError",
     title: "Error extracting info from interface file",
+  });
+}
+export function interfaceExtractingSoapFiledError(
+  fieldName: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting field ${fieldName} from SOAP file`,
+    code: "interfaceExtractingSoapFieldValueError",
+    title: "Error extracting field from SOAP file",
   });
 }
 
