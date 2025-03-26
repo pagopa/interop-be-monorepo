@@ -16,13 +16,13 @@ import {
   ClientUserSQL,
   ClientPurposeSQL,
   ClientKeySQL,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
-  db: ReturnType<typeof drizzle>,
+  db: DrizzleReturnType,
   clientReadModelService: ClientReadModelService
 ) {
   const updateMetadataVersionInClientTables = async (
