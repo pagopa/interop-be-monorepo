@@ -158,6 +158,15 @@ export function dtdCatalogExporterServiceBuilder({
         `data/${config.dtdCatalogCsvFilename}`
       );
 
+      loggerInstance.info("\nUploading Tenants JSON result to S3 bucket...");
+      const tenantsJsonContent = JSON.stringify(tenants);
+      await githubClient.createOrUpdateRepoFile(
+        tenantsJsonContent,
+        config.githubRepoOwner,
+        config.githubRepo,
+        `data/${config.dtdTenantsJsonFilename}`
+      );
+
       loggerInstance.info("\nUploading Tenants CSV result to GitHub repo...");
       const tenantsCsvContent = convertTenantsToCSV(tenants);
       await githubClient.createOrUpdateRepoFile(
