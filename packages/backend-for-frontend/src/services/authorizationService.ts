@@ -174,12 +174,7 @@ export function authorizationServiceBuilder(
         });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
-      const tenant = await tenantProcessClient.tenant.getTenant({
-        params: { id: tenantId },
-        headers: internalHeaders,
-      });
-
-      assertTenantAllowed(selfcareId, tenant.externalId.origin);
+      assertTenantAllowed(selfcareId, tenantBySelfcareId.externalId.origin);
 
       const { limitReached, ...rateLimiterStatus } =
         await rateLimiter.rateLimitByOrganization(tenantId, logger);
@@ -197,8 +192,8 @@ export function authorizationServiceBuilder(
         roles,
         tenantId,
         selfcareId,
-        tenant.externalId.origin,
-        tenant.externalId.value
+        tenantBySelfcareId.externalId.origin,
+        tenantBySelfcareId.externalId.value
       );
 
       const { serialized: sessionToken } =

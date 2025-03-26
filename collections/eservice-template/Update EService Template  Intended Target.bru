@@ -4,8 +4,8 @@ meta {
   seq: 4
 }
 
-put {
-  url: {{host-catalog}}/eservices/templates/:eserviceTemplateId/intendedTarget/update
+post {
+  url: {{host-template}}/templates/:eserviceTemplateId/intendedTarget/update
   body: json
   auth: none
 }
@@ -21,6 +21,6 @@ headers {
 
 body:json {
   {
-      "intendedTarget": "Test EService Intended target",
+      "intendedTarget": "Test EService Intended target"
   }
 }
