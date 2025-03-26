@@ -181,7 +181,7 @@ const splitRiskAnalysisFormIntoObjectsSQL = (
   };
 };
 
-const splitPurposeVersionIntoObjectsSQL = (
+export const splitPurposeVersionIntoObjectsSQL = (
   purposeId: PurposeId,
   {
     id,
