@@ -271,6 +271,7 @@ export const getEServiceTemplateDocumentErrorMapper = (
     .with(
       "eServiceTemplateVersionNotFound",
       "eserviceTemplateDocumentNotFound",
+      "eServiceTemplateNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -298,8 +299,16 @@ export const deleteDocumentErrorMapper = (
       "eServiceTemplateNotFound",
       "eServiceTemplateVersionNotFound",
       "eServiceDocumentNotFound",
+      "eserviceTemplateDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceTemplatesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
