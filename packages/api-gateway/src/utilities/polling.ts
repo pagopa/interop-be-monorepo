@@ -24,11 +24,7 @@ export async function pollUntilReady<T>(
   const { checkFn, maxAttempts, intervalMs, errorMapper } = options;
 
   // eslint-disable-next-line functional/no-let
-  let attempts = 0;
-
-  while (attempts < maxAttempts) {
-    attempts++;
-
+  for (let attemptCount = 0; attemptCount < maxAttempts; attemptCount++) {
     try {
       const result = await fetchPromiseFactory();
 
@@ -62,5 +58,5 @@ export async function pollUntilReady<T>(
   }
 
   // This also could be mapped to a specific timeout error
-  throw new Error(`Polling timed out after ${attempts} attempts`);
+  throw new Error(`Polling timed out after ${maxAttempts} attempts`);
 }
