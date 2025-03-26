@@ -28,7 +28,6 @@ const eserviceTemplateRouter = (
     eserviceTemplateProcessClient,
     tenantProcessClient,
     attributeProcessClient,
-    catalogProcessClient,
   }: PagoPAInteropBeClients,
   fileManager: FileManager
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -40,7 +39,6 @@ const eserviceTemplateRouter = (
     eserviceTemplateProcessClient,
     tenantProcessClient,
     attributeProcessClient,
-    catalogProcessClient,
     fileManager
   );
 

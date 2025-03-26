@@ -1,10 +1,11 @@
 /* eslint-disable functional/no-let */
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
   getMockTenant,
-  getRandomAuthData,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import { describe, expect, it, vi } from "vitest";
 import {
   ConsumerDelegationRejectedV2,
@@ -17,7 +18,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   delegationNotFound,
   operationRestrictedToDelegate,
@@ -44,7 +44,7 @@ describe.each([
     vi.setSystemTime(currentExecutionTime);
 
     const delegate = getMockTenant();
-    const authData = getRandomAuthData(delegate.id);
+    const authData = getMockAuthData(delegate.id);
     const delegation = getMockDelegation({
       kind,
       state: delegationState.waitingForApproval,
@@ -54,12 +54,11 @@ describe.each([
 
     const rejectionReason = "I don't like computers, please send me a pigeon";
 
-    await rejectFn(delegation.id, rejectionReason, {
-      authData,
-      serviceName: "",
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await rejectFn(
+      delegation.id,
+      rejectionReason,
+      getMockContext({ authData })
+    );
 
     const event = await readLastDelegationEvent(delegation.id);
 
@@ -88,12 +87,7 @@ describe.each([
       unsafeBrandId<DelegationId>("non-existent-id");
 
     await expect(
-      rejectFn(nonExistentDelegationId, "", {
-        authData: getRandomAuthData(),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      rejectFn(nonExistentDelegationId, "", getMockContext({}))
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId, kind));
   });
 
@@ -110,12 +104,13 @@ describe.each([
     const rejectionReason = "I don't like computers, please send me a pigeon";
 
     await expect(
-      rejectFn(delegation.id, rejectionReason, {
-        authData: getRandomAuthData(delegation.delegateId),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      rejectFn(
+        delegation.id,
+        rejectionReason,
+        getMockContext({
+          authData: getMockAuthData(delegation.delegateId),
+        })
+      )
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
   });
 
@@ -128,12 +123,11 @@ describe.each([
     await addOneDelegation(delegation);
 
     await expect(
-      rejectFn(delegation.id, "", {
-        authData: getRandomAuthData(wrongDelegateId),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      rejectFn(
+        delegation.id,
+        "",
+        getMockContext({ authData: getMockAuthData(wrongDelegateId) })
+      )
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegateId, delegation.id)
     );
@@ -153,12 +147,11 @@ describe.each([
       await addOneDelegation(delegation);
 
       await expect(
-        rejectFn(delegation.id, "", {
-          authData: getRandomAuthData(delegation.delegateId),
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
+        rejectFn(
+          delegation.id,
+          "",
+          getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        )
       ).rejects.toThrow(
         incorrectState(delegation.id, state, delegationState.waitingForApproval)
       );
