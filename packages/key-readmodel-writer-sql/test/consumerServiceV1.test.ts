@@ -80,10 +80,10 @@ describe("Events V1", async () => {
           addedKey.kid
         );
 
-      expect(retrievedKey?.data).toEqual(
+      expect(retrievedKey?.data).toStrictEqual(
         keyToClientJWKKey(addedKey, mockClient.id)
       );
-      expect(retrievedKey?.metadata).toEqual({
+      expect(retrievedKey?.metadata).toStrictEqual({
         version: 1,
       });
     });
