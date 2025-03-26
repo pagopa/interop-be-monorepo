@@ -214,13 +214,13 @@ const apiGatewayRouter = (
           );
 
           const attribute = await pollUntilReady(
-            attributeService.getAttribute,
+            () => attributeService.getAttribute(ctx, id),
             ctx,
-            id,
             {
               maxAttempts: 5,
               intervalMs: 100,
               checkFn: (a) => a.id === id,
+              errorMapper: createCertifiedAttributeErrorMapper,
             }
           );
 

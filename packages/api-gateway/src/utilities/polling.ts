@@ -1,34 +1,27 @@
 import { WithLogger } from "pagopa-interop-commons";
+import { ApiError } from "pagopa-interop-models";
 import { makeApiProblem } from "../models/errors.js";
 import { ApiGatewayAppContext } from "./context.js";
-import { getAttributeErrorMapper } from "./errorMappers.js";
+import { ErrorCodes } from "./errorMappers.js";
 
 /**
  * Generic polling function that waits until an object is created and meets certain criteria
  *
- * @param fetchFn - Function to fetch the object
- * @param id - ID of the object to poll for
- * @param options - Optional configuration
+ * @param fetchPromiseFactory - Function that returns a Promise to fetch the object
+ * @param options - Additional configuration
  * @returns Promise that resolves to the created/ready object
  */
 export async function pollUntilReady<T>(
-  fetchFn: (
-    ctx: WithLogger<ApiGatewayAppContext>,
-    id: string
-  ) => Promise<T | null>,
+  fetchPromiseFactory: () => Promise<T | null>,
   ctx: WithLogger<ApiGatewayAppContext>,
-  id: string,
   options: {
     checkFn: (obj: T) => boolean;
     maxAttempts: number;
     intervalMs: number;
+    errorMapper: (error: ApiError<ErrorCodes>) => number;
   }
 ): Promise<T> {
-  const {
-    checkFn = (obj: T): boolean => obj !== null && obj !== undefined,
-    maxAttempts,
-    intervalMs,
-  } = options || {};
+  const { checkFn, maxAttempts, intervalMs, errorMapper } = options;
 
   // eslint-disable-next-line functional/no-let
   let attempts = 0;
@@ -37,9 +30,7 @@ export async function pollUntilReady<T>(
     attempts++;
 
     try {
-      // This assumes the fetch function always needs a context and an id as the only 2 parameters
-      // This could be improved
-      const result = await fetchFn(ctx, id);
+      const result = await fetchPromiseFactory();
 
       if (!result) {
         await new Promise((resolve) => setTimeout(resolve, intervalMs));
@@ -55,7 +46,7 @@ export async function pollUntilReady<T>(
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
-        getAttributeErrorMapper, // use mapper of error mappers? this depends on the fetch function
+        errorMapper,
         ctx.logger,
         ctx.correlationId
       );
@@ -71,5 +62,5 @@ export async function pollUntilReady<T>(
   }
 
   // This also could be mapped to a specific timeout error
-  throw new Error(`Polling timed out after ${attempts} attempts for id: ${id}`);
+  throw new Error(`Polling timed out after ${attempts} attempts`);
 }

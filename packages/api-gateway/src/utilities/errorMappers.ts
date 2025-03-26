@@ -3,7 +3,7 @@ import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ErrorCodes as APIGatewayErrorCodes } from "../models/errors.js";
 
-type ErrorCodes = APIGatewayErrorCodes | CommonErrorCodes;
+export type ErrorCodes = APIGatewayErrorCodes | CommonErrorCodes;
 
 const {
   HTTP_STATUS_BAD_REQUEST,
