@@ -87,10 +87,10 @@ describe("Events V2", () => {
         addedKey.kid
       );
 
-    expect(retrievedKey?.data).toEqual(
+    expect(retrievedKey?.data).toStrictEqual(
       keyToProducerJWKKey(addedKey, producerKeychainId)
     );
-    expect(retrievedKey?.metadata).toEqual({
+    expect(retrievedKey?.metadata).toStrictEqual({
       version: 1,
     });
   });
