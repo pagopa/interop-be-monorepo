@@ -7,7 +7,8 @@ import {
   addSomeRandomDelegations,
   getMockAgreement,
   getMockPurposeVersion,
-  getRandomAuthData,
+  getMockAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   tenantKind,
@@ -28,7 +29,6 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   eserviceNotFound,
@@ -72,12 +72,10 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(producer);
 
-    const result = await purposeService.getPurposeById(mockPurpose1.id, {
-      authData: getRandomAuthData(producer.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    const result = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      getMockContext({ authData: getMockAuthData(producer.id) })
+    );
     expect(result).toMatchObject({
       purpose: mockPurpose1,
       isRiskAnalysisValid: true,
@@ -104,12 +102,10 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(consumer);
 
-    const result = await purposeService.getPurposeById(mockPurpose1.id, {
-      authData: getRandomAuthData(consumer.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    const result = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      getMockContext({ authData: getMockAuthData(consumer.id) })
+    );
     expect(result).toMatchObject({
       purpose: mockPurpose1,
       isRiskAnalysisValid: true,
@@ -144,12 +140,7 @@ describe("getPurposeById", () => {
 
     const producerResult = await purposeService.getPurposeById(
       mockPurpose1.id,
-      {
-        authData: getRandomAuthData(producer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(producer.id) })
     );
     expect(producerResult).toMatchObject({
       purpose: mockPurpose1,
@@ -158,12 +149,7 @@ describe("getPurposeById", () => {
 
     const consumerResult = await purposeService.getPurposeById(
       mockPurpose1.id,
-      {
-        authData: getRandomAuthData(consumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      }
+      getMockContext({ authData: getMockAuthData(consumer.id) })
     );
     expect(consumerResult).toMatchObject({
       purpose: mockPurpose1,
@@ -199,12 +185,10 @@ describe("getPurposeById", () => {
     await addOneTenant(producerDelegate);
     await addOneDelegation(mockProducerDelegation);
 
-    const result = await purposeService.getPurposeById(mockPurpose1.id, {
-      authData: getRandomAuthData(producerDelegate.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    const result = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      getMockContext({ authData: getMockAuthData(producerDelegate.id) })
+    );
     expect(result).toMatchObject({
       purpose: mockPurpose1,
       isRiskAnalysisValid: true,
@@ -231,12 +215,10 @@ describe("getPurposeById", () => {
     await addOneTenant(mockTenant);
 
     await expect(
-      purposeService.getPurposeById(mockPurpose1.id, {
-        authData: getRandomAuthData(mockTenant.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.getPurposeById(
+        mockPurpose1.id,
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      )
     ).rejects.toThrowError(organizationNotAllowed(mockTenant.id));
   });
 
@@ -273,12 +255,10 @@ describe("getPurposeById", () => {
       await addOneDelegation(mockProducerDelegation);
 
       await expect(
-        purposeService.getPurposeById(mockPurpose1.id, {
-          authData: getRandomAuthData(producerDelegate.id),
-          correlationId: generateId(),
-          logger: genericLogger,
-          serviceName: "",
-        })
+        purposeService.getPurposeById(
+          mockPurpose1.id,
+          getMockContext({ authData: getMockAuthData(producerDelegate.id) })
+        )
       ).rejects.toThrowError(organizationNotAllowed(producerDelegate.id));
     }
   );
@@ -315,12 +295,10 @@ describe("getPurposeById", () => {
     await addOneTenant(consumerDelegate);
     await addOneDelegation(mockConsumerDelegation);
 
-    const result = await purposeService.getPurposeById(mockPurpose1.id, {
-      authData: getRandomAuthData(consumerDelegate.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    const result = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+    );
     expect(result).toMatchObject({
       purpose: mockPurpose1,
       isRiskAnalysisValid: true,
@@ -373,12 +351,10 @@ describe("getPurposeById", () => {
     await addOneTenant(producer);
     await addOneTenant(producerDelegate);
 
-    const result = await purposeService.getPurposeById(mockPurpose1.id, {
-      authData: getRandomAuthData(producerDelegate.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    const result = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      getMockContext({ authData: getMockAuthData(producerDelegate.id) })
+    );
     expect(result).toMatchObject({
       purpose: mockPurpose1,
       isRiskAnalysisValid: true,
@@ -417,12 +393,10 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(producer);
 
-    const result = await purposeService.getPurposeById(mockPurpose1.id, {
-      authData: getRandomAuthData(producer.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    const result = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      getMockContext({ authData: getMockAuthData(producer.id) })
+    );
     expect(result).toMatchObject({
       purpose: mockPurpose1,
       isRiskAnalysisValid: true,
@@ -460,12 +434,10 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(consumer);
 
-    const result = await purposeService.getPurposeById(mockPurpose1.id, {
-      authData: getRandomAuthData(consumer.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    const result = await purposeService.getPurposeById(
+      mockPurpose1.id,
+      getMockContext({ authData: getMockAuthData(consumer.id) })
+    );
     expect(result).toMatchObject({
       purpose: mockPurpose1,
       isRiskAnalysisValid: true,
@@ -548,12 +520,10 @@ describe("getPurposeById", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const result = await purposeService.getPurposeById(delegatePurpose.id, {
-      authData: getRandomAuthData(consumerDelegate.id),
-      correlationId: generateId(),
-      logger: genericLogger,
-      serviceName: "",
-    });
+    const result = await purposeService.getPurposeById(
+      delegatePurpose.id,
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+    );
     expect(result).toMatchObject({
       purpose: delegatePurpose,
       isRiskAnalysisValid: true,
@@ -582,12 +552,12 @@ describe("getPurposeById", () => {
     await addOneTenant(tenant);
 
     await expect(
-      purposeService.getPurposeById(purpose.id, {
-        authData: getRandomAuthData(purposeDelegation.delegateId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.getPurposeById(
+        purpose.id,
+        getMockContext({
+          authData: getMockAuthData(purposeDelegation.delegateId),
+        })
+      )
     ).rejects.toThrowError(
       organizationNotAllowed(purposeDelegation.delegateId)
     );
@@ -624,12 +594,10 @@ describe("getPurposeById", () => {
     await addOneDelegation(purposeDelegation);
 
     await expect(
-      purposeService.getPurposeById(purpose.id, {
-        authData: getRandomAuthData(delegate.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.getPurposeById(
+        purpose.id,
+        getMockContext({ authData: getMockAuthData(delegate.id) })
+      )
     ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
   });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
@@ -640,12 +608,10 @@ describe("getPurposeById", () => {
     await addOneTenant(mockTenant);
 
     expect(
-      purposeService.getPurposeById(notExistingId, {
-        authData: getRandomAuthData(mockTenant.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.getPurposeById(
+        notExistingId,
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      )
     ).rejects.toThrowError(purposeNotFound(notExistingId));
   });
   it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -664,12 +630,10 @@ describe("getPurposeById", () => {
     await addOneTenant(consumer);
 
     expect(
-      purposeService.getPurposeById(mockPurpose.id, {
-        authData: getRandomAuthData(consumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.getPurposeById(
+        mockPurpose.id,
+        getMockContext({ authData: getMockAuthData(consumer.id) })
+      )
     ).rejects.toThrowError(eserviceNotFound(notExistingId));
   });
   it("should throw tenantNotFound if the tenant doesn't exist", async () => {
@@ -684,12 +648,10 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
 
     expect(
-      purposeService.getPurposeById(mockPurpose.id, {
-        authData: getRandomAuthData(notExistingTenantId),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.getPurposeById(
+        mockPurpose.id,
+        getMockContext({ authData: getMockAuthData(notExistingTenantId) })
+      )
     ).rejects.toThrowError(tenantNotFound(notExistingTenantId));
   });
   it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
@@ -705,12 +667,10 @@ describe("getPurposeById", () => {
     await addOneTenant(mockTenant);
 
     expect(
-      purposeService.getPurposeById(mockPurpose.id, {
-        authData: getRandomAuthData(mockTenant.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-        serviceName: "",
-      })
+      purposeService.getPurposeById(
+        mockPurpose.id,
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      )
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
 });
