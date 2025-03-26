@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{host-template}}/eservices/templates/:eserviceTemplateId
+  url: {{host-template}}/templates/:eserviceTemplateId
   body: json
   auth: none
 }
@@ -26,6 +26,6 @@ body:json {
     "description": "This is the description of the EService",
     "technology": "REST",
     "mode": "DELIVER",
-    "isSignalHubEnabled": false
+    "isSignalHubEnabled": true
   }
 }
