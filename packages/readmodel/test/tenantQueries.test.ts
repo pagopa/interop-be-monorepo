@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { describe, it, expect } from "vitest";
 
