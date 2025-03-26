@@ -6,7 +6,7 @@ import {
   DelegationId,
   DelegationKind,
   DelegationStamp,
-  delegationStampKind,
+  DelegationStampKind,
   DelegationState,
   EServiceId,
   genericInternalError,
@@ -70,7 +70,7 @@ export const aggregateDelegation = ({
       : undefined;
 
   const submissionStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === delegationStampKind.submission
+    (stamp) => stamp.kind === DelegationStampKind.enum.submission
   );
 
   if (!submissionStampSQL) {
@@ -78,13 +78,13 @@ export const aggregateDelegation = ({
   }
 
   const activationStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === delegationStampKind.activation
+    (stamp) => stamp.kind === DelegationStampKind.enum.activation
   );
   const rejectionStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === delegationStampKind.rejection
+    (stamp) => stamp.kind === DelegationStampKind.enum.rejection
   );
   const revocationStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === delegationStampKind.revocation
+    (stamp) => stamp.kind === DelegationStampKind.enum.revocation
   );
 
   const delegation: Delegation = {

@@ -7,7 +7,7 @@ import {
   Delegation,
   delegationContractKind,
   delegationKind,
-  delegationStampKind,
+  DelegationStampKind,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
@@ -51,7 +51,7 @@ describe("Delegation splitters", () => {
 
     const expectedDelegationStamps: DelegationStampSQL = {
       ...delegation.stamps.submission,
-      kind: delegationStampKind.submission,
+      kind: DelegationStampKind.enum.submission,
       metadataVersion: 1,
       delegationId: delegation.id,
       when: delegation.stamps.submission.when.toISOString(),
@@ -108,7 +108,7 @@ describe("Delegation splitters", () => {
 
     const expectedDelegationStamps: DelegationStampSQL = {
       ...delegation.stamps.submission,
-      kind: delegationStampKind.submission,
+      kind: DelegationStampKind.enum.submission,
       metadataVersion: 1,
       delegationId: delegation.id,
       when: delegation.stamps.submission.when.toISOString(),
