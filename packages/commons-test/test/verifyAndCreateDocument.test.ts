@@ -31,7 +31,7 @@ describe("verifyAndCreateDocument", async () => {
 
   const interfaceFileInfo = {
     id: generateId(),
-    name: "json", // Nota questo campo
+    name: "json",
     contentType: "application/json",
     prettyName: "Test Interface",
   };
@@ -96,7 +96,7 @@ describe("verifyAndCreateDocument", async () => {
     expect(mockCreateDocumentHandler).toHaveBeenCalledWith(
       documentId,
       fileName,
-      `document-path/${documentId}/json`,
+      `document-path/${documentId}/${interfaceFileInfo.name}`,
       prettyName,
       kind,
       serverUrls,
@@ -160,7 +160,7 @@ describe("verifyAndCreateDocument", async () => {
 
     expect(deleteFileSpy).toHaveBeenCalledWith(
       s3Bucket.toString(),
-      `document-path/${documentId}/json`,
+      `document-path/${documentId}/${interfaceFileInfo.name}`,
       genericLogger
     );
   });
