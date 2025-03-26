@@ -1,17 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import {
-  genericLogger,
-  unexpectedRulesVersionError,
-} from "pagopa-interop-commons";
+import { unexpectedRulesVersionError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -95,12 +93,9 @@ describe("publishEServiceTemplateVersion", () => {
     await eserviceTemplateService.publishEServiceTemplateVersion(
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
-      {
+      getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      })
     );
 
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -153,12 +148,9 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
   });
@@ -178,12 +170,7 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -200,12 +187,9 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersionId,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(
@@ -235,12 +219,9 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplateService.publishEServiceTemplateVersion(
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
-          {
+          getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         )
       ).rejects.toThrowError(
         notValidEServiceTemplateVersionState(eserviceTemplateVersion.id, state)
@@ -265,12 +246,9 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       missingTemplateVersionInterface(
@@ -298,12 +276,9 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
   });
@@ -332,12 +307,9 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(tenantKindNotFound(eserviceTemplate.creatorId));
   });
@@ -369,12 +341,9 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(missingRiskAnalysis(eserviceTemplate.id));
   });
@@ -415,12 +384,9 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
@@ -454,12 +420,9 @@ describe("publishEServiceTemplateVersion", () => {
       await eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).equal(undefined);
   });
@@ -500,12 +463,9 @@ describe("publishEServiceTemplateVersion", () => {
       await eserviceTemplateService.publishEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).equal(undefined);
   });

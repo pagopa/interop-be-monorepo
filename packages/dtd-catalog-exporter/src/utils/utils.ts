@@ -6,6 +6,7 @@ import {
   EServiceReadModel,
   genericError,
   TenantId,
+  TenantReadModel,
 } from "pagopa-interop-models";
 
 const activeDescriptorStatesFilter: DescriptorState[] = [
@@ -44,7 +45,7 @@ export function getAllTenantsIds(eservices: EServiceReadModel[]): TenantId[] {
  * @param eservices - The array of eservices
  * @returns The array of attributes ids
  */
-export function getAllAttributesIds(
+export function getAllEservicesAttributesIds(
   eservices: EServiceReadModel[]
 ): AttributeId[] {
   const attributesIds: Set<AttributeId> = new Set();
@@ -60,3 +61,40 @@ export function getAllAttributesIds(
 
   return Array.from(attributesIds);
 }
+
+/**
+ * Returns all the attribute ids of every tenant
+ *
+ * @param tenants - The array of tenants
+ * @returns The array of attributes ids
+ */
+export function getAllTenantsAttributesIds(
+  tenants: TenantReadModel[]
+): AttributeId[] {
+  const attributesIds: Set<AttributeId> = new Set();
+
+  tenants.forEach((tenant) => {
+    tenant.attributes.forEach((attr) => attributesIds.add(attr.id));
+  });
+
+  return Array.from(attributesIds);
+}
+
+/**
+ * Sanitizes a CSV field to prevent formula injection in spreadsheet applications.
+ * Adds a single quote prefix to values that start with special characters.
+ *
+ * @param {string} value - The CSV field value to sanitize
+ * @returns {string} The sanitized value with a single quote prefix if needed
+ */
+export const sanitizeCsvField = (value: string): string => {
+  const firstChar = value.charAt(0);
+
+  const specialChars = ["=", "+", "-", "@", "\t", "\r"];
+
+  if (specialChars.includes(firstChar)) {
+    return `'${value}`;
+  }
+
+  return value;
+};
