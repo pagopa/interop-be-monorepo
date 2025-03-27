@@ -15,6 +15,7 @@ import {
   getMockAgreement,
   getMockAttribute,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockDescriptorPublished,
@@ -22,7 +23,7 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test";
@@ -227,12 +228,7 @@ describe("upgrade Agreement", () => {
 
       const returnedAgreement = await agreementService.upgradeAgreement(
         agreement.id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
       const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
@@ -488,12 +484,7 @@ describe("upgrade Agreement", () => {
           vi.spyOn(pdfGenerator, "generate");
           const returnedAgreement = await agreementService.upgradeAgreement(
             agreement.id,
-            {
-              authData,
-              serviceName: "",
-              correlationId: generateId(),
-              logger: genericLogger,
-            }
+            getMockContext({ authData })
           );
           const newAgreementId = unsafeBrandId<AgreementId>(
             returnedAgreement.id
@@ -815,12 +806,7 @@ describe("upgrade Agreement", () => {
 
       const returnedAgreement = await agreementService.upgradeAgreement(
         agreement.id,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
       const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
@@ -884,23 +870,21 @@ describe("upgrade Agreement", () => {
   );
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
 
     const agreementId = generateId<AgreementId>();
     await addOneAgreement(getMockAgreement());
 
     await expect(
-      agreementService.upgradeAgreement(agreementId, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreementId,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
   it("should throw an organizationIsNotTheConsumer error when the requester is not the consumer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
 
     const agreement: Agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -910,19 +894,17 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheConsumer(authData.organizationId)
     );
   });
 
   it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreement = {
       ...getMockAgreement(),
       consumerId: authData.organizationId,
@@ -939,12 +921,10 @@ describe("upgrade Agreement", () => {
     await addOneDelegation(delegation);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationIsNotTheDelegateConsumer(
         authData.organizationId,
@@ -955,7 +935,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw an agreementNotInExpectedState error when the agreement doesn't have an upgradable states", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
+    const authData = getMockAuthData(consumerId);
 
     const invalidAgreementState = randomArrayItem(
       Object.values(agreementState).filter(
@@ -970,12 +950,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
     );
@@ -983,7 +961,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw an eServiceNotFound error when the eservice does not exist", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
+    const authData = getMockAuthData(consumerId);
 
     const agreement: Agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -993,18 +971,16 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
   it("should throw a publishedDescriptorNotFound error when a published descriptor does not exist", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
+    const authData = getMockAuthData(consumerId);
 
     const nonPublishedDescriptorState = Object.values(descriptorState).filter(
       (s) => s !== descriptorState.published
@@ -1030,18 +1006,16 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(publishedDescriptorNotFound(agreement.eserviceId));
   });
 
   it("should throw an unexpectedVersionFormat error when the published descriptor has an unexpected version format", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
+    const authData = getMockAuthData(consumerId);
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1064,12 +1038,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       unexpectedVersionFormat(agreement.eserviceId, publishedDescriptor.id)
     );
@@ -1077,7 +1049,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw a descriptorNotFound error when the agreement descriptor does not exist", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
+    const authData = getMockAuthData(consumerId);
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1101,12 +1073,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
     );
@@ -1114,7 +1084,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw an unexpectedVersionFormat error when the agreement descriptor has an unexpected version format", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
+    const authData = getMockAuthData(consumerId);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1144,12 +1114,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       unexpectedVersionFormat(eservice.id, agreement.descriptorId)
     );
@@ -1157,7 +1125,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw a noNewerDescriptor error when the latest published descriptor has version number lower than or equal to the agreement current descriptor", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
+    const authData = getMockAuthData(consumerId);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1187,12 +1155,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       noNewerDescriptor(eservice.id, agreement.descriptorId)
     );
@@ -1200,7 +1166,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw a tenantNotFound error when the consumer tenant does not exist", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getRandomAuthData(consumerId);
+    const authData = getMockAuthData(consumerId);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1230,19 +1196,17 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(tenantNotFound(consumerId));
   });
 
   it("should throw a tenantNotFound error when the producer tenant does not exist", async () => {
     const consumer = getMockTenant();
     await addOneTenant(consumer);
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1272,12 +1236,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(tenantNotFound(agreement.producerId));
   });
 
@@ -1295,7 +1257,7 @@ describe("upgrade Agreement", () => {
     await addOneTenant(consumer);
     await addOneTenant(producer);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1333,12 +1295,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       missingCertifiedAttributesError(newPublishedDescriptor.id, consumer.id)
     );
@@ -1350,7 +1310,7 @@ describe("upgrade Agreement", () => {
     await addOneTenant(consumer);
     await addOneTenant(producer);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1390,12 +1350,10 @@ describe("upgrade Agreement", () => {
 
     // trying to copy a document not present in the S3 bucket - no upload was performed
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(FileManagerError);
   });
 
@@ -1412,7 +1370,7 @@ describe("upgrade Agreement", () => {
     await addOneTenant(consumer);
     await addOneTenant(producer);
 
-    const authData = getRandomAuthData(consumer.id);
+    const authData = getMockAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1459,12 +1417,10 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(conflictingAgreement);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       agreementAlreadyExists(agreement.consumerId, agreement.eserviceId)
     );

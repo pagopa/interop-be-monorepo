@@ -1,0 +1,27 @@
+meta {
+  name: Add e-service template instance interface SOAP
+  type: http
+  seq: 31
+}
+
+post {
+  url: {{host-catalog}}/templates/eservices/:eServiceId/descriptors/:descriptorId/interface/soap
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "serverUrls": ["https://test.example2.com","https://test.example3.com"]
+  }
+}

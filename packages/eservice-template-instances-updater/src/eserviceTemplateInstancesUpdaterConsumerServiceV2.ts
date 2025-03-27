@@ -53,6 +53,7 @@ export async function handleMessageV2({
     eventType: decodedKafkaMessage.type,
     eventVersion: decodedKafkaMessage.event_version,
     streamId: decodedKafkaMessage.stream_id,
+    streamVersion: decodedKafkaMessage.version,
     correlationId,
   });
 
@@ -124,12 +125,12 @@ export async function handleMessageV2({
         instance: EService,
         headers: InteropHeaders
       ): Promise<void> => {
-        const descriptor = retrieveTemplateInstanceDescriptor(
+        const descriptors = retrieveTemplateInstanceDescriptors(
           instance,
           eserviceTemplateVersion.id
         );
 
-        if (descriptor) {
+        for (const descriptor of descriptors) {
           await catalogProcess.client.updateTemplateInstanceDescriptorAttributes(
             attributes,
             {
@@ -158,12 +159,12 @@ export async function handleMessageV2({
         instance: EService,
         headers: InteropHeaders
       ): Promise<void> => {
-        const descriptor = retrieveTemplateInstanceDescriptor(
+        const descriptors = retrieveTemplateInstanceDescriptors(
           instance,
           eserviceTemplateVersion.id
         );
 
-        if (descriptor) {
+        for (const descriptor of descriptors) {
           await catalogProcess.client.updateTemplateInstanceDescriptorVoucherLifespan(
             { voucherLifespan: eserviceTemplateVersion.voucherLifespan },
             {
@@ -192,51 +193,44 @@ export async function handleMessageV2({
         instance: EService,
         headers: InteropHeaders
       ): Promise<void> => {
-        const descriptor = retrieveTemplateInstanceDescriptor(
+        const descriptors = retrieveTemplateInstanceDescriptors(
           instance,
           msg.data.eserviceTemplateVersionId
         );
 
-        if (!descriptor) {
-          return;
-        }
-
-        const alreadyHasDoc = descriptor.docs.some(
-          (d) => d.checksum === docToAddToInstances.checksum
-        );
-
-        if (alreadyHasDoc) {
-          return;
-        }
-
-        if (descriptor.state === descriptorState.archived) {
-          return;
-        }
-
-        const clonedDoc = await cloneDocument(
-          docToAddToInstances,
-          fileManager,
-          loggerInstance
-        );
-
-        try {
-          await catalogProcess.client.createTemplateInstanceDescriptorDocument(
-            clonedDoc,
-            {
-              params: {
-                eServiceId: instance.id,
-                descriptorId: descriptor.id,
-              },
-              headers,
-            }
+        for (const descriptor of descriptors) {
+          const alreadyHasDoc = descriptor.docs.some(
+            (d) => d.checksum === docToAddToInstances.checksum
           );
-        } catch (err) {
-          await fileManager.delete(
-            config.eserviceDocumentsContainer,
-            clonedDoc.filePath,
+          if (alreadyHasDoc || descriptor.state === descriptorState.archived) {
+            continue;
+          }
+
+          const clonedDoc = await cloneDocument(
+            docToAddToInstances,
+            fileManager,
             loggerInstance
           );
-          throw err;
+
+          try {
+            await catalogProcess.client.createTemplateInstanceDescriptorDocument(
+              clonedDoc,
+              {
+                params: {
+                  eServiceId: instance.id,
+                  descriptorId: descriptor.id,
+                },
+                headers,
+              }
+            );
+          } catch (err) {
+            await fileManager.delete(
+              config.eserviceDocumentsContainer,
+              clonedDoc.filePath,
+              loggerInstance
+            );
+            throw err;
+          }
         }
       };
 
@@ -255,34 +249,32 @@ export async function handleMessageV2({
         instance: EService,
         headers: InteropHeaders
       ): Promise<void> => {
-        const descriptor = retrieveTemplateInstanceDescriptor(
+        const descriptors = retrieveTemplateInstanceDescriptors(
           instance,
           msg.data.eserviceTemplateVersionId
         );
 
-        if (!descriptor) {
-          return;
-        }
+        for (const descriptor of descriptors) {
+          const docToUpdate = descriptor.docs.find(
+            (d) => d.checksum === updatedEServiceTemplateDoc.checksum
+          );
 
-        const docToUpdate = descriptor?.docs.find(
-          (d) => d.checksum === updatedEServiceTemplateDoc.checksum
-        );
-
-        if (!docToUpdate) {
-          return;
-        }
-
-        await catalogProcess.client.updateTemplateInstanceDescriptorDocument(
-          { prettyName: updatedEServiceTemplateDoc.prettyName },
-          {
-            params: {
-              eServiceId: instance.id,
-              descriptorId: descriptor.id,
-              documentId: docToUpdate.id,
-            },
-            headers,
+          if (!docToUpdate) {
+            continue;
           }
-        );
+
+          await catalogProcess.client.updateTemplateInstanceDescriptorDocument(
+            { prettyName: updatedEServiceTemplateDoc.prettyName },
+            {
+              params: {
+                eServiceId: instance.id,
+                descriptorId: descriptor.id,
+                documentId: docToUpdate.id,
+              },
+              headers,
+            }
+          );
+        }
       };
 
       await commitUpdateToTemplateInstances(
@@ -300,37 +292,33 @@ export async function handleMessageV2({
         instance: EService,
         headers: InteropHeaders
       ): Promise<void> => {
-        const descriptor = retrieveTemplateInstanceDescriptor(
+        const descriptors = retrieveTemplateInstanceDescriptors(
           instance,
           msg.data.eserviceTemplateVersionId
         );
 
-        if (!descriptor) {
-          return;
-        }
-
-        const docToDelete = descriptor?.docs.find(
-          (d) =>
-            !eserviceTemplateVersion.docs.some(
-              (doc) => doc.checksum === d.checksum
-            )
-        );
-
-        if (!docToDelete) {
-          return;
-        }
-
-        await catalogProcess.client.deleteTemplateInstanceDescriptorDocument(
-          undefined,
-          {
-            params: {
-              eServiceId: instance.id,
-              descriptorId: descriptor.id,
-              documentId: docToDelete.id,
-            },
-            headers,
+        for (const descriptor of descriptors) {
+          const docToDelete = descriptor.docs.find(
+            (d) =>
+              !eserviceTemplateVersion.docs.some(
+                (doc) => doc.checksum === d.checksum
+              )
+          );
+          if (!docToDelete) {
+            continue;
           }
-        );
+          await catalogProcess.client.deleteTemplateInstanceDescriptorDocument(
+            undefined,
+            {
+              params: {
+                eServiceId: instance.id,
+                descriptorId: descriptor.id,
+                documentId: docToDelete.id,
+              },
+              headers,
+            }
+          );
+        }
       };
 
       await commitUpdateToTemplateInstances(
@@ -391,11 +379,11 @@ function getTemplateFromEvent(
   return msg.data.eserviceTemplate;
 }
 
-function retrieveTemplateInstanceDescriptor(
+function retrieveTemplateInstanceDescriptors(
   instance: EService,
   eserviceTemplateVersionId: string
-): Descriptor | undefined {
-  return instance.descriptors.find(
+): Descriptor[] {
+  return instance.descriptors.filter(
     (d) => d.templateVersionRef?.id === eserviceTemplateVersionId
   );
 }
