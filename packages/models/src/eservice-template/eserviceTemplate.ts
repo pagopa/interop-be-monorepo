@@ -30,33 +30,40 @@ export type EServiceTemplateVersionState = z.infer<
 export const EServiceTemplateVersion = z.object({
   id: EServiceTemplateVersionId,
   version: z.number(),
-  description: z.string().optional(),
-  interface: Document.optional(),
-  docs: z.array(Document),
   state: EServiceTemplateVersionState,
-  voucherLifespan: z.number().int(),
-  dailyCallsPerConsumer: z.number().int().optional(),
-  dailyCallsTotal: z.number().int().optional(),
-  agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
   createdAt: z.coerce.date(),
   publishedAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
   deprecatedAt: z.coerce.date().optional(),
+
+  // Values to be set in all e-service descriptor instances created from this template, not editable by the user
+  description: z.string().optional(),
+  interface: Document.optional(),
+  docs: z.array(Document),
+  voucherLifespan: z.number().int(),
   attributes: EServiceAttributes,
+  // Default values to be set in all e-service descriptor instances created from this template, unless the user provides a custom value
+  dailyCallsPerConsumer: z.number().int().optional(),
+  dailyCallsTotal: z.number().int().optional(),
+  agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
 });
 export type EServiceTemplateVersion = z.infer<typeof EServiceTemplateVersion>;
 
 export const EServiceTemplate = z.object({
   id: EServiceTemplateId,
   creatorId: TenantId,
-  name: z.string(),
   intendedTarget: z.string(),
-  description: z.string(),
-  technology: Technology,
   versions: z.array(EServiceTemplateVersion),
   createdAt: z.coerce.date(),
+
+  // Values to be set in all e-service instances created from this template, not editable by the user
+  name: z.string(),
+  description: z.string(),
+  technology: Technology,
   riskAnalysis: z.array(RiskAnalysis),
   mode: EServiceMode,
+
+  // Default values to be set in all e-service instances created from this template, unless the user provides a custom value
   isSignalHubEnabled: z.boolean().optional(),
 });
 export type EServiceTemplate = z.infer<typeof EServiceTemplate>;

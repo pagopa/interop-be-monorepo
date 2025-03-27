@@ -3535,7 +3535,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 
-  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface:
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/rest:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -3543,8 +3543,8 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Add EService template instance interface
-      operationId: addEServiceTemplateInstanceInterface
+      summary: Add EService template instance interface for REST protocol
+      operationId: addEServiceTemplateInstanceInterfaceRest
       parameters:
         - name: eServiceId
           in: path
@@ -3561,12 +3561,84 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: A payload containing the eservice's api data
+        description: A payload containing eservice's interface API REST URLs and contacts
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
+              $ref: "#/components/schemas/TemplateInstanceInterfaceRESTSeed"
+      responses:
+        "200":
+          description: EService Interface Document uploaded
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Add EService template instance interface for SOAP protocol
+      operationId: addEServiceTemplateInstanceInterfaceSoap
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the eservice descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing eservice's interface API SOAP URLs and contacts
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateInstanceInterfaceSOAPSeed"
       responses:
         "200":
           description: EService Interface Document uploaded
@@ -5560,7 +5632,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreatedEServiceDescriptor"
+                $ref: "#/components/schemas/CreatedResource"
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -17268,6 +17340,62 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/names/availability:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Check if the e-service name is available
+      operationId: isEServiceNameAvailable
+      parameters:
+        - name: name
+          in: query
+          description: the e-service name to check for
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: EService name available.
+          content:
+            application/json:
+              schema:
+                type: boolean
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/status":
     get:
       security: []
@@ -17544,6 +17672,8 @@ components:
           type: boolean
         instanceLabel:
           type: string
+          minLength: 5
+          maxLength: 60
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -18010,6 +18140,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DescriptorRejectionReason"
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
     ProducerDescriptorEService:
@@ -18084,8 +18219,8 @@ components:
           type: string
         instanceLabel:
           type: string
-        templateInterfaceId:
-          type: string
+        templateInterface:
+          $ref: "#/components/schemas/EServiceDoc"
         interfaceMetadata:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
         isNewTemplateVersionAvailable:
@@ -18416,14 +18551,12 @@ components:
         templateVersionId:
           type: string
           format: uuid
-    TemplateInstanceInterfaceMetadata:
+    TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
       required:
         - contactName
         - contactEmail
-        - contactUrl
-        - termsAndConditionsUrl
         - serverUrls
       properties:
         contactName:
@@ -18442,6 +18575,32 @@ components:
           items:
             type: string
             format: uri
+    TemplateInstanceInterfaceSOAPSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - serverUrls
+      properties:
+        serverUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+    TemplateInstanceInterfaceMetadata:
+      type: object
+      additionalProperties: false
+      properties:
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+        contactUrl:
+          type: string
+          format: uri
+        termsAndConditionsUrl:
+          type: string
+          format: uri
     CompactEService:
       type: object
       additionalProperties: false
@@ -18714,6 +18873,7 @@ components:
         - id
         - name
         - mode
+        - isTemplateInstance
       properties:
         id:
           type: string
@@ -18728,6 +18888,8 @@ components:
           $ref: "#/components/schemas/CompactProducerDescriptor"
         delegation:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
+        isTemplateInstance:
+          type: boolean
         isNewTemplateVersionAvailable:
           type: boolean
     ProducerEServices:
@@ -20467,6 +20629,8 @@ components:
       properties:
         instanceLabel:
           type: string
+          minLength: 5
+          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:
