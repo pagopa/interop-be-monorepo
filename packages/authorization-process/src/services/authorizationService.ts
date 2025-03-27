@@ -759,18 +759,18 @@ export function authorizationServiceBuilder(
     async getClientKeyById({
       clientId,
       kid,
-      organizationId,
-      logger,
+      ctx: { authData, logger },
     }: {
       clientId: ClientId;
       kid: string;
-      organizationId: TenantId;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<Key> {
       logger.info(`Retrieving key ${kid} in client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
 
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertSecurityRoleIsClientMember(authData, client.data);
+
+      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
       const key = client.data.keys.find((key) => key.kid === kid);
 
       if (!key) {
