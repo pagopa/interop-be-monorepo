@@ -13,6 +13,7 @@ import {
   aggregateAgreement,
   toAgreementAggregator,
 } from "./agreement/aggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -30,19 +31,14 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
       } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
 
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion: agreementInReadmodelAgreement.metadataVersion,
-            })
-            .from(agreementInReadmodelAgreement)
-            .where(eq(agreementInReadmodelAgreement.id, agreement.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          agreementInReadmodelAgreement,
+          metadataVersion,
+          agreement.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(agreementInReadmodelAgreement)
             .where(eq(agreementInReadmodelAgreement.id, agreement.id));
