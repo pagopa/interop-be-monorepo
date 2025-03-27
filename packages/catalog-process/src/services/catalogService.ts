@@ -831,11 +831,7 @@ export function catalogServiceBuilder(
     async updateEService(
       eserviceId: EServiceId,
       eserviceSeed: catalogApi.UpdateEServiceSeed,
-      {
-        authData,
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
 
