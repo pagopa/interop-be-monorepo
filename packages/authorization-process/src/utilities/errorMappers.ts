@@ -98,7 +98,7 @@ export const addClientPurposeErrorMapper = (
     )
     .with("purposeAlreadyLinkedToClient", () => HTTP_STATUS_CONFLICT)
     .with(
-      "purposeAdditionNotAllowedForClient",
+      "clientKindNotAllowed",
       "organizationNotAllowedOnClient",
       "organizationNotAllowedOnPurpose",
       () => HTTP_STATUS_FORBIDDEN

@@ -18,7 +18,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
-  purposeAdditionNotAllowedForClient,
+  clientKindNotAllowed,
   purposeNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -137,7 +137,7 @@ describe("remove client purpose", () => {
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
     );
   });
-  it("should throw purposeAdditionNotAllowedForClient if the requester is the client api", async () => {
+  it("should throw clientKindNotAllowed if the requester is the client api", async () => {
     const mockClient: Client = {
       ...getMockClient(),
       kind: ClientKind.Enum.Api,
@@ -155,6 +155,6 @@ describe("remove client purpose", () => {
         correlationId: generateId(),
         logger: genericLogger,
       })
-    ).rejects.toThrowError(purposeAdditionNotAllowedForClient(mockClient.id));
+    ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
 });
