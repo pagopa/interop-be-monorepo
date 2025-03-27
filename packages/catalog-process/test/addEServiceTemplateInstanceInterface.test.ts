@@ -65,7 +65,6 @@ const readFileContent = async (fileName: string): Promise<string> => {
 
 const initEserviceTemplateInstance = async (
   eserviceDescriptorState: DescriptorState,
-  documents: Document[] = [],
   technology?: Technology,
   interfaceDoc?: {
     doc: Document;
@@ -76,21 +75,6 @@ const initEserviceTemplateInstance = async (
   descriptor: Descriptor;
   template: EServiceTemplate;
 }> => {
-  await Promise.all([
-    ...documents.map((doc) =>
-      fileManager.storeBytes(
-        {
-          bucket: config.s3Bucket,
-          path: config.eserviceDocumentsPath,
-          resourceId: doc.id,
-          name: doc.name,
-          content: Buffer.from("testtest"),
-        },
-        genericLogger
-      )
-    ),
-  ]);
-
   const interfacePath = interfaceDoc
     ? await fileManager.storeBytes(
         {
@@ -121,7 +105,6 @@ const initEserviceTemplateInstance = async (
       generateId<TenantId>(),
       [mockEserviceTemplateVersion]
     ),
-    documents,
     interface: interfaceDoc,
     technology: technology || "Rest",
   };
@@ -314,7 +297,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       ).rejects.toThrow(eServiceNotAnInstance(mockEService.id));
     });
 
-    it("should throw an eServiceNotAnInstance if eservice is not a template instance", async () => {
+    it("should throw an eServiceTemplateNotFound if template is not found", async () => {
       const authData = getMockAuthData();
       const eserviceId = generateId<EServiceId>();
 
@@ -514,27 +497,11 @@ describe("addEServiceTemplateInstanceInterface", () => {
         path: `${config.eserviceDocumentsPath}`,
       };
 
-      const document1 = getMockDocument();
-      const document2 = getMockDocument();
       const { eservice, descriptor, template } =
-        await initEserviceTemplateInstance(
-          descriptorState.draft,
-          [
-            {
-              ...document1,
-              path: `${config.eserviceDocumentsPath}`,
-            },
-            {
-              ...document2,
-              path: `${config.eserviceDocumentsPath}`,
-            },
-          ],
-          "Rest",
-          {
-            doc: interfaceDocumentFile,
-            content: await readFileContent("test.openapi.3.0.2.yaml"),
-          }
-        );
+        await initEserviceTemplateInstance(descriptorState.draft, "Rest", {
+          doc: interfaceDocumentFile,
+          content: await readFileContent("test.openapi.3.0.2.yaml"),
+        });
 
       const expectedServerUrls = [
         "https://fun.tester.server.com",
@@ -625,27 +592,11 @@ describe("addEServiceTemplateInstanceInterface", () => {
         path: `${config.eserviceDocumentsPath}`,
       };
 
-      const document1 = getMockDocument();
-      const document2 = getMockDocument();
       const { eservice, descriptor, template } =
-        await initEserviceTemplateInstance(
-          descriptorState.draft,
-          [
-            {
-              ...document1,
-              path: `${config.eserviceDocumentsPath}`,
-            },
-            {
-              ...document2,
-              path: `${config.eserviceDocumentsPath}`,
-            },
-          ],
-          "Soap",
-          {
-            doc: interfaceDocumentFile,
-            content: await readFileContent("interface-test.wsdl"),
-          }
-        );
+        await initEserviceTemplateInstance(descriptorState.draft, "Soap", {
+          doc: interfaceDocumentFile,
+          content: await readFileContent("interface-test.wsdl"),
+        });
 
       const expectedServerUrls = ["https://host.com/TestWS/v1"];
       const requestPayload: catalogApi.TemplateInstanceInterfaceSOAPSeed = {
