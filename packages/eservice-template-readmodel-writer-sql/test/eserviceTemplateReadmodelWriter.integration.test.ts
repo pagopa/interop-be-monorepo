@@ -87,7 +87,7 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice).toMatchObject({
+      expect(retrievedEservice).toStrictEqual({
         data: mockEServiceTemplate,
         metadata: { version: 1 },
       });
@@ -124,7 +124,7 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice).toMatchObject({
+      expect(retrievedEservice).toStrictEqual({
         data: updatedEServiceTemplate,
         metadata: { version: 2 },
       });
@@ -168,8 +168,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateDraftVersionDeleted", async () => {
@@ -210,7 +210,7 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice).toMatchObject({
+      expect(retrievedEservice).toStrictEqual({
         data: updatedEServiceTemplate,
         metadata: { version: 2 },
       });
@@ -259,8 +259,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionQuotasUpdated", async () => {
@@ -308,8 +308,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionActivated", async () => {
@@ -359,8 +359,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionPublished", async () => {
@@ -407,8 +407,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceEServiceTemplateVersionSuspended", async () => {
@@ -456,8 +456,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionInterfaceAdded", async () => {
@@ -502,8 +502,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionDocumentAdded", async () => {
@@ -547,8 +547,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionInterfaceUpdated", async () => {
@@ -598,8 +598,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionDocumentUpdated", async () => {
@@ -649,8 +649,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionInterfaceDeleted", async () => {
@@ -700,8 +700,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateVersionDocumentDeleted", async () => {
@@ -746,8 +746,8 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("EServiceTemplateRiskAnalysisAdded", async () => {
@@ -781,7 +781,7 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice).toMatchObject({
+      expect(retrievedEservice).toStrictEqual({
         data: updatedEServiceTemplate,
         metadata: { version: 2 },
       });
@@ -835,7 +835,7 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice).toMatchObject({
+      expect(retrievedEservice).toStrictEqual({
         data: updatedEServiceTemplate,
         metadata: { version: 2 },
       });
@@ -877,7 +877,7 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice).toMatchObject({
+      expect(retrievedEservice).toStrictEqual({
         data: updatedEServiceTemplate,
         metadata: { version: 2 },
       });
@@ -920,8 +920,8 @@ describe("database test", async () => {
         await eserviceTemplateReadModelService.getEServiceTemplateById(
           mockEServiceTemplate.id
         );
-      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
   });
 });
