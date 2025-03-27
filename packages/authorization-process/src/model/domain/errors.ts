@@ -43,7 +43,7 @@ export const errorCodes = {
   userNotAllowedToDeleteProducerKeychainKey: "0028",
   purposeDelegationNotFound: "0029",
   eserviceNotDelegableForClientAccess: "0030",
-  purposeAdditionNotAllowedForClient: "0031",
+  clientKindNotAllowed: "0031",
   securityUserNotMember: "0032",
 };
 
@@ -372,13 +372,11 @@ export function eserviceNotDelegableForClientAccess(
   });
 }
 
-export function purposeAdditionNotAllowedForClient(
-  clientId: ClientId
-): ApiError<ErrorCodes> {
+export function clientKindNotAllowed(clientId: ClientId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose addition not allowed for client ${clientId}`,
-    code: "purposeAdditionNotAllowedForClient",
     title: "Purpose addition not allowed for client",
+    code: "clientKindNotAllowed",
   });
 }
 

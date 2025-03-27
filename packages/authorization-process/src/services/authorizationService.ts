@@ -23,7 +23,6 @@ import {
   ProducerKeychainId,
   CorrelationId,
   Delegation,
-  ClientKind,
 } from "pagopa-interop-models";
 import {
   AuthData,
@@ -64,7 +63,6 @@ import {
   userNotAllowedToDeleteClientKey,
   eserviceNotDelegableForClientAccess,
   purposeDelegationNotFound,
-  purposeAdditionNotAllowedForClient,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -104,6 +102,7 @@ import {
   assertKeyDoesNotAlreadyExist,
   assertRequesterIsDelegateConsumer,
   assertSecurityRoleIsClientMember,
+  assertClientIsConsumer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -447,9 +446,7 @@ export function authorizationServiceBuilder(
 
       const client = await retrieveClient(clientId, readModelService);
 
-      if (client.data.kind !== ClientKind.Enum.Consumer) {
-        throw purposeAdditionNotAllowedForClient(client.data.id);
-      }
+      assertClientIsConsumer(client.data);
 
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
@@ -618,9 +615,7 @@ export function authorizationServiceBuilder(
 
       const client = await retrieveClient(clientId, readModelService);
 
-      if (client.data.kind !== ClientKind.Enum.Consumer) {
-        throw purposeAdditionNotAllowedForClient(client.data.id);
-      }
+      assertClientIsConsumer(client.data);
 
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
