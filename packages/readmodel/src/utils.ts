@@ -12,7 +12,9 @@ export const makeDrizzleConnection = (
     database: readModelSQLDbConfig.readModelSQLDbName,
     user: readModelSQLDbConfig.readModelSQLDbUsername,
     password: readModelSQLDbConfig.readModelSQLDbPassword,
-    ssl: readModelSQLDbConfig.readModelSQLDbUseSSL,
+    ssl: readModelSQLDbConfig.readModelSQLDbUseSSL
+      ? { rejectUnauthorized: false }
+      : undefined,
   });
   return drizzle({ client: pool });
 };
