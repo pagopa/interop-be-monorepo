@@ -213,17 +213,9 @@ describe("createKey", () => {
     );
   });
   it("should throw tooManyKeysPerClient if the keys number is greater than maxKeysPerClient ", async () => {
-    function get100Keys(): Key[] {
-      const arrayKeys = [];
-      // eslint-disable-next-line functional/no-let
-      for (let index = 0; index < 101; index++) {
-        arrayKeys.push(getMockKey());
-      }
-      return arrayKeys;
-    }
     const clientWith100Keys: Client = {
       ...getMockClient(),
-      keys: get100Keys(),
+      keys: Array.from({ length: 100 }, () => getMockKey()),
       consumerId,
       users: [userId],
     };
