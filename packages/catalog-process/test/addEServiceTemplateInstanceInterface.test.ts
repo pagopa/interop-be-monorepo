@@ -194,7 +194,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       );
     });
 
-    it("should throw an operationForbidden if exists Producer delegation and requester is not a Delgate", async () => {
+    it("should throw an operationForbidden if exists Producer delegation and requester is not a Delegate", async () => {
       const authData = getMockAuthData();
       const eserviceId = generateId<EServiceId>();
 
