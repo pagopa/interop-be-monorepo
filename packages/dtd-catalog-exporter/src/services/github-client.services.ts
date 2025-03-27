@@ -57,6 +57,42 @@ export class GithubClient {
       return false;
     }
 
-    return "status" in error && (error as { status: number }).status === 404;
+    // Check for status directly on error
+    if (
+      "status" in error &&
+      typeof (error as { status: unknown }).status === "number"
+    ) {
+      return (error as { status: number }).status === 404;
+    }
+
+    // Check for status in error.response
+    if ("response" in error) {
+      const errorWithResponse = error as { response: unknown };
+      if (
+        errorWithResponse.response &&
+        typeof errorWithResponse.response === "object" &&
+        "status" in errorWithResponse.response &&
+        typeof (errorWithResponse.response as { status: unknown }).status ===
+          "number"
+      ) {
+        return (
+          (errorWithResponse.response as { status: number }).status === 404
+        );
+      }
+    }
+
+    // Check for status in error.response.data
+    if ("response" in error) {
+      const response = (error as { response: unknown }).response;
+      if (response && typeof response === "object" && "data" in response) {
+        const data = (response as { data: unknown }).data;
+        if (data && typeof data === "object" && "status" in data) {
+          const status = (data as { status: unknown }).status;
+          return status === "404" || status === 404;
+        }
+      }
+    }
+
+    return false;
   }
 }
