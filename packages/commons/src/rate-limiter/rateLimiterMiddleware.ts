@@ -1,7 +1,6 @@
 import { constants } from "http2";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
-  genericError,
   makeApiProblemBuilder,
   tooManyRequestsError,
 } from "pagopa-interop-models";
@@ -21,16 +20,6 @@ export function rateLimiterMiddleware(
   return async (req, res, next) => {
     const ctx = fromAppContext(req.ctx);
     assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
-
-    if (!ctx.authData?.organizationId) {
-      const errorRes = makeApiProblem(
-        genericError("Missing expected organizationId claim in token"),
-        () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-        ctx.logger,
-        ctx.correlationId
-      );
-      return res.status(errorRes.status).send(errorRes);
-    }
 
     const rateLimiterStatus = await rateLimiter.rateLimitByOrganization(
       ctx.authData.organizationId,

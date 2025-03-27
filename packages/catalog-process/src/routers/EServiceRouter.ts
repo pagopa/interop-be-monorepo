@@ -122,7 +122,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          assertContextHasTokenTypeIn(ctx, ["ui"]);
+          assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
           const {
             name,
             eservicesIds,
