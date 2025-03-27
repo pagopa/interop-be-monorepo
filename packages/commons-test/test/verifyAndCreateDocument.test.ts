@@ -68,17 +68,6 @@ describe("verifyAndCreateDocument", async () => {
       .fn()
       .mockResolvedValue({ id: documentId });
 
-    await fileManager.storeBytes(
-      {
-        bucket: s3Bucket,
-        path: "test",
-        resourceId: "test",
-        name: "test",
-        content: Buffer.from("test"),
-      },
-      genericLogger
-    );
-
     await verifyAndCreateDocument(
       fileManager,
       resourceId,
