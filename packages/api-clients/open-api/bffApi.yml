@@ -17672,6 +17672,8 @@ components:
           type: boolean
         instanceLabel:
           type: string
+          minLength: 5
+          maxLength: 60
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -20627,6 +20629,8 @@ components:
       properties:
         instanceLabel:
           type: string
+          minLength: 5
+          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:

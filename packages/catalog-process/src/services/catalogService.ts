@@ -41,7 +41,6 @@ import {
   eserviceMode,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
@@ -273,24 +272,6 @@ const retrieveEServiceTemplate = async (
     throw eServiceTemplateNotFound(eserviceTemplateId);
   }
   return eserviceTemplate;
-};
-
-const retrieveEServicePublishedTemplateVersion = (
-  eserviceTemplate: EServiceTemplate,
-  eserviceTemplateVersionId: EServiceTemplateVersionId
-): EServiceTemplateVersion => {
-  const eserviceTemplateVersion = eserviceTemplate.versions.find(
-    (v) => v.id === eserviceTemplateVersionId
-  );
-
-  if (
-    !eserviceTemplateVersion ||
-    eserviceTemplateVersion.state !== eserviceTemplateVersionState.published
-  ) {
-    throw eServiceTemplateWithoutPublishedVersion(eserviceTemplate.id);
-  }
-
-  return eserviceTemplateVersion;
 };
 
 const getTemplateDataFromEservice = (
@@ -3044,12 +3025,10 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const eserviceTemplateVersion = retrieveEServicePublishedTemplateVersion(
-        eserviceTemplate,
-        eserviceTemplateVersionId
+      const eserviceTemplateVersion = eserviceTemplate.versions.find(
+        (v) => v.id === eserviceTemplateVersionId
       );
-
-      const templateInterface = eserviceTemplateVersion.interface;
+      const templateInterface = eserviceTemplateVersion?.interface;
       if (!templateInterface) {
         throw eserviceTemplateInterfaceNotFound(
           eserviceTemplateId,
