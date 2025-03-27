@@ -5,14 +5,14 @@ meta {
 }
 
 post {
-  url: {{host-catalog}}/eservices/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/publish
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/publish
   body: none
   auth: none
 }
 
 params:path {
-  eserviceTemplateId: {{eserviceId}}
-  eserviceTemplateVersionId: {{descriptorId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
+  eserviceTemplateVersionId: {{eserviceTemplateVersionId}}
 }
 
 headers {

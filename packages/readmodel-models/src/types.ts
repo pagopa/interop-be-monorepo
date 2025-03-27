@@ -139,6 +139,13 @@ export type AgreementStampSQL = InferSelectModel<
 export type AgreementSQL = InferSelectModel<
   typeof agreementInReadmodelAgreement
 >;
+export type AgreementItemsSQL = {
+  agreementSQL: AgreementSQL;
+  stampsSQL: AgreementStampSQL[];
+  attributesSQL: AgreementAttributeSQL[];
+  consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  contractSQL: AgreementContractSQL | undefined;
+};
 
 export type TenantSQL = InferSelectModel<typeof tenantInReadmodelTenant>;
 export type TenantMailSQL = InferSelectModel<

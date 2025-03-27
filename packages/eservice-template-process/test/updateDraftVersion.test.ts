@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getMockAuthData,
   getMockDocument,
+  getMockContext,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -92,12 +92,9 @@ describe("update draft version", () => {
       eserviceTemplate.id,
       version.id,
       expectedVersionSeed,
-      {
+      getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -128,12 +125,9 @@ describe("update draft version", () => {
         mockEServiceTemplate.id,
         version.id,
         buildUpdateVersionSeed(version),
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
   });
@@ -150,12 +144,9 @@ describe("update draft version", () => {
         mockEServiceTemplate.id,
         mockVersion.id,
         buildUpdateVersionSeed(mockVersion),
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
@@ -185,12 +176,9 @@ describe("update draft version", () => {
           eserviceTemplate.id,
           version.id,
           buildUpdateVersionSeed(version),
-          {
+          getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         )
       ).rejects.toThrowError(
         notValidEServiceTemplateVersionState(mockVersion.id, state)
@@ -218,12 +206,7 @@ describe("update draft version", () => {
         eserviceTemplate.id,
         version.id,
         buildUpdateVersionSeed(expectedVersion),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -249,12 +232,7 @@ describe("update draft version", () => {
         eservice.id,
         version.id,
         buildUpdateVersionSeed(expectedVersion),
-        {
-          authData: getMockAuthData(eservice.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.creatorId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -285,12 +263,9 @@ describe("update draft version", () => {
         expectedEserviceTemplate.id,
         version.id,
         buildUpdateVersionSeed(expectedVersion),
-        {
+        getMockContext({
           authData: getMockAuthData(expectedEserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       );
 
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -364,12 +339,9 @@ describe("update draft version", () => {
         eserviceTemplate.id,
         version.id,
         descriptorSeed,
-        {
+        getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
   });
