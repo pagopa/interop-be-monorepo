@@ -2144,6 +2144,8 @@ components:
           type: boolean
         instanceLabel:
           type: string
+          minLength: 5
+          maxLength: 60
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -2962,6 +2964,8 @@ components:
       properties:
         instanceLabel:
           type: string
+          minLength: 5
+          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:
