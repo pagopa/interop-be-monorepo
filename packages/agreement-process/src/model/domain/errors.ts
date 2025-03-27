@@ -26,22 +26,21 @@ export const errorCodes = {
   agreementAlreadyExists: "0010",
   noNewerDescriptor: "0011",
   publishedDescriptorNotFound: "0012",
-  unexpectedVersionFormat: "0013",
-  descriptorNotFound: "0014",
-  stampNotFound: "0015",
-  documentNotFound: "0017",
-  documentsChangeNotAllowed: "0018",
-  tenantNotFound: "0020",
-  notLatestEServiceDescriptor: "0021",
-  attributeNotFound: "0022",
-  invalidAttributeStructure: "0023",
-  consumerWithNotValidEmail: "0024",
-  agreementDocumentAlreadyExists: "0025",
-  delegationNotFound: "0026",
-  organizationIsNotTheConsumer: "0027",
-  organizationIsNotTheDelegateConsumer: "0028",
-  organizationIsNotTheProducer: "0029",
-  organizationIsNotTheDelegateProducer: "0030",
+  descriptorNotFound: "0013",
+  stampNotFound: "0014",
+  documentNotFound: "0015",
+  documentsChangeNotAllowed: "0016",
+  tenantNotFound: "0017",
+  notLatestEServiceDescriptor: "0018",
+  attributeNotFound: "0019",
+  invalidAttributeStructure: "0020",
+  consumerWithNotValidEmail: "0021",
+  agreementDocumentAlreadyExists: "0022",
+  delegationNotFound: "0023",
+  organizationIsNotTheConsumer: "0024",
+  organizationIsNotTheDelegateConsumer: "0025",
+  organizationIsNotTheProducer: "0026",
+  organizationIsNotTheDelegateProducer: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -241,18 +240,6 @@ export function publishedDescriptorNotFound(
     detail: `Published descriptor not found in EService ${eserviceId}`,
     code: "publishedDescriptorNotFound",
     title: "Published descriptor not found",
-  });
-}
-
-// this can be deleted
-export function unexpectedVersionFormat(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Version in not an Int for descriptor ${descriptorId} of EService ${eserviceId}`,
-    code: "unexpectedVersionFormat",
-    title: "Unexpected version format",
   });
 }
 

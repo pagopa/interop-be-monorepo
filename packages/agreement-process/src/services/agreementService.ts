@@ -685,19 +685,10 @@ export function agreementServiceBuilder(
         throw publishedDescriptorNotFound(eservice.id);
       }
 
-      // if (!Number.isInteger(newDescriptor.version)) {
-      //   throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
-      // }
-
-      // no need this control, if version isn't an INT z.coerce.number().int() throw a parse error
       const currentDescriptor = retrieveDescriptor(
         agreementToBeUpgraded.data.descriptorId,
         eservice
       );
-
-      // if (!Number.isInteger(currentDescriptor.version)) {
-      //   throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
-      // }
 
       if (newDescriptor.version <= currentDescriptor.version) {
         throw noNewerDescriptor(eservice.id, currentDescriptor.id);

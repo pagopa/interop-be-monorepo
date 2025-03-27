@@ -95,7 +95,7 @@ export type EServiceTemplateVersionRef = z.infer<
 
 export const Descriptor = z.object({
   id: DescriptorId,
-  version: z.coerce.number().int(),
+  version: z.coerce.number().int(), // When sql readmodels arrive, coerce can be removed
   description: z.string().optional(),
   interface: Document.optional(),
   docs: z.array(Document),
