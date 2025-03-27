@@ -29,6 +29,7 @@ import {
   toClientV2,
   ClientKind,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   purposeDelegationNotFound,
