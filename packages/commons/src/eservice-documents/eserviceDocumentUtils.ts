@@ -238,7 +238,7 @@ export const interpolateSoapApiSpec = async (
 
   const urlsPorts = eserviceInstanceInterfaceData.serverUrls.map((url) => ({
     "soap:address": {
-      location: url,
+      "@_location": url,
     },
   }));
 
