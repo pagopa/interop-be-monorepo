@@ -88,10 +88,10 @@ describe("interpolateApiSpec", async () => {
     const fileContent = await interpolatedFile.text();
 
     const normalizedFileContent = fileContent
-      .replace(/\t/g, "") // Rimuovi tabulazioni
-      .replace(/\n/g, "") // Rimuovi a capo
-      .replace(/\s+/g, " ") // Sostituisci spazi multipli con uno spazio
-      .trim(); // Rimuovi spazi iniziali e finali
+      .replace(/\t/g, "") // Remove tabs
+      .replace(/\n/g, "") // Remove newlines
+      .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+      .trim(); // Remove leading and trailing spaces
 
     const normalizedExpectedContent = expectedFileContent
       .toString()
