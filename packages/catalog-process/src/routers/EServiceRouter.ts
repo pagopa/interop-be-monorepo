@@ -20,7 +20,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
@@ -85,7 +84,6 @@ import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 const db = makeDrizzleConnection(config);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
-const templateReadModelServiceSQL = eserviceTemplateReadModelServiceBuilder(db);
 
 const readModelRepository = ReadModelRepository.init(config);
 
@@ -93,8 +91,7 @@ const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(
   db,
   catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  templateReadModelServiceSQL
+  tenantReadModelServiceSQL
 );
 
 const readModelService =

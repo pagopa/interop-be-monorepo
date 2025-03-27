@@ -19,17 +19,22 @@ import {
   descriptorState,
   agreementState,
   DescriptorState,
+  emptyListResult,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
   aggregateAttributeArray,
   aggregateDelegation,
   aggregateEservice,
+  aggregateEserviceArray,
   CatalogReadModelServiceSQL,
   TenantReadModelService,
   toAgreementAggregatorArray,
   toDelegationAggregator,
   toEServiceAggregator,
+  toEServiceAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -54,15 +59,16 @@ import {
   eserviceTemplateRefInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, count, desc, eq, ilike, inArray } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, or } from "drizzle-orm";
+import { match } from "ts-pattern";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
   readmodelDB: DrizzleReturnType,
   catalogReadModelService: CatalogReadModelServiceSQL,
-  tenantReadModelService: TenantReadModelService,
-  eserviceTemplateReadModelService: EserviceTeamplateReadModelService
+  tenantReadModelService: TenantReadModelService
+  // eserviceTemplateReadModelService: EserviceTeamplateReadModelService
 ) {
   return {
     async getEServices(
@@ -71,7 +77,7 @@ export function readModelServiceBuilderSQL(
       offset: number,
       limit: number
     ): Promise<ListResult<EService>> {
-      /* const {
+      const {
         eservicesIds,
         producersIds,
         states,
@@ -83,6 +89,8 @@ export function readModelServiceBuilderSQL(
         delegated,
         templatesIds,
       } = filters;
+      // eslint-disable-next-line no-console
+      console.log(templatesIds);
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
@@ -100,231 +108,192 @@ export function readModelServiceBuilderSQL(
         return emptyListResult;
       }
 
-      const nameFilter: ReadModelFilter<EService> = name
-        ? {
-            "data.name": {
-              $regex: ReadModelRepository.escapeRegExp(name),
-              $options: "i",
-            },
-          }
-        : {};
+      const matchingEserviceIds = await readmodelDB
+        .select({ id: eserviceInReadmodelCatalog.id })
+        .from(eserviceInReadmodelCatalog)
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorAttributeInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          delegationInReadmodelDelegation,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            delegationInReadmodelDelegation.eserviceId
+          )
+        )
+        .where(
+          and(
+            name ? ilike(eserviceInReadmodelCatalog.name, name) : undefined,
+            ids.length > 0
+              ? inArray(eserviceInReadmodelCatalog.id, ids)
+              : undefined,
+            producersIds.length > 0
+              ? or(
+                  inArray(eserviceInReadmodelCatalog.producerId, producersIds),
+                  and(
+                    inArray(
+                      delegationInReadmodelDelegation.delegateId,
+                      producersIds
+                    ),
+                    eq(
+                      delegationInReadmodelDelegation.state,
+                      delegationState.active
+                    ),
+                    eq(
+                      delegationInReadmodelDelegation.kind,
+                      delegationKind.delegatedProducer
+                    )
+                  )
+                )
+              : undefined,
+            states.length > 0
+              ? inArray(eserviceDescriptorInReadmodelCatalog.state, states)
+              : undefined,
+            attributesIds.length > 0
+              ? inArray(
+                  eserviceDescriptorAttributeInReadmodelCatalog.attributeId,
+                  attributesIds
+                )
+              : undefined,
+            // TODO visibility filter
+            mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
+            isConsumerDelegable
+              ? eq(
+                  eserviceInReadmodelCatalog.isConsumerDelegable,
+                  isConsumerDelegable
+                )
+              : undefined,
+            delegated === true
+              ? inArray(delegationInReadmodelDelegation.state, [
+                  delegationState.active,
+                  delegationState.waitingForApproval,
+                ])
+              : delegated === false
+              ? eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                )
+              : undefined
+            // TODO template filter
+          )
+        );
 
-      const idsFilter: ReadModelFilter<EService> =
-        ReadModelRepository.arrayToFilter(ids, {
-          "data.id": { $in: ids },
-        });
+      // manually retrieve eservices matching those ids but do manual pagination (example: query the first 10. etc...)
+      const queryResult = await readmodelDB
+        .select({
+          eservice: eserviceInReadmodelCatalog,
+          descriptor: eserviceDescriptorInReadmodelCatalog,
+          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
+          document: eserviceDescriptorDocumentInReadmodelCatalog,
+          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
+          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
+          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
+          templateRef: eserviceTemplateRefInReadmodelCatalog,
+          templateVersionRef:
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+        })
+        .from(eserviceInReadmodelCatalog)
+        .where(
+          inArray(
+            eserviceInReadmodelCatalog.id,
+            matchingEserviceIds
+              .slice(offset, offset + limit) // TODO double-check
+              .map((item) => item.id)
+          )
+        )
+        .leftJoin(
+          // 1
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          // 2
+          eserviceDescriptorInterfaceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 3
+          eserviceDescriptorDocumentInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 4
+          eserviceDescriptorAttributeInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 5
+          eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 6
+          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 7
+          eserviceRiskAnalysisInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          // 8
+          eserviceRiskAnalysisAnswerInReadmodelCatalog,
+          eq(
+            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          // 9
+          eserviceTemplateRefInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceTemplateRefInReadmodelCatalog.eserviceId
+          )
+        );
 
-      const delegationLookup = {
-        $lookup: {
-          from: "delegations",
-          localField: "data.id",
-          foreignField: "data.eserviceId",
-          as: "delegations",
-        },
-      };
-
-      const producersIdsFilter = ReadModelRepository.arrayToFilter(
-        producersIds,
-        {
-          $or: [
-            { "data.producerId": { $in: producersIds } },
-            {
-              "delegations.data.delegateId": { $in: producersIds },
-              "delegations.data.state": { $eq: delegationState.active },
-              "delegations.data.kind": {
-                $eq: delegationKind.delegatedProducer,
-              },
-            },
-          ],
-        }
+      const eservices = aggregateEserviceArray(
+        toEServiceAggregatorArray(queryResult)
       );
 
-      const descriptorsStateFilter: ReadModelFilter<EService> =
-        ReadModelRepository.arrayToFilter(states, {
-          "data.descriptors.state": { $in: states },
-        });
-
-      const attributesFilter: ReadModelFilter<EService> =
-        ReadModelRepository.arrayToFilter(attributesIds, {
-          $or: [
-            {
-              "data.descriptors.attributes.certified": {
-                $elemMatch: {
-                  $elemMatch: { id: { $in: attributesIds } },
-                },
-              },
-            },
-            {
-              "data.descriptors.attributes.declared": {
-                $elemMatch: {
-                  $elemMatch: { id: { $in: attributesIds } },
-                },
-              },
-            },
-            {
-              "data.descriptors.attributes.verified": {
-                $elemMatch: {
-                  $elemMatch: { id: { $in: attributesIds } },
-                },
-              },
-            },
-          ],
-        });
-
-      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-        authData
-      )
-        ? {
-            $nor: [
-              {
-                $and: [
-                  {
-                    $nor: [
-                      { "data.producerId": authData.organizationId },
-                      {
-                        delegations: {
-                          $elemMatch: {
-                            "data.delegateId": authData.organizationId,
-                            "data.state": delegationState.active,
-                            "data.kind": delegationKind.delegatedProducer,
-                          },
-                        },
-                      },
-                    ],
-                  },
-                  { "data.descriptors": { $size: 0 } },
-                ],
-              },
-              {
-                $and: [
-                  {
-                    $nor: [
-                      { "data.producerId": authData.organizationId },
-                      {
-                        delegations: {
-                          $elemMatch: {
-                            "data.delegateId": authData.organizationId,
-                            "data.state": delegationState.active,
-                            "data.kind": delegationKind.delegatedProducer,
-                          },
-                        },
-                      },
-                    ],
-                  },
-                  { "data.descriptors": { $size: 1 } },
-                  {
-                    "data.descriptors.state": {
-                      $in: notActiveDescriptorState,
-                    },
-                  },
-                ],
-              },
-            ],
-          }
-        : {
-            $nor: [
-              { "data.descriptors": { $size: 0 } },
-              {
-                $and: [
-                  { "data.descriptors": { $size: 1 } },
-                  {
-                    "data.descriptors.state": {
-                      $in: notActiveDescriptorState,
-                    },
-                  },
-                ],
-              },
-            ],
-          };
-
-      const modeFilter: ReadModelFilter<EService> = mode
-        ? { "data.mode": { $eq: mode } }
-        : {};
-
-      const isConsumerDelegableFilter: ReadModelFilter<EService> =
-        isConsumerDelegable
-          ? { "data.isConsumerDelegable": { $eq: isConsumerDelegable } }
-          : {};
-
-      const delegatedFilter: ReadModelFilter<EService> = match(delegated)
-        .with(true, () => ({
-          "delegations.data.state": {
-            $in: [delegationState.active, delegationState.waitingForApproval],
-          },
-          "delegations.data.kind": delegationKind.delegatedProducer,
-        }))
-        .with(false, () => ({
-          delegations: {
-            $not: {
-              $elemMatch: {
-                "data.state": {
-                  $in: [
-                    delegationState.active,
-                    delegationState.waitingForApproval,
-                  ],
-                },
-                "data.kind": delegationKind.delegatedProducer,
-              },
-            },
-          },
-        }))
-        .otherwise(() => ({}));
-
-      const templatesIdsFilter =
-        templatesIds.length > 0
-          ? {
-              "data.templateRef.id": { $in: templatesIds },
-            }
-          : {};
-
-      const aggregationPipeline = [
-        delegationLookup,
-        { $match: nameFilter },
-        { $match: idsFilter },
-        { $match: producersIdsFilter },
-        { $match: descriptorsStateFilter },
-        { $match: attributesFilter },
-        { $match: visibilityFilter },
-        { $match: modeFilter },
-        { $match: isConsumerDelegableFilter },
-        { $match: delegatedFilter },
-        { $match: templatesIdsFilter },
-        {
-          $project: {
-            data: 1,
-            computedColumn: { $toLower: ["$data.name"] },
-          },
-        },
-        {
-          $sort: { computedColumn: 1 },
-        },
-      ];
-
-      const data = await eservices
-        .aggregate(
-          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
-          { allowDiskUse: true }
-        )
-        .toArray();
-
-      const result = z.array(EService).safeParse(data.map((d) => d.data));
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse eservices items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-
       return {
-        results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          eservices,
-          aggregationPipeline
-        ),
+        results: eservices.map((eservice) => eservice.data),
+        totalCount: matchingEserviceIds.length,
       };
-      */
     },
     async getEServiceByNameAndProducerId({
       name,
@@ -524,6 +493,7 @@ export function readModelServiceBuilderSQL(
         );
 
       // TODO: without the aggregators, we have to parse the entries here
+
       const consumers: Consumer[] = res.map((row) => ({
         descriptorVersion: row.descriptor.version,
         descriptorState: DescriptorState.parse(row.descriptor.state),
@@ -699,7 +669,9 @@ export function readModelServiceBuilderSQL(
     async getEServiceTemplateById(
       id: EServiceTemplateId
     ): Promise<EServiceTemplate | undefined> {
-      return eserviceTemplateReadModelService.getTemplateById(id);
+      // eslint-disable-next-line no-console
+      console.log(id);
+      return undefined;
     },
   };
 }
