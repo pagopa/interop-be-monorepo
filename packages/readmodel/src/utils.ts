@@ -42,7 +42,7 @@ export const checkMetadataVersion = async <
         metadataVersion: table.metadataVersion,
       })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .from(table as any)
+      .from(table as AnyPgTable)
       .where(filter)
   )[0]?.metadataVersion;
 
