@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockAuthData,
+  getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
   toEServiceTemplateV2,
   operationForbidden,
-  generateId,
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionSuspendedV2,
@@ -49,12 +48,9 @@ describe("suspendEServiceTemplateVersion", () => {
     await eserviceTemplateService.suspendEServiceTemplateVersion(
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
-      {
+      getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      })
     );
 
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -93,12 +89,9 @@ describe("suspendEServiceTemplateVersion", () => {
       eserviceTemplateService.suspendEServiceTemplateVersion(
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
   });
@@ -118,12 +111,7 @@ describe("suspendEServiceTemplateVersion", () => {
       eserviceTemplateService.suspendEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -139,12 +127,9 @@ describe("suspendEServiceTemplateVersion", () => {
       eserviceTemplateService.suspendEServiceTemplateVersion(
         eserviceTemplate.id,
         mockEServiceTemplateVersion.id,
-        {
+        getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        })
       )
     ).rejects.toThrowError(
       eServiceTemplateVersionNotFound(
@@ -174,12 +159,9 @@ describe("suspendEServiceTemplateVersion", () => {
         eserviceTemplateService.suspendEServiceTemplateVersion(
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
-          {
+          getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         )
       ).rejects.toThrowError(
         notValidEServiceTemplateVersionState(eserviceTemplateVersion.id, state)

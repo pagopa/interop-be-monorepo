@@ -4,7 +4,7 @@ import {
   getMockAttribute,
   getMockTenant,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Attribute,
   Tenant,
