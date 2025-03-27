@@ -374,9 +374,9 @@ export function eserviceNotDelegableForClientAccess(
 
 export function clientKindNotAllowed(clientId: ClientId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose addition not allowed for client ${clientId}`,
-    title: "Purpose addition not allowed for client",
+    detail: `Purpose operation not allowed for client ${clientId}`,
     code: "clientKindNotAllowed",
+    title: "Purpose operation not allowed for client",
   });
 }
 
