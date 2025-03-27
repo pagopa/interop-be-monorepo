@@ -1,4 +1,4 @@
-import { Octokit, RequestError } from "octokit";
+import { Octokit } from "octokit";
 
 export class GithubClient {
   private octokit: Octokit;
@@ -41,13 +41,22 @@ export class GithubClient {
           filePath,
         }
       );
+
       return response.data.sha;
     } catch (error) {
-      if (error instanceof RequestError && error.status === 404) {
+      if (this.isNotFoundError(error)) {
         return undefined;
       } else {
         throw error;
       }
     }
+  }
+
+  private isNotFoundError(error: unknown): boolean {
+    if (!error || typeof error !== "object") {
+      return false;
+    }
+
+    return "status" in error && (error as { status: number }).status === 404;
   }
 }
