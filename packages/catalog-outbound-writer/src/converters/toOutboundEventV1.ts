@@ -62,6 +62,7 @@ export function toOutboundEventV1(
             msg.data.eservice && toOutboundEServiceV1(msg.data.eservice),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -74,6 +75,7 @@ export function toOutboundEventV1(
         eservice: msg.data.eservice && toOutboundEServiceV1(msg.data.eservice),
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "EServiceDocumentUpdated" }, (msg) => ({
@@ -90,6 +92,7 @@ export function toOutboundEventV1(
         serverUrls: msg.data.serverUrls,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "EServiceDeleted" }, (msg) => ({
@@ -100,6 +103,7 @@ export function toOutboundEventV1(
         eserviceId: msg.data.eserviceId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "EServiceDocumentAdded" }, (msg) => ({
@@ -115,6 +119,7 @@ export function toOutboundEventV1(
         serverUrls: msg.data.serverUrls,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "EServiceDocumentDeleted" }, (msg) => ({
@@ -127,6 +132,7 @@ export function toOutboundEventV1(
         documentId: msg.data.documentId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with(
@@ -143,6 +149,7 @@ export function toOutboundEventV1(
             toOutboundDescriptorV1(msg.data.eserviceDescriptor),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
