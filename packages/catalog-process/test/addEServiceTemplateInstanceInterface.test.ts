@@ -2,6 +2,7 @@ import { fileURLToPath } from "url";
 import fs from "fs/promises";
 import path from "path";
 import {
+  decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
   getMockDelegation,
@@ -21,6 +22,7 @@ import {
   DescriptorState,
   Document,
   EService,
+  EServiceDescriptorInterfaceAddedV2,
   EServiceId,
   EServiceTemplate,
   EServiceTemplateId,
@@ -37,7 +39,11 @@ import { genericLogger } from "pagopa-interop-commons";
 import { config } from "../src/config/config.js";
 import {
   eServiceDescriptorNotFound,
+  eserviceInterfaceDataNotValid,
+  eServiceNotAnInstance,
   eServiceNotFound,
+  eserviceTemplateInterfaceNotFound,
+  eServiceTemplateNotFound,
 } from "../src/model/domain/errors.js";
 import {
   catalogService,
@@ -45,6 +51,7 @@ import {
   addOneEServiceTemplate,
   fileManager,
   addOneDelegation,
+  readLastEserviceEvent,
 } from "./utils.js";
 
 const readFileContent = async (fileName: string): Promise<string> => {
@@ -277,6 +284,226 @@ describe("addEServiceTemplateInstanceInterface", () => {
         )
       ).rejects.toThrow(operationForbidden);
     });
+
+    it("should throw an eServiceNotAnInstance if eservice is not a template instance", async () => {
+      const authData = getMockAuthData();
+      const eserviceId = generateId<EServiceId>();
+      const mockDescriptor = getMockDescriptor();
+
+      const mockEService = getMockEService(
+        eserviceId,
+        authData.organizationId,
+        [mockDescriptor]
+      );
+
+      await addOneEService(mockEService);
+
+      await expect(
+        catalogService.addEServiceTemplateInstanceInterface(
+          eserviceId,
+          mockDescriptor.id,
+          {
+            contactName: "Jhon Doe",
+            contactUrl: "https://fun.tester.johnny.info",
+            contactEmail: "johnnyd@funnytester.com",
+            termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
+            serverUrls: ["https://fun.tester.server.com"],
+          },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrow(eServiceNotAnInstance(mockEService.id));
+    });
+
+    it("should throw an eServiceNotAnInstance if eservice is not a template instance", async () => {
+      const authData = getMockAuthData();
+      const eserviceId = generateId<EServiceId>();
+
+      const interfaceDoc = getMockDocument();
+      const interfacePath = await fileManager.storeBytes(
+        {
+          bucket: config.s3Bucket,
+          path: interfaceDoc.path,
+          resourceId: interfaceDoc.id,
+          name: interfaceDoc.name,
+          content: Buffer.from("a fake file content"),
+        },
+        genericLogger
+      );
+
+      const mockEserviceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          eserviceTemplateVersionState.published
+        ),
+        interface: { ...interfaceDoc, path: interfacePath },
+      };
+
+      const mockEServiceTemplate = {
+        ...getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [mockEserviceTemplateVersion]
+        ),
+      };
+      const mockDescriptor = {
+        ...getMockDescriptor(),
+        templateVersionRef: {
+          id: mockEServiceTemplate.versions[0].id,
+        },
+      };
+
+      const mockEService = {
+        ...getMockEService(eserviceId, authData.organizationId, [
+          mockDescriptor,
+        ]),
+        templateRef: {
+          id: mockEServiceTemplate.id,
+        },
+      };
+
+      await addOneEService(mockEService);
+
+      await expect(
+        catalogService.addEServiceTemplateInstanceInterface(
+          eserviceId,
+          mockDescriptor.id,
+          {
+            contactName: "Jhon Doe",
+            contactUrl: "https://fun.tester.johnny.info",
+            contactEmail: "johnnyd@funnytester.com",
+            termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
+            serverUrls: ["https://fun.tester.server.com"],
+          },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrow(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    });
+
+    it("should throw an eserviceTemplateInterfaceNotFound if missing template interface file", async () => {
+      const authData = getMockAuthData();
+      const eserviceId = generateId<EServiceId>();
+
+      const mockEserviceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          eserviceTemplateVersionState.published
+        ),
+        interface: undefined,
+      };
+
+      const mockEServiceTemplate = {
+        ...getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [mockEserviceTemplateVersion]
+        ),
+      };
+      const mockDescriptor = {
+        ...getMockDescriptor(),
+        templateVersionRef: {
+          id: mockEServiceTemplate.versions[0].id,
+        },
+      };
+
+      const mockEService = {
+        ...getMockEService(eserviceId, authData.organizationId, [
+          mockDescriptor,
+        ]),
+        templateRef: {
+          id: mockEServiceTemplate.id,
+        },
+      };
+
+      await addOneEServiceTemplate(mockEServiceTemplate);
+      await addOneEService(mockEService);
+
+      await expect(
+        catalogService.addEServiceTemplateInstanceInterface(
+          eserviceId,
+          mockDescriptor.id,
+          {
+            contactName: "Jhon Doe",
+            contactUrl: "https://fun.tester.johnny.info",
+            contactEmail: "johnnyd@funnytester.com",
+            termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
+            serverUrls: ["https://fun.tester.server.com"],
+          },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrow(
+        eserviceTemplateInterfaceNotFound(
+          mockEServiceTemplate.id,
+          mockEserviceTemplateVersion.id
+        )
+      );
+    });
+
+    it("should throw an eserviceInterfaceDataNotValid if provided serverUrls is empty array", async () => {
+      const authData = getMockAuthData();
+      const eserviceId = generateId<EServiceId>();
+      const interfaceDoc = getMockDocument();
+
+      const interfacePath = await fileManager.storeBytes(
+        {
+          bucket: config.s3Bucket,
+          path: interfaceDoc.path,
+          resourceId: interfaceDoc.id,
+          name: interfaceDoc.name,
+          content: Buffer.from(
+            await readFileContent("test.openapi.3.0.2.yaml")
+          ),
+        },
+        genericLogger
+      );
+      const mockEserviceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          eserviceTemplateVersionState.published
+        ),
+        interface: { ...interfaceDoc, path: interfacePath },
+      };
+
+      const mockEServiceTemplate = {
+        ...getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [mockEserviceTemplateVersion]
+        ),
+      };
+      const mockDescriptor = {
+        ...getMockDescriptor(),
+        templateVersionRef: {
+          id: mockEServiceTemplate.versions[0].id,
+        },
+      };
+
+      const mockEService = {
+        ...getMockEService(eserviceId, authData.organizationId, [
+          mockDescriptor,
+        ]),
+        templateRef: {
+          id: mockEServiceTemplate.id,
+        },
+      };
+
+      await addOneEServiceTemplate(mockEServiceTemplate);
+      await addOneEService(mockEService);
+
+      await expect(
+        catalogService.addEServiceTemplateInstanceInterface(
+          eserviceId,
+          mockDescriptor.id,
+          {
+            contactName: "Jhon Doe",
+            contactUrl: "https://fun.tester.johnny.info",
+            contactEmail: "johnnyd@funnytester.com",
+            termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
+            serverUrls: [],
+          },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrow(eserviceInterfaceDataNotValid());
+    });
   });
   describe("API REST", () => {
     it("should add interface REST interface to eservice template instance", async () => {
@@ -353,11 +580,44 @@ describe("addEServiceTemplateInstanceInterface", () => {
           },
         },
       });
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.event_version).toBe(2);
+      expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorInterfaceAddedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.descriptorId).toBe(descriptor.id);
+      expect(writtenPayload.descriptorId).toBe(descriptor.id);
+      expect(writtenPayload.eservice?.descriptors[0]?.serverUrls).toStrictEqual(
+        expectedServerUrls
+      );
+      expect(writtenPayload.eservice?.descriptors[0]?.interface).toMatchObject({
+        name: interfaceDocumentFile.name,
+        prettyName: interfaceDocumentFile.prettyName,
+        contentType: "yaml",
+        uploadDate: new Date().toISOString(),
+      });
+      expect(writtenPayload.eservice?.descriptors[0]).toMatchObject({
+        templateVersionRef: {
+          id: template.versions[0].id,
+          interfaceMetadata: {
+            contactEmail,
+            contactName,
+            contactUrl,
+            termsAndConditionsUrl,
+          },
+        },
+      });
     });
   });
 
   describe("API SOAP", () => {
-    it("should add interface SOAP interface to eservice template instance", async () => {
+    it("should add SOAP interface to eservice template instance", async () => {
       const interfaceDocumentFile = {
         ...getMockDocument(),
         name: "interface-test.wsdl",
@@ -412,6 +672,37 @@ describe("addEServiceTemplateInstanceInterface", () => {
         res.descriptors[0].templateVersionRef?.interfaceMetadata
       ).toBeUndefined();
       expect(res.descriptors[0]).toMatchObject({
+        templateVersionRef: {
+          id: template.versions[0].id,
+        },
+      });
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.event_version).toBe(2);
+      expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorInterfaceAddedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.descriptorId).toBe(descriptor.id);
+      expect(writtenPayload.descriptorId).toBe(descriptor.id);
+      expect(writtenPayload.eservice?.descriptors[0]?.serverUrls).toStrictEqual(
+        expectedServerUrls
+      );
+      expect(writtenPayload.eservice?.descriptors[0]?.interface).toMatchObject({
+        name: interfaceDocumentFile.name,
+        prettyName: interfaceDocumentFile.prettyName,
+        contentType: "wsdl",
+        uploadDate: new Date().toISOString(),
+      });
+      expect(
+        writtenPayload.eservice?.descriptors[0].templateVersionRef
+          ?.interfaceMetadata
+      ).toBeUndefined();
+      expect(writtenPayload.eservice?.descriptors[0]).toMatchObject({
         templateVersionRef: {
           id: template.versions[0].id,
         },
