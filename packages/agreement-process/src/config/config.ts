@@ -6,6 +6,8 @@ import {
   EventStoreConfig,
   S3Config,
   SelfCareConfig,
+  FeatureFlagSQL,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 
 const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
@@ -23,7 +25,10 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
         consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
         agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
       }))
-  );
+  )
+  .and(FeatureFlagSQL)
+  .and(ReadModelSQLDbConfig.optional());
+
 export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
 
 export const config: AgreementProcessConfig = AgreementProcessConfig.parse(
