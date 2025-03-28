@@ -13,7 +13,6 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "tsx --watch ./src/index.ts",
     "build": "tsc && pnpm run copy-sql-files && cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
     "check": "tsc --project tsconfig.check.json",
     "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
