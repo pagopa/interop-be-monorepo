@@ -2,7 +2,6 @@ import {
   APIEndpoint,
   CommonHTTPServiceConfig,
   FileManagerConfig,
-  KeepAliveConfig,
   RedisRateLimiterConfig,
   SelfCareConfig,
   SessionTokenGenerationConfig,
@@ -247,8 +246,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(InterfaceVersion)
   .and(SelfcareProcessConfig)
   .and(ClientAssertionValidationConfig)
-  .and(EServiceTemplateS3Config)
-  .and(KeepAliveConfig);
+  .and(EServiceTemplateS3Config);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
