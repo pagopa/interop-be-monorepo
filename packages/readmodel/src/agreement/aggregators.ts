@@ -28,6 +28,7 @@ import {
   AttributeKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateAgreementArray = ({
   agreementsSQL,
@@ -253,3 +254,111 @@ const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
       }
     : {}),
 });
+
+export const toAgreementAggregator = (
+  queryRes: Array<{
+    agreement: AgreementSQL;
+    stamp: AgreementStampSQL | null;
+    attribute: AgreementAttributeSQL | null;
+    consumerDocument: AgreementConsumerDocumentSQL | null;
+    contract: AgreementContractSQL | null;
+  }>
+): AgreementItemsSQL => {
+  const {
+    agreementsSQL,
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractsSQL,
+  } = toAgreementAggregatorArray(queryRes);
+
+  return {
+    agreementSQL: agreementsSQL[0],
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractSQL: contractsSQL.length > 0 ? contractsSQL[0] : undefined,
+  };
+};
+
+export const toAgreementAggregatorArray = (
+  queryRes: Array<{
+    agreement: AgreementSQL;
+    stamp: AgreementStampSQL | null;
+    attribute: AgreementAttributeSQL | null;
+    consumerDocument: AgreementConsumerDocumentSQL | null;
+    contract: AgreementContractSQL | null;
+  }>
+): {
+  agreementsSQL: AgreementSQL[];
+  stampsSQL: AgreementStampSQL[];
+  attributesSQL: AgreementAttributeSQL[];
+  consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
+  contractsSQL: AgreementContractSQL[];
+} => {
+  const agreementIdSet = new Set<string>();
+  const agreementsSQL: AgreementSQL[] = [];
+
+  const contractIdSet = new Set<string>();
+  const contractsSQL: AgreementContractSQL[] = [];
+
+  const stampIdSet = new Set<string>();
+  const stampsSQL: AgreementStampSQL[] = [];
+
+  const attributeIdSet = new Set<string>();
+  const attributesSQL: AgreementAttributeSQL[] = [];
+
+  const consumerDocumentIdSet = new Set<string>();
+  const consumerDocumentsSQL: AgreementConsumerDocumentSQL[] = [];
+
+  queryRes.forEach((row) => {
+    const agreementSQL = row.agreement;
+    if (!agreementIdSet.has(agreementSQL.id)) {
+      agreementIdSet.add(agreementSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      agreementsSQL.push(agreementSQL);
+    }
+
+    const stampSQL = row.stamp;
+    const stampPK = stampSQL
+      ? makeUniqueKey([stampSQL.agreementId, stampSQL.kind])
+      : undefined;
+    if (stampSQL && stampPK && !stampIdSet.has(stampPK)) {
+      stampIdSet.add(stampPK);
+      // eslint-disable-next-line functional/immutable-data
+      stampsSQL.push(stampSQL);
+    }
+
+    const attributeSQL = row.attribute;
+    const attributePK = attributeSQL
+      ? makeUniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
+      : undefined;
+    if (attributeSQL && attributePK && !attributeIdSet.has(attributePK)) {
+      attributeIdSet.add(attributePK);
+      // eslint-disable-next-line functional/immutable-data
+      attributesSQL.push(attributeSQL);
+    }
+
+    const contractSQL = row.contract;
+    if (contractSQL && !contractIdSet.has(contractSQL.id)) {
+      contractIdSet.add(contractSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      contractsSQL.push(contractSQL);
+    }
+
+    const documentSQL = row.consumerDocument;
+    if (documentSQL && !consumerDocumentIdSet.has(documentSQL.id)) {
+      consumerDocumentIdSet.add(documentSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      consumerDocumentsSQL.push(documentSQL);
+    }
+  });
+
+  return {
+    agreementsSQL,
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractsSQL,
+  };
+};

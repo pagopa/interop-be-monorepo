@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { aggregateAttribute } from "./attribute/aggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -15,19 +16,14 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion: attributeInReadmodelAttribute.metadataVersion,
-            })
-            .from(attributeInReadmodelAttribute)
-            .where(eq(attributeInReadmodelAttribute.id, attribute.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          attributeInReadmodelAttribute,
+          metadataVersion,
+          attribute.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(attributeInReadmodelAttribute)
             .where(eq(attributeInReadmodelAttribute.id, attribute.id));
