@@ -787,7 +787,7 @@ describe("get eservices", () => {
   });
 
   it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
-    const result = await catalogService.getEServices(
+    const result1 = await catalogService.getEServices(
       getMockAuthData(),
       {
         eservicesIds: [],
@@ -802,9 +802,29 @@ describe("get eservices", () => {
       50,
       genericLogger
     );
-    expect(result).toEqual({
+    expect(result1).toEqual({
       totalCount: 2,
       results: [eservice1, eservice4],
+    });
+
+    const result2 = await catalogService.getEServices(
+      getMockAuthData(),
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        isConsumerDelegable: false,
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result2).toEqual({
+      totalCount: 4,
+      results: [eservice2, eservice3, eservice5, eservice6],
     });
   });
 
