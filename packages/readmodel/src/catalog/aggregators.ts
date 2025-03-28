@@ -13,6 +13,7 @@ import {
   unsafeBrandId,
   Technology,
   EServiceMode,
+  EServiceDocumentId,
   DescriptorState,
   AgreementApprovalPolicy,
   stringToDate,
@@ -31,13 +32,18 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
   EServiceTemplateRefSQL,
-  // EServiceTemplateBindingSQL,
+  EServiceTemplateRiskAnalysisAnswerSQL,
+  EServiceTemplateRiskAnalysisSQL,
+  EServiceTemplateVersionAttributeSQL,
+  EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const documentSQLtoDocument = (
-  documentSQL: EServiceDescriptorDocumentSQL
+  documentSQL:
+    | EServiceDescriptorDocumentSQL
+    | EServiceTemplateVersionDocumentSQL
 ): Document => ({
-  id: unsafeBrandId(documentSQL.id),
+  id: unsafeBrandId<EServiceDocumentId>(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
   prettyName: documentSQL.prettyName,
@@ -301,8 +307,10 @@ export const aggregateEserviceArray = ({
   );
 
 export const aggregateRiskAnalysis = (
-  riskAnalysisSQL: EServiceRiskAnalysisSQL,
-  answers: EServiceRiskAnalysisAnswerSQL[]
+  riskAnalysisSQL: EServiceRiskAnalysisSQL | EServiceTemplateRiskAnalysisSQL,
+  answers:
+    | EServiceRiskAnalysisAnswerSQL[]
+    | EServiceTemplateRiskAnalysisAnswerSQL[]
 ): RiskAnalysis => {
   const singleAnswers = answers
     .filter((a) => a.kind === riskAnalysisAnswerKind.single)
@@ -339,7 +347,9 @@ export const aggregateRiskAnalysis = (
 };
 
 export const attributesSQLtoAttributes = (
-  attributesSQL: EServiceDescriptorAttributeSQL[]
+  attributesSQL:
+    | EServiceDescriptorAttributeSQL[]
+    | EServiceTemplateVersionAttributeSQL[]
 ): EServiceAttribute[][] => {
   const attributesMap = new Map<number, EServiceAttribute[]>();
   attributesSQL.forEach((current) => {
