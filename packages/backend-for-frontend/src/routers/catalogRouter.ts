@@ -22,12 +22,13 @@ import { makeApiProblem } from "../model/errors.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  addEServiceInterfceByTemplateErrorMapper,
+  addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
   createEServiceDocumentErrorMapper,
   emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
+  getEServiceTemplateInstancesErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
@@ -976,7 +977,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addEServiceInterfceByTemplateErrorMapper,
+            addEServiceInterfaceByTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error adding interface for eService ${req.params.eServiceId}`
@@ -1003,7 +1004,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addEServiceInterfceByTemplateErrorMapper,
+            addEServiceInterfaceByTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error adding interface for eService ${req.params.eServiceId}`
@@ -1032,7 +1033,7 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getEServiceTemplateInstancesErrorMapper,
           ctx.logger,
           ctx.correlationId,
           `Error retrieving eservice template ${templateId} instances`
