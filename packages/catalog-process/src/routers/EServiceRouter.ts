@@ -19,6 +19,11 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import {
+  catalogReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "../config/config.js";
 import {
   agreementStateToApiAgreementState,
@@ -74,10 +79,27 @@ import {
   updateDraftDescriptorTemplateInstanceErrorMapper,
   createTemplateInstanceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
+const db = makeDrizzleConnection(config);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
+
+const readModelRepository = ReadModelRepository.init(config);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL
 );
+
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const catalogService = catalogServiceBuilder(
   initDB({

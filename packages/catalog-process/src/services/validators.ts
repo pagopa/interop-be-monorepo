@@ -62,6 +62,14 @@ export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.waitingForApproval,
 ];
 
+// TODO avoid using "active" which might seem a specific state
+export const activeDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+  descriptorState.archived,
+];
+
 export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
