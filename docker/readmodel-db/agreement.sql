@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_stamp (
   "when" TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (agreement_id, kind),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute (
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_attribute (
   attribute_id UUID NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (agreement_id, attribute_id),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_consumer_document (
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_consumer_document (
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract (
@@ -63,5 +63,5 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract (
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version)
+  FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
