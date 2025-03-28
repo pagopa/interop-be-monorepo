@@ -33,6 +33,7 @@ import {
   attributeNotFound,
   eServiceNotFound,
   descriptorNotFoundInEservice,
+  selfCertificationNotAllowed,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -259,4 +260,13 @@ export function isFeatureAssigned(
   featureType: TenantFeature["type"]
 ): boolean {
   return tenant.features.some((f) => f.type === featureType);
+}
+
+export function assertCertificationIsAllowed(
+  originTenantId: TenantId,
+  targetTenantId: TenantId
+): void {
+  if (originTenantId === targetTenantId) {
+    throw selfCertificationNotAllowed(originTenantId);
+  }
 }
