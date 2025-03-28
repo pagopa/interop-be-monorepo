@@ -662,3 +662,84 @@ export function readModelServiceBuilder(
 }
 
 export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+
+/*
+
+const visibilityFilter: ReadModelFilter<EService> = hasPermission(
+  [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
+  authData
+)
+  ? {
+      $nor: [
+        {
+          $and: [
+            {
+              $nor: [
+                "it's the producer",
+                "has an active producer delegation"
+              ],
+            },
+            "doesn't have descriptors",
+          ],
+        },
+        {
+          $and: [
+            {
+              $nor: [
+                "it's the producer",
+                "has active producer delegation",
+              ],
+            },
+            "has one descriptor",
+            "the descriptor has state in notActiveDescriptorStates"
+          ],
+        },
+      ],
+    }
+  : {
+      $nor: [
+        "has no descriptors",
+        {
+          $and: [
+            "has one descriptor",
+            "the descriptor has state in notActiveDescriptorStates",
+          ],
+        },
+      ],
+    };
+
+
+
+    IMPROVED
+
+
+    hasPermission ?
+      {
+        OR(
+          AND(
+            you are not producer,
+            you are not delegate,
+            exist active descriptors for that eservice
+          ),
+          you are producer,
+          you are delegate
+      }
+      : {
+        exists active descriptors for that eservice
+      }
+
+
+   IMPROVED V2
+
+    hasPermission ?
+      {
+        OR(
+          exist active descriptors for that eservice
+          you are producer,
+          you are delegate
+        )
+      }
+      : {
+        exists active descriptors for that eservice
+      }
+*/

@@ -1,4 +1,4 @@
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, hasPermission, userRoles } from "pagopa-interop-commons";
 import {
   AttributeId,
   EService,
@@ -59,9 +59,10 @@ import {
   eserviceTemplateRefInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, count, desc, eq, ilike, inArray, or } from "drizzle-orm";
+import { and, count, desc, eq, exists, ilike, inArray, or } from "drizzle-orm";
 import { match } from "ts-pattern";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
+import { activeDescriptorStates } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -134,10 +135,13 @@ export function readModelServiceBuilderSQL(
         )
         .where(
           and(
+            // name filter
             name ? ilike(eserviceInReadmodelCatalog.name, name) : undefined,
+            // ids filter
             ids.length > 0
               ? inArray(eserviceInReadmodelCatalog.id, ids)
               : undefined,
+            // producerIds filter
             producersIds.length > 0
               ? or(
                   inArray(eserviceInReadmodelCatalog.producerId, producersIds),
@@ -157,23 +161,105 @@ export function readModelServiceBuilderSQL(
                   )
                 )
               : undefined,
+            // descriptorState filter
             states.length > 0
               ? inArray(eserviceDescriptorInReadmodelCatalog.state, states)
               : undefined,
+            // attributes filter
             attributesIds.length > 0
               ? inArray(
                   eserviceDescriptorAttributeInReadmodelCatalog.attributeId,
                   attributesIds
                 )
               : undefined,
-            // TODO visibility filter
+            // visibility filter
+            hasPermission(
+              [
+                userRoles.ADMIN_ROLE,
+                userRoles.API_ROLE,
+                userRoles.SUPPORT_ROLE,
+              ],
+              authData
+            )
+              ? or(
+                  // exist active descriptors for that eservice
+                  exists(
+                    readmodelDB
+                      .select()
+                      .from(eserviceDescriptorInReadmodelCatalog)
+                      .where(
+                        and(
+                          eq(
+                            eserviceDescriptorInReadmodelCatalog.eserviceId,
+                            eserviceInReadmodelCatalog.id
+                          ),
+                          inArray(
+                            eserviceDescriptorInReadmodelCatalog.state,
+                            activeDescriptorStates
+                          )
+                        )
+                      )
+                  ),
+                  // it's the producer
+                  eq(
+                    eserviceInReadmodelCatalog.producerId,
+                    authData.organizationId
+                  ),
+                  // has producer delegation
+                  exists(
+                    readmodelDB
+                      .select()
+                      .from(delegationInReadmodelDelegation)
+                      .where(
+                        and(
+                          eq(
+                            delegationInReadmodelDelegation.eserviceId,
+                            eserviceInReadmodelCatalog.id
+                          ),
+                          eq(
+                            delegationInReadmodelDelegation.delegateId,
+                            authData.organizationId
+                          ),
+                          eq(
+                            delegationInReadmodelDelegation.state,
+                            delegationState.active
+                          ),
+                          eq(
+                            delegationInReadmodelDelegation.kind,
+                            delegationKind.delegatedProducer
+                          )
+                        )
+                      )
+                  )
+                )
+              : // exist active descriptors for that eservice
+                exists(
+                  readmodelDB
+                    .select()
+                    .from(eserviceDescriptorInReadmodelCatalog)
+                    .where(
+                      and(
+                        eq(
+                          eserviceDescriptorInReadmodelCatalog.eserviceId,
+                          eserviceInReadmodelCatalog.id
+                        ),
+                        inArray(
+                          eserviceDescriptorInReadmodelCatalog.state,
+                          activeDescriptorStates
+                        )
+                      )
+                    )
+                ),
+            // mode filter
             mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
+            // isConsumerDelegable filter
             isConsumerDelegable
               ? eq(
                   eserviceInReadmodelCatalog.isConsumerDelegable,
                   isConsumerDelegable
                 )
               : undefined,
+            // delegated filter
             delegated === true
               ? inArray(delegationInReadmodelDelegation.state, [
                   delegationState.active,
@@ -677,3 +763,62 @@ export function readModelServiceBuilderSQL(
 }
 
 export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
+
+/*
+hasPermission(
+              [
+                userRoles.ADMIN_ROLE,
+                userRoles.API_ROLE,
+                userRoles.SUPPORT_ROLE,
+              ],
+              authData
+            )
+              ? and(
+                  and(
+                    // it's not the producer
+                    ne(
+                      eserviceInReadmodelCatalog.producerId,
+                      authData.organizationId
+                    ),
+                    // doesn't have producer delegation
+                    notExists(
+                      readmodelDB
+                        .select()
+                        .from(delegationInReadmodelDelegation)
+                        .where(
+                          and(
+                            eq(
+                              delegationInReadmodelDelegation.eserviceId,
+                              eserviceInReadmodelCatalog.id
+                            ),
+                            eq(
+                              delegationInReadmodelDelegation.delegateId,
+                              authData.organizationId
+                            ),
+                            eq(
+                              delegationInReadmodelDelegation.state,
+                              delegationState.active
+                            ),
+                            eq(
+                              delegationInReadmodelDelegation.kind,
+                              delegationKind.delegatedProducer
+                            )
+                          )
+                        )
+                    )
+                  ),
+                  // no descriptors for that eservice
+                  notExists(
+                    readmodelDB
+                      .select()
+                      .from(eserviceDescriptorInReadmodelCatalog)
+                      .where(
+                        eq(
+                          eserviceDescriptorInReadmodelCatalog.eserviceId,
+                          eserviceInReadmodelCatalog.id
+                        )
+                      )
+                  )
+                )
+              : undefined,
+*/
