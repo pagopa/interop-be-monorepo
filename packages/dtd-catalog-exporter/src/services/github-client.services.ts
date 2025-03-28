@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Octokit } from "octokit";
 
 export class GithubClient {
@@ -43,56 +44,16 @@ export class GithubClient {
       );
 
       return response.data.sha;
-    } catch (error) {
-      if (this.isNotFoundError(error)) {
+    } catch (error: any) {
+      if (
+        error.status === 404 ||
+        error.response?.status === 404 ||
+        error.data?.status === 404
+      ) {
         return undefined;
       } else {
         throw error;
       }
     }
-  }
-
-  private isNotFoundError(error: unknown): boolean {
-    if (!error || typeof error !== "object") {
-      return false;
-    }
-
-    // Check for status directly on error
-    if (
-      "status" in error &&
-      typeof (error as { status: unknown }).status === "number"
-    ) {
-      return (error as { status: number }).status === 404;
-    }
-
-    // Check for status in error.response
-    if ("response" in error) {
-      const errorWithResponse = error as { response: unknown };
-      if (
-        errorWithResponse.response &&
-        typeof errorWithResponse.response === "object" &&
-        "status" in errorWithResponse.response &&
-        typeof (errorWithResponse.response as { status: unknown }).status ===
-          "number"
-      ) {
-        return (
-          (errorWithResponse.response as { status: number }).status === 404
-        );
-      }
-    }
-
-    // Check for status in error.response.data
-    if ("response" in error) {
-      const response = (error as { response: unknown }).response;
-      if (response && typeof response === "object" && "data" in response) {
-        const data = (response as { data: unknown }).data;
-        if (data && typeof data === "object" && "status" in data) {
-          const status = (data as { status: unknown }).status;
-          return status === "404" || status === 404;
-        }
-      }
-    }
-
-    return false;
   }
 }
