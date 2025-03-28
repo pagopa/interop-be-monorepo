@@ -37,3 +37,13 @@ export type HTTPServerConfig = z.infer<typeof HTTPServerConfig>;
 export const CommonHTTPServiceConfig =
   HTTPServerConfig.and(LoggerConfig).and(JWTConfig);
 export type CommonHTTPServiceConfig = z.infer<typeof CommonHTTPServiceConfig>;
+
+export const KeepAliveConfig = z
+  .object({
+    KEEP_ALIVE_TIMEOUT_MILLIS: z.coerce.number(),
+  })
+  .transform((c) => ({
+    keepAliveTimeout: c.KEEP_ALIVE_TIMEOUT_MILLIS,
+  }));
+
+export type KeepAliveConfig = z.infer<typeof KeepAliveConfig>;
