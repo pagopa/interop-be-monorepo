@@ -7,6 +7,5 @@ export const getLatestDescriptor = (
 
 export const nextDescriptorVersion = (eservice: EService): number => {
   const currentVersion = getLatestDescriptor(eservice)?.version ?? 0;
-  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
   return currentVersion + 1;
 };
