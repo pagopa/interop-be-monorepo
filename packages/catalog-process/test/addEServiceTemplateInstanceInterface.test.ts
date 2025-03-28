@@ -146,7 +146,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
   });
 
   describe("Invalid data input (Rest/Soap)", () => {
-    it("should throw an eserviceInterfaceDataNotValid if template doesn't contains serverUrls", async () => {
+    it("should throw an eServiceNotFound if template doesn't contains serverUrls", async () => {
       const eserviceId = generateId<EServiceId>();
       await expect(
         catalogService.addEServiceTemplateInstanceInterface(
