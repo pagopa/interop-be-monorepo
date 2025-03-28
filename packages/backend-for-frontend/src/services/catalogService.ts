@@ -424,27 +424,14 @@ export function catalogServiceBuilder(
         })
       ).results?.at(0);
 
-      const delegate = !delegation
-        ? undefined
-        : delegation?.delegateId === producerTenant.id
-        ? producerTenant
-        : await tenantProcessClient.tenant.getTenant({
+      const delegate = delegation
+        ? await tenantProcessClient.tenant.getTenant({
             headers,
             params: {
               id: delegation.delegateId,
             },
-          });
-
-      const delegator = !delegation
-        ? undefined
-        : delegation?.delegatorId === producerTenant.id
-        ? producerTenant
-        : await tenantProcessClient.tenant.getTenant({
-            headers,
-            params: {
-              id: delegation.delegatorId,
-            },
-          });
+          })
+        : undefined;
 
       return {
         id: descriptor.id,
@@ -485,9 +472,7 @@ export function catalogServiceBuilder(
             checkNewTemplateVersionAvailable(eserviceTemplate, descriptor),
         },
         delegation:
-          delegation !== undefined &&
-          delegate !== undefined &&
-          delegator !== undefined
+          delegation !== undefined && delegate !== undefined
             ? {
                 id: delegation.id,
                 delegate: {
@@ -497,10 +482,10 @@ export function catalogServiceBuilder(
                   contactMail: getLatestTenantContactEmail(delegate),
                 },
                 delegator: {
-                  id: delegator.id,
-                  name: delegator.name,
-                  kind: delegator.kind,
-                  contactMail: getLatestTenantContactEmail(delegator),
+                  id: producerTenant.id,
+                  name: producerTenant.name,
+                  kind: producerTenant.kind,
+                  contactMail: getLatestTenantContactEmail(producerTenant),
                 },
               }
             : undefined,
