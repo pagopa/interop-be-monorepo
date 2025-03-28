@@ -6,6 +6,7 @@ import {
   invalidPublicKey,
   jwkDecodingError,
   notAllowedCertificateException,
+  notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
 import { JWTConfig } from "../config/index.js";
@@ -47,6 +48,14 @@ function assertNotPrivateKey(key: string): void {
   throw notAllowedPrivateKeyException();
 }
 
+function assertSingleKey(keyString: string): void {
+  const beginMatches = keyString.match(/-----BEGIN [^\r\n]+-----/g);
+
+  if (beginMatches && beginMatches.length > 1) {
+    throw notAllowedMultipleKeysException();
+  }
+}
+
 export function assertValidRSAKey(key: KeyObject): void {
   if (key.asymmetricKeyType !== "rsa") {
     throw notAnRSAKey();
@@ -73,6 +82,8 @@ function tryToCreatePublicKey(key: string): KeyObject {
 
 export function createPublicKey(key: string): KeyObject {
   const pemKey = decodeBase64ToPem(key);
+
+  assertSingleKey(pemKey);
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
   const publicKey = tryToCreatePublicKey(pemKey);
