@@ -3456,9 +3456,6 @@ importers:
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0
-      ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -3469,6 +3466,9 @@ importers:
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
+      drizzle-kit:
+        specifier: 0.30.4
+        version: 0.30.4
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -3508,9 +3508,6 @@ importers:
       pg:
         specifier: 8.13.1
         version: 8.13.1
-      pg-promise:
-        specifier: 11.8.0
-        version: 11.8.0
     devDependencies:
       '@types/node':
         specifier: 20.14.6

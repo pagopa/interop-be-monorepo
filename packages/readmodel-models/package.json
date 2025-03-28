@@ -8,6 +8,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
+    "test": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -23,8 +24,7 @@
     "drizzle-orm": "0.39.3",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pg": "8.13.1",
-    "pg-promise": "11.8.0"
+    "pg": "8.13.1"
   },
   "devDependencies": {
     "@types/node": "20.14.6",

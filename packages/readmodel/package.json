@@ -28,12 +28,12 @@
     "pagopa-interop-models": "workspace:*",
     "pg": "8.13.1",
     "pg-promise": "11.8.0",
-    "ts-pattern": "5.2.0",
     "zod": "3.23.8"
   },
   "devDependencies": {
     "@types/node": "20.14.6",
     "@types/pg": "8.11.11",
+    "drizzle-kit": "0.30.4",
     "eslint": "8.57.0",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
