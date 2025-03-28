@@ -3,18 +3,20 @@ import { randomUUID } from "crypto";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
-  AuthData,
   CreateEvent,
   DB,
   eventRepository,
   FileManager,
   formatDateddMMyyyyHHmmss,
-  hasPermission,
+  hasUserRole,
+  InternalAuthData,
   interpolateApiSpec,
   Logger,
+  M2MAuthData,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
-  userRoles,
+  UIAuthData,
+  userRole,
   verifyAndCreateDocument,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -237,7 +239,7 @@ const retrieveRiskAnalysis = (
 const assertRequesterCanPublish = (
   producerDelegation: Delegation | undefined,
   eservice: EService,
-  authData: AuthData
+  authData: UIAuthData
 ): void => {
   if (producerDelegation) {
     if (
@@ -469,7 +471,7 @@ async function innerCreateEService(
     template: EServiceTemplateReferences | undefined;
   },
   readModelService: ReadModelService,
-  { authData, correlationId }: WithLogger<AppContext>
+  { authData, correlationId }: WithLogger<AppContext<UIAuthData>>
 ): Promise<{ eService: EService; events: Array<CreateEvent<EServiceEvent>> }> {
   if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
     throw originNotCompliant(authData.externalId.origin);
@@ -580,7 +582,7 @@ async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
-  { correlationId }: WithLogger<AppContext>
+  { correlationId }: WithLogger<AppContext<UIAuthData>>
 ): Promise<{
   eService: EService;
   descriptor: Descriptor;
@@ -707,7 +709,7 @@ export function catalogServiceBuilder(
   return {
     async getEServiceById(
       eserviceId: EServiceId,
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -720,11 +722,10 @@ export function catalogServiceBuilder(
     },
 
     async getEServices(
-      authData: AuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number,
-      logger: Logger
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<ListResult<EService>> {
       logger.info(
         `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, mode = ${filters.mode}, isConsumerDelegable = ${filters.isConsumerDelegable}, limit = ${limit}, offset = ${offset}`
@@ -772,7 +773,7 @@ export function catalogServiceBuilder(
         descriptorId: DescriptorId;
         documentId: EServiceDocumentId;
       },
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<Document> {
       logger.info(
         `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
@@ -793,7 +794,7 @@ export function catalogServiceBuilder(
 
     async createEService(
       seed: catalogApi.EServiceSeed,
-      ctx: WithLogger<AppContext>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
@@ -811,7 +812,7 @@ export function catalogServiceBuilder(
     async updateEService(
       eserviceId: EServiceId,
       eserviceSeed: catalogApi.UpdateEServiceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
 
@@ -907,7 +908,7 @@ export function catalogServiceBuilder(
     async updateEServiceTemplateInstance(
       eserviceId: EServiceId,
       eserviceSeed: catalogApi.UpdateEServiceTemplateInstanceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId} template instance`);
 
@@ -972,7 +973,7 @@ export function catalogServiceBuilder(
 
     async deleteEService(
       eserviceId: EServiceId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
 
@@ -1026,7 +1027,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: catalogApi.CreateEServiceDescriptorDocumentSeed,
-      ctx: WithLogger<AppContext>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       ctx.logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
@@ -1067,7 +1068,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1144,7 +1145,7 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
       apiEServiceDescriptorDocumentUpdateSeed: catalogApi.UpdateEServiceDescriptorDocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Document> {
       logger.info(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1236,7 +1237,7 @@ export function catalogServiceBuilder(
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: catalogApi.EServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
@@ -1338,7 +1339,7 @@ export function catalogServiceBuilder(
     async deleteDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1394,7 +1395,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1464,7 +1465,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId} template instance`
@@ -1523,7 +1524,7 @@ export function catalogServiceBuilder(
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1599,7 +1600,7 @@ export function catalogServiceBuilder(
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1644,7 +1645,7 @@ export function catalogServiceBuilder(
     async activateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Activating descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1720,7 +1721,7 @@ export function catalogServiceBuilder(
     async cloneDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(
         `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1844,19 +1845,13 @@ export function catalogServiceBuilder(
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
         `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      await assertRequesterIsDelegateProducerOrProducer(
-        eservice.data.producerId,
-        eservice.data.id,
-        authData,
-        readModelService
-      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const updatedDescriptor = updateDescriptorState(
@@ -1880,7 +1875,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1941,7 +1936,7 @@ export function catalogServiceBuilder(
     async createRiskAnalysis(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
@@ -2009,7 +2004,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysis["id"],
       eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
@@ -2086,7 +2081,7 @@ export function catalogServiceBuilder(
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
@@ -2129,7 +2124,7 @@ export function catalogServiceBuilder(
     async updateEServiceDescription(
       eserviceId: EServiceId,
       description: string,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId} description`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2176,7 +2171,7 @@ export function catalogServiceBuilder(
         isConsumerDelegable: boolean;
         isClientAccessDelegable: boolean;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId} delegation flags`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2321,7 +2316,7 @@ export function catalogServiceBuilder(
     async updateEServiceName(
       eserviceId: EServiceId,
       name: string,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(`Updating name of EService ${eserviceId}`);
 
@@ -2370,7 +2365,7 @@ export function catalogServiceBuilder(
     async approveDelegatedEServiceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Approving EService ${eserviceId} version ${descriptorId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2406,7 +2401,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       body: catalogApi.RejectDelegatedEServiceDescriptorSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Rejecting EService ${eserviceId} version ${descriptorId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2456,7 +2451,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.AttributesSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(
         `Updating attributes of Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -2805,7 +2800,7 @@ export function catalogServiceBuilder(
     },
     async upgradeEServiceInstance(
       eserviceId: EServiceId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Descriptor> {
       logger.info(`Upgrading EService ${eserviceId} instance`);
 
@@ -2896,7 +2891,7 @@ export function catalogServiceBuilder(
     async createEServiceInstanceFromTemplate(
       templateId: EServiceTemplateId,
       seed: catalogApi.InstanceEServiceSeed,
-      ctx: WithLogger<AppContext>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       ctx.logger.info(`Creating EService from template ${templateId}`);
 
@@ -2994,7 +2989,7 @@ export function catalogServiceBuilder(
       eserviceInstanceInterfaceData:
         | catalogApi.TemplateInstanceInterfaceRESTSeed
         | catalogApi.TemplateInstanceInterfaceSOAPSeed,
-      ctx: WithLogger<AppContext>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       const { logger, authData } = ctx;
       logger.info(
@@ -3059,7 +3054,12 @@ export function catalogServiceBuilder(
     async createTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       eserviceInstanceDescriptorSeed: catalogApi.EServiceInstanceDescriptorSeed,
-      { logger, correlationId, authData, serviceName }: WithLogger<AppContext>
+      {
+        logger,
+        correlationId,
+        authData,
+        serviceName,
+      }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Descriptor> {
       logger.info(`Creating Instance Descriptor for EService ${eserviceId}`);
 
@@ -3203,7 +3203,7 @@ export async function createOpenApiInterfaceByTemplate(
     | undefined,
   bucket: string,
   fileManager: FileManager,
-  ctx: WithLogger<AppContext>
+  ctx: WithLogger<AppContext<UIAuthData>>
 ): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
   const eservice = eserviceWithMetadata.data;
   const interfaceTemplate = await fileManager.get(
@@ -3265,24 +3265,19 @@ export async function createOpenApiInterfaceByTemplate(
   );
 }
 
-function isRequesterEServiceProducer(
-  eservice: EService,
-  authData: AuthData
-): boolean {
-  return (
-    hasPermission(
-      [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-      authData
-    ) && authData.organizationId === eservice.producerId
-  );
-}
-
 async function applyVisibilityToEService(
   eservice: EService,
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (isRequesterEServiceProducer(eservice, authData)) {
+  if (
+    hasUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) &&
+    authData.organizationId === eservice.producerId
+  ) {
     return eservice;
   }
 

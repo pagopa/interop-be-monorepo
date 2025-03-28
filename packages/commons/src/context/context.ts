@@ -4,25 +4,23 @@ import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
 } from "@zodios/express";
-import { z } from "zod";
 import {
   CorrelationId,
   makeApiProblemBuilder,
   missingHeader,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { AuthData } from "../auth/authData.js";
+import { AuthData, assertAuthDataTokenTypeIn } from "../auth/authData.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
 
-export const AppContext = z.object({
-  serviceName: z.string(),
-  authData: AuthData,
-  correlationId: CorrelationId,
-});
-export type AppContext = z.infer<typeof AppContext>;
+export type AppContext<A extends AuthData = AuthData> = {
+  serviceName: string;
+  authData: A;
+  correlationId: CorrelationId;
+};
 
-export const zodiosCtx = zodiosContext(z.object({ ctx: AppContext }));
+export const zodiosCtx = zodiosContext();
 export type ZodiosContext = NonNullable<typeof zodiosCtx>;
 export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
@@ -30,6 +28,13 @@ export type WithLogger<T> = T & { logger: Logger };
 
 export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
   return { ...ctx, logger: logger({ ...ctx }) };
+}
+
+export function assertContextHasTokenTypeIn<T extends AuthData["tokenType"]>(
+  ctx: AppContext,
+  tokenTypes: ReadonlyArray<T>
+): asserts ctx is AppContext<Extract<AuthData, { tokenType: T }>> {
+  assertAuthDataTokenTypeIn(ctx.authData, tokenTypes);
 }
 
 const makeApiProblem = makeApiProblemBuilder({});
