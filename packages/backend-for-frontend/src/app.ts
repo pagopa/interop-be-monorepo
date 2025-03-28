@@ -8,6 +8,11 @@ import {
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
 import express from "express";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndSessionTokenExchangeMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -70,6 +75,9 @@ app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
+  await applicationAuditBeginMiddleware(serviceName, config),
+  await applicationAuditEndMiddleware(serviceName, config),
+  await applicationAuditEndSessionTokenExchangeMiddleware(serviceName, config),
   authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work

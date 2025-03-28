@@ -42,6 +42,7 @@
     "express": "4.20.0",
     "mongodb": "6.7.0",
     "openapi-zod-client": "1.18.1",
+    "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
