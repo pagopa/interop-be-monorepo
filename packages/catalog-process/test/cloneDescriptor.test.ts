@@ -170,7 +170,7 @@ describe("clone descriptor", () => {
     const expectedDescriptor: Descriptor = {
       ...descriptor,
       id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].id),
-      version: "1",
+      version: 1,
       interface: expectedInterface,
       createdAt: new Date(
         Number(writtenPayload.eservice?.descriptors[0].createdAt)

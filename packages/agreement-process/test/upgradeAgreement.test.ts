@@ -64,7 +64,6 @@ import {
   organizationIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
-  unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
@@ -125,7 +124,7 @@ describe("upgrade Agreement", () => {
 
       const newPublishedDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        version: "2",
+        version: 2,
         attributes: {
           certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
           declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
@@ -136,7 +135,7 @@ describe("upgrade Agreement", () => {
       const currentDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: descriptorState.deprecated,
-        version: "1",
+        version: 1,
       };
       const eservice: EService = {
         ...getMockEService(),
@@ -365,7 +364,7 @@ describe("upgrade Agreement", () => {
 
           const newPublishedDescriptor: Descriptor = {
             ...getMockDescriptorPublished(),
-            version: "2",
+            version: 2,
             attributes: {
               certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
               declared: [[getMockEServiceAttribute(declaredAttribute.id)]],
@@ -376,7 +375,7 @@ describe("upgrade Agreement", () => {
           const currentDescriptor: Descriptor = {
             ...getMockDescriptorPublished(),
             state: descriptorState.deprecated,
-            version: "1",
+            version: 1,
           };
           const eservice: EService = {
             ...getMockEService(),
@@ -728,7 +727,7 @@ describe("upgrade Agreement", () => {
 
       const newPublishedDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        version: "2",
+        version: 2,
         attributes: {
           certified: [
             [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
@@ -749,7 +748,7 @@ describe("upgrade Agreement", () => {
       const currentDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: descriptorState.deprecated,
-        version: "1",
+        version: 1,
       };
       const eservice: EService = {
         ...getMockEService(),
@@ -1013,47 +1012,13 @@ describe("upgrade Agreement", () => {
     ).rejects.toThrowError(publishedDescriptorNotFound(agreement.eserviceId));
   });
 
-  it("should throw an unexpectedVersionFormat error when the published descriptor has an unexpected version format", async () => {
-    const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
-
-    const publishedDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      version: "invalid-version-number",
-    };
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [publishedDescriptor],
-    };
-    await addOneEService(eservice);
-
-    const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
-      producerId: eservice.producerId,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(
-      agreementService.upgradeAgreement(
-        agreement.id,
-        getMockContext({ authData })
-      )
-    ).rejects.toThrowError(
-      unexpectedVersionFormat(agreement.eserviceId, publishedDescriptor.id)
-    );
-  });
-
   it("should throw a descriptorNotFound error when the agreement descriptor does not exist", async () => {
     const consumerId = generateId<TenantId>();
     const authData = getMockAuthData(consumerId);
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "2",
+      version: 2,
     };
 
     const eservice: EService = {
@@ -1082,60 +1047,19 @@ describe("upgrade Agreement", () => {
     );
   });
 
-  it("should throw an unexpectedVersionFormat error when the agreement descriptor has an unexpected version format", async () => {
-    const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
-
-    const newPublishedDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      version: "2",
-    };
-
-    const currentDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      state: descriptorState.deprecated,
-      version: "invalid-version-number",
-    };
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [newPublishedDescriptor, currentDescriptor],
-    };
-    await addOneEService(eservice);
-
-    const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
-      producerId: eservice.producerId,
-      descriptorId: currentDescriptor.id,
-    };
-    await addOneAgreement(agreement);
-
-    await expect(
-      agreementService.upgradeAgreement(
-        agreement.id,
-        getMockContext({ authData })
-      )
-    ).rejects.toThrowError(
-      unexpectedVersionFormat(eservice.id, agreement.descriptorId)
-    );
-  });
-
   it("should throw a noNewerDescriptor error when the latest published descriptor has version number lower than or equal to the agreement current descriptor", async () => {
     const consumerId = generateId<TenantId>();
     const authData = getMockAuthData(consumerId);
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "1",
+      version: 1,
     };
 
     const currentDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
-      version: randomArrayItem(["1", "2"]),
+      version: randomArrayItem([1, 2]),
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -1170,13 +1094,13 @@ describe("upgrade Agreement", () => {
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "2",
+      version: 2,
     };
 
     const currentDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
-      version: "1",
+      version: 1,
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -1210,13 +1134,13 @@ describe("upgrade Agreement", () => {
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "2",
+      version: 2,
     };
 
     const currentDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
-      version: "1",
+      version: 1,
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -1261,7 +1185,7 @@ describe("upgrade Agreement", () => {
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "2",
+      version: 2,
       attributes: {
         certified: [
           [getMockEServiceAttribute(invalidCertifiedTenantAttribute.id)],
@@ -1274,7 +1198,7 @@ describe("upgrade Agreement", () => {
     const currentDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
-      version: "1",
+      version: 1,
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -1314,7 +1238,7 @@ describe("upgrade Agreement", () => {
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "2",
+      version: 2,
       attributes: {
         certified: [],
         declared: [],
@@ -1325,7 +1249,7 @@ describe("upgrade Agreement", () => {
     const currentDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
-      version: "1",
+      version: 1,
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -1374,7 +1298,7 @@ describe("upgrade Agreement", () => {
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "2",
+      version: 2,
       attributes: {
         certified: [],
         declared: [
@@ -1387,7 +1311,7 @@ describe("upgrade Agreement", () => {
     const currentDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
-      version: "1",
+      version: 1,
     };
     const eservice: EService = {
       ...getMockEService(),

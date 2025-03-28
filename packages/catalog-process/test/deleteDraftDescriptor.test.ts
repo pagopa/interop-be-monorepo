@@ -46,11 +46,11 @@ describe("delete draft descriptor", () => {
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
-      version: "1",
+      version: 1,
     };
     const descriptorToDelete: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
-      version: "2",
+      version: 2,
     };
 
     const eservice: EService = {
@@ -109,13 +109,13 @@ describe("delete draft descriptor", () => {
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
-      version: "1",
+      version: 1,
     };
     const descriptorToDelete: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
       docs: [document1, document2],
       interface: interfaceDocument,
-      version: "2",
+      version: 2,
     };
 
     const eservice: EService = {
@@ -358,12 +358,12 @@ describe("delete draft descriptor", () => {
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
-      version: "1",
+      version: 1,
     };
     const descriptorToDelete: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
       docs: [mockDocument, mockDocument],
-      version: "2",
+      version: 2,
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -419,11 +419,11 @@ describe("delete draft descriptor", () => {
   it("should throw operationForbidden if the requester is not the producer", async () => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
-      version: "1",
+      version: 1,
     };
     const descriptorToDelete: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
-      version: "2",
+      version: 2,
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -442,11 +442,11 @@ describe("delete draft descriptor", () => {
   it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
-      version: "1",
+      version: 1,
     };
     const descriptorToDelete: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
-      version: "2",
+      version: 2,
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -498,11 +498,11 @@ describe("delete draft descriptor", () => {
       const descriptorToDelete: Descriptor = {
         ...getMockDescriptor(state),
         interface: mockDocument,
-        version: "1",
+        version: 1,
       };
       const publishedDescriptor: Descriptor = {
         ...getMockDescriptor(descriptorState.published),
-        version: "2",
+        version: 2,
       };
       const eservice: EService = {
         ...getMockEService(),
