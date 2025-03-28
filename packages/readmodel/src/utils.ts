@@ -26,6 +26,25 @@ export const makeDrizzleConnection = (
 
 export const makeUniqueKey = (ids: string[]): string => ids.join("#");
 
+/**
+ * @async
+ * @function checkMetadataVersion
+ * Check if the object has already been processed by checking the id and metadataVersion in the DB
+ * @param {DrizzleTransactionType} tx - The drizzle object to manage db connection
+ * @param {T} table - The table (drizzle object) of the object to upsert
+ * @param {number} metadataVersion - The value of the object metadataVersion to update
+ * @param {string} id - The value of the object id to update
+ * @param {SQL<unknown>} [filter=eq(table.id, id)] filter - The drizzle expression to place in `where` condition
+ * @returns {Promise<boolean>} - Returns true if there's no row or no metadataVersion in the DB or if the existing version <= the new version
+ * @example
+ * const shouldUpsert = await checkMetadataVersion(
+ *     tx,
+ *     agreementInReadmodelAgreement,
+ *     metadataVersion,
+ *     agreement.id,
+ *     eq(agreementInReadmodelAgreement.id, id)
+ * );
+ */
 export const checkMetadataVersion = async <
   T extends AnyPgTable & {
     metadataVersion: AnyPgColumn<{ data: number }>;
@@ -38,14 +57,17 @@ export const checkMetadataVersion = async <
   id: string,
   filter: SQL<unknown> = eq(table.id, id)
 ): Promise<boolean> => {
-  const existingMetadataVersion = (
-    await tx
-      .select({
-        metadataVersion: table.metadataVersion,
-      })
-      .from(table as AnyPgTable)
-      .where(filter)
-  )[0]?.metadataVersion;
+  const [row] = await tx
+    .select({
+      metadataVersion: table.metadataVersion,
+    })
+    .from(table as AnyPgTable)
+    .where(filter);
 
-  return !existingMetadataVersion || existingMetadataVersion <= metadataVersion;
+  const existingMetadataVersion = row?.metadataVersion;
+
+  if (existingMetadataVersion == null) {
+    return true;
+  }
+  return existingMetadataVersion <= metadataVersion;
 };
