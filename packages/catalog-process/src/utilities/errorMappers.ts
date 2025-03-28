@@ -600,3 +600,24 @@ export const createTemplateInstanceDescriptorErrorMapper = (
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateInstanceDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "eServiceNotAnInstance",
+      "operationForbidden",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "notValidDescriptor",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -162,6 +162,7 @@ import {
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
+  assertDescriptorQuotasUpdatable,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -1902,17 +1903,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      if (
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended &&
-        descriptor.state !== descriptorState.deprecated
-      ) {
-        throw notValidDescriptorState(
-          descriptorId,
-          descriptor.state.toString()
-        );
-      }
-
+      assertDescriptorQuotasUpdatable(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedDescriptor: Descriptor = {
@@ -1926,6 +1917,49 @@ export function catalogServiceBuilder(
         eservice.data,
         updatedDescriptor
       );
+
+      const event = toCreateEventEServiceDescriptorQuotasUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        descriptorId,
+        updatedEService,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+    async updateInstanceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(
+        `Updating Descriptor ${descriptorId} for EService ${eserviceId} template instance`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertEServiceIsTemplateInstance(eservice.data);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorQuotasUpdatable(descriptor);
+      assertConsistentDailyCalls(seed);
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+      });
 
       const event = toCreateEventEServiceDescriptorQuotasUpdated(
         eserviceId,

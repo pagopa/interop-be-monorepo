@@ -314,3 +314,13 @@ export function assertConsistentDailyCalls({
     throw inconsistentDailyCalls();
   }
 }
+
+export function assertDescriptorQuotasUpdatable(descriptor: Descriptor): void {
+  if (
+    descriptor.state !== descriptorState.published &&
+    descriptor.state !== descriptorState.suspended &&
+    descriptor.state !== descriptorState.deprecated
+  ) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
