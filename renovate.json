@@ -1,12 +1,6 @@
 {
   "extends": [
     "github>pagopa/eng-renovate",
-    ":automergeRequireAllStatusChecks",
-    ":automergeStableNonMajor",
-    ":automergeLinters",
-    ":automergeTesters",
-    ":automergeTypes",
-    ":automergeDigest",
     ":combinePatchMinorReleases",
     ":ignoreUnstable",
     ":rebaseStalePrs",
