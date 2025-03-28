@@ -17,21 +17,21 @@ type NonEmptyArray<T> = [T, ...T[]];
 type TokenType = AuthData["tokenType"];
 
 /**
- * Validates the authorization token in a given `AppContext`.
+ * Validates the authorization token in a given AppContext.
  *
  * This function has two overloads:
  *
- * 1. **Overload #1**: if you admit *only* non‐`"ui"` token types, you must omit
- *    the `admittedUiUserRoles` parameter.
+ * 1. **Overload #1**: if you admit *only* non‐"ui" token types, you must omit
+ *    the admittedUiUserRoles parameter.
  *
- * 2. **Overload #2**: if `"ui"` is included among your admitted token types,
+ * 2. **Overload #2**: if "ui" is included among your admitted token types,
  *    you must pass a non‐empty array of user roles.
  *
  * @remarks
  * - In either case, if the actual token type doesn’t match the admitted types,
  *   an error is thrown.
- * - If `"ui"` is admitted and the actual token is `"ui"`, then at least one
- *   of the user’s roles must be in the `admittedUiUserRoles` array.
+ * - If "ui" is admitted and the actual token is "ui", then at least one
+ *   of the user’s roles must be in the admittedUiUserRoles array.
  */
 
 /**
@@ -95,7 +95,7 @@ export function validateAuthorization<
   // 1) Check token type is in the admitted list:
   if (!admittedTokenTypes.includes(authData.tokenType)) {
     throw unauthorizedError(
-      `Invalid token type "${authData.tokenType}" for this operation`
+      `Invalid token type '${authData.tokenType}' for this operation`
     );
   }
 
@@ -110,9 +110,9 @@ export function validateAuthorization<
 
     if (!hasUserRole(authData, admittedUiUserRoles)) {
       throw unauthorizedError(
-        `Invalid token type "${
+        `Invalid token type '${
           authData.tokenType
-        }" and user roles ${JSON.stringify(
+        }' and user roles ${JSON.stringify(
           authData.userRoles
         )} for this operation`
       );

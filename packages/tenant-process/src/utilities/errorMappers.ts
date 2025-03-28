@@ -51,7 +51,7 @@ export const updateVerifiedAttributeExtensionDateErrorMapper = (
     .with("organizationNotFoundInVerifiers", () => 403)
     .with("expirationDateNotFoundInVerifier", () => 400)
     .with("tenantNotFound", () => 404)
-    .otherwise(() => 500);
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const selfcareUpsertTenantErrorMapper = (
   error: ApiError<ErrorCodes>

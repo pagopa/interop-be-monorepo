@@ -143,28 +143,28 @@ describe("validateAuthorization", () => {
     };
     expect(() => validateAuthorization(ctx, ["ui"], ["admin"])).toThrowError(
       unauthorizedError(
-        `Invalid token type "ui" and user roles ["support"] for this operation`
+        `Invalid token type 'ui' and user roles ["support"] for this operation`
       )
     );
     expect(() =>
       validateAuthorization(ctx, ["ui", "m2m"], ["admin"])
     ).toThrowError(
       unauthorizedError(
-        `Invalid token type "ui" and user roles ["support"] for this operation`
+        `Invalid token type 'ui' and user roles ["support"] for this operation`
       )
     );
     expect(() =>
       validateAuthorization(ctx, ["ui", "m2m"], ["admin", "security"])
     ).toThrowError(
       unauthorizedError(
-        `Invalid token type "ui" and user roles ["support"] for this operation`
+        `Invalid token type 'ui' and user roles ["support"] for this operation`
       )
     );
     expect(() => validateAuthorization(ctx, ["m2m", "internal"])).toThrowError(
-      unauthorizedError(`Invalid token type "ui" for this operation`)
+      unauthorizedError(`Invalid token type 'ui' for this operation`)
     );
     expect(() => validateAuthorization(ctx, ["maintenance"])).toThrowError(
-      unauthorizedError(`Invalid token type "ui" for this operation`)
+      unauthorizedError(`Invalid token type 'ui' for this operation`)
     );
   });
 
@@ -177,23 +177,23 @@ describe("validateAuthorization", () => {
       },
     };
     expect(() => validateAuthorization(ctx, ["internal"])).toThrowError(
-      unauthorizedError(`Invalid token type "m2m" for this operation`)
+      unauthorizedError(`Invalid token type 'm2m' for this operation`)
     );
     expect(() => validateAuthorization(ctx, ["maintenance"])).toThrowError(
-      unauthorizedError(`Invalid token type "m2m" for this operation`)
+      unauthorizedError(`Invalid token type 'm2m' for this operation`)
     );
     expect(() => validateAuthorization(ctx, ["ui"], ["admin"])).toThrowError(
-      unauthorizedError(`Invalid token type "m2m" for this operation`)
+      unauthorizedError(`Invalid token type 'm2m' for this operation`)
     );
     expect(() =>
       validateAuthorization(ctx, ["ui", "internal"], ["admin"])
     ).toThrowError(
-      unauthorizedError(`Invalid token type "m2m" for this operation`)
+      unauthorizedError(`Invalid token type 'm2m' for this operation`)
     );
     expect(() =>
       validateAuthorization(ctx, ["ui", "maintenance"], ["admin", "security"])
     ).toThrowError(
-      unauthorizedError(`Invalid token type "m2m" for this operation`)
+      unauthorizedError(`Invalid token type 'm2m' for this operation`)
     );
   });
 
@@ -205,23 +205,23 @@ describe("validateAuthorization", () => {
       },
     };
     expect(() => validateAuthorization(ctx, ["m2m"])).toThrowError(
-      unauthorizedError(`Invalid token type "internal" for this operation`)
+      unauthorizedError(`Invalid token type 'internal' for this operation`)
     );
     expect(() => validateAuthorization(ctx, ["maintenance"])).toThrowError(
-      unauthorizedError(`Invalid token type "internal" for this operation`)
+      unauthorizedError(`Invalid token type 'internal' for this operation`)
     );
     expect(() => validateAuthorization(ctx, ["ui"], ["admin"])).toThrowError(
-      unauthorizedError(`Invalid token type "internal" for this operation`)
+      unauthorizedError(`Invalid token type 'internal' for this operation`)
     );
     expect(() =>
       validateAuthorization(ctx, ["ui", "m2m"], ["admin"])
     ).toThrowError(
-      unauthorizedError(`Invalid token type "internal" for this operation`)
+      unauthorizedError(`Invalid token type 'internal' for this operation`)
     );
     expect(() =>
       validateAuthorization(ctx, ["ui", "m2m"], ["admin", "security"])
     ).toThrowError(
-      unauthorizedError(`Invalid token type "internal" for this operation`)
+      unauthorizedError(`Invalid token type 'internal' for this operation`)
     );
   });
 
@@ -233,23 +233,23 @@ describe("validateAuthorization", () => {
       },
     };
     expect(() => validateAuthorization(ctx, ["m2m"])).toThrowError(
-      unauthorizedError(`Invalid token type "maintenance" for this operation`)
+      unauthorizedError(`Invalid token type 'maintenance' for this operation`)
     );
     expect(() => validateAuthorization(ctx, ["internal"])).toThrowError(
-      unauthorizedError(`Invalid token type "maintenance" for this operation`)
+      unauthorizedError(`Invalid token type 'maintenance' for this operation`)
     );
     expect(() => validateAuthorization(ctx, ["ui"], ["admin"])).toThrowError(
-      unauthorizedError(`Invalid token type "maintenance" for this operation`)
+      unauthorizedError(`Invalid token type 'maintenance' for this operation`)
     );
     expect(() =>
       validateAuthorization(ctx, ["ui", "m2m"], ["admin"])
     ).toThrowError(
-      unauthorizedError(`Invalid token type "maintenance" for this operation`)
+      unauthorizedError(`Invalid token type 'maintenance' for this operation`)
     );
     expect(() =>
       validateAuthorization(ctx, ["ui", "m2m"], ["admin", "security"])
     ).toThrowError(
-      unauthorizedError(`Invalid token type "maintenance" for this operation`)
+      unauthorizedError(`Invalid token type 'maintenance' for this operation`)
     );
   });
 });

@@ -17,6 +17,7 @@ import {
   EServiceTemplateId,
   TenantId,
   unsafeBrandId,
+  emptyErrorMapper,
 } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import {
@@ -105,7 +106,7 @@ const eservicesRouter = (
       try {
         validateAuthorization(
           ctx,
-          ["ui", "m2m"],
+          ["ui"],
           ["admin", "api", "support", "security"]
         );
 
@@ -151,7 +152,13 @@ const eservicesRouter = (
           })
         );
       } catch (error) {
-        return res.status(500).send();
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/eservices", async (req, res) => {
@@ -334,7 +341,7 @@ const eservicesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          () => 500,
+          emptyErrorMapper,
           ctx.logger,
           ctx.correlationId
         );

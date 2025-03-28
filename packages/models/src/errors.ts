@@ -13,6 +13,8 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
 } = constants;
 
+export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
     From the API point of view, it is an info present only in the single error
