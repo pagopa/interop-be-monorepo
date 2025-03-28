@@ -7,6 +7,7 @@ import {
   getMockAttribute,
   getMockAuthData,
   getMockContext,
+  getMockContextInternal,
   getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
 import {
@@ -317,14 +318,14 @@ describe("database test", () => {
         await addOneTenant(tenant);
 
         const attribute =
-          await attributeRegistryService.createInternalCertifiedAttribute(
+          await attributeRegistryService.internalCreateCertifiedAttribute(
             {
               name: mockAttribute.name,
               code: "code",
               origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: mockAttribute.description,
             },
-            getMockContext({})
+            getMockContextInternal({})
           );
         expect(attribute).toBeDefined();
 
@@ -374,14 +375,14 @@ describe("database test", () => {
         await addOneTenant(tenant);
         await addOneAttribute(attribute);
         expect(
-          attributeRegistryService.createInternalCertifiedAttribute(
+          attributeRegistryService.internalCreateCertifiedAttribute(
             {
               name: attribute.name.toLowerCase(),
               code: attribute.code.toLowerCase(),
               origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: attribute.description,
             },
-            getMockContext({})
+            getMockContextInternal({})
           )
         ).rejects.toThrowError(
           attributeDuplicateByNameAndCode(
