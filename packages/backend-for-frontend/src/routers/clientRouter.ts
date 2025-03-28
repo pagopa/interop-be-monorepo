@@ -282,8 +282,12 @@ const clientRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const keys = await clientService.getClientKeys(
-          req.params.clientId,
-          req.query.userIds,
+          {
+            clientId: req.params.clientId,
+            userIds: req.query.userIds,
+            limit: req.query.limit,
+            offset: req.query.offset,
+          },
           ctx
         );
 

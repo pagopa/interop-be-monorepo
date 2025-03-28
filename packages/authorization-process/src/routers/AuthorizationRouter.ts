@@ -448,16 +448,21 @@ const authorizationRouter = (
       ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+        const { userIds, offset, limit } = req.query;
         try {
           const keys = await authorizationService.getClientKeys({
             clientId: unsafeBrandId(req.params.clientId),
-            userIds: req.query.userIds.map(unsafeBrandId<UserId>),
-            ctx,
+            userIds: userIds.map(unsafeBrandId<UserId>),
+            offset,
+            limit,
+            authData: ctx.authData,
+            logger: ctx.logger,
           });
 
           return res.status(200).send(
             authorizationApi.Keys.parse({
-              keys: keys.map((key) => keyToApiKey(key)),
+              keys: keys.results.map((key) => keyToApiKey(key)),
+              totalCount: keys.totalCount,
             })
           );
         } catch (error) {
