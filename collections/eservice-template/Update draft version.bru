@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{host-template}}/eservices/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId
   body: json
   auth: none
 }
@@ -26,7 +26,12 @@ body:json {
     "voucherLifespan": 100,
     "dailyCallsPerConsumer": 100,
     "dailyCallsTotal": 1000,
-    "agreementApprovalPolicy": "AUTOMATIC"
+    "agreementApprovalPolicy": "AUTOMATIC",
+    "attributes": {
+      "certified": [],
+      "verified": [],
+      "declared": []
+    }
   }
 }
 

@@ -9,6 +9,7 @@ import {
   ClientJWKKey,
   Delegation,
   EService,
+  EServiceTemplate,
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
@@ -24,7 +25,7 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
-  agreementReadModelServiceBuilderSQL,
+  agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   clientJWKKeyReadModelServiceBuilder,
@@ -34,6 +35,7 @@ import {
   purposeReadModelServiceBuilderSQL,
   tenantReadModelServiceBuilder,
   producerJWKKeyReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -58,12 +60,14 @@ export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const eserviceReadModelServiceSQL =
   catalogReadModelServiceBuilder(readModelDB);
+export const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
 export const attributeReadModelServiceSQL =
   attributeReadModelServiceBuilder(readModelDB);
 export const tenantReadModelServiceSQL =
   tenantReadModelServiceBuilder(readModelDB);
 export const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilderSQL(readModelDB);
+  agreementReadModelServiceBuilder(readModelDB);
 export const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilderSQL(readModelDB);
 export const delegationReadModelServiceSQL =
@@ -84,6 +88,16 @@ export const addOneEService = async (
     toReadModelEService(eservice.data),
     readModelRepository.eservices,
     eservice.metadata.version
+  );
+};
+
+export const addOneEServiceTemplate = async (
+  eServiceTemplate: WithMetadata<EServiceTemplate>
+): Promise<void> => {
+  await writeInReadmodel(
+    eServiceTemplate.data,
+    readModelRepository.eserviceTemplates,
+    eServiceTemplate.metadata.version
   );
 };
 

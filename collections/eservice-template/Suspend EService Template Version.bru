@@ -5,14 +5,14 @@ meta {
 }
 
 post {
-  url: {{host-catalog}}/eservices/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/suspend
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/suspend
   body: none
   auth: none
 }
 
 params:path {
-  eserviceTemplateId: {{eserviceId}}
-  eserviceTemplateVersionId: {{descriptorId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
+  eserviceTemplateVersionId: {{eserviceTemplateVersionId}}
 }
 
 headers {
