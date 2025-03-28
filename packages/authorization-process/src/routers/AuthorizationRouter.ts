@@ -604,7 +604,7 @@ const authorizationRouter = (
   });
   authorizationUserRouter.get(
     "/clients/:clientId/users/:userId/keys",
-    authorizationMiddleware([ADMIN_ROLE]),
+    authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
     async (_req, res) => res.status(501).send()
   );
 

@@ -454,7 +454,7 @@ const eserviceTemplatesRouter = (
     )
     .get(
       "/templates/:templateId/versions/:templateVersionId/documents/:documentId",
-      authorizationMiddleware([API_ROLE, ADMIN_ROLE]),
+      authorizationMiddleware([API_ROLE, ADMIN_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {

@@ -741,7 +741,7 @@ const agreementRouter = (
 
     .get(
       "/tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
