@@ -37,7 +37,7 @@ export async function handleMessageV1(
       }
     )
     .with({ type: "AgreementDeleted" }, async (msg) => {
-      await readModelService.deleteAgreement(
+      await readModelService.deleteAgreementById(
         unsafeBrandId<AgreementId>(msg.data.agreementId),
         msg.version
       );

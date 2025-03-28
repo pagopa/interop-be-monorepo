@@ -69,7 +69,7 @@ export function readModelServiceBuilder(
         metadataVersion
       );
     },
-    async deleteAgreement(
+    async deleteAgreementById(
       agreementId: AgreementId,
       metadataVersion: number
     ): Promise<void> {

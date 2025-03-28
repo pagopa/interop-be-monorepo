@@ -69,7 +69,7 @@ describe("events V2", async () => {
 
   it("should test all agreement consumer document events", async () => {
     const spyUpdate = vi.spyOn(readModelService, "upsertAgreement");
-    const spyDelete = vi.spyOn(readModelService, "deleteAgreement");
+    const spyDelete = vi.spyOn(readModelService, "deleteAgreementById");
 
     const agreement = getMockAgreement();
     await readModelService.upsertAgreement(agreement, 1);
@@ -111,7 +111,7 @@ describe("events V2", async () => {
   });
 
   it("should test delete agreement", async () => {
-    const spyDelete = vi.spyOn(readModelService, "deleteAgreement");
+    const spyDelete = vi.spyOn(readModelService, "deleteAgreementById");
 
     const agreement = getMockAgreement();
     await readModelService.upsertAgreement(agreement, 1);

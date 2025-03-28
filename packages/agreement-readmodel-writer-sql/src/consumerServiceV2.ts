@@ -21,7 +21,7 @@ export async function handleMessageV2(
             "agreement can't be missing in event message"
           );
         }
-        await readModelService.deleteAgreement(
+        await readModelService.deleteAgreementById(
           fromAgreementV2(agreementV2).id,
           message.version
         );
