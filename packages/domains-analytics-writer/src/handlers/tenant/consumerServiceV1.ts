@@ -6,15 +6,17 @@ export async function handleTenantMessageV1(
 ): Promise<void> {
   await match(decodedMessage)
     .with(
-      P.union(
-        { type: "TenantCreated" },
-        { type: "TenantDeleted" },
-        { type: "TenantUpdated" },
-        { type: "SelfcareMappingCreated" },
-        { type: "SelfcareMappingDeleted" },
-        { type: "TenantMailAdded" },
-        { type: "TenantMailDeleted" }
-      ),
+      {
+        type: P.union(
+          "TenantCreated",
+          "TenantDeleted",
+          "TenantUpdated",
+          "SelfcareMappingCreated",
+          "SelfcareMappingDeleted",
+          "TenantMailAdded",
+          "TenantMailDeleted"
+        ),
+      },
       async () => Promise.resolve()
     )
     .exhaustive();

@@ -6,16 +6,18 @@ export async function handleDelegationMessageV2(
 ): Promise<void> {
   await match(message)
     .with(
-      P.union(
-        { type: "ProducerDelegationApproved" },
-        { type: "ProducerDelegationRejected" },
-        { type: "ProducerDelegationRevoked" },
-        { type: "ProducerDelegationSubmitted" },
-        { type: "ConsumerDelegationSubmitted" },
-        { type: "ConsumerDelegationApproved" },
-        { type: "ConsumerDelegationRejected" },
-        { type: "ConsumerDelegationRevoked" }
-      ),
+      {
+        type: P.union(
+          "ProducerDelegationApproved",
+          "ProducerDelegationRejected",
+          "ProducerDelegationRevoked",
+          "ProducerDelegationSubmitted",
+          "ConsumerDelegationSubmitted",
+          "ConsumerDelegationApproved",
+          "ConsumerDelegationRejected",
+          "ConsumerDelegationRevoked"
+        ),
+      },
       async () => Promise.resolve()
     )
     .exhaustive();

@@ -6,10 +6,7 @@ export async function handleAttributeMessageV1(
 ): Promise<void> {
   await match(message)
     .with(
-      P.union(
-        { type: "AttributeAdded" },
-        { type: "MaintenanceAttributeDeleted" }
-      ),
+      { type: P.union("AttributeAdded", "MaintenanceAttributeDeleted") },
       async () => Promise.resolve()
     )
     .exhaustive();

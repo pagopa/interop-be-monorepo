@@ -7,28 +7,30 @@ export async function handleAgreementMessageV2(
   await match(message)
     .with({ type: "AgreementDeleted" }, async () => Promise.resolve())
     .with(
-      P.union(
-        { type: "AgreementAdded" },
-        { type: "DraftAgreementUpdated" },
-        { type: "AgreementSubmitted" },
-        { type: "AgreementActivated" },
-        { type: "AgreementUpgraded" },
-        { type: "AgreementUnsuspendedByProducer" },
-        { type: "AgreementUnsuspendedByConsumer" },
-        { type: "AgreementUnsuspendedByPlatform" },
-        { type: "AgreementArchivedByConsumer" },
-        { type: "AgreementSuspendedByProducer" },
-        { type: "AgreementSuspendedByConsumer" },
-        { type: "AgreementSuspendedByPlatform" },
-        { type: "AgreementRejected" },
-        { type: "AgreementConsumerDocumentAdded" },
-        { type: "AgreementConsumerDocumentRemoved" },
-        { type: "AgreementArchivedByUpgrade" },
-        { type: "AgreementSetDraftByPlatform" },
-        { type: "AgreementSetMissingCertifiedAttributesByPlatform" },
-        { type: "AgreementDeletedByRevokedDelegation" },
-        { type: "AgreementArchivedByRevokedDelegation" }
-      ),
+      {
+        type: P.union(
+          "AgreementAdded",
+          "DraftAgreementUpdated",
+          "AgreementSubmitted",
+          "AgreementActivated",
+          "AgreementUpgraded",
+          "AgreementUnsuspendedByProducer",
+          "AgreementUnsuspendedByConsumer",
+          "AgreementUnsuspendedByPlatform",
+          "AgreementArchivedByConsumer",
+          "AgreementSuspendedByProducer",
+          "AgreementSuspendedByConsumer",
+          "AgreementSuspendedByPlatform",
+          "AgreementRejected",
+          "AgreementConsumerDocumentAdded",
+          "AgreementConsumerDocumentRemoved",
+          "AgreementArchivedByUpgrade",
+          "AgreementSetDraftByPlatform",
+          "AgreementSetMissingCertifiedAttributesByPlatform",
+          "AgreementDeletedByRevokedDelegation",
+          "AgreementArchivedByRevokedDelegation"
+        ),
+      },
       async () => Promise.resolve()
     )
     .exhaustive();

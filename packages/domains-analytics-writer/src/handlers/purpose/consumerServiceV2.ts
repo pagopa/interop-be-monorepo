@@ -6,33 +6,37 @@ export async function handlePurposeMessageV2(
 ): Promise<void> {
   await match(message)
     .with(
-      P.union(
-        { type: "DraftPurposeDeleted" },
-        { type: "WaitingForApprovalPurposeDeleted" }
-      ),
+      {
+        type: P.union(
+          "DraftPurposeDeleted",
+          "WaitingForApprovalPurposeDeleted"
+        ),
+      },
       async () => Promise.resolve()
     )
     .with(
-      P.union(
-        { type: "PurposeAdded" },
-        { type: "DraftPurposeUpdated" },
-        { type: "NewPurposeVersionActivated" },
-        { type: "NewPurposeVersionWaitingForApproval" },
-        { type: "PurposeActivated" },
-        { type: "PurposeArchived" },
-        { type: "PurposeVersionOverQuotaUnsuspended" },
-        { type: "PurposeVersionRejected" },
-        { type: "PurposeVersionSuspendedByConsumer" },
-        { type: "PurposeVersionSuspendedByProducer" },
-        { type: "PurposeVersionUnsuspendedByConsumer" },
-        { type: "PurposeVersionUnsuspendedByProducer" },
-        { type: "PurposeWaitingForApproval" },
-        { type: "WaitingForApprovalPurposeVersionDeleted" },
-        { type: "PurposeVersionActivated" },
-        { type: "PurposeCloned" },
-        { type: "PurposeDeletedByRevokedDelegation" },
-        { type: "PurposeVersionArchivedByRevokedDelegation" }
-      ),
+      {
+        type: P.union(
+          "PurposeAdded",
+          "DraftPurposeUpdated",
+          "NewPurposeVersionActivated",
+          "NewPurposeVersionWaitingForApproval",
+          "PurposeActivated",
+          "PurposeArchived",
+          "PurposeVersionOverQuotaUnsuspended",
+          "PurposeVersionRejected",
+          "PurposeVersionSuspendedByConsumer",
+          "PurposeVersionSuspendedByProducer",
+          "PurposeVersionUnsuspendedByConsumer",
+          "PurposeVersionUnsuspendedByProducer",
+          "PurposeWaitingForApproval",
+          "WaitingForApprovalPurposeVersionDeleted",
+          "PurposeVersionActivated",
+          "PurposeCloned",
+          "PurposeDeletedByRevokedDelegation",
+          "PurposeVersionArchivedByRevokedDelegation"
+        ),
+      },
       async () => Promise.resolve()
     )
     .exhaustive();

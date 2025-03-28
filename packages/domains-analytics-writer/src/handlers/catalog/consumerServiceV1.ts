@@ -5,30 +5,33 @@ export async function handleCatalogMessageV1(
   message: EServiceEventEnvelopeV1
 ): Promise<void> {
   await match(message)
+    .with({ type: P.union("EServiceAdded", "ClonedEServiceAdded") }, async () =>
+      Promise.resolve()
+    )
     .with(
-      P.union({ type: "EServiceAdded" }, { type: "ClonedEServiceAdded" }),
+      {
+        type: P.union(
+          "EServiceUpdated",
+          "EServiceRiskAnalysisAdded",
+          "MovedAttributesFromEserviceToDescriptors",
+          "EServiceRiskAnalysisUpdated"
+        ),
+      },
       async () => Promise.resolve()
     )
     .with(
-      P.union(
-        { type: "EServiceUpdated" },
-        { type: "EServiceRiskAnalysisAdded" },
-        { type: "MovedAttributesFromEserviceToDescriptors" },
-        { type: "EServiceRiskAnalysisUpdated" }
-      ),
-      async () => Promise.resolve()
-    )
-    .with(
-      P.union(
-        { type: "EServiceWithDescriptorsDeleted" },
-        { type: "EServiceDocumentUpdated" },
-        { type: "EServiceDeleted" },
-        { type: "EServiceDocumentAdded" },
-        { type: "EServiceDocumentDeleted" },
-        { type: "EServiceDescriptorAdded" },
-        { type: "EServiceDescriptorUpdated" },
-        { type: "EServiceRiskAnalysisDeleted" }
-      ),
+      {
+        type: P.union(
+          "EServiceWithDescriptorsDeleted",
+          "EServiceDocumentUpdated",
+          "EServiceDeleted",
+          "EServiceDocumentAdded",
+          "EServiceDocumentDeleted",
+          "EServiceDescriptorAdded",
+          "EServiceDescriptorUpdated",
+          "EServiceRiskAnalysisDeleted"
+        ),
+      },
       async () => Promise.resolve()
     )
     .exhaustive();

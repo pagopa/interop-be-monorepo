@@ -5,26 +5,29 @@ export async function handleAgreementMessageV1(
   message: AgreementEventEnvelopeV1
 ): Promise<void> {
   await match(message)
+    .with({ type: P.union("AgreementAdded", "AgreementDeleted") }, async () =>
+      Promise.resolve()
+    )
     .with(
-      P.union({ type: "AgreementAdded" }, { type: "AgreementDeleted" }),
+      {
+        type: P.union(
+          "AgreementUpdated",
+          "AgreementActivated",
+          "AgreementSuspended",
+          "AgreementDeactivated",
+          "VerifiedAttributeUpdated"
+        ),
+      },
       async () => Promise.resolve()
     )
     .with(
-      P.union(
-        { type: "AgreementUpdated" },
-        { type: "AgreementActivated" },
-        { type: "AgreementSuspended" },
-        { type: "AgreementDeactivated" },
-        { type: "VerifiedAttributeUpdated" }
-      ),
-      async () => Promise.resolve()
-    )
-    .with(
-      P.union(
-        { type: "AgreementConsumerDocumentAdded" },
-        { type: "AgreementConsumerDocumentRemoved" },
-        { type: "AgreementContractAdded" }
-      ),
+      {
+        type: P.union(
+          "AgreementConsumerDocumentAdded",
+          "AgreementConsumerDocumentRemoved",
+          "AgreementContractAdded"
+        ),
+      },
       async () => Promise.resolve()
     )
     .exhaustive();
