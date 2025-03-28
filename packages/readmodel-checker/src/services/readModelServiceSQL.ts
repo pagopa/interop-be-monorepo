@@ -7,6 +7,7 @@ import {
   ClientJWKKey,
   Delegation,
   EService,
+  EServiceTemplate,
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
@@ -31,6 +32,8 @@ import {
   aggregateProducerJWKKeyArray,
   aggregateDelegationsArray,
   toDelegationAggregatorArray,
+  aggregateEServiceTemplateArray,
+  toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -56,7 +59,14 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRefInReadmodelCatalog,
+  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -180,6 +190,77 @@ export function readModelServiceBuilderSQL(
         );
 
       return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
+    },
+
+    async getAllEServiceTemplates(): Promise<
+      Array<WithMetadata<EServiceTemplate>>
+    > {
+      const queryResult = await readModelDB
+        .select({
+          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
+          interface:
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          attribute:
+            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          riskAnalysisAnswer:
+            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .leftJoin(
+          // 1
+          eserviceTemplateVersionInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          // 2
+          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          // 3
+          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          // 4
+          eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          // 5
+          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          // 6
+          eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
+            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
+          )
+        );
+
+      return aggregateEServiceTemplateArray(
+        toEServiceTemplateAggregatorArray(queryResult)
+      );
     },
 
     async getAllTenants(): Promise<Array<WithMetadata<Tenant>>> {

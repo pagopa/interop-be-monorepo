@@ -15,7 +15,7 @@ import {
 } from "./agreement/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function agreementReadModelServiceBuilderSQL(
+export function agreementReadModelServiceBuilder(
   db: ReturnType<typeof drizzle>
 ) {
   return {
@@ -151,5 +151,5 @@ export function agreementReadModelServiceBuilderSQL(
 }
 
 export type AgreementReadModelServiceSQL = ReturnType<
-  typeof agreementReadModelServiceBuilderSQL
+  typeof agreementReadModelServiceBuilder
 >;

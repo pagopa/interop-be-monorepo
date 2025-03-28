@@ -13,6 +13,7 @@ import {
   unsafeBrandId,
   Technology,
   EServiceMode,
+  EServiceDocumentId,
   DescriptorState,
   AgreementApprovalPolicy,
   stringToDate,
@@ -31,13 +32,18 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
   EServiceTemplateRefSQL,
-  // EServiceTemplateBindingSQL,
+  EServiceTemplateRiskAnalysisAnswerSQL,
+  EServiceTemplateRiskAnalysisSQL,
+  EServiceTemplateVersionAttributeSQL,
+  EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const documentSQLtoDocument = (
-  documentSQL: EServiceDescriptorDocumentSQL
+  documentSQL:
+    | EServiceDescriptorDocumentSQL
+    | EServiceTemplateVersionDocumentSQL
 ): Document => ({
-  id: unsafeBrandId(documentSQL.id),
+  id: unsafeBrandId<EServiceDocumentId>(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
   prettyName: documentSQL.prettyName,
@@ -99,11 +105,21 @@ export const aggregateDescriptor = ({
           templateVersionRefSQL.termsAndConditionsUrl
             ? {
                 interfaceMetadata: {
-                  contactName: templateVersionRefSQL.contactName ?? undefined,
-                  contactEmail: templateVersionRefSQL.contactEmail ?? undefined,
-                  contactUrl: templateVersionRefSQL.contactUrl ?? undefined,
-                  termsAndConditionsUrl:
-                    templateVersionRefSQL.termsAndConditionsUrl ?? undefined,
+                  ...(templateVersionRefSQL.contactName
+                    ? { contactName: templateVersionRefSQL.contactName }
+                    : {}),
+                  ...(templateVersionRefSQL.contactEmail
+                    ? { contactEmail: templateVersionRefSQL.contactEmail }
+                    : {}),
+                  ...(templateVersionRefSQL.contactUrl
+                    ? { contactUrl: templateVersionRefSQL.contactUrl }
+                    : {}),
+                  ...(templateVersionRefSQL.termsAndConditionsUrl
+                    ? {
+                        termsAndConditionsUrl:
+                          templateVersionRefSQL.termsAndConditionsUrl,
+                      }
+                    : {}),
                 },
               }
             : {}),
@@ -119,13 +135,6 @@ export const aggregateDescriptor = ({
     voucherLifespan: descriptorSQL.voucherLifespan,
     dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
-    ...(descriptorSQL.agreementApprovalPolicy
-      ? {
-          agreementApprovalPolicy: AgreementApprovalPolicy.parse(
-            descriptorSQL.agreementApprovalPolicy
-          ),
-        }
-      : {}), // TODO use safeParse?
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
     attributes: {
@@ -207,7 +216,7 @@ export const aggregateEservice = ({
   const templateRef: EServiceTemplateRef | undefined = templateRefSQL
     ? {
         id: unsafeBrandId(templateRefSQL.eserviceTemplateId),
-        ...(templateRefSQL.instanceLabel !== null
+        ...(templateRefSQL.instanceLabel
           ? { instanceLabel: templateRefSQL.instanceLabel }
           : {}),
       }
@@ -298,8 +307,10 @@ export const aggregateEserviceArray = ({
   );
 
 export const aggregateRiskAnalysis = (
-  riskAnalysisSQL: EServiceRiskAnalysisSQL,
-  answers: EServiceRiskAnalysisAnswerSQL[]
+  riskAnalysisSQL: EServiceRiskAnalysisSQL | EServiceTemplateRiskAnalysisSQL,
+  answers:
+    | EServiceRiskAnalysisAnswerSQL[]
+    | EServiceTemplateRiskAnalysisAnswerSQL[]
 ): RiskAnalysis => {
   const singleAnswers = answers
     .filter((a) => a.kind === riskAnalysisAnswerKind.single)
@@ -336,7 +347,9 @@ export const aggregateRiskAnalysis = (
 };
 
 export const attributesSQLtoAttributes = (
-  attributesSQL: EServiceDescriptorAttributeSQL[]
+  attributesSQL:
+    | EServiceDescriptorAttributeSQL[]
+    | EServiceTemplateVersionAttributeSQL[]
 ): EServiceAttribute[][] => {
   const attributesMap = new Map<number, EServiceAttribute[]>();
   attributesSQL.forEach((current) => {
