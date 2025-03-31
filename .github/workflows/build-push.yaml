@@ -97,7 +97,7 @@ jobs:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
           build-args: |
-            NODE_REGISTRY=${{ secrets.NODE_REGISTRY }}
+            NODE_REGISTRY=${{ vars.NODE_REGISTRY }}
           push: true
           tags: ${{ github.ref_type == 'branch' && steps.meta_branch.outputs.tags || steps.meta_tag.outputs.tags }}
           labels: ${{ github.ref_type == 'branch' && steps.meta_branch.outputs.labels || steps.meta_tag.outputs.labels }}
