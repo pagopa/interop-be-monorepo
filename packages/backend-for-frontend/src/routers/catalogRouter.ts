@@ -1058,7 +1058,35 @@ const catalogRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { id } = await catalogService.updateTemplateInstanceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(200).send(bffApi.CreatedResource.parse({ id }));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating template instance descriptor ${
+              req.params.descriptorId
+            } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
+              req.body
+            )}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return catalogRouter;
 };
