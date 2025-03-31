@@ -81,6 +81,7 @@ import {
   assertRequesterIsProducer,
   isInvalidDescriptor,
 } from "./validators.js";
+import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -1684,6 +1685,13 @@ export function catalogServiceBuilder(
     ): Promise<bffApi.EServiceTemplateInstances> => {
       logger.info(
         `Retrieving EService template ${eServiceTemplateId} instances with state=${states} producerName=${producerName} offset=${offset} limit=${limit}`
+      );
+
+      // This assures that the template exists
+      await retrieveEServiceTemplate(
+        eServiceTemplateId,
+        eserviceTemplateProcessClient,
+        headers
       );
 
       const tenants = producerName
