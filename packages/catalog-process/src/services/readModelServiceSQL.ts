@@ -150,7 +150,13 @@ export function readModelServiceBuilderSQL(
               : undefined,
             // agreement states filter
             agreementStates.length > 0
-              ? inArray(agreementInReadmodelAgreement.state, agreementStates)
+              ? and(
+                  inArray(agreementInReadmodelAgreement.state, agreementStates),
+                  eq(
+                    agreementInReadmodelAgreement.consumerId,
+                    authData.organizationId
+                  )
+                )
               : undefined,
             // producerIds filter
             producersIds.length > 0
