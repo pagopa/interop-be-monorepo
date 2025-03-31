@@ -30,7 +30,7 @@ jobs:
     name: ${{ matrix.package }}
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ecr
     permissions:
       contents: read
       id-token: write
@@ -96,6 +96,8 @@ jobs:
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
+          build-args: |
+            NODE_REGISTRY=${{ vars.NODE_REGISTRY }}
           push: true
           tags: ${{ github.ref_type == 'branch' && steps.meta_branch.outputs.tags || steps.meta_tag.outputs.tags }}
           labels: ${{ github.ref_type == 'branch' && steps.meta_branch.outputs.labels || steps.meta_tag.outputs.labels }}

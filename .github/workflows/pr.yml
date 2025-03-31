@@ -112,6 +112,10 @@ jobs:
     name: Build
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
+    environment: ecr-ro
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       max-parallel: 5
       fail-fast: false
@@ -121,11 +125,25 @@ jobs:
       DOCKER_BUILD_SUMMARY: "false"
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.IAM_ROLE_ARN }}
+          role-session-name: be-monorepo-pr-validation-${{ github.run_number }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
+
       - name: Build Docker image
         uses: docker/build-push-action@a8d35412fb758de9162fd63e3fa3f0942bdedb4d
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
+          build-args: |
+            NODE_REGISTRY=${{ vars.NODE_REGISTRY }}
           push: false
 
   check_build_result:
