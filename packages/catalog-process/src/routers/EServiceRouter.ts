@@ -73,7 +73,7 @@ import {
   updateEServiceTemplateInstanceErrorMapper,
   updateDraftDescriptorTemplateInstanceErrorMapper,
   createTemplateInstanceDescriptorErrorMapper,
-  updateInstanceDescriptorErrorMapper,
+  updateTemplateInstanceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -1303,12 +1303,13 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const updatedEService = await catalogService.updateInstanceDescriptor(
-            unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.descriptorId),
-            req.body,
-            ctx
-          );
+          const updatedEService =
+            await catalogService.updateTemplateInstanceDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
           return res
             .status(200)
             .send(
@@ -1317,7 +1318,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateInstanceDescriptorErrorMapper,
+            updateTemplateInstanceDescriptorErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

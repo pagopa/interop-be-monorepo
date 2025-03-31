@@ -162,7 +162,7 @@ import {
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
-  assertDescriptorQuotasUpdatable,
+  assertDescriptorUpdatable,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -1903,7 +1903,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorQuotasUpdatable(descriptor);
+      assertDescriptorUpdatable(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedDescriptor: Descriptor = {
@@ -1929,10 +1929,10 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
-    async updateInstanceDescriptor(
+    async updateTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed,
+      seed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(
@@ -1952,7 +1952,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorQuotasUpdatable(descriptor);
+      assertDescriptorUpdatable(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedEService = replaceDescriptor(eservice.data, {

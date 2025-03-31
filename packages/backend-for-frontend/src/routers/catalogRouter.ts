@@ -1064,7 +1064,7 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const { id } = await catalogService.updateInstanceDescriptor(
+          const { id } = await catalogService.updateTemplateInstanceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -1077,7 +1077,7 @@ const catalogRouter = (
             emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error updating instance descriptor ${
+            `Error updating template instance descriptor ${
               req.params.descriptorId
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
               req.body

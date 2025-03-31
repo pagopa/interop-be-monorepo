@@ -3364,8 +3364,8 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Update the selected instance descriptor.
-      operationId: updateInstanceDescriptor
+      summary: Update the selected template instance descriptor.
+      operationId: updateTemplateInstanceDescriptor
       parameters:
         - name: eServiceId
           in: path
@@ -3387,7 +3387,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateEServiceInstanceDescriptorQuotas"
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceDescriptorQuotas"
       responses:
         "200":
           description: EService instance descriptor updated.
@@ -17843,7 +17843,7 @@ components:
           type: integer
           format: int32
           minimum: 0
-    UpdateEServiceInstanceDescriptorQuotas:
+    UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal

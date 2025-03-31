@@ -62,7 +62,7 @@ describe("update descriptor", () => {
       await addOneEService(eservice);
       await addOneEServiceTemplate(mockTemplate);
 
-      const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+      const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
         {
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
           dailyCallsTotal: descriptor.dailyCallsTotal + 10,
@@ -78,12 +78,13 @@ describe("update descriptor", () => {
           },
         ],
       };
-      const returnedEService = await catalogService.updateInstanceDescriptor(
-        eservice.id,
-        descriptor.id,
-        descriptorQuotasSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      );
+      const returnedEService =
+        await catalogService.updateTemplateInstanceDescriptor(
+          eservice.id,
+          descriptor.id,
+          descriptorQuotasSeed,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
@@ -127,7 +128,7 @@ describe("update descriptor", () => {
       await addOneEService(eservice);
       await addOneDelegation(delegation);
 
-      const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+      const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
         {
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
           dailyCallsTotal: descriptor.dailyCallsTotal + 10,
@@ -143,12 +144,13 @@ describe("update descriptor", () => {
           },
         ],
       };
-      const returnedEService = await catalogService.updateInstanceDescriptor(
-        eservice.id,
-        descriptor.id,
-        descriptorQuotasSeed,
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
-      );
+      const returnedEService =
+        await catalogService.updateTemplateInstanceDescriptor(
+          eservice.id,
+          descriptor.id,
+          descriptorQuotasSeed,
+          getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
@@ -166,13 +168,13 @@ describe("update descriptor", () => {
   );
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
       };
     expect(
-      catalogService.updateInstanceDescriptor(
+      catalogService.updateTemplateInstanceDescriptor(
         mockEService.id,
         mockDescriptor.id,
         descriptorQuotasSeed,
@@ -189,14 +191,14 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
       };
 
     expect(
-      catalogService.updateInstanceDescriptor(
+      catalogService.updateTemplateInstanceDescriptor(
         mockEService.id,
         mockDescriptor.id,
         descriptorQuotasSeed,
@@ -225,14 +227,14 @@ describe("update descriptor", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+      const updatedDescriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
         {
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
           dailyCallsTotal: descriptor.dailyCallsTotal + 10,
         };
 
       expect(
-        catalogService.updateInstanceDescriptor(
+        catalogService.updateTemplateInstanceDescriptor(
           eservice.id,
           descriptor.id,
           updatedDescriptorQuotasSeed,
@@ -254,13 +256,13 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
       };
     expect(
-      catalogService.updateInstanceDescriptor(
+      catalogService.updateTemplateInstanceDescriptor(
         eservice.id,
         descriptor.id,
         descriptorQuotasSeed,
@@ -288,13 +290,13 @@ describe("update descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
       };
     expect(
-      catalogService.updateInstanceDescriptor(
+      catalogService.updateTemplateInstanceDescriptor(
         eservice.id,
         descriptor.id,
         descriptorQuotasSeed,
@@ -317,13 +319,13 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
       };
     expect(
-      catalogService.updateInstanceDescriptor(
+      catalogService.updateTemplateInstanceDescriptor(
         eservice.id,
         descriptor.id,
         descriptorQuotasSeed,
@@ -344,13 +346,13 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
       };
     expect(
-      catalogService.updateInstanceDescriptor(
+      catalogService.updateTemplateInstanceDescriptor(
         eservice.id,
         descriptor.id,
         descriptorQuotasSeed,
