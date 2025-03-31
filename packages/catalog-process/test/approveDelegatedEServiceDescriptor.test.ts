@@ -157,13 +157,13 @@ describe("publish descriptor", () => {
       id: generateId(),
       state: descriptorState.published,
       publishedAt: new Date(),
-      interface: mockDocument,
+      interface: getMockDocument(),
     };
     const descriptor2: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
       state: descriptorState.waitingForApproval,
-      interface: mockDocument,
+      interface: getMockDocument(),
     };
     const eservice: EService = {
       ...mockEService,
