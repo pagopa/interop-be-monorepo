@@ -18162,6 +18162,8 @@ components:
             format: uri
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
+        delegation:
+          $ref: "#/components/schemas/DelegationWithCompactTenants"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
