@@ -455,8 +455,7 @@ const authorizationRouter = (
             userIds: userIds.map(unsafeBrandId<UserId>),
             offset,
             limit,
-            authData: ctx.authData,
-            logger: ctx.logger,
+            ctx,
           });
 
           return res.status(200).send(

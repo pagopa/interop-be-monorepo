@@ -579,15 +579,13 @@ export function authorizationServiceBuilder(
       userIds,
       offset,
       limit,
-      authData,
-      logger,
+      ctx: { authData, logger },
     }: {
       clientId: ClientId;
       userIds: UserId[];
       offset: number;
       limit: number;
-      authData: AuthData;
-      logger: Logger;
+      ctx: WithLogger<AppContext>;
     }): Promise<ListResult<Key>> {
       logger.info(
         `Retrieving keys for client ${clientId}, limit = ${limit}, offset = ${offset}`

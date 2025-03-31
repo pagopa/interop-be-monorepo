@@ -1,6 +1,7 @@
 import {
   getMockAuthData,
   getMockClient,
+  getMockContext,
   getMockKey,
 } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
@@ -11,7 +12,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
@@ -62,8 +63,7 @@ describe("getClientKeys", async () => {
       userIds: [keyUserId1, keyUserId2, keyUserId3],
       offset: 0,
       limit: 50,
-      authData,
-      logger: genericLogger,
+      ctx: getMockContext({ authData }),
     });
     expect(keys).toEqual({
       results: [keyWithUser1, keyWithUser2, keyWithUser3],
@@ -101,8 +101,7 @@ describe("getClientKeys", async () => {
       userIds: [keyUserId1],
       offset: 0,
       limit: 50,
-      authData,
-      logger: genericLogger,
+      ctx: getMockContext({ authData }),
     });
     expect(keys).toEqual({
       results: [keyWithUser1],
@@ -119,8 +118,7 @@ describe("getClientKeys", async () => {
         userIds: [],
         offset: 0,
         limit: 50,
-        authData,
-        logger: genericLogger,
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
   });
@@ -138,8 +136,7 @@ describe("getClientKeys", async () => {
         userIds: [],
         offset: 0,
         limit: 50,
-        authData,
-        logger: genericLogger,
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(
       securityUserNotMember(unsafeBrandId(authData.userId))
@@ -160,8 +157,7 @@ describe("getClientKeys", async () => {
         userIds: [],
         offset: 0,
         limit: 50,
-        authData,
-        logger: genericLogger,
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(
@@ -223,8 +219,7 @@ describe("getClientKeys", async () => {
       userIds: [keyUserId1, keyUserId2, keyUserId3, keyUserId4, keyUserId5],
       offset: 2,
       limit: 1,
-      authData,
-      logger: genericLogger,
+      ctx: getMockContext({ authData }),
     });
     expect(keys).toEqual({
       results: [keyWithUser3],
