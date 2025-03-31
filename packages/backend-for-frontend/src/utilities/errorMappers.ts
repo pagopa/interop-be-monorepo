@@ -173,6 +173,18 @@ export const createEServiceDocumentErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createEServiceTemplateDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "invalidInterfaceContentTypeDetected",
+      "invalidInterfaceFileDetected",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const importEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number => {
