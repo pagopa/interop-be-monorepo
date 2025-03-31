@@ -30,6 +30,7 @@ import {
   aggregateEservice,
   aggregateEserviceArray,
   CatalogReadModelServiceSQL,
+  EServiceTemplateReadModelService,
   TenantReadModelService,
   toAgreementAggregatorArray,
   toDelegationAggregator,
@@ -68,8 +69,8 @@ import { activeDescriptorStates } from "./validators.js";
 export function readModelServiceBuilderSQL(
   readmodelDB: DrizzleReturnType,
   catalogReadModelService: CatalogReadModelServiceSQL,
-  tenantReadModelService: TenantReadModelService
-  // eserviceTemplateReadModelService: EserviceTeamplateReadModelService
+  tenantReadModelService: TenantReadModelService,
+  eserviceTemplateReadModelService: EServiceTemplateReadModelService
 ) {
   return {
     async getEServices(
@@ -756,8 +757,9 @@ export function readModelServiceBuilderSQL(
       id: EServiceTemplateId
     ): Promise<EServiceTemplate | undefined> {
       // eslint-disable-next-line no-console
-      console.log(id);
-      return undefined;
+      const templateWithMetadata =
+        await eserviceTemplateReadModelService.getEServiceTemplateById(id);
+      return templateWithMetadata?.data;
     },
   };
 }

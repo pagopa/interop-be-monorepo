@@ -43,6 +43,7 @@ import {
   attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -80,12 +81,15 @@ const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(
   readModelDB,
   catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL
+  tenantReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL
 );
 
 const readModelService =
