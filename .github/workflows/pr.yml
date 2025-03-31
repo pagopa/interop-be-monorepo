@@ -151,9 +151,8 @@ jobs:
   check_build_result:
     name: Build Result
     needs: [docker_build]
-    if: ${{ github.base_ref == 'refs/heads/develop' || github.base_ref == 'refs/heads/main' }}
+    if: ${{ always() && (github.base_ref == 'refs/heads/develop' || github.base_ref == 'refs/heads/main') }}
     runs-on: ubuntu-latest
-    if: ${{ always() }}
     steps:
       - name: Check build result
         run: |
