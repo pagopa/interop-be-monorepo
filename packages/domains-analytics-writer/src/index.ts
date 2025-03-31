@@ -38,6 +38,46 @@ import { handleCatalogMessageV2 } from "./handlers/catalog/consumerServiceV2.js"
 import { handleAttributeMessageV1 } from "./handlers/attribute/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "./handlers/tenant/consumerServiceV2.js";
 import { handleEserviceTemplateMessageV2 } from "./handlers/eservice-template/consumerServiceV2.js";
+import { DBContext, initDB } from "./db/db.js";
+import { setupDbServiceBuilder } from "./service/setupDbService.js";
+import { retryConnection } from "./db/buildColumnSet.js";
+
+const dbInstance = initDB({
+  username: config.dbUsername,
+  password: config.dbPassword,
+  host: config.dbHost,
+  port: config.dbPort,
+  database: config.dbName,
+  useSSL: config.dbUseSSL,
+  maxConnectionPool: config.dbMaxConnectionPool,
+});
+
+const connection = await dbInstance.connect();
+const dbContext: DBContext = {
+  conn: connection,
+  pgp: dbInstance.$config.pgp,
+};
+
+await retryConnection(
+  dbInstance,
+  dbContext,
+  config,
+  async (db) => {
+    await setupDbServiceBuilder(db.conn, config).setupStagingTables([
+      "eservice",
+      "eservice_template_ref",
+      "eservice_descriptor",
+      "eservice_descriptor_template_version_ref",
+      "eservice_descriptor_rejection_reason",
+      "eservice_descriptor_interface",
+      "eservice_descriptor_document",
+      "eservice_descriptor_attribute",
+      "eservice_risk_analysis",
+      "eservice_risk_analysis_answer",
+    ]);
+  },
+  logger({ serviceName: "" })
+);
 
 async function processMessage(
   messagePayload: EachMessagePayload
@@ -187,7 +227,7 @@ async function processMessage(
     `Processing ${decodedMessage.type} message - Partition ${messagePayload.partition} - Offset ${messagePayload.message.offset}`
   );
 
-  await handler();
+  await handler(dbContext);
 }
 
 async function processBatch({

@@ -25,7 +25,17 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
   .and(TenantTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(DelegationTopicConfig)
-  .and(EServiceTemplateTopicConfig);
+  .and(EServiceTemplateTopicConfig)
+  .and(DbConfig)
+  .and(
+    z
+      .object({
+        MERGE_TABLE_SUFFIX: z
+          .string()
+          .transform((val) => val.replace(/-/g, "")),
+      })
+      .transform((c) => ({ mergeTableSuffix: c.MERGE_TABLE_SUFFIX }))
+  );
 
 export type DomainsAnalyticsWriterConfig = z.infer<
   typeof DomainsAnalyticsWriterConfig
