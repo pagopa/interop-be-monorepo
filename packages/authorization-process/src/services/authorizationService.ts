@@ -597,7 +597,7 @@ export function authorizationServiceBuilder(
       assertSecurityRoleIsClientMember(authData, client.data);
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
-      const allKeys = client.data.keys || [];
+      const allKeys = client.data.keys;
 
       const filteredKeys =
         userIds && userIds.length > 0
