@@ -61,9 +61,14 @@ describe("getClientKeys", async () => {
     const keys = await authorizationService.getClientKeys({
       clientId: mockClient.id,
       userIds: [keyUserId1, keyUserId2, keyUserId3],
+      offset: 0,
+      limit: 50,
       ctx: getMockContext({ authData }),
     });
-    expect(keys).toEqual([keyWithUser1, keyWithUser2, keyWithUser3]);
+    expect(keys).toEqual({
+      results: [keyWithUser1, keyWithUser2, keyWithUser3],
+      totalCount: 3,
+    });
   });
   it("should get the keys of the specified client, but only limited to the keys belonging to specific users", async () => {
     const keyUserId1: UserId = generateId();
@@ -94,9 +99,14 @@ describe("getClientKeys", async () => {
     const keys = await authorizationService.getClientKeys({
       clientId: clientWithKeyUser.id,
       userIds: [keyUserId1],
+      offset: 0,
+      limit: 50,
       ctx: getMockContext({ authData }),
     });
-    expect(keys).toEqual([keyWithUser1]);
+    expect(keys).toEqual({
+      results: [keyWithUser1],
+      totalCount: 1,
+    });
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(mockClient);
@@ -106,6 +116,8 @@ describe("getClientKeys", async () => {
       authorizationService.getClientKeys({
         clientId: unsafeBrandId(clientId),
         userIds: [],
+        offset: 0,
+        limit: 50,
         ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
@@ -120,8 +132,10 @@ describe("getClientKeys", async () => {
 
     await expect(
       authorizationService.getClientKeys({
-        clientId: mockClient.id,
+        clientId: unsafeBrandId(mockClient.id),
         userIds: [],
+        offset: 0,
+        limit: 50,
         ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(
@@ -141,6 +155,8 @@ describe("getClientKeys", async () => {
       authorizationService.getClientKeys({
         clientId: mockClient.id,
         userIds: [],
+        offset: 0,
+        limit: 50,
         ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(
@@ -149,5 +165,65 @@ describe("getClientKeys", async () => {
         unsafeBrandId(mockClient.id)
       )
     );
+  });
+  it("should get the keys in the specified client with offset and limit", async () => {
+    const keyUserId1: UserId = generateId();
+    const keyUserId2: UserId = generateId();
+    const keyUserId3: UserId = generateId();
+    const keyUserId4: UserId = generateId();
+    const keyUserId5: UserId = generateId();
+    const keyUserId6: UserId = generateId();
+
+    const keyWithUser1: Key = {
+      ...mockKey,
+      userId: keyUserId1,
+    };
+    const keyWithUser2: Key = {
+      ...mockKey,
+      userId: keyUserId2,
+    };
+    const keyWithUser3: Key = {
+      ...mockKey,
+      userId: keyUserId3,
+    };
+    const keyWithUser4: Key = {
+      ...mockKey,
+      userId: keyUserId4,
+    };
+    const keyWithUser5: Key = {
+      ...mockKey,
+      userId: keyUserId5,
+    };
+    const keyWithUser6: Key = {
+      ...mockKey,
+      userId: keyUserId6,
+    };
+
+    const clientWithKeyUser: Client = {
+      ...mockClient,
+      keys: [
+        keyWithUser1,
+        keyWithUser2,
+        keyWithUser3,
+        keyWithUser4,
+        keyWithUser5,
+        keyWithUser6,
+      ],
+      users: [keyUserId1, keyUserId2, keyUserId3],
+    };
+
+    await addOneClient(clientWithKeyUser);
+
+    const keys = await authorizationService.getClientKeys({
+      clientId: mockClient.id,
+      userIds: [keyUserId1, keyUserId2, keyUserId3, keyUserId4, keyUserId5],
+      offset: 2,
+      limit: 1,
+      ctx: getMockContext({ authData }),
+    });
+    expect(keys).toEqual({
+      results: [keyWithUser3],
+      totalCount: 5,
+    });
   });
 });
