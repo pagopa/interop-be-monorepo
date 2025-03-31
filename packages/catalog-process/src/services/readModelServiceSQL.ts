@@ -57,6 +57,7 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRefInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
@@ -91,8 +92,6 @@ export function readModelServiceBuilderSQL(
         delegated,
         templatesIds,
       } = filters;
-      // eslint-disable-next-line no-console
-      console.log(templatesIds);
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
@@ -132,6 +131,13 @@ export function readModelServiceBuilderSQL(
           eq(
             eserviceInReadmodelCatalog.id,
             delegationInReadmodelDelegation.eserviceId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateRefInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         )
         .where(
@@ -271,8 +277,14 @@ export function readModelServiceBuilderSQL(
                   delegationInReadmodelDelegation.kind,
                   delegationKind.delegatedProducer
                 )
+              : undefined,
+            // template filter
+            templatesIds.length > 0
+              ? inArray(
+                  eserviceTemplateInReadmodelEserviceTemplate.id,
+                  templatesIds
+                )
               : undefined
-            // TODO template filter
           )
         );
 
@@ -756,7 +768,6 @@ export function readModelServiceBuilderSQL(
     async getEServiceTemplateById(
       id: EServiceTemplateId
     ): Promise<EServiceTemplate | undefined> {
-      // eslint-disable-next-line no-console
       const templateWithMetadata =
         await eserviceTemplateReadModelService.getEServiceTemplateById(id);
       return templateWithMetadata?.data;
