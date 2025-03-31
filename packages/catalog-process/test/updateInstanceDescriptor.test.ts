@@ -62,7 +62,7 @@ describe("update descriptor", () => {
       await addOneEService(eservice);
       await addOneEServiceTemplate(mockTemplate);
 
-      const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+      const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
         {
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
           dailyCallsTotal: descriptor.dailyCallsTotal + 10,
@@ -81,7 +81,7 @@ describe("update descriptor", () => {
       const returnedEService = await catalogService.updateInstanceDescriptor(
         eservice.id,
         descriptor.id,
-        expectedDescriptorQuotasSeed,
+        descriptorQuotasSeed,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -127,7 +127,7 @@ describe("update descriptor", () => {
       await addOneEService(eservice);
       await addOneDelegation(delegation);
 
-      const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+      const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
         {
           dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
           dailyCallsTotal: descriptor.dailyCallsTotal + 10,
@@ -146,7 +146,7 @@ describe("update descriptor", () => {
       const returnedEService = await catalogService.updateInstanceDescriptor(
         eservice.id,
         descriptor.id,
-        expectedDescriptorQuotasSeed,
+        descriptorQuotasSeed,
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -166,7 +166,7 @@ describe("update descriptor", () => {
   );
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
@@ -175,7 +175,7 @@ describe("update descriptor", () => {
       catalogService.updateInstanceDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        expectedDescriptorQuotasSeed,
+        descriptorQuotasSeed,
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -189,7 +189,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
@@ -199,7 +199,7 @@ describe("update descriptor", () => {
       catalogService.updateInstanceDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        expectedDescriptorQuotasSeed,
+        descriptorQuotasSeed,
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
@@ -254,7 +254,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
@@ -263,7 +263,7 @@ describe("update descriptor", () => {
       catalogService.updateInstanceDescriptor(
         eservice.id,
         descriptor.id,
-        expectedDescriptorQuotasSeed,
+        descriptorQuotasSeed,
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
@@ -288,7 +288,7 @@ describe("update descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
@@ -297,7 +297,7 @@ describe("update descriptor", () => {
       catalogService.updateInstanceDescriptor(
         eservice.id,
         descriptor.id,
-        expectedDescriptorQuotasSeed,
+        descriptorQuotasSeed,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
@@ -317,7 +317,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
@@ -326,7 +326,7 @@ describe("update descriptor", () => {
       catalogService.updateInstanceDescriptor(
         eservice.id,
         descriptor.id,
-        expectedDescriptorQuotasSeed,
+        descriptorQuotasSeed,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
@@ -344,7 +344,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    const expectedDescriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
@@ -353,7 +353,7 @@ describe("update descriptor", () => {
       catalogService.updateInstanceDescriptor(
         eservice.id,
         descriptor.id,
-        expectedDescriptorQuotasSeed,
+        descriptorQuotasSeed,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
