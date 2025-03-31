@@ -28,17 +28,11 @@ export async function pollUntilReady<T>(
     try {
       const result = await fetchPromiseFactory();
 
-      if (!result) {
-        await new Promise((resolve) => setTimeout(resolve, intervalMs));
-        continue;
+      if (result && checkFn(result)) {
+        return result;
       }
 
-      if (!checkFn(result)) {
-        // TODO: improve this, the idea is that this will then be remapped in the catch
-        throw new Error("Expected resource does not meet criteria");
-      }
-
-      return result;
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
