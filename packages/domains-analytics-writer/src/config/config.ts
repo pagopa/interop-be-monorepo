@@ -12,6 +12,7 @@ import {
   EServiceTemplateTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
+import { DbConfig } from "./dbConfig.js";
 
 export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
   KafkaBatchConsumerConfig

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { EService } from "pagopa-interop-models";
 import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { genericLogger } from "pagopa-interop-commons";
 import { DBContext } from "../db/db.js";
 import { eserviceRiskAnalysisAnswerRepository } from "../repository/catalog/eserviceRiskAnalysisAnswer.repository.js";
 import { eserviceRiskAnalysisRepository } from "../repository/catalog/eserviceRiskAnalysis.repository.js";
@@ -59,6 +60,10 @@ export function catalogServiceBuilder(db: DBContext) {
         await rejectionRepo.insert(t, db.pgp, rejectionReasonsSQL);
         await templateVersionRefRepo.insert(t, db.pgp, templateVersionRefsSQL);
 
+        genericLogger.info(
+          `Staging records insertion completed for eserviceId: ${eserviceSQL.id}`
+        );
+
         await eserviceRepo.merge(t);
         await templateRefRepo.merge(t);
         await descriptorRepo.merge(t);
@@ -71,6 +76,10 @@ export function catalogServiceBuilder(db: DBContext) {
         await templateVersionRefRepo.merge(t);
       });
 
+      genericLogger.info(
+        `Staging data merged into target tables for eserviceId: ${eserviceSQL.id}`
+      );
+
       await eserviceRepo.clean();
       await templateRefRepo.clean();
       await descriptorRepo.clean();
@@ -81,6 +90,10 @@ export function catalogServiceBuilder(db: DBContext) {
       await riskAnalysisAnswerRepo.clean();
       await rejectionRepo.clean();
       await templateVersionRefRepo.clean();
+
+      genericLogger.info(
+        `Staging cleanup completed for eserviceId: ${eserviceSQL.id}`
+      );
     },
   };
 }

@@ -1,24 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { z } from "zod";
 import { EServiceDescriptorInterfaceSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-
-const eserviceDescriptorInterfaceSchema = z.object({
-  id: z.string(),
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  descriptor_id: z.string(),
-  name: z.string(),
-  content_type: z.string(),
-  pretty_name: z.string(),
-  path: z.string(),
-  checksum: z.string(),
-  upload_date: z.string(),
-});
+import {
+  EserviceDescriptorInterfaceMapping,
+  eserviceDescriptorInterfaceSchema,
+} from "../../model/catalog/eserviceDescriptorInterface.js";
 
 export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
   const schemaName = "domains_catalog";
@@ -31,7 +21,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorInterfaceSQL[]
     ): Promise<void> {
-      const mapping = {
+      const mapping: EserviceDescriptorInterfaceMapping = {
         id: (r: EServiceDescriptorInterfaceSQL) => r.id,
         eservice_id: (r: EServiceDescriptorInterfaceSQL) => r.eserviceId,
         metadata_version: (r: EServiceDescriptorInterfaceSQL) =>

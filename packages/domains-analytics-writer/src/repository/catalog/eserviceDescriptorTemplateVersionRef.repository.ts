@@ -1,22 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { z } from "zod";
 import { EServiceDescriptorTemplateVersionRefSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-
-const eserviceDescriptorTemplateVersionRefSchema = z.object({
-  eservice_template_version_id: z.string(),
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  descriptor_id: z.string(),
-  contact_name: z.string().nullable(),
-  contact_email: z.string().nullable(),
-  contact_url: z.string().nullable(),
-  terms_and_conditions_url: z.string().nullable(),
-});
+import {
+  EserviceDescriptorTemplateVersionRefMapping,
+  eserviceDescriptorTemplateVersionRefSchema,
+} from "../../model/catalog/eserviceDescriptorTemplateVersionRef.js";
 
 export function eserviceDescriptorTemplateVersionRefRepository(
   conn: DBConnection
@@ -31,8 +23,8 @@ export function eserviceDescriptorTemplateVersionRefRepository(
       pgp: IMain,
       records: EServiceDescriptorTemplateVersionRefSQL[]
     ): Promise<void> {
-      const mapping = {
-        eserviceTemplateVersionId: (
+      const mapping: EserviceDescriptorTemplateVersionRefMapping = {
+        eservice_template_version_id: (
           r: EServiceDescriptorTemplateVersionRefSQL
         ) => r.eserviceTemplateVersionId,
         eservice_id: (r: EServiceDescriptorTemplateVersionRefSQL) =>

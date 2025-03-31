@@ -1,21 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { z } from "zod";
 import { EServiceDescriptorAttributeSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-
-const eserviceDescriptorAttributeSchema = z.object({
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  attribute_id: z.string(),
-  descriptor_id: z.string(),
-  explicit_attribute_verification: z.boolean(),
-  kind: z.string(),
-  group_id: z.number(),
-});
+import {
+  EserviceDescriptorAttributeMapping,
+  eserviceDescriptorAttributeSchema,
+} from "../../model/catalog/eserviceDescriptorAttribute.js";
 
 export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
   const schemaName = "domains_catalog";
@@ -28,14 +21,14 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorAttributeSQL[]
     ): Promise<void> {
-      const mapping = {
+      const mapping: EserviceDescriptorAttributeMapping = {
         eservice_id: (r: EServiceDescriptorAttributeSQL) => r.eserviceId,
         metadata_version: (r: EServiceDescriptorAttributeSQL) =>
           r.metadataVersion,
         attribute_id: (r: EServiceDescriptorAttributeSQL) => r.attributeId,
         descriptor_id: (r: EServiceDescriptorAttributeSQL) => r.descriptorId,
         explicit_attribute_verification: (r: EServiceDescriptorAttributeSQL) =>
-          r.explicitAttributeVerification ? "true" : "false",
+          r.explicitAttributeVerification,
         kind: (r: EServiceDescriptorAttributeSQL) => r.kind,
         group_id: (r: EServiceDescriptorAttributeSQL) => r.groupId,
       };

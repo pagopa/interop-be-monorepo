@@ -1,19 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { z } from "zod";
 import { EServiceDescriptorRejectionReasonSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-
-const eserviceDescriptorRejectionSchema = z.object({
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  descriptor_id: z.string(),
-  rejection_reason: z.string(),
-  rejected_at: z.string(),
-});
+import {
+  EserviceDescriptorRejectionMapping,
+  eserviceDescriptorRejectionSchema,
+} from "../../model/catalog/eserviceDescriptorRejection.js";
 
 export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
   const schemaName = "domains_catalog";
@@ -26,7 +21,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorRejectionReasonSQL[]
     ): Promise<void> {
-      const mapping = {
+      const mapping: EserviceDescriptorRejectionMapping = {
         eservice_id: (r: EServiceDescriptorRejectionReasonSQL) => r.eserviceId,
         metadata_version: (r: EServiceDescriptorRejectionReasonSQL) =>
           r.metadataVersion,

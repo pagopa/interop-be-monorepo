@@ -246,7 +246,7 @@ async function processBatch({
   }
 
   genericLogger.info(
-    `Handling audit messages. Partition number: ${
+    `Handling domains analytics messages. Partition number: ${
       batch.partition
     }. Offset: ${batch.firstOffset()} -> ${batch.lastOffset()}`
   );

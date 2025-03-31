@@ -1,32 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { genericInternalError } from "pagopa-interop-models";
-import { z } from "zod";
 import { EServiceDescriptorSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-
-const eserviceDescriptorSchema = z.object({
-  id: z.string(),
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  version: z.string(),
-  description: z.string().nullable(),
-  created_at: z.string(),
-  state: z.string(),
-  audience: z.string(),
-  voucher_lifespan: z.number(),
-  daily_calls_per_consumer: z.number(),
-  daily_calls_total: z.number(),
-  server_urls: z.string(),
-  agreement_approval_policy: z.string().nullable(),
-  published_at: z.string(),
-  suspended_at: z.string(),
-  deprecated_at: z.string(),
-  archived_at: z.string().nullable(),
-});
+import {
+  EserviceDescriptorMapping,
+  eserviceDescriptorSchema,
+} from "../../model/catalog/eserviceDescriptor.js";
 
 export function eserviceDescriptorRepository(conn: DBConnection) {
   const schemaName = "domains_catalog";
@@ -39,7 +22,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorSQL[]
     ): Promise<void> {
-      const mapping = {
+      const mapping: EserviceDescriptorMapping = {
         id: (r: EServiceDescriptorSQL) => r.id,
         eservice_id: (r: EServiceDescriptorSQL) => r.eserviceId,
         metadata_version: (r: EServiceDescriptorSQL) => r.metadataVersion,
@@ -55,9 +38,12 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         server_urls: (r: EServiceDescriptorSQL) => JSON.stringify(r.serverUrls),
         agreement_approval_policy: (r: EServiceDescriptorSQL) =>
           r.agreementApprovalPolicy,
-        published_at: (r: EServiceDescriptorSQL) => r.publishedAt,
-        suspended_at: (r: EServiceDescriptorSQL) => r.suspendedAt,
-        deprecated_at: (r: EServiceDescriptorSQL) => r.deprecatedAt,
+        published_at: (r: EServiceDescriptorSQL) =>
+          r.publishedAt ? r.publishedAt : "",
+        suspended_at: (r: EServiceDescriptorSQL) =>
+          r.suspendedAt ? r.suspendedAt : "",
+        deprecated_at: (r: EServiceDescriptorSQL) =>
+          r.deprecatedAt ? r.deprecatedAt : "",
         archived_at: (r: EServiceDescriptorSQL) => r.archivedAt,
       };
       const cs = buildColumnSet<EServiceDescriptorSQL>(

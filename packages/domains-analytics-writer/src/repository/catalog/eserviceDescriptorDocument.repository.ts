@@ -1,24 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { z } from "zod";
 import { EServiceDescriptorDocumentSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-
-const eserviceDescriptorDocumentSchema = z.object({
-  id: z.string(),
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  descriptor_id: z.string(),
-  name: z.string(),
-  content_type: z.string(),
-  pretty_name: z.string(),
-  path: z.string(),
-  checksum: z.string(),
-  upload_date: z.string(),
-});
+import {
+  EserviceDescriptorDocumentMapping,
+  eserviceDescriptorDocumentSchema,
+} from "../../model/catalog/eserviceDescriptorDocument.js";
 
 export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
   const schemaName = "domains_catalog";
@@ -31,7 +21,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorDocumentSQL[]
     ): Promise<void> {
-      const mapping = {
+      const mapping: EserviceDescriptorDocumentMapping = {
         id: (r: EServiceDescriptorDocumentSQL) => r.id,
         eservice_id: (r: EServiceDescriptorDocumentSQL) => r.eserviceId,
         metadata_version: (r: EServiceDescriptorDocumentSQL) =>

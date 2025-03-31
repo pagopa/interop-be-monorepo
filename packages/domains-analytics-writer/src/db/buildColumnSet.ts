@@ -3,7 +3,7 @@ import { Logger } from "pagopa-interop-commons";
 import { DbConfig } from "../config/dbConfig.js";
 import { IMain, ColumnSet, IColumnDescriptor, DB, DBContext } from "./db.js";
 
-export type ColumnValue = string | number | Date | undefined | null;
+export type ColumnValue = string | number | Date | undefined | null | boolean;
 
 /**
  * This is a helper function that generates a ColumnSet for bulk operations using pg-promise.

@@ -1,21 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { z } from "zod";
 import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-
-const eserviceRiskAnalysisAnswerSchema = z.object({
-  id: z.string(),
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  risk_analysis_form_id: z.string(),
-  kind: z.string(),
-  key: z.string(),
-  value: z.array(z.string()),
-});
+import {
+  EserviceRiskAnalysisAnswerMapping,
+  eserviceRiskAnalysisAnswerSchema,
+} from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
 
 export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
   const schemaName = "domains_catalog";
@@ -28,7 +21,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceRiskAnalysisAnswerSQL[]
     ): Promise<void> {
-      const mapping = {
+      const mapping: EserviceRiskAnalysisAnswerMapping = {
         id: (r: EServiceRiskAnalysisAnswerSQL) => r.id,
         eservice_id: (r: EServiceRiskAnalysisAnswerSQL) => r.eserviceId,
         metadata_version: (r: EServiceRiskAnalysisAnswerSQL) =>

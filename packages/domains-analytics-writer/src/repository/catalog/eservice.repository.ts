@@ -1,26 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { z } from "zod";
 import { EServiceSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-
-const eserviceSchema = z.object({
-  // todo export and type mapping
-  id: z.string(),
-  metadata_version: z.number(),
-  name: z.string(),
-  created_at: z.string(),
-  producer_id: z.string(),
-  description: z.string(),
-  technology: z.string(),
-  mode: z.string(),
-  is_signal_hub_enabled: z.string().nullable(),
-  is_consumer_delegable: z.string().nullable(),
-  is_client_access_delegable: z.string().nullable(),
-});
+import {
+  EserviceMapping,
+  eserviceSchema,
+} from "../../model/catalog/eService.js";
 
 export function eserviceRepository(conn: DBConnection) {
   const schemaName = "domains_catalog";
@@ -33,7 +21,7 @@ export function eserviceRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceSQL
     ): Promise<void> {
-      const mapping = {
+      const mapping: EserviceMapping = {
         id: (r: EServiceSQL) => r.id,
         metadata_version: (r: EServiceSQL) => r.metadataVersion,
         name: (r: EServiceSQL) => r.name,
