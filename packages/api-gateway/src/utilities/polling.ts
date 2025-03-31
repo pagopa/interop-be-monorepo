@@ -40,6 +40,5 @@ export async function pollUntilReady<T>(
     }
   }
 
-  // This also could be mapped to a specific timeout error
   throw new Error(`Polling timed out after ${maxAttempts} attempts`);
 }
