@@ -2782,7 +2782,7 @@ components:
           type: string
           format: uuid
         version:
-          type: string
+          type: number
         description:
           type: string
         audience:

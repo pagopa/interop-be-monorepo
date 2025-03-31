@@ -1051,9 +1051,7 @@ export function catalogServiceBuilder(
       ): catalogApi.EServiceDescriptor =>
         descriptors.reduce(
           (latestDescriptor, curr) =>
-            parseInt(curr.version, 10) > parseInt(latestDescriptor.version, 10)
-              ? curr
-              : latestDescriptor,
+            curr.version > latestDescriptor.version ? curr : latestDescriptor,
           descriptors[0]
         );
 
