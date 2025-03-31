@@ -1,9 +1,3 @@
-import { WithLogger } from "pagopa-interop-commons";
-import { ApiError } from "pagopa-interop-models";
-import { makeApiProblem } from "../models/errors.js";
-import { ApiGatewayAppContext } from "./context.js";
-import { ErrorCodes } from "./errorMappers.js";
-
 /**
  * Generic polling function that waits until an object is created and meets certain criteria
  *
@@ -13,15 +7,13 @@ import { ErrorCodes } from "./errorMappers.js";
  */
 export async function pollUntilReady<T>(
   fetchPromiseFactory: () => Promise<T | null>,
-  ctx: WithLogger<ApiGatewayAppContext>,
   options: {
     checkFn: (obj: T) => boolean;
     maxAttempts: number;
     intervalMs: number;
-    errorMapper: (error: ApiError<ErrorCodes>) => number;
   }
 ): Promise<T> {
-  const { checkFn, maxAttempts, intervalMs, errorMapper } = options;
+  const { checkFn, maxAttempts, intervalMs } = options;
 
   // eslint-disable-next-line functional/no-let
   for (let attemptCount = 0; attemptCount < maxAttempts; attemptCount++) {
@@ -34,20 +26,17 @@ export async function pollUntilReady<T>(
 
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     } catch (error) {
-      const errorRes = makeApiProblem(
-        error,
-        errorMapper,
-        ctx.logger,
-        ctx.correlationId
-      );
-
-      // TODO: improve this check, this is just the initial idea
-      if (errorRes.status === 404) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "status" in error &&
+        error.status === 404
+      ) {
         await new Promise((resolve) => setTimeout(resolve, intervalMs));
         continue;
       }
 
-      throw errorRes;
+      throw error;
     }
   }
 

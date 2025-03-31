@@ -215,18 +215,15 @@ const apiGatewayRouter = (
 
           const attribute = await pollUntilReady(
             () => attributeService.getAttribute(ctx, id),
-            ctx,
             {
               maxAttempts: 5,
               intervalMs: 100,
               checkFn: (a) => a.id === id,
-              errorMapper: createCertifiedAttributeErrorMapper,
             }
           );
 
           return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
         } catch (error) {
-          // TODO: this should also manage the polling errors
           const errorRes = makeApiProblem(
             error,
             createCertifiedAttributeErrorMapper,
