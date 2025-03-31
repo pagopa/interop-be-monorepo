@@ -84,10 +84,11 @@ import {
 } from "pagopa-interop-models";
 import {
   AppContext,
-  AuthData,
   dateToSeconds,
   genericLogger,
-  userRoles,
+  InternalAuthData,
+  UIAuthData,
+  userRole,
   WithLogger,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -392,10 +393,11 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockAuthData = (organizationId?: TenantId): UIAuthData => ({
+  tokenType: "ui",
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: [userRoles.ADMIN_ROLE],
+  userRoles: [userRole.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -742,10 +744,23 @@ export const getMockContext = ({
   authData,
   serviceName,
 }: {
-  authData?: AuthData;
+  authData?: UIAuthData;
   serviceName?: string;
-}): WithLogger<AppContext> => ({
+}): WithLogger<AppContext<UIAuthData>> => ({
   authData: authData || getMockAuthData(),
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+});
+
+export const getMockContextInternal = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<InternalAuthData>> => ({
+  authData: {
+    tokenType: "internal",
+  },
   serviceName: serviceName || "test",
   correlationId: generateId(),
   logger: genericLogger,

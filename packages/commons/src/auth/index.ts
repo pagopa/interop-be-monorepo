@@ -3,3 +3,5 @@ export * from "./authenticationMiddleware.js";
 export * from "./authorizationMiddleware.js";
 export * from "./headers.js";
 export * from "./jwt.js";
+export * from "./jwk.js";
+export * from "./converters.js";

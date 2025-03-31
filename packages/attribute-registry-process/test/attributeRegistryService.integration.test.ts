@@ -7,6 +7,7 @@ import {
   getMockAttribute,
   getMockAuthData,
   getMockContext,
+  getMockContextInternal,
   getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
 import {
@@ -324,7 +325,7 @@ describe("database test", () => {
               origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: mockAttribute.description,
             },
-            getMockContext({})
+            getMockContextInternal({})
           );
         expect(attribute).toBeDefined();
 
@@ -381,7 +382,7 @@ describe("database test", () => {
               origin: getTenantOneCertifierFeature(tenant).certifierId,
               description: attribute.description,
             },
-            getMockContext({})
+            getMockContextInternal({})
           )
         ).rejects.toThrowError(
           attributeDuplicateByNameAndCode(

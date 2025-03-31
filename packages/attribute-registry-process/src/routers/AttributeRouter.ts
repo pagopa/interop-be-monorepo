@@ -2,13 +2,14 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  userRoles,
   ZodiosContext,
+  authorizationRole,
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
+  assertContextHasTokenTypeIn,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -58,7 +59,7 @@ const attributeRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
-  } = userRoles;
+  } = authorizationRole;
   attributeRouter
     .get(
       "/attributes",
@@ -251,6 +252,7 @@ const attributeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
           const attribute =
             await attributeRegistryService.createCertifiedAttribute(
               req.body,
@@ -274,11 +276,11 @@ const attributeRouter = (
     )
     .post(
       "/declaredAttributes",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const attribute =
             await attributeRegistryService.createDeclaredAttribute(
               req.body,
@@ -302,11 +304,12 @@ const attributeRouter = (
     )
     .post(
       "/verifiedAttributes",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const attribute =
             await attributeRegistryService.createVerifiedAttribute(
               req.body,
@@ -335,6 +338,7 @@ const attributeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["internal"]);
           const attribute =
             await attributeRegistryService.createInternalCertifiedAttribute(
               req.body,

@@ -2,15 +2,16 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  authorizationMiddleware,
   ExpressContext,
+  ZodiosContext,
   fromAppContext,
+  authorizationMiddleware,
   initDB,
   initFileManager,
   ReadModelRepository,
-  userRoles,
-  ZodiosContext,
   zodiosValidationErrorToApiProblem,
+  authorizationRole,
+  assertContextHasTokenTypeIn,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -106,7 +107,7 @@ const eservicesRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
-  } = userRoles;
+  } = authorizationRole;
   eservicesRouter
     .get(
       "/eservices",
@@ -118,9 +119,10 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromAppContext(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
           const {
             name,
             eservicesIds,
@@ -137,7 +139,6 @@ const eservicesRouter = (
           } = req.query;
 
           const catalogs = await catalogService.getEServices(
-            req.ctx.authData,
             {
               eservicesIds: eservicesIds.map<EServiceId>(unsafeBrandId),
               producersIds: producersIds.map<TenantId>(unsafeBrandId),
@@ -154,7 +155,7 @@ const eservicesRouter = (
             },
             offset,
             limit,
-            logger
+            ctx
           );
 
           return res.status(200).send(
@@ -175,6 +176,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const eservice = await catalogService.createEService(req.body, ctx);
           return res
             .status(200)
@@ -196,6 +198,7 @@ const eservicesRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const eService =
             await catalogService.createEServiceInstanceFromTemplate(
               unsafeBrandId(req.params.templateId),
@@ -224,12 +227,11 @@ const eservicesRouter = (
         SECURITY_ROLE,
         M2M_ROLE,
         SUPPORT_ROLE,
-        INTERNAL_ROLE,
       ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
           const eservice = await catalogService.getEServiceById(
             unsafeBrandId(req.params.eServiceId),
             ctx
@@ -253,8 +255,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService = await catalogService.updateEService(
             unsafeBrandId(req.params.eServiceId),
             req.body,
@@ -283,6 +285,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService =
             await catalogService.updateEServiceTemplateInstance(
               unsafeBrandId(req.params.eServiceId),
@@ -310,8 +313,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.deleteEService(
             unsafeBrandId(req.params.eServiceId),
             ctx
@@ -339,8 +342,8 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
           const consumers = await catalogService.getEServiceConsumers(
             unsafeBrandId(req.params.eServiceId),
             req.query.offset,
@@ -386,8 +389,8 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui", "m2m"]);
           const { eServiceId, descriptorId, documentId } = req.params;
 
           const document = await catalogService.getDocumentById(
@@ -420,8 +423,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -449,8 +452,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.deleteDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -474,8 +477,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedDocument = await catalogService.updateDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -506,8 +509,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const descriptor = await catalogService.createDescriptor(
             unsafeBrandId(req.params.eServiceId),
             req.body,
@@ -536,8 +539,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -560,8 +563,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -591,6 +594,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService =
             await catalogService.updateDraftDescriptorTemplateInstance(
               unsafeBrandId(req.params.eServiceId),
@@ -619,8 +623,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -643,8 +647,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -667,8 +671,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -691,8 +695,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const clonedEserviceByDescriptor =
             await catalogService.cloneDescriptor(
               unsafeBrandId(req.params.eServiceId),
@@ -722,8 +726,8 @@ const eservicesRouter = (
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["internal"]);
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -746,8 +750,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService = await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -775,8 +779,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.createRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             req.body,
@@ -799,8 +803,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.updateRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
@@ -824,8 +828,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService =
             await catalogService.updateEServiceDescription(
               unsafeBrandId(req.params.eServiceId),
@@ -853,8 +857,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService =
             await catalogService.updateEServiceDelegationFlags(
               unsafeBrandId(req.params.eServiceId),
@@ -884,6 +888,7 @@ const eservicesRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService = await catalogService.updateEServiceName(
             unsafeBrandId(req.params.eServiceId),
             req.body.name,
@@ -911,8 +916,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
@@ -935,8 +940,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.approveDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -959,8 +964,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           await catalogService.rejectDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -984,8 +989,8 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
-
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEService =
             await catalogService.updateDescriptorAttributes(
               unsafeBrandId(req.params.eServiceId),
@@ -1016,6 +1021,8 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
+
           const descriptor = await catalogService.upgradeEServiceInstance(
             unsafeBrandId(req.params.eServiceId),
             ctx
@@ -1218,6 +1225,8 @@ const eservicesRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
+
           const updatedEservice =
             await catalogService.addEServiceTemplateInstanceInterface(
               unsafeBrandId(req.params.eServiceId),
@@ -1245,6 +1254,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
           const updatedEservice =
             await catalogService.addEServiceTemplateInstanceInterface(
               unsafeBrandId(req.params.eServiceId),
@@ -1271,6 +1281,8 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
+          assertContextHasTokenTypeIn(ctx, ["ui"]);
+
           const descriptor =
             await catalogService.createTemplateInstanceDescriptor(
               unsafeBrandId(req.params.eServiceId),

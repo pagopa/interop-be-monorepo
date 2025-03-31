@@ -4,6 +4,9 @@ import {
   Logger,
   WithLogger,
   eventRepository,
+  UIAuthData,
+  M2MAuthData,
+  InternalAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -129,7 +132,7 @@ export function attributeRegistryServiceBuilder(
 
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: attributeRegistryApi.AttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
@@ -171,7 +174,7 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
@@ -212,7 +215,11 @@ export function attributeRegistryServiceBuilder(
 
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
@@ -263,7 +270,7 @@ export function attributeRegistryServiceBuilder(
 
     async createInternalCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
-      { correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
