@@ -97,6 +97,7 @@ jobs:
   find_dockerfiles:
     name: Find Dockerfiles
     needs: [formatting, lint, check, test]
+    if: ${{ github.base_ref == 'refs/heads/develop' || github.base_ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
@@ -111,6 +112,7 @@ jobs:
   docker_build:
     name: Build
     needs: [find_dockerfiles]
+    if: ${{ github.base_ref == 'refs/heads/develop' || github.base_ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: ecr-ro
     permissions:
@@ -149,6 +151,7 @@ jobs:
   check_build_result:
     name: Build Result
     needs: [docker_build]
+    if: ${{ github.base_ref == 'refs/heads/develop' || github.base_ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
