@@ -223,6 +223,7 @@ await runBatchConsumer(
     config.tenantTopic,
     config.delegationTopic,
     config.authorizationTopic,
+    config.eserviceTemplateTopic,
   ],
   processBatch
 );
