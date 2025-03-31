@@ -1,13 +1,15 @@
+console.log("LOADING pagopa-interop-readmodel-models");
+import { PgTable } from "drizzle-orm/pg-core";
 import {
   DrizzleReturnType,
   AgreementSQL,
-  agreementInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
 
 export const addOneAgreement = async (
   db: DrizzleReturnType,
+  table: PgTable,
   agreementSQL: AgreementSQL
 ): Promise<void> => {
-  console.log("process.env ct", process.env);
-  await db.insert(agreementInReadmodelAgreement).values(agreementSQL);
+  console.log("EXECUTING addOneAgreement");
+  await db.insert(table).values(agreementSQL);
 };
