@@ -1,22 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { Agreement, WithMetadata } from "pagopa-interop-models";
 import {
-  addOneAgreementSQL,
-  deleteOneAgreementSQL,
   getMockAgreementDocument,
   getMockAgreementStamp,
-  updateOneAgreementSQL,
 } from "pagopa-interop-commons-test";
-import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
 import {
-  agreementReadModelService,
+  readModelService,
   getCustomMockAgreement,
   readAgreementAttributesSQLByAgreementId,
   readAgreementConsumerDocumentSQLByAgreementId,
   readAgreementContractQLByAgreementId,
   readAgreementStampsSQLByAgreementId,
-} from "./agreementUtils.js";
-import { readModelDB } from "./utils.js";
+  agreementReadModelService,
+} from "./utils.js";
 
 describe("Agreement queries", () => {
   describe("upsertAgreement", () => {
@@ -45,10 +41,7 @@ describe("Agreement queries", () => {
         metadata: { version: 1 },
       };
 
-      await addOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version)
-      );
+      await readModelService.upsertAgreement(agreement.data, 1);
 
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
@@ -84,10 +77,7 @@ describe("Agreement queries", () => {
         metadata: { version: 1 },
       };
 
-      await addOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version)
-      );
+      await readModelService.upsertAgreement(agreement.data, 1);
 
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
@@ -147,17 +137,14 @@ describe("Agreement queries", () => {
         metadata: { version: 2 },
       };
 
-      await addOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version)
+      await readModelService.upsertAgreement(
+        agreement.data,
+        agreement.metadata.version
       );
 
-      await updateOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(
-          updatedAgreement.data,
-          updatedAgreement.metadata.version
-        )
+      await readModelService.upsertAgreement(
+        updatedAgreement.data,
+        updatedAgreement.metadata.version
       );
 
       const retrievedAgreement =
@@ -193,50 +180,6 @@ describe("Agreement queries", () => {
     });
   });
 
-  describe("getAgreementById", () => {
-    it("agreement found", async () => {
-      const agreement: WithMetadata<Agreement> = {
-        data: getCustomMockAgreement(),
-        metadata: { version: 1 },
-      };
-
-      await addOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version)
-      );
-
-      await addOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(
-          getCustomMockAgreement(),
-          agreement.metadata.version
-        )
-      );
-
-      const retrievedAgreement =
-        await agreementReadModelService.getAgreementById(agreement.data.id);
-
-      expect(retrievedAgreement).toStrictEqual(agreement);
-    });
-
-    it("agreement NOT found", async () => {
-      const agreement: WithMetadata<Agreement> = {
-        data: getCustomMockAgreement(),
-        metadata: { version: 1 },
-      };
-
-      await addOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(getCustomMockAgreement(), 1)
-      );
-
-      const retrievedAgreement =
-        await agreementReadModelService.getAgreementById(agreement.data.id);
-
-      expect(retrievedAgreement).toBeUndefined();
-    });
-  });
-
   describe("deleteAgreementById", () => {
     it("delete one agreement", async () => {
       const agreement: WithMetadata<Agreement> = {
@@ -244,17 +187,15 @@ describe("Agreement queries", () => {
         metadata: { version: 1 },
       };
 
-      await addOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version)
+      await readModelService.upsertAgreement(
+        agreement.data,
+        agreement.metadata.version
       );
 
-      await deleteOneAgreementSQL(
-        readModelDB,
-        splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version)
-          .agreementSQL
+      await readModelService.deleteAgreementById(
+        agreement.data.id,
+        agreement.metadata.version
       );
-
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
       const retrievedStamps = await readAgreementStampsSQLByAgreementId(
