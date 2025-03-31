@@ -81,6 +81,7 @@ import {
   assertRequesterIsProducer,
   isInvalidDescriptor,
 } from "./validators.js";
+import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
@@ -411,6 +412,28 @@ export function catalogServiceBuilder(
         (v) => v.id === descriptor.templateVersionRef?.id
       )?.interface;
 
+      const delegation = (
+        await delegationProcessClient.delegation.getDelegations({
+          headers,
+          queries: {
+            kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+            delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+            eserviceIds: [eserviceId],
+            offset: 0,
+            limit: 1,
+          },
+        })
+      ).results?.at(0);
+
+      const delegate = delegation
+        ? await tenantProcessClient.tenant.getTenant({
+            headers,
+            params: {
+              id: delegation.delegateId,
+            },
+          })
+        : undefined;
+
       return {
         id: descriptor.id,
         version: descriptor.version,
@@ -449,6 +472,24 @@ export function catalogServiceBuilder(
             getLatestActiveDescriptor(eservice)?.id === descriptor.id &&
             checkNewTemplateVersionAvailable(eserviceTemplate, descriptor),
         },
+        delegation:
+          delegation !== undefined && delegate !== undefined
+            ? {
+                id: delegation.id,
+                delegate: {
+                  id: delegate.id,
+                  name: delegate.name,
+                  kind: delegate.kind,
+                  contactMail: getLatestTenantContactEmail(delegate),
+                },
+                delegator: {
+                  id: producerTenant.id,
+                  name: producerTenant.name,
+                  kind: producerTenant.kind,
+                  contactMail: getLatestTenantContactEmail(producerTenant),
+                },
+              }
+            : undefined,
       };
     },
     getProducerEServiceDetails: async (
@@ -1686,6 +1727,13 @@ export function catalogServiceBuilder(
     ): Promise<bffApi.EServiceTemplateInstances> => {
       logger.info(
         `Retrieving EService template ${eServiceTemplateId} instances with state=${states} producerName=${producerName} offset=${offset} limit=${limit}`
+      );
+
+      // This assures that the template exists
+      await retrieveEServiceTemplate(
+        eServiceTemplateId,
+        eserviceTemplateProcessClient,
+        headers
       );
 
       const tenants = producerName

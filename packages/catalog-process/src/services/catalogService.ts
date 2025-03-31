@@ -41,7 +41,6 @@ import {
   eserviceMode,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
@@ -273,24 +272,6 @@ const retrieveEServiceTemplate = async (
     throw eServiceTemplateNotFound(eserviceTemplateId);
   }
   return eserviceTemplate;
-};
-
-const retrieveEServicePublishedTemplateVersion = (
-  eserviceTemplate: EServiceTemplate,
-  eserviceTemplateVersionId: EServiceTemplateVersionId
-): EServiceTemplateVersion => {
-  const eserviceTemplateVersion = eserviceTemplate.versions.find(
-    (v) => v.id === eserviceTemplateVersionId
-  );
-
-  if (
-    !eserviceTemplateVersion ||
-    eserviceTemplateVersion.state !== eserviceTemplateVersionState.published
-  ) {
-    throw eServiceTemplateWithoutPublishedVersion(eserviceTemplate.id);
-  }
-
-  return eserviceTemplateVersion;
 };
 
 const getTemplateDataFromEservice = (
@@ -599,7 +580,7 @@ async function innerAddDocumentToEserviceEvent(
   eService: WithMetadata<EService>,
   descriptorId: DescriptorId,
   documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed,
-  { correlationId }: WithLogger<AppContext>
+  ctx: WithLogger<AppContext>
 ): Promise<{
   eService: EService;
   descriptor: Descriptor;
@@ -659,7 +640,7 @@ async function innerAddDocumentToEserviceEvent(
             documentId: unsafeBrandId(documentSeed.documentId),
             eservice: updatedEService,
           },
-          correlationId
+          ctx.correlationId
         )
       : toCreateEventEServiceDocumentAdded(
           eService.metadata.version,
@@ -668,7 +649,7 @@ async function innerAddDocumentToEserviceEvent(
             documentId: unsafeBrandId(documentSeed.documentId),
             eservice: updatedEService,
           },
-          correlationId
+          ctx.correlationId
         );
 
   return { eService: updatedEService, descriptor: updatedDescriptor, event };
@@ -3044,12 +3025,10 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const eserviceTemplateVersion = retrieveEServicePublishedTemplateVersion(
-        eserviceTemplate,
-        eserviceTemplateVersionId
+      const eserviceTemplateVersion = eserviceTemplate.versions.find(
+        (v) => v.id === eserviceTemplateVersionId
       );
-
-      const templateInterface = eserviceTemplateVersion.interface;
+      const templateInterface = eserviceTemplateVersion?.interface;
       if (!templateInterface) {
         throw eserviceTemplateInterfaceNotFound(
           eserviceTemplateId,
@@ -3080,16 +3059,18 @@ export function catalogServiceBuilder(
     async createTemplateInstanceDescriptor(
       eserviceId: EServiceId,
       eserviceInstanceDescriptorSeed: catalogApi.EServiceInstanceDescriptorSeed,
-      { logger, correlationId, authData, serviceName }: WithLogger<AppContext>
+      ctx: WithLogger<AppContext>
     ): Promise<Descriptor> {
-      logger.info(`Creating Instance Descriptor for EService ${eserviceId}`);
+      ctx.logger.info(
+        `Creating Instance Descriptor for EService ${eserviceId}`
+      );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
         eservice.data.id,
-        authData,
+        ctx.authData,
         readModelService
       );
 
@@ -3155,7 +3136,7 @@ export function catalogServiceBuilder(
         updatedEservice,
         eserviceVersion,
         newDescriptor.id,
-        correlationId
+        ctx.correlationId
       );
 
       const { updatedDescriptor, events } = await templateVersion.docs.reduce(
@@ -3169,7 +3150,7 @@ export function catalogServiceBuilder(
             config.eserviceDocumentsPath,
             clonedDocumentId,
             doc.name,
-            logger
+            ctx.logger
           );
 
           const { eService, descriptor, event } =
@@ -3186,7 +3167,7 @@ export function catalogServiceBuilder(
                 checksum: doc.checksum,
                 serverUrls: [],
               },
-              { logger, correlationId, authData, serviceName }
+              ctx
             );
 
           return {
