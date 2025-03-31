@@ -146,7 +146,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
   });
 
   describe("Invalid data input (Rest/Soap)", () => {
-    it("should throw an eServiceNotFound if template doesn't contains serverUrls", async () => {
+    it("should throw an eServiceNotFound if the e-service does not exist", async () => {
       const eserviceId = generateId<EServiceId>();
       await expect(
         catalogService.addEServiceTemplateInstanceInterface(
@@ -580,6 +580,97 @@ describe("addEServiceTemplateInstanceInterface", () => {
           },
         },
       });
+    });
+
+    it("should add interface REST interface to eservice template instance without optional params", async () => {
+      const interfaceDocumentFile = {
+        ...getMockDocument(),
+        name: "test.openapi.3.0.2.yaml",
+        contentType: "yaml",
+        path: `${config.eserviceDocumentsPath}`,
+      };
+
+      const { eservice, descriptor, template } =
+        await initEserviceTemplateInstance(descriptorState.draft, "Rest", {
+          doc: interfaceDocumentFile,
+          content: await readFileContent("test.openapi.3.0.2.yaml"),
+        });
+
+      const expectedServerUrls = [
+        "https://fun.tester.server.com",
+        "https://fun.tester.server.it",
+        "https://fun.tester.server.io",
+      ];
+      const contactName = "Jhon Doe";
+      const contactEmail = "johnnyd@funnytester.com";
+      const requestPayload: catalogApi.TemplateInstanceInterfaceRESTSeed = {
+        contactName,
+        contactEmail,
+        serverUrls: expectedServerUrls,
+      };
+
+      const res = await catalogService.addEServiceTemplateInstanceInterface(
+        eservice.id,
+        descriptor.id,
+        requestPayload,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      // Assert descriptor contains template interface metadata
+      expect(res.descriptors[0]?.state).toBe(descriptorState.draft);
+      expect(res.descriptors[0]?.serverUrls).toStrictEqual(expectedServerUrls);
+      expect(res.descriptors[0]?.interface).toMatchObject({
+        name: interfaceDocumentFile.name,
+        prettyName: interfaceDocumentFile.prettyName,
+        contentType: "yaml",
+        uploadDate: new Date(),
+      });
+      expect(res.descriptors[0]).toMatchObject({
+        templateVersionRef: {
+          id: template.versions[0].id,
+          interfaceMetadata: {
+            contactEmail,
+            contactName,
+          },
+        },
+      });
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.event_version).toBe(2);
+      expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorInterfaceAddedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.descriptorId).toBe(descriptor.id);
+      expect(writtenPayload.descriptorId).toBe(descriptor.id);
+      expect(writtenPayload.eservice?.descriptors[0]?.serverUrls).toStrictEqual(
+        expectedServerUrls
+      );
+      expect(writtenPayload.eservice?.descriptors[0]?.interface).toMatchObject({
+        name: interfaceDocumentFile.name,
+        prettyName: interfaceDocumentFile.prettyName,
+        contentType: "yaml",
+        uploadDate: new Date().toISOString(),
+      });
+      expect(writtenPayload.eservice?.descriptors[0]).toMatchObject({
+        templateVersionRef: {
+          id: template.versions[0].id,
+          interfaceMetadata: {
+            contactEmail,
+            contactName,
+          },
+        },
+      });
+      const templateVerRef =
+        writtenPayload.eservice?.descriptors[0].templateVersionRef;
+      expect(templateVerRef?.interfaceMetadata?.contactUrl).toBeUndefined();
+      expect(
+        templateVerRef?.interfaceMetadata?.termsAndConditionsUrl
+      ).toBeUndefined();
     });
   });
 
