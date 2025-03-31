@@ -628,7 +628,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Updating Purpose ${id}`);
 
-      const result = await purposeProcessClient.updatePurpose(seed, {
+      const updatedPurpose = await purposeProcessClient.updatePurpose(seed, {
         params: {
           id,
         },
@@ -637,7 +637,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId: id,
-        versionId: result.id,
+        versionId: updatedPurpose.versions[0].id,
       };
     },
     async getPurpose(
