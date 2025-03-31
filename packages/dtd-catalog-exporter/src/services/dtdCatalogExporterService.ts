@@ -82,19 +82,20 @@ export function dtdCatalogExporterServiceBuilder({
   readModelService: ReturnType<typeof readModelServiceBuilder>;
   loggerInstance: Logger;
 }) {
-  const getPublicEServicesAndTenants = async (): Promise<{
-    eservices: PublicEService[];
-    tenants: PublicTenant[];
-  }> => {
+  const getPublicEServices = async (): Promise<PublicEService[]> => {
     loggerInstance.info("Getting e-services from read-model...");
     const eservices = await readModelService.getActiveEServices();
 
     loggerInstance.info(
       "Getting e-service's tenants and attributes data from database..."
     );
-    const tenantIds = getAllTenantsIds(eservices);
-    const tenants = await readModelService.getEServicesTenants(tenantIds);
-    const tenantsMap = new Map(tenants.map((ten) => [ten.id, ten]));
+    const eservicesTenantsIds = getAllTenantsIds(eservices);
+    const eservicesTenants = await readModelService.getEServicesTenants(
+      eservicesTenantsIds
+    );
+    const eservicesTenantsMap = new Map(
+      eservicesTenants.map((ten) => [ten.id, ten])
+    );
 
     const eserviceAttributeIds = getAllEservicesAttributesIds(eservices);
     const eserviceAttributes = await readModelService.getAttributes(
@@ -104,6 +105,19 @@ export function dtdCatalogExporterServiceBuilder({
       eserviceAttributes.map((attr) => [attr.id, attr])
     );
 
+    loggerInstance.info("Data successfully fetched!\n");
+    loggerInstance.info("Remapping e-services to public e-services...\n");
+
+    return eservices.map((eservice) =>
+      toPublicEService(eservice, eserviceAttributesMap, eservicesTenantsMap)
+    );
+  };
+
+  const getPublicTenants = async (): Promise<PublicTenant[]> => {
+    loggerInstance.info("Getting tenants from read-model...");
+    const tenants = await readModelService.getAllTenants();
+
+    loggerInstance.info("Getting tenants' attributes data from database...");
     const tenantAttributesIds = getAllTenantsAttributesIds(tenants);
     const tenantAttributes = await readModelService.getAttributes(
       tenantAttributesIds
@@ -112,26 +126,13 @@ export function dtdCatalogExporterServiceBuilder({
       tenantAttributes.map((attr) => [attr.id, attr])
     );
 
-    loggerInstance.info("Data successfully fetched!\n");
-    loggerInstance.info("Remapping e-services to public e-services...\n");
-
-    const publicEservices = eservices.map((eservice) =>
-      toPublicEService(eservice, eserviceAttributesMap, tenantsMap)
-    );
-
-    const publicTenants = tenants.map((tenant) =>
-      toPublicTenant(tenant, tenantAttributesMap)
-    );
-
-    return {
-      eservices: publicEservices,
-      tenants: publicTenants,
-    };
+    return tenants.map((tenant) => toPublicTenant(tenant, tenantAttributesMap));
   };
 
   return {
     async exportDtdData(): Promise<void> {
-      const { eservices, tenants } = await getPublicEServicesAndTenants();
+      const eservices = await getPublicEServices();
+      const tenants = await getPublicTenants();
 
       const githubClient = new GithubClient(config.githubAccessToken);
 
