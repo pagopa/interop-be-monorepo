@@ -19,7 +19,6 @@ import {
   descriptorState,
   agreementState,
   DescriptorState,
-  emptyListResult,
   delegationState,
   delegationKind,
 } from "pagopa-interop-models";
@@ -57,12 +56,20 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRefInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, count, desc, eq, exists, ilike, inArray, or } from "drizzle-orm";
-import { match } from "ts-pattern";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  exists,
+  ilike,
+  inArray,
+  notExists,
+  or,
+} from "drizzle-orm";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import { activeDescriptorStates } from "./validators.js";
 
@@ -92,26 +99,17 @@ export function readModelServiceBuilderSQL(
         delegated,
         templatesIds,
       } = filters;
-      const ids = await match(agreementStates.length)
-        .with(0, () => eservicesIds)
-        .otherwise(async () =>
-          (
-            await this.listAgreements({
-              eservicesIds,
-              consumersIds: [authData.organizationId],
-              producersIds: [],
-              states: agreementStates,
-            })
-          ).map((a) => a.eserviceId)
-        );
-
-      if (agreementStates.length > 0 && ids.length === 0) {
-        return emptyListResult;
-      }
 
       const matchingEserviceIds = await readmodelDB
         .select({ id: eserviceInReadmodelCatalog.id })
         .from(eserviceInReadmodelCatalog)
+        .leftJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            agreementInReadmodelAgreement.eserviceId
+          )
+        )
         .leftJoin(
           eserviceDescriptorInReadmodelCatalog,
           eq(
@@ -143,10 +141,16 @@ export function readModelServiceBuilderSQL(
         .where(
           and(
             // name filter
-            name ? ilike(eserviceInReadmodelCatalog.name, name) : undefined,
+            name
+              ? ilike(eserviceInReadmodelCatalog.name, `%${name}%`)
+              : undefined,
             // ids filter
-            ids.length > 0
-              ? inArray(eserviceInReadmodelCatalog.id, ids)
+            eservicesIds.length > 0
+              ? inArray(eserviceInReadmodelCatalog.id, eservicesIds)
+              : undefined,
+            // agreement states filter
+            agreementStates.length > 0
+              ? inArray(agreementInReadmodelAgreement.state, agreementStates)
               : undefined,
             // producerIds filter
             producersIds.length > 0
@@ -268,25 +272,52 @@ export function readModelServiceBuilderSQL(
               : undefined,
             // delegated filter
             delegated === true
-              ? inArray(delegationInReadmodelDelegation.state, [
-                  delegationState.active,
-                  delegationState.waitingForApproval,
-                ])
+              ? and(
+                  eq(
+                    delegationInReadmodelDelegation.kind,
+                    delegationKind.delegatedProducer
+                  ),
+                  inArray(delegationInReadmodelDelegation.state, [
+                    delegationState.active,
+                    delegationState.waitingForApproval,
+                  ])
+                )
               : delegated === false
-              ? eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
+              ? notExists(
+                  readmodelDB
+                    .select()
+                    .from(delegationInReadmodelDelegation)
+                    .where(
+                      and(
+                        eq(
+                          delegationInReadmodelDelegation.eserviceId,
+                          eserviceInReadmodelCatalog.id
+                        ),
+                        eq(
+                          delegationInReadmodelDelegation.kind,
+                          delegationKind.delegatedProducer
+                        ),
+                        inArray(delegationInReadmodelDelegation.state, [
+                          delegationState.active,
+                          delegationState.waitingForApproval,
+                        ])
+                      )
+                    )
                 )
               : undefined,
             // template filter
             templatesIds.length > 0
               ? inArray(
-                  eserviceTemplateInReadmodelEserviceTemplate.id,
+                  eserviceTemplateRefInReadmodelCatalog.eserviceTemplateId,
                   templatesIds
                 )
               : undefined
           )
         );
+
+      const uniqueMatchingIds = [
+        ...new Set(matchingEserviceIds.map((item) => item.id)),
+      ];
 
       // manually retrieve eservices matching those ids but do manual pagination (example: query the first 10. etc...)
       const queryResult = await readmodelDB
@@ -307,9 +338,7 @@ export function readModelServiceBuilderSQL(
         .where(
           inArray(
             eserviceInReadmodelCatalog.id,
-            matchingEserviceIds
-              .slice(offset, offset + limit) // TODO double-check
-              .map((item) => item.id)
+            uniqueMatchingIds.slice(offset, offset + limit) // TODO double-check
           )
         )
         .leftJoin(
@@ -391,7 +420,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: eservices.map((eservice) => eservice.data),
-        totalCount: matchingEserviceIds.length,
+        totalCount: uniqueMatchingIds.length,
       };
     },
     async getEServiceByNameAndProducerId({
