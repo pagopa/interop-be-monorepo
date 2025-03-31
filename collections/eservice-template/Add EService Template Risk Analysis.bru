@@ -5,13 +5,13 @@ meta {
 }
 
 post {
-  url: {{host-catalog}}/eservices/templates/:eServiceTemplateId/riskAnalysis
+  url: {{host-template}}/templates/:eserviceTemplateId/riskAnalysis
   body: json
   auth: none
 }
 
 params:path {
-  eserviceId: {{eServiceTemplateId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
 }
 
 headers {
