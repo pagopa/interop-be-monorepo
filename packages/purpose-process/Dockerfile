@@ -1,4 +1,4 @@
-FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
+FROM ${NODE_REGISTRY}/:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
 
 RUN npm install -g corepack@0.31.0 && corepack enable
 
@@ -41,7 +41,7 @@ RUN pnpm build && \
       packages/purpose-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as final 
+FROM ${NODE_REGISTRY}/:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as final 
 
 # Install dependencies for Puppeteer
 RUN apt-get update && \
