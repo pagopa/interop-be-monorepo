@@ -142,8 +142,8 @@ jobs:
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
-          build-args:
-            - NODE_REGISTRY: ${{ secrets.NODE_REGISTRY }}
+          build-args: |
+            NODE_REGISTRY="${{ secrets.NODE_REGISTRY }}"
           push: false
 
   check_build_result:
