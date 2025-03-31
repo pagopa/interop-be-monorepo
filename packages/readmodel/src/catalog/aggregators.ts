@@ -182,27 +182,29 @@ export const aggregateEservice = ({
   templateRefSQL,
   templateVersionRefsSQL,
 }: EServiceItemsSQL): WithMetadata<EService> => {
-  const descriptors = descriptorsSQL.map((descriptorSQL) =>
-    aggregateDescriptor({
-      descriptorSQL,
-      interfaceSQL: interfacesSQL.find(
-        (descriptorInterface) =>
-          descriptorInterface.descriptorId === descriptorSQL.id
-      ),
-      documentsSQL: documentsSQL.filter(
-        (d) => d.descriptorId === descriptorSQL.id
-      ),
-      attributesSQL: attributesSQL.filter(
-        (a) => a.descriptorId === descriptorSQL.id
-      ),
-      rejectionReasonsSQL: rejectionReasonsSQL.filter(
-        (r) => r.descriptorId === descriptorSQL.id
-      ),
-      templateVersionRefSQL: templateVersionRefsSQL.find(
-        (t) => t.descriptorId === descriptorSQL.id
-      ),
-    })
-  );
+  const descriptors = [...descriptorsSQL]
+    .sort((d1, d2) => Number(d1.version) - Number(d2.version))
+    .map((descriptorSQL) =>
+      aggregateDescriptor({
+        descriptorSQL,
+        interfaceSQL: interfacesSQL.find(
+          (descriptorInterface) =>
+            descriptorInterface.descriptorId === descriptorSQL.id
+        ),
+        documentsSQL: documentsSQL.filter(
+          (d) => d.descriptorId === descriptorSQL.id
+        ),
+        attributesSQL: attributesSQL.filter(
+          (a) => a.descriptorId === descriptorSQL.id
+        ),
+        rejectionReasonsSQL: rejectionReasonsSQL.filter(
+          (r) => r.descriptorId === descriptorSQL.id
+        ),
+        templateVersionRefSQL: templateVersionRefsSQL.find(
+          (t) => t.descriptorId === descriptorSQL.id
+        ),
+      })
+    );
 
   const riskAnalysis = riskAnalysesSQL.map((ra) =>
     aggregateRiskAnalysis(
