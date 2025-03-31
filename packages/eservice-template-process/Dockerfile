@@ -36,9 +36,9 @@ RUN pnpm build && \
       packages/commons \
       packages/models \
       packages/api-clients \
-      packages/eservice-template-process/dist && \
+      packages/application-audit \
       packages/kafka-iam-auth \
-      packages/catalog-process/dist && \
+      packages/eservice-template-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
 FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
