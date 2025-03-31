@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { getMockAttribute } from "pagopa-interop-commons-test";
+import {
+  addOneAgreement,
+  getMockAgreement,
+  getMockAttribute,
+} from "pagopa-interop-commons-test";
 import { Attribute, AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { aggregateAttribute } from "../src/attribute/aggregators.js";
+import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
 import { readModelDB } from "./utils.js";
 import {
   attributeReadModelService,
@@ -17,6 +22,9 @@ describe("Attribute queries", () => {
         code: "test code",
         origin: "test origin",
       };
+      const agreement = getMockAgreement();
+      const { agreementSQL } = splitAgreementIntoObjectsSQL(agreement, 1);
+      await addOneAgreement(readModelDB, agreementSQL);
 
       await attributeReadModelService.upsertAttribute(attribute, 1);
 
