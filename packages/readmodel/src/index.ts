@@ -1,15 +1,18 @@
 export * from "./utils.js";
 
-export * from "./catalog/splitters.js";
-export * from "./catalog/aggregators.js";
-export * from "./catalogReadModelService.js";
-
-export * from "./attribute/aggregators.js";
-export * from "./attributeReadModelService.js";
-
+// AGREEMENT
 export * from "./agreement/splitters.js";
 export * from "./agreement/aggregators.js";
 export * from "./agreementReadModelService.js";
+
+// ATTRIBUTE
+export * from "./attribute/aggregators.js";
+export * from "./attributeReadModelService.js";
+
+// CATALOG
+export * from "./catalog/splitters.js";
+export * from "./catalog/aggregators.js";
+export * from "./catalogReadModelService.js";
 
 export * from "./tenant/aggregators.js";
 export * from "./tenantReadModelService.js";

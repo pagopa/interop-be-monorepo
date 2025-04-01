@@ -3,6 +3,7 @@ import {
   CommonHTTPServiceConfig,
   ReadModelDbConfig,
   EventStoreConfig,
+  ApplicationAuditProducerConfig,
 } from "pagopa-interop-commons";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 
@@ -19,7 +20,9 @@ const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
       .transform((c) => ({
         delegationsAllowedOrigins: c.DELEGATIONS_ALLOWED_ORIGINS.split(","),
       }))
-  );
+  )
+  .and(ApplicationAuditProducerConfig);
+
 export type TenantProcessConfig = z.infer<typeof TenantProcessConfig>;
 
 export const config: TenantProcessConfig = TenantProcessConfig.parse(
