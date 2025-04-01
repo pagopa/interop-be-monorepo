@@ -105,8 +105,12 @@ export type AuthToken = z.infer<typeof AuthToken>;
   It is used to populate the context object, which is referenced all
   around the application to perform authorization checks.
 */
+
+// System roles = special non-UI tokens
+export type SystemRole = "m2m" | "internal" | "maintenance";
+
 export type UIAuthData = {
-  tokenType: "ui";
+  systemRole: undefined;
   organizationId: TenantId;
   userId: UserId;
   userRoles: UserRole[];
@@ -118,16 +122,16 @@ export type UIAuthData = {
 };
 
 export type M2MAuthData = {
-  tokenType: "m2m";
+  systemRole: Extract<SystemRole, "m2m">;
   organizationId: TenantId;
 };
 
 export type InternalAuthData = {
-  tokenType: "internal";
+  systemRole: Extract<SystemRole, "internal">;
 };
 
 export type MaintenanceAuthData = {
-  tokenType: "maintenance";
+  systemRole: Extract<SystemRole, "maintenance">;
 };
 
 export type AuthData =
@@ -138,14 +142,14 @@ export type AuthData =
 
 export const getAuthDataFromToken = (token: AuthToken): AuthData =>
   match<AuthToken, AuthData>(token)
-    .with({ role: "internal" }, () => ({ tokenType: "internal" }))
-    .with({ role: "maintenance" }, () => ({ tokenType: "maintenance" }))
+    .with({ role: "internal" }, () => ({ systemRole: "internal" }))
+    .with({ role: "maintenance" }, () => ({ systemRole: "maintenance" }))
     .with({ role: "m2m" }, (t) => ({
-      tokenType: "m2m",
+      systemRole: "m2m",
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
-      tokenType: "ui",
+      systemRole: undefined,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       userId: unsafeBrandId<UserId>(t.uid),
       userRoles: t["user-roles"],
@@ -166,15 +170,15 @@ export function getUserInfoFromAuthData(authData: AuthData | undefined): {
     AuthData,
     { userId: UserId | undefined; organizationId: TenantId | undefined }
   >(authData)
-    .with({ tokenType: "internal" }, { tokenType: "maintenance" }, () => ({
+    .with({ systemRole: "internal" }, { systemRole: "maintenance" }, () => ({
       userId: undefined,
       organizationId: undefined,
     }))
-    .with({ tokenType: "m2m" }, (t) => ({
+    .with({ systemRole: "m2m" }, (t) => ({
       userId: undefined,
       organizationId: t.organizationId,
     }))
-    .with({ tokenType: "ui" }, (t) => ({
+    .with({ systemRole: undefined }, (t) => ({
       userId: t.userId,
       organizationId: t.organizationId,
     }))

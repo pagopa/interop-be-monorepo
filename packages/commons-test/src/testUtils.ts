@@ -384,7 +384,7 @@ export const getMockKey = (): Key => ({
 });
 
 export const getMockAuthData = (organizationId?: TenantId): UIAuthData => ({
-  tokenType: "ui",
+  systemRole: undefined,
   organizationId: organizationId || generateId(),
   userId: generateId(),
   userRoles: [userRole.ADMIN_ROLE],
@@ -749,7 +749,7 @@ export const getMockContextInternal = ({
   serviceName?: string;
 }): WithLogger<AppContext<InternalAuthData>> => ({
   authData: {
-    tokenType: "internal",
+    systemRole: "internal",
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),

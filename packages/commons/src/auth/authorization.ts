@@ -9,10 +9,9 @@ import {
   InternalAuthData,
   MaintenanceAuthData,
   AuthData,
+  SystemRole,
 } from "./authData.js";
 
-// System roles = special non-UI tokens
-type SystemRole = "m2m" | "internal" | "maintenance";
 type AuthRole = UserRole | SystemRole;
 
 type ContainsAuthRole<
@@ -55,34 +54,32 @@ export function validateAuthorization<
 
   match(authData)
     .with(
-      { tokenType: "m2m" },
-      { tokenType: "internal" },
-      { tokenType: "maintenance" },
-      ({ tokenType }) => {
+      { systemRole: "m2m" },
+      { systemRole: "internal" },
+      { systemRole: "maintenance" },
+      ({ systemRole }) => {
         const admittedSystemRoles: SystemRole[] =
           admittedAuthRoles.filter(isSystemRole);
-        if (!admittedSystemRoles.includes(tokenType)) {
+        if (!admittedSystemRoles.includes(systemRole)) {
           throw unauthorizedError(
-            `Invalid token type '${tokenType}' for this operation`
+            `Invalid role '${systemRole}' for this operation`
           );
         }
       }
     )
-    .with({ tokenType: "ui" }, (authData) => {
+    .with({ systemRole: undefined }, (authData) => {
       const admittedUserRoles: UserRole[] =
         admittedAuthRoles.filter(isUserRole);
 
       if (admittedUserRoles.length === 0) {
         throw unauthorizedError(
-          `Invalid token type '${authData.tokenType}' for this operation`
+          `Invalid empty user roles specified for this operation`
         );
       }
 
       if (!hasAtLeastOneUserRole(authData, admittedUserRoles)) {
         throw unauthorizedError(
-          `Invalid token type '${
-            authData.tokenType
-          }' and user roles ${JSON.stringify(
+          `Invalid roles ${JSON.stringify(
             authData.userRoles
           )} for this operation`
         );
@@ -105,10 +102,10 @@ export function hasAtLeastOneUserRole(
 
 function isUiAuthData(authData: AuthData): authData is UIAuthData {
   return match(authData)
-    .with({ tokenType: "ui" }, () => true)
-    .with({ tokenType: "m2m" }, () => false)
-    .with({ tokenType: "internal" }, () => false)
-    .with({ tokenType: "maintenance" }, () => false)
+    .with({ systemRole: undefined }, () => true)
+    .with({ systemRole: "m2m" }, () => false)
+    .with({ systemRole: "internal" }, () => false)
+    .with({ systemRole: "maintenance" }, () => false)
     .exhaustive();
 }
 function isSystemRole(role: AuthRole): role is SystemRole {
