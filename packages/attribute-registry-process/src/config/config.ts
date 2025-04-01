@@ -2,6 +2,7 @@ import {
   CommonHTTPServiceConfig,
   ReadModelDbConfig,
   EventStoreConfig,
+  ApplicationAuditProducerConfig,
   FeatureFlagSQL,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
@@ -16,6 +17,7 @@ const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
         .filter(Boolean),
     }))
   )
+  .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagSQL)
   .and(ReadModelSQLDbConfig.optional());
 
