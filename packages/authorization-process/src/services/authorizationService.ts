@@ -1,39 +1,39 @@
 import { JsonWebKey } from "crypto";
 import {
+  authorizationEventToBinaryData,
   Client,
   ClientId,
+  clientKind,
+  CorrelationId,
+  Delegation,
   Descriptor,
   DescriptorId,
   EService,
   EServiceId,
+  generateId,
   Key,
   ListResult,
+  ProducerKeychain,
+  ProducerKeychainId,
   Purpose,
   PurposeId,
   PurposeVersionState,
+  purposeVersionState,
   TenantId,
+  unsafeBrandId,
   UserId,
   WithMetadata,
-  authorizationEventToBinaryData,
-  clientKind,
-  generateId,
-  purposeVersionState,
-  unsafeBrandId,
-  ProducerKeychain,
-  ProducerKeychainId,
-  CorrelationId,
-  Delegation,
 } from "pagopa-interop-models";
 import {
+  AppContext,
   AuthData,
-  DB,
-  Logger,
-  eventRepository,
-  userRoles,
   calculateKid,
   createJWK,
+  DB,
+  eventRepository,
+  Logger,
+  userRoles,
   WithLogger,
-  AppContext,
 } from "pagopa-interop-commons";
 import {
   authorizationApi,
@@ -41,28 +41,28 @@ import {
 } from "pagopa-interop-api-clients";
 
 import {
-  clientNotFound,
-  descriptorNotFound,
-  eserviceNotFound,
   clientKeyNotFound,
-  noAgreementFoundInRequiredState,
-  noPurposeVersionsFoundInRequiredState,
-  purposeAlreadyLinkedToClient,
-  purposeNotFound,
+  clientNotFound,
   clientUserAlreadyAssigned,
   clientUserIdNotFound,
-  userNotFound,
-  userNotAllowedOnClient,
+  descriptorNotFound,
+  eserviceAlreadyLinkedToProducerKeychain,
+  eserviceNotDelegableForClientAccess,
+  eserviceNotFound,
+  noAgreementFoundInRequiredState,
+  noPurposeVersionsFoundInRequiredState,
   producerKeychainNotFound,
-  producerKeyNotFound,
-  userNotAllowedOnProducerKeychain,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
-  eserviceAlreadyLinkedToProducerKeychain,
-  userNotAllowedToDeleteProducerKeychainKey,
-  userNotAllowedToDeleteClientKey,
-  eserviceNotDelegableForClientAccess,
+  producerKeyNotFound,
+  purposeAlreadyLinkedToClient,
   purposeDelegationNotFound,
+  purposeNotFound,
+  userNotAllowedOnClient,
+  userNotAllowedOnProducerKeychain,
+  userNotAllowedToDeleteClientKey,
+  userNotAllowedToDeleteProducerKeychainKey,
+  userNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
@@ -75,8 +75,8 @@ import {
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
-  toCreateEventProducerKeychainEServiceRemoved,
   toCreateEventProducerKeychainEServiceAdded,
+  toCreateEventProducerKeychainEServiceRemoved,
   toCreateEventProducerKeychainKeyAdded,
   toCreateEventProducerKeychainKeyDeleted,
   toCreateEventProducerKeychainUserAdded,
@@ -92,15 +92,15 @@ import {
   ReadModelService,
 } from "./readModelService.js";
 import {
-  assertOrganizationIsPurposeConsumer,
-  assertUserSelfcareSecurityPrivileges,
-  assertOrganizationIsClientConsumer,
-  assertOrganizationIsProducerKeychainProducer,
   assertClientKeysCountIsBelowThreshold,
-  assertProducerKeychainKeysCountIsBelowThreshold,
-  assertOrganizationIsEServiceProducer,
   assertKeyDoesNotAlreadyExist,
+  assertOrganizationIsClientConsumer,
+  assertOrganizationIsEServiceProducer,
+  assertOrganizationIsProducerKeychainProducer,
+  assertOrganizationIsPurposeConsumer,
+  assertProducerKeychainKeysCountIsBelowThreshold,
   assertRequesterIsDelegateConsumer,
+  assertUserSelfcareSecurityPrivileges,
   assertSecurityRoleIsClientMember,
 } from "./validators.js";
 
@@ -578,23 +578,35 @@ export function authorizationServiceBuilder(
     async getClientKeys({
       clientId,
       userIds,
+      offset,
+      limit,
       ctx: { authData, logger },
     }: {
       clientId: ClientId;
       userIds: UserId[];
+      offset: number;
+      limit: number;
       ctx: WithLogger<AppContext>;
-    }): Promise<Key[]> {
-      logger.info(`Retrieving keys for client ${clientId}`);
+    }): Promise<ListResult<Key>> {
+      logger.info(
+        `Retrieving keys for client ${clientId}, limit = ${limit}, offset = ${offset}`
+      );
       const client = await retrieveClient(clientId, readModelService);
 
       assertSecurityRoleIsClientMember(authData, client.data);
-
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
-      if (userIds.length > 0) {
-        return client.data.keys.filter((k) => userIds.includes(k.userId));
-      } else {
-        return client.data.keys;
-      }
+
+      const allKeys = client.data.keys;
+
+      const filteredKeys =
+        userIds && userIds.length > 0
+          ? allKeys.filter((key) => userIds.includes(key.userId))
+          : allKeys;
+
+      return {
+        results: filteredKeys.slice(offset, offset + limit),
+        totalCount: filteredKeys.length,
+      };
     },
     async addClientPurpose({
       clientId,
