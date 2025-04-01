@@ -8,13 +8,18 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import {
+  agreementReadModelServiceBuilder,
+  makeDrizzleConnection,
+} from "pagopa-interop-readmodel";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 import { readModelServiceBuilder } from "./readModelService.js";
 
-const readModelService = readModelServiceBuilder(makeDrizzleConnection(config));
+const db = makeDrizzleConnection(config);
+const agreementReadModelService = agreementReadModelServiceBuilder(db);
+const readModelService = readModelServiceBuilder(db, agreementReadModelService);
 
 async function processMessage({
   message,

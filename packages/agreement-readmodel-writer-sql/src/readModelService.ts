@@ -5,9 +5,8 @@ import {
   AgreementId,
 } from "pagopa-interop-models";
 import {
+  AgreementReadModelService,
   agreementDocumentToAgreementDocumentSQL,
-  checkMetadataVersion,
-  splitAgreementIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -21,7 +20,10 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(db: DrizzleReturnType) {
+export function readModelServiceBuilder(
+  db: DrizzleReturnType,
+  agreementReadModelService: AgreementReadModelService
+) {
   const updateMetadataVersionInAgreementRelatedTables = async (
     tx: DrizzleTransactionType,
     agreementId: AgreementId,
@@ -62,66 +64,19 @@ export function readModelServiceBuilder(db: DrizzleReturnType) {
       agreement: Agreement,
       metadataVersion: number
     ): Promise<void> {
-      const {
-        agreementSQL,
-        stampsSQL,
-        attributesSQL,
-        consumerDocumentsSQL,
-        contractSQL,
-      } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
-
-      await db.transaction(async (tx) => {
-        const shouldUpsert = await checkMetadataVersion(
-          tx,
-          agreementInReadmodelAgreement,
-          metadataVersion,
-          agreement.id
-        );
-
-        if (shouldUpsert) {
-          await tx
-            .delete(agreementInReadmodelAgreement)
-            .where(eq(agreementInReadmodelAgreement.id, agreement.id));
-
-          await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
-
-          for (const stampSQL of stampsSQL) {
-            await tx
-              .insert(agreementStampInReadmodelAgreement)
-              .values(stampSQL);
-          }
-
-          for (const attributeSQL of attributesSQL) {
-            await tx
-              .insert(agreementAttributeInReadmodelAgreement)
-              .values(attributeSQL);
-          }
-
-          for (const docSQL of consumerDocumentsSQL) {
-            await tx
-              .insert(agreementConsumerDocumentInReadmodelAgreement)
-              .values(docSQL);
-          }
-          if (contractSQL !== undefined) {
-            await tx
-              .insert(agreementContractInReadmodelAgreement)
-              .values(contractSQL);
-          }
-        }
-      });
+      return await agreementReadModelService.upsertAgreement(
+        agreement,
+        metadataVersion
+      );
     },
     async deleteAgreementById(
       agreementId: AgreementId,
       metadataVersion: number
     ): Promise<void> {
-      await db
-        .delete(agreementInReadmodelAgreement)
-        .where(
-          and(
-            eq(agreementInReadmodelAgreement.id, agreementId),
-            lte(agreementInReadmodelAgreement.metadataVersion, metadataVersion)
-          )
-        );
+      return await agreementReadModelService.deleteAgreementById(
+        agreementId,
+        metadataVersion
+      );
     },
     async upsertConsumerDocument(
       doc: AgreementDocument,

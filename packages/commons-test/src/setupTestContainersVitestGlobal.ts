@@ -68,6 +68,7 @@ declare module "vitest" {
  * @see https://vitest.dev/config/#globalsetup).
  */
 export function setupTestContainersVitestGlobal() {
+  // dotenv();
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
   const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
