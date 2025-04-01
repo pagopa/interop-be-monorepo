@@ -127,8 +127,8 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 1 - UI with one user role
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, ["admin"]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "ui"
+// validateAuthorization(mockContext, ["admin"]); // compiles
+// const systemRole = mockContext.authData.systemRole; // compiles and is "ui"
 // const orgId = mockContext.authData.organizationId; // compiles
 // const userId = mockContext.authData.userId; // compiles
 // -------------------------------------------------------
@@ -136,8 +136,8 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 2 - UI with multiple user roles
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, ["admin", "security", "api"]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "ui"
+// validateAuthorization(mockContext, ["admin", "security", "api"]); // compiles
+// const systemRole = mockContext.authData.systemRole; // compiles and is "ui"
 // const orgId = mockContext.authData.organizationId; // compiles
 // const userId = mockContext.authData.userId; // compiles
 // -------------------------------------------------------
@@ -145,8 +145,8 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 3 - M2M
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, ["m2m"]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m"
+// validateAuthorization(mockContext, ["m2m"]); // compiles
+// const systemRole = mockContext.authData.systemRole; // compiles and is "m2m"
 // const orgId = mockContext.authData.organizationId; // compiles
 // const userId = mockContext.authData.userId; // TS error: userId is not available in M2M context
 // -------------------------------------------------------
@@ -154,8 +154,8 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 4 - Internal
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, ["internal"]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "internal"
+// validateAuthorization(mockContext, ["internal"]); // compiles
+// const systemRole = mockContext.authData.systemRole; // compiles and is "internal"
 // const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
 // const userId = mockContext.authData.userId; // TS error: userId is not available in Internal context
 // -------------------------------------------------------
@@ -163,8 +163,8 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 5 - Maintenance
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, ["maintenance"]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "maintenance"
+// validateAuthorization(mockContext, ["maintenance"]); // compiles
+// const systemRole = mockContext.authData.systemRole; // compiles and is "maintenance"
 // const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Maintenance context
 // const userId = mockContext.authData.userId; // TS error: userId is not available in Maintenance context
 // -------------------------------------------------------
@@ -172,8 +172,8 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 6 - M2M and UI with one user role
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, ["m2m", "admin"]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m" or "ui"
+// validateAuthorization(mockContext, ["m2m", "admin"]); // compiles
+// const systemRole = mockContext.authData.systemRole; // compiles and is "m2m" or "ui"
 // const orgId = mockContext.authData.organizationId; // compiles
 // const userId = mockContext.authData.userId; // TS error: userId is not available in M2M context
 // -------------------------------------------------------
@@ -181,8 +181,8 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 7 - M2M and UI with multiple user roles
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, ["m2m", "admin", "security"]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m" or "ui"
+// validateAuthorization(mockContext, ["m2m", "admin", "security"]); // compiles
+// const systemRole = mockContext.authData.systemRole; // compiles and is "m2m" or "ui"
 // const orgId = mockContext.authData.organizationId; // compiles
 // const userId = mockContext.authData.userId; // TS error: userId is not available in M2M context
 // -------------------------------------------------------
@@ -190,8 +190,8 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 8 - M2M and Internal
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, ["m2m", "internal"]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m" or "internal"
+// validateAuthorization(mockContext, ["m2m", "internal"]); // compiles
+// const systemRole = mockContext.authData.systemRole; // compiles and is "m2m" or "internal"
 // const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
 // const userId = mockContext.authData.userId; // TS error: userId is not available in Internal context
 // -------------------------------------------------------
@@ -199,13 +199,13 @@ function isUserRole(role: AuthRole): role is UserRole {
 // EXAMPLE 9 - M2M and Internal and UI with multiple user roles
 // const mockContext = {} as AppContext;
 // /* eslint-disable @typescript-eslint/no-unused-vars */
-// validateAuthorizationByAuthRoles(mockContext, [
+// validateAuthorization(mockContext, [
 //   "m2m",
 //   "internal",
 //   "admin",
 //   "security",
 // ]); // compiles
-// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m" or "internal" or "ui"
+// const systemRole = mockContext.authData.systemRole; // compiles and is "m2m" or "internal" or "ui"
 // const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
 // const userId = mockContext.authData.userId; // TS error: userId is not available in Internal context
 // -------------------------------------------------------
