@@ -5,7 +5,8 @@ import {
   EventStoreConfig,
   S3Config,
   FeatureFlagsConfig,
-  FeatureFlagSQL,
+  ApplicationAuditProducerConfig,
+  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -40,7 +41,8 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   )
   .and(EServiceTemplateS3Config)
-  .and(FeatureFlagSQL)
+  .and(ApplicationAuditProducerConfig)
+  .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig.optional());
 
 export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;

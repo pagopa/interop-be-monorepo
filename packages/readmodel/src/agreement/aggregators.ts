@@ -24,10 +24,11 @@ import {
   UserId,
   DelegationId,
   AgreementStampKind,
-  genericInternalError,
   AgreementAttribute,
+  AttributeKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateAgreementArray = ({
   agreementsSQL,
@@ -77,7 +78,7 @@ export const aggregateAgreement = ({
         },
         a
       ) =>
-        match(a.kind)
+        match(AttributeKind.parse(a.kind))
           .with(attributeKind.verified, () => ({
             ...acc,
             verifiedAttributes: [
@@ -99,9 +100,7 @@ export const aggregateAgreement = ({
               { id: unsafeBrandId<AttributeId>(a.attributeId) },
             ],
           }))
-          .otherwise(() => {
-            throw genericInternalError(`Unknown attribute kind: ${a.kind}`);
-          }),
+          .exhaustive(),
       {
         verifiedAttributes: [],
         certifiedAttributes: [],
@@ -123,7 +122,7 @@ export const aggregateAgreement = ({
     archiving: archivingStampSQL,
   } = stampsSQL.reduce(
     (acc: { [key in AgreementStampKind]?: AgreementStampSQL }, stamp) =>
-      match(stamp.kind)
+      match(AgreementStampKind.parse(stamp.kind))
         .with(AgreementStampKind.enum.submission, () => ({
           ...acc,
           submission: stamp,
@@ -152,9 +151,7 @@ export const aggregateAgreement = ({
           ...acc,
           archiving: stamp,
         }))
-        .otherwise(() => {
-          throw genericInternalError(`Unknown stamp kind: ${stamp.kind}`);
-        }),
+        .exhaustive(),
     {}
   );
 
@@ -302,7 +299,6 @@ export const toAgreementAggregatorArray = (
   const agreementIdSet = new Set<string>();
   const agreementsSQL: AgreementSQL[] = [];
 
-  // const contractSQL = queryRes?.length ? queryRes[0].contract : null;
   const contractIdSet = new Set<string>();
   const contractsSQL: AgreementContractSQL[] = [];
 
@@ -317,7 +313,6 @@ export const toAgreementAggregatorArray = (
 
   queryRes.forEach((row) => {
     const agreementSQL = row.agreement;
-
     if (!agreementIdSet.has(agreementSQL.id)) {
       agreementIdSet.add(agreementSQL.id);
       // eslint-disable-next-line functional/immutable-data
@@ -325,26 +320,21 @@ export const toAgreementAggregatorArray = (
     }
 
     const stampSQL = row.stamp;
-    if (
-      stampSQL &&
-      !stampIdSet.has(uniqueKey([stampSQL.agreementId, stampSQL.kind]))
-    ) {
-      stampIdSet.add(uniqueKey([stampSQL.agreementId, stampSQL.kind]));
+    const stampPK = stampSQL
+      ? makeUniqueKey([stampSQL.agreementId, stampSQL.kind])
+      : undefined;
+    if (stampSQL && stampPK && !stampIdSet.has(stampPK)) {
+      stampIdSet.add(stampPK);
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(stampSQL);
     }
 
     const attributeSQL = row.attribute;
-
-    if (
-      attributeSQL &&
-      !attributeIdSet.has(
-        uniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
-      )
-    ) {
-      attributeIdSet.add(
-        uniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
-      );
+    const attributePK = attributeSQL
+      ? makeUniqueKey([attributeSQL.agreementId, attributeSQL.attributeId])
+      : undefined;
+    if (attributeSQL && attributePK && !attributeIdSet.has(attributePK)) {
+      attributeIdSet.add(attributePK);
       // eslint-disable-next-line functional/immutable-data
       attributesSQL.push(attributeSQL);
     }
@@ -372,5 +362,3 @@ export const toAgreementAggregatorArray = (
     contractsSQL,
   };
 };
-
-const uniqueKey = (ids: string[]): string => ids.join("#");
