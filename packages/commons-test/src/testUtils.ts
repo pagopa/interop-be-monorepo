@@ -80,6 +80,8 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
+  AgreementDocument,
+  AgreementStamp,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -236,6 +238,12 @@ export const getMockTenantMail = (
   address: generateMock(z.string().email()),
 });
 
+export const getMockAgreementStamp = (): AgreementStamp => ({
+  who: generateId(),
+  when: new Date(),
+  delegationId: generateId<DelegationId>(),
+});
+
 export const getMockAgreementStamps = (): AgreementStamps => {
   const stamps = generateMock(AgreementStamps);
   delete stamps.submission?.delegationId;
@@ -347,6 +355,15 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
+});
+
+export const getMockAgreementDocument = (): AgreementDocument => ({
+  id: generateId(),
+  name: "fileName",
+  prettyName: "prettyName",
+  contentType: "json",
+  path: "filePath",
+  createdAt: new Date(),
 });
 
 export const getMockClient = (): Client => ({
@@ -739,4 +756,5 @@ export const getMockContext = ({
   serviceName: serviceName || "test",
   correlationId: generateId(),
   logger: genericLogger,
+  requestTimestamp: Date.now(),
 });
