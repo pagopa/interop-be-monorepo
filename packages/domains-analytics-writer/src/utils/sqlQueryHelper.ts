@@ -14,19 +14,31 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   tableSchema: z.ZodObject<T>,
   schemaName: string,
   tableName: string,
-  stagingSuffix: string,
+  stagingTableName: string,
   column: keyof T
 ): string {
   const keys = Object.keys(tableSchema.shape);
 
-  const updateSet = keys.map((k) => `${k} = source.${k}`).join(",\n    ");
+  const updateSet = keys.map(
+    (k) => `${k} = COALESCE(source.${k}, ${schemaName}.${tableName}.${k})`
+  );
 
   const columns = keys.join(", ");
   const values = keys.map((k) => `source.${k}`).join(", ");
-
+  console.log(`
+  MERGE INTO ${schemaName}.${tableName}
+  USING ${stagingTableName} AS source
+  ON ${schemaName}.${tableName}.${String(column)} = source.${String(column)}
+  WHEN MATCHED THEN
+    UPDATE SET
+      ${updateSet}
+  WHEN NOT MATCHED THEN
+    INSERT (${columns})
+    VALUES (${values});
+  `);
   return `
   MERGE INTO ${schemaName}.${tableName}
-  USING ${tableName}${stagingSuffix} AS source
+  USING ${stagingTableName} AS source
   ON ${schemaName}.${tableName}.${String(column)} = source.${String(column)}
   WHEN MATCHED THEN
     UPDATE SET

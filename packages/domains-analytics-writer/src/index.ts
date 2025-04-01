@@ -74,6 +74,7 @@ await retryConnection(
       "eservice_descriptor_attribute",
       "eservice_risk_analysis",
       "eservice_risk_analysis_answer",
+      "eservice_deleting",
     ]);
   },
   logger({ serviceName: "" })

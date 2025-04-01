@@ -11,7 +11,7 @@ import {
 } from "../../model/catalog/eserviceDescriptorRejection.js";
 
 export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice_descriptor_rejection_reason";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
@@ -53,7 +53,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
           eserviceDescriptorRejectionSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          `${tableName}${config.mergeTableSuffix}`,
           "descriptor_id"
         );
         await t.none(mergeQuery);

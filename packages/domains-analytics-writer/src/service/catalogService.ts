@@ -48,9 +48,6 @@ export function catalogServiceBuilder(db: DBContext) {
 
       await db.conn.tx(async (t) => {
         await eserviceRepo.insert(t, db.pgp, eserviceSQL);
-        if (templateRefSQL) {
-          await templateRefRepo.insert(t, db.pgp, [templateRefSQL]);
-        }
         await descriptorRepo.insert(t, db.pgp, descriptorsSQL);
         await interfaceRepo.insert(t, db.pgp, interfacesSQL);
         await documentRepo.insert(t, db.pgp, documentsSQL);
@@ -58,12 +55,13 @@ export function catalogServiceBuilder(db: DBContext) {
         await riskAnalysisRepo.insert(t, db.pgp, riskAnalysesSQL);
         await riskAnalysisAnswerRepo.insert(t, db.pgp, riskAnalysisAnswersSQL);
         await rejectionRepo.insert(t, db.pgp, rejectionReasonsSQL);
+        if (templateRefSQL) {
+          await templateRefRepo.insert(t, db.pgp, [templateRefSQL]);
+        }
         await templateVersionRefRepo.insert(t, db.pgp, templateVersionRefsSQL);
-
         genericLogger.info(
           `Staging records insertion completed for eserviceId: ${eserviceSQL.id}`
         );
-
         await eserviceRepo.merge(t);
         await templateRefRepo.merge(t);
         await descriptorRepo.merge(t);
@@ -94,6 +92,53 @@ export function catalogServiceBuilder(db: DBContext) {
       genericLogger.info(
         `Staging cleanup completed for eserviceId: ${eserviceSQL.id}`
       );
+    },
+
+    async deleteEService(eserviceId: string): Promise<void> {
+      await db.conn.tx(async (t) => {
+        await eserviceRepo.deleteEservice(t, db.pgp, eserviceId);
+        await eserviceRepo.mergeDeleting(t);
+      });
+      await eserviceRepo.cleanDeleting();
+    },
+
+    async upsertEServiceDescriptor(descriptorData: any): Promise<void> {
+      await db.conn.tx(async (t) => {
+        await descriptorRepo.insert(t, db.pgp, descriptorData);
+        await descriptorRepo.merge(t);
+      });
+      await descriptorRepo.clean();
+    },
+
+    async deleteDescriptor(descriptorId: string): Promise<void> {
+      await db.conn.tx(async (t) => {
+        await descriptorRepo.deleteDescriptor(t, db.pgp, descriptorId);
+        await descriptorRepo.mergeDeleting(t);
+      });
+      await descriptorRepo.cleanDeleting();
+    },
+
+    async upsertEServiceDocument(documentData: any): Promise<void> {
+      await db.conn.tx(async (t) => {
+        await documentRepo.insert(t, db.pgp, documentData);
+      });
+      await documentRepo.clean();
+    },
+
+    async deleteEServiceDocument(documentId: string): Promise<void> {
+      await db.conn.tx(async (t) => {
+        await documentRepo.deleteDocument(t, db.pgp, documentId);
+        await documentRepo.mergeDeleting(t);
+      });
+      await documentRepo.cleanDeleting();
+    },
+
+    async deleteEserviceRiskAnalysis(riskAnalysisId: string): Promise<void> {
+      await db.conn.tx(async (t) => {
+        await riskAnalysisRepo.deleteRiskAnalysis(t, db.pgp, riskAnalysisId);
+        await riskAnalysisRepo.mergeDeleting(t);
+      });
+      await riskAnalysisRepo.cleanDeleting();
     },
   };
 }

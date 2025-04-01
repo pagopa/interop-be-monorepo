@@ -11,7 +11,7 @@ import {
 } from "../../model/catalog/eserviceTemplateRef.js";
 
 export function eserviceTemplateRefRepository(conn: DBConnection) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice_template_ref";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
@@ -50,7 +50,7 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
           eserviceTemplateRefSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          `${tableName}${config.mergeTableSuffix}`,
           "eservice_template_id"
         );
         await t.none(mergeQuery);

@@ -33,7 +33,7 @@ services:
   # analytics POSTGRESQL-15
   domains-analytics:
     volumes:
-      - ./redshift-db:/docker-entrypoint-initdb.d
+      - ./domains-analytics-db:/docker-entrypoint-initdb.d
     image: postgres:15
     ports:
       - 6003:5434

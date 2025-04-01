@@ -11,7 +11,7 @@ import {
 } from "../../model/catalog/eserviceDescriptorInterface.js";
 
 export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice_descriptor_interface";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
@@ -56,7 +56,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           eserviceDescriptorInterfaceSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          `${tableName}${config.mergeTableSuffix}`,
           "id"
         );
         await t.none(mergeQuery);

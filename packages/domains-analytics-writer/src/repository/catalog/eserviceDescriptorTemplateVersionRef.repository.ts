@@ -13,7 +13,7 @@ import {
 export function eserviceDescriptorTemplateVersionRefRepository(
   conn: DBConnection
 ) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice_descriptor_template_version_ref";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
@@ -65,7 +65,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
           eserviceDescriptorTemplateVersionRefSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          `${tableName}${config.mergeTableSuffix}`,
           "eservice_template_version_id"
         );
         await t.none(mergeQuery);

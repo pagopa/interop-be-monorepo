@@ -11,7 +11,7 @@ import {
 } from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
 
 export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice_risk_analysis_answer";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
@@ -54,7 +54,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
           eserviceRiskAnalysisAnswerSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          `${tableName}${config.mergeTableSuffix}`,
           "id"
         );
         await t.none(mergeQuery);

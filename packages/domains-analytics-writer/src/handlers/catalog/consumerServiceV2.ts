@@ -17,7 +17,10 @@ export async function handleCatalogMessageV2(
   const catalogService = catalogServiceBuilder(dbContext);
 
   await match(message)
-    .with({ type: "EServiceDeleted" }, async () => Promise.resolve())
+    .with({ type: "EServiceDeleted" }, async (msg) => {
+      console.log("MESSAGGIO", msg.data);
+      await catalogService.deleteEService(msg.data.eserviceId);
+    })
     .with(
       {
         type: P.union(
@@ -62,6 +65,7 @@ export async function handleCatalogMessageV2(
       },
       async (msg) => {
         const mockDescriptor = {
+          // testing purpose only, ignore
           id: generateId(),
           version: "1" as any,
           docs: [],

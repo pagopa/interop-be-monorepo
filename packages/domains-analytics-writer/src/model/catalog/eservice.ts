@@ -14,6 +14,12 @@ export const eserviceSchema = z.object({
   is_signal_hub_enabled: z.string().nullable(),
   is_consumer_delegable: z.string().nullable(),
   is_client_access_delegable: z.string().nullable(),
+  deleted: z.boolean().default(false).optional(),
+});
+
+export const eserviceDeletingSchema = z.object({
+  id: z.string(),
+  deleted: z.boolean().default(false).optional(),
 });
 
 type EserviceSchema = z.infer<typeof eserviceSchema>;

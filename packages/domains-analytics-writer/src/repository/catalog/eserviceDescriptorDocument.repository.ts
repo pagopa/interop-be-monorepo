@@ -11,9 +11,10 @@ import {
 } from "../../model/catalog/eserviceDescriptorDocument.js";
 
 export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice_descriptor_document";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingDeletingTable = `eservice_descriptor_document_deleting${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -50,13 +51,25 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       }
     },
 
+    async updateEServiceDocument(
+      t: ITask<unknown>,
+      pgp: IMain,
+      record: Partial<EServiceDescriptorDocumentSQL>
+    ): Promise<void> {
+      const cs = new pgp.helpers.ColumnSet(Object.keys(record), {
+        table: `${config.dbSchemaName}.eservice_descriptor_document${config.mergeTableSuffix}`,
+      });
+      const query = pgp.helpers.insert(record, cs);
+      await t.none(query);
+    },
+
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
           eserviceDescriptorDocumentSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          stagingTable,
           "id"
         );
         await t.none(mergeQuery);
@@ -73,6 +86,56 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning staging table ${stagingTable}: ${error}`
+        );
+      }
+    },
+
+    async deleteDocument(
+      t: ITask<unknown>,
+      pgp: IMain,
+      documentId: string
+    ): Promise<void> {
+      const mapping = {
+        id: () => documentId,
+        deleted: () => true,
+      };
+      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        pgp,
+        mapping,
+        stagingDeletingTable
+      );
+      try {
+        await t.none(pgp.helpers.insert({ id: documentId, deleted: true }, cs));
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
+      try {
+        const mergeQuery = generateMergeQuery(
+          eserviceDescriptorDocumentSchema,
+          schemaName,
+          tableName,
+          stagingDeletingTable,
+          "id"
+        );
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanDeleting(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

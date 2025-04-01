@@ -11,7 +11,7 @@ import {
 } from "../../model/catalog/eserviceDescriptorAttribute.js";
 
 export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice_descriptor_attribute";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
@@ -54,7 +54,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           eserviceDescriptorAttributeSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          `${tableName}${config.mergeTableSuffix}`,
           "attribute_id"
         );
         await t.none(mergeQuery);

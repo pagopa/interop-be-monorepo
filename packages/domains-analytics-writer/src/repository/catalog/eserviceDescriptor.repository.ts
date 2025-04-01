@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-
 import { genericInternalError } from "pagopa-interop-models";
 import { EServiceDescriptorSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
@@ -12,9 +11,10 @@ import {
 } from "../../model/catalog/eserviceDescriptor.js";
 
 export function eserviceDescriptorRepository(conn: DBConnection) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice_descriptor";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingDeletingTable = `eservice_descriptor_deleting${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -68,7 +68,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
           eserviceDescriptorSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          stagingTable,
           "id"
         );
         await t.none(mergeQuery);
@@ -85,6 +85,56 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning staging table ${stagingTable}: ${error}`
+        );
+      }
+    },
+
+    async deleteDescriptor(
+      t: ITask<unknown>,
+      pgp: IMain,
+      id: string
+    ): Promise<void> {
+      const mapping = {
+        id: () => id,
+        deleted: () => true,
+      };
+      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        pgp,
+        mapping,
+        stagingDeletingTable
+      );
+      try {
+        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
+      try {
+        const mergeQuery = generateMergeQuery(
+          eserviceDescriptorSchema,
+          schemaName,
+          tableName,
+          stagingDeletingTable,
+          "id"
+        );
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanDeleting(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

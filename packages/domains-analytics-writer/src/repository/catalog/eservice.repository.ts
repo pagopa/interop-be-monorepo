@@ -7,13 +7,17 @@ import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceMapping,
+  eserviceDeletingSchema,
   eserviceSchema,
-} from "../../model/catalog/eService.js";
+} from "../../model/catalog/eservice.js";
 
 export function eserviceRepository(conn: DBConnection) {
-  const schemaName = "domains_catalog";
+  const schemaName = config.dbSchemaName;
   const tableName = "eservice";
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingDeletingTable = `${"eservice_deleting"}${
+    config.mergeTableSuffix
+  }`;
 
   return {
     async insert(
@@ -47,13 +51,36 @@ export function eserviceRepository(conn: DBConnection) {
       }
     },
 
+    async deleteEservice(
+      t: ITask<unknown>,
+      pgp: IMain,
+      id: string
+    ): Promise<void> {
+      const mapping = {
+        id: () => id,
+        deleted: () => true,
+      };
+      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        pgp,
+        mapping,
+        stagingDeletingTable
+      );
+      try {
+        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingTable}: ${error}`
+        );
+      }
+    },
+
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
           eserviceSchema,
           schemaName,
           tableName,
-          config.mergeTableSuffix,
+          `${tableName}${config.mergeTableSuffix}`,
           "id"
         );
         await t.none(mergeQuery);
@@ -64,12 +91,39 @@ export function eserviceRepository(conn: DBConnection) {
       }
     },
 
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
+      try {
+        const mergeQuery = generateMergeQuery(
+          eserviceDeletingSchema,
+          schemaName,
+          tableName,
+          stagingDeletingTable,
+          "id"
+        );
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
     async clean(): Promise<void> {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning staging table ${stagingTable}: ${error}`
+        );
+      }
+    },
+
+    async cleanDeleting(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },
