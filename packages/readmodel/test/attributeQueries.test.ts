@@ -1,15 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-console.log("EXECUTING attributes query");
-import {
-  addOneAgreement,
-  getMockAgreement,
-  getMockAttribute,
-} from "pagopa-interop-commons-test";
+import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute, AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { agreementInReadmodelAgreement } from "pagopa-interop-readmodel-models";
 import { aggregateAttribute } from "../src/attribute/aggregators.js";
-import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
 import { readModelDB } from "./utils.js";
 import {
   attributeReadModelService,
@@ -19,19 +12,11 @@ import {
 describe("Attribute queries", () => {
   describe("should insert or update an attribute in the db", () => {
     it.only("should add a complete (*all* fields) attribute", async () => {
-      console.log("EXECUTING test");
       const attribute: Attribute = {
         ...getMockAttribute(),
         code: "test code",
         origin: "test origin",
       };
-      const agreement = getMockAgreement();
-      const { agreementSQL } = splitAgreementIntoObjectsSQL(agreement, 1);
-      await addOneAgreement(
-        readModelDB,
-        agreementInReadmodelAgreement,
-        agreementSQL
-      );
 
       await attributeReadModelService.upsertAttribute(attribute, 1);
 
