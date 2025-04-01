@@ -58,11 +58,13 @@ const attributeRouter = (
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
-          validateAuthorization(
-            ctx,
-            ["ui", "m2m"],
-            ["admin", "api", "support", "security"]
-          );
+          validateAuthorization(ctx, [
+            "admin",
+            "api",
+            "support",
+            "security",
+            "m2m",
+          ]);
 
           const { limit, offset, kinds, name, origin } = req.query;
           const attributes =
@@ -91,11 +93,13 @@ const attributeRouter = (
     .get("/attributes/name/:name", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(
-          ctx,
-          ["ui", "m2m"],
-          ["admin", "api", "support", "security"]
-        );
+        validateAuthorization(ctx, [
+          "admin",
+          "api",
+          "support",
+          "security",
+          "m2m",
+        ]);
         const attribute = await attributeRegistryService.getAttributeByName(
           req.params.name,
           ctx
@@ -120,7 +124,7 @@ const attributeRouter = (
     .get("/attributes/origin/:origin/code/:code", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, ["ui", "m2m"], ["admin", "support"]);
+        validateAuthorization(ctx, ["admin", "support", "m2m"]);
 
         const { origin, code } = req.params;
         const attribute =
@@ -155,11 +159,13 @@ const attributeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(
-            ctx,
-            ["ui", "m2m"],
-            ["admin", "api", "support", "security"]
-          );
+          validateAuthorization(ctx, [
+            "admin",
+            "api",
+            "support",
+            "security",
+            "m2m",
+          ]);
 
           const attribute = await attributeRegistryService.getAttributeById(
             unsafeBrandId(req.params.attributeId),
@@ -189,11 +195,13 @@ const attributeRouter = (
       const { limit, offset } = req.query;
 
       try {
-        validateAuthorization(
-          ctx,
-          ["ui", "m2m"],
-          ["admin", "api", "support", "security"]
-        );
+        validateAuthorization(ctx, [
+          "admin",
+          "api",
+          "support",
+          "security",
+          "m2m",
+        ]);
 
         const attributes = await attributeRegistryService.getAttributesByIds(
           {
@@ -217,7 +225,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["ui", "m2m"], ["admin"]);
+        validateAuthorization(ctx, ["admin", "m2m"]);
 
         const attribute =
           await attributeRegistryService.createCertifiedAttribute(
@@ -243,7 +251,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["ui"], ["admin", "api"]);
+        validateAuthorization(ctx, ["admin", "api"]);
 
         const attribute =
           await attributeRegistryService.createDeclaredAttribute(req.body, ctx);
@@ -266,7 +274,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["ui"], ["admin", "api"]);
+        validateAuthorization(ctx, ["admin", "api"]);
 
         const attribute =
           await attributeRegistryService.createVerifiedAttribute(req.body, ctx);

@@ -16,11 +16,7 @@ export function rateLimiterMiddleware(
 ): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
     const ctx = fromAppContext(req.ctx);
-    validateAuthorization(
-      ctx,
-      ["ui", "m2m"],
-      ["admin", "api", "support", "security"]
-    );
+    validateAuthorization(ctx, ["admin", "api", "support", "security", "m2m"]);
 
     const rateLimiterStatus = await rateLimiter.rateLimitByOrganization(
       ctx.authData.organizationId,

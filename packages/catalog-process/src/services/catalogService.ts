@@ -8,7 +8,7 @@ import {
   eventRepository,
   FileManager,
   formatDateddMMyyyyHHmmss,
-  hasUserRole,
+  hasAtLeastOneUserRole,
   InternalAuthData,
   interpolateApiSpec,
   Logger,
@@ -3292,7 +3292,7 @@ async function applyVisibilityToEService(
   readModelService: ReadModelService
 ): Promise<EService> {
   if (
-    hasUserRole(authData, [
+    hasAtLeastOneUserRole(authData, [
       userRole.ADMIN_ROLE,
       userRole.API_ROLE,
       userRole.SUPPORT_ROLE,

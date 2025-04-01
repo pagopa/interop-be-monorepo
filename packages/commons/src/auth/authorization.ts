@@ -1,12 +1,107 @@
 import { unauthorizedError } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { AppContext } from "../context/context.js";
+import { NonEmptyArray } from "../index.js";
 import {
-  AppContext,
-  AuthData,
-  NonEmptyArray,
-  UIAuthData,
   UserRole,
-} from "../index.js";
+  UIAuthData,
+  M2MAuthData,
+  InternalAuthData,
+  MaintenanceAuthData,
+  AuthData,
+} from "./authData.js";
+
+// System roles = special non-UI tokens
+type SystemRole = "m2m" | "internal" | "maintenance";
+type AuthRole = UserRole | SystemRole;
+
+type ContainsAuthRole<
+  Arr extends AuthRole[],
+  V extends AuthRole
+> = Arr extends [infer Head, ...infer Tail extends AuthRole[]]
+  ? Head extends V
+    ? true
+    : ContainsAuthRole<Tail, V>
+  : false;
+
+type ExtractUserRoles<Arr extends NonEmptyArray<AuthRole>> = Exclude<
+  Arr[number],
+  SystemRole
+>;
+
+type AllowedAuthData<AdmittedRoles extends NonEmptyArray<AuthRole>> =
+  // If "m2m" is in the array, add M2MAuthData
+  | ([ContainsAuthRole<AdmittedRoles, "m2m">] extends [true]
+      ? M2MAuthData
+      : never)
+  // If "internal" is in the array, add InternalAuthData
+  | ([ContainsAuthRole<AdmittedRoles, "internal">] extends [true]
+      ? InternalAuthData
+      : never)
+  // If "maintenance" is in the array, add MaintenanceAuthData
+  | ([ContainsAuthRole<AdmittedRoles, "maintenance">] extends [true]
+      ? MaintenanceAuthData
+      : never)
+  // If there are user roles in the array, add UIAuthData
+  | ([ExtractUserRoles<AdmittedRoles>] extends [never] ? never : UIAuthData);
+
+export function validateAuthorization<
+  AdmittedRoles extends NonEmptyArray<AuthRole>
+>(
+  ctx: AppContext,
+  admittedAuthRoles: AdmittedRoles
+): asserts ctx is AppContext<AllowedAuthData<AdmittedRoles>> {
+  const { authData } = ctx;
+
+  match(authData)
+    .with(
+      { tokenType: "m2m" },
+      { tokenType: "internal" },
+      { tokenType: "maintenance" },
+      ({ tokenType }) => {
+        const admittedSystemRoles: SystemRole[] =
+          admittedAuthRoles.filter(isSystemRole);
+        if (!admittedSystemRoles.includes(tokenType)) {
+          throw unauthorizedError(
+            `Invalid token type '${tokenType}' for this operation`
+          );
+        }
+      }
+    )
+    .with({ tokenType: "ui" }, (authData) => {
+      const admittedUserRoles: UserRole[] =
+        admittedAuthRoles.filter(isUserRole);
+
+      if (admittedUserRoles.length === 0) {
+        throw unauthorizedError(
+          `Invalid token type '${authData.tokenType}' for this operation`
+        );
+      }
+
+      if (!hasAtLeastOneUserRole(authData, admittedUserRoles)) {
+        throw unauthorizedError(
+          `Invalid token type '${
+            authData.tokenType
+          }' and user roles ${JSON.stringify(
+            authData.userRoles
+          )} for this operation`
+        );
+      }
+    })
+    .exhaustive();
+}
+
+export function hasAtLeastOneUserRole(
+  authData: AuthData,
+  admittedUserRoles: ReadonlyArray<UserRole>
+): boolean {
+  return (
+    isUiAuthData(authData) &&
+    authData.userRoles.some((role: UserRole) =>
+      admittedUserRoles.includes(role)
+    )
+  );
+}
 
 function isUiAuthData(authData: AuthData): authData is UIAuthData {
   return match(authData)
@@ -16,141 +111,104 @@ function isUiAuthData(authData: AuthData): authData is UIAuthData {
     .with({ tokenType: "maintenance" }, () => false)
     .exhaustive();
 }
-
-export function hasAtLeastOneRole(
-  authData: AuthData,
-  admittedUiUserRoles: ReadonlyArray<UserRole>
-): boolean {
-  return (
-    isUiAuthData(authData) &&
-    authData.userRoles.some((role: UserRole) =>
-      admittedUiUserRoles.includes(role)
-    )
-  );
+function isSystemRole(role: AuthRole): role is SystemRole {
+  return match(role)
+    .with("m2m", "internal", "maintenance", () => true)
+    .with("admin", "security", "api", "support", () => false)
+    .exhaustive();
 }
 
-type TokenType = AuthData["tokenType"];
-
-/**
- * Validates the authorization token in a given AppContext.
- *
- * This function has two overloads:
- *
- * 1. **Overload #1**: if you admit *only* non‐"ui" token types, you must omit
- *    the admittedUiUserRoles parameter.
- *
- * 2. **Overload #2**: if "ui" is included among your admitted token types,
- *    you must pass a non‐empty array of user roles.
- *
- * @remarks
- * - In either case, if the actual token type doesn’t match the admitted types,
- *   an error is thrown.
- * - If "ui" is admitted and the actual token is "ui", then at least one
- *   of the user’s roles must be in the admittedUiUserRoles array.
- */
-
-/**
- *
- * Overload #1: Checking auth for non‐"ui" token types.
- *
- * @param ctx - The application context containing the AuthData.
- * @param admittedTokenTypes - An array of token types that DOES NOT include "ui".
- * @param admittedUiUserRoles - Not allowed in this overload, no "ui" token = no user roles to check
- *
- * @example
- * validateAuthorization(mockContext, ["m2m"]);
- * validateAuthorization(mockContext, ["internal", "m2m"]);
- * validateAuthorization(mockContext, ["maintenance", "m2m", "internal"]);
- *
- * @throws {UnauthorizedError} - If the token type is not in the admitted list.
- */
-export function validateAuthorization<
-  T extends NonEmptyArray<Exclude<TokenType, "ui">>
->(
-  ctx: AppContext,
-  admittedTokenTypes: T,
-  admittedUiUserRoles?: never
-): asserts ctx is AppContext<Extract<AuthData, { tokenType: T[number] }>>;
-
-/**
- *
- * Overload #2: Checking auth for cases where "ui" token types are involved.
- *
- * @param ctx - The application context containing the AuthData.
- * @param admittedTokenTypes - An array of token types that includes "ui".
- * @param admittedUiUserRoles - An array of "ui" user roles that are allowed to access the operation.
- *
- * @example
- * validateAuthorization(mockContext, ["ui"], ["admin"]);
- * validateAuthorization(mockContext, ["ui", "m2m"], ["admin"]);
- * validateAuthorization(mockContext, ["ui", "internal"], ["admin", "security"]);
- *
- * @throws {UnauthorizedError} - If the token type is not in the admitted list,
- * or if the token type is "ui" and there is no intersection between the user roles and the admitted user roles.
- */
-export function validateAuthorization<T extends NonEmptyArray<TokenType>>(
-  ctx: AppContext,
-  admittedTokenTypes: "ui" extends T[number] ? T : never,
-  admittedUiUserRoles: NonEmptyArray<UserRole>
-): asserts ctx is AppContext<Extract<AuthData, { tokenType: T[number] }>>;
-
-/**
- * **Implementation**: merges the two overloads.
- * Do *not* call this signature directly; it’s just the shared runtime logic.
- */
-export function validateAuthorization<
-  T extends NonEmptyArray<AuthData["tokenType"]>
->(
-  ctx: AppContext,
-  admittedTokenTypes: T,
-  admittedUiUserRoles?: ReadonlyArray<UserRole>
-): void {
-  const { authData } = ctx;
-
-  // 1) Check token type is in the admitted list:
-  if (!admittedTokenTypes.includes(authData.tokenType)) {
-    throw unauthorizedError(
-      `Invalid token type '${authData.tokenType}' for this operation`
-    );
-  }
-
-  // 2) If "ui" is in the admitted token types and the token is actually "ui",
-  // ensure we have a non-empty admitted user-roles array and that the user has a matching role.
-  if (admittedTokenTypes.includes("ui") && isUiAuthData(authData)) {
-    if (!admittedUiUserRoles || admittedUiUserRoles.length === 0) {
-      throw unauthorizedError(
-        `Must provide admittedUiUserRoles when validating authorization for "ui" token type`
-      );
-    }
-
-    if (!hasAtLeastOneRole(authData, admittedUiUserRoles)) {
-      throw unauthorizedError(
-        `Invalid token type '${
-          authData.tokenType
-        }' and user roles ${JSON.stringify(
-          authData.userRoles
-        )} for this operation`
-      );
-    }
-  }
+function isUserRole(role: AuthRole): role is UserRole {
+  return match(role)
+    .with("admin", "security", "api", "support", () => true)
+    .with("m2m", "internal", "maintenance", () => false)
+    .exhaustive();
 }
 
-// EXAMPLE USAGES THAT COMPILE (UNCOMMENT TO TEST):
-// validateAuthorization(mockContext, ["ui"], ["admin"]);
-// validateAuthorization(mockContext, ["ui", "m2m"], ["admin"]);
-// validateAuthorization(mockContext, ["ui", "m2m"], ["admin", "security"]);
-// validateAuthorization(mockContext, ["m2m"]);
-// validateAuthorization(mockContext, ["internal"]);
-// validateAuthorization(mockContext, ["maintenance"]);
-// validateAuthorization(mockContext, ["m2m", "internal"]);
+// EXAMPLE USAGES -- UNCOMMENT EACH ENTIRE EXAMPLE TO TEST IT:
 
-// EXAMPLE USAGES THAT DO NOT COMPILE (UNCOMMENT TO TEST):
+// EXAMPLE 1 - UI with one user role
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, ["admin"]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "ui"
+// const orgId = mockContext.authData.organizationId; // compiles
+// const userId = mockContext.authData.userId; // compiles
+// -------------------------------------------------------
 
-// validateAuthorization(mockContext, ["ui", "m2m", "internal"], []);
-// validateAuthorization(mockContext, ["ui"], []);
-// ^^ no admittedUiUserRoles provided, but "ui" is in the admitted token types
+// EXAMPLE 2 - UI with multiple user roles
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, ["admin", "security", "api"]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "ui"
+// const orgId = mockContext.authData.organizationId; // compiles
+// const userId = mockContext.authData.userId; // compiles
+// -------------------------------------------------------
 
-// validateAuthorization(mockContext, ["m2m", "internal", "maintenance"], []);
-// validateAuthorization(mockContext, ["internal"], []);
-// validateAuthorization(mockContext, ["m2m", "internal", "maintenance"], ["admin"]);
-// ^^ no "ui" in the admitted token types, but admittedUiUserRoles is set
+// EXAMPLE 3 - M2M
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, ["m2m"]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m"
+// const orgId = mockContext.authData.organizationId; // compiles
+// const userId = mockContext.authData.userId; // TS error: userId is not available in M2M context
+// -------------------------------------------------------
+
+// EXAMPLE 4 - Internal
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, ["internal"]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "internal"
+// const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
+// const userId = mockContext.authData.userId; // TS error: userId is not available in Internal context
+// -------------------------------------------------------
+
+// EXAMPLE 5 - Maintenance
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, ["maintenance"]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "maintenance"
+// const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Maintenance context
+// const userId = mockContext.authData.userId; // TS error: userId is not available in Maintenance context
+// -------------------------------------------------------
+
+// EXAMPLE 6 - M2M and UI with one user role
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, ["m2m", "admin"]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m" or "ui"
+// const orgId = mockContext.authData.organizationId; // compiles
+// const userId = mockContext.authData.userId; // TS error: userId is not available in M2M context
+// -------------------------------------------------------
+
+// EXAMPLE 7 - M2M and UI with multiple user roles
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, ["m2m", "admin", "security"]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m" or "ui"
+// const orgId = mockContext.authData.organizationId; // compiles
+// const userId = mockContext.authData.userId; // TS error: userId is not available in M2M context
+// -------------------------------------------------------
+
+// EXAMPLE 8 - M2M and Internal
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, ["m2m", "internal"]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m" or "internal"
+// const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
+// const userId = mockContext.authData.userId; // TS error: userId is not available in Internal context
+// -------------------------------------------------------
+
+// EXAMPLE 9 - M2M and Internal and UI with multiple user roles
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorizationByAuthRoles(mockContext, [
+//   "m2m",
+//   "internal",
+//   "admin",
+//   "security",
+// ]); // compiles
+// const tokenType = mockContext.authData.tokenType; // compiles and is "m2m" or "internal" or "ui"
+// const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
+// const userId = mockContext.authData.userId; // TS error: userId is not available in Internal context
+// -------------------------------------------------------

@@ -5,7 +5,7 @@ import {
   TenantCollection,
   M2MAuthData,
   UIAuthData,
-  hasUserRole,
+  hasAtLeastOneUserRole,
   userRole,
   EServiceTemplateCollection,
 } from "pagopa-interop-commons";
@@ -244,7 +244,7 @@ export function readModelServiceBuilder(
           ],
         });
 
-      const visibilityFilter: ReadModelFilter<EService> = hasUserRole(
+      const visibilityFilter: ReadModelFilter<EService> = hasAtLeastOneUserRole(
         authData,
         [userRole.ADMIN_ROLE, userRole.API_ROLE, userRole.SUPPORT_ROLE]
       )
