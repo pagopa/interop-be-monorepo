@@ -49,8 +49,9 @@ function toApiGatewayOrganizationCategory(
 
   const categoryIpaAttribute = attributes.find(
     (a) =>
-      a.origin === "IPA" ||
-      a.code !== tenant.externalId.value ||
+      a.origin === "IPA" &&
+      a.code &&
+      a.code !== tenant.externalId.value &&
       a.code.length <= maxIpaCodeLength
   );
   return categoryIpaAttribute ? categoryIpaAttribute.name : "Unknown";
