@@ -4,7 +4,6 @@ import {
   AgreementId,
   AgreementStamp,
   AgreementStampKind,
-  AgreementStamps,
   attributeKind,
   dateToString,
 } from "pagopa-interop-models";
@@ -52,17 +51,15 @@ export const splitAgreementIntoObjectsSQL = (
     producerId,
     consumerId,
     state,
-    suspendedByConsumer: suspendedByConsumer ?? null,
+    suspendedByConsumer: suspendedByConsumer ?? null, // "??" because "false" should not become null
     suspendedByProducer: suspendedByProducer ?? null,
     suspendedByPlatform: suspendedByPlatform ?? null,
     createdAt: dateToString(createdAt),
     updatedAt: dateToString(updatedAt),
-    consumerNotes: consumerNotes || null,
-    rejectionReason: rejectionReason || null,
+    consumerNotes: consumerNotes ?? null, // "??" because empty strings should not become null
+    rejectionReason: rejectionReason ?? null,
     suspendedAt: dateToString(suspendedAt),
   };
-
-  const stampsSQL: AgreementStampSQL[] = [];
 
   const makeStampSQL = (
     { who, delegationId, when, ...stampRest }: AgreementStamp,
@@ -82,93 +79,12 @@ export const splitAgreementIntoObjectsSQL = (
     };
   };
 
-  // TODO: improve?
-  // eslint-disable-next-line functional/no-let
-  let key: keyof AgreementStamps;
-
-  // eslint-disable-next-line guard-for-in
-  for (key in stamps) {
-    const stamp = stamps[key];
-    if (stamp) {
-      // eslint-disable-next-line functional/immutable-data
-      stampsSQL.push(
-        makeStampSQL(stamp, id, metadataVersion, AgreementStampKind.enum[key])
-      );
-    }
-  }
-
-  /*
-  if (stamps.submission) {
-    agreementStampsSQL.push(
-      makeStampSQL(
-        stamps.submission,
-        id,
-        metadataVersion,
-        agreementStampKind.submission
-      )
-    );
-  }
-  if (stamps.activation) {
-    agreementStampsSQL.push(
-      makeStampSQL(
-        stamps.activation,
-        id,
-        metadataVersion,
-        agreementStampKind.activation
-      )
-    );
-  }
-  if (stamps.rejection) {
-    agreementStampsSQL.push(
-      makeStampSQL(
-        stamps.rejection,
-        id,
-        metadataVersion,
-        agreementStampKind.rejection
-      )
-    );
-  }
-  if (stamps.suspensionByProducer) {
-    agreementStampsSQL.push(
-      makeStampSQL(
-        stamps.suspensionByProducer,
-        id,
-        metadataVersion,
-        agreementStampKind.suspensionByProducer
-      )
-    );
-  }
-  if (stamps.suspensionByConsumer) {
-    agreementStampsSQL.push(
-      makeStampSQL(
-        stamps.suspensionByConsumer,
-        id,
-        metadataVersion,
-        agreementStampKind.suspensionByConsumer
-      )
-    );
-  }
-  if (stamps.upgrade) {
-    agreementStampsSQL.push(
-      makeStampSQL(
-        stamps.upgrade,
-        id,
-        metadataVersion,
-        agreementStampKind.upgrade
-      )
-    );
-  }
-  if (stamps.archiving) {
-    agreementStampsSQL.push(
-      makeStampSQL(
-        stamps.archiving,
-        id,
-        metadataVersion,
-        agreementStampKind.archiving
-      )
-    );
-  }
-*/
+  const stampsSQL: AgreementStampSQL[] = Object.entries(stamps)
+    .filter((entry): entry is [AgreementStampKind, AgreementStamp] => {
+      const [, stamp] = entry;
+      return stamp !== undefined;
+    })
+    .map(([key, stamp]) => makeStampSQL(stamp, id, metadataVersion, key));
 
   const contractSQL = contract
     ? agreementDocumentToAgreementDocumentSQL(contract, id, metadataVersion)
