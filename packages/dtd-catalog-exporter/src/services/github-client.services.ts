@@ -1,4 +1,5 @@
-import { Octokit, RequestError } from "octokit";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Octokit } from "octokit";
 
 export class GithubClient {
   private octokit: Octokit;
@@ -41,9 +42,14 @@ export class GithubClient {
           filePath,
         }
       );
+
       return response.data.sha;
-    } catch (error) {
-      if (error instanceof RequestError && error.status === 404) {
+    } catch (error: any) {
+      if (
+        error.status === 404 ||
+        error.response?.status === 404 ||
+        error.data?.status === 404
+      ) {
         return undefined;
       } else {
         throw error;
