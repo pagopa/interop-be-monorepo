@@ -81,6 +81,7 @@ import {
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
   AgreementDocument,
+  AgreementStamp,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -235,6 +236,12 @@ export const getMockTenantMail = (
   kind,
   description: generateMock(z.string()),
   address: generateMock(z.string().email()),
+});
+
+export const getMockAgreementStamp = (): AgreementStamp => ({
+  who: generateId(),
+  when: new Date(),
+  delegationId: generateId<DelegationId>(),
 });
 
 export const getMockAgreementStamps = (): AgreementStamps => {
@@ -748,4 +755,5 @@ export const getMockContext = ({
   serviceName: serviceName || "test",
   correlationId: generateId(),
   logger: genericLogger,
+  requestTimestamp: Date.now(),
 });
