@@ -40,6 +40,7 @@ RUN pnpm build && \
   packages/models/ \
   packages/api-clients \
   packages/application-audit \
+  packages/kafka-iam-auth \
   packages/authorization-process/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
