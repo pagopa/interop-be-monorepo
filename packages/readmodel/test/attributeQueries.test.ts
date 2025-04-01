@@ -11,7 +11,7 @@ import {
 
 describe("Attribute queries", () => {
   describe("should insert or update an attribute in the db", () => {
-    it.only("should add a complete (*all* fields) attribute", async () => {
+    it("should add a complete (*all* fields) attribute", async () => {
       const attribute: Attribute = {
         ...getMockAttribute(),
         code: "test code",
