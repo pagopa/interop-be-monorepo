@@ -184,17 +184,9 @@ export function purposeServiceBuilder(
         )
       : undefined;
 
-    const clients =
-      requesterId === purpose.consumerId
-        ? (
-            await getAllClients(
-              authorizationClient,
-              requesterId,
-              purpose.id,
-              headers
-            )
-          ).map(toBffApiCompactClient)
-        : [];
+    const clients = (
+      await getAllClients(authorizationClient, requesterId, purpose.id, headers)
+    ).map(toBffApiCompactClient);
 
     return {
       id: purpose.id,
