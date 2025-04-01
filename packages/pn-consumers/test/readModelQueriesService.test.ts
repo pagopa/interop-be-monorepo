@@ -6,7 +6,7 @@ import {
   getMockTenant,
   getMockVerifiedTenantAttribute,
   setupTestContainersVitest,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { ReadModelQueriesClient } from "../src/services/readModelQueriesService.js";
 

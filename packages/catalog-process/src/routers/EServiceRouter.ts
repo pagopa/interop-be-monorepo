@@ -73,6 +73,7 @@ import {
   updateEServiceTemplateInstanceErrorMapper,
   updateDraftDescriptorTemplateInstanceErrorMapper,
   createTemplateInstanceDescriptorErrorMapper,
+  updateTemplateInstanceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -1016,14 +1017,16 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const upgradedEService = await catalogService.upgradeEServiceInstance(
+          const descriptor = await catalogService.upgradeEServiceInstance(
             unsafeBrandId(req.params.eServiceId),
             ctx
           );
           return res
             .status(200)
             .send(
-              catalogApi.EService.parse(eServiceToApiEService(upgradedEService))
+              catalogApi.EServiceDescriptor.parse(
+                descriptorToApiDescriptor(descriptor)
+              )
             );
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -1286,6 +1289,36 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createTemplateInstanceDescriptorErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/update",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const updatedEService =
+            await catalogService.updateTemplateInstanceDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstanceDescriptorErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

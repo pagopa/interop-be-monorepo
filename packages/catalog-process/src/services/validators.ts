@@ -162,6 +162,11 @@ export function assertIsDraftEservice(eservice: EService): void {
     throw eserviceNotInDraftState(eservice.id);
   }
 }
+export function assertIsDraftDescriptor(descriptor: Descriptor): void {
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
 
 export function assertIsReceiveEservice(eservice: EService): void {
   if (eservice.mode !== eserviceMode.receive) {
@@ -307,5 +312,11 @@ export function assertConsistentDailyCalls({
 }): void {
   if (dailyCallsPerConsumer > dailyCallsTotal) {
     throw inconsistentDailyCalls();
+  }
+}
+
+export function assertDescriptorUpdatable(descriptor: Descriptor): void {
+  if (!isDescriptorUpdatable(descriptor)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }

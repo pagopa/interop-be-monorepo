@@ -22,12 +22,13 @@ import { makeApiProblem } from "../model/errors.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  addEServiceInterfceByTemplateErrorMapper,
+  addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
   createEServiceDocumentErrorMapper,
   emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
+  getEServiceTemplateInstancesErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
@@ -942,11 +943,11 @@ const catalogRouter = (
     .post("/templates/eservices/:eServiceId/upgrade", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await catalogService.upgradeEServiceInstance(
+        const response = await catalogService.upgradeEServiceInstance(
           unsafeBrandId(req.params.eServiceId),
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send(bffApi.CreatedResource.parse(response));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -976,7 +977,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addEServiceInterfceByTemplateErrorMapper,
+            addEServiceInterfaceByTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error adding interface for eService ${req.params.eServiceId}`
@@ -1003,7 +1004,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addEServiceInterfceByTemplateErrorMapper,
+            addEServiceInterfaceByTemplateErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error adding interface for eService ${req.params.eServiceId}`
@@ -1032,14 +1033,60 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getEServiceTemplateInstancesErrorMapper,
           ctx.logger,
           ctx.correlationId,
           `Error retrieving eservice template ${templateId} instances`
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .get("/eservices/names/availability", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const { name } = req.query;
+
+      try {
+        const result = await catalogService.isEServiceNameAvailable(name, ctx);
+        return res.status(200).send(result);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          `Error checking eservice name availability with name ${name}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { id } = await catalogService.updateTemplateInstanceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(200).send(bffApi.CreatedResource.parse({ id }));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating template instance descriptor ${
+              req.params.descriptorId
+            } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
+              req.body
+            )}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return catalogRouter;
 };
