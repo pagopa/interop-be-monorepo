@@ -1858,5 +1858,22 @@ export function catalogServiceBuilder(
         (e) => e.name.toLowerCase() === name.toLowerCase()
       );
     },
+    updateTemplateInstanceDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Updating template instance descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      return await catalogProcessClient.updateTemplateInstanceDescriptor(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
   };
 }
