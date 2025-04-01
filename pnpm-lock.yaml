@@ -188,6 +188,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -514,6 +517,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -552,6 +558,40 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/application-audit:
+    dependencies:
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+
   packages/attribute-registry-process:
     dependencies:
       '@zodios/core':
@@ -581,6 +621,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -834,6 +877,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1074,6 +1120,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-client-assertion-validation:
         specifier: workspace:*
         version: link:../client-assertion-validation
@@ -1293,6 +1342,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2100,6 +2152,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2509,6 +2564,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3444,6 +3502,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -3789,6 +3850,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
