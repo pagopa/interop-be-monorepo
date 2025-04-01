@@ -1,19 +1,34 @@
 import { unauthorizedError } from "pagopa-interop-models";
-import { AppContext, AuthData, UserRole } from "../index.js";
+import { match } from "ts-pattern";
+import {
+  AppContext,
+  AuthData,
+  NonEmptyArray,
+  UIAuthData,
+  UserRole,
+} from "../index.js";
 
-export function hasUserRole(
+function isUiAuthData(authData: AuthData): authData is UIAuthData {
+  return match(authData)
+    .with({ tokenType: "ui" }, () => true)
+    .with({ tokenType: "m2m" }, () => false)
+    .with({ tokenType: "internal" }, () => false)
+    .with({ tokenType: "maintenance" }, () => false)
+    .exhaustive();
+}
+
+export function hasAtLeastOneRole(
   authData: AuthData,
   admittedUiUserRoles: ReadonlyArray<UserRole>
 ): boolean {
   return (
-    authData.tokenType === "ui" &&
+    isUiAuthData(authData) &&
     authData.userRoles.some((role: UserRole) =>
       admittedUiUserRoles.includes(role)
     )
   );
 }
 
-type NonEmptyArray<T> = [T, ...T[]];
 type TokenType = AuthData["tokenType"];
 
 /**
@@ -101,14 +116,14 @@ export function validateAuthorization<
 
   // 2) If "ui" is in the admitted token types and the token is actually "ui",
   // ensure we have a non-empty admitted user-roles array and that the user has a matching role.
-  if (admittedTokenTypes.includes("ui") && authData.tokenType === "ui") {
+  if (admittedTokenTypes.includes("ui") && isUiAuthData(authData)) {
     if (!admittedUiUserRoles || admittedUiUserRoles.length === 0) {
       throw unauthorizedError(
         `Must provide admittedUiUserRoles when validating authorization for "ui" token type`
       );
     }
 
-    if (!hasUserRole(authData, admittedUiUserRoles)) {
+    if (!hasAtLeastOneRole(authData, admittedUiUserRoles)) {
       throw unauthorizedError(
         `Invalid token type '${
           authData.tokenType
