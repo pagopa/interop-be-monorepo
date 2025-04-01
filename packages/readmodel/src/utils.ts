@@ -55,7 +55,32 @@ export const checkMetadataVersion = async <
   table: T,
   metadataVersion: number,
   id: string,
-  filter: SQL<unknown> = eq(table.id, id)
+  filter: SQL = eq(table.id, id)
+): Promise<boolean> => {
+  const [row] = await tx
+    .select({
+      metadataVersion: table.metadataVersion,
+    })
+    .from(table as AnyPgTable)
+    .where(filter);
+
+  const existingMetadataVersion = row?.metadataVersion;
+
+  if (existingMetadataVersion == null) {
+    return true;
+  }
+  return existingMetadataVersion <= metadataVersion;
+};
+export const checkMetadataVersionByFilter = async <
+  T extends AnyPgTable & {
+    metadataVersion: AnyPgColumn<{ data: number }>;
+  }
+>(
+  tx: DrizzleTransactionType,
+  table: T,
+  metadataVersion: number,
+  filter: SQL
+  // eslint-disable-next-line sonarjs/no-identical-functions
 ): Promise<boolean> => {
   const [row] = await tx
     .select({

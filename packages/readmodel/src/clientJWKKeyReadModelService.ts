@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
 import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
+import { checkMetadataVersionByFilter } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -15,28 +16,14 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                clientJwkKeyInReadmodelClientJwkKey.metadataVersion,
-            })
-            .from(clientJwkKeyInReadmodelClientJwkKey)
-            .where(
-              and(
-                eq(
-                  clientJwkKeyInReadmodelClientJwkKey.clientId,
-                  clientJWKKey.clientId
-                ),
-                eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
-              )
-            )
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersionByFilter(
+          tx,
+          clientJwkKeyInReadmodelClientJwkKey,
+          metadataVersion,
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(clientJwkKeyInReadmodelClientJwkKey)
             .where(
