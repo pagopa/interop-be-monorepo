@@ -365,6 +365,7 @@ describe("getPurposes", async () => {
       mockDelegatedPurpose1,
     ]);
   });
+
   it("should get purposes with filters: consumersIds", async () => {
     const result = await purposeService.getPurposes(
       {
