@@ -2,6 +2,7 @@
 import {
   initPDFGenerator,
   launchPuppeteerBrowser,
+  ReadModelRepository,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
@@ -35,16 +36,34 @@ import {
 import { purposeApi } from "pagopa-interop-api-clients";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
+import { config } from "../src/config/config.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
-  );
+export const {
+  cleanup,
+  readModelRepository,
+  postgresDB,
+  fileManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  inject("readModelConfig"),
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
@@ -55,7 +74,31 @@ export const attributes = readModelRepository.attributes;
 export const purposes = readModelRepository.purposes;
 export const delegations = readModelRepository.delegations;
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+export const purposeReadModelServiceSQL =
+  purposeReadModelServiceBuilder(readModelDB);
+export const catalogReadModelServiceSQL =
+  catalogReadModelServiceBuilder(readModelDB);
+export const tenantReadModelServiceSQL =
+  tenantReadModelServiceBuilder(readModelDB);
+export const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+export const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  purposeReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  delegationReadModelServiceSQL,
+});
+export const readModelService = config.featureFlagSQL
+  ? readModelServiceSQL
+  : oldReadModelService;
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
   pipe: true,
@@ -80,24 +123,34 @@ export const purposeService = purposeServiceBuilder(
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
+
+  await purposeReadModelServiceSQL.upsertPurpose(purpose, 1);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+
+  await catalogReadModelServiceSQL.upsertEService(eservice, 1);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
+
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 1);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 1);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
+
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 1);
 };
 
 export const writePurposeInEventstore = async (
