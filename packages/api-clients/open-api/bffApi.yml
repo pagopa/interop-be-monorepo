@@ -3308,8 +3308,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
