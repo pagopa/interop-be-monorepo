@@ -9,3 +9,6 @@ export * from "./attributeReadModelService.js";
 
 // TENANT
 export * from "./tenantReadModelService.js";
+
+// CLIENT JWK KEY
+export * from "./clientJWKKeyReadModelService.js";
