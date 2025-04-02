@@ -67,7 +67,7 @@ import {
   exists,
   ilike,
   inArray,
-  ne,
+  isNull,
   notExists,
   or,
 } from "drizzle-orm";
@@ -272,12 +272,12 @@ export function readModelServiceBuilderSQL(
             mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
             // isConsumerDelegable filter
             isConsumerDelegable === true
-              ? eq(
-                  eserviceInReadmodelCatalog.isConsumerDelegable,
-                  isConsumerDelegable
-                )
+              ? eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
               : isConsumerDelegable === false
-              ? ne(eserviceInReadmodelCatalog.isConsumerDelegable, true)
+              ? or(
+                  isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
+                  eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
+                )
               : undefined,
             // delegated filter
             delegated === true
