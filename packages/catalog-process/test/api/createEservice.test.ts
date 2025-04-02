@@ -24,8 +24,9 @@ describe("API /eservices authorization test", async () => {
     riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
   };
 
-  const mockApiEservice: catalogApi.EService =
-    eServiceToApiEService(mockEService);
+  const mockApiEservice: catalogApi.EService = catalogApi.EService.parse(
+    eServiceToApiEService(mockEService)
+  );
 
   const mockEserviceSeed: EServiceSeed = {
     name: mockApiEservice.name,
