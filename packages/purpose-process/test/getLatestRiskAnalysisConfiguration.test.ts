@@ -3,14 +3,12 @@ import {
   getMockContext,
   getMockTenant,
   getMockAuthData,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   TenantId,
   TenantKind,
   generateId,
   tenantKind,
-  toReadModelTenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { getLatestVersionFormRules } from "pagopa-interop-commons";
@@ -19,7 +17,7 @@ import {
   tenantNotFound,
   riskAnalysisConfigLatestVersionNotFound,
 } from "../src/model/domain/errors.js";
-import { tenants, purposeService } from "./utils.js";
+import { purposeService, addOneTenant } from "./utils.js";
 
 describe("retrieveLatestRiskAnalysisConfiguration", async () => {
   it.each(Object.values(tenantKind))(
@@ -29,7 +27,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
         ...getMockTenant(),
         kind,
       };
-      await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+      await addOneTenant(mockTenant);
 
       const result =
         await purposeService.retrieveLatestRiskAnalysisConfiguration({
@@ -57,7 +55,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
       ...getMockTenant(),
       kind: undefined,
     };
-    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+    await addOneTenant(mockTenant);
 
     expect(
       purposeService.retrieveLatestRiskAnalysisConfiguration({
@@ -71,7 +69,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
-    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+    await addOneTenant(mockTenant);
 
     const kind = "unknown" as TenantKind;
 

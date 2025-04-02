@@ -96,9 +96,12 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   delegationReadModelServiceSQL,
 });
-export const readModelService = config.featureFlagSQL
-  ? readModelServiceSQL
-  : oldReadModelService;
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
   pipe: true,
@@ -124,25 +127,25 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
 
-  await purposeReadModelServiceSQL.upsertPurpose(purpose, 1);
+  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 
-  await catalogReadModelServiceSQL.upsertEService(eservice, 1);
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
 
-  await tenantReadModelServiceSQL.upsertTenant(tenant, 1);
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 1);
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };
 
 export const addOneDelegation = async (
@@ -150,7 +153,7 @@ export const addOneDelegation = async (
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
 
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 1);
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
 };
 
 export const writePurposeInEventstore = async (
