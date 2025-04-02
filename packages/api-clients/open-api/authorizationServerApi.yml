@@ -67,20 +67,20 @@ paths:
           description: Bad request
           x-noqa: RFC6749
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           x-noqa: RFC6749
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:

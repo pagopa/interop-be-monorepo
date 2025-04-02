@@ -40,7 +40,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
@@ -73,7 +73,7 @@ paths:
         "404":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -117,7 +117,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients":
@@ -138,13 +138,13 @@ paths:
         "400":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Client already exists
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -170,7 +170,7 @@ paths:
         "400":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Lists Clients
@@ -242,7 +242,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -264,7 +264,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/users":
@@ -293,7 +293,7 @@ paths:
         "404":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -334,7 +334,7 @@ paths:
         "404":
           description: Client or User not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/keys":
@@ -355,13 +355,13 @@ paths:
         "400":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Client id not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -404,7 +404,7 @@ paths:
         "404":
           description: Client id not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/keys/{keyId}":
@@ -440,7 +440,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -469,7 +469,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/purposes":
@@ -505,7 +505,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/purposes/{purposeId}":
@@ -542,7 +542,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -572,7 +572,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /bulk/eservices/{eserviceId}/state:
@@ -604,7 +604,7 @@ paths:
         "400":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /bulk/agreements/eserviceId/{eserviceId}/consumerId/{consumerId}/state:
@@ -643,7 +643,7 @@ paths:
         "400":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /bulk/agreements/eservices/eserviceId/{eserviceId}/consumerId/{consumerId}/state:
@@ -682,7 +682,7 @@ paths:
         "400":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /bulk/purposes/{purposeId}/state:
@@ -714,7 +714,7 @@ paths:
         "400":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
