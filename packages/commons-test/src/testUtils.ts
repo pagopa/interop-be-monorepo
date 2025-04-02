@@ -160,6 +160,9 @@ export const getMockDescriptorPublished = (
     verified: verifiedAttributes,
   },
   rejectionReasons: undefined,
+  voucherLifespan: 600,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 10000,
 });
 
 export const getMockEServiceAttribute = (
