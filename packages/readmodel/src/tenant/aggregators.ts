@@ -12,6 +12,7 @@ import {
   TenantFeatureCertifier,
   TenantFeatureDelegatedConsumer,
   TenantFeatureDelegatedProducer,
+  TenantFeatureType,
   tenantFeatureType,
   TenantId,
   TenantKind,
@@ -59,7 +60,7 @@ export const aggregateTenant = ({
   });
 
   const features: TenantFeature[] = featuresSQL.map((feature) =>
-    match(feature.kind)
+    match(TenantFeatureType.parse(feature.kind))
       .with(tenantFeatureType.persistentCertifier, () => {
         if (!feature.certifierId) {
           throw genericInternalError(
@@ -93,9 +94,7 @@ export const aggregateTenant = ({
           availabilityTimestamp: stringToDate(feature.availabilityTimestamp),
         } satisfies TenantFeatureDelegatedConsumer;
       })
-      .otherwise(() => {
-        throw genericInternalError("Unexpected tenant feature");
-      })
+      .exhaustive()
   );
 
   const tenant: Tenant = {

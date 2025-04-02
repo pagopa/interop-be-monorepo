@@ -38,6 +38,7 @@
     "mongodb": "6.7.0",
     "openapi-zod-client": "1.18.1",
     "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.8.0",

@@ -80,6 +80,8 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
+  AgreementDocument,
+  AgreementStamp,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -237,6 +239,12 @@ export const getMockTenantMail = (
   address: generateMock(z.string().email()),
 });
 
+export const getMockAgreementStamp = (): AgreementStamp => ({
+  who: generateId(),
+  when: new Date(),
+  delegationId: generateId<DelegationId>(),
+});
+
 export const getMockAgreementStamps = (): AgreementStamps => {
   const stamps = generateMock(AgreementStamps);
   delete stamps.submission?.delegationId;
@@ -348,6 +356,15 @@ export const getMockDocument = (): Document => ({
   contentType: "json",
   checksum: "checksum",
   uploadDate: new Date(),
+});
+
+export const getMockAgreementDocument = (): AgreementDocument => ({
+  id: generateId(),
+  name: "fileName",
+  prettyName: "prettyName",
+  contentType: "json",
+  path: "filePath",
+  createdAt: new Date(),
 });
 
 export const getMockClient = (): Client => ({
@@ -740,6 +757,7 @@ export const getMockContext = ({
   serviceName: serviceName || "test",
   correlationId: generateId(),
   logger: genericLogger,
+  requestTimestamp: Date.now(),
 });
 
 export const sortBy =
@@ -775,6 +793,37 @@ export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
       ),
       features: [...tenant.features].sort(
         sortBy<TenantFeature>((feature) => feature.type)
+      ),
+    };
+  }
+};
+
+export const sortAgreement = <
+  T extends Agreement | WithMetadata<Agreement> | undefined
+>(
+  agreement: T
+): T => {
+  if (!agreement) {
+    return agreement;
+  } else if ("data" in agreement) {
+    return {
+      ...agreement,
+      data: sortAgreement(agreement.data),
+    };
+  } else {
+    return {
+      ...agreement,
+      verifiedAttributes: [...agreement.verifiedAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      certifiedAttributes: [...agreement.certifiedAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      declaredAttributes: [...agreement.declaredAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      consumerDocuments: [...agreement.consumerDocuments].sort(
+        sortBy<AgreementDocument>((doc) => doc.id)
       ),
     };
   }
