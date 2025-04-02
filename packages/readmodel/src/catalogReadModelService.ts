@@ -239,6 +239,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
   };
 }
 
-export type CatalogReadModelServiceSQL = ReturnType<
+export type CatalogReadModelService = ReturnType<
   typeof catalogReadModelServiceBuilder
 >;
