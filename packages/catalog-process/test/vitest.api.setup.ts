@@ -1,5 +1,15 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
+
+vi.mock("pagopa-interop-application-audit", async () => ({
+  applicationAuditBeginMiddleware: vi.fn(
+    async () => (_req: Request, _res: Response, next: NextFunction) => next()
+  ),
+  applicationAuditEndMiddleware: vi.fn(
+    async () => (_req: Request, _res: Response, next: NextFunction) => next()
+  ),
+}));
 
 vi.mock("pagopa-interop-commons", async () => {
   const actual = await vi.importActual<typeof import("pagopa-interop-commons")>(

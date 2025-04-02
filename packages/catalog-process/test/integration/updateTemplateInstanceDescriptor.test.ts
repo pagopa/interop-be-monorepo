@@ -24,17 +24,19 @@ import {
   notValidDescriptorState,
   inconsistentDailyCalls,
   eServiceNotAnInstance,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
-  addOneDelegation,
+  getMockEService,
+  getMockDescriptor,
+  getMockDocument,
+} from "../mockUtils.js";
+import {
   addOneEService,
   addOneEServiceTemplate,
   catalogService,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
   readLastEserviceEvent,
-} from "./utils.js";
+  addOneDelegation,
+} from "../integrationUtils.js";
 
 describe("update descriptor", () => {
   const mockEService = getMockEService();

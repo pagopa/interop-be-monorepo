@@ -36,15 +36,6 @@ import {
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
-import { config } from "../src/config/config.js";
-import {
-  eServiceDescriptorNotFound,
-  eserviceInterfaceDataNotValid,
-  eServiceNotAnInstance,
-  eServiceNotFound,
-  eserviceTemplateInterfaceNotFound,
-  eServiceTemplateNotFound,
-} from "../src/model/domain/errors.js";
 import {
   catalogService,
   addOneEService,
@@ -52,12 +43,21 @@ import {
   fileManager,
   addOneDelegation,
   readLastEserviceEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { config } from "../../src/config/config.js";
+import {
+  eServiceDescriptorNotFound,
+  eserviceInterfaceDataNotValid,
+  eServiceNotAnInstance,
+  eServiceNotFound,
+  eserviceTemplateInterfaceNotFound,
+  eServiceTemplateNotFound,
+} from "../../src/model/domain/errors.js";
 
 const readFileContent = async (fileName: string): Promise<string> => {
   const filename = fileURLToPath(import.meta.url);
   const dirname = path.dirname(filename);
-  const filePath = `./resources/${fileName}`;
+  const filePath = `./../resources/${fileName}`;
 
   const fileContent = await fs.readFile(`${dirname}/${filePath}`);
   return fileContent.toString();

@@ -13,12 +13,9 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { createPayload } from "../mockedPayloadForToken.js";
 import { api } from "../vitest.api.setup.js";
 import { eServiceNameDuplicate } from "../../src/model/domain/errors.js";
-import {
-  getMockDescriptor,
-  getMockEService,
-  getMockEserviceSeed,
-} from "../mockUtils.js";
+import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
+import { EServiceSeed } from "../../../api-clients/dist/catalogApi.js";
 
 describe("API /eservices authorization test", () => {
   const mockEService: EService = {
@@ -31,7 +28,21 @@ describe("API /eservices authorization test", () => {
     eServiceToApiEService(mockEService)
   );
 
-  const mockEserviceSeed = getMockEserviceSeed(mockApiEservice);
+  const mockEserviceSeed: EServiceSeed = {
+    name: mockApiEservice.name,
+    description: mockApiEservice.description,
+    technology: "REST",
+    mode: "RECEIVE",
+    descriptor: {
+      audience: mockApiEservice.descriptors[0].audience,
+      voucherLifespan: mockApiEservice.descriptors[0].voucherLifespan,
+      dailyCallsPerConsumer:
+        mockApiEservice.descriptors[0].dailyCallsPerConsumer,
+      dailyCallsTotal: mockApiEservice.descriptors[0].dailyCallsTotal,
+      agreementApprovalPolicy:
+        mockApiEservice.descriptors[0].agreementApprovalPolicy,
+    },
+  };
 
   vi.spyOn(catalogService, "createEService").mockResolvedValue(mockEService);
 
@@ -56,13 +67,11 @@ describe("API /eservices authorization test", () => {
     }
   );
 
-  it.each([
-    userRoles.INTERNAL_ROLE,
-    userRoles.M2M_ROLE,
-    userRoles.MAINTENANCE_ROLE,
-    userRoles.SECURITY_ROLE,
-    userRoles.SUPPORT_ROLE,
-  ])("Should return 403 for user with role %s", async (role) => {
+  it.each(
+    Object.values(userRoles).filter(
+      (role) => role !== userRoles.ADMIN_ROLE && role !== userRoles.API_ROLE
+    )
+  )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
     const res = await makeRequest(token, mockEserviceSeed);
 
