@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: tenant Process Micro Service
   description: Offers operations to retrieve tenant data
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/tenant-process/{{version}}"
+  - url: "/tenant-process/v1"
     description: This service is the tenant process
 security:
   - bearerAuth: []
@@ -33,6 +33,11 @@ tags:
       url: "http://swagger.io"
   - name: selfcare
     description: Implements selfcare tenant process
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: tenantAttribute
+    description: Tenant attribute
     externalDocs:
       description: Find out more
       url: "http://swagger.io"

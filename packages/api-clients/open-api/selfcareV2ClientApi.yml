@@ -3,92 +3,98 @@ info:
   title: External API service
   description: This service is the proxy for external services
   version: 2.0.0
+  contact:
+    name: API Support
+    url: "http://www.example.com/support"
+    email: support@example.com
 servers:
-- url: https://${host}/${basePath}
+  - url: https://selfacare.pagopa.it
 tags:
-- name: Institution
-  description: Institution V 2 Controller
-- name: Token
-  description: Token Controller
-- name: User
-  description: User V 2 Controller
-- name: Delegation
-  description: Delegation Controller
-- name: UserGroup
-  description: User group endpoint CRUD operations
+  - name: Institution
+    description: Institution V 2 Controller
+  - name: Token
+    description: Token Controller
+  - name: User
+    description: User V 2 Controller
+  - name: Delegation
+    description: Delegation Controller
+  - name: UserGroup
+    description: User group endpoint CRUD operations
+  - name: Message
+    description: Message endopoints
 paths:
   "/delegations":
     get:
       tags:
-      - Delegation
+        - Delegation
       summary: Retrieve institution's delegations
       description: Retrieve institution's delegations
       operationId: getDelegationsUsingGET
       parameters:
-      - name: institutionId
-        in: query
-        description: The internal identifier of the institution
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: brokerId
-        in: query
-        description: The internal identifier of the institution
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: productId
-        in: query
-        description: Product's unique identifier
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: search
-        in: query
-        description: Description ente
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: taxCode
-        in: query
-        description: Institution's tax code
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: order
-        in: query
-        description: Order to show response NONE, ASC, DESC
-        required: false
-        style: form
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-          - NONE
-      - name: page
-        in: query
-        description: page
-        required: false
-        style: form
-        schema:
-          type: integer
-          format: int32
-      - name: size
-        in: query
-        description: size
-        required: false
-        style: form
-        schema:
-          type: integer
-          format: int32
+        - name: institutionId
+          in: query
+          description: The internal identifier of the institution
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: brokerId
+          in: query
+          description: The internal identifier of the institution
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: productId
+          in: query
+          description: Product's unique identifier
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Description ente
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: taxCode
+          in: query
+          description: Institution's tax code
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: Order to show response NONE, ASC, DESC
+          required: false
+          style: form
+          schema:
+            type: string
+            enum:
+              - ASC
+              - DESC
+              - NONE
+        - name: page
+          in: query
+          description: page
+          required: false
+          style: form
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          description: size
+          required: false
+          style: form
+          schema:
+            type: integer
+            format: int32
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -96,351 +102,280 @@ paths:
                 type: array
                 items:
                   "$ref": "#/components/schemas/DelegationResponse"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
-  "/institutions/":
+  "/institutions":
     get:
       tags:
-      - Institution
+        - Institution
       summary: Gets institutions filtering by taxCode and/or subunitCode
       description: Gets institutions filtering by taxCode and/or subunitCode
       operationId: getInstitutionsUsingGET
       parameters:
-      - name: taxCode
-        in: query
-        description: Institution's tax code
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: subunitCode
-        in: query
-        description: Institution's subunit code
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: origin
-        in: query
-        description: origin
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: originId
-        in: query
-        description: originId
-        required: false
-        style: form
-        schema:
-          type: string
+        - name: taxCode
+          in: query
+          description: Institution's tax code
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: subunitCode
+          in: query
+          description: Institution's subunit code
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: origin
+          in: query
+          description: origin
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: originId
+          in: query
+          description: originId
+          required: false
+          style: form
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/InstitutionsResponse"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
-  "/institutions":
-    get:
-      tags:
-      - institutions
-      summary: getInstitutions
-      deprecated: true
-      description: The service retrieves all the onboarded institutions related to
-        the provided user and the product retrieved from Subscription Key. It is deprecated
-        in favor of endpoint /users?institutionId={institutionId}
-      operationId: getInstitutionsUsingGETDeprecated
-      parameters:
-      - name: userIdForAuth
-        in: query
-        description: User's unique identifier
-        required: true
-        style: form
-        schema:
-          type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/InstitutionResource"
-        '400':
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                "$ref": "#/components/schemas/Problem"
-        '401':
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                "$ref": "#/components/schemas/Problem"
-        '404':
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                "$ref": "#/components/schemas/Problem"
-        '500':
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/institutions/{id}":
     get:
       tags:
-      - Institution
+        - Institution
       summary: Gets the corresponding institution using internal institution id
       description: Gets the corresponding institution using internal institution id
       operationId: retrieveInstitutionByIdUsingGET
       parameters:
-      - name: id
-        in: path
-        description: The internal identifier of the institution
-        required: true
-        style: simple
-        schema:
-          type: string
+        - name: id
+          in: path
+          description: The internal identifier of the institution
+          required: true
+          style: simple
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/InstitutionResponse"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/institutions/{institutionId}/onboardings":
     get:
       tags:
-      - Institution
+        - Institution
       summary: Retrieve institution information
       description: Retrieve institution information
       operationId: getOnboardingsInstitutionUsingGET
       parameters:
-      - name: institutionId
-        in: path
-        description: The internal identifier of the institution
-        required: true
-        style: simple
-        schema:
-          type: string
-      - name: productId
-        in: query
-        description: productId
-        required: false
-        style: form
-        schema:
-          type: string
+        - name: institutionId
+          in: path
+          description: The internal identifier of the institution
+          required: true
+          style: simple
+          schema:
+            type: string
+        - name: productId
+          in: query
+          description: productId
+          required: false
+          style: form
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/OnboardingsResponse"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/users/{id}":
     get:
       tags:
-      - User
+        - User
       summary: Retrieve user information by userId and optional ProductId
       description: Retrieves user given userId and optional ProductId
       operationId: getUserInfoUsingGET
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: institutionId
-        in: query
-        schema:
-          type: string
-      - name: productId
-        in: query
-        schema:
-          type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: institutionId
+          in: query
+          schema:
+            type: string
+        - name: productId
+          in: query
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/UserResponse"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem1"
-        '401':
+        "401":
           description: Not Authorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem1"
-        '403':
+        "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem1"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem1"
-      security:
-      - apiKeyHeader:
-        - global
   "/institutions/{institutionId}/contract":
     get:
       tags:
-      - Institution
+        - Institution
       summary: getContract
       description: Service to retrieve a contract given institutionId and productId
       operationId: getContractUsingGET
       parameters:
-      - name: institutionId
-        in: path
-        description: Institution's unique internal Id
-        required: true
-        style: simple
-        schema:
-          type: string
-      - name: productId
-        in: query
-        description: Product's unique identifier
-        required: false
-        style: form
-        schema:
-          type: string
+        - name: institutionId
+          in: path
+          description: Institution's unique internal Id
+          required: true
+          style: simple
+          schema:
+            type: string
+        - name: productId
+          in: query
+          description: Product's unique identifier
+          required: false
+          style: form
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/octet-stream:
               schema:
                 type: string
                 format: byte
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/institutions/{institutionId}/products":
     get:
       tags:
-      - Institution
+        - Institution
       summary: getInstitutionProducts
-      description: Service to retrieve all active products for given institution and
+      description:
+        Service to retrieve all active products for given institution and
         logged user
       operationId: getInstitutionProductsUsingGET
       parameters:
-      - name: institutionId
-        in: path
-        description: Institution's unique internal Id
-        required: true
-        style: simple
-        schema:
-          type: string
-      - name: userId
-        in: query
-        description: User's unique identifier
-        required: true
-        style: form
-        schema:
-          type: string
+        - name: institutionId
+          in: path
+          description: Institution's unique internal Id
+          required: true
+          style: simple
+          schema:
+            type: string
+        - name: userId
+          in: query
+          description: User's unique identifier
+          required: true
+          style: form
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -448,79 +383,77 @@ paths:
                 type: array
                 items:
                   "$ref": "#/components/schemas/ProductResource"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/institutions/{institutionId}/users":
     get:
       tags:
-      - Institution
+        - Institution
       summary: getInstitutionUsersByProduct
-      description: Service to get all the active users related to a specific pair
+      description:
+        Service to get all the active users related to a specific pair
         of institution-product
       operationId: getInstitutionUsersByProductUsingGET
       parameters:
-      - name: institutionId
-        in: path
-        description: Institution's unique internal Id
-        required: true
-        style: simple
-        schema:
-          type: string
-      - name: productId
-        in: query
-        description: Product's unique identifier
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: userId
-        in: query
-        description: User's unique identifier
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: productRoles
-        in: query
-        description: Specific role of the user related to the product.
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: x-selfcare-uid
-        in: header
-        description: x-selfcare-uid
-        required: false
-        schema:
-          type: string
+        - name: institutionId
+          in: path
+          description: Institution's unique internal Id
+          required: true
+          style: simple
+          schema:
+            type: string
+        - name: productId
+          in: query
+          description: Product's unique identifier
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: userId
+          in: query
+          description: User's unique identifier
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: productRoles
+          in: query
+          description: Specific role of the user related to the product.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: x-selfcare-uid
+          in: header
+          description: x-selfcare-uid
+          required: false
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -528,188 +461,186 @@ paths:
                 type: array
                 items:
                   "$ref": "#/components/schemas/UserResource"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/tokens/products/{productId}":
     get:
       tags:
-      - Token
+        - Token
       summary: Service to retrieve tokens from product's identifier
       description: Service to retrieve tokens from product's identifier
       operationId: getTokensFromProductUsingGET
       parameters:
-      - name: productId
-        in: path
-        description: Product's identifier
-        required: true
-        style: simple
-        schema:
-          type: string
-      - name: page
-        in: query
-        description: Number of page
-        required: false
-        style: form
-        schema:
-          type: integer
-          format: int32
-      - name: size
-        in: query
-        description: Number of elements per page
-        required: false
-        style: form
-        schema:
-          type: integer
-          format: int32
-      - name: status
-        in: query
-        description: 'Token''s status. Available values: REQUEST, TOBEVALIDATED, PENDING,
-          COMPLETED, FAILED, REJECTED, DELETED'
-        required: false
-        style: form
-        schema:
-          type: string
+        - name: productId
+          in: path
+          description: Product's identifier
+          required: true
+          style: simple
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Number of page
+          required: false
+          style: form
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          description: Number of elements per page
+          required: false
+          style: form
+          schema:
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          description:
+            "Token's status. Available values: REQUEST, TOBEVALIDATED, PENDING,
+            COMPLETED, FAILED, REJECTED, DELETED"
+          required: false
+          style: form
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/TokensResource"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/users":
     get:
       tags:
-      - User
+        - User
       summary: getUserInstitution
-      description: This endpoint retrieves detailed information about a user's association
+      description:
+        This endpoint retrieves detailed information about a user's association
         with various products within an institution. The response provides a comprehensive
         view of the user's roles, product statuses and the relevant timestamps.
       operationId: v2getUserInstitution
       parameters:
-      - name: institutionId
-        in: query
-        description: Institution's unique internal Id
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: userId
-        in: query
-        description: User's unique identifier
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: roles
-        in: query
-        description: General role of the user related to the product.
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ADMIN_EA
-          - DELEGATE
-          - MANAGER
-          - OPERATOR
-          - SUB_DELEGATE
-      - name: states
-        in: query
-        description: 'The current status of the user on the product. <br>Available
-          values: ACTIVE, PENDING, TOBEVALIDATED, SUSPENDED, DELETED, REJECTED'
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: products
-        in: query
-        description: products
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: productRoles
-        in: query
-        description: 'The current status of the user on the product. <br>Available
-          values: ACTIVE, PENDING, TOBEVALIDATED, SUSPENDED, DELETED, REJECTED'
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: page
-        in: query
-        description: page
-        required: false
-        style: form
-        schema:
-          type: integer
-          format: int32
-      - name: size
-        in: query
-        description: size
-        required: false
-        style: form
-        schema:
-          type: integer
-          format: int32
+        - name: institutionId
+          in: query
+          description: Institution's unique internal Id
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: userId
+          in: query
+          description: User's unique identifier
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: roles
+          in: query
+          description: General role of the user related to the product.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            enum:
+              - ADMIN_EA
+              - DELEGATE
+              - MANAGER
+              - OPERATOR
+              - SUB_DELEGATE
+        - name: states
+          in: query
+          description:
+            "The current status of the user on the product. <br>Available
+            values: ACTIVE, PENDING, TOBEVALIDATED, SUSPENDED, DELETED, REJECTED"
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: products
+          in: query
+          description: products
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: productRoles
+          in: query
+          description:
+            "The current status of the user on the product. <br>Available
+            values: ACTIVE, PENDING, TOBEVALIDATED, SUSPENDED, DELETED, REJECTED"
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: page
+          required: false
+          style: form
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          description: size
+          required: false
+          style: form
+          schema:
+            type: integer
+            format: int32
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -717,38 +648,36 @@ paths:
                 type: array
                 items:
                   "$ref": "#/components/schemas/UserInstitutionResource"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
     post:
       tags:
-      - User
+        - User
       summary: getUserInfo
-      description: Service to retrieve user info including institutions and products
+      description:
+        Service to retrieve user info including institutions and products
         linked to him, this service retrives 100 institutions at most
       operationId: V2getUserInfoUsingGET
       requestBody:
@@ -757,241 +686,232 @@ paths:
             schema:
               "$ref": "#/components/schemas/SearchUserDto"
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/UserInfoResource"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/user-groups":
     get:
       tags:
-      - UserGroup
+        - UserGroup
       summary: getUserGroups
       description: Service that allows to get a list of UserGroup entities
       operationId: getUserGroupsUsingGET
       parameters:
-      - name: institutionId
-        in: query
-        description: Users group's institutionId
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: page
-        in: query
-        description: The page number to access (0 indexed, defaults to 0)
-        required: false
-        style: form
-        allowReserved: true
-        schema:
-          type: integer
-          format: int32
-      - name: size
-        in: query
-        description: Number of records per page (defaults to 20, max 2000)
-        required: false
-        style: form
-        allowReserved: true
-        schema:
-          type: integer
-          format: int32
-      - name: sort
-        in: query
-        description: 'Sorting criteria in the format: property(,asc|desc). Default
-          sort order is ascending. Multiple sort criteria are supported.'
-        required: false
-        style: form
-        allowReserved: true
-        schema:
-          type: array
-          items:
+        - name: institutionId
+          in: query
+          description: Users group's institutionId
+          required: false
+          style: form
+          schema:
             type: string
-      - name: productId
-        in: query
-        description: Users group's productId
-        required: false
-        style: form
-        schema:
-          type: string
-      - name: userId
-        in: query
-        description: Member's unique identifier
-        required: false
-        style: form
-        schema:
-          type: string
-          format: uuid
-      - name: status
-        in: query
-        description: If filter on status is present, it must be used with at least
-          one of the other filters
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ACTIVE
-          - DELETED
-          - SUSPENDED
+        - name: page
+          in: query
+          description: The page number to access (0 indexed, defaults to 0)
+          required: false
+          style: form
+          allowReserved: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          description: Number of records per page (defaults to 20, max 2000)
+          required: false
+          style: form
+          allowReserved: true
+          schema:
+            type: integer
+            format: int32
+        - name: sort
+          in: query
+          description:
+            "Sorting criteria in the format: property(,asc|desc). Default
+            sort order is ascending. Multiple sort criteria are supported."
+          required: false
+          style: form
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: productId
+          in: query
+          description: Users group's productId
+          required: false
+          style: form
+          schema:
+            type: string
+        - name: userId
+          in: query
+          description: Member's unique identifier
+          required: false
+          style: form
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description:
+            If filter on status is present, it must be used with at least
+            one of the other filters
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - DELETED
+              - SUSPENDED
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/PageOfUserGroupResource"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/message/{messageId}/status/{status}":
     post:
-      tags: []
+      tags:
+        - Message
       summary: messageAcknowledgment
       description: Service to acknowledge message consumption by a consumer
       operationId: messageAcknowledgmentUsingPOST
       parameters:
-      - name: messageId
-        in: path
-        description: Kafka message unique identifier
-        required: true
-        style: simple
-        schema:
-          type: string
-      - name: status
-        in: path
-        description: Kafka message consumption acknowledgment status
-        required: true
-        style: simple
-        schema:
-          type: string
-          enum:
-          - ACK
-          - NACK
+        - name: messageId
+          in: path
+          description: Kafka message unique identifier
+          required: true
+          style: simple
+          schema:
+            type: string
+        - name: status
+          in: path
+          description: Kafka message consumption acknowledgment status
+          required: true
+          style: simple
+          schema:
+            type: string
+            enum:
+              - ACK
+              - NACK
       requestBody:
         content:
           application/json:
             schema:
               "$ref": "#/components/schemas/AckPayloadRequest"
       responses:
-        '200':
+        "200":
           description: OK
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
   "/user-groups/{id}":
     get:
       tags:
-      - UserGroup
+        - UserGroup
       summary: getUserGroup
       description: Service to get a specific UserGroup entity
       operationId: getUserGroupUsingGET
       parameters:
-      - name: id
-        in: path
-        description: Users group's unique identifier
-        required: true
-        style: simple
-        schema:
-          type: string
+        - name: id
+          in: path
+          description: Users group's unique identifier
+          required: true
+          style: simple
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/UserGroupResource"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '404':
+        "404":
           description: Not Found
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
                 "$ref": "#/components/schemas/Problem"
-      security:
-      - apiKeyHeader:
-        - global
 components:
   schemas:
     DelegationResponse:
@@ -1024,24 +944,24 @@ components:
         status:
           type: string
           enum:
-          - ACTIVE
-          - DELETED
+            - ACTIVE
+            - DELETED
         taxCode:
           type: string
         type:
           type: string
           enum:
-          - AOO
-          - EA
-          - PT
+            - AOO
+            - EA
+            - PT
         updatedAt:
           type: string
           format: date-time
     Problem:
       title: Problem
       required:
-      - status
-      - title
+        - status
+        - title
       type: object
       properties:
         detail:
@@ -1066,13 +986,14 @@ components:
         type:
           type: string
           description: A URL to a page with more details regarding the problem.
-      description: A "problem detail" as a way to carry machine-readable details of
+      description:
+        A "problem detail" as a way to carry machine-readable details of
         errors (https://datatracker.ietf.org/doc/html/rfc7807)
     InvalidParam:
       title: InvalidParam
       required:
-      - name
-      - reason
+        - name
+        - reason
       type: object
       properties:
         name:
@@ -1211,12 +1132,12 @@ components:
         status:
           type: string
           enum:
-          - ACTIVE
-          - DELETED
-          - PENDING
-          - REJECTED
-          - SUSPENDED
-          - TOBEVALIDATED
+            - ACTIVE
+            - DELETED
+            - PENDING
+            - REJECTED
+            - SUSPENDED
+            - TOBEVALIDATED
         updatedAt:
           type: string
           format: date-time
@@ -1285,12 +1206,12 @@ components:
         status:
           type: string
           enum:
-          - ACTIVE
-          - DELETED
-          - PENDING
-          - REJECTED
-          - SUSPENDED
-          - TOBEVALIDATED
+            - ACTIVE
+            - DELETED
+            - PENDING
+            - REJECTED
+            - SUSPENDED
+            - TOBEVALIDATED
         tokenId:
           type: string
         updatedAt:
@@ -1298,9 +1219,9 @@ components:
           format: date-time
     UserResponse:
       required:
-      - id
-      - name
-      - surname
+        - id
+        - name
+        - surname
       type: object
       properties:
         id:
@@ -1348,7 +1269,7 @@ components:
     AckPayloadRequest:
       title: AckPayloadRequest
       required:
-      - message
+        - message
       type: object
       properties:
         message:
@@ -1357,13 +1278,13 @@ components:
     ProductResource:
       title: ProductResource
       required:
-      - contractTemplatePath
-      - contractTemplateVersion
-      - description
-      - id
-      - roleMappings
-      - title
-      - urlBO
+        - contractTemplatePath
+        - contractTemplateVersion
+        - description
+        - id
+        - roleMappings
+        - title
+        - urlBO
       type: object
       properties:
         contractTemplatePath:
@@ -1410,11 +1331,13 @@ components:
           description: Product's title
         urlBO:
           type: string
-          description: URL that redirects to the back-office section, where is possible
+          description:
+            URL that redirects to the back-office section, where is possible
             to manage the product
         urlPublic:
           type: string
-          description: URL that redirects to the public information webpage of the
+          description:
+            URL that redirects to the public information webpage of the
             product
     ProductRoleInfo:
       title: ProductRoleInfo
@@ -1445,9 +1368,9 @@ components:
     UserResource:
       title: UserResource
       required:
-      - id
-      - name
-      - surname
+        - id
+        - name
+        - surname
       type: object
       properties:
         email:
@@ -1467,11 +1390,11 @@ components:
           type: string
           description: User's role
           enum:
-          - ADMIN_EA
-          - DELEGATE
-          - MANAGER
-          - OPERATOR
-          - SUB_DELEGATE
+            - ADMIN_EA
+            - DELEGATE
+            - MANAGER
+            - OPERATOR
+            - SUB_DELEGATE
         roles:
           type: array
           description: User's roles in product
@@ -1557,17 +1480,17 @@ components:
         institutionType:
           type: string
           enum:
-          - AS
-          - CON
-          - GSP
-          - PA
-          - PG
-          - PRV
-          - PSP
-          - PT
-          - REC
-          - SA
-          - SCP
+            - AS
+            - CON
+            - GSP
+            - PA
+            - PG
+            - PRV
+            - PSP
+            - PT
+            - REC
+            - SA
+            - SCP
         paymentServiceProvider:
           "$ref": "#/components/schemas/PaymentServiceProvider"
         rea:
@@ -1629,10 +1552,10 @@ components:
         env:
           type: string
           enum:
-          - COLL
-          - DEV
-          - PROD
-          - ROOT
+            - COLL
+            - DEV
+            - PROD
+            - ROOT
         partyId:
           type: string
         relationshipId:
@@ -1640,15 +1563,15 @@ components:
         role:
           type: string
           enum:
-          - ADMIN_EA
-          - DELEGATE
-          - MANAGER
-          - OPERATOR
-          - SUB_DELEGATE
+            - ADMIN_EA
+            - DELEGATE
+            - MANAGER
+            - OPERATOR
+            - SUB_DELEGATE
     UserInstitutionResource:
       title: UserInstitutionResource
       required:
-      - userId
+        - userId
       type: object
       properties:
         id:
@@ -1665,7 +1588,8 @@ components:
           description: The root name of the institution
         products:
           type: array
-          description: Object that includes all info about onboarded institutions
+          description:
+            Object that includes all info about onboarded institutions
             linked to a user
           items:
             "$ref": "#/components/schemas/UserProductResource"
@@ -1690,12 +1614,14 @@ components:
           description: The specific role label of the user related to the product.
         role:
           type: string
-          description: 'Available values: MANAGER, DELEGATE, SUB_DELEGATE, OPERATOR,
-            ADMIN_EA'
+          description:
+            "Available values: MANAGER, DELEGATE, SUB_DELEGATE, OPERATOR,
+            ADMIN_EA"
         status:
           type: string
-          description: 'The current status of the user on the product. <br>Available
-            values: ACTIVE, PENDING, TOBEVALIDATED, SUSPENDED, DELETED, REJECTED'
+          description:
+            "The current status of the user on the product. <br>Available
+            values: ACTIVE, PENDING, TOBEVALIDATED, SUSPENDED, DELETED, REJECTED"
         tokenId:
           type: string
           description: A unique identifier for the token associated with the product.
@@ -1708,12 +1634,13 @@ components:
       properties:
         onboardedInstitutions:
           type: array
-          description: Object that includes all info about onboarded institutions
+          description:
+            Object that includes all info about onboarded institutions
             linked to a user
           items:
             "$ref": "#/components/schemas/OnboardedInstitutionResource"
         user:
-          description: Object that includes all info about a user
+          # Object that includes all info about a user
           "$ref": "#/components/schemas/UserResource"
     OnboardedInstitutionResource:
       title: OnboardedInstitutionResource
@@ -1735,19 +1662,19 @@ components:
           type: string
           description: Institution's type
           enum:
-          - AS
-          - CON
-          - GSP
-          - PA
-          - PG
-          - PRV
-          - PSP
-          - PT
-          - REC
-          - SA
-          - SCP
+            - AS
+            - CON
+            - GSP
+            - PA
+            - PG
+            - PRV
+            - PSP
+            - PT
+            - REC
+            - SA
+            - SCP
         productInfo:
-          description: Products' info of onboardings
+          # Products' info of onboardings
           "$ref": "#/components/schemas/ProductInfo"
         state:
           type: string
@@ -1779,7 +1706,7 @@ components:
     SearchUserDto:
       title: SearchUserDto
       required:
-      - fiscalCode
+        - fiscalCode
       type: object
       properties:
         fiscalCode:
@@ -1791,20 +1718,20 @@ components:
           items:
             type: string
             enum:
-            - ACTIVE
-            - DELETED
-            - PENDING
-            - REJECTED
-            - SUSPENDED
-            - TOBEVALIDATED
+              - ACTIVE
+              - DELETED
+              - PENDING
+              - REJECTED
+              - SUSPENDED
+              - TOBEVALIDATED
     PageOfUserGroupResource:
       title: PageOfUserGroupResource
       required:
-      - content
-      - number
-      - size
-      - totalElements
-      - totalPages
+        - content
+        - number
+        - size
+        - totalElements
+        - totalPages
       type: object
       properties:
         content:
@@ -1828,176 +1755,15 @@ components:
           type: integer
           description: The number of total pages
           format: int32
-    InstitutionResource:
-      title: InstitutionResource
-      type: object
-      properties:
-        address:
-          type: string
-          description: Institution's physical address
-        aooParentCode:
-          type: string
-          description: AOO unit parent institution Code
-        assistanceContacts:
-          description: Institution's assistance contacts
-          "$ref": "#/components/schemas/AssistanceContactsResource"
-        city:
-          type: string
-          description: Institution's physical address city
-        companyInformations:
-          description: GPS, SCP, PT optional data
-          "$ref": "#/components/schemas/CompanyInformationsResource"
-        country:
-          type: string
-          description: Institution's physical address country
-        county:
-          type: string
-          description: Institution's physical address county
-        description:
-          type: string
-          description: Institution's legal name
-        digitalAddress:
-          type: string
-          description: Institution's digitalAddress
-        dpoData:
-          description: Data Protection Officer (DPO) specific data
-          "$ref": "#/components/schemas/DpoDataResource"
-        externalId:
-          type: string
-          description: Institution's unique external identifier
-        id:
-          type: string
-          description: Institution's unique internal Id
-          format: uuid
-        institutionType:
-          type: string
-          description: Institution's type
-          enum:
-          - AS
-          - GSP
-          - PA
-          - PG
-          - PSP
-          - PT
-          - SA
-          - SCP
-          - REC
-          - CON
-        origin:
-          type: string
-          description: Institution data origin
-        originId:
-          type: string
-          description: Institution's details origin Id
-        pspData:
-          description: Payment Service Provider (PSP) specific data
-          "$ref": "#/components/schemas/PspDataResource"
-        recipientCode:
-          type: string
-          description: Billing recipient code, not required only for institutionType
-            SA
-        rootParent:
-          description: Institution AOO/UO root institutionDescription
-          "$ref": "#/components/schemas/RootParentResource"
-        status:
-          type: string
-          description: Institution onboarding status
-        subunitCode:
-          type: string
-          description: Institutions AOO/UO unit Code
-        subunitType:
-          type: string
-          description: Institutions AOO/UO unit type
-        taxCode:
-          type: string
-          description: Institution's taxCode
-        userProductRoles:
-          type: array
-          description: Logged user's roles on product
-          items:
-            type: string
-        zipCode:
-          type: string
-          description: Institution's zipCode
-    AssistanceContactsResource:
-      title: AssistanceContactsResource
-      type: object
-      properties:
-        supportEmail:
-          type: string
-          description: Institution's support email contact
-        supportPhone:
-          type: string
-          description: Institution's support phone contact
-    CompanyInformationsResource:
-      title: CompanyInformationsResource
-      type: object
-      properties:
-        businessRegisterPlace:
-          type: string
-          description: Institution's business register place
-        rea:
-          type: string
-          description: Institution's REA
-        shareCapital:
-          type: string
-          description: Institution's share capital value
-    DpoDataResource:
-      title: DpoDataResource
-      type: object
-      properties:
-        address:
-          type: string
-          description: DPO's address
-        email:
-          type: string
-          description: DPO's email
-          format: email
-          example: email@example.com
-        pec:
-          type: string
-          description: DPO's PEC
-          format: email
-          example: email@example.com
-    RootParentResource:
-      title: RootParentResource
-      type: object
-      properties:
-        description:
-          type: string
-          description: swagger.external_api.institutions.model.parentDescription
-        id:
-          type: string
-          description: Institution's unique internal Id
-    PspDataResource:
-      title: PspDataResource
-      type: object
-      properties:
-        abiCode:
-          type: string
-          description: PSP's ABI code
-        businessRegisterNumber:
-          type: string
-          description: PSP's Business Register number
-        legalRegisterName:
-          type: string
-          description: PSP's legal register name
-        legalRegisterNumber:
-          type: string
-          description: PSP's legal register number
-        vatNumberGroup:
-          type: boolean
-          description: PSP's Vat Number group
-          example: false
     UserGroupResource:
       title: UserGroupResource
       required:
-      - description
-      - id
-      - institutionId
-      - name
-      - productId
-      - status
+        - description
+        - id
+        - institutionId
+        - name
+        - productId
+        - status
       type: object
       properties:
         createdAt:
@@ -2039,11 +1805,12 @@ components:
           type: string
           description: Users group's status
           enum:
-          - ACTIVE
-          - DELETED
-          - SUSPENDED
+            - ACTIVE
+            - DELETED
+            - SUSPENDED
   securitySchemes:
     apiKeyHeader:
       type: apiKey
       name: Ocp-Apim-Subscription-Key
       in: header
+

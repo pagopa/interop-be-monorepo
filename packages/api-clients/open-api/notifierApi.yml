@@ -3,7 +3,7 @@ openapi: 3.0.3
 info:
   title: Notification Notifier Micro Service
   description: This service notifies organization about occurred platform events
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: http://www.example.com/support
@@ -12,7 +12,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/notifier/{{version}}"
+  - url: "/notifier/v1"
     description: This service is the security supplier
 security:
   - bearerAuth: []

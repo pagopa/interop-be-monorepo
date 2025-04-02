@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/backend-for-frontend/{{version}}"
+  - url: "/backend-for-frontend/v1"
     description: This service is the Interop BFF
 security:
   - bearerAuth: []
@@ -75,6 +75,21 @@ tags:
       url: "http://swagger.io"
   - name: support
     description: Support
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: clients
+    description: Clients
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: privacyNotices
+    description: Privacy notices
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: producerKeychain
+    description: Producer key chains
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -19460,7 +19475,7 @@ components:
           type: string
           description: identifies the unique code of this attribute on the origin registry
         kind:
-          description: Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
+          # Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
           $ref: "#/components/schemas/AttributeKind"
         description:
           type: string

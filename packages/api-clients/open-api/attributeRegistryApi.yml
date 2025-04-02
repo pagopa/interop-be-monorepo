@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: attribute registry Process Micro Service
   description: Offers operations to retrieve attribute registry data
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/attribute-registry-process/{{version}}"
+  - url: "/attribute-registry-process/v1"
     description: This service is the attribute registry process
 security:
   - bearerAuth: []
@@ -23,6 +23,11 @@ tags:
       url: "http://swagger.io"
   - name: health
     description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
+  - name: attribute
+    description: Attribute
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -466,7 +471,7 @@ components:
           type: string
           description: identifies the unique code of this attribute on the origin registry
         kind:
-          description: Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
+          # Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
           $ref: "#/components/schemas/AttributeKind"
         description:
           type: string

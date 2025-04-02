@@ -94,6 +94,15 @@ jobs:
           run_install: true
       - run: pnpm test
 
+  lint-openapi:
+    name: Lint openapi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: stoplightio/spectral-action@latest
+        with:
+          file_glob: "./api-clients/open-api/*.yaml"
+
   find_dockerfiles:
     name: Find Dockerfiles
     needs: [formatting, lint, check, test]

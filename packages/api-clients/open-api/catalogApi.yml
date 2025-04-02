@@ -1553,7 +1553,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/:eServiceId/descriptors/:descriptorId/approve:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1599,7 +1599,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/:eServiceId/descriptors/:descriptorId/reject:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/reject:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -2575,7 +2575,6 @@ components:
           type: boolean
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
-          required: false
     EServiceTemplateRef:
       type: object
       additionalProperties: false
@@ -2597,7 +2596,6 @@ components:
           type: string
           format: uuid
         interfaceMetadata:
-          required: false
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
     TemplateInstanceInterfaceRESTSeed:
       type: object
