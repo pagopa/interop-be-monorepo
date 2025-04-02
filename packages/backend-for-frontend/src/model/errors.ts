@@ -167,13 +167,13 @@ export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantSelfcareNotFound(
+export function tenantBySelfcareIdNotFound(
   selfcareId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant with Selfcare ID ${selfcareId} forbidden`,
+    detail: `Tenant with Selfcare ID ${selfcareId} not found`,
     code: "tenantSelfcareNotFound",
-    title: "Tenant forbidden",
+    title: "Tenant not found",
   });
 }
 

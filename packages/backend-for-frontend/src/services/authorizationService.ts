@@ -27,7 +27,7 @@ import {
   missingSelfcareId,
   missingUserRolesInIdentityToken,
   tenantLoginNotAllowed,
-  tenantSelfcareNotFound,
+  tenantBySelfcareIdNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
@@ -179,7 +179,7 @@ export function authorizationServiceBuilder(
         .catch((err) => {
           throw isAxiosError(err) &&
             err.response?.status === HTTP_STATUS_NOT_FOUND
-            ? tenantSelfcareNotFound(selfcareId)
+            ? tenantBySelfcareIdNotFound(selfcareId)
             : err;
         });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
