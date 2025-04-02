@@ -38,11 +38,11 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual({
+      expect(retrievedTenant?.data).toStrictEqual({
         ...mockTenant,
         onboardedAt: mockTenant.createdAt,
       });
-      expect(retrievedTenant?.metadata).toEqual({ version: 1 });
+      expect(retrievedTenant?.metadata).toStrictEqual({ version: 1 });
     });
 
     it("TenantDeleted", async () => {
@@ -93,11 +93,11 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual({
+      expect(retrievedTenant?.data).toStrictEqual({
         ...updatedTenant,
         onboardedAt: updatedTenant.createdAt,
       });
-      expect(retrievedTenant?.metadata).toEqual({ version: 2 });
+      expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("SelfcareMappingCreated", async () => {
@@ -131,8 +131,8 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual(updatedTenant);
-      expect(retrievedTenant?.metadata).toEqual({ version: 2 });
+      expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+      expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
 
       vi.useRealTimers();
     });
@@ -173,11 +173,11 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual({
+      expect(retrievedTenant?.data).toStrictEqual({
         ...updatedTenant,
         onboardedAt: updatedTenant.createdAt,
       });
-      expect(retrievedTenant?.metadata).toEqual({ version: 2 });
+      expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
     });
 
     it("TenantMailDeleted", async () => {
@@ -218,8 +218,8 @@ describe("Integration tests", async () => {
         mockTenant.id
       );
 
-      expect(retrievedTenant?.data).toEqual(updatedTenant);
-      expect(retrievedTenant?.metadata).toEqual({ version: 2 });
+      expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+      expect(retrievedTenant?.metadata).toStrictEqual({ version: 2 });
     });
   });
 });
