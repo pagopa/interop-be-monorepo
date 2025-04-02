@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import {
   Client,
   TenantId,
@@ -10,6 +10,7 @@ import { describe, it, expect } from "vitest";
 import {
   getMockAuthData,
   getMockClient,
+  getMockContext,
   getMockKey,
 } from "pagopa-interop-commons-test";
 import {
@@ -41,12 +42,7 @@ describe("getClientKeyById", async () => {
     const retrievedKey = await authorizationService.getClientKeyById({
       clientId: mockClient.id,
       kid: mockKey1.kid,
-      ctx: {
-        serviceName: "test",
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-      },
+      ctx: getMockContext({ authData }),
     });
     expect(retrievedKey).toEqual(mockKey1);
   });
@@ -69,12 +65,7 @@ describe("getClientKeyById", async () => {
       authorizationService.getClientKeyById({
         clientId: mockClient.id,
         kid: mockKey.kid,
-        ctx: {
-          serviceName: "test",
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(organizationId, mockClient.id)
@@ -92,12 +83,7 @@ describe("getClientKeyById", async () => {
       authorizationService.getClientKeyById({
         clientId: mockClient.id,
         kid: mockKey.kid,
-        ctx: {
-          serviceName: "test",
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
@@ -119,12 +105,7 @@ describe("getClientKeyById", async () => {
       authorizationService.getClientKeyById({
         clientId: mockClient.id,
         kid: mockKey.kid,
-        ctx: {
-          serviceName: "test",
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(securityUserNotMember(authData.userId));
   });
@@ -141,12 +122,7 @@ describe("getClientKeyById", async () => {
       authorizationService.getClientKeyById({
         clientId: mockClient.id,
         kid: mockKey.kid,
-        ctx: {
-          serviceName: "test",
-          authData,
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(clientKeyNotFound(mockKey.kid, mockClient.id));
   });
