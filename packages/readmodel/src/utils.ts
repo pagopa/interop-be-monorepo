@@ -51,21 +51,13 @@ export const checkMetadataVersion = async (
   },
   metadataVersion: number,
   id: string
-): Promise<boolean> => {
-  const [row] = await tx
-    .select({
-      metadataVersion: table.metadataVersion,
-    })
-    .from(table as AnyPgTable)
-    .where(eq(table.id, id));
-
-  const existingMetadataVersion = row?.metadataVersion;
-
-  if (existingMetadataVersion == null) {
-    return true;
-  }
-  return existingMetadataVersion <= metadataVersion;
-};
+): Promise<boolean> =>
+  await checkMetadataVersionByFilter(
+    tx,
+    table,
+    metadataVersion,
+    eq(table.id, id)
+  );
 
 /**
  * @async
