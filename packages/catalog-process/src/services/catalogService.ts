@@ -3224,7 +3224,7 @@ export function catalogServiceBuilder(
   };
 }
 
-export async function createOpenApiInterfaceByTemplate(
+async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
