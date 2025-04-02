@@ -8,6 +8,7 @@ import {
   unauthorizedError,
 } from "pagopa-interop-models";
 import { ExpressContext, fromAppContext } from "../context/context.js";
+import { getUserInfoFromAuthData } from "../auth/authData.js";
 import { RateLimiter } from "./rateLimiterModel.js";
 import { rateLimiterHeadersFromStatus } from "./rateLimiterUtils.js";
 
@@ -19,13 +20,9 @@ export function rateLimiterMiddleware(
   return async (req, res, next) => {
     const ctx = fromAppContext(req.ctx);
 
-    const organizationId: TenantId | null = match(ctx.authData)
-      .with(
-        { systemRole: P.union("m2m", undefined) },
-        ({ organizationId }) => organizationId
-      )
-      .with({ systemRole: P.union("internal", "maintenance") }, () => null)
-      .exhaustive();
+    const organizationId: TenantId | undefined = getUserInfoFromAuthData(
+      ctx.authData
+    ).organizationId;
 
     if (!organizationId) {
       const errorRes = makeApiProblem(
