@@ -588,7 +588,7 @@ describe("getPurposes", async () => {
     });
   });
 
-  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = true", async () => {
+  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states; excludeDraft = true", async () => {
     const result = await purposeService.getPurposes(
       {
         title: "test",
