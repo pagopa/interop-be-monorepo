@@ -34,6 +34,16 @@ describe("getCatalogEServiceDescriptor", () => {
   const tenantId: TenantId = generateId();
   const tenantName = "mockTenant";
 
+  const declaredAttributeId = "declaredAttributeId";
+  const certifiedAttributeId = "certifiedAttributeId";
+  const verifiedAttributeId = "verifiedAttributeId";
+
+  const declaredAttributeName = "mockDeclaredAttributeName";
+  const certifiedAttributeName = "mockCertifiedAttributeName";
+  const verifiedAttributeName = "mockVerifiedAttributeName";
+
+  const attributeDescription = "mockDescription";
+
   const authData: AuthData = {
     ...getMockAuthData(),
     organizationId: tenantId,
@@ -44,9 +54,30 @@ describe("getCatalogEServiceDescriptor", () => {
     id: mockDescriptorId,
     state: "DRAFT",
     attributes: {
-      declared: [],
-      certified: [],
-      verified: [],
+      declared: [
+        [
+          {
+            id: declaredAttributeId,
+            explicitAttributeVerification: false,
+          },
+        ],
+      ],
+      certified: [
+        [
+          {
+            id: certifiedAttributeId,
+            explicitAttributeVerification: false,
+          },
+        ],
+      ],
+      verified: [
+        [
+          {
+            id: verifiedAttributeId,
+            explicitAttributeVerification: true,
+          },
+        ],
+      ],
     },
     version: "",
     serverUrls: [],
@@ -104,9 +135,36 @@ describe("getCatalogEServiceDescriptor", () => {
     dailyCallsTotal: eServiceDescriptor.dailyCallsPerConsumer,
     agreementApprovalPolicy: eServiceDescriptor.agreementApprovalPolicy,
     attributes: {
-      certified: [],
-      declared: [],
-      verified: [],
+      certified: [
+        [
+          {
+            description: attributeDescription,
+            explicitAttributeVerification: false,
+            id: certifiedAttributeId,
+            name: certifiedAttributeName,
+          },
+        ],
+      ],
+      declared: [
+        [
+          {
+            description: attributeDescription,
+            explicitAttributeVerification: false,
+            id: declaredAttributeId,
+            name: declaredAttributeName,
+          },
+        ],
+      ],
+      verified: [
+        [
+          {
+            description: attributeDescription,
+            explicitAttributeVerification: true,
+            id: verifiedAttributeId,
+            name: verifiedAttributeName,
+          },
+        ],
+      ],
     },
     publishedAt: eServiceDescriptor.publishedAt,
     suspendedAt: eServiceDescriptor.suspendedAt,
@@ -154,9 +212,23 @@ describe("getCatalogEServiceDescriptor", () => {
 
   vi.spyOn(attributeService, "getAllBulkAttributes").mockResolvedValue([
     {
-      id: "mockAttributeId",
-      name: "mockAttribute",
+      id: certifiedAttributeId,
+      name: certifiedAttributeName,
       description: "mockDescription",
+      kind: "VERIFIED",
+      creationTime: new Date().toTimeString(),
+    },
+    {
+      id: declaredAttributeId,
+      name: declaredAttributeName,
+      description: attributeDescription,
+      kind: "VERIFIED",
+      creationTime: new Date().toTimeString(),
+    },
+    {
+      id: verifiedAttributeId,
+      name: verifiedAttributeName,
+      description: attributeDescription,
       kind: "VERIFIED",
       creationTime: new Date().toTimeString(),
     },
@@ -195,6 +267,12 @@ describe("getCatalogEServiceDescriptor", () => {
         bffMockContext
       )
     ).toEqual(expectedResult);
+
+    expect(attributeService.getAllBulkAttributes).toHaveBeenCalledWith(
+      mockAttributeProcessClient,
+      bffMockContext.headers,
+      ["certifiedAttributeId", "declaredAttributeId", "verifiedAttributeId"]
+    );
   });
 
   it("should throw eserviceDescriptorNotFound if descriptorId cannot be found in eservice's descriptors", async () => {
