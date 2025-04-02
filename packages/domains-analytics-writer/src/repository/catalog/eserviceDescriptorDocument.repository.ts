@@ -9,12 +9,13 @@ import {
   EserviceDescriptorDocumentMapping,
   eserviceDescriptorDocumentSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
+import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = "eservice_descriptor_document";
+  const tableName = CatalogDbTable.eservice_descriptor_document;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `eservice_descriptor_document_deleting${config.mergeTableSuffix}`;
+  const stagingDeletingTable = `${CatalogDbTable.eservice_descriptor_document_deleting}${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -120,7 +121,8 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          "id",
+          true
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

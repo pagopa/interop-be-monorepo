@@ -9,10 +9,11 @@ import {
   EserviceDescriptorRejectionMapping,
   eserviceDescriptorRejectionSchema,
 } from "../../model/catalog/eserviceDescriptorRejection.js";
+import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = "eservice_descriptor_rejection_reason";
+  const tableName = CatalogDbTable.eservice_descriptor_rejection_reason;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
   return {

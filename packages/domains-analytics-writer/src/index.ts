@@ -74,10 +74,15 @@ await retryConnection(
       "eservice_descriptor_attribute",
       "eservice_risk_analysis",
       "eservice_risk_analysis_answer",
+    ]);
+    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingTables([
       "eservice_deleting",
+      "eservice_descriptor_deleting",
+      "eservice_descriptor_document_deleting",
+      "eservice_risk_analysis_deleting",
     ]);
   },
-  logger({ serviceName: "" })
+  logger({ serviceName: config.serviceName })
 );
 
 async function processMessage(

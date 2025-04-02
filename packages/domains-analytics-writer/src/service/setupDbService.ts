@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-
 import { DBConnection } from "../db/db.js";
 
 export interface SetupDbConfig {
@@ -25,10 +23,27 @@ export function setupDbServiceBuilder(
           })
         );
       } catch (error: unknown) {
-        throw error; // to do errormapper
+        throw error;
+      }
+    },
+
+    async setupStagingDeletingTables(tableNames: string[]): Promise<void> {
+      try {
+        await Promise.all(
+          tableNames.map((tableName) => {
+            const fullStagingTable = `${tableName}${config.mergeTableSuffix}`;
+            const query = `
+              CREATE TEMPORARY TABLE IF NOT EXISTS ${fullStagingTable} (
+                id TEXT PRIMARY KEY,
+                deleted BOOLEAN NOT NULL
+              );
+            `;
+            return conn.query(query);
+          })
+        );
+      } catch (error: unknown) {
+        throw error;
       }
     },
   };
 }
-
-export type SetupDBServiceService = ReturnType<typeof setupDbServiceBuilder>;

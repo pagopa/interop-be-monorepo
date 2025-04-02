@@ -9,10 +9,11 @@ import {
   EserviceRiskAnalysisAnswerMapping,
   eserviceRiskAnalysisAnswerSchema,
 } from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
+import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = "eservice_risk_analysis_answer";
+  const tableName = CatalogDbTable.eservice_risk_analysis_answer;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
   return {

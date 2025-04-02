@@ -10,14 +10,13 @@ import {
   eserviceDeletingSchema,
   eserviceSchema,
 } from "../../model/catalog/eservice.js";
+import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = "eservice";
+  const tableName = CatalogDbTable.eservice;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${"eservice_deleting"}${
-    config.mergeTableSuffix
-  }`;
+  const stagingDeletingTable = `${CatalogDbTable.eservice_deleting}${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -98,7 +97,8 @@ export function eserviceRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          "id",
+          true
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

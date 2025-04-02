@@ -18,7 +18,6 @@ export async function handleCatalogMessageV2(
 
   await match(message)
     .with({ type: "EServiceDeleted" }, async (msg) => {
-      console.log("MESSAGGIO", msg.data);
       await catalogService.deleteEService(msg.data.eserviceId);
     })
     .with(

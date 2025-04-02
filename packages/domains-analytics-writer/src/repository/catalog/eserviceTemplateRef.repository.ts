@@ -9,10 +9,11 @@ import {
   EserviceTemplateRefMapping,
   eserviceTemplateRefSchema,
 } from "../../model/catalog/eserviceTemplateRef.js";
+import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceTemplateRefRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = "eservice_template_ref";
+  const tableName = CatalogDbTable.eservice_template_ref;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
   return {

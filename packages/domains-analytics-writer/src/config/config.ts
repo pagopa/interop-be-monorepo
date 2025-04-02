@@ -34,8 +34,12 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
         MERGE_TABLE_SUFFIX: z
           .string()
           .transform((val) => val.replace(/-/g, "")),
+        SERVICE_NAME: z.string(),
       })
-      .transform((c) => ({ mergeTableSuffix: c.MERGE_TABLE_SUFFIX }))
+      .transform((c) => ({
+        mergeTableSuffix: c.MERGE_TABLE_SUFFIX,
+        serviceName: c.SERVICE_NAME,
+      }))
   );
 
 export type DomainsAnalyticsWriterConfig = z.infer<

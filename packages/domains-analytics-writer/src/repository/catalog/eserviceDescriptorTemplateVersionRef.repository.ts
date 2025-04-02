@@ -9,12 +9,13 @@ import {
   EserviceDescriptorTemplateVersionRefMapping,
   eserviceDescriptorTemplateVersionRefSchema,
 } from "../../model/catalog/eserviceDescriptorTemplateVersionRef.js";
+import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorTemplateVersionRefRepository(
   conn: DBConnection
 ) {
   const schemaName = config.dbSchemaName;
-  const tableName = "eservice_descriptor_template_version_ref";
+  const tableName = CatalogDbTable.eservice_descriptor_template_version_ref;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
   return {

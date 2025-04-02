@@ -9,10 +9,11 @@ import {
   EserviceDescriptorInterfaceMapping,
   eserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
+import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = "eservice_descriptor_interface";
+  const tableName = CatalogDbTable.eservice_descriptor_interface;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
 
   return {
