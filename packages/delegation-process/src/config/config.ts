@@ -4,6 +4,7 @@ import {
   EventStoreConfig,
   S3Config,
   FileManagerConfig,
+  ApplicationAuditProducerConfig,
 } from "pagopa-interop-commons";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 import { z } from "zod";
@@ -32,7 +33,8 @@ const DelegationProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       .transform((c) => ({
         delegationsAllowedOrigins: c.DELEGATIONS_ALLOWED_ORIGINS.split(","),
       }))
-  );
+  )
+  .and(ApplicationAuditProducerConfig);
 
 export type DelegationProcessConfig = z.infer<typeof DelegationProcessConfig>;
 export const config: DelegationProcessConfig = DelegationProcessConfig.parse(
