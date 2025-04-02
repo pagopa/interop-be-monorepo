@@ -202,6 +202,7 @@ const errorCodes = {
   soapFileParsingError: "10016",
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
+  notAllowedMultipleKeysException: "10019",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -429,6 +430,14 @@ export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
   });
 }
 
+export function notAllowedMultipleKeysException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key contains multiple keys`,
+    code: "notAllowedMultipleKeysException",
+    title: "Not allowed multiple keys exception",
+  });
+}
+
 export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `One or more required JWK claims are missing`,
@@ -468,7 +477,7 @@ export function invalidInterfaceFileDetected(
   resourceId: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface file for EService or EserveiceTemplate with ID ${resourceId} is invalid`,
+    detail: `The interface file for EService or EserviceTemplate with ID ${resourceId} is invalid`,
     code: "invalidEserviceInterfaceFileDetected",
     title: "Invalid interface file detected",
   });
