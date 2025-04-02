@@ -18,6 +18,7 @@ import {
   technology,
   TenantId,
 } from "pagopa-interop-models";
+import { EServiceSeed } from "../../api-clients/dist/catalogApi.js";
 
 export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor
@@ -191,5 +192,22 @@ export const getMockAgreement = ({
     suspensionByConsumer: undefined,
     upgrade: undefined,
     archiving: undefined,
+  },
+});
+
+export const getMockEserviceSeed = (
+  mockApiEservice: catalogApi.EService
+): EServiceSeed => ({
+  name: mockApiEservice.name,
+  description: mockApiEservice.description,
+  technology: "REST",
+  mode: "RECEIVE",
+  descriptor: {
+    audience: mockApiEservice.descriptors[0].audience,
+    voucherLifespan: mockApiEservice.descriptors[0].voucherLifespan,
+    dailyCallsPerConsumer: mockApiEservice.descriptors[0].dailyCallsPerConsumer,
+    dailyCallsTotal: mockApiEservice.descriptors[0].dailyCallsTotal,
+    agreementApprovalPolicy:
+      mockApiEservice.descriptors[0].agreementApprovalPolicy,
   },
 });
