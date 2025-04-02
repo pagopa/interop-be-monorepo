@@ -1147,16 +1147,19 @@ describe("get eservices", () => {
     const eserviceTemplate2 = getMockEServiceTemplate(templateId2);
     const eserviceInstance1: EService = {
       ...getMockEService(),
+      name: `${eserviceTemplate1.name}`,
       descriptors: [getMockDescriptor(descriptorState.published)],
       templateRef: { id: templateId1 },
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
+      name: `${eserviceTemplate1.name} b`,
       descriptors: [getMockDescriptor(descriptorState.published)],
-      templateRef: { id: templateId1 },
+      templateRef: { id: templateId1, instanceLabel: "b" },
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
+      name: `${eserviceTemplate2.name}`,
       descriptors: [getMockDescriptor(descriptorState.published)],
       templateRef: { id: templateId2 },
     };
