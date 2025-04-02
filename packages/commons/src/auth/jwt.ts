@@ -5,9 +5,13 @@ import {
   jwtDecodingError,
   tokenVerificationFailed,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import { buildJwksClients, JWTConfig, Logger } from "../index.js";
-import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
+import {
+  AuthData,
+  AuthToken,
+  getAuthDataFromToken,
+  getUserInfoFromAuthData,
+} from "./authData.js";
 
 export const decodeJwtToken = (
   jwtToken: string,
@@ -81,19 +85,8 @@ export const verifyJwtToken = async (
             const unverifiedDecoded = decodeJwtToken(jwtToken, logger);
             const authData =
               unverifiedDecoded && readAuthDataFromJwtToken(unverifiedDecoded);
-
-            reject(
-              match(authData)
-                .with(
-                  null,
-                  { systemRole: P.union("internal", "m2m", "maintenance") },
-                  () => tokenVerificationFailed(undefined, undefined)
-                )
-                .with({ systemRole: undefined }, ({ userId, selfcareId }) =>
-                  tokenVerificationFailed(userId, selfcareId)
-                )
-                .exhaustive()
-            );
+            const { userId, selfcareId } = getUserInfoFromAuthData(authData);
+            reject(tokenVerificationFailed(userId, selfcareId));
           } else {
             resolve({ decoded });
           }
