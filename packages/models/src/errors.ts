@@ -477,7 +477,7 @@ export function invalidInterfaceFileDetected(
   resourceId: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface file for EService or EserveiceTemplate with ID ${resourceId} is invalid`,
+    detail: `The interface file for EService or EserviceTemplate with ID ${resourceId} is invalid`,
     code: "invalidEserviceInterfaceFileDetected",
     title: "Invalid interface file detected",
   });
