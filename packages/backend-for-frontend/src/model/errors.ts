@@ -61,6 +61,7 @@ export const errorCodes = {
   missingUserRolesInIdentityToken: "0054",
   noVersionInEServiceTemplate: "0055",
   templateInstanceNotAllowed: "0056",
+  tenantSelfcareNotFound: "0057",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -163,6 +164,16 @@ export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
     title: "Tenant not found",
+  });
+}
+
+export function tenantSelfcareNotFound(
+  selfcareId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant with Selfcare ID ${selfcareId} forbidden`,
+    code: "tenantSelfcareNotFound",
+    title: "Tenant forbidden",
   });
 }
 

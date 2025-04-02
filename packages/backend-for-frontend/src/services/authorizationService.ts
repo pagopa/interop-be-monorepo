@@ -1,3 +1,4 @@
+import { constants } from "http2";
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   CustomClaims,
@@ -19,17 +20,20 @@ import {
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
+import { isAxiosError } from "axios";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   missingSelfcareId,
   missingUserRolesInIdentityToken,
   tenantLoginNotAllowed,
+  tenantSelfcareNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
+const { HTTP_STATUS_NOT_FOUND } = constants;
 
 type GetSessionTokenReturnType =
   | {
@@ -167,10 +171,16 @@ export function authorizationServiceBuilder(
         Authorization: `Bearer ${serialized}`,
       };
 
-      const tenantBySelfcareId =
-        await tenantProcessClient.selfcare.getTenantBySelfcareId({
+      const tenantBySelfcareId = await tenantProcessClient.selfcare
+        .getTenantBySelfcareId({
           params: { selfcareId },
           headers: internalHeaders,
+        })
+        .catch((err) => {
+          throw isAxiosError(err) &&
+            err.response?.status === HTTP_STATUS_NOT_FOUND
+            ? tenantSelfcareNotFound(selfcareId)
+            : err;
         });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
