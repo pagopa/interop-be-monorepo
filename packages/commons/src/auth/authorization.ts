@@ -1,5 +1,5 @@
 import { unauthorizedError } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { AppContext } from "../context/context.js";
 import { NonEmptyArray } from "../index.js";
 import {
@@ -54,9 +54,7 @@ export function validateAuthorization<
 
   match(authData)
     .with(
-      { systemRole: "m2m" },
-      { systemRole: "internal" },
-      { systemRole: "maintenance" },
+      { systemRole: P.union("m2m", "internal", "maintenance") },
       ({ systemRole }) => {
         const admittedSystemRoles: SystemRole[] =
           admittedAuthRoles.filter(isSystemRole);
@@ -103,9 +101,10 @@ export function hasAtLeastOneUserRole(
 function isUiAuthData(authData: AuthData): authData is UIAuthData {
   return match(authData)
     .with({ systemRole: undefined }, () => true)
-    .with({ systemRole: "m2m" }, () => false)
-    .with({ systemRole: "internal" }, () => false)
-    .with({ systemRole: "maintenance" }, () => false)
+    .with(
+      { systemRole: P.union("m2m", "internal", "maintenance") },
+      () => false
+    )
     .exhaustive();
 }
 function isSystemRole(role: AuthRole): role is SystemRole {

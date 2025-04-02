@@ -170,7 +170,7 @@ export function getUserInfoFromAuthData(authData: AuthData | undefined): {
     AuthData,
     { userId: UserId | undefined; organizationId: TenantId | undefined }
   >(authData)
-    .with({ systemRole: "internal" }, { systemRole: "maintenance" }, () => ({
+    .with({ systemRole: P.union("internal", "maintenance") }, () => ({
       userId: undefined,
       organizationId: undefined,
     }))
