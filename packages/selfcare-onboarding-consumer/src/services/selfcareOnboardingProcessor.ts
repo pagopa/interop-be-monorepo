@@ -68,7 +68,7 @@ export function selfcareOnboardingProcessorBuilder(
 
         if (!allowedOrigins.includes(origin)) {
           loggerInstance.warn(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.internalIstitutionID} Origin: ${institution.origin} OriginId: ${institution.originId}`
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not allowed origin. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId}`
           );
           return;
         }
@@ -83,7 +83,7 @@ export function selfcareOnboardingProcessorBuilder(
             origin,
             value: externalIdValue,
           },
-          selfcareId: eventPayload.internalIstitutionID,
+          selfcareId: eventPayload.institutionId,
           name: institution.description,
           onboardedAt: eventPayload.createdAt,
           digitalAddress: {
@@ -103,7 +103,7 @@ export function selfcareOnboardingProcessorBuilder(
         });
 
         loggerInstance.info(
-          `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${eventPayload.internalIstitutionID} Origin: ${institution.origin} OriginId: ${institution.originId}`
+          `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${eventPayload.institutionId} Origin: ${institution.origin} OriginId: ${institution.originId}`
         );
       } catch (err) {
         throw genericInternalError(
