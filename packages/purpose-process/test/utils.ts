@@ -12,6 +12,7 @@ import {
   writeInEventstore,
   writeInReadmodel,
   readLastEventByStreamId,
+  sortPurposes,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -249,13 +250,16 @@ export const readLastPurposeEvent = async (
 ): Promise<ReadEvent<PurposeEvent>> =>
   await readLastEventByStreamId(purposeId, "purpose", postgresDB);
 
-export function expectSinglePageListResult<T>(
-  actual: ListResult<T>,
-  expected: T[]
+export function expectSinglePageListResult(
+  actual: ListResult<Purpose>,
+  expected: Purpose[]
 ): void {
-  expect(actual).toEqual({
+  expect({
+    totalCount: actual.totalCount,
+    results: sortPurposes(actual.results),
+  }).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(expected),
+    results: expect.arrayContaining(sortPurposes(expected)),
   });
   expect(actual.results).toHaveLength(expected.length);
 }
