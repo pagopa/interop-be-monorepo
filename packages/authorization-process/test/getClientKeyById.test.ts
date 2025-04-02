@@ -1,18 +1,35 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
-import { Client, TenantId, generateId } from "pagopa-interop-models";
+import { AuthData } from "pagopa-interop-commons";
+import {
+  Client,
+  TenantId,
+  generateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockClient,
+  getMockContext,
+  getMockKey,
+} from "pagopa-interop-commons-test";
 import {
   clientNotFound,
   clientKeyNotFound,
   organizationNotAllowedOnClient,
+  securityUserNotMember,
 } from "../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
 describe("getClientKeyById", async () => {
+  const consumerId: TenantId = generateId();
+  const authData: AuthData = {
+    ...getMockAuthData(),
+    organizationId: unsafeBrandId(consumerId),
+    userRoles: ["admin"],
+  };
+
   it("should get the client key if it exists", async () => {
-    const consumerId: TenantId = generateId();
     const mockKey1 = getMockKey();
     const mockKey2 = getMockKey();
     const mockClient: Client = {
@@ -25,8 +42,7 @@ describe("getClientKeyById", async () => {
     const retrievedKey = await authorizationService.getClientKeyById({
       clientId: mockClient.id,
       kid: mockKey1.kid,
-      organizationId: consumerId,
-      logger: genericLogger,
+      ctx: getMockContext({ authData }),
     });
     expect(retrievedKey).toEqual(mockKey1);
   });
@@ -40,19 +56,22 @@ describe("getClientKeyById", async () => {
     };
     await addOneClient(mockClient);
 
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      organizationId: unsafeBrandId(organizationId),
+    };
+
     expect(
       authorizationService.getClientKeyById({
         clientId: mockClient.id,
         kid: mockKey.kid,
-        organizationId,
-        logger: genericLogger,
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(organizationId, mockClient.id)
     );
   });
   it("should throw clientNotFound if the client doesn't exist", async () => {
-    const consumerId: TenantId = generateId();
     const mockKey = getMockKey();
     const mockClient: Client = {
       ...getMockClient(),
@@ -64,13 +83,33 @@ describe("getClientKeyById", async () => {
       authorizationService.getClientKeyById({
         clientId: mockClient.id,
         kid: mockKey.kid,
-        organizationId: consumerId,
-        logger: genericLogger,
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
+  it("should throw securityUserNotMember if the requester has SECURITY_ROLE and the user is not a member of the organization", async () => {
+    const mockKey = getMockKey();
+    const mockClient: Client = {
+      ...getMockClient(),
+      consumerId,
+      keys: [getMockKey()],
+    };
+    await addOneClient(mockClient);
+
+    const authData: AuthData = {
+      ...getMockAuthData(),
+      userRoles: ["security"],
+    };
+
+    expect(
+      authorizationService.getClientKeyById({
+        clientId: mockClient.id,
+        kid: mockKey.kid,
+        ctx: getMockContext({ authData }),
+      })
+    ).rejects.toThrowError(securityUserNotMember(authData.userId));
+  });
   it("should throw clientKeyNotFound if the key doesn't exist", async () => {
-    const consumerId: TenantId = generateId();
     const mockKey = getMockKey();
     const mockClient: Client = {
       ...getMockClient(),
@@ -83,8 +122,7 @@ describe("getClientKeyById", async () => {
       authorizationService.getClientKeyById({
         clientId: mockClient.id,
         kid: mockKey.kid,
-        organizationId: consumerId,
-        logger: genericLogger,
+        ctx: getMockContext({ authData }),
       })
     ).rejects.toThrowError(clientKeyNotFound(mockKey.kid, mockClient.id));
   });
