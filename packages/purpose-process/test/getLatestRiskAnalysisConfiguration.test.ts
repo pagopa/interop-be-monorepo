@@ -73,7 +73,7 @@ describe("retrieveLatestRiskAnalysisConfiguration", async () => {
     };
     await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
 
-    const kind = "unkown" as TenantKind;
+    const kind = "unknown" as TenantKind;
 
     expect(
       purposeService.retrieveLatestRiskAnalysisConfiguration({
