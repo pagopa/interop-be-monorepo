@@ -1,8 +1,11 @@
-import { userRoles } from "pagopa-interop-commons";
+import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
   CorrelationId,
+  Delegation,
+  delegationKind,
+  delegationState,
   EService,
   ProducerKeychain,
   ProducerKeychainId,
@@ -20,6 +23,7 @@ import {
   tooManyKeysPerProducerKeychain,
   organizationNotAllowedOnEService,
   keyAlreadyExists,
+  securityUserNotMember,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -73,6 +77,26 @@ export const assertOrganizationIsPurposeConsumer = (
   }
 };
 
+export const assertRequesterIsDelegateConsumer = (
+  authData: AuthData,
+  purpose: Purpose,
+  delegation: Delegation
+): void => {
+  if (
+    delegation.delegateId !== authData.organizationId ||
+    delegation.delegatorId !== purpose.consumerId ||
+    delegation.eserviceId !== purpose.eserviceId ||
+    delegation.kind !== delegationKind.delegatedConsumer ||
+    delegation.state !== delegationState.active
+  ) {
+    throw organizationNotAllowedOnPurpose(
+      authData.organizationId,
+      purpose.id,
+      delegation.id
+    );
+  }
+};
+
 export const assertOrganizationIsProducerKeychainProducer = (
   organizationId: TenantId,
   producerKeychain: ProducerKeychain
@@ -123,5 +147,17 @@ export const assertKeyDoesNotAlreadyExist = async (
 
   if (clientKey || producerKey) {
     throw keyAlreadyExists(kid);
+  }
+};
+
+export const assertSecurityRoleIsClientMember = (
+  authData: AuthData,
+  client: Client
+): void => {
+  if (
+    authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+    !client.users.includes(authData.userId)
+  ) {
+    throw securityUserNotMember(authData.userId);
   }
 };

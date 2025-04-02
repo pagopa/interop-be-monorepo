@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package delegation.v2;
+
+message DelegationV2 {
+  reserved 6, 7, 8, 10;
+  string id = 1;
+  string delegatorId = 2;
+  string delegateId = 3;
+  string eserviceId = 4;
+  int64 createdAt = 5;
+  optional string rejectionReason = 9;
+  DelegationStateV2 state = 11;
+  DelegationKindV2 kind = 12;
+  DelegationStampsV2 stamps = 13;  
+  optional DelegationContractDocumentV2 activationContract = 14;
+  optional DelegationContractDocumentV2 revocationContract = 15;
+  optional int64 updatedAt = 16;
+}
+
+message DelegationContractDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+}
+
+message DelegationStampV2 {
+  string who = 1;
+  int64 when = 2;
+}
+
+message DelegationStampsV2 {
+  DelegationStampV2 submission = 1;
+  optional DelegationStampV2 activation = 2;
+  optional DelegationStampV2 rejection = 3;
+  optional DelegationStampV2 revocation = 4;
+}
+
+enum DelegationStateV2 {
+  WAITING_FOR_APPROVAL= 0;
+  ACTIVE= 1;
+  REJECTED= 2;
+  REVOKED= 3;
+}
+
+enum DelegationKindV2 {
+  DELEGATED_PRODUCER = 0;
+  DELEGATED_CONSUMER = 1;
+}

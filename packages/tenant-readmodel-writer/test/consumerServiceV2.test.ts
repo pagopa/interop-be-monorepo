@@ -5,7 +5,7 @@ import {
   getMockTenantMail,
   getMockVerifiedTenantAttribute,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   TenantEventEnvelopeV2,
   Tenant,
@@ -28,6 +28,8 @@ import {
   TenantKindV2,
   tenantKind,
   MaintenanceTenantDeletedV2,
+  tenantUnitType,
+  MaintenanceTenantUpdatedV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/tenantConsumerServiceV2.js";
@@ -35,14 +37,12 @@ import { tenants } from "./utils.js";
 
 describe("Tenant Events V2", async () => {
   const mockTenant = getMockTenant();
-  const mockMessage: TenantEventEnvelopeV2 = {
+  const mockMessage: Omit<TenantEventEnvelopeV2, "type" | "data"> = {
     event_version: 2,
     stream_id: mockTenant.id,
     version: 1,
     sequence_num: 1,
     log_date: new Date(),
-    type: "TenantOnboarded",
-    data: {},
   };
 
   it("TenantOnboarded", async () => {
@@ -533,5 +533,60 @@ describe("Tenant Events V2", async () => {
     });
 
     expect(retrievedTenant).toBeNull();
+  });
+  it("MaintenanceTenantUpdated", async () => {
+    const mail = getMockTenantMail();
+
+    const tenant: Tenant = {
+      ...mockTenant,
+      selfcareId: crypto.randomUUID(),
+      externalId: {
+        origin: "o1",
+        value: "v1",
+      },
+      mails: [mail],
+      name: "old_name",
+      kind: tenantKind.GSP,
+      onboardedAt: new Date(),
+      subUnitType: tenantUnitType.AOO,
+    };
+
+    await writeInReadmodel(toReadModelTenant(tenant), tenants, 1);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      selfcareId: crypto.randomUUID(),
+      externalId: {
+        origin: "o2",
+        value: "v2",
+      },
+      mails: [getMockTenantMail()],
+      name: "new_name",
+      kind: tenantKind.PA,
+      onboardedAt: new Date(),
+      subUnitType: tenantUnitType.UO,
+    };
+
+    const payload: MaintenanceTenantUpdatedV2 = {
+      tenant: toTenantV2(updatedTenant),
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "MaintenanceTenantUpdated",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenants);
+
+    const retrievedTenant = await tenants.findOne({
+      "data.id": mockTenant.id,
+    });
+
+    expect(retrievedTenant?.data).toEqual(toReadModelTenant(updatedTenant));
+    expect(retrievedTenant?.metadata).toEqual({
+      version: 2,
+    });
   });
 });

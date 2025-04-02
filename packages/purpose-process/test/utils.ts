@@ -24,9 +24,16 @@ import {
   unsafeBrandId,
   toReadModelPurpose,
   PurposeId,
+  toReadModelEService,
+  Tenant,
+  toReadModelTenant,
+  toReadModelAgreement,
+  Agreement,
+  Delegation,
+  ListResult,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { afterAll, afterEach, inject, vi } from "vitest";
+import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -46,6 +53,7 @@ export const eservices = readModelRepository.eservices;
 export const tenants = readModelRepository.tenants;
 export const attributes = readModelRepository.attributes;
 export const purposes = readModelRepository.purposes;
+export const delegations = readModelRepository.delegations;
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 
@@ -60,7 +68,7 @@ afterAll(closeTestBrowserInstance);
 vi.spyOn(puppeteer, "launch").mockImplementation(
   async () => testBrowserInstance
 );
-const pdfGenerator = await initPDFGenerator();
+export const pdfGenerator = await initPDFGenerator();
 
 export const purposeService = purposeServiceBuilder(
   postgresDB,
@@ -72,6 +80,24 @@ export const purposeService = purposeServiceBuilder(
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
+};
+
+export const addOneEService = async (eservice: EService): Promise<void> => {
+  await writeInReadmodel(toReadModelEService(eservice), eservices);
+};
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
+};
+
+export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+};
+
+export const addOneDelegation = async (
+  delegation: Delegation
+): Promise<void> => {
+  await writeInReadmodel(delegation, delegations);
 };
 
 export const writePurposeInEventstore = async (
@@ -166,3 +192,14 @@ export const readLastPurposeEvent = async (
   purposeId: PurposeId
 ): Promise<ReadEvent<PurposeEvent>> =>
   await readLastEventByStreamId(purposeId, "purpose", postgresDB);
+
+export function expectSinglePageListResult<T>(
+  actual: ListResult<T>,
+  expected: T[]
+): void {
+  expect(actual).toEqual({
+    totalCount: expected.length,
+    results: expect.arrayContaining(expected),
+  });
+  expect(actual.results).toHaveLength(expected.length);
+}

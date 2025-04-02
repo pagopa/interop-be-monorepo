@@ -1,9 +1,9 @@
 import { constants } from "http2";
+import { randomUUID } from "crypto";
 import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
 } from "@zodios/express";
-import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import {
   CorrelationId,
@@ -19,6 +19,7 @@ export const AppContext = z.object({
   serviceName: z.string(),
   authData: AuthData,
   correlationId: CorrelationId,
+  requestTimestamp: z.number(),
 });
 export type AppContext = z.infer<typeof AppContext>;
 
@@ -63,7 +64,7 @@ export const contextMiddleware =
 
       setCtx(correlationIdHeader);
     } else {
-      setCtx(uuidv4());
+      setCtx(randomUUID());
     }
 
     return next();

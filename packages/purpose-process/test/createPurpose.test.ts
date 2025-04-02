@@ -19,6 +19,9 @@ import {
   toReadModelAgreement,
   unsafeBrandId,
   toReadModelTenant,
+  TenantId,
+  delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
@@ -30,22 +33,26 @@ import {
   getMockTenant,
   getMockPurpose,
   getMockDescriptor,
+  getMockAuthData,
+  getMockDelegation,
+  getMockContext,
 } from "pagopa-interop-commons-test";
-import {
-  genericLogger,
-  unexpectedRulesVersionError,
-} from "pagopa-interop-commons";
+import { unexpectedRulesVersionError } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
   tenantNotFound,
-  organizationIsNotTheConsumer,
   riskAnalysisValidationFailed,
   agreementNotFound,
   duplicatedPurposeTitle,
+  organizationIsNotTheConsumer,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAgreement,
+  addOneDelegation,
+  addOneEService,
   addOnePurpose,
+  addOneTenant,
   agreements,
   buildRiskAnalysisFormSeed,
   eservices,
@@ -103,9 +110,11 @@ describe("createPurpose", () => {
 
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       purposeSeed,
-      unsafeBrandId(purposeSeed.consumerId),
-      generateId(),
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(
+          unsafeBrandId<TenantId>(purposeSeed.consumerId)
+        ),
+      })
     );
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -167,6 +176,225 @@ describe("createPurpose", () => {
 
     vi.useRealTimers();
   });
+  it("should succeed when requester is Consumer Delegate and the Purpose was created successfully", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const delegateTenant = { ...getMockTenant(), kind: tenantKind.PA };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eService1.id,
+      delegatorId: unsafeBrandId<TenantId>(purposeSeed.consumerId),
+      delegateId: delegateTenant.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(delegateTenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
+    await addOneDelegation(delegation);
+
+    const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
+      purposeSeed,
+      getMockContext({ authData: getMockAuthData(delegateTenant.id) })
+    );
+
+    const writtenEvent = await readLastPurposeEvent(purpose.id);
+
+    if (!writtenEvent) {
+      fail("Update failed: purpose not found in event-store");
+    }
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "0",
+      type: "PurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedRiskAnalysisForm: RiskAnalysisForm = {
+      ...mockValidRiskAnalysisForm,
+      id: unsafeBrandId(purpose.riskAnalysisForm!.id),
+      singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
+        (answer, i) => ({
+          ...answer,
+          id: purpose.riskAnalysisForm!.singleAnswers[i].id,
+        })
+      ),
+      multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
+        ...answer,
+        id: purpose.riskAnalysisForm!.multiAnswers[i].id,
+      })),
+    };
+
+    const expectedPurpose: Purpose = {
+      title: purposeSeed.title,
+      id: unsafeBrandId(purpose.id),
+      createdAt: new Date(),
+      eserviceId: unsafeBrandId(purposeSeed.eserviceId),
+      consumerId: unsafeBrandId(purposeSeed.consumerId),
+      delegationId: delegation.id,
+      description: purposeSeed.description,
+      versions: [
+        {
+          id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+          state: purposeVersionState.draft,
+          dailyCalls: purposeSeed.dailyCalls,
+          createdAt: new Date(),
+        },
+      ],
+      isFreeOfCharge: true,
+      freeOfChargeReason: purposeSeed.freeOfChargeReason,
+      riskAnalysisForm: expectedRiskAnalysisForm,
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(purpose).toEqual(expectedPurpose);
+    expect(isRiskAnalysisValid).toBe(true);
+
+    vi.useRealTimers();
+  });
+  it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose was created successfully", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const producer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const producerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producerDelegate.id,
+      descriptors: [descriptor1],
+    };
+
+    const producerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegatorId: producer.id,
+      delegateId: producerDelegate.id,
+      state: delegationState.active,
+    });
+
+    const consumer = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const consumerDelegate = {
+      ...getMockTenant(),
+      id: generateId<TenantId>(),
+      kind: tenantKind.PA,
+    };
+
+    const consumerDelegation = getMockDelegation({
+      kind: delegationKind.delegatedConsumer,
+      eserviceId: eservice.id,
+      delegatorId: consumer.id,
+      delegateId: consumerDelegate.id,
+      state: delegationState.active,
+    });
+
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      consumerId: consumer.id,
+      eserviceId: eservice.id,
+      state: agreementState.active,
+    };
+
+    const delegatePurposeSeed: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      eserviceId: eservice.id,
+      consumerId: agreement.consumerId,
+    };
+
+    await addOneTenant(consumerDelegate);
+    await addOneTenant(producerDelegate);
+    await addOneAgreement(agreement);
+    await addOneEService(eservice);
+    await addOneDelegation(consumerDelegation);
+    await addOneDelegation(producerDelegation);
+
+    const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
+      delegatePurposeSeed,
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+    );
+
+    const writtenEvent = await readLastPurposeEvent(purpose.id);
+
+    if (!writtenEvent) {
+      fail("Update failed: purpose not found in event-store");
+    }
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "0",
+      type: "PurposeAdded",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeAddedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedRiskAnalysisForm: RiskAnalysisForm = {
+      ...mockValidRiskAnalysisForm,
+      id: unsafeBrandId(purpose.riskAnalysisForm!.id),
+      singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
+        (answer, i) => ({
+          ...answer,
+          id: purpose.riskAnalysisForm!.singleAnswers[i].id,
+        })
+      ),
+      multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
+        ...answer,
+        id: purpose.riskAnalysisForm!.multiAnswers[i].id,
+      })),
+    };
+
+    const expectedPurpose: Purpose = {
+      title: delegatePurposeSeed.title,
+      id: unsafeBrandId(purpose.id),
+      createdAt: new Date(),
+      eserviceId: unsafeBrandId(delegatePurposeSeed.eserviceId),
+      consumerId: unsafeBrandId(delegatePurposeSeed.consumerId),
+      delegationId: consumerDelegation.id,
+      description: delegatePurposeSeed.description,
+      versions: [
+        {
+          id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+          state: purposeVersionState.draft,
+          dailyCalls: delegatePurposeSeed.dailyCalls,
+          createdAt: new Date(),
+        },
+      ],
+      isFreeOfCharge: true,
+      freeOfChargeReason: delegatePurposeSeed.freeOfChargeReason,
+      riskAnalysisForm: expectedRiskAnalysisForm,
+    };
+
+    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(purpose).toEqual(expectedPurpose);
+    expect(isRiskAnalysisValid).toBe(true);
+
+    vi.useRealTimers();
+  });
   it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
     const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
@@ -176,9 +404,11 @@ describe("createPurpose", () => {
     expect(
       purposeService.createPurpose(
         seed,
-        unsafeBrandId(purposeSeed.consumerId),
-        generateId(),
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
@@ -211,9 +441,11 @@ describe("createPurpose", () => {
     expect(
       purposeService.createPurpose(
         seed,
-        unsafeBrandId(purposeSeed.consumerId),
-        generateId(),
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
       )
     ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
   });
@@ -221,9 +453,11 @@ describe("createPurpose", () => {
     expect(
       purposeService.createPurpose(
         purposeSeed,
-        unsafeBrandId(purposeSeed.consumerId),
-        generateId(),
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -263,9 +497,9 @@ describe("createPurpose", () => {
     expect(
       purposeService.createPurpose(
         seed,
-        unsafeBrandId(seed.consumerId),
-        generateId(),
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+        })
       )
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
   });
@@ -285,13 +519,13 @@ describe("createPurpose", () => {
     expect(
       purposeService.createPurpose(
         seed,
-        unsafeBrandId(purposeSeed.consumerId),
-        generateId(),
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(unsafeBrandId(purposeSeed.consumerId))
-    );
+    ).rejects.toThrowError(organizationIsNotTheConsumer(tenant.id));
   });
   it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
     await writeInReadmodel(toReadModelTenant(tenant), tenants);
@@ -314,9 +548,9 @@ describe("createPurpose", () => {
     expect(
       purposeService.createPurpose(
         seed,
-        unsafeBrandId(purposeSeed.consumerId),
-        generateId(),
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+        })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
@@ -343,9 +577,11 @@ describe("createPurpose", () => {
     expect(
       purposeService.createPurpose(
         purposeSeed,
-        unsafeBrandId(purposeSeed.consumerId),
-        generateId(),
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeSeed.consumerId)
+          ),
+        })
       )
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
   });

@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAttribute,
-} from "pagopa-interop-commons-test/index.js";
+  getMockContext,
+  getMockDelegation,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -14,6 +16,10 @@ import {
   EServiceDescriptorAttributesUpdatedV2,
   operationForbidden,
   AttributeId,
+  delegationKind,
+  delegationState,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
@@ -23,14 +29,15 @@ import {
   eServiceNotFound,
   inconsistentAttributesSeedGroupsCount,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
-  notValidDescriptor,
+  notValidDescriptorState,
   unchangedAttributes,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
+  addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockEService,
   readLastEserviceEvent,
@@ -145,12 +152,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -169,72 +171,67 @@ describe("update descriptor", () => {
     }
   );
 
-  // it.each([descriptorState.published, descriptorState.suspended])(
-  //   "should write on event-store for the attributes update of a descriptor with state %s (producer delegate)",
-  //   async (descriptorState) => {
-  //     const mockDescriptor: Descriptor = {
-  //       ...getMockDescriptor(),
-  //       state: descriptorState,
-  //       attributes: {
-  //         certified: validMockDescriptorCertifiedAttributes,
-  //         verified: validMockDescriptorVerifiedAttributes,
-  //         declared: [],
-  //       },
-  //     };
+  it.each([descriptorState.published, descriptorState.suspended])(
+    "should write on event-store for the attributes update of a descriptor with state %s (producer delegate)",
+    async (descriptorState) => {
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState,
+        attributes: {
+          certified: validMockDescriptorCertifiedAttributes,
+          verified: validMockDescriptorVerifiedAttributes,
+          declared: [],
+        },
+      };
 
-  //     const mockEService: EService = {
-  //       ...getMockEService(),
-  //       descriptors: [mockDescriptor],
-  //     };
+      const mockEService: EService = {
+        ...getMockEService(),
+        descriptors: [mockDescriptor],
+      };
 
-  //     await addOneEService(mockEService);
+      await addOneEService(mockEService);
 
-  //     const delegation = getMockDelegation({
-  //       kind: delegationKind.delegatedProducer,
-  //       eserviceId: mockEService.id,
-  //       state: delegationState.active,
-  //     });
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: mockEService.id,
+        state: delegationState.active,
+      });
 
-  //     await addOneDelegation(delegation);
+      await addOneDelegation(delegation);
 
-  //     const updatedEService: EService = {
-  //       ...mockEService,
-  //       descriptors: [
-  //         {
-  //           ...mockDescriptor,
-  //           attributes:
-  //             validMockDescriptorAttributeSeed as Descriptor["attributes"],
-  //         },
-  //       ],
-  //     };
+      const updatedEService: EService = {
+        ...mockEService,
+        descriptors: [
+          {
+            ...mockDescriptor,
+            attributes:
+              validMockDescriptorAttributeSeed as Descriptor["attributes"],
+          },
+        ],
+      };
 
-  //     const returnedEService = await catalogService.updateDescriptorAttributes(
-  //       mockEService.id,
-  //       mockDescriptor.id,
-  //       validMockDescriptorAttributeSeed,
-  //       {
-  //         authData: getMockAuthData(delegation.delegateId),
-  //         correlationId: generateId(),
-  //         serviceName: "",
-  //         logger: genericLogger,
-  //       }
-  //     );
+      const returnedEService = await catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        validMockDescriptorAttributeSeed,
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      );
 
-  //     const writtenEvent = await readLastEserviceEvent(mockEService.id);
-  //     expect(writtenEvent).toMatchObject({
-  //       stream_id: mockEService.id,
-  //       version: "1",
-  //       type: "EServiceDescriptorAttributesUpdated",
-  //       event_version: 2,
-  //     });
-  //     const writtenPayload = decodeProtobufPayload({
-  //       messageType: EServiceDescriptorAttributesUpdatedV2,
-  //       payload: writtenEvent.data,
-  //     });
-  //     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-  //     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
-  //   }
-  // );
+      const writtenEvent = await readLastEserviceEvent(mockEService.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockEService.id,
+        version: "1",
+        type: "EServiceDescriptorAttributesUpdated",
+        event_version: 2,
+      });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorAttributesUpdatedV2,
+        payload: writtenEvent.data,
+      });
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    }
+  );
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const mockDescriptor: Descriptor = {
@@ -257,12 +254,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -290,12 +282,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(mockEService.id, mockDescriptor.id)
@@ -344,12 +331,7 @@ describe("update descriptor", () => {
             ],
           ],
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingAttributeId));
   });
@@ -377,64 +359,54 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
 
-  // it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
-  //   const mockDescriptor: Descriptor = {
-  //     ...getMockDescriptor(),
-  //     state: descriptorState.published,
-  //     attributes: {
-  //       certified: validMockDescriptorCertifiedAttributes,
-  //       verified: validMockDescriptorVerifiedAttributes,
-  //       declared: [],
-  //     },
-  //   };
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      attributes: {
+        certified: validMockDescriptorCertifiedAttributes,
+        verified: validMockDescriptorVerifiedAttributes,
+        declared: [],
+      },
+    };
 
-  //   const mockEService: EService = {
-  //     ...getMockEService(),
-  //     descriptors: [mockDescriptor],
-  //   };
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
 
-  //   await addOneEService(mockEService);
+    await addOneEService(mockEService);
 
-  //   const delegation = getMockDelegation({
-  //     kind: delegationKind.delegatedProducer,
-  //     eserviceId: mockEService.id,
-  //     state: delegationState.active,
-  //   });
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
 
-  //   await addOneDelegation(delegation);
+    await addOneDelegation(delegation);
 
-  //   expect(
-  //     catalogService.updateDescriptorAttributes(
-  //       mockEService.id,
-  //       mockDescriptor.id,
-  //       validMockDescriptorAttributeSeed,
-  //       {
-  //         authData: getMockAuthData(mockEService.producerId),
-  //         correlationId: generateId(),
-  //         serviceName: "",
-  //         logger: genericLogger,
-  //       }
-  //     )
-  //   ).rejects.toThrowError(operationForbidden);
-  // });
+    expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        validMockDescriptorAttributeSeed,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
 
   it.each([
     descriptorState.draft,
-    // descriptorState.waitingForApproval,
+    descriptorState.waitingForApproval,
     descriptorState.archived,
     descriptorState.deprecated,
   ])(
-    "should throw notValidDescriptor if the descriptor is in %s state",
+    "should throw notValidDescriptorState if the descriptor is in %s state",
     async (descriptorState) => {
       const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
@@ -458,15 +430,12 @@ describe("update descriptor", () => {
           mockEService.id,
           mockDescriptor.id,
           validMockDescriptorAttributeSeed,
-          {
+          getMockContext({
             authData: getMockAuthData(mockEService.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          })
         )
       ).rejects.toThrowError(
-        notValidDescriptor(mockDescriptor.id, descriptorState)
+        notValidDescriptorState(mockDescriptor.id, descriptorState)
       );
     }
   );
@@ -498,12 +467,7 @@ describe("update descriptor", () => {
           verified: validMockDescriptorVerifiedAttributes,
           declared: [],
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       unchangedAttributes(mockEService.id, mockDescriptor.id)
@@ -545,12 +509,7 @@ describe("update descriptor", () => {
           ],
           declared: [],
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       inconsistentAttributesSeedGroupsCount(mockEService.id, mockDescriptor.id)
@@ -597,18 +556,44 @@ describe("update descriptor", () => {
           ],
           declared: [],
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       descriptorAttributeGroupSupersetMissingInAttributesSeed(
         mockEService.id,
         mockDescriptor.id
       )
+    );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      attributes: {
+        certified: validMockDescriptorCertifiedAttributes,
+        verified: validMockDescriptorVerifiedAttributes,
+        declared: [],
+      },
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      templateRef: { id: templateId },
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        validMockDescriptorAttributeSeed,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(mockEService.id, templateId)
     );
   });
 });

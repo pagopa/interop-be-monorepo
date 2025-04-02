@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import path from "path";
-import { Readable } from "stream";
-import crypto from "crypto";
 import AdmZip from "adm-zip";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -81,6 +79,8 @@ export function buildJsonConfig(
     technology: eservice.technology,
     mode: eservice.mode,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
+    isConsumerDelegable: eservice.isConsumerDelegable,
+    isClientAccessDelegable: eservice.isClientAccessDelegable,
     descriptor: {
       interface: descriptor.interface && {
         prettyName: descriptor.interface.prettyName,
@@ -204,21 +204,38 @@ export async function createDescriptorDocumentZipFile(
 
   return zip.toBuffer();
 }
+export async function cloneEServiceDocument({
+  doc,
+  documentsContainer,
+  documentsPath,
+  fileManager,
+  logger,
+}: {
+  doc: catalogApi.EServiceDoc;
+  documentsContainer: string;
+  documentsPath: string;
+  fileManager: FileManager;
+  logger: Logger;
+}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed> {
+  const clonedDocumentId = crypto.randomUUID();
 
-export async function calculateChecksum(stream: Readable): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash("sha256");
+  const clonedPath = await fileManager.copy(
+    documentsContainer,
+    doc.path,
+    documentsPath,
+    clonedDocumentId,
+    doc.name,
+    logger
+  );
 
-    stream.on("data", (data) => {
-      hash.update(data);
-    });
-
-    stream.on("end", () => {
-      resolve(hash.digest("hex"));
-    });
-
-    stream.on("error", (err) => {
-      reject(err);
-    });
-  });
+  return {
+    documentId: clonedDocumentId,
+    kind: "DOCUMENT",
+    contentType: doc.contentType,
+    prettyName: doc.prettyName,
+    fileName: doc.name,
+    filePath: clonedPath,
+    checksum: doc.checksum,
+    serverUrls: [],
+  };
 }

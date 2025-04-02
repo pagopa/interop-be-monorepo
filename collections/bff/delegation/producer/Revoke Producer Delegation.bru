@@ -1,0 +1,20 @@
+meta {
+  name: Revoke producer delegation
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{host-bff}}/producers/delegations/:delegationId
+  body: none
+  auth: none
+}
+
+params:path {
+  delegationId: {{delegationId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

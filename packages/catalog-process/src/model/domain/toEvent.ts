@@ -15,7 +15,7 @@ export const toCreateEventEServiceAdded = (
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "EServiceAdded",
     event_version: 2,
@@ -31,7 +31,7 @@ export const toCreateEventClonedEServiceAdded = (
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
   streamId: clonedEservice.id,
-  version: 0,
+  version: undefined,
   event: {
     type: "EServiceCloned",
     event_version: 2,
@@ -481,6 +481,63 @@ export const toCreateEventEServiceDescriptionUpdated = (
   correlationId,
 });
 
+export const toCreateEventEServiceDescriptorSubmittedByDelegate = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorSubmittedByDelegate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorApprovedByDelegator = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorApprovedByDelegator",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorRejectedByDelegator = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorRejectedByDelegator",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventEServiceDescriptorAttributesUpdated = (
   version: number,
   descriptorId: DescriptorId,
@@ -502,6 +559,74 @@ export const toCreateEventEServiceDescriptorAttributesUpdated = (
   correlationId,
 });
 
+export const toCreateEventEServiceIsConsumerDelegableEnabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceIsConsumerDelegableEnabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceIsConsumerDelegableDisabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceIsConsumerDelegableDisabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceIsClientAccessDelegableEnabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceIsClientAccessDelegableEnabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceIsClientAccessDelegableDisabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceIsClientAccessDelegableDisabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventEServiceNameUpdated = (
   version: number,
   eservice: EService,
@@ -513,6 +638,165 @@ export const toCreateEventEServiceNameUpdated = (
     type: "EServiceNameUpdated",
     event_version: 2,
     data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceNameUpdatedByTemplateUpdate = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceNameUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptionUpdatedByTemplateUpdate = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptionUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorQuotasUpdatedByTemplateUpdate = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorAttributesUpdatedByTemplateUpdate =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    attributeIds: AttributeId[],
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+      event_version: 2,
+      data: {
+        descriptorId,
+        attributeIds,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
+
+export const toCreateEventEServiceDescriptorDocumentAddedByTemplateUpdate = (
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDescriptorDocumentAddedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorDocumentUpdatedByTemplateUpdate = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorDocumentDeletedByTemplateUpdate = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
       eservice: toEServiceV2(eservice),
     },
   },

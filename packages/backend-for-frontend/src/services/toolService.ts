@@ -2,9 +2,6 @@
 
 import { isAxiosError } from "axios";
 import {
-  ApiKey,
-  ClientAssertion,
-  ConsumerKey,
   FailedValidation,
   SuccessfulValidation,
   validateClientKindAndPlatformState,
@@ -15,11 +12,20 @@ import {
 import {
   AgreementId,
   ApiError,
+  ClientAssertion,
   ClientId,
+  DescriptorId,
   EServiceId,
+  GSIPKClientIdKid,
   ItemState,
+  makeGSIPKClientIdPurposeId,
+  makeGSIPKConsumerIdEServiceId,
+  makeGSIPKEServiceIdDescriptorId,
+  makeTokenGenerationStatesClientKidPK,
+  makeTokenGenerationStatesClientKidPurposePK,
   PurposeId,
   TenantId,
+  TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
@@ -46,6 +52,7 @@ import {
   PagoPAInteropBeClients,
   AgreementProcessClient,
 } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import { getAllAgreements } from "./agreementService.js";
 
 export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
@@ -67,7 +74,12 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       const { data: jwt, errors: clientAssertionErrors } =
-        verifyClientAssertion(clientAssertion, clientId);
+        verifyClientAssertion(
+          clientAssertion,
+          clientId,
+          config.clientAssertionAudience,
+          ctx.logger
+        );
 
       if (parametersErrors || clientAssertionErrors) {
         return handleValidationResults({
@@ -96,7 +108,11 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
           : undefined;
 
       const { errors: clientAssertionSignatureErrors } =
-        await verifyClientAssertionSignature(clientAssertion, key);
+        await verifyClientAssertionSignature(
+          clientAssertion,
+          key,
+          jwt.header.alg
+        );
       if (clientAssertionSignatureErrors) {
         return handleValidationResults(
           {
@@ -209,7 +225,7 @@ async function retrieveKeyAndEservice(
   ctx: WithLogger<BffAppContext>
 ): Promise<
   | SuccessfulValidation<{
-      key: ApiKey | ConsumerKey;
+      key: TokenGenerationStatesGenericClient;
       eservice?: catalogApi.EService;
       descriptor?: catalogApi.EServiceDescriptor;
     }>
@@ -241,26 +257,29 @@ async function retrieveKeyAndEservice(
 
   assertIsConsumer(ctx.authData.organizationId, keyWithClient);
 
-  const { encodedPem, algorithm } =
-    await authorizationClient.client.getClientKeyById({
-      headers: ctx.headers,
-      params: {
-        clientId: keyWithClient.client.id,
-        keyId: jwt.header.kid,
-      },
-    });
+  const { encodedPem } = await authorizationClient.client.getClientKeyById({
+    headers: ctx.headers,
+    params: {
+      clientId: keyWithClient.client.id,
+      keyId: jwt.header.kid,
+    },
+  });
 
   if (keyWithClient.client.kind === authorizationApi.ClientKind.enum.API) {
     return {
       errors: undefined,
       data: {
         key: {
+          PK: makeTokenGenerationStatesClientKidPK({
+            clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
+            kid: jwt.header.kid,
+          }),
           clientKind: authorizationApi.ClientKind.enum.API,
-          kid: jwt.header.kid,
-          algorithm,
+          GSIPK_clientId_kid: unsafeBrandId<GSIPKClientIdKid>(jwt.header.kid),
           publicKey: encodedPem,
-          clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
+          GSIPK_clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
           consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
+          updatedAt: new Date().toISOString(),
         },
       },
     };
@@ -311,18 +330,36 @@ async function retrieveKeyAndEservice(
     errors: undefined,
     data: {
       key: {
+        PK: makeTokenGenerationStatesClientKidPurposePK({
+          clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
+          kid: jwt.header.kid,
+          purposeId,
+        }),
         clientKind: authorizationApi.ClientKind.enum.CONSUMER,
-        clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
-        kid: jwt.header.kid,
-        algorithm,
+        GSIPK_clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
+        GSIPK_clientId_kid: unsafeBrandId<GSIPKClientIdKid>(jwt.header.kid),
         publicKey: encodedPem,
-        purposeId,
+        GSIPK_purposeId: purposeId,
         consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
         agreementId: unsafeBrandId<AgreementId>(agreement.id),
-        eServiceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
+        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+          eserviceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
+          descriptorId: unsafeBrandId<DescriptorId>(agreement.descriptorId),
+        }),
+        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+          eserviceId: unsafeBrandId<EServiceId>(agreement.eserviceId),
+          consumerId: unsafeBrandId<TenantId>(keyWithClient.client.consumerId),
+        }),
+        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+          clientId: unsafeBrandId<ClientId>(keyWithClient.client.id),
+          purposeId,
+        }),
         agreementState: agreementStateToItemState(agreement.state),
-        purposeState: retrievePurposeItemState(purpose),
+        purposeState: purposeToItemState(purpose),
         descriptorState: descriptorStateToItemState(descriptor.state),
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        updatedAt: new Date().toISOString(),
       },
       eservice,
       descriptor,
@@ -374,7 +411,7 @@ async function retrieveDescriptor(
   return descriptor;
 }
 
-function retrievePurposeItemState(purpose: purposeApi.Purpose): ItemState {
+function purposeToItemState(purpose: purposeApi.Purpose): ItemState {
   const purposeVersion = [...purpose.versions]
     .sort(
       (a, b) =>
@@ -416,10 +453,10 @@ const agreementStateToItemState = (
     : ItemState.Enum.INACTIVE;
 
 const descriptorStateToItemState = (
-  state: catalogApi.EServiceDescriptorState
+  descriptorState: catalogApi.EServiceDescriptorState
 ): ItemState =>
-  state === catalogApi.EServiceDescriptorState.Enum.PUBLISHED ||
-  state === catalogApi.EServiceDescriptorState.Enum.DEPRECATED
+  descriptorState === catalogApi.EServiceDescriptorState.Enum.PUBLISHED ||
+  descriptorState === catalogApi.EServiceDescriptorState.Enum.DEPRECATED
     ? ItemState.Enum.ACTIVE
     : ItemState.Enum.INACTIVE;
 

@@ -4,6 +4,7 @@ import {
   CommonHTTPServiceConfig,
   RedisRateLimiterConfig,
   ReadModelDbConfig,
+  ApplicationAuditProducerConfig,
 } from "pagopa-interop-commons";
 
 export const CatalogProcessServerConfig = z
@@ -72,6 +73,17 @@ export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
+export const DelegationProcessServerConfig = z
+  .object({
+    DELEGATION_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    delegationProcessUrl: c.DELEGATION_PROCESS_URL,
+  }));
+export type DelegationProcessServerConfig = z.infer<
+  typeof DelegationProcessServerConfig
+>;
+
 export const NotifierServerConfig = z
   .object({
     NOTIFIER_URL: APIEndpoint,
@@ -97,9 +109,11 @@ const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
   .and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig)
   .and(AuthorizationProcessServerConfig)
+  .and(DelegationProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(NotifierServerConfig)
-  .and(ReadModelDbConfig);
+  .and(ReadModelDbConfig)
+  .and(ApplicationAuditProducerConfig);
 export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 
 export const config: ApiGatewayConfig = ApiGatewayConfig.parse(process.env);

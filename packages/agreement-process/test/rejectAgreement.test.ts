@@ -1,17 +1,18 @@
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
+  getMockDelegation,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -22,25 +23,31 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceId,
   Tenant,
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  delegationKind,
+  delegationState,
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { addDays } from "date-fns";
 import { agreementRejectableStates } from "../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  operationNotAllowed,
+  organizationIsNotTheDelegateProducer,
+  organizationIsNotTheProducer,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
+  addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
@@ -48,216 +55,239 @@ import {
 } from "./utils.js";
 
 describe("reject agreement", () => {
-  it("should succeed when requester is Producer and the Agreement is in a rejectable state", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
+  it.each([
+    {
+      desc: "Producer",
+      type: "producer",
+    },
+    {
+      desc: "Delegate of an active delegation",
+      type: "delegate",
+    },
+  ])(
+    "should succeed when requester is $desc and the Agreement is in a rejectable state",
+    async ({ type }) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
 
-    const producerId = generateId<TenantId>();
-    const tenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-    const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      revocationTimestamp: new Date(),
-    };
+      const producerId = generateId<TenantId>();
+      const tenantCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
 
-    const tenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      revocationTimestamp: undefined,
-    };
-    const revokedTenantDeclaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      revocationTimestamp: new Date(),
-    };
+      const tenantDeclaredAttribute: DeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const revokedTenantDeclaredAttribute: DeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
 
-    const tenantVerifiedAttribute: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        {
-          id: producerId,
-          verificationDate: new Date(),
-          extensionDate: new Date(new Date().getTime() + 3600 * 1000),
-        },
-      ],
-    };
-
-    const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute = {
-      ...getMockVerifiedTenantAttribute(),
-      verifiedBy: [
-        { id: generateId<TenantId>(), verificationDate: new Date() },
-      ],
-    };
-
-    const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
-      {
+      const tenantVerifiedAttribute: VerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
             id: producerId,
             verificationDate: new Date(),
-            extensionDate: new Date(),
+            extensionDate: addDays(new Date(), 30),
           },
         ],
       };
 
-    const consumer: Tenant = {
-      ...getMockTenant(),
-      attributes: [
-        tenantCertifiedAttribute,
-        revokedTenantCertifiedAttribute,
-        tenantDeclaredAttribute,
-        revokedTenantDeclaredAttribute,
-        tenantVerifiedAttribute,
-        tenantVerifiedAttributeByAnotherProducer,
-        tenantVerfiedAttributeWithExpiredExtension,
-        // Adding some attributes not matching with descriptor attributes
-        // to test that they are not kept in the agreement
-        getMockVerifiedTenantAttribute(),
-        getMockCertifiedTenantAttribute(),
-        getMockDeclaredTenantAttribute(),
-      ],
-    };
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      attributes: {
-        // I add also some attributes not matching with tenant attributes
-        // to test that they are not kept in the agreement
-        certified: [
-          [
-            getMockEServiceAttribute(tenantCertifiedAttribute.id),
-            getMockEServiceAttribute(revokedTenantCertifiedAttribute.id),
-            getMockEServiceAttribute(),
+      const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            { id: generateId<TenantId>(), verificationDate: new Date() },
           ],
-        ],
-        verified: [
-          [
-            getMockEServiceAttribute(tenantVerifiedAttribute.id),
-            getMockEServiceAttribute(
-              tenantVerifiedAttributeByAnotherProducer.id
-            ),
-            getMockEServiceAttribute(
-              tenantVerfiedAttributeWithExpiredExtension.id
-            ),
-            getMockEServiceAttribute(),
-          ],
-        ],
-        declared: [
-          [
-            getMockEServiceAttribute(tenantDeclaredAttribute.id),
-            getMockEServiceAttribute(revokedTenantDeclaredAttribute.id),
-            getMockEServiceAttribute(),
-          ],
-        ],
-      },
-    };
-    const eservice: EService = {
-      ...getMockEService(),
-      producerId,
-      descriptors: [descriptor],
-    };
+        };
 
-    const agreement = {
-      ...getMockAgreement(),
-      eserviceId: eservice.id,
-      producerId: eservice.producerId,
-      descriptorId: descriptor.id,
-      consumerId: consumer.id,
-      state: randomArrayItem(agreementRejectableStates),
-    };
-    await addOneTenant(consumer);
-    await addOneEService(eservice);
-    await addOneAgreement(agreement);
+      const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: producerId,
+              verificationDate: new Date(),
+              extensionDate: addDays(new Date(), 300),
+            },
+          ],
+        };
 
-    const authData = getRandomAuthData(agreement.producerId);
-    const returnedAgreement = await agreementService.rejectAgreement(
-      agreement.id,
-      "Rejected by producer due to test reasons",
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          tenantCertifiedAttribute,
+          revokedTenantCertifiedAttribute,
+          tenantDeclaredAttribute,
+          revokedTenantDeclaredAttribute,
+          tenantVerifiedAttribute,
+          tenantVerifiedAttributeByAnotherProducer,
+          tenantVerfiedAttributeWithExpiredExtension,
+          // Adding some attributes not matching with descriptor attributes
+          // to test that they are not kept in the agreement
+          getMockVerifiedTenantAttribute(),
+          getMockCertifiedTenantAttribute(),
+          getMockDeclaredTenantAttribute(),
+        ],
+      };
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        attributes: {
+          // I add also some attributes not matching with tenant attributes
+          // to test that they are not kept in the agreement
+          certified: [
+            [
+              getMockEServiceAttribute(tenantCertifiedAttribute.id),
+              getMockEServiceAttribute(revokedTenantCertifiedAttribute.id),
+              getMockEServiceAttribute(),
+            ],
+          ],
+          verified: [
+            [
+              getMockEServiceAttribute(tenantVerifiedAttribute.id),
+              getMockEServiceAttribute(
+                tenantVerifiedAttributeByAnotherProducer.id
+              ),
+              getMockEServiceAttribute(
+                tenantVerfiedAttributeWithExpiredExtension.id
+              ),
+              getMockEServiceAttribute(),
+            ],
+          ],
+          declared: [
+            [
+              getMockEServiceAttribute(tenantDeclaredAttribute.id),
+              getMockEServiceAttribute(revokedTenantDeclaredAttribute.id),
+              getMockEServiceAttribute(),
+            ],
+          ],
+        },
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId,
+        descriptors: [descriptor],
+      };
+
+      const agreement = {
+        ...getMockAgreement(),
+        eserviceId: eservice.id,
+        producerId: eservice.producerId,
+        descriptorId: descriptor.id,
+        consumerId: consumer.id,
+        state: randomArrayItem(agreementRejectableStates),
+      };
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+      await addOneAgreement(agreement);
+
+      const authData =
+        type === "producer"
+          ? getMockAuthData(agreement.producerId)
+          : getMockAuthData();
+
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId: authData.organizationId,
+        eserviceId: eservice.id,
+        delegatorId: eservice.producerId,
+        state: delegationState.active,
+      });
+      if (type === "delegate") {
+        await addOneDelegation(delegation);
       }
-    );
 
-    const agreementEvent = await readLastAgreementEvent(agreement.id);
+      const returnedAgreement = await agreementService.rejectAgreement(
+        agreement.id,
+        "Rejected by producer due to test reasons",
+        getMockContext({ authData })
+      );
 
-    expect(agreementEvent).toMatchObject({
-      type: "AgreementRejected",
-      event_version: 2,
-      version: "1",
-      stream_id: agreement.id,
-    });
+      const agreementEvent = await readLastAgreementEvent(agreement.id);
 
-    const actualAgreementRejected = decodeProtobufPayload({
-      messageType: AgreementRejectedV2,
-      payload: agreementEvent.data,
-    }).agreement;
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementRejected",
+        event_version: 2,
+        version: "1",
+        stream_id: agreement.id,
+      });
 
-    /* We must delete some properties because the rejection
+      const actualAgreementRejected = decodeProtobufPayload({
+        messageType: AgreementRejectedV2,
+        payload: agreementEvent.data,
+      }).agreement;
+
+      /* We must delete some properties because the rejection
     sets them to undefined thus and the protobuf
     serialization strips them from the payload */
-    delete agreement.suspendedByConsumer;
-    delete agreement.suspendedByProducer;
-    delete agreement.suspendedByPlatform;
-    const expectedAgreemenentRejected: Agreement = {
-      ...agreement,
-      state: agreementState.rejected,
-      rejectionReason: "Rejected by producer due to test reasons",
-      // Keeps only not revoked attributes that are matching in descriptor and tenant
-      verifiedAttributes: [{ id: tenantVerifiedAttribute.id }],
-      declaredAttributes: [{ id: tenantDeclaredAttribute.id }],
-      certifiedAttributes: [{ id: tenantCertifiedAttribute.id }],
-      stamps: {
-        ...agreement.stamps,
-        rejection: {
-          who: authData.userId,
-          when: new Date(),
+      delete agreement.suspendedByConsumer;
+      delete agreement.suspendedByProducer;
+      delete agreement.suspendedByPlatform;
+      const expectedAgreementRejected: Agreement = {
+        ...agreement,
+        state: agreementState.rejected,
+        rejectionReason: "Rejected by producer due to test reasons",
+        // Keeps only not revoked attributes that are matching in descriptor and tenant
+        verifiedAttributes: [
+          { id: tenantVerifiedAttribute.id },
+          { id: tenantVerfiedAttributeWithExpiredExtension.id },
+        ],
+        declaredAttributes: [{ id: tenantDeclaredAttribute.id }],
+        certifiedAttributes: [{ id: tenantCertifiedAttribute.id }],
+        stamps: {
+          ...agreement.stamps,
+          rejection: {
+            who: authData.userId,
+            when: new Date(),
+            ...(type === "delegate" ? { delegationId: delegation.id } : {}),
+          },
         },
-      },
-    };
-    expect(actualAgreementRejected).toMatchObject(
-      toAgreementV2(expectedAgreemenentRejected)
-    );
-    expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
-    vi.useRealTimers();
-  });
+      };
+      expect(actualAgreementRejected).toMatchObject(
+        toAgreementV2(expectedAgreementRejected)
+      );
+      expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
+      vi.useRealTimers();
+    }
+  );
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
-    const authData = getRandomAuthData();
+    const authData = getMockAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
       agreementService.rejectAgreement(
         agreementId,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw operationNotAllowed when the requester is not the Producer", async () => {
-    const authData = getRandomAuthData();
-    const agreement = getMockAgreement();
+  it("should throw organizationIsNotTheProducer when the requester is not the Producer", async () => {
+    const authData = getMockAuthData();
+    const agreement = getMockAgreement(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      randomArrayItem(agreementRejectableStates)
+    );
     await addOneAgreement(agreement);
     await expect(
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
-    ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(
+      organizationIsNotTheProducer(authData.organizationId)
+    );
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
@@ -270,17 +300,12 @@ describe("reject agreement", () => {
       ),
     };
     await addOneAgreement(agreement);
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -294,17 +319,12 @@ describe("reject agreement", () => {
       state: randomArrayItem(agreementRejectableStates),
     };
     await addOneAgreement(agreement);
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
@@ -329,18 +349,13 @@ describe("reject agreement", () => {
     };
     await addOneAgreement(agreement);
     await addOneEService(eservice);
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
 
     await expect(
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
   });
@@ -361,21 +376,98 @@ describe("reject agreement", () => {
     await addOneAgreement(agreement);
     await addOneEService(eservice);
     await addOneTenant(consumer);
-    const authData = getRandomAuthData(agreement.producerId);
+    const authData = getMockAuthData(agreement.producerId);
 
     await expect(
       agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
+    );
+  });
+
+  it("should throw organizationIsNotTheDelegateProducer when the requester is the producer and there is an active delegation", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+    };
+    const consumer = getMockTenant();
+    const delegate = getMockTenant();
+    const agreement = {
+      ...getMockAgreement(),
+      state: randomArrayItem(agreementRejectableStates),
+      eserviceId: eservice.id,
+      producerId: eservice.producerId,
+      consumerId: consumer.id,
+      descriptorId: eservice.descriptors[0].id,
+    };
+    const authData = getMockAuthData(agreement.producerId);
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      delegateId: delegate.id,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneTenant(delegate);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.rejectAgreement(
+        agreement.id,
+        "Rejected by producer due to test reasons",
+        getMockContext({ authData })
+      )
+    ).rejects.toThrowError(
+      organizationIsNotTheDelegateProducer(
+        authData.organizationId,
+        delegation.id
+      )
+    );
+  });
+
+  it("should throw a organizationIsNotTheProducer error when the requester is the delegate but the delegation in not active", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptorPublished()],
+    };
+    const consumer = getMockTenant();
+    const agreement = {
+      ...getMockAgreement(),
+      state: randomArrayItem(agreementRejectableStates),
+      eserviceId: eservice.id,
+      producerId: eservice.producerId,
+      consumerId: consumer.id,
+      descriptorId: eservice.descriptors[0].id,
+    };
+    const authData = getMockAuthData();
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      delegateId: authData.organizationId,
+      eserviceId: eservice.id,
+      state: delegationState.waitingForApproval,
+    });
+
+    await addOneAgreement(agreement);
+    await addOneEService(eservice);
+    await addOneTenant(consumer);
+    await addOneDelegation(delegation);
+
+    await expect(
+      agreementService.rejectAgreement(
+        agreement.id,
+        "Rejected by producer due to test reasons",
+
+        getMockContext({ authData })
+      )
+    ).rejects.toThrowError(
+      organizationIsNotTheProducer(authData.organizationId)
     );
   });
 });

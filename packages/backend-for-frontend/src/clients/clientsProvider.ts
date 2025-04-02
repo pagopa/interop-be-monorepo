@@ -8,6 +8,8 @@ import {
   selfcareV2ClientApi,
   selfcareV2InstitutionClientBuilder,
   selfcareV2UsersClientBuilder,
+  delegationApi,
+  eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -33,6 +35,12 @@ export type PurposeProcessClient = ReturnType<
   typeof purposeApi.createPurposeApiClient
 >;
 
+export type DelegationProcessClient = {
+  producer: ReturnType<typeof delegationApi.createProducerApiClient>;
+  consumer: ReturnType<typeof delegationApi.createConsumerApiClient>;
+  delegation: ReturnType<typeof delegationApi.createDelegationApiClient>;
+};
+
 export type AuthorizationProcessClient = {
   client: ReturnType<typeof authorizationApi.createClientApiClient>;
   producerKeychain: ReturnType<
@@ -41,6 +49,10 @@ export type AuthorizationProcessClient = {
   user: ReturnType<typeof authorizationApi.createUserApiClient>;
   token: ReturnType<typeof authorizationApi.createTokenGenerationApiClient>;
 };
+
+export type EServiceTemplateProcessClient = ReturnType<
+  typeof eserviceTemplateApi.createProcessApiClient
+>;
 
 export type SelfcareV2InstitutionClient = {
   institution: ReturnType<
@@ -61,6 +73,8 @@ export type PagoPAInteropBeClients = {
   authorizationClient: AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UserClient;
+  delegationProcessClient: DelegationProcessClient;
+  eserviceTemplateProcessClient: EServiceTemplateProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -98,5 +112,19 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
     selfcareV2UserClient: {
       user: selfcareV2UsersClientBuilder(config),
     },
+    delegationProcessClient: {
+      producer: delegationApi.createProducerApiClient(
+        config.delegationProcessUrl
+      ),
+      consumer: delegationApi.createConsumerApiClient(
+        config.delegationProcessUrl
+      ),
+      delegation: delegationApi.createDelegationApiClient(
+        config.delegationProcessUrl
+      ),
+    },
+    eserviceTemplateProcessClient: eserviceTemplateApi.createProcessApiClient(
+      config.eserviceTemplateProcessUrl
+    ),
   };
 }
