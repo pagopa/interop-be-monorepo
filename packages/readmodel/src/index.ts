@@ -9,4 +9,3 @@ export * from "./attributeReadModelService.js";
 
 // TENANT
 export * from "./tenantReadModelService.js";
-

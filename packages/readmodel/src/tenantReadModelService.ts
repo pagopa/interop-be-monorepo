@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import { aggregateTenant, toTenantAggregator } from "./tenant/aggregators.js";
+import { checkMetadataVersion } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -31,19 +32,14 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
       } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion: tenantInReadmodelTenant.metadataVersion,
-            })
-            .from(tenantInReadmodelTenant)
-            .where(eq(tenantInReadmodelTenant.id, tenant.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          tenantInReadmodelTenant,
+          metadataVersion,
+          tenant.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(tenantInReadmodelTenant)
             .where(eq(tenantInReadmodelTenant.id, tenant.id));
