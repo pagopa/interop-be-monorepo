@@ -104,7 +104,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api", "support", "security"]);
+        validateAuthorization(ctx, ["admin", "api", "support", "security", "m2m"]);
 
         const {
           name,
