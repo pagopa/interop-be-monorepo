@@ -105,7 +105,13 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api", "support", "security", "m2m"]);
+        validateAuthorization(ctx, [
+          "admin",
+          "api",
+          "support",
+          "security",
+          "m2m",
+        ]);
 
         const {
           name,
@@ -1256,7 +1262,7 @@ const eservicesRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/update",
       async (req, res) => {

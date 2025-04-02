@@ -158,29 +158,43 @@ export const getAuthDataFromToken = (token: AuthToken): AuthData =>
     }))
     .exhaustive();
 
-export function getUserInfoFromAuthData(authData: AuthData | undefined): {
+export function getUserInfoFromAuthData(
+  authData: AuthData | undefined | null
+): {
   userId: UserId | undefined;
   organizationId: TenantId | undefined;
+  selfcareId: SelfcareId | undefined;
 } {
   if (!authData) {
-    return { userId: undefined, organizationId: undefined };
+    return {
+      userId: undefined,
+      organizationId: undefined,
+      selfcareId: undefined,
+    };
   }
 
   return match<
     AuthData,
-    { userId: UserId | undefined; organizationId: TenantId | undefined }
+    {
+      userId: UserId | undefined;
+      organizationId: TenantId | undefined;
+      selfcareId: SelfcareId | undefined;
+    }
   >(authData)
     .with({ systemRole: P.union("internal", "maintenance") }, () => ({
       userId: undefined,
       organizationId: undefined,
+      selfcareId: undefined,
     }))
     .with({ systemRole: "m2m" }, (t) => ({
       userId: undefined,
       organizationId: t.organizationId,
+      selfcareId: undefined,
     }))
     .with({ systemRole: undefined }, (t) => ({
       userId: t.userId,
       organizationId: t.organizationId,
+      selfcareId: t.selfcareId,
     }))
     .exhaustive();
 }
