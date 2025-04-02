@@ -316,8 +316,10 @@ export function readModelServiceBuilder(
         : {};
 
       const isConsumerDelegableFilter: ReadModelFilter<EService> =
-        isConsumerDelegable
-          ? { "data.isConsumerDelegable": { $eq: isConsumerDelegable } }
+        isConsumerDelegable === true
+          ? { "data.isConsumerDelegable": { $eq: true } }
+          : isConsumerDelegable === false
+          ? { "data.isConsumerDelegable": { $ne: true } }
           : {};
 
       const delegatedFilter: ReadModelFilter<EService> = match(delegated)

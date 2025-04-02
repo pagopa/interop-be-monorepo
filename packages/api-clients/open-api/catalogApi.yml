@@ -2057,6 +2057,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update the selected template instance descriptor.
+      operationId: updateTemplateInstanceDescriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceDescriptorQuotasSeed"
+      responses:
+        "200":
+          description: E-service template instance descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -2150,6 +2207,8 @@ components:
           type: boolean
         instanceLabel:
           type: string
+          minLength: 5
+          maxLength: 60
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -2344,6 +2403,21 @@ components:
           minimum: 1
       required:
         - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+    UpdateEServiceTemplateInstanceDescriptorQuotasSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        dailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 1
+        dailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 1
+      required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
     CreateEServiceDescriptorDocumentSeed:
@@ -2968,6 +3042,8 @@ components:
       properties:
         instanceLabel:
           type: string
+          minLength: 5
+          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:

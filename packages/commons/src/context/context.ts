@@ -18,6 +18,7 @@ export type AppContext<A extends AuthData = AuthData> = {
   serviceName: string;
   authData: A;
   correlationId: CorrelationId;
+  requestTimestamp: number;
 };
 
 export const zodiosCtx = zodiosContext();

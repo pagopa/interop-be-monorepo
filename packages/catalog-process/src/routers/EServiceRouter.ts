@@ -73,6 +73,7 @@ import {
   updateEServiceTemplateInstanceErrorMapper,
   updateDraftDescriptorTemplateInstanceErrorMapper,
   createTemplateInstanceDescriptorErrorMapper,
+  updateTemplateInstanceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -1255,7 +1256,37 @@ const eservicesRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    )
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/update",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, ["admin", "api"]);
+          const updatedEService =
+            await catalogService.updateTemplateInstanceDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstanceDescriptorErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return eservicesRouter;
 };

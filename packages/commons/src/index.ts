@@ -14,7 +14,7 @@ export * from "./repositories/EventRepository.js";
 export * from "./repositories/ReadModelRepository.js";
 export * from "./repositories/db.js";
 export * from "./risk-analysis/index.js";
-export * from "./router/zodiosValidationErrorHandler.js";
+export * from "./router/index.js";
 export * from "./templating/htmlTemplateService.js";
 export * from "./types/index.js";
 export * from "./utils/arrays.js";

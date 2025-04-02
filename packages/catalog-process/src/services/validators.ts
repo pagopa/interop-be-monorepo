@@ -308,3 +308,9 @@ export function assertConsistentDailyCalls({
     throw inconsistentDailyCalls();
   }
 }
+
+export function assertDescriptorUpdatable(descriptor: Descriptor): void {
+  if (!isDescriptorUpdatable(descriptor)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
