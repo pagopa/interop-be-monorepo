@@ -8,8 +8,7 @@ import {
   attributeKind,
   generateId,
 } from "pagopa-interop-models";
-import { getMockAttribute } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import { getMockAttribute, getMockContext } from "pagopa-interop-commons-test";
 import { attributeNotFound } from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -213,14 +212,14 @@ describe("readModelService", () => {
     it("should get the attribute if it exists", async () => {
       const attribute = await attributeRegistryService.getAttributeById(
         attribute1.id,
-        genericLogger
+        getMockContext({})
       );
       expect(attribute?.data).toEqual(attribute1);
     });
     it("should throw attributeNotFound if the attribute doesn't exist", async () => {
       const id = generateId<AttributeId>();
       expect(
-        attributeRegistryService.getAttributeById(id, genericLogger)
+        attributeRegistryService.getAttributeById(id, getMockContext({}))
       ).rejects.toThrowError(attributeNotFound(id));
     });
   });
@@ -228,14 +227,14 @@ describe("readModelService", () => {
     it("should get the attribute if it exists", async () => {
       const attribute = await attributeRegistryService.getAttributeByName(
         attribute1.name,
-        genericLogger
+        getMockContext({})
       );
       expect(attribute?.data).toEqual(attribute1);
     });
     it("should throw attributeNotFound if the attribute doesn't exist", async () => {
       const name = "not-existing";
       expect(
-        attributeRegistryService.getAttributeByName(name, genericLogger)
+        attributeRegistryService.getAttributeByName(name, getMockContext({}))
       ).rejects.toThrowError(attributeNotFound(name));
     });
   });
@@ -247,7 +246,7 @@ describe("readModelService", () => {
             origin: "IPA",
             code: "12345A",
           },
-          genericLogger
+          getMockContext({})
         );
       expect(attribute?.data).toEqual(attribute1);
     });
@@ -258,7 +257,7 @@ describe("readModelService", () => {
             origin: "IPA",
             code: "12345D",
           },
-          genericLogger
+          getMockContext({})
         )
       ).rejects.toThrowError(attributeNotFound("IPA/12345D"));
     });

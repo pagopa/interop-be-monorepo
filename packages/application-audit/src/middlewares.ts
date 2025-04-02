@@ -7,6 +7,7 @@ import {
   AuthData,
   decodeJwtToken,
   fromAppContext,
+  getUserInfoFromAuthData,
   JWTConfig,
   readAuthDataFromJwtToken,
 } from "pagopa-interop-commons";
@@ -190,6 +191,10 @@ export async function applicationAuditEndMiddleware(
 
         const endTimestamp = Date.now();
 
+        const { organizationId, userId } = getUserInfoFromAuthData(
+          context.authData
+        );
+
         const finalAudit: ApplicationAuditEndRequest = {
           correlationId,
           service: serviceName,
@@ -203,8 +208,8 @@ export async function applicationAuditEndMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
-          organizationId: context.authData?.organizationId,
-          userId: context.authData?.userId,
+          organizationId,
+          userId,
           httpResponseStatus: res.statusCode,
           executionTimeMs: endTimestamp - context.requestTimestamp,
         };
@@ -264,6 +269,8 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           authData = decoded && readAuthDataFromJwtToken(decoded);
         }
 
+        const { organizationId, selfcareId } =
+          getUserInfoFromAuthData(authData);
         const endTimestamp = Date.now();
 
         const finalAudit: ApplicationAuditEndRequestSessionTokenExchange = {
@@ -279,8 +286,8 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
-          organizationId: authData?.organizationId,
-          selfcareId: authData?.selfcareId,
+          organizationId,
+          selfcareId,
           httpResponseStatus: res.statusCode,
           executionTimeMs: endTimestamp - context.requestTimestamp,
         };

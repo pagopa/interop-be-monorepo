@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as express from "express";
 import { AppContext } from "../context/context.js";
+import { getUserInfoFromAuthData } from "../auth/authData.js";
 import { LoggerMetadata, logger } from "./index.js";
 
 export function loggerMiddleware(serviceName: string): express.RequestHandler {
@@ -8,10 +9,14 @@ export function loggerMiddleware(serviceName: string): express.RequestHandler {
     res.on("finish", () => {
       const context = (req as express.Request & { ctx?: AppContext }).ctx;
 
+      const { userId, organizationId } = getUserInfoFromAuthData(
+        context?.authData
+      );
+
       const loggerMetadata: LoggerMetadata = {
         serviceName,
-        userId: context?.authData?.userId,
-        organizationId: context?.authData?.organizationId,
+        userId,
+        organizationId,
         correlationId: context?.correlationId,
       };
 

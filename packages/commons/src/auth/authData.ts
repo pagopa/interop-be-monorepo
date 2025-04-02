@@ -7,28 +7,16 @@ import {
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 
-const uiTokenUserRoles = {
+export const userRole = {
   ADMIN_ROLE: "admin",
   SECURITY_ROLE: "security",
   API_ROLE: "api",
   SUPPORT_ROLE: "support",
 } as const;
 
-const UIUserRole = z.enum([
-  Object.values(uiTokenUserRoles)[0],
-  ...Object.values(uiTokenUserRoles).slice(1),
-]);
-
-export const userRoles = {
-  ...uiTokenUserRoles,
-  M2M_ROLE: "m2m",
-  INTERNAL_ROLE: "internal",
-  MAINTENANCE_ROLE: "maintenance",
-} as const;
-
 export const UserRole = z.enum([
-  Object.values(userRoles)[0],
-  ...Object.values(userRoles).slice(1),
+  Object.values(userRole)[0],
+  ...Object.values(userRole).slice(1),
 ]);
 export type UserRole = z.infer<typeof UserRole>;
 
@@ -36,7 +24,7 @@ export type UserRole = z.infer<typeof UserRole>;
 const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
   z
     .string()
-    .nonempty()
+    .min(1)
     .transform((s: string) => s.split(","))
     .pipe(z.array(t));
 
@@ -78,7 +66,7 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
     // setting role to z.undefined() to make the discriminated union work.
     // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
     role: z.undefined(),
-    "user-roles": CommaSeparatedStringToArray(UIUserRole),
+    "user-roles": CommaSeparatedStringToArray(UserRole),
     uid: z.string().uuid(),
     organizationId: z.string().uuid(),
     selfcareId: z.string().uuid(),
@@ -88,7 +76,7 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
       roles: z.array(
         z.object({
           partyRole: z.string().nullish(),
-          role: UIUserRole,
+          role: UserRole,
         })
       ),
       fiscal_code: z.string().nullish(),
@@ -116,91 +104,97 @@ export type AuthToken = z.infer<typeof AuthToken>;
   The following type represents the data extracted from the JWT token.
   It is used to populate the context object, which is referenced all
   around the application to perform authorization checks.
-
-  To avoid the need to handle optional fields, we make them required in
-  the type definition, but know that they will be set to empty strings or
-  empty arrays in case they are not present in the token.
-
-  A possible improvement for this is tracked in: https://pagopa.atlassian.net/browse/IMN-371
 */
-export const AuthData = z.object({
-  organizationId: TenantId,
-  userId: UserId,
-  userRoles: z.array(UserRole),
-  selfcareId: SelfcareId,
-  externalId: z.object({
-    value: z.string(),
-    origin: z.string(),
-  }),
-});
-export type AuthData = z.infer<typeof AuthData>;
-export const defaultAuthData: AuthData = {
-  organizationId: unsafeBrandId<TenantId>(""),
-  userId: unsafeBrandId<UserId>(""),
-  selfcareId: unsafeBrandId<SelfcareId>(""),
-  userRoles: [],
-  externalId: { value: "", origin: "" },
+
+// System roles = special non-UI tokens
+export type SystemRole = "m2m" | "internal" | "maintenance";
+
+export type UIAuthData = {
+  systemRole: undefined;
+  organizationId: TenantId;
+  userId: UserId;
+  userRoles: UserRole[];
+  selfcareId: SelfcareId;
+  externalId: {
+    value: string;
+    origin: string;
+  };
 };
 
-const getUserRoles = (token: AuthToken): UserRole[] =>
-  match(token)
-    .with({ role: "m2m" }, (t) => [t.role])
-    .with({ role: "internal" }, (t) => [t.role])
-    .with({ role: "maintenance" }, (t) => [t.role])
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t["user-roles"])
+export type M2MAuthData = {
+  systemRole: Extract<SystemRole, "m2m">;
+  organizationId: TenantId;
+};
+
+export type InternalAuthData = {
+  systemRole: Extract<SystemRole, "internal">;
+};
+
+export type MaintenanceAuthData = {
+  systemRole: Extract<SystemRole, "maintenance">;
+};
+
+export type AuthData =
+  | UIAuthData
+  | M2MAuthData
+  | InternalAuthData
+  | MaintenanceAuthData;
+
+export const getAuthDataFromToken = (token: AuthToken): AuthData =>
+  match<AuthToken, AuthData>(token)
+    .with({ role: "internal" }, () => ({ systemRole: "internal" }))
+    .with({ role: "maintenance" }, () => ({ systemRole: "maintenance" }))
+    .with({ role: "m2m" }, (t) => ({
+      systemRole: "m2m",
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+    }))
+    .with({ "user-roles": P.not(P.nullish) }, (t) => ({
+      systemRole: undefined,
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      userId: unsafeBrandId<UserId>(t.uid),
+      userRoles: t["user-roles"],
+      selfcareId: unsafeBrandId<SelfcareId>(t.selfcareId),
+      externalId: t.externalId,
+    }))
     .exhaustive();
 
-const getOrganizationId = (token: AuthToken): TenantId | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, { role: "m2m" }, (t) =>
-      unsafeBrandId<TenantId>(t.organizationId)
-    )
-    .with({ role: "internal" }, { role: "maintenance" }, () => undefined)
-    .exhaustive();
+export function getUserInfoFromAuthData(
+  authData: AuthData | undefined | null
+): {
+  userId: UserId | undefined;
+  organizationId: TenantId | undefined;
+  selfcareId: SelfcareId | undefined;
+} {
+  if (!authData) {
+    return {
+      userId: undefined,
+      organizationId: undefined,
+      selfcareId: undefined,
+    };
+  }
 
-const getUserId = (token: AuthToken): UserId | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) =>
-      unsafeBrandId<UserId>(t.uid)
-    )
-    .with(
-      { role: "m2m" },
-      { role: "internal" },
-      { role: "maintenance" },
-      () => undefined
-    )
+  return match<
+    AuthData,
+    {
+      userId: UserId | undefined;
+      organizationId: TenantId | undefined;
+      selfcareId: SelfcareId | undefined;
+    }
+  >(authData)
+    .with({ systemRole: P.union("internal", "maintenance") }, () => ({
+      userId: undefined,
+      organizationId: undefined,
+      selfcareId: undefined,
+    }))
+    .with({ systemRole: "m2m" }, (t) => ({
+      userId: undefined,
+      organizationId: t.organizationId,
+      selfcareId: undefined,
+    }))
+    .with({ systemRole: undefined }, (t) => ({
+      userId: t.userId,
+      organizationId: t.organizationId,
+      selfcareId: t.selfcareId,
+    }))
     .exhaustive();
-
-const getExternalId = (
-  token: AuthToken
-): { value: string; origin: string } | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t.externalId)
-    .with(
-      { role: "m2m" },
-      { role: "internal" },
-      { role: "maintenance" },
-      () => undefined
-    )
-    .exhaustive();
-
-const getSelfcareId = (token: AuthToken): SelfcareId | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) =>
-      unsafeBrandId<SelfcareId>(t.selfcareId)
-    )
-    .with(
-      { role: "m2m" },
-      { role: "internal" },
-      { role: "maintenance" },
-      () => undefined
-    )
-    .exhaustive();
-
-export const getAuthDataFromToken = (token: AuthToken): AuthData => ({
-  organizationId: getOrganizationId(token) ?? defaultAuthData.organizationId,
-  userId: getUserId(token) ?? defaultAuthData.userId,
-  userRoles: getUserRoles(token),
-  externalId: getExternalId(token) ?? defaultAuthData.externalId,
-  selfcareId: getSelfcareId(token) ?? defaultAuthData.selfcareId,
-});
+}

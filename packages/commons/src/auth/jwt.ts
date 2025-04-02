@@ -6,7 +6,12 @@ import {
   tokenVerificationFailed,
 } from "pagopa-interop-models";
 import { buildJwksClients, JWTConfig, Logger } from "../index.js";
-import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
+import {
+  AuthData,
+  AuthToken,
+  getAuthDataFromToken,
+  getUserInfoFromAuthData,
+} from "./authData.js";
 
 export const decodeJwtToken = (
   jwtToken: string,
@@ -80,10 +85,8 @@ export const verifyJwtToken = async (
             const unverifiedDecoded = decodeJwtToken(jwtToken, logger);
             const authData =
               unverifiedDecoded && readAuthDataFromJwtToken(unverifiedDecoded);
-
-            reject(
-              tokenVerificationFailed(authData?.userId, authData?.selfcareId)
-            );
+            const { userId, selfcareId } = getUserInfoFromAuthData(authData);
+            reject(tokenVerificationFailed(userId, selfcareId));
           } else {
             resolve({ decoded });
           }
@@ -95,9 +98,3 @@ export const verifyJwtToken = async (
     return Promise.reject(error);
   }
 };
-
-export const hasPermission = (
-  permissions: string[],
-  authData: AuthData
-): boolean =>
-  authData.userRoles.some((role: string) => permissions.includes(role));

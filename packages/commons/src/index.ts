@@ -24,8 +24,6 @@ export * from "./utils/date.js";
 export * from "./utils/tenantMails.js";
 export * from "./utils/fileUtils.js";
 export * from "./utils/job.js";
-export * from "./auth/jwk.js";
-export * from "./auth/converters.js";
 export * from "./email-manager/index.js";
 export * from "./rate-limiter/index.js";
 export * from "./eservice-documents/index.js";
