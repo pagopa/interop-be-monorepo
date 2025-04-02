@@ -79,7 +79,7 @@ export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
-      "tenantSelfcareNotFound",
+      "tenantBySelfcareIdNotFound",
       "tenantLoginNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
