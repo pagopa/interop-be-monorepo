@@ -323,9 +323,7 @@ export function readModelServiceBuilderSQL({
                     ),
                     inArray(
                       delegationInReadmodelDelegation.delegateId,
-                      (await addProducerDelegationData(tx, producersIds)).map(
-                        (item) => item.delegateId
-                      )
+                      producersIds
                     )
                   )
                 : undefined,
@@ -335,9 +333,7 @@ export function readModelServiceBuilderSQL({
                     inArray(purposeInReadmodelPurpose.consumerId, consumersIds),
                     inArray(
                       delegationInReadmodelDelegation.delegateId,
-                      (await addConsumerDelegationData(tx, consumersIds)).map(
-                        (item) => item.delegateId
-                      )
+                      consumersIds
                     )
                   )
                 : undefined,
@@ -345,18 +341,20 @@ export function readModelServiceBuilderSQL({
               or(
                 eq(eserviceInReadmodelCatalog.producerId, requesterId),
                 eq(purposeInReadmodelPurpose.consumerId, requesterId),
-                inArray(
-                  delegationInReadmodelDelegation.delegateId,
-                  (await addProducerDelegationData(tx, [requesterId])).map(
-                    (item) => item.delegateId
+                and(
+                  eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                  eq(
+                    delegationInReadmodelDelegation.kind,
+                    delegationKind.delegatedProducer
                   )
                 ),
-                inArray(
-                  // TODO: delegator or delegate?
-                  delegationInReadmodelDelegation.delegateId,
-                  (await addConsumerDelegationData(tx, [requesterId])).map(
-                    (item) => item.delegateId
-                  )
+                and(
+                  eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                  eq(
+                    purposeInReadmodelPurpose.delegationId,
+                    delegationInReadmodelDelegation.id
+                  ),
+                  isNotNull(delegationInReadmodelDelegation.delegateId)
                 )
               ),
               // PURPOSE FILTERS
