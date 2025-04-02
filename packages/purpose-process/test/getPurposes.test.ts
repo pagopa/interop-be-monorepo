@@ -605,7 +605,7 @@ describe("getPurposes", async () => {
     expectSinglePageListResult(result, [mockPurpose3]);
   });
 
-  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = false", async () => {
+  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states; excludeDraft = false", async () => {
     const result = await purposeService.getPurposes(
       {
         title: "test",

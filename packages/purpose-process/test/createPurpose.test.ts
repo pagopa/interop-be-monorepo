@@ -542,7 +542,7 @@ describe("createPurpose", () => {
       ])
     );
   });
-  it("should throw duplicatedPurposeName if a purpose with same name alreay exists", async () => {
+  it("should throw duplicatedPurposeName if a purpose with same name already exists", async () => {
     const existingPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: unsafeBrandId(purposeSeed.eserviceId),
