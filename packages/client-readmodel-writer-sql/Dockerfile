@@ -1,4 +1,7 @@
-FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
+#default value for compatibility
+ARG NODE_REGISTRY="docker.io"
+
+FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
 
 RUN npm install -g corepack@0.31.0 && corepack enable
 
@@ -27,21 +30,21 @@ COPY ./packages/readmodel-models /app/packages/readmodel-models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
-    rm -rf /app/node_modules/.modules.yaml && \
-    rm -rf /app/node_modules/.cache && \
-    mkdir /out && \
-    cp -a --parents -t /out \
-      node_modules packages/client-readmodel-writer-sql/node_modules \
-      package*.json packages/client-readmodel-writer-sql/package*.json \
-      packages/commons \
-      packages/models \
-      package/readmodel \
-      package readmodel-models \
-      packages/kafka-iam-auth \
-      packages/client-readmodel-writer-sql/dist && \
-    find /out -exec touch -h --date=@0 {} \;
+  rm -rf /app/node_modules/.modules.yaml && \
+  rm -rf /app/node_modules/.cache && \
+  mkdir /out && \
+  cp -a --parents -t /out \
+  node_modules packages/client-readmodel-writer-sql/node_modules \
+  package*.json packages/client-readmodel-writer-sql/package*.json \
+  packages/commons \
+  packages/models \
+  package/readmodel \
+  package readmodel-models \
+  packages/kafka-iam-auth \
+  packages/client-readmodel-writer-sql/dist && \
+  find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
+FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
 
 COPY --from=build /out /app
 
