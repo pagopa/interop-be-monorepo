@@ -118,7 +118,8 @@ const addConsumerDelegationData = (
 ) =>
   readModelDB
     .select({
-      delegateId: delegationInReadmodelDelegation.delegateId,
+      // TODO: double check delegatorId or delegateId?
+      delegatorId: delegationInReadmodelDelegation.delegatorId,
     })
     .from(purposeInReadmodelPurpose)
     .innerJoin(
