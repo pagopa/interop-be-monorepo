@@ -1,4 +1,4 @@
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, lte, SQL } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Agreement, AgreementId, WithMetadata } from "pagopa-interop-models";
 import {
@@ -91,6 +91,58 @@ export function agreementReadModelServiceBuilder(
         })
         .from(agreementInReadmodelAgreement)
         .where(eq(agreementInReadmodelAgreement.id, agreementId))
+        .leftJoin(
+          // 1
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 2
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 3
+          agreementConsumerDocumentInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementConsumerDocumentInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 4
+          agreementContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementContractInReadmodelAgreement.agreementId
+          )
+        );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return aggregateAgreement(toAgreementAggregator(queryResult));
+    },
+    async getAgreementByFilter(
+      filter: SQL<unknown>
+    ): Promise<WithMetadata<Agreement> | undefined> {
+      const queryResult = await db
+        .select({
+          agreement: agreementInReadmodelAgreement,
+          stamp: agreementStampInReadmodelAgreement,
+          attribute: agreementAttributeInReadmodelAgreement,
+          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+          contract: agreementContractInReadmodelAgreement,
+        })
+        .from(agreementInReadmodelAgreement)
+        .where(filter)
         .leftJoin(
           // 1
           agreementStampInReadmodelAgreement,
