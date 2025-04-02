@@ -7,8 +7,11 @@ export * from "./agreement/splitters.js";
 // ATTRIBUTE
 export * from "./attributeReadModelService.js";
 
-// TENANT
-export * from "./tenantReadModelService.js";
-
 // CLIENT JWK KEY
 export * from "./clientJWKKeyReadModelService.js";
+
+// PRODUCER JWK KEY
+export * from "./producerJWKKeyReadModelService.js";
+
+// TENANT
+export * from "./tenantReadModelService.js";
