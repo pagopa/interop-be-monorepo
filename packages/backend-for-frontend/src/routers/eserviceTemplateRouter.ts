@@ -20,6 +20,7 @@ import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogEServiceTemplateErrorMapper,
   bffGetEServiceTemplateErrorMapper,
+  createEServiceTemplateDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eserviceTemplateRouter = (
@@ -593,7 +594,7 @@ const eserviceTemplateRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            createEServiceTemplateDocumentErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error creating eService template document of kind ${req.body.kind} and name ${req.body.prettyName} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
