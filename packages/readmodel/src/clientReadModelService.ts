@@ -92,6 +92,6 @@ export function clientReadModelServiceBuilderSQL(
   };
 }
 
-export type ClientReadModelServiceSQL = ReturnType<
+export type ClientReadModelService = ReturnType<
   typeof clientReadModelServiceBuilderSQL
 >;

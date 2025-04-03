@@ -41,10 +41,7 @@ describe("Check client key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey({
-      data: jwkKey,
-      metadata: { version: 1 },
-    });
+    await clientKeysReadModelServiceSQL.upsertClientJWKKey(jwkKey, 1);
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
@@ -75,10 +72,7 @@ describe("Check client key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey({
-      data: jwkKey2,
-      metadata: { version: 1 },
-    });
+    await clientKeysReadModelServiceSQL.upsertClientJWKKey(jwkKey2, 1);
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
@@ -103,14 +97,8 @@ describe("Check client key readmodels", () => {
       metadata: { version: 1 },
     });
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey({
-      data: jwkKey1,
-      metadata: { version: 1 },
-    });
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey({
-      data: jwkKey2,
-      metadata: { version: 1 },
-    });
+    await clientKeysReadModelServiceSQL.upsertClientJWKKey(jwkKey1, 1);
+    await clientKeysReadModelServiceSQL.upsertClientJWKKey(jwkKey2, 1);
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
@@ -138,7 +126,10 @@ describe("Check client key readmodels", () => {
 
     await addOneClientJWKKey(clientKey1);
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey(clientKey1ForSQL);
+    await clientKeysReadModelServiceSQL.upsertClientJWKKey(
+      clientKey1ForSQL.data,
+      clientKey1ForSQL.metadata.version
+    );
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
@@ -166,7 +157,10 @@ describe("Check client key readmodels", () => {
 
     await addOneClientJWKKey(clientKey1);
 
-    await clientKeysReadModelServiceSQL.upsertClientJWKKey(clientKey1ForSQL);
+    await clientKeysReadModelServiceSQL.upsertClientJWKKey(
+      clientKey1ForSQL.data,
+      clientKey1ForSQL.metadata.version
+    );
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
 
