@@ -170,7 +170,7 @@ export function readModelServiceBuilderSQL({
       const { producersIds, consumersIds, ...otherFilters } = filters;
 
       const queryResult = await readModelDB.transaction(async (tx) => {
-        const subQuery = tx
+        const subquery = tx
           .select({
             purposeId: purposeInReadmodelPurpose.id,
             totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
@@ -250,7 +250,7 @@ export function readModelServiceBuilderSQL({
           .limit(limit)
           .offset(offset)
           .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`)
-          .as("subQuery");
+          .as("subquery");
 
         return await tx
           .select({
@@ -260,12 +260,12 @@ export function readModelServiceBuilderSQL({
               purposeRiskAnalysisAnswerInReadmodelPurpose,
             purposeVersion: purposeVersionInReadmodelPurpose,
             purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-            totalCount: subQuery.totalCount,
+            totalCount: subquery.totalCount,
           })
           .from(purposeInReadmodelPurpose)
           .innerJoin(
-            subQuery,
-            eq(purposeInReadmodelPurpose.id, subQuery.purposeId)
+            subquery,
+            eq(purposeInReadmodelPurpose.id, subquery.purposeId)
           )
           .leftJoin(
             purposeRiskAnalysisFormInReadmodelPurpose,
