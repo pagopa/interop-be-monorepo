@@ -31,7 +31,6 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
   EServiceTemplateRefSQL,
-  // EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const documentSQLtoDocument = (
