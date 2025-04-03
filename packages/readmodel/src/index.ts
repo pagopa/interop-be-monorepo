@@ -11,6 +11,7 @@ export * from "./attributeReadModelService.js";
 export * from "./clientJWKKeyReadModelService.js";
 
 // E-SERVICE TEMPLATE
+export * from "./eserviceTemplateReadModelService.js";
 export * from "./eservice-template/splitters.js";
 
 // PRODUCER JWK KEY
