@@ -14,6 +14,7 @@ import {
   EServiceAddedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorDocumentAddedV2,
+  EServiceDocumentId,
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
@@ -244,17 +245,22 @@ describe("create eService from template", () => {
   it("should write on event-store for the creation of an eService from a template with documents", async () => {
     vi.spyOn(fileManager, "copy");
 
+    const documentId1 = generateId<EServiceDocumentId>();
+    const documentId2 = generateId<EServiceDocumentId>();
+
     const document1 = {
       ...mockDocument,
+      id: documentId1,
       name: `${mockDocument.name}_1`,
       prettyName: `${mockDocument.prettyName}_1`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
+      path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
     };
     const document2 = {
       ...mockDocument,
+      id: documentId2,
       name: `${mockDocument.name}_2`,
       prettyName: `${mockDocument.prettyName}_2`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
+      path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
     };
 
     const eserviceTemplatePublishedVersionId =

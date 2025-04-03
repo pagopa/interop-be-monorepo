@@ -24,6 +24,7 @@ import {
   EServiceTemplateVersion,
   EServiceDescriptorAddedV2,
   EServiceTemplateId,
+  EServiceDocumentId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -59,15 +60,20 @@ describe("upgrade eservice template instance", () => {
   it("should write on event-store for the upgrading of a eservice template instance, and clone the template version docs", async () => {
     vi.spyOn(fileManager, "copy");
 
-    const document1 = {
-      ...mockDocument,
+    const documentId1 = generateId<EServiceDocumentId>();
+    const documentId2 = generateId<EServiceDocumentId>();
+
+    const document1: Document = {
+      ...getMockDocument(),
+      id: documentId1,
       name: `${mockDocument.name}_1`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
+      path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
     };
-    const document2 = {
-      ...mockDocument,
+    const document2: Document = {
+      ...getMockDocument(),
+      id: documentId2,
       name: `${mockDocument.name}_2`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
+      path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
     };
 
     const firstTemplateVersion: EServiceTemplateVersion = {
@@ -225,15 +231,20 @@ describe("upgrade eservice template instance", () => {
   it("should write on event-store for the upgrading of a eservice template instance, and clone the template version docs (producer delegate)", async () => {
     vi.spyOn(fileManager, "copy");
 
-    const document1 = {
-      ...mockDocument,
+    const documentId1 = generateId<EServiceDocumentId>();
+    const documentId2 = generateId<EServiceDocumentId>();
+
+    const document1: Document = {
+      ...getMockDocument(),
+      id: documentId1,
       name: `${mockDocument.name}_1`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
+      path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
     };
-    const document2 = {
-      ...mockDocument,
+    const document2: Document = {
+      ...getMockDocument(),
+      id: documentId2,
       name: `${mockDocument.name}_2`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
+      path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
     };
 
     const firstTemplateVersion: EServiceTemplateVersion = {
@@ -526,7 +537,7 @@ describe("upgrade eservice template instance", () => {
       templateRef: { id: template.id },
       descriptors: [
         {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           templateVersionRef: { id: firstTemplateVersion.id },
           version: "1",
           state: descriptorState.published,
@@ -534,7 +545,7 @@ describe("upgrade eservice template instance", () => {
           docs: [],
         },
         {
-          ...mockDescriptor,
+          ...getMockDescriptor(),
           templateVersionRef: { id: secondTemplateVersion.id },
           version: "2",
           state: descriptorState.draft,
