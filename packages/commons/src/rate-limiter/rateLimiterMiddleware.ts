@@ -9,7 +9,10 @@ import { ExpressContext, fromAppContext } from "../context/context.js";
 import { RateLimiter } from "./rateLimiterModel.js";
 import { rateLimiterHeadersFromStatus } from "./rateLimiterUtils.js";
 
-const makeApiProblem = makeApiProblemBuilder({});
+const makeApiProblem = makeApiProblemBuilder({
+  errorCodes: {},
+  codePrefix: undefined,
+});
 
 export function rateLimiterMiddleware(
   rateLimiter: RateLimiter

@@ -33,7 +33,10 @@ export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
   return { ...ctx, logger: logger({ ...ctx }) };
 }
 
-const makeApiProblem = makeApiProblemBuilder({});
+const makeApiProblem = makeApiProblemBuilder({
+  errorCodes: {},
+  codePrefix: undefined,
+});
 
 export const contextMiddleware =
   (

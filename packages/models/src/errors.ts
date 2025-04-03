@@ -80,13 +80,22 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
-export function makeApiProblemBuilder<T extends string>(
-  errors: {
+export function makeApiProblemBuilder<T extends string>({
+  errorCodes,
+  codePrefix,
+  problemErrorsPassthrough = true,
+}: {
+  errorCodes: {
     [K in T]: string;
-  },
-  problemErrorsPassthrough: boolean = true
-): MakeApiProblemFn<T> {
-  const allErrors = { ...errorCodes, ...errors };
+  };
+  codePrefix: string | undefined;
+  problemErrorsPassthrough?: boolean;
+}): MakeApiProblemFn<T> {
+  const allErrors = { ...commonErrorCodes, ...errorCodes };
+
+  const makeErrorCode = (code: string): string =>
+    codePrefix ? `${codePrefix}-${code}` : code;
+
   return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
     const makeProblem = (
       httpStatus: number,
@@ -98,7 +107,7 @@ export function makeApiProblemBuilder<T extends string>(
       detail,
       correlationId,
       errors: errors.map(({ code, detail }) => ({
-        code: allErrors[code],
+        code: makeErrorCode(allErrors[code]),
         detail,
       })),
     });
@@ -143,9 +152,9 @@ export function makeApiProblemBuilder<T extends string>(
             logger.warn(
               makeProblemLogString(
                 genericProblem,
-                `${receivedProblem.title}, code ${
-                  receivedProblem.errors.at(0)?.code
-                }, ${receivedProblem.errors.at(0)?.detail}`
+                `${receivedProblem.title}, code ${makeErrorCode(
+                  receivedProblem.errors[0].code
+                )}, ${receivedProblem.errors.at(0)?.detail}`
               )
             );
             return genericProblem;
@@ -167,7 +176,7 @@ export function makeApiProblemBuilder<T extends string>(
   };
 }
 
-const errorCodes = {
+const commonErrorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
   htmlTemplateInterpolationError: "9002",
@@ -204,7 +213,7 @@ const errorCodes = {
   soapFileCreatingError: "10018",
 } as const;
 
-export type CommonErrorCodes = keyof typeof errorCodes;
+export type CommonErrorCodes = keyof typeof commonErrorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {

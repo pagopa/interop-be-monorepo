@@ -33,7 +33,10 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder({
+  errorCodes,
+  codePrefix: "010",
+});
 
 export function delegationNotFound(
   delegationId: DelegationId,

@@ -53,7 +53,10 @@ const hasValidRoles = (
       };
 };
 
-const makeApiProblem = makeApiProblemBuilder({});
+const makeApiProblem = makeApiProblemBuilder({
+  errorCodes: {},
+  codePrefix: undefined,
+});
 
 export const authorizationMiddleware =
   <

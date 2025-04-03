@@ -14,7 +14,10 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder({
+  errorCodes,
+  codePrefix: "003",
+});
 
 export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   return new ApiError({
