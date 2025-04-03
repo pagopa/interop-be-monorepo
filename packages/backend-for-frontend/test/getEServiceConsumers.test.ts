@@ -1,0 +1,125 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
+import { AuthData, formatDateyyyyMMddThhmmss } from "pagopa-interop-commons";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import * as getAll from "pagopa-interop-commons";
+import {
+  AgreementProcessClient,
+  AttributeProcessClient,
+  CatalogProcessClient,
+  DelegationProcessClient,
+  EServiceTemplateProcessClient,
+  TenantProcessClient,
+} from "../src/clients/clientsProvider.js";
+import { config } from "../src/config/config.js";
+import { catalogServiceBuilder } from "../src/services/catalogService.js";
+import { fileManager, getBffMockContext } from "./utils.js";
+
+describe("getEServiceConsumers", () => {
+  const tenantId: TenantId = generateId<TenantId>();
+  const eServiceId: EServiceId = generateId<EServiceId>();
+  const eService: catalogApi.EService = {
+    id: eServiceId,
+    name: "mockEService",
+    producerId: "mockProducerId",
+    description: "mockDescription",
+    technology: "REST",
+    descriptors: [],
+    mode: "RECEIVE",
+    riskAnalysis: [],
+  };
+
+  const expectedDescriptorVersion = 1;
+  const expectedDescriptorState = "DRAFT";
+  const expectedAgreementState = "DRAFT";
+  const expectedConsumerName = "mockConsumerName";
+  const expectedConsumerExternalId = "mockConsumerExternalId";
+
+  const mockCatalogProcessClient = {
+    getEServiceById: vi.fn().mockResolvedValue(eService),
+  } as unknown as CatalogProcessClient;
+  const mockTenantProcessClient = {} as unknown as TenantProcessClient;
+  const mockAgreementProcessClient = {} as unknown as AgreementProcessClient;
+  const mockAttributeProcessClient = {} as unknown as AttributeProcessClient;
+  const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
+  const mockEServiceTemplateProcessClient =
+    {} as unknown as EServiceTemplateProcessClient;
+
+  const catalogService = catalogServiceBuilder(
+    mockCatalogProcessClient,
+    mockTenantProcessClient,
+    mockAgreementProcessClient,
+    mockAttributeProcessClient,
+    mockDelegationProcessClient,
+    mockEServiceTemplateProcessClient,
+    fileManager,
+    config
+  );
+
+  const authData: AuthData = {
+    ...getMockAuthData(),
+    organizationId: tenantId,
+  };
+
+  const bffMockContext = getBffMockContext(getMockContext({ authData }));
+
+  vi.spyOn(getAll, "getAllFromPaginated").mockResolvedValue([
+    {
+      descriptorVersion: expectedDescriptorVersion,
+      descriptorState: expectedAgreementState,
+      agreementState: expectedDescriptorState,
+      consumerName: expectedConsumerName,
+      consumerExternalId: expectedConsumerExternalId,
+    },
+  ]);
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("should return filename and file buffer", async () => {
+    const result = await catalogService.getEServiceConsumers(
+      eServiceId,
+      bffMockContext
+    );
+    expect(mockCatalogProcessClient.getEServiceById).toHaveBeenCalledWith({
+      params: {
+        eServiceId,
+      },
+      headers: bffMockContext.headers,
+    });
+    const currentDate = formatDateyyyyMMddThhmmss(new Date());
+    const expectedFilename = `${currentDate}-lista-fruitori-${eService.name}.csv`;
+    expect(result.filename).toBe(expectedFilename);
+
+    const expectedContent =
+      "versione,stato_versione,stato_richiesta_fruizione,fruitore,codice_ipa_fruitore\n" +
+      `${expectedDescriptorVersion},${expectedDescriptorState},${expectedAgreementState},${expectedConsumerName},${expectedConsumerExternalId}`;
+
+    expect(result.file.toString()).toBe(expectedContent);
+  });
+  it("should handle empty consumers list", async () => {
+    vi.spyOn(getAll, "getAllFromPaginated").mockResolvedValue([]);
+
+    const result = await catalogService.getEServiceConsumers(
+      eServiceId,
+      bffMockContext
+    );
+
+    const currentDate = formatDateyyyyMMddThhmmss(new Date());
+    const expectedFilename = `${currentDate}-lista-fruitori-${eService.name}.csv`;
+    expect(result.filename).toBe(expectedFilename);
+
+    const expectedContentWithHeaderOnly =
+      "versione,stato_versione,stato_richiesta_fruizione,fruitore,codice_ipa_fruitore";
+
+    expect(result.file.toString()).toBe(expectedContentWithHeaderOnly);
+
+    vi.useRealTimers();
+  });
+});
