@@ -68,6 +68,17 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
     async getDelegationById(
       delegationId: DelegationId
     ): Promise<WithMetadata<Delegation> | undefined> {
+      return await this.getDelegationByFilter(
+        eq(delegationInReadmodelDelegation.id, delegationId)
+      );
+    },
+    async getDelegationByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<Delegation> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       /*
         delegation -> 1 delegation_stamp
                   -> 2 delegation_contract_document
@@ -80,7 +91,7 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
             delegationContractDocumentInReadmodelDelegation,
         })
         .from(delegationInReadmodelDelegation)
-        .where(eq(delegationInReadmodelDelegation.id, delegationId))
+        .where(filter)
         .leftJoin(
           // 1
           delegationStampInReadmodelDelegation,
@@ -104,7 +115,45 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateDelegation(toDelegationAggregator(queryResult));
     },
-    async deleteDelegationById(delegationId: DelegationId): Promise<void> {
+    async getDelegationsByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<Delegation>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select({
+          delegation: delegationInReadmodelDelegation,
+          delegationStamp: delegationStampInReadmodelDelegation,
+          delegationContractDocument:
+            delegationContractDocumentInReadmodelDelegation,
+        })
+        .from(delegationInReadmodelDelegation)
+        .where(filter)
+        .leftJoin(
+          // 1
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          // 2
+          delegationContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        );
+
+      return aggregateDelegationArray(toDelegationAggregatorArray(queryResult));
+    },
+    async deleteDelegationById(
+      delegationId: DelegationId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(delegationInReadmodelDelegation)
         .where(

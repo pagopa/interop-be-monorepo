@@ -1,6 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, SQL } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Client, ClientId, WithMetadata } from "pagopa-interop-models";
+import {
+  Client,
+  ClientId,
+  genericInternalError,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   clientInReadmodelClient,
   clientKeyInReadmodelClient,
@@ -10,7 +15,9 @@ import {
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
   aggregateClient,
+  aggregateClientArray,
   toClientAggregator,
+  toClientAggregatorArray,
 } from "./authorization/clientAggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -45,6 +52,17 @@ export function clientReadModelServiceBuilderSQL(
     async getClientById(
       clientId: ClientId
     ): Promise<WithMetadata<Client> | undefined> {
+      return await this.getClientByFilter(
+        eq(clientInReadmodelClient.id, clientId)
+      );
+    },
+    async getClientByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<Client> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       /*
         client -> 1 client_user
                -> 2 client_purpose
@@ -58,7 +76,7 @@ export function clientReadModelServiceBuilderSQL(
           clientKey: clientKeyInReadmodelClient,
         })
         .from(clientInReadmodelClient)
-        .where(eq(clientInReadmodelClient.id, clientId))
+        .where(filter)
         .leftJoin(
           // 1
           clientUserInReadmodelClient,
@@ -83,6 +101,43 @@ export function clientReadModelServiceBuilderSQL(
       }
 
       return aggregateClient(toClientAggregator(queryResult));
+    },
+    async getClientsByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<Client>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select({
+          client: clientInReadmodelClient,
+          clientUser: clientUserInReadmodelClient,
+          clientPurpose: clientPurposeInReadmodelClient,
+          clientKey: clientKeyInReadmodelClient,
+        })
+        .from(clientInReadmodelClient)
+        .where(filter)
+        .leftJoin(
+          // 1
+          clientUserInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
+        )
+        .leftJoin(
+          // 2
+          clientPurposeInReadmodelClient,
+          eq(
+            clientInReadmodelClient.id,
+            clientPurposeInReadmodelClient.clientId
+          )
+        )
+        .leftJoin(
+          // 3
+          clientKeyInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
+        );
+
+      return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
     async deleteClientById(clientId: ClientId): Promise<void> {
       await db

@@ -1,11 +1,19 @@
-import { and, eq, lte } from "drizzle-orm";
-import { ClientId, ClientJWKKey, WithMetadata } from "pagopa-interop-models";
+import { and, eq, lte, SQL } from "drizzle-orm";
+import {
+  ClientId,
+  ClientJWKKey,
+  genericInternalError,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   clientJwkKeyInReadmodelClientJwkKey,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
-import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
+import {
+  aggregateClientJWKKey,
+  aggregateClientJWKKeyArray,
+} from "./authorization/clientJWKKeyAggregators.js";
 import { checkMetadataVersionByFilter } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -51,21 +59,44 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       clientId: ClientId,
       kid: string
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
+      return await this.getClientJWKKeyByFilter(
+        and(
+          eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
+        )
+      );
+    },
+    async getClientJWKKeyByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<ClientJWKKey> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       const queryResult = await db
         .select()
         .from(clientJwkKeyInReadmodelClientJwkKey)
-        .where(
-          and(
-            eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
-            eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
-          )
-        );
+        .where(filter);
 
       if (queryResult.length === 0) {
         return undefined;
       }
 
       return aggregateClientJWKKey(queryResult[0]);
+    },
+    async getClientJWKKeysByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<ClientJWKKey>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select()
+        .from(clientJwkKeyInReadmodelClientJwkKey)
+        .where(filter);
+
+      return aggregateClientJWKKeyArray(queryResult);
     },
     async deleteClientJWKKeyByClientIdAndKid(
       clientId: ClientId,
