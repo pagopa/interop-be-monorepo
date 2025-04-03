@@ -7,6 +7,12 @@ export * from "./agreement/splitters.js";
 // ATTRIBUTE
 export * from "./attributeReadModelService.js";
 
+// CLIENT JWK KEY
+export * from "./clientJWKKeyReadModelService.js";
+
 // E-SERVICE TEMPLATE
 export * from "./eserviceTemplateReadModelService.js";
 export * from "./eservice-template/splitters.js";
+
+// PRODUCER JWK KEY
+export * from "./producerJWKKeyReadModelService.js";
