@@ -67,8 +67,14 @@ export type Problem = {
 type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
-  logger: { error: (message: string) => void; warn: (message: string) => void },
-  correlationId: CorrelationId,
+  context: {
+    logger: {
+      error: (message: string) => void;
+      warn: (message: string) => void;
+    };
+    correlationId: CorrelationId;
+    serviceId: string;
+  },
   operationalLogMessage?: string
 ) => Problem;
 
@@ -80,23 +86,20 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
-export function makeApiProblemBuilder<T extends string>({
-  errorCodes,
-  codePrefix,
-  problemErrorsPassthrough = true,
-}: {
-  errorCodes: {
+export function makeApiProblemBuilder<T extends string>(
+  errors: {
     [K in T]: string;
-  };
-  codePrefix: string | undefined;
-  problemErrorsPassthrough?: boolean;
-}): MakeApiProblemFn<T> {
-  const allErrors = { ...commonErrorCodes, ...errorCodes };
+  },
+  problemErrorsPassthrough: boolean = true
+): MakeApiProblemFn<T> {
+  const allErrors = { ...errorCodes, ...errors };
 
-  const makeErrorCode = (code: string): string =>
-    codePrefix ? `${codePrefix}-${code}` : code;
-
-  return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
+  return (
+    error,
+    httpMapper,
+    { logger, correlationId, serviceId },
+    operationalLogMessage
+  ) => {
     const makeProblem = (
       httpStatus: number,
       { title, detail, errors }: ApiError<T | CommonErrorCodes>
@@ -107,7 +110,7 @@ export function makeApiProblemBuilder<T extends string>({
       detail,
       correlationId,
       errors: errors.map(({ code, detail }) => ({
-        code: makeErrorCode(allErrors[code]),
+        code: `${serviceId}-${allErrors[code]}`,
         detail,
       })),
     });
@@ -176,7 +179,7 @@ export function makeApiProblemBuilder<T extends string>({
   };
 }
 
-const commonErrorCodes = {
+const errorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
   htmlTemplateInterpolationError: "9002",
@@ -214,7 +217,7 @@ const commonErrorCodes = {
   notAllowedMultipleKeysException: "10019",
 } as const;
 
-export type CommonErrorCodes = keyof typeof commonErrorCodes;
+export type CommonErrorCodes = keyof typeof errorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {

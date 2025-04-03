@@ -16,6 +16,7 @@ import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
 
 const serviceName = "api-gateway";
+const serviceId = "009";
 
 const clients = getInteropBeClients();
 
@@ -40,7 +41,7 @@ app.use(loggerMiddleware(serviceName));
 app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
-  contextMiddleware(serviceName, false),
+  contextMiddleware(serviceName, serviceId, false),
   await applicationAuditBeginMiddleware(serviceName, config),
   await applicationAuditEndMiddleware(serviceName, config),
   authenticationMiddleware(config),

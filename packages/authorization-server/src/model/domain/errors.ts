@@ -19,10 +19,7 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder({
-  errorCodes,
-  codePrefix: "007",
-});
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function clientAssertionRequestValidationFailed(
   clientId: string | undefined,

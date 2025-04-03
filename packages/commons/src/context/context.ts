@@ -19,6 +19,7 @@ import { parseCorrelationIdHeader } from "../auth/headers.js";
 
 export const AppContext = z.object({
   serviceName: z.string(),
+  serviceId: z.string(),
   authData: AuthData,
   correlationId: CorrelationId,
   spanId: SpanId,
@@ -36,14 +37,12 @@ export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
   return { ...ctx, logger: logger({ ...ctx }) };
 }
 
-const makeApiProblem = makeApiProblemBuilder({
-  errorCodes: {},
-  codePrefix: undefined,
-});
+const makeApiProblem = makeApiProblemBuilder({});
 
 export const contextMiddleware =
   (
     serviceName: string,
+    serviceId: string,
     readCorrelationIdFromHeader: boolean = true
   ): ZodiosRouterContextRequestHandler<ExpressContext> =>
   async (req, res, next): Promise<unknown> => {
@@ -51,6 +50,7 @@ export const contextMiddleware =
       // eslint-disable-next-line functional/immutable-data
       req.ctx = {
         serviceName,
+        serviceId,
         correlationId: unsafeBrandId<CorrelationId>(correlationId),
         spanId: generateId<SpanId>(),
       } as AppContext;
@@ -63,8 +63,11 @@ export const contextMiddleware =
         const problem = makeApiProblem(
           missingHeader("X-Correlation-Id"),
           () => constants.HTTP_STATUS_BAD_REQUEST,
-          genericLogger,
-          unsafeBrandId("MISSING")
+          {
+            logger: genericLogger,
+            correlationId: unsafeBrandId("MISSING"),
+            serviceId,
+          }
         );
         return res.status(problem.status).send(problem);
       }

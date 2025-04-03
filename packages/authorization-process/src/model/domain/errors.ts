@@ -48,10 +48,7 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder({
-  errorCodes,
-  codePrefix: "006",
-});
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function clientNotFound(clientId: ClientId): ApiError<ErrorCodes> {
   return new ApiError({

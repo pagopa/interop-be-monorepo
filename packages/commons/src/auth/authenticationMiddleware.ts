@@ -10,10 +10,7 @@ import {
 } from "../index.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
-const makeApiProblem = makeApiProblemBuilder({
-  errorCodes: {},
-  codePrefix: undefined,
-});
+const makeApiProblem = makeApiProblemBuilder({});
 
 export const authenticationMiddleware: (
   config: JWTConfig

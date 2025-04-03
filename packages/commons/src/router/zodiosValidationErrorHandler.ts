@@ -6,10 +6,7 @@ import { fromZodIssue } from "zod-validation-error";
 import { WithZodiosContext } from "@zodios/express";
 import { ExpressContext, fromAppContext } from "../index.js";
 
-const makeApiProblem = makeApiProblemBuilder({
-  errorCodes: {},
-  codePrefix: undefined,
-});
+const makeApiProblem = makeApiProblemBuilder({});
 
 export function zodiosValidationErrorToApiProblem(
   zodError: {
@@ -30,8 +27,7 @@ export function zodiosValidationErrorToApiProblem(
       makeApiProblem(
         badRequestError(detail, errors),
         () => constants.HTTP_STATUS_BAD_REQUEST,
-        ctx.logger,
-        ctx.correlationId
+        ctx
       )
     );
 }

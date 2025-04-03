@@ -12,6 +12,7 @@ import authorizationRouter from "./routers/AuthorizationRouter.js";
 import { config } from "./config/config.js";
 
 const serviceName = "authorization-process";
+const serviceId = "007";
 
 const app = zodiosCtx.app();
 
@@ -20,7 +21,7 @@ const app = zodiosCtx.app();
 app.disable("x-powered-by");
 
 app.use(healthRouter);
-app.use(contextMiddleware(serviceName));
+app.use(contextMiddleware(serviceName, serviceId));
 app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(await applicationAuditEndMiddleware(serviceName, config));
 app.use(authenticationMiddleware(config));

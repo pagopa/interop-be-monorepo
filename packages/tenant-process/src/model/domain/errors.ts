@@ -42,10 +42,7 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder({
-  errorCodes,
-  codePrefix: "005",
-});
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function verifiedAttributeSelfVerificationNotAllowed(): ApiError<ErrorCodes> {
   return new ApiError({

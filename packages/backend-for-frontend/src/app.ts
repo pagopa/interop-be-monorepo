@@ -39,6 +39,8 @@ import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 
 const serviceName = "backend-for-frontend";
+const serviceId = "008";
+
 const fileManager = initFileManager(config);
 const allowList = await getAllowList(serviceName, fileManager, config);
 
@@ -74,7 +76,7 @@ app.use(loggerMiddleware(serviceName));
 app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
-  contextMiddleware(serviceName, false),
+  contextMiddleware(serviceName, serviceId, false),
   await applicationAuditBeginMiddleware(serviceName, config),
   await applicationAuditEndMiddleware(serviceName, config),
   await applicationAuditEndSessionTokenExchangeMiddleware(serviceName, config),
