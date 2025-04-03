@@ -12,31 +12,27 @@ import {
   aggregateClient,
   toClientAggregator,
 } from "./authorization/clientAggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertClient(client: Client, metadataVersion: number): Promise<void> {
-      const { clientSQL, usersSQL, purposesSQL, keysSQL } =
-        splitClientIntoObjectsSQL(client, metadataVersion);
-
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion: clientInReadmodelClient.metadataVersion,
-            })
-            .from(clientInReadmodelClient)
-            .where(eq(clientInReadmodelClient.id, client.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          clientInReadmodelClient,
+          metadataVersion,
+          client.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(clientInReadmodelClient)
             .where(eq(clientInReadmodelClient.id, client.id));
+
+          const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+            splitClientIntoObjectsSQL(client, metadataVersion);
 
           await tx.insert(clientInReadmodelClient).values(clientSQL);
 

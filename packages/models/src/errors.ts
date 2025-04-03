@@ -192,7 +192,7 @@ const errorCodes = {
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
   invalidKeyLength: "10008",
-  notAnRSAKey: "10000",
+  notAnRSAKey: "10009",
   invalidEserviceInterfaceFileDetected: "10010",
   openapiVersionNotRecognized: "10011",
   interfaceExtractingInfoError: "10012",
