@@ -152,15 +152,13 @@ export function readModelServiceBuilderSQL({
       consumerId: TenantId,
       title: string
     ): Promise<WithMetadata<Purpose> | undefined> {
-      return (
-        await purposeReadModelServiceSQL.getPurposeByFilter(
-          and(
-            eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
-            eq(purposeInReadmodelPurpose.consumerId, consumerId),
-            ilike(purposeInReadmodelPurpose.title, title)
-          ) as SQL
+      return await purposeReadModelServiceSQL.getPurposeByFilter(
+        and(
+          eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+          eq(purposeInReadmodelPurpose.consumerId, consumerId),
+          ilike(purposeInReadmodelPurpose.title, title)
         )
-      )[0];
+      );
     },
     async getPurposes(
       requesterId: TenantId,
