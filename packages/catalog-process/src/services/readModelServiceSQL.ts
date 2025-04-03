@@ -27,7 +27,7 @@ import {
   aggregateAttributeArray,
   aggregateDelegation,
   aggregateEserviceArray,
-  CatalogReadModelServiceSQL,
+  CatalogReadModelService,
   EServiceTemplateReadModelService,
   TenantReadModelService,
   toAgreementAggregatorArray,
@@ -75,7 +75,7 @@ import { activeDescriptorStates } from "./validators.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
   readmodelDB: DrizzleReturnType,
-  catalogReadModelService: CatalogReadModelServiceSQL,
+  catalogReadModelService: CatalogReadModelService,
   tenantReadModelService: TenantReadModelService,
   eserviceTemplateReadModelService: EServiceTemplateReadModelService
 ) {
