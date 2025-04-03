@@ -80,9 +80,12 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
-  DescriptorRejectionReason,
   AgreementDocument,
+  DescriptorRejectionReason,
   AgreementStamp,
+  ClientJWKKey,
+  ProducerJWKKey,
+  ProducerKeychainId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -90,6 +93,8 @@ import {
   AuthData,
   dateToSeconds,
   genericLogger,
+  keyToClientJWKKey,
+  keyToProducerJWKKey,
   userRoles,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -262,11 +267,18 @@ export const getMockAgreement = (
   consumerId: TenantId = generateId<TenantId>(),
   state: AgreementState = agreementState.draft
 ): Agreement => ({
-  ...generateMock(Agreement),
+  id: generateId(),
   eserviceId,
   consumerId,
   state,
   stamps: getMockAgreementStamps(),
+  createdAt: new Date(),
+  descriptorId: generateId(),
+  producerId: generateId(),
+  verifiedAttributes: [],
+  certifiedAttributes: [],
+  declaredAttributes: [],
+  consumerDocuments: [],
 });
 
 export const getMockAttribute = (
@@ -289,7 +301,6 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   description: "Test purpose - description",
   createdAt: new Date(),
   isFreeOfCharge: true,
-  freeOfChargeReason: "test",
 });
 
 export const getMockPurposeVersion = (
@@ -297,12 +308,6 @@ export const getMockPurposeVersion = (
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
-  riskAnalysis: {
-    id: generateId(),
-    contentType: "json",
-    path: "path",
-    createdAt: new Date(),
-  },
   dailyCalls: 10,
   createdAt: new Date(),
   ...(state !== purposeVersionState.draft
@@ -398,6 +403,36 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
+export const getMockClientJWKKey = (): ClientJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToClientJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    generateId<ClientId>()
+  );
+};
+
+export const getMockProducerKKey = (): ProducerJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToProducerJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    generateId<ProducerKeychainId>()
+  );
+};
+
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
@@ -417,8 +452,8 @@ export const getMockDelegation = ({
   eserviceId = generateId<EServiceId>(),
   state = "WaitingForApproval",
   submitterId = generateId<UserId>(),
-  activationContract = undefined,
-  revocationContract = undefined,
+  activationContract,
+  revocationContract,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -439,8 +474,8 @@ export const getMockDelegation = ({
     eserviceId,
     createdAt: creationTime,
     state,
-    activationContract,
-    revocationContract,
+    ...(activationContract ? { activationContract } : {}),
+    ...(revocationContract ? { revocationContract } : {}),
     kind,
     stamps: {
       submission: {
@@ -719,7 +754,6 @@ export const getMockEServiceTemplateVersion = (
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
   version: 1,
-  description: "eService template version description",
   createdAt: new Date(),
   attributes: {
     certified: [],
@@ -740,7 +774,7 @@ export const getMockEServiceTemplate = (
   id: eserviceTemplateId,
   creatorId,
   name: "eService template name",
-  intendedTarget: "eService template inteded target",
+  intendedTarget: "eService template intended target",
   description: "eService template description",
   createdAt: new Date(),
   technology: technology.rest,
