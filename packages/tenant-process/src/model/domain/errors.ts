@@ -38,6 +38,7 @@ export const errorCodes = {
   descriptorNotFoundInEservice: "0028",
   delegationNotFound: "0029",
   operationRestrictedToDelegate: "0030",
+  selfCertificationNotAllowed: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -340,5 +341,15 @@ export function operationRestrictedToDelegate(): ApiError<ErrorCodes> {
     detail: "Not allowed to add declared attribute",
     code: "operationRestrictedToDelegate",
     title: "Not allowed to add declared attribute",
+  });
+}
+
+export function selfCertificationNotAllowed(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${tenantId} is not allowed to self-certify attributes`,
+    code: "selfCertificationNotAllowed",
+    title: "Self-certification not allowed",
   });
 }
