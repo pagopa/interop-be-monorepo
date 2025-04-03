@@ -1,48 +1,57 @@
 import { eq, and, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { producerJwkKeyInReadmodelProducerJwkKey } from "pagopa-interop-readmodel-models";
+import {
+  DrizzleReturnType,
+  producerJwkKeyInReadmodelProducerJwkKey,
+} from "pagopa-interop-readmodel-models";
 import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
 import { aggregateProducerJWKKey } from "./authorization/producerJWKKeyAggregators.js";
+import { checkMetadataVersionByFilter } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function producerJWKKeyReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertProducerJWKKey(
       jwkKey: ProducerJWKKey,
       metadataVersion: number
     ): Promise<void> {
-      const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
-        jwkKey,
-        metadataVersion
-      );
-
       await db.transaction(async (tx) => {
-        // TODO: add metadata version check (lte)
-        await tx
-          .delete(producerJwkKeyInReadmodelProducerJwkKey)
-          .where(
-            and(
-              eq(
-                producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-                jwkKey.producerKeychainId
-              ),
-              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
-            )
+        const shouldUpsert = await checkMetadataVersionByFilter(
+          tx,
+          producerJwkKeyInReadmodelProducerJwkKey,
+          metadataVersion,
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+        );
+
+        if (shouldUpsert) {
+          await tx
+            .delete(producerJwkKeyInReadmodelProducerJwkKey)
+            .where(
+              and(
+                eq(
+                  producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+                  jwkKey.producerKeychainId
+                ),
+                eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+              )
+            );
+
+          const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+            jwkKey,
+            metadataVersion
           );
 
-        await tx
-          .insert(producerJwkKeyInReadmodelProducerJwkKey)
-          .values(producerJWKKeySQL);
+          await tx
+            .insert(producerJwkKeyInReadmodelProducerJwkKey)
+            .values(producerJWKKeySQL);
+        }
       });
     },
-    async getProducerJWKKeyByKid(
+    async getProducerJWKKeyByProducerKeychainIdAndKid(
       producerKeychainId: ProducerKeychainId,
       kid: string
     ): Promise<WithMetadata<ProducerJWKKey> | undefined> {
@@ -63,7 +72,7 @@ export function producerJWKKeyReadModelServiceBuilder(
       }
       return aggregateProducerJWKKey(queryResult[0]);
     },
-    async deleteProducerJWKKeyByKid(
+    async deleteProducerJWKKeyByProducerKeychainAndKid(
       producerKeychainId: ProducerKeychainId,
       kid: string,
       metadataVersion: number
