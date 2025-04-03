@@ -1,7 +1,7 @@
 import {
   getMockDelegation,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   DelegationEventEnvelopeV2,
   toDelegationV2,
