@@ -13,6 +13,7 @@ import {
   aggregatePurpose,
   toPurposeAggregator,
 } from "./purpose/aggregators.js";
+import { checkMetadataVersion } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -22,19 +23,15 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion: purposeInReadmodelPurpose.metadataVersion,
-            })
-            .from(purposeInReadmodelPurpose)
-            .where(eq(purposeInReadmodelPurpose.id, purpose.id))
-        )[0]?.metadataVersion;
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          purposeInReadmodelPurpose,
+          metadataVersion,
+          purpose.id
+        );
+
+        if (shouldUpsert) {
           await tx
             .delete(purposeInReadmodelPurpose)
             .where(eq(purposeInReadmodelPurpose.id, purpose.id));
