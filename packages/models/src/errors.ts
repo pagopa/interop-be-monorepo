@@ -192,7 +192,7 @@ const errorCodes = {
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
   invalidKeyLength: "10008",
-  notAnRSAKey: "10000",
+  notAnRSAKey: "10009",
   invalidEserviceInterfaceFileDetected: "10010",
   openapiVersionNotRecognized: "10011",
   interfaceExtractingInfoError: "10012",
@@ -202,6 +202,7 @@ const errorCodes = {
   soapFileParsingError: "10016",
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
+  notAllowedMultipleKeysException: "10019",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -426,6 +427,14 @@ export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
     detail: `The received key is a certificate`,
     code: "notAllowedCertificateException",
     title: "Not allowed certificate exception",
+  });
+}
+
+export function notAllowedMultipleKeysException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key contains multiple keys`,
+    code: "notAllowedMultipleKeysException",
+    title: "Not allowed multiple keys exception",
   });
 }
 
