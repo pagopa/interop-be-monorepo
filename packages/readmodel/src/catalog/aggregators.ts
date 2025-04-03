@@ -129,7 +129,9 @@ export const aggregateDescriptor = ({
   return {
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
-    docs: documentsSQL.map(documentSQLtoDocument),
+    docs: [...documentsSQL]
+      .sort((doc1, doc2) => (doc1.name < doc2.name ? -1 : 0))
+      .map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
     audience: descriptorSQL.audience,
     voucherLifespan: descriptorSQL.voucherLifespan,
