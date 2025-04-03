@@ -16,6 +16,7 @@ import {
   aggregateProducerKeychain,
   toProducerKeychainAggregator,
 } from "./authorization/producerKeychainAggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function producerKeychainReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -25,25 +26,14 @@ export function producerKeychainReadModelServiceBuilder(db: DrizzleReturnType) {
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                producerKeychainInReadmodelProducerKeychain.metadataVersion,
-            })
-            .from(producerKeychainInReadmodelProducerKeychain)
-            .where(
-              eq(
-                producerKeychainInReadmodelProducerKeychain.id,
-                producerKeychain.id
-              )
-            )
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          producerKeychainInReadmodelProducerKeychain,
+          metadataVersion,
+          producerKeychain.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(producerKeychainInReadmodelProducerKeychain)
             .where(
