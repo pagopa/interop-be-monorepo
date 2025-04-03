@@ -23,7 +23,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-
         const shouldUpsert = await checkMetadataVersion(
           tx,
           purposeInReadmodelPurpose,

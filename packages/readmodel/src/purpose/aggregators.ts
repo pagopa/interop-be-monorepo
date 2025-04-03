@@ -96,10 +96,10 @@ export const aggregatePurposeArrayWithMaps = ({
 
 const createPurposeSQLPropertyMap = <
   T extends
-  | PurposeRiskAnalysisFormSQL
-  | PurposeRiskAnalysisAnswerSQL
-  | PurposeVersionSQL
-  | PurposeVersionDocumentSQL
+    | PurposeRiskAnalysisFormSQL
+    | PurposeRiskAnalysisAnswerSQL
+    | PurposeVersionSQL
+    | PurposeVersionDocumentSQL
 >(
   items: T[]
 ): Map<PurposeId, T[]> =>
@@ -139,11 +139,11 @@ export const aggregatePurpose = ({
     const versionDocument: PurposeVersionDocument | undefined =
       versionDocumentSQL
         ? {
-          id: unsafeBrandId(versionDocumentSQL.id),
-          path: versionDocumentSQL.path,
-          contentType: versionDocumentSQL.contentType,
-          createdAt: stringToDate(versionDocumentSQL.createdAt),
-        }
+            id: unsafeBrandId(versionDocumentSQL.id),
+            path: versionDocumentSQL.path,
+            contentType: versionDocumentSQL.contentType,
+            createdAt: stringToDate(versionDocumentSQL.createdAt),
+          }
         : undefined;
 
     const version: PurposeVersion = {
@@ -162,8 +162,8 @@ export const aggregatePurpose = ({
         : {}),
       ...(versionSQL.updatedAt
         ? {
-          updatedAt: stringToDate(versionSQL.updatedAt),
-        }
+            updatedAt: stringToDate(versionSQL.updatedAt),
+          }
         : {}),
       ...(versionDocument ? { riskAnalysis: versionDocument } : {}),
     };
@@ -183,23 +183,23 @@ export const aggregatePurpose = ({
     ...(riskAnalysisForm ? { riskAnalysisForm } : {}),
     ...(purposeSQL.suspendedByConsumer !== null
       ? {
-        suspendedByConsumer: purposeSQL.suspendedByConsumer,
-      }
+          suspendedByConsumer: purposeSQL.suspendedByConsumer,
+        }
       : {}),
     ...(purposeSQL.suspendedByProducer !== null
       ? {
-        suspendedByProducer: purposeSQL.suspendedByProducer,
-      }
+          suspendedByProducer: purposeSQL.suspendedByProducer,
+        }
       : {}),
     ...(purposeSQL.delegationId
       ? {
-        delegationId: unsafeBrandId<DelegationId>(purposeSQL.delegationId),
-      }
+          delegationId: unsafeBrandId<DelegationId>(purposeSQL.delegationId),
+        }
       : {}),
     ...(purposeSQL.freeOfChargeReason
       ? {
-        freeOfChargeReason: purposeSQL.freeOfChargeReason,
-      }
+          freeOfChargeReason: purposeSQL.freeOfChargeReason,
+        }
       : {}),
     ...(purposeSQL.updatedAt
       ? { updatedAt: stringToDate(purposeSQL.updatedAt) }
@@ -243,8 +243,8 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
               key: a.key,
               ...(a.value
                 ? {
-                  value: a.value[0],
-                }
+                    value: a.value[0],
+                  }
                 : undefined),
             },
           ],
@@ -275,10 +275,10 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
     multiAnswers,
     ...(riskAnalysisFormSQL.riskAnalysisId
       ? {
-        riskAnalysisId: unsafeBrandId<RiskAnalysisId>(
-          riskAnalysisFormSQL.riskAnalysisId
-        ),
-      }
+          riskAnalysisId: unsafeBrandId<RiskAnalysisId>(
+            riskAnalysisFormSQL.riskAnalysisId
+          ),
+        }
       : {}),
   };
 };
