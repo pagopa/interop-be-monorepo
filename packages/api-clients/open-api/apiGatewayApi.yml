@@ -55,14 +55,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -74,14 +77,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -93,14 +99,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
           description: Forbidden
@@ -112,14 +121,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Agreement not found
@@ -131,14 +143,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -150,14 +165,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/purposes":
     get:
@@ -194,14 +212,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -213,14 +234,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -238,14 +262,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Purposes not found
@@ -257,14 +284,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -276,14 +306,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/purposes/{purposeId}":
     get:
@@ -311,14 +344,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -330,14 +366,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -355,14 +394,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Purpose not found
@@ -374,14 +416,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -393,14 +438,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/purposes/{purposeId}/agreement":
     get:
@@ -430,14 +478,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -449,14 +500,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -474,14 +528,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Agreement not found
@@ -493,14 +550,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -512,14 +572,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /attributes:
     post:
@@ -547,14 +610,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -566,14 +632,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -591,14 +660,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "409":
           description: Conflict
@@ -610,14 +682,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -629,14 +704,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/attributes/{attributeId}":
     get:
@@ -666,14 +744,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -685,14 +766,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -710,14 +794,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Attribute not found
@@ -729,14 +816,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -748,14 +838,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/clients/{clientId}":
     get:
@@ -785,14 +878,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -804,14 +900,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -829,14 +928,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Client not found
@@ -848,14 +950,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -867,14 +972,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/eservices":
     get:
@@ -913,14 +1021,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Invalid input
@@ -932,14 +1043,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -957,14 +1071,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -976,14 +1093,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/eservices/{eserviceId}":
     get:
@@ -1012,14 +1132,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad Request
@@ -1031,14 +1154,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1056,14 +1182,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -1075,14 +1204,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/eservices/{eserviceId}/descriptors":
     get:
@@ -1111,14 +1243,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -1130,14 +1265,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1155,14 +1293,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -1174,14 +1315,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/eservices/{eserviceId}/descriptors/{descriptorId}":
     get:
@@ -1218,14 +1362,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -1237,14 +1384,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1262,14 +1412,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: EService not found
@@ -1281,14 +1434,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -1300,14 +1456,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/organizations/{organizationId}":
     get:
@@ -1337,14 +1496,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -1356,14 +1518,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1381,14 +1546,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Organization not found
@@ -1400,14 +1568,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -1419,14 +1590,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /agreements:
     get:
@@ -1477,14 +1651,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad Request
@@ -1496,14 +1673,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1521,14 +1701,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "429":
           description: Too Many Requests
@@ -1540,14 +1723,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/events":
     get:
@@ -1587,14 +1773,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -1606,14 +1795,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1631,14 +1823,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/events/eservices":
     get:
@@ -1678,14 +1873,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -1697,14 +1895,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1722,14 +1923,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/events/keys":
     get:
@@ -1769,14 +1973,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -1788,14 +1995,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1813,14 +2023,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/events/producerKeys":
     get:
@@ -1860,14 +2073,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -1879,14 +2095,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -1904,14 +2123,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/keys/{kid}":
     get:
@@ -1940,14 +2162,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Key not found
@@ -1959,14 +2184,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /status:
     get:
@@ -2011,14 +2239,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -2030,14 +2261,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -2055,14 +2289,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Purposes not found
@@ -2074,14 +2311,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/attributes":
     get:
@@ -2109,14 +2349,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -2128,14 +2371,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -2153,14 +2399,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Purposes not found
@@ -2172,14 +2421,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /organizations/origin/{origin}/externalId/{externalId}/attributes/{code}:
     post:
@@ -2213,14 +2465,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
           description: Forbidden
@@ -2232,14 +2487,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     delete:
       tags:
@@ -2272,14 +2530,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
           description: Forbidden
@@ -2291,14 +2552,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /organizations/origin/{origin}/externalId/{externalId}/eservices:
     post:
@@ -2342,14 +2606,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
           description: Forbidden
@@ -2361,14 +2628,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Not Found
@@ -2380,14 +2650,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/events/agreements":
     get:
@@ -2427,14 +2700,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
           description: Bad request
@@ -2446,14 +2722,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "401":
           description: Unauthorized
@@ -2471,14 +2750,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 components:
   schemas:

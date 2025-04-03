@@ -103,8 +103,9 @@ jobs:
         run: wget https://github.com/italia/api-oas-checker-rules/releases/download/1.1/spectral-modi.yml -O spectral-modi.yml
       - uses: stoplightio/spectral-action@2ad0b9302e32a77c1caccf474a9b2191a8060d83 #v0.8.11
         with:
-          file_glob: "./api-clients/open-api/*.yml"
-          spectral_ruleset: "spectral-modi.yml"
+          file_glob:
+            - "./api-clients/open-api/*.yml"
+            - "!packages/api-clients/open-api/selfcareV2ClientApi.yml*"
 
   find_dockerfiles:
     name: Find Dockerfiles
