@@ -18,7 +18,7 @@ import {
 import {
   getMockDelegation,
   getMockDelegationDocument,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { delegationReadModelServiceBuilder } from "../src/delegationReadModelService.js";
 import { readModelDB } from "./utils.js";
 

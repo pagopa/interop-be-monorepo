@@ -11,6 +11,7 @@ import {
   aggregateDelegation,
   toDelegationAggregator,
 } from "./delegation/aggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -19,26 +20,21 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
       delegation: Delegation,
       metadataVersion: number
     ): Promise<void> {
-      const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-        splitDelegationIntoObjectsSQL(delegation, metadataVersion);
-
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion: delegationInReadmodelDelegation.metadataVersion,
-            })
-            .from(delegationInReadmodelDelegation)
-            .where(eq(delegationInReadmodelDelegation.id, delegation.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          delegationInReadmodelDelegation,
+          metadataVersion,
+          delegation.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(delegationInReadmodelDelegation)
             .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+          const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+            splitDelegationIntoObjectsSQL(delegation, metadataVersion);
 
           await tx
             .insert(delegationInReadmodelDelegation)
