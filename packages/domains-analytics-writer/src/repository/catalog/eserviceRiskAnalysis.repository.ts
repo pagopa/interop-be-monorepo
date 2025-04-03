@@ -7,6 +7,7 @@ import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceRiskAnalysisMapping,
+  eserviceRiskAnalysisDeletingSchema,
   eserviceRiskAnalysisSchema,
 } from "../../model/catalog/eserviceRiskAnalysis.js";
 import { CatalogDbTable } from "../../model/db.js";
@@ -103,7 +104,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceRiskAnalysisSchema,
+          eserviceRiskAnalysisDeletingSchema,
           schemaName,
           tableName,
           stagingDeletingTable,

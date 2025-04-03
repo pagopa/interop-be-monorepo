@@ -23,3 +23,8 @@ export type EserviceDescriptorDocumentMapping = {
     record: EServiceDescriptorDocumentSQL
   ) => EserviceDescriptorDocumentSchema[K];
 };
+
+export const eserviceDescriptorDocumentDeletingSchema = z.object({
+  id: z.string(),
+  deleted: z.boolean(),
+});

@@ -15,9 +15,9 @@ export const eserviceDescriptorSchema = z.object({
   daily_calls_total: z.number(),
   server_urls: z.string(),
   agreement_approval_policy: z.string().nullable(),
-  published_at: z.string(),
-  suspended_at: z.string(),
-  deprecated_at: z.string(),
+  published_at: z.string().nullable(),
+  suspended_at: z.string().nullable(),
+  deprecated_at: z.string().nullable(),
   archived_at: z.string().nullable(),
 });
 
@@ -28,3 +28,8 @@ export type EserviceDescriptorMapping = {
     record: EServiceDescriptorSQL
   ) => EserviceDescriptorSchema[K];
 };
+
+export const descriptorDeletingSchema = z.object({
+  id: z.string(),
+  deleted: z.boolean(),
+});

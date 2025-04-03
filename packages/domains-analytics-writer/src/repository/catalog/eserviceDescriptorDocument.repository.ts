@@ -7,6 +7,7 @@ import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorDocumentMapping,
+  eserviceDescriptorDocumentDeletingSchema,
   eserviceDescriptorDocumentSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
 import { CatalogDbTable } from "../../model/db.js";
@@ -117,7 +118,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceDescriptorDocumentSchema,
+          eserviceDescriptorDocumentDeletingSchema,
           schemaName,
           tableName,
           stagingDeletingTable,

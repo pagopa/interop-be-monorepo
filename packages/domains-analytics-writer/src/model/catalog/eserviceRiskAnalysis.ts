@@ -18,3 +18,8 @@ export type EserviceRiskAnalysisMapping = {
     record: EServiceRiskAnalysisSQL
   ) => EserviceRiskAnalysisSchema[K];
 };
+
+export const eserviceRiskAnalysisDeletingSchema = z.object({
+  id: z.string(),
+  deleted: z.boolean(),
+});

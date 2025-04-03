@@ -7,6 +7,7 @@ import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorMapping,
+  descriptorDeletingSchema,
   eserviceDescriptorSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
 import { CatalogDbTable } from "../../model/db.js";
@@ -23,6 +24,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorSQL[]
     ): Promise<void> {
+      console.log("RECORDS", records[0].eserviceId);
       const mapping: EserviceDescriptorMapping = {
         id: (r: EServiceDescriptorSQL) => r.id,
         eservice_id: (r: EServiceDescriptorSQL) => r.eserviceId,
@@ -39,12 +41,9 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         server_urls: (r: EServiceDescriptorSQL) => JSON.stringify(r.serverUrls),
         agreement_approval_policy: (r: EServiceDescriptorSQL) =>
           r.agreementApprovalPolicy,
-        published_at: (r: EServiceDescriptorSQL) =>
-          r.publishedAt ? r.publishedAt : "",
-        suspended_at: (r: EServiceDescriptorSQL) =>
-          r.suspendedAt ? r.suspendedAt : "",
-        deprecated_at: (r: EServiceDescriptorSQL) =>
-          r.deprecatedAt ? r.deprecatedAt : "",
+        published_at: (r: EServiceDescriptorSQL) => r.publishedAt,
+        suspended_at: (r: EServiceDescriptorSQL) => r.suspendedAt,
+        deprecated_at: (r: EServiceDescriptorSQL) => r.deprecatedAt,
         archived_at: (r: EServiceDescriptorSQL) => r.archivedAt,
       };
       const cs = buildColumnSet<EServiceDescriptorSQL>(
@@ -116,7 +115,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceDescriptorSchema,
+          descriptorDeletingSchema,
           schemaName,
           tableName,
           stagingDeletingTable,

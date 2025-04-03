@@ -22,7 +22,7 @@ export async function handleCatalogMessageV1(
         ),
       },
       async (msg) => {
-        const eservice = EService.parse(msg.data);
+        const eservice = EService.parse(msg.data.eservice);
         await catalogService.upsertEService(eservice, msg.event_version);
       }
     )
@@ -47,9 +47,10 @@ export async function handleCatalogMessageV1(
     .with(
       { type: P.union("EServiceDescriptorAdded", "EServiceDescriptorUpdated") },
       async (msg) => {
-        await catalogService.upsertEServiceDescriptor(
-          msg.data.eserviceDescriptor
-        );
+        await catalogService.upsertEServiceDescriptor({
+          ...msg.data.eserviceDescriptor,
+          eserviceId: msg.data.eserviceId,
+        });
       }
     )
     .exhaustive();

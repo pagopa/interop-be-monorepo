@@ -48,30 +48,63 @@ export function catalogServiceBuilder(db: DBContext) {
 
       await db.conn.tx(async (t) => {
         await eserviceRepo.insert(t, db.pgp, eserviceSQL);
-        await descriptorRepo.insert(t, db.pgp, descriptorsSQL);
-        await interfaceRepo.insert(t, db.pgp, interfacesSQL);
-        await documentRepo.insert(t, db.pgp, documentsSQL);
-        await attributeRepo.insert(t, db.pgp, attributesSQL);
-        await riskAnalysisRepo.insert(t, db.pgp, riskAnalysesSQL);
-        await riskAnalysisAnswerRepo.insert(t, db.pgp, riskAnalysisAnswersSQL);
-        await rejectionRepo.insert(t, db.pgp, rejectionReasonsSQL);
+        await eserviceRepo.merge(t);
+
+        if (descriptorsSQL.length > 0) {
+          await descriptorRepo.insert(t, db.pgp, descriptorsSQL);
+          await descriptorRepo.merge(t);
+        }
+
+        if (interfacesSQL.length > 0) {
+          await interfaceRepo.insert(t, db.pgp, interfacesSQL);
+          await interfaceRepo.merge(t);
+        }
+
+        if (documentsSQL.length > 0) {
+          await documentRepo.insert(t, db.pgp, documentsSQL);
+          await documentRepo.merge(t);
+        }
+
+        if (attributesSQL.length > 0) {
+          await attributeRepo.insert(t, db.pgp, attributesSQL);
+          await attributeRepo.merge(t);
+        }
+
+        if (riskAnalysesSQL.length > 0) {
+          await riskAnalysisRepo.insert(t, db.pgp, riskAnalysesSQL);
+          await riskAnalysisRepo.merge(t);
+        }
+
+        if (riskAnalysisAnswersSQL.length > 0) {
+          await riskAnalysisAnswerRepo.insert(
+            t,
+            db.pgp,
+            riskAnalysisAnswersSQL
+          );
+          await riskAnalysisAnswerRepo.merge(t);
+        }
+        if (rejectionReasonsSQL.length > 0) {
+          await rejectionRepo.insert(t, db.pgp, rejectionReasonsSQL);
+          await rejectionRepo.merge(t);
+        }
+
         if (templateRefSQL) {
           await templateRefRepo.insert(t, db.pgp, [templateRefSQL]);
+          await templateRefRepo.merge(t);
         }
-        await templateVersionRefRepo.insert(t, db.pgp, templateVersionRefsSQL);
+
+        if (templateVersionRefsSQL.length > 0) {
+          await templateVersionRefRepo.insert(
+            t,
+            db.pgp,
+            templateVersionRefsSQL
+          );
+          await templateVersionRefRepo.merge(t);
+        }
+
         genericLogger.info(
           `Staging records insertion completed for eserviceId: ${eserviceSQL.id}`
         );
-        await eserviceRepo.merge(t);
-        await templateRefRepo.merge(t);
-        await descriptorRepo.merge(t);
-        await interfaceRepo.merge(t);
-        await documentRepo.merge(t);
-        await attributeRepo.merge(t);
-        await riskAnalysisRepo.merge(t);
-        await riskAnalysisAnswerRepo.merge(t);
-        await rejectionRepo.merge(t);
-        await templateVersionRefRepo.merge(t);
       });
 
       genericLogger.info(
@@ -104,7 +137,7 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async upsertEServiceDescriptor(descriptorData: any): Promise<void> {
       await db.conn.tx(async (t) => {
-        await descriptorRepo.insert(t, db.pgp, descriptorData);
+        await descriptorRepo.insert(t, db.pgp, [descriptorData]);
         await descriptorRepo.merge(t);
       });
       await descriptorRepo.clean();

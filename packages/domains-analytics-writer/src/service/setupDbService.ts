@@ -34,7 +34,7 @@ export function setupDbServiceBuilder(
             const fullStagingTable = `${tableName}${config.mergeTableSuffix}`;
             const query = `
               CREATE TEMPORARY TABLE IF NOT EXISTS ${fullStagingTable} (
-                id TEXT PRIMARY KEY,
+                id VARCHAR(36) PRIMARY KEY,
                 deleted BOOLEAN NOT NULL
               );
             `;
