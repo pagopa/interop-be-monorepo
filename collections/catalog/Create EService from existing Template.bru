@@ -1,0 +1,34 @@
+meta {
+  name: Create EService from Template
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-catalog}}/templates/{{eserviceTemplateId}}/eservices
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "instanceLabel": "{{uuid}}"
+  }
+}
+
+script:pre-request {
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0,
+          v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  
+  bru.setVar("uuid", generateUUID())
+}

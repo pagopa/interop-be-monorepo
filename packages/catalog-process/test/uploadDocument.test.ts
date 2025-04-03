@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
   Descriptor,
   descriptorState,
@@ -13,24 +12,27 @@ import {
   delegationState,
   generateId,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   interfaceAlreadyExists,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
   catalogService,
   buildInterfaceSeed,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockDocument,
@@ -66,12 +68,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -140,12 +137,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(delegation.delegateId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -190,12 +182,7 @@ describe("upload Document", () => {
         mockEService.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -215,12 +202,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -240,12 +222,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -272,12 +249,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -292,12 +264,7 @@ describe("upload Document", () => {
         eservice.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -326,12 +293,7 @@ describe("upload Document", () => {
           eservice.id,
           descriptor.id,
           buildInterfaceSeed(),
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -352,16 +314,11 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document: Document = {
       ...getMockDocument(),
       prettyName: "TEST",
@@ -385,15 +342,36 @@ describe("upload Document", () => {
           ...buildDocumentSeed(),
           prettyName: document.prettyName.toLowerCase(),
         },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document.prettyName.toLowerCase(), descriptor.id)
+      documentPrettyNameDuplicate(
+        document.prettyName.toLowerCase(),
+        descriptor.id
+      )
     );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+    expect(
+      catalogService.uploadDocument(
+        eService.id,
+        descriptor.id,
+        {
+          ...buildDocumentSeed(),
+        },
+        getMockContext({ authData: getMockAuthData(eService.producerId) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });

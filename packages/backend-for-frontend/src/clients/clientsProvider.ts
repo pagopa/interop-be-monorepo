@@ -9,6 +9,7 @@ import {
   selfcareV2InstitutionClientBuilder,
   selfcareV2UsersClientBuilder,
   delegationApi,
+  eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 
@@ -49,6 +50,10 @@ export type AuthorizationProcessClient = {
   token: ReturnType<typeof authorizationApi.createTokenGenerationApiClient>;
 };
 
+export type EServiceTemplateProcessClient = ReturnType<
+  typeof eserviceTemplateApi.createProcessApiClient
+>;
+
 export type SelfcareV2InstitutionClient = {
   institution: ReturnType<
     typeof selfcareV2ClientApi.createInstitutionApiClient
@@ -69,6 +74,7 @@ export type PagoPAInteropBeClients = {
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   selfcareV2UserClient: SelfcareV2UserClient;
   delegationProcessClient: DelegationProcessClient;
+  eserviceTemplateProcessClient: EServiceTemplateProcessClient;
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
@@ -117,5 +123,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         config.delegationProcessUrl
       ),
     },
+    eserviceTemplateProcessClient: eserviceTemplateApi.createProcessApiClient(
+      config.eserviceTemplateProcessUrl
+    ),
   };
 }

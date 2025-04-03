@@ -191,8 +191,18 @@ const errorCodes = {
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
-  invalidKeyLength: "10003",
-  notAnRSAKey: "10004",
+  invalidKeyLength: "10008",
+  notAnRSAKey: "10009",
+  invalidEserviceInterfaceFileDetected: "10010",
+  openapiVersionNotRecognized: "10011",
+  interfaceExtractingInfoError: "10012",
+  invalidInterfaceContentTypeDetected: "10013",
+  tokenVerificationFailed: "10014",
+  invalidEserviceInterfaceData: "10015",
+  soapFileParsingError: "10016",
+  interfaceExtractingSoapFieldValueError: "10017",
+  soapFileCreatingError: "10018",
+  notAllowedMultipleKeysException: "10019",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -351,6 +361,20 @@ export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
   });
 }
 
+export function tokenVerificationFailed(
+  uid: string | undefined,
+  selfcareId: string | undefined
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail:
+      "Token verification failed" +
+      (uid ? " for user " + uid : "") +
+      (selfcareId ? " for tenant " + selfcareId : ""),
+    code: "tokenVerificationFailed",
+    title: "Token verification failed",
+  });
+}
+
 export function missingHeader(headerName?: string): ApiError<CommonErrorCodes> {
   const title = "Header has not been passed";
   return new ApiError({
@@ -406,6 +430,14 @@ export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
   });
 }
 
+export function notAllowedMultipleKeysException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key contains multiple keys`,
+    code: "notAllowedMultipleKeysException",
+    title: "Not allowed multiple keys exception",
+  });
+}
+
 export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `One or more required JWK claims are missing`,
@@ -438,5 +470,80 @@ export function notAnRSAKey(): ApiError<CommonErrorCodes> {
     detail: `Provided key is not an RSA key`,
     code: "notAnRSAKey",
     title: "Not an RSA key",
+  });
+}
+
+export function invalidInterfaceFileDetected(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService or EserviceTemplate with ID ${resourceId} is invalid`,
+    code: "invalidEserviceInterfaceFileDetected",
+    title: "Invalid interface file detected",
+  });
+}
+
+export function invalidInterfaceData(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface data provided for EService ${resourceId} is invalid`,
+    code: "invalidEserviceInterfaceData",
+    title: "Invalid interface file data provided",
+  });
+}
+
+export function openapiVersionNotRecognized(
+  version: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `OpenAPI version not recognized - ${version}`,
+    code: "openapiVersionNotRecognized",
+    title: "OpenAPI version not recognized",
+  });
+}
+
+export function parsingSoapFileError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error parsing SOAP file`,
+    code: "soapFileParsingError",
+    title: "Error parsing SOAP file",
+  });
+}
+
+export function buildingSoapFileError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error creating SOAP file`,
+    code: "soapFileCreatingError",
+    title: "Error creating SOAP file",
+  });
+}
+
+export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting info from interface file`,
+    code: "interfaceExtractingInfoError",
+    title: "Error extracting info from interface file",
+  });
+}
+export function interfaceExtractingSoapFiledError(
+  fieldName: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting field ${fieldName} from SOAP file`,
+    code: "interfaceExtractingSoapFieldValueError",
+    title: "Error extracting field from SOAP file",
+  });
+}
+
+export function invalidInterfaceContentTypeDetected(
+  eServiceId: string,
+  contentType: string,
+  technology: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
+    code: "invalidInterfaceContentTypeDetected",
+    title: "Invalid content type detected",
   });
 }

@@ -104,7 +104,15 @@ export async function handleCatalogMessage(
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
           "EServiceIsClientAccessDelegableEnabled",
-          "EServiceIsClientAccessDelegableDisabled"
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
         ),
       },
       () => {
@@ -315,6 +323,7 @@ function processMessage(topicHandlers: TopicHandlers) {
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,
         streamId: decodedMessage.stream_id,
+        streamVersion: decodedMessage.version,
         correlationId: decodedMessage.correlation_id
           ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
           : generateId<CorrelationId>(),

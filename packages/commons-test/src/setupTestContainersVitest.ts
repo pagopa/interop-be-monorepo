@@ -9,7 +9,6 @@ import {
   EventStoreConfig,
   FileManager,
   FileManagerConfig,
-  LoggerConfig,
   RateLimiter,
   ReadModelDbConfig,
   ReadModelRepository,
@@ -24,8 +23,12 @@ import {
   EmailManagerSES,
   AWSSesConfig,
   initSesMailManager,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
+import pg from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**
@@ -64,7 +67,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig
+  fileManagerConfig?: FileManagerConfig & S3Config
 ): Promise<{
   readModelRepository: ReadModelRepository;
   postgresDB: DB;
@@ -74,7 +77,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest
 ): Promise<{
   readModelRepository: ReadModelRepository;
@@ -86,7 +89,7 @@ export function setupTestContainersVitest(
 export function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   RedisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig
@@ -99,13 +102,33 @@ export function setupTestContainersVitest(
   redisRateLimiter: RateLimiter;
   cleanup: () => Promise<void>;
 }>;
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
+  emailManagerConfig?: PecEmailManagerConfigTest,
+  RedisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig
+): Promise<{
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  pecEmailManager: EmailManagerPEC;
+  sesEmailManager: EmailManagerSES;
+  redisRateLimiter: RateLimiter;
+  readModelDB: DrizzleReturnType;
+  cleanup: () => Promise<void>;
+}>;
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
   eventStoreConfig?: EventStoreConfig,
-  fileManagerConfig?: FileManagerConfig & S3Config & LoggerConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
   emailManagerConfig?: PecEmailManagerConfigTest,
   redisRateLimiterConfig?: RedisRateLimiterConfig,
-  awsSESConfig?: AWSSesConfig
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
@@ -113,10 +136,9 @@ export async function setupTestContainersVitest(
   pecEmailManager?: EmailManagerPEC;
   sesEmailManager?: EmailManagerSES;
   redisRateLimiter?: RateLimiter;
+  readModelDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
-  const s3OriginalBucket = fileManagerConfig?.s3Bucket;
-
   let readModelRepository: ReadModelRepository | undefined;
   let postgresDB: DB | undefined;
   let fileManager: FileManager | undefined;
@@ -124,6 +146,7 @@ export async function setupTestContainersVitest(
   let sesEmailManager: EmailManagerSES | undefined;
   let redisRateLimiter: RateLimiter | undefined;
   const redisRateLimiterGroup = "TEST";
+  let readModelDB: DrizzleReturnType | undefined;
 
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
@@ -142,7 +165,7 @@ export async function setupTestContainersVitest(
   }
 
   if (fileManagerConfig) {
-    fileManager = initFileManager(fileManagerConfig);
+    fileManager = initFileManager({ ...fileManagerConfig, logLevel: "warn" });
   }
 
   if (emailManagerConfig) {
@@ -165,6 +188,17 @@ export async function setupTestContainersVitest(
     });
   }
 
+  if (readModelSQLDbConfig) {
+    const pool = new pg.Pool({
+      host: readModelSQLDbConfig?.readModelSQLDbHost,
+      port: readModelSQLDbConfig?.readModelSQLDbPort,
+      database: readModelSQLDbConfig?.readModelSQLDbName,
+      user: readModelSQLDbConfig?.readModelSQLDbUsername,
+      password: readModelSQLDbConfig?.readModelSQLDbPassword,
+      ssl: readModelSQLDbConfig?.readModelSQLDbUseSSL,
+    });
+    readModelDB = drizzle({ client: pool });
+  }
   return {
     readModelRepository,
     postgresDB,
@@ -172,6 +206,7 @@ export async function setupTestContainersVitest(
     pecEmailManager,
     sesEmailManager,
     redisRateLimiter,
+    readModelDB,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});
@@ -183,6 +218,7 @@ export async function setupTestContainersVitest(
       await readModelRepository?.producerKeychains.deleteMany({});
       await readModelRepository?.producerKeys.deleteMany({});
       await readModelRepository?.delegations.deleteMany({});
+      await readModelRepository?.eserviceTemplates.deleteMany({});
 
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
@@ -199,8 +235,47 @@ export async function setupTestContainersVitest(
       await postgresDB?.none(
         "TRUNCATE TABLE delegation.events RESTART IDENTITY"
       );
+      await postgresDB?.none(
+        "TRUNCATE TABLE eservice_template.events RESTART IDENTITY"
+      );
 
-      if (s3OriginalBucket && fileManagerConfig && fileManager) {
+      // CLEANUP READMODEL-SQL TABLES
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_agreement.agreement CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_attribute.attribute CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_catalog.eservice CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_client_jwk_key.client_jwk_key CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_client.client CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_delegation.delegation CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_producer_jwk_key.producer_jwk_key CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_producer_keychain.producer_keychain CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_purpose.purpose CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_tenant.tenant CASCADE"
+      );
+      // TODO: add eservice-template
+
+      if (fileManagerConfig && fileManager) {
+        const s3OriginalBucket =
+          fileManagerConfig?.s3Bucket ?? "interop-local-bucket";
+
         const files = await fileManager.listFiles(
           s3OriginalBucket,
           genericLogger

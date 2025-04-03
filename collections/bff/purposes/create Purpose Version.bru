@@ -16,15 +16,17 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 body:json {
   {
-    "dailyCalls": {{$randomInt}}
+    "dailyCalls": {{randomInt}}
   }
+}
+
+script:pre-request {
+  const randomInt = Math.round(Math.random() * 10000)
+  bru.setVar("randomInt", randomInt);
 }
 
 docs {
