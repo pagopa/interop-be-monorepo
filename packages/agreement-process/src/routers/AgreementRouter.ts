@@ -487,15 +487,16 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const agreement = await agreementService.getAgreementById(
+          const { data, metadata } = await agreementService.getAgreementById(
             unsafeBrandId(req.params.agreementId),
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
-            );
+          return res.status(200).send(
+            agreementApi.AgreementWithMetadata.parse({
+              data: agreementToApiAgreement(data),
+              metadata,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

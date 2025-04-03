@@ -251,7 +251,7 @@ export function agreementServiceBuilder(
     async getAgreementById(
       agreementId: AgreementId,
       { authData, logger }: WithLogger<AppContext>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -260,7 +260,7 @@ export function agreementServiceBuilder(
         authData,
         readModelService
       );
-      return agreement.data;
+      return agreement;
     },
     async createAgreement(
       {
