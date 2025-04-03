@@ -13,7 +13,6 @@ import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/errors.js";
 import {
   emptyErrorMapper,
-  clonePurposeErrorMapper,
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
@@ -175,7 +174,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          clonePurposeErrorMapper,
+          emptyErrorMapper,
           ctx.logger,
           ctx.correlationId,
           `Error cloning purpose ${req.params.purposeId}`
