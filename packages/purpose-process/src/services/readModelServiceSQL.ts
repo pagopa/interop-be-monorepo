@@ -328,7 +328,7 @@ export function readModelServiceBuilderSQL({
             eq(agreementInReadmodelAgreement.eserviceId, eserviceId),
             eq(agreementInReadmodelAgreement.consumerId, consumerId),
             eq(agreementInReadmodelAgreement.state, agreementState.active)
-          ) as SQL
+          )
         )
       )?.data;
     },
@@ -339,7 +339,7 @@ export function readModelServiceBuilderSQL({
       >
     ): Promise<Purpose[]> {
       return (
-        await purposeReadModelServiceSQL.getPurposeByFilter(
+        await purposeReadModelServiceSQL.getPurposesByFilter(
           and(...getPurposesFilters(readModelDB, filters))
         )
       ).map((d) => d.data);
@@ -358,7 +358,7 @@ export function readModelServiceBuilderSQL({
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedProducer
             )
-          ) as SQL
+          )
         )
       )?.data;
     },
@@ -379,7 +379,7 @@ export function readModelServiceBuilderSQL({
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer
             )
-          ) as SQL
+          )
         )
       )?.data;
     },
@@ -395,7 +395,7 @@ export function readModelServiceBuilderSQL({
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer
             )
-          ) as SQL
+          )
         )
       )?.data;
     },
