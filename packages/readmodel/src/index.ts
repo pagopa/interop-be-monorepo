@@ -11,6 +11,8 @@ export * from "./attributeReadModelService.js";
 export * from "./purposeReadModelService.js";
 export * from "./purpose/splitters.js";
 
+// PRODUCER JWK KEY
+export * from "./producerJWKKeyReadModelService.js";
+
 // CLIENT JWK KEY
 export * from "./clientJWKKeyReadModelService.js";
-

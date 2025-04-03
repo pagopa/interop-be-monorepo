@@ -42,6 +42,7 @@ export const makeUniqueKey = (ids: string[]): string => ids.join("#");
  *     metadataVersion,
  *     agreement.id,
  * );
+ *
  */
 export const checkMetadataVersion = async (
   tx: DrizzleTransactionType,
@@ -75,6 +76,7 @@ export const checkMetadataVersion = async (
  *   metadataVersion,
  *   eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
  * );
+ *
  */
 export const checkMetadataVersionByFilter = async (
   tx: DrizzleTransactionType,
