@@ -622,7 +622,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/AgreementWithMetadata"
         "404":
           description: Agreement not found
           content:
@@ -1034,6 +1034,23 @@ components:
       schema:
         type: string
   schemas:
+    WithMetadata:
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          type: object
+          description: "The actual data payload"
+        metadata:
+          type: object
+          required:
+            - version
+          properties:
+            version:
+              type: number
+              description: "Version information for the data"
     AgreementPayload:
       type: object
       additionalProperties: false
@@ -1133,6 +1150,13 @@ components:
         - consumerDocuments
         - createdAt
       description: business representation of an agreement
+    AgreementWithMetadata:
+      allOf:
+        - $ref: "#/components/schemas/WithMetadata"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Agreement"
     AgreementRejectionPayload:
       type: object
       additionalProperties: false

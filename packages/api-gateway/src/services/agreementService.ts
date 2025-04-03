@@ -46,7 +46,7 @@ const retrieveAgreement = (
   agreementProcessClient: AgreementProcessClient,
   headers: ApiGatewayAppContext["headers"],
   agreementId: agreementApi.Agreement["id"]
-): Promise<agreementApi.Agreement> =>
+): Promise<agreementApi.AgreementWithMetadata> =>
   agreementProcessClient
     .getAgreementById({
       headers,
@@ -90,7 +90,7 @@ export function agreementServiceBuilder(
       agreementId: agreementApi.Agreement["id"]
     ): Promise<apiGatewayApi.Agreement> => {
       logger.info(`Retrieving agreement by id = ${agreementId}`);
-      const agreement = await retrieveAgreement(
+      const { data: agreement } = await retrieveAgreement(
         agreementProcessClient,
         headers,
         agreementId
@@ -105,7 +105,7 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Attributes> => {
       logger.info(`Retrieving Attributes for Agreement ${agreementId}`);
 
-      const agreement = await retrieveAgreement(
+      const { data: agreement } = await retrieveAgreement(
         agreementProcessClient,
         headers,
         agreementId
@@ -127,7 +127,7 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Purposes> => {
       ctx.logger.info(`Retrieving Purposes for Agreement ${agreementId}`);
 
-      const agreement = await retrieveAgreement(
+      const { data: agreement } = await retrieveAgreement(
         agreementProcessClient,
         ctx.headers,
         agreementId
