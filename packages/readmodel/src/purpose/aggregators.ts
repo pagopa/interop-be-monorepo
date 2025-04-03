@@ -2,6 +2,7 @@ import {
   DelegationId,
   genericInternalError,
   Purpose,
+  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
@@ -28,7 +29,6 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 
-// TODO: delete one aggregate array version
 export const aggregatePurposeArray = ({
   purposesSQL,
   riskAnalysisFormsSQL,
@@ -60,6 +60,55 @@ export const aggregatePurposeArray = ({
     })
   );
 
+// CHOOSE THIS IF IT'S BETTER THAN aggregatePurposeArray()
+export const aggregatePurposeArrayWithMaps = ({
+  purposesSQL,
+  riskAnalysisFormsSQL,
+  riskAnalysisAnswersSQL,
+  versionsSQL,
+  versionDocumentsSQL,
+}: {
+  purposesSQL: PurposeSQL[];
+  riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
+  versionsSQL: PurposeVersionSQL[];
+  versionDocumentsSQL: PurposeVersionDocumentSQL[];
+}): Array<WithMetadata<Purpose>> => {
+  const riskAnalysisFormsSQLByPurposeId =
+    createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
+  const riskAnalysisAnswersSQLByPurposeId = createPurposeSQLPropertyMap(
+    riskAnalysisAnswersSQL
+  );
+  const versionsSQLByPurposeId = createPurposeSQLPropertyMap(versionsSQL);
+  const versionDocumentsSQLByPurposeId =
+    createPurposeSQLPropertyMap(versionDocumentsSQL);
+  return purposesSQL.map((purposeSQL) => {
+    const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
+    return aggregatePurpose({
+      purposeSQL,
+      riskAnalysisFormSQL: riskAnalysisFormsSQLByPurposeId.get(purposeId)?.[0],
+      riskAnalysisAnswersSQL: riskAnalysisAnswersSQLByPurposeId.get(purposeId),
+      versionsSQL: versionsSQLByPurposeId.get(purposeId) || [],
+      versionDocumentsSQL: versionDocumentsSQLByPurposeId.get(purposeId) || [],
+    });
+  });
+};
+
+const createPurposeSQLPropertyMap = <
+  T extends
+  | PurposeRiskAnalysisFormSQL
+  | PurposeRiskAnalysisAnswerSQL
+  | PurposeVersionSQL
+  | PurposeVersionDocumentSQL
+>(
+  items: T[]
+): Map<PurposeId, T[]> =>
+  items.reduce((acc, item) => {
+    const purposeId = unsafeBrandId<PurposeId>(item.purposeId);
+    acc.set(purposeId, [...(acc.get(purposeId) || []), item]);
+    return acc;
+  }, new Map<PurposeId, T[]>());
+
 export const aggregatePurpose = ({
   purposeSQL,
   riskAnalysisFormSQL,
@@ -90,11 +139,11 @@ export const aggregatePurpose = ({
     const versionDocument: PurposeVersionDocument | undefined =
       versionDocumentSQL
         ? {
-            id: unsafeBrandId(versionDocumentSQL.id),
-            path: versionDocumentSQL.path,
-            contentType: versionDocumentSQL.contentType,
-            createdAt: stringToDate(versionDocumentSQL.createdAt),
-          }
+          id: unsafeBrandId(versionDocumentSQL.id),
+          path: versionDocumentSQL.path,
+          contentType: versionDocumentSQL.contentType,
+          createdAt: stringToDate(versionDocumentSQL.createdAt),
+        }
         : undefined;
 
     const version: PurposeVersion = {
@@ -113,8 +162,8 @@ export const aggregatePurpose = ({
         : {}),
       ...(versionSQL.updatedAt
         ? {
-            updatedAt: stringToDate(versionSQL.updatedAt),
-          }
+          updatedAt: stringToDate(versionSQL.updatedAt),
+        }
         : {}),
       ...(versionDocument ? { riskAnalysis: versionDocument } : {}),
     };
@@ -134,23 +183,23 @@ export const aggregatePurpose = ({
     ...(riskAnalysisForm ? { riskAnalysisForm } : {}),
     ...(purposeSQL.suspendedByConsumer !== null
       ? {
-          suspendedByConsumer: purposeSQL.suspendedByConsumer,
-        }
+        suspendedByConsumer: purposeSQL.suspendedByConsumer,
+      }
       : {}),
     ...(purposeSQL.suspendedByProducer !== null
       ? {
-          suspendedByProducer: purposeSQL.suspendedByProducer,
-        }
+        suspendedByProducer: purposeSQL.suspendedByProducer,
+      }
       : {}),
     ...(purposeSQL.delegationId
       ? {
-          delegationId: unsafeBrandId<DelegationId>(purposeSQL.delegationId),
-        }
+        delegationId: unsafeBrandId<DelegationId>(purposeSQL.delegationId),
+      }
       : {}),
     ...(purposeSQL.freeOfChargeReason
       ? {
-          freeOfChargeReason: purposeSQL.freeOfChargeReason,
-        }
+        freeOfChargeReason: purposeSQL.freeOfChargeReason,
+      }
       : {}),
     ...(purposeSQL.updatedAt
       ? { updatedAt: stringToDate(purposeSQL.updatedAt) }
@@ -194,8 +243,8 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
               key: a.key,
               ...(a.value
                 ? {
-                    value: a.value[0],
-                  }
+                  value: a.value[0],
+                }
                 : undefined),
             },
           ],
@@ -226,10 +275,10 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
     multiAnswers,
     ...(riskAnalysisFormSQL.riskAnalysisId
       ? {
-          riskAnalysisId: unsafeBrandId<RiskAnalysisId>(
-            riskAnalysisFormSQL.riskAnalysisId
-          ),
-        }
+        riskAnalysisId: unsafeBrandId<RiskAnalysisId>(
+          riskAnalysisFormSQL.riskAnalysisId
+        ),
+      }
       : {}),
   };
 };
