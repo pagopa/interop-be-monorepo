@@ -15,9 +15,7 @@ import {
 } from "./purpose/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeReadModelServiceBuilderSQL(
-  db: ReturnType<typeof drizzle>
-) {
+export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
   return {
     async upsertPurpose(
       purpose: Purpose,
@@ -137,5 +135,5 @@ export function purposeReadModelServiceBuilderSQL(
 }
 
 export type PurposeReadModelService = ReturnType<
-  typeof purposeReadModelServiceBuilderSQL
+  typeof purposeReadModelServiceBuilder
 >;

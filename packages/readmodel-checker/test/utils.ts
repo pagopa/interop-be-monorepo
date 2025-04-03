@@ -32,7 +32,7 @@ import {
   clientReadModelServiceBuilderSQL,
   delegationReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
-  purposeReadModelServiceBuilderSQL,
+  purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   producerJWKKeyReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
@@ -69,7 +69,7 @@ export const tenantReadModelServiceSQL =
 export const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 export const purposeReadModelServiceSQL =
-  purposeReadModelServiceBuilderSQL(readModelDB);
+  purposeReadModelServiceBuilder(readModelDB);
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 export const clientReadModelServiceSQL =
