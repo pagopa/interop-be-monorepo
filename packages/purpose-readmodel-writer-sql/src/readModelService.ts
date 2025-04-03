@@ -6,6 +6,7 @@ import {
   PurposeVersionId,
 } from "pagopa-interop-models";
 import {
+  checkMetadataVersion,
   PurposeReadModelService,
   splitPurposeVersionIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
@@ -71,19 +72,14 @@ export function customReadModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion: purposeInReadmodelPurpose.metadataVersion,
-            })
-            .from(purposeInReadmodelPurpose)
-            .where(eq(purposeInReadmodelPurpose.id, purposeId))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          purposeInReadmodelPurpose,
+          metadataVersion,
+          purposeId
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(purposeVersionInReadmodelPurpose)
             .where(eq(purposeVersionInReadmodelPurpose.id, purposeVersion.id));
