@@ -105,6 +105,7 @@ export const soapApiFileToBuffer: (
           const xmlDataStr: string = new XMLBuilder({
             ignoreAttributes: false,
             attributeNamePrefix: "",
+            format: true,
           }).build(file);
           return Buffer.from(xmlDataStr);
         } catch (e) {
