@@ -751,6 +751,7 @@ export const getMockContext = ({
   authData: authData || getMockAuthData(),
   serviceName: serviceName || "test",
   correlationId: generateId(),
+  spanId: generateId(),
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });
