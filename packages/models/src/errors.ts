@@ -152,9 +152,9 @@ export function makeApiProblemBuilder<T extends string>({
             logger.warn(
               makeProblemLogString(
                 genericProblem,
-                `${receivedProblem.title}, code ${makeErrorCode(
-                  receivedProblem.errors[0].code
-                )}, ${receivedProblem.errors.at(0)?.detail}`
+                `${receivedProblem.title}, code ${
+                  receivedProblem.errors.at(0)?.code
+                }, ${receivedProblem.errors.at(0)?.detail}`
               )
             );
             return genericProblem;
