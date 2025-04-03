@@ -1,41 +1,53 @@
-import { and, eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { and, eq, lte } from "drizzle-orm";
 import { ClientId, ClientJWKKey, WithMetadata } from "pagopa-interop-models";
-import { clientJwkKeyInReadmodelClientJwkKey } from "pagopa-interop-readmodel-models";
+import {
+  clientJwkKeyInReadmodelClientJwkKey,
+  DrizzleReturnType,
+} from "pagopa-interop-readmodel-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
 import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
+import { checkMetadataVersionByFilter } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function clientJWKKeyReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertClientJWKKey(
-      clientJWKKey: WithMetadata<ClientJWKKey>
+      clientJWKKey: ClientJWKKey,
+      metadataVersion: number
     ): Promise<void> {
-      const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
-        clientJWKKey.data,
-        clientJWKKey.metadata.version
-      );
       await db.transaction(async (tx) => {
-        await tx
-          .delete(clientJwkKeyInReadmodelClientJwkKey)
-          .where(
-            and(
-              eq(
-                clientJwkKeyInReadmodelClientJwkKey.clientId,
-                clientJWKKey.data.clientId
-              ),
-              eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.data.kid)
-            )
+        const shouldUpsert = await checkMetadataVersionByFilter(
+          tx,
+          clientJwkKeyInReadmodelClientJwkKey,
+          metadataVersion,
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+        );
+
+        if (shouldUpsert) {
+          await tx
+            .delete(clientJwkKeyInReadmodelClientJwkKey)
+            .where(
+              and(
+                eq(
+                  clientJwkKeyInReadmodelClientJwkKey.clientId,
+                  clientJWKKey.clientId
+                ),
+                eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+              )
+            );
+
+          const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
+            clientJWKKey,
+            metadataVersion
           );
 
-        await tx
-          .insert(clientJwkKeyInReadmodelClientJwkKey)
-          .values(clientJWKKeySQL);
+          await tx
+            .insert(clientJwkKeyInReadmodelClientJwkKey)
+            .values(clientJWKKeySQL);
+        }
       });
     },
-    async getClientJWKKeyById(
+    async getClientJWKKeyByClientIdAndKid(
       clientId: ClientId,
       kid: string
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
@@ -55,16 +67,21 @@ export function clientJWKKeyReadModelServiceBuilder(
 
       return aggregateClientJWKKey(queryResult[0]);
     },
-    async deleteClientJWKKeyById(
+    async deleteClientJWKKeyByClientIdAndKid(
       clientId: ClientId,
-      kid: string
+      kid: string,
+      metadataVersion: number
     ): Promise<void> {
       await db
         .delete(clientJwkKeyInReadmodelClientJwkKey)
         .where(
           and(
             eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
-            eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
+            eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid),
+            lte(
+              clientJwkKeyInReadmodelClientJwkKey.metadataVersion,
+              metadataVersion
+            )
           )
         );
     },

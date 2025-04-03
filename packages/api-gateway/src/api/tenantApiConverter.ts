@@ -42,9 +42,18 @@ export function declaredAttributeToAttributeValidityState(
 }
 
 function toApiGatewayOrganizationCategory(
+  tenant: tenantApi.Tenant,
   attributes: attributeRegistryApi.Attribute[]
 ): apiGatewayApi.Organization["category"] {
-  const categoryIpaAttribute = attributes.find((a) => a.origin === "IPA");
+  const maxIpaCodeLength = 3;
+
+  const categoryIpaAttribute = attributes.find(
+    (a) =>
+      a.origin === "IPA" &&
+      a.code &&
+      a.code !== tenant.externalId.value &&
+      a.code.length <= maxIpaCodeLength
+  );
   return categoryIpaAttribute ? categoryIpaAttribute.name : "Unknown";
 }
 
@@ -59,7 +68,7 @@ export function toApiGatewayOrganization(
       id: tenant.externalId.value,
     },
     name: tenant.name,
-    category: toApiGatewayOrganizationCategory(tenantAttributes),
+    category: toApiGatewayOrganizationCategory(tenant, tenantAttributes),
   };
 }
 
