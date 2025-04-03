@@ -100,7 +100,10 @@ export function readModelServiceBuilderSQL(
       } = filters;
 
       const matchingEserviceIds = await readmodelDB
-        .selectDistinct({ id: eserviceInReadmodelCatalog.id })
+        .select({
+          id: eserviceInReadmodelCatalog.id,
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
+        })
         .from(eserviceInReadmodelCatalog)
         .leftJoin(
           agreementInReadmodelAgreement,
@@ -320,9 +323,11 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined
           )
-        );
-
-      const uniqueMatchingIds = matchingEserviceIds.map((row) => row.id);
+        )
+        .groupBy(eserviceInReadmodelCatalog.id)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`);
 
       // manually retrieve eservices matching those ids but do manual pagination (example: query the first 10. etc...)
       const queryResult = await readmodelDB
@@ -343,7 +348,7 @@ export function readModelServiceBuilderSQL(
         .where(
           inArray(
             eserviceInReadmodelCatalog.id,
-            uniqueMatchingIds.slice(offset, offset + limit) // TODO double-check
+            matchingEserviceIds.map((row) => row.id)
           )
         )
         .leftJoin(
@@ -418,7 +423,7 @@ export function readModelServiceBuilderSQL(
             eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         )
-        .orderBy(eserviceInReadmodelCatalog.name);
+        .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`);
 
       const eservices = aggregateEserviceArray(
         toEServiceAggregatorArray(queryResult)
@@ -426,7 +431,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: eservices.map((eservice) => eservice.data),
-        totalCount: uniqueMatchingIds.length,
+        totalCount: matchingEserviceIds[0]?.totalCount || 0,
       };
     },
     async getEServiceByNameAndProducerId({
