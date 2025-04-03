@@ -153,6 +153,7 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => {
     suspendedAt: bigIntToDate(input.suspendedAt),
     deprecatedAt: bigIntToDate(input.deprecatedAt),
     archivedAt: bigIntToDate(input.archivedAt),
+    version: Number(input.version),
   };
 };
 

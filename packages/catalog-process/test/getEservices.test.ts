@@ -1544,7 +1544,7 @@ describe("get eservices", () => {
       const descriptor9b: Descriptor = {
         ...mockDescriptor,
         id: generateId(),
-        version: "2",
+        version: 2,
         state,
       };
       const eservice9: EService = {
@@ -1598,7 +1598,7 @@ describe("get eservices", () => {
       const descriptor9b: Descriptor = {
         ...mockDescriptor,
         id: generateId(),
-        version: "2",
+        version: 2,
         state,
       };
       const eservice9: EService = {
@@ -1652,7 +1652,7 @@ describe("get eservices", () => {
       const descriptor9b: Descriptor = {
         ...mockDescriptor,
         id: generateId(),
-        version: "2",
+        version: 2,
         state,
       };
       const eservice9: EService = {
@@ -1706,7 +1706,7 @@ describe("get eservices", () => {
       const descriptor9b: Descriptor = {
         ...mockDescriptor,
         id: generateId(),
-        version: "2",
+        version: 2,
         state,
       };
       const eservice9: EService = {

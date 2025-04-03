@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   AppContext,
   AuthData,
@@ -55,7 +54,6 @@ import {
   organizationIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
-  unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
   ActiveDelegations,
@@ -686,26 +684,13 @@ export function agreementServiceBuilder(
       if (newDescriptor === undefined) {
         throw publishedDescriptorNotFound(eservice.id);
       }
-      const latestDescriptorVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(newDescriptor.version);
-      if (!latestDescriptorVersion.success) {
-        throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
-      }
 
       const currentDescriptor = retrieveDescriptor(
         agreementToBeUpgraded.data.descriptorId,
         eservice
       );
 
-      const currentVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(currentDescriptor.version);
-      if (!currentVersion.success) {
-        throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
-      }
-
-      if (latestDescriptorVersion.data <= currentVersion.data) {
+      if (newDescriptor.version <= currentDescriptor.version) {
         throw noNewerDescriptor(eservice.id, currentDescriptor.id);
       }
 
