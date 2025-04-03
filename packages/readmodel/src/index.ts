@@ -6,10 +6,12 @@ export * from "./agreement/splitters.js";
 
 // ATTRIBUTE
 export * from "./attributeReadModelService.js";
-export * from "./delegationReadModelService.js";
 
 // CLIENT JWK KEY
 export * from "./clientJWKKeyReadModelService.js";
+
+// DELEGATION
+export * from "./delegationReadModelService.js";
 
 // PRODUCER JWK KEY
 export * from "./producerJWKKeyReadModelService.js";
