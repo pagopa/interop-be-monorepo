@@ -216,12 +216,12 @@ export function readModelServiceBuilderSQL(
                         )
                       )
                   ),
-                  // it's the producer
+                  // the requester is the producer
                   eq(
                     eserviceInReadmodelCatalog.producerId,
                     authData.organizationId
                   ),
-                  // has producer delegation
+                  // the requester has producer delegation
                   exists(
                     readmodelDB
                       .select()
