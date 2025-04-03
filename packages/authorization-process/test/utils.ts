@@ -26,13 +26,31 @@ import {
   toReadModelPurpose,
 } from "pagopa-interop-models";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  clientReadModelServiceBuilderSQL,
+  delegationReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
-export const { cleanup, readModelRepository, postgresDB } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig")
-  );
+export const {
+  cleanup,
+  readModelRepository,
+  postgresDB,
+  fileManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  inject("readModelConfig"),
+  inject("eventStoreConfig"),
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
@@ -46,6 +64,19 @@ export const {
   producerKeychains,
   delegations,
 } = readModelRepository;
+
+export const clientReadModelServiceSQL =
+  clientReadModelServiceBuilderSQL(readModelDB);
+export const catalogReadModelServiceSQL =
+  catalogReadModelServiceBuilder(readModelDB);
+export const purposeReadModelServiceSQL =
+  purposeReadModelServiceBuilder(readModelDB);
+export const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+export const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
+export const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const selfcareV2Client: SelfcareV2InstitutionClient =
@@ -78,18 +109,26 @@ export const writeClientInEventstore = async (
 export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
   await writeInReadmodel(toReadModelClient(client), clients);
+
+  await clientReadModelServiceSQL.upsertClient(client, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
+
+  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };
 
 export const writeProducerKeychainInEventstore = async (
@@ -118,12 +157,19 @@ export const addOneProducerKeychain = async (
     toReadModelProducerKeychain(producerKeychain),
     producerKeychains
   );
+
+  await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
+    producerKeychain,
+    0
+  );
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
+
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
 };
 
 export const readLastAuthorizationEvent = async (
