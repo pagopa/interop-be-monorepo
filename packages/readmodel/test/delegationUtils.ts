@@ -25,10 +25,12 @@ import { readModelDB } from "./utils.js";
 export const delegationReadModelService =
   delegationReadModelServiceBuilder(readModelDB);
 
-export const getCustomMockDelegation = (
-  isCompleteDelegation: boolean = true
-): WithMetadata<Delegation> =>
-  isCompleteDelegation
+export const getCustomMockDelegation = ({
+  isDelegationComplete,
+}: {
+  isDelegationComplete: boolean;
+}): WithMetadata<Delegation> =>
+  isDelegationComplete
     ? {
         data: {
           ...getMockDelegation({ kind: delegationKind.delegatedProducer }),
