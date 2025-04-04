@@ -3823,9 +3823,6 @@ importers:
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
-      drizzle-kit:
-        specifier: 0.30.4
-        version: 0.30.4
       eslint:
         specifier: 8.57.0
         version: 8.57.0

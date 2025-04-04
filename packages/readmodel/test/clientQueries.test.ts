@@ -11,7 +11,9 @@ import {
 describe("Client queries", () => {
   describe("should insert or update a client in the db", () => {
     it("should add a complete (*all* fields) client", async () => {
-      const client = getCustomMockClient();
+      const client = getCustomMockClient({
+        isClientComplete: true,
+      });
       await clientReadModelService.upsertClient(
         client.data,
         client.metadata.version
@@ -30,7 +32,9 @@ describe("Client queries", () => {
     });
 
     it("should add an incomplete (*only* mandatory fields) client", async () => {
-      const client = getCustomMockClient(false);
+      const client = getCustomMockClient({
+        isClientComplete: false,
+      });
       await clientReadModelService.upsertClient(
         client.data,
         client.metadata.version
@@ -49,7 +53,9 @@ describe("Client queries", () => {
     });
 
     it("should update an client", async () => {
-      const client = getCustomMockClient();
+      const client = getCustomMockClient({
+        isClientComplete: true,
+      });
       const updatedClient: WithMetadata<Client> = {
         data: {
           ...client.data,
@@ -80,7 +86,9 @@ describe("Client queries", () => {
 
   describe("should get a client by id from the db", () => {
     it("client found", async () => {
-      const client = getCustomMockClient();
+      const client = getCustomMockClient({
+        isClientComplete: true,
+      });
       await clientReadModelService.upsertClient(
         client.data,
         client.metadata.version
@@ -101,7 +109,9 @@ describe("Client queries", () => {
   });
   describe("should delete a client from the db", () => {
     it("delete one client", async () => {
-      const client = getCustomMockClient();
+      const client = getCustomMockClient({
+        isClientComplete: true,
+      });
       await clientReadModelService.upsertClient(
         client.data,
         client.metadata.version
