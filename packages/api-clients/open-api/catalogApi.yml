@@ -1152,14 +1152,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/json:
@@ -1171,14 +1174,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/json:
@@ -1223,14 +1229,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/json:
@@ -1242,14 +1251,17 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
+                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
                 type: integer
+                format: int32
               description: Remaining requests within time interval
             "X-Rate-Limit-Interval":
               schema:
                 type: integer
+                format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/json:
@@ -1553,7 +1565,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/:eServiceId/descriptors/:descriptorId/approve:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1599,7 +1611,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/:eServiceId/descriptors/:descriptorId/reject:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/reject:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -2575,7 +2587,6 @@ components:
           type: boolean
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
-          required: false
     EServiceTemplateRef:
       type: object
       additionalProperties: false
@@ -2597,7 +2608,6 @@ components:
           type: string
           format: uuid
         interfaceMetadata:
-          required: false
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
     TemplateInstanceInterfaceRESTSeed:
       type: object

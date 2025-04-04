@@ -3,7 +3,7 @@ openapi: 3.0.3
 info:
   title: Security Process Micro Service
   description: This service is the security supplier
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: http://www.example.com/support
@@ -12,7 +12,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/authorization-process/{{version}}"
+  - url: "/authorization-process/v1"
     description: This service is the security supplier
 security:
   - bearerAuth: []
@@ -34,6 +34,11 @@ tags:
       url: http://swagger.io
   - name: health
     description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: tokenGeneration
+    description: Token generation
     externalDocs:
       description: Find out more
       url: http://swagger.io
@@ -397,7 +402,7 @@ paths:
                   minItems: 1
                   items:
                     type: string
-                    format: uuid    
+                    format: uuid
       responses:
         "200":
           description: Users added
@@ -1088,7 +1093,7 @@ paths:
         - producerKeychain
       summary: List Producer Keychain users
       description: List Producer Keychain users
-      operationId: getProducerKeychainUsers      
+      operationId: getProducerKeychainUsers
       responses:
         "200":
           description: Request succeed
@@ -1882,7 +1887,7 @@ components:
       required:
         - name
         - description
-        - members 
+        - members
     EServiceAdditionDetails:
       type: object
       properties:

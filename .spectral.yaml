@@ -1,0 +1,11 @@
+documentationUrl: https://github.com/italia/api-oas-checker-rules
+extends:
+  [
+    "https://github.com/italia/api-oas-checker-rules/releases/download/1.1/spectral-modi.yml",
+  ]
+rules:
+  servers-use-https: off
+  paths-status: off # Enable this once authorization server migration is completes and we can remove the /authorization-server prefix
+
+  use-problem-json-for-errors: off # Disabled since openapi to zod lib doesn't handle application/problem+json
+  paths-status-return-problem: off # Disabled since openapi to zod lib doesn't handle application/problem+json
