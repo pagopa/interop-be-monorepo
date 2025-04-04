@@ -1,5 +1,4 @@
 import {
-  getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockTenant,
   getMockTenantMail,
@@ -27,7 +26,6 @@ import {
   MaintenanceTenantDeletedV2,
   tenantUnitType,
   MaintenanceTenantUpdatedV2,
-  DeclaredTenantAttribute,
   tenantFeatureType,
   VerifiedTenantAttribute,
   tenantAttributeType,
@@ -35,7 +33,11 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-import { readModelService } from "./utils.js";
+import {
+  getCustomMockCertifiedTenantAttribute,
+  getCustomMockDeclaredTenantAttribute,
+  readModelService,
+} from "./utils.js";
 
 describe("Tenant Events V2", async () => {
   const mockTenant = getMockTenant();
@@ -67,8 +69,8 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(tenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(tenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 1,
     });
   });
@@ -95,19 +97,15 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toMatchObject(updatedTenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
   it("TenantCertifiedAttributeAssigned", async () => {
     await readModelService.upsertTenant(mockTenant, 1);
 
-    const certifiedAttribute = {
-      ...getMockCertifiedTenantAttribute(),
-      assignmentTimestamp: new Date(),
-      revocationTimestamp: undefined,
-    };
+    const certifiedAttribute = getCustomMockCertifiedTenantAttribute();
 
     const updatedTenant: Tenant = {
       ...mockTenant,
@@ -129,8 +127,8 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -172,19 +170,17 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(tenantWithRevokedCertifiedAttribute);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(
+      tenantWithRevokedCertifiedAttribute
+    );
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
   it("TenantDeclaredAttributeAssigned", async () => {
     await readModelService.upsertTenant(mockTenant, 1);
 
-    const declaredAttribute: DeclaredTenantAttribute = {
-      ...getMockDeclaredTenantAttribute(),
-      assignmentTimestamp: new Date(),
-      revocationTimestamp: undefined,
-    };
+    const declaredAttribute = getCustomMockDeclaredTenantAttribute();
 
     const updatedTenant: Tenant = {
       ...mockTenant,
@@ -206,8 +202,8 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -284,8 +280,8 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -351,8 +347,10 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(tenantWithRevokedVerifiedAttribute);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(
+      tenantWithRevokedVerifiedAttribute
+    );
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -409,8 +407,10 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(tenantWithUpdatedVerifiedAttribute);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(
+      tenantWithUpdatedVerifiedAttribute
+    );
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -467,8 +467,10 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(tenantWithExtendedVerifiedAttribute);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(
+      tenantWithExtendedVerifiedAttribute
+    );
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -498,8 +500,8 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -534,8 +536,8 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -567,8 +569,8 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });
@@ -640,8 +642,8 @@ describe("Tenant Events V2", async () => {
 
     const retrievedTenant = await readModelService.getTenantById(mockTenant.id);
 
-    expect(retrievedTenant?.data).toEqual(updatedTenant);
-    expect(retrievedTenant?.metadata).toEqual({
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
   });

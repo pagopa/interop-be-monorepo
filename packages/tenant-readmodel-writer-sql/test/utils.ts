@@ -5,6 +5,12 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+import {
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  generateId,
+  tenantAttributeType,
+} from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/readModelService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -33,3 +39,17 @@ export const readModelService = readModelServiceBuilder(
   readModelDB,
   tenantReadModelServiceBuilder(readModelDB)
 );
+
+export const getCustomMockDeclaredTenantAttribute =
+  (): DeclaredTenantAttribute => ({
+    type: tenantAttributeType.DECLARED,
+    id: generateId(),
+    assignmentTimestamp: new Date(),
+  });
+
+export const getCustomMockCertifiedTenantAttribute =
+  (): CertifiedTenantAttribute => ({
+    type: tenantAttributeType.CERTIFIED,
+    id: generateId(),
+    assignmentTimestamp: new Date(),
+  });
