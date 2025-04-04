@@ -21,6 +21,13 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
+  agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
@@ -50,13 +57,22 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-// const db = makeDrizzleConnection(config);
-// const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
+const db = makeDrizzleConnection(config);
+const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
+const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
 
 const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
-const readModelServiceSQL = readModelServiceBuilderSQL();
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  agreementReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  attributeReadModelServiceSQL
+);
 
 const readModelService =
   config.featureFlagSQL &&
