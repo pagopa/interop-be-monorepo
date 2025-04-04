@@ -164,7 +164,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -183,7 +183,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -279,7 +279,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -298,7 +298,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -341,7 +341,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -360,7 +360,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -379,7 +379,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -398,7 +398,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -475,7 +475,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -494,7 +494,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -561,7 +561,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -580,7 +580,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -634,7 +634,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -653,7 +653,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -672,7 +672,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -712,7 +712,7 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -731,7 +731,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -750,7 +750,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -769,7 +769,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -823,7 +823,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -842,7 +842,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -861,7 +861,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -880,7 +880,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -899,7 +899,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -953,7 +953,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -972,7 +972,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -991,7 +991,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1010,7 +1010,7 @@ paths:
         "409":
           description: Agreement already exists with conflicting state
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1029,7 +1029,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1105,7 +1105,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1124,7 +1124,7 @@ paths:
         "404":
           description: Resource Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1143,7 +1143,7 @@ paths:
         "409":
           description: Document already exists
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1162,7 +1162,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1224,7 +1224,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1243,7 +1243,7 @@ paths:
         "404":
           description: Resource Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1262,7 +1262,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1305,7 +1305,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1324,7 +1324,7 @@ paths:
         "404":
           description: Resource Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1343,7 +1343,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1398,7 +1398,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1417,7 +1417,7 @@ paths:
         "400":
           description: Invalid ID supplied
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1436,7 +1436,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1497,7 +1497,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1516,7 +1516,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1535,7 +1535,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1554,7 +1554,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1573,7 +1573,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1627,7 +1627,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1646,7 +1646,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1665,7 +1665,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1684,7 +1684,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1744,7 +1744,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1763,7 +1763,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1782,7 +1782,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1801,7 +1801,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1851,7 +1851,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1870,7 +1870,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1889,7 +1889,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1908,7 +1908,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1968,7 +1968,7 @@ paths:
         "400":
           description: Invalid ID supplied
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1987,7 +1987,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2006,7 +2006,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2025,7 +2025,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2079,7 +2079,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2098,7 +2098,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2117,7 +2117,7 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2136,7 +2136,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2204,7 +2204,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2223,7 +2223,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2242,7 +2242,7 @@ paths:
         "404":
           description: Tenant not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2261,7 +2261,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2389,13 +2389,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2466,7 +2466,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2528,7 +2528,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2606,13 +2606,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2679,7 +2679,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/consumers:
@@ -2722,7 +2722,7 @@ paths:
         "404":
           description: E-Service not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2741,7 +2741,7 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2813,7 +2813,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -2832,7 +2832,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     put:
@@ -2900,7 +2900,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -2919,7 +2919,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}:
@@ -2988,7 +2988,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -3007,7 +3007,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
@@ -3027,7 +3027,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors:
@@ -3082,7 +3082,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -3101,7 +3101,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/activate:
@@ -3159,7 +3159,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -3178,7 +3178,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -3197,7 +3197,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/update:
@@ -3266,7 +3266,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -3285,7 +3285,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -3304,7 +3304,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
@@ -3373,7 +3373,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -3392,7 +3392,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -3411,7 +3411,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/publish:
@@ -3456,7 +3456,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3475,7 +3475,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3494,7 +3494,7 @@ paths:
         "404":
           description: Resource Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3566,7 +3566,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -3585,7 +3585,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
@@ -3655,7 +3655,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
@@ -3725,7 +3725,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
@@ -3812,7 +3812,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -3831,7 +3831,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
@@ -3897,7 +3897,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -3916,7 +3916,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     get:
@@ -3982,7 +3982,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -4001,7 +4001,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/clone:
@@ -4063,7 +4063,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4082,7 +4082,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
@@ -4158,7 +4158,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4177,7 +4177,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}:
@@ -4228,7 +4228,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4247,7 +4247,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     put:
@@ -4308,7 +4308,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -4327,7 +4327,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/eservices/{eServiceId}:
@@ -4389,7 +4389,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -4408,13 +4408,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -4446,7 +4446,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/riskAnalysis:
@@ -4503,7 +4503,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4522,7 +4522,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId}:
@@ -4584,7 +4584,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4603,7 +4603,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -4666,7 +4666,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4685,7 +4685,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -4742,7 +4742,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4761,7 +4761,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/description/update:
@@ -4823,7 +4823,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4842,7 +4842,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -4861,7 +4861,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/delegationFlags/update:
@@ -4923,7 +4923,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -4942,7 +4942,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -4961,13 +4961,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5038,7 +5038,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -5057,7 +5057,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
@@ -5076,7 +5076,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
@@ -5141,7 +5141,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -5160,7 +5160,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -5179,13 +5179,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5256,7 +5256,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -5275,7 +5275,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -5294,7 +5294,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/reject:
@@ -5359,7 +5359,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -5378,7 +5378,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -5397,7 +5397,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /export/eservices/{eserviceId}/descriptors/{descriptorId}:
@@ -5455,13 +5455,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5493,7 +5493,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /import/eservices/presignedUrl:
@@ -5531,7 +5531,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5582,7 +5582,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5601,7 +5601,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5656,7 +5656,7 @@ paths:
         "404":
           description: E-Service not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5675,7 +5675,7 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5771,13 +5771,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5796,7 +5796,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5844,7 +5844,7 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5863,7 +5863,7 @@ paths:
         "404":
           description: Template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -5926,7 +5926,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6008,7 +6008,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6075,7 +6075,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6094,7 +6094,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6113,7 +6113,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6180,7 +6180,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6199,7 +6199,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6218,7 +6218,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6272,7 +6272,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6291,7 +6291,7 @@ paths:
         "404":
           description: Eservice not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6310,7 +6310,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6371,7 +6371,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6390,7 +6390,7 @@ paths:
         "404":
           description: Eservice not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6409,7 +6409,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6461,7 +6461,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6480,7 +6480,7 @@ paths:
         "404":
           description: Eservice not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6499,7 +6499,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6571,7 +6571,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -6590,7 +6590,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -6609,7 +6609,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
@@ -6628,7 +6628,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/catalog/eservices/{eserviceId}/descriptor/{descriptorId}":
@@ -6676,7 +6676,7 @@ paths:
         "404":
           description: Eservice not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6695,7 +6695,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6747,7 +6747,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6766,7 +6766,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6785,7 +6785,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6859,7 +6859,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6911,7 +6911,7 @@ paths:
         "400":
           description: Validation failed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6930,13 +6930,13 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -6955,7 +6955,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7009,7 +7009,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7028,7 +7028,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7090,7 +7090,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7109,7 +7109,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7163,7 +7163,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7182,7 +7182,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7236,7 +7236,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7255,7 +7255,7 @@ paths:
         "404":
           description: Tenant Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7274,7 +7274,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7332,7 +7332,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -7351,7 +7351,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -7438,7 +7438,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7532,7 +7532,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7591,7 +7591,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7610,7 +7610,7 @@ paths:
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7629,7 +7629,7 @@ paths:
         "409":
           description: Purpose cannot be cloned
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7648,7 +7648,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7707,7 +7707,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7726,7 +7726,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7745,7 +7745,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7764,7 +7764,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7834,7 +7834,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7853,7 +7853,7 @@ paths:
         "404":
           description: Risk Analysis document not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7872,7 +7872,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7933,7 +7933,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7952,7 +7952,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7971,7 +7971,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -7990,7 +7990,7 @@ paths:
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8049,7 +8049,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8068,7 +8068,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8087,7 +8087,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8106,7 +8106,7 @@ paths:
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8164,7 +8164,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8183,7 +8183,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8202,7 +8202,7 @@ paths:
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8259,7 +8259,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8278,7 +8278,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8297,7 +8297,7 @@ paths:
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8348,7 +8348,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8367,7 +8367,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8386,7 +8386,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8436,7 +8436,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8455,7 +8455,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8521,7 +8521,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -8548,7 +8548,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8567,7 +8567,7 @@ paths:
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8586,7 +8586,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8649,7 +8649,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -8668,7 +8668,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -8687,7 +8687,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
@@ -8706,7 +8706,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions/{versionId}:
@@ -8748,7 +8748,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8767,7 +8767,7 @@ paths:
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8786,7 +8786,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8840,7 +8840,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8859,7 +8859,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8913,7 +8913,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8932,7 +8932,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8979,7 +8979,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -8998,7 +8998,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9017,7 +9017,7 @@ paths:
         "409":
           description: Attribute already verified for the Tenant
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9036,7 +9036,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9092,7 +9092,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9111,7 +9111,7 @@ paths:
         "404":
           description: Tenant Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9130,7 +9130,7 @@ paths:
         "409":
           description: Attribute already revoked for the Tenant
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9149,7 +9149,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9212,7 +9212,7 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9231,7 +9231,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9250,7 +9250,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9269,7 +9269,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9322,7 +9322,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9341,7 +9341,7 @@ paths:
         "404":
           description: Tenant Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9360,7 +9360,7 @@ paths:
         "409":
           description: Attribute already revoked for the Tenant
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9379,7 +9379,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9424,7 +9424,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9443,7 +9443,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9462,7 +9462,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9515,7 +9515,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9534,7 +9534,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9553,7 +9553,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9606,7 +9606,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9625,7 +9625,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9644,7 +9644,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9762,7 +9762,7 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9781,7 +9781,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9827,7 +9827,7 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9846,7 +9846,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9915,7 +9915,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -9934,7 +9934,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10002,7 +10002,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -10021,7 +10021,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -10040,7 +10040,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /tenants/{tenantId}/mails/{mailId}:
@@ -10095,7 +10095,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -10114,7 +10114,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/tenants":
@@ -10168,7 +10168,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10187,7 +10187,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10234,7 +10234,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10316,7 +10316,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10335,7 +10335,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10354,7 +10354,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10373,7 +10373,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10427,7 +10427,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10446,7 +10446,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10465,7 +10465,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10514,7 +10514,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10533,7 +10533,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10552,7 +10552,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10609,7 +10609,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10628,7 +10628,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10647,7 +10647,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10707,7 +10707,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10726,7 +10726,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10745,7 +10745,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10800,7 +10800,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10819,7 +10819,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10838,7 +10838,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10895,7 +10895,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10914,7 +10914,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10933,7 +10933,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -10952,7 +10952,7 @@ paths:
         "404":
           description: Client or user not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11009,7 +11009,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11028,7 +11028,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11047,7 +11047,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11095,7 +11095,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11114,7 +11114,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11133,7 +11133,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11181,7 +11181,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11200,7 +11200,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11219,7 +11219,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11273,7 +11273,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11292,7 +11292,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11311,7 +11311,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11330,7 +11330,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11392,7 +11392,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11411,7 +11411,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11430,7 +11430,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11449,7 +11449,7 @@ paths:
         "404":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11506,7 +11506,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11525,7 +11525,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11544,7 +11544,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11563,7 +11563,7 @@ paths:
         "404":
           description: Client id not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11582,7 +11582,7 @@ paths:
         "409":
           description: Key already exists
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11659,7 +11659,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11678,7 +11678,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11697,7 +11697,7 @@ paths:
         "404":
           description: Client id not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11757,7 +11757,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11776,7 +11776,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11795,7 +11795,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11814,7 +11814,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11866,7 +11866,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11885,7 +11885,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11937,7 +11937,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -11956,7 +11956,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12007,7 +12007,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12064,7 +12064,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12083,7 +12083,7 @@ paths:
         "404":
           description: Version not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12134,7 +12134,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12153,7 +12153,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12199,7 +12199,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12251,7 +12251,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12270,7 +12270,7 @@ paths:
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12318,7 +12318,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12370,7 +12370,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12389,7 +12389,7 @@ paths:
         "404":
           description: Tenant Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12441,7 +12441,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12460,7 +12460,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12549,7 +12549,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12568,7 +12568,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12587,7 +12587,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12606,7 +12606,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12659,7 +12659,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12678,7 +12678,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12697,7 +12697,7 @@ paths:
         "404":
           description: Producer Keychain not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12745,7 +12745,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12764,7 +12764,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12783,7 +12783,7 @@ paths:
         "404":
           description: Producer Keychain not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12837,7 +12837,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12856,7 +12856,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12875,7 +12875,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12894,7 +12894,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12952,7 +12952,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12971,7 +12971,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -12990,7 +12990,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13009,7 +13009,7 @@ paths:
         "404":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13066,7 +13066,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13085,7 +13085,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13104,7 +13104,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13123,7 +13123,7 @@ paths:
         "404":
           description: Producer Keychain or User not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13180,7 +13180,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13199,7 +13199,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13218,7 +13218,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13237,7 +13237,7 @@ paths:
         "404":
           description: Producer Keychain id not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13256,7 +13256,7 @@ paths:
         "409":
           description: Key already exists
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13319,7 +13319,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13338,7 +13338,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13357,7 +13357,7 @@ paths:
         "404":
           description: Producer Keychain id not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13417,7 +13417,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13436,7 +13436,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13455,7 +13455,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13510,7 +13510,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13529,7 +13529,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13548,7 +13548,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13605,7 +13605,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13624,7 +13624,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13643,7 +13643,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13700,7 +13700,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13719,7 +13719,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13738,7 +13738,7 @@ paths:
         "404":
           description: Producer Keychain not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13798,7 +13798,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13817,7 +13817,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13836,7 +13836,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13855,7 +13855,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13960,7 +13960,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13979,7 +13979,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -13998,7 +13998,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14017,7 +14017,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14070,7 +14070,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14089,7 +14089,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14139,7 +14139,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14158,7 +14158,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14177,7 +14177,7 @@ paths:
         "404":
           description: Delegation not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14196,7 +14196,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14251,7 +14251,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14270,7 +14270,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14289,7 +14289,7 @@ paths:
         "404":
           description: Delegation not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14308,7 +14308,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14376,7 +14376,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14429,7 +14429,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14448,7 +14448,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14498,7 +14498,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14517,7 +14517,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14536,7 +14536,7 @@ paths:
         "404":
           description: Delegation not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14555,7 +14555,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14610,7 +14610,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14629,7 +14629,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14648,7 +14648,7 @@ paths:
         "404":
           description: Delegation not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14667,7 +14667,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14720,7 +14720,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14739,7 +14739,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14758,7 +14758,7 @@ paths:
         "404":
           description: Delegation not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14807,7 +14807,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14826,7 +14826,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14845,7 +14845,7 @@ paths:
         "404":
           description: Delegation not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14894,7 +14894,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14913,7 +14913,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14932,7 +14932,7 @@ paths:
         "404":
           description: Delegation not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -14992,7 +14992,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -15011,7 +15011,7 @@ paths:
         "404":
           description: Resource Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -15030,7 +15030,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -15098,7 +15098,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
@@ -15117,7 +15117,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}:
@@ -15173,7 +15173,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -15192,7 +15192,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     get:
@@ -15236,7 +15236,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/suspend:
@@ -15294,7 +15294,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -15313,7 +15313,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/publish:
@@ -15371,7 +15371,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -15390,7 +15390,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -15409,7 +15409,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/activate:
@@ -15467,7 +15467,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -15486,7 +15486,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/name/update:
@@ -15544,7 +15544,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -15563,7 +15563,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
@@ -15582,7 +15582,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/intendedTarget/update:
@@ -15640,7 +15640,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -15659,7 +15659,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -15678,7 +15678,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/description/update:
@@ -15736,7 +15736,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -15755,7 +15755,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -15774,7 +15774,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}:
@@ -15822,7 +15822,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -15841,7 +15841,7 @@ paths:
         "404":
           description: Eservice template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -15860,7 +15860,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -15922,7 +15922,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -15941,7 +15941,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -15983,7 +15983,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -16002,7 +16002,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -16021,7 +16021,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/quotas/update:
@@ -16086,7 +16086,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -16105,7 +16105,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -16124,7 +16124,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/riskAnalysis:
@@ -16182,7 +16182,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -16201,7 +16201,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -16220,7 +16220,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/riskAnalysis/{riskAnalysisId}:
@@ -16285,7 +16285,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -16304,7 +16304,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -16323,7 +16323,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -16365,7 +16365,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -16384,7 +16384,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -16403,7 +16403,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/attributes/update:
@@ -16468,7 +16468,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -16487,7 +16487,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -16506,13 +16506,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -16602,13 +16602,13 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -16675,7 +16675,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -16742,7 +16742,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -16761,7 +16761,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -16829,7 +16829,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -16848,7 +16848,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents:
@@ -16934,7 +16934,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -16953,7 +16953,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}:
@@ -17023,7 +17023,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -17042,7 +17042,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -17084,7 +17084,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
@@ -17103,7 +17103,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}/update:
@@ -17175,7 +17175,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -17194,7 +17194,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/names/availability:
@@ -17248,7 +17248,7 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/status":
