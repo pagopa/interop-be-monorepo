@@ -126,7 +126,9 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             eq(delegationInReadmodelDelegation.kind, filters.delegationKind),
-            inArray(delegationInReadmodelDelegation.state, filters.states)
+            filters.states.length > 0
+              ? inArray(delegationInReadmodelDelegation.state, filters.states)
+              : undefined
           )
         )
       ).map((d) => d.data);
