@@ -180,8 +180,7 @@ describe.each([
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {
     const delegateId = getMockTenant().id;
-    const nonExistentDelegationId =
-      unsafeBrandId<DelegationId>("non-existent-id");
+    const nonExistentDelegationId = generateId<DelegationId>();
 
     await expect(
       approveFn(
