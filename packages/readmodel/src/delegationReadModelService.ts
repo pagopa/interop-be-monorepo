@@ -26,11 +26,8 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
       delegation: Delegation,
       metadataVersion: number
     ): Promise<void> {
-      const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-        splitDelegationIntoObjectsSQL(delegation, metadataVersion);
-
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
+        const existingMetadataVersion = (
           await tx
             .select({
               metadataVersion: delegationInReadmodelDelegation.metadataVersion,
@@ -46,6 +43,9 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
           await tx
             .delete(delegationInReadmodelDelegation)
             .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+          const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+            splitDelegationIntoObjectsSQL(delegation, metadataVersion);
 
           await tx
             .insert(delegationInReadmodelDelegation)

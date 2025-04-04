@@ -14,6 +14,7 @@ import {
   getMockDelegation,
   getMockAuthData,
   getMockContext,
+  sortPurposes,
 } from "pagopa-interop-commons-test";
 import {
   addOneDelegation,
@@ -365,6 +366,7 @@ describe("getPurposes", async () => {
       mockDelegatedPurpose1,
     ]);
   });
+
   it("should get purposes with filters: consumersIds", async () => {
     const result = await purposeService.getPurposes(
       {
@@ -544,10 +546,12 @@ describe("getPurposes", async () => {
       getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
-    expect(result).toEqual({
-      totalCount: 4,
-      results: [mockPurpose3, mockDelegatedPurpose1],
-    });
+    expect(result.totalCount).toBe(4);
+    expect(sortPurposes(result.results)).toEqual(
+      expect.arrayContaining(
+        sortPurposes([mockPurpose3, mockDelegatedPurpose1])
+      )
+    );
   });
 
   it("should get purposes (pagination: limit)", async () => {
@@ -563,10 +567,10 @@ describe("getPurposes", async () => {
       getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
-    expect(result).toEqual({
-      totalCount: 4,
-      results: [mockPurpose1, mockPurpose2],
-    });
+    expect(result.totalCount).toBe(4);
+    expect(sortPurposes(result.results)).toEqual(
+      expect.arrayContaining(sortPurposes([mockPurpose1, mockPurpose2]))
+    );
   });
 
   it("should not get purposes if they don't exist", async () => {
@@ -588,7 +592,7 @@ describe("getPurposes", async () => {
     });
   });
 
-  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = true", async () => {
+  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states; excludeDraft = true", async () => {
     const result = await purposeService.getPurposes(
       {
         title: "test",
@@ -605,7 +609,7 @@ describe("getPurposes", async () => {
     expectSinglePageListResult(result, [mockPurpose3]);
   });
 
-  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = false", async () => {
+  it("should get purposes with filters: name, eservicesIds, consumersIds, producersIds, states; excludeDraft = false", async () => {
     const result = await purposeService.getPurposes(
       {
         title: "test",

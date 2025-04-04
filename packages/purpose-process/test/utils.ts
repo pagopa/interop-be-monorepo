@@ -2,6 +2,7 @@
 import {
   initPDFGenerator,
   launchPuppeteerBrowser,
+  ReadModelRepository,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
@@ -11,6 +12,7 @@ import {
   writeInEventstore,
   writeInReadmodel,
   readLastEventByStreamId,
+  sortPurposes,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -35,16 +37,34 @@ import {
 import { purposeApi } from "pagopa-interop-api-clients";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
+import { config } from "../src/config/config.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
-  );
+export const {
+  cleanup,
+  readModelRepository,
+  postgresDB,
+  fileManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  inject("readModelConfig"),
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
@@ -55,7 +75,34 @@ export const attributes = readModelRepository.attributes;
 export const purposes = readModelRepository.purposes;
 export const delegations = readModelRepository.delegations;
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+export const purposeReadModelServiceSQL =
+  purposeReadModelServiceBuilder(readModelDB);
+export const catalogReadModelServiceSQL =
+  catalogReadModelServiceBuilder(readModelDB);
+export const tenantReadModelServiceSQL =
+  tenantReadModelServiceBuilder(readModelDB);
+export const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+export const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  purposeReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  delegationReadModelServiceSQL,
+});
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
   pipe: true,
@@ -80,24 +127,34 @@ export const purposeService = purposeServiceBuilder(
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writePurposeInEventstore(purpose);
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
+
+  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
+
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
+
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
 };
 
 export const writePurposeInEventstore = async (
@@ -193,13 +250,16 @@ export const readLastPurposeEvent = async (
 ): Promise<ReadEvent<PurposeEvent>> =>
   await readLastEventByStreamId(purposeId, "purpose", postgresDB);
 
-export function expectSinglePageListResult<T>(
-  actual: ListResult<T>,
-  expected: T[]
+export function expectSinglePageListResult(
+  actual: ListResult<Purpose>,
+  expected: Purpose[]
 ): void {
-  expect(actual).toEqual({
+  expect({
+    totalCount: actual.totalCount,
+    results: sortPurposes(actual.results),
+  }).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(expected),
+    results: expect.arrayContaining(sortPurposes(expected)),
   });
   expect(actual.results).toHaveLength(expected.length);
 }

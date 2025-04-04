@@ -161,6 +161,9 @@ export const getMockDescriptorPublished = (
     verified: verifiedAttributes,
   },
   rejectionReasons: undefined,
+  voucherLifespan: 600,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 10000,
 });
 
 export const getMockEServiceAttribute = (
@@ -843,3 +846,29 @@ export const sortAgreement = <
     };
   }
 };
+
+export const sortPurpose = <
+  T extends Purpose | WithMetadata<Purpose> | undefined
+>(
+  purpose: T
+): T => {
+  if (!purpose) {
+    return purpose;
+  } else if ("data" in purpose) {
+    return {
+      ...purpose,
+      data: sortPurpose(purpose.data),
+    };
+  } else {
+    return {
+      ...purpose,
+      versions: [...purpose.versions].sort(sortBy<PurposeVersion>((v) => v.id)),
+    };
+  }
+};
+
+export const sortPurposes = <
+  T extends Purpose | WithMetadata<Purpose> | undefined
+>(
+  purposes: T[]
+): T[] => purposes.map(sortPurpose);

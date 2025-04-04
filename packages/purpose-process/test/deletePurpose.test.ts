@@ -16,11 +16,9 @@ import {
   purposeVersionState,
   tenantKind,
   toPurposeV2,
-  toReadModelEService,
 } from "pagopa-interop-models";
 import {
   getMockPurpose,
-  writeInReadmodel,
   decodeProtobufPayload,
   getMockPurposeVersion,
   getMockAuthData,
@@ -43,7 +41,6 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  eservices,
   getMockEService,
   purposeService,
   readLastPurposeEvent,
@@ -59,7 +56,7 @@ describe("deletePurpose", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     await purposeService.deletePurpose(
       mockPurpose.id,
@@ -92,7 +89,7 @@ describe("deletePurpose", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     await purposeService.deletePurpose(
       mockPurpose.id,
@@ -127,7 +124,7 @@ describe("deletePurpose", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     await purposeService.deletePurpose(
       mockPurpose.id,
@@ -173,7 +170,7 @@ describe("deletePurpose", () => {
     await addOnePurpose(mockPurpose);
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(mockPurpose, addOneDelegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     await purposeService.deletePurpose(
       mockPurpose.id,
@@ -312,7 +309,7 @@ describe("deletePurpose", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurpose(
@@ -342,7 +339,7 @@ describe("deletePurpose", () => {
       };
 
       await addOnePurpose(mockPurpose);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await addOneEService(mockEService);
 
       expect(
         purposeService.deletePurpose(
@@ -378,7 +375,7 @@ describe("deletePurpose", () => {
     });
     await addOnePurpose(mockPurpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurpose(mockPurpose.id, getMockContext({ authData }))
@@ -405,7 +402,7 @@ describe("deletePurpose", () => {
     };
 
     await addOnePurpose(mockPurpose);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurpose(
@@ -438,7 +435,7 @@ describe("deletePurpose", () => {
     });
     await addOnePurpose(mockPurpose);
     await addOneDelegation(delegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurpose(
@@ -481,7 +478,7 @@ describe("deletePurpose", () => {
     await addOnePurpose(mockPurpose);
     await addOneDelegation(delegation);
     await addOneDelegation(purposeDelegation);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       purposeService.deletePurpose(
