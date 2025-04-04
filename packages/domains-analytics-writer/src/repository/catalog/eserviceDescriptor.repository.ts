@@ -116,20 +116,20 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
     async insertDeletingByDescriptorId(
       t: ITask<unknown>,
       pgp: IMain,
-      descriptor_id: string
+      id: string
     ): Promise<void> {
       const mapping = {
-        descriptor_id: () => descriptor_id,
+        id: () => id,
         deleted: () => true,
       };
       try {
-        const cs = buildColumnSet<{ descriptor_id: string; deleted: boolean }>(
+        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
           stagingDeletingTable
         );
 
-        await t.none(pgp.helpers.insert({ descriptor_id, deleted: true }, cs));
+        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTable}: ${error}`

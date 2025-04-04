@@ -111,10 +111,6 @@ export function catalogServiceBuilder(db: DBContext) {
           );
           await templateVersionRefRepo.merge(t);
         }
-
-        genericLogger.info(
-          `Staging records insertion completed for eserviceId: ${eserviceSQL.id}`
-        );
       });
 
       genericLogger.info(
@@ -139,11 +135,11 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async deleteEService(eserviceId: string): Promise<void> {
       await db.conn.tx(async (t) => {
-        await eserviceRepo.deleteEservice(t, db.pgp, eserviceId);
+        await eserviceRepo.insertDeletingByEserviceId(t, db.pgp, eserviceId);
+        genericLogger.info(
+          `Inserting into deleting tables for eserviceId: ${eserviceId}`
+        );
         await eserviceRepo.mergeDeleting(t);
-        await eserviceRepo.cleanDeleting();
-
-        await eserviceRepo.deleteByEserviceId(t, db.pgp, eserviceId);
         await mergeDeletingById(t, "eservice_id", [
           CatalogDbTable.eservice_descriptor,
           CatalogDbTable.eservice_descriptor_attribute,
@@ -154,6 +150,9 @@ export function catalogServiceBuilder(db: DBContext) {
           CatalogDbTable.eservice_risk_analysis,
           CatalogDbTable.eservice_risk_analysis_answer,
         ]);
+        genericLogger.info(
+          `Staging data merged into target tables for eserviceId: ${eserviceId}`
+        );
       });
       await eserviceRepo.cleanDeleting();
     },
@@ -173,20 +172,24 @@ export function catalogServiceBuilder(db: DBContext) {
         await descriptorRepo.insert(t, db.pgp, [descriptorSQL]);
         await descriptorRepo.merge(t);
       });
+      genericLogger.info(
+        `Staging data merged into target tables for descriptorId: ${descriptor.id}`
+      );
       await descriptorRepo.clean();
     },
 
     async deleteDescriptor(descriptorId: string): Promise<void> {
       await db.conn.tx(async (t) => {
-        await descriptorRepo.insertDeletingDescriptor(t, db.pgp, descriptorId);
-        await descriptorRepo.mergeDeleting(t);
-        await eserviceRepo.cleanDeleting();
-
         await descriptorRepo.insertDeletingByDescriptorId(
           t,
           db.pgp,
           descriptorId
         );
+        genericLogger.info(
+          `Inserted records into deleting tables for descriptorId: ${descriptorId}`
+        );
+        await descriptorRepo.mergeDeleting(t);
+
         await mergeDeletingById(t, "descriptor_id", [
           CatalogDbTable.eservice_descriptor_attribute,
           CatalogDbTable.eservice_descriptor_document,
@@ -194,6 +197,9 @@ export function catalogServiceBuilder(db: DBContext) {
           CatalogDbTable.eservice_descriptor_rejection_reason,
           CatalogDbTable.eservice_descriptor_template_version_ref,
         ]);
+        genericLogger.info(
+          `Staging data merged into target tables for descriptorId: ${descriptorId}`
+        );
       });
       await descriptorRepo.cleanDeleting();
     },
@@ -205,17 +211,17 @@ export function catalogServiceBuilder(db: DBContext) {
           db.pgp,
           riskAnalysisId
         );
-        await descriptorRepo.mergeDeleting(t);
-        await eserviceRepo.cleanDeleting();
-
-        await riskAnalysisRepo.insertDeletingByRiskAnalysisId(
-          t,
-          db.pgp,
-          riskAnalysisId
+        genericLogger.info(
+          `Inserted records into deleting tables for riskAnalysisId: ${riskAnalysisId}`
         );
+        await riskAnalysisRepo.mergeDeleting(t);
+
         await mergeDeletingById(t, "risk_analysis_form_id", [
           CatalogDbTable.eservice_risk_analysis_answer,
         ]);
+        genericLogger.info(
+          `Staging data merged into target tables for riskAnalysisId: ${riskAnalysisId}`
+        );
       });
       await descriptorRepo.cleanDeleting();
     },
@@ -223,6 +229,10 @@ export function catalogServiceBuilder(db: DBContext) {
     async upsertEServiceDocument(documentData: any): Promise<void> {
       await db.conn.tx(async (t) => {
         await documentRepo.insert(t, db.pgp, documentData);
+        await documentRepo.merge(t);
+        genericLogger.info(
+          `Staging data merged into target tables for descriptorId: ${documentData.id}`
+        );
       });
       await documentRepo.clean();
     },
@@ -230,7 +240,15 @@ export function catalogServiceBuilder(db: DBContext) {
     async deleteEServiceDocument(documentId: string): Promise<void> {
       await db.conn.tx(async (t) => {
         await documentRepo.deleteDocument(t, db.pgp, documentId);
-        await documentRepo.mergeDeleting(t);
+        genericLogger.info(
+          `Inseted  into deleting tables for documentId: ${documentId}`
+        );
+        await mergeDeletingById(t, "id", [
+          CatalogDbTable.eservice_descriptor_document,
+        ]);
+        genericLogger.info(
+          `Staging data merged into target tables for documentId: ${documentId}`
+        );
       });
       await documentRepo.cleanDeleting();
     },

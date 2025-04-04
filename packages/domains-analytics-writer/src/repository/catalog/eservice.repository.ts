@@ -127,7 +127,7 @@ export function eserviceRepository(conn: DBConnection) {
         );
       }
     },
-    async deleteByEserviceId(
+    async insertDeletingByEserviceId(
       t: ITask<unknown>,
       pgp: IMain,
       id: string

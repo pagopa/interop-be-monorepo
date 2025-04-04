@@ -77,10 +77,10 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async insertDeletingByRiskAnalysisId(
       t: ITask<unknown>,
       pgp: IMain,
-      risk_analysis_form_id: string
+      id: string
     ): Promise<void> {
       const mapping = {
-        id: () => risk_analysis_form_id,
+        id: () => id,
         deleted: () => true,
       };
       try {
@@ -89,9 +89,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           deleted: boolean;
         }>(pgp, mapping, stagingDeletingTable);
 
-        await t.none(
-          pgp.helpers.insert({ risk_analysis_form_id, deleted: true }, cs)
-        );
+        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTable}: ${error}`
