@@ -261,7 +261,7 @@ describe.each([
     }
   );
 
-  it("should generete a pdf document for a delegation", async () => {
+  it("should generate a pdf document for a delegation", async () => {
     const delegation = getMockDelegation({
       kind,
       state: "WaitingForApproval",

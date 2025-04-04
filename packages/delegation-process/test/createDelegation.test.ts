@@ -260,7 +260,7 @@ describe.each([
         ...getMockEService(generateId<EServiceId>(), delegatorId),
         isConsumerDelegable: true,
       };
-      const existientActiveDelegation = {
+      const existentActiveDelegation = {
         ...getMockDelegation({
           kind,
           id: generateId<DelegationId>(),
@@ -275,10 +275,10 @@ describe.each([
       await addOneTenant(delegator);
       await addOneEservice(eservice);
       // Add existent active delegation for the same delegator, delegate and eservice
-      await addOneDelegation(existientActiveDelegation);
+      await addOneDelegation(existentActiveDelegation);
       // Add existent inactive delegation for the same delegator, delegate and eservice
       await addOneDelegation({
-        ...existientActiveDelegation,
+        ...existentActiveDelegation,
         id: generateId<DelegationId>(),
         state: randomArrayItem(inactiveDelegationStates),
       });
@@ -325,7 +325,7 @@ describe.each([
       ).rejects.toThrowError(
         delegationAlreadyExists(
           delegatorId,
-          existientActiveDelegation.eserviceId,
+          existentActiveDelegation.eserviceId,
           kind
         )
       );
