@@ -62,30 +62,31 @@ export function readModelServiceBuilder(
         };
       }
     },
-    async getDelegation(
-      filter: Filter<{ data: DelegationReadModel }>
-    ): Promise<WithMetadata<Delegation> | undefined> {
-      const data = await delegations.findOne(filter, {
-        projection: { data: true, metadata: true },
-      });
-      if (data) {
-        const result = Delegation.safeParse(data.data);
-        if (!result.success) {
-          throw genericInternalError(
-            `Unable to parse delegation item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
-          );
-        }
-        return data;
-      }
-      return undefined;
-    },
     async getDelegationById(
       id: DelegationId,
       kind: DelegationKind | undefined = undefined
     ): Promise<WithMetadata<Delegation> | undefined> {
-      return this.getDelegation({
+      const getDelegation = async (
+        filter: Filter<{ data: DelegationReadModel }>
+      ): Promise<WithMetadata<Delegation> | undefined> => {
+        const data = await delegations.findOne(filter, {
+          projection: { data: true, metadata: true },
+        });
+        if (data) {
+          const result = Delegation.safeParse(data.data);
+          if (!result.success) {
+            throw genericInternalError(
+              `Unable to parse delegation item: result ${JSON.stringify(
+                result
+              )} - data ${JSON.stringify(data)} `
+            );
+          }
+          return data;
+        }
+        return undefined;
+      };
+
+      return getDelegation({
         "data.id": id,
         ...(kind ? { "data.kind": kind } : {}),
       });
