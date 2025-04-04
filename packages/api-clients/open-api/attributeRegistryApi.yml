@@ -50,19 +50,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Creates the attribute passed as payload
@@ -91,19 +91,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Creates the attribute passed as payload
@@ -132,19 +132,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Creates the attribute passed as payload
@@ -173,19 +173,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Creates the attribute passed as payload
@@ -262,7 +262,7 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       operationId: getAttributeByName
@@ -304,7 +304,7 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       operationId: getAttributeByOriginAndCode
@@ -333,7 +333,7 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
       operationId: getAttributeById
@@ -390,7 +390,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
