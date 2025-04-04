@@ -900,3 +900,33 @@ export const sortClients = <
 >(
   clients: T[]
 ): T[] => clients.map(sortClient);
+
+export const sortProducerKeychain = <
+  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined
+>(
+  producerKeychain: T
+): T => {
+  if (!producerKeychain) {
+    return producerKeychain;
+  } else if ("data" in producerKeychain) {
+    return {
+      ...producerKeychain,
+      data: sortProducerKeychain(producerKeychain.data),
+    };
+  } else {
+    return {
+      ...producerKeychain,
+      eservices: [...producerKeychain.eservices].sort(),
+      users: [...producerKeychain.users].sort(),
+      keys: [...producerKeychain.keys].sort(
+        sortBy<Key>((k) => k.createdAt.toISOString())
+      ),
+    };
+  }
+};
+
+export const sortProducerKeychains = <
+  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined
+>(
+  producerKeychains: T[]
+): T[] => producerKeychains.map(sortProducerKeychain);
