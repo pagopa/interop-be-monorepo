@@ -21,10 +21,6 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
-  agreementReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
-import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
@@ -54,16 +50,13 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const db = makeDrizzleConnection(config);
-const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
+// const db = makeDrizzleConnection(config);
+// const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
 
 const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
-const readModelServiceSQL = readModelServiceBuilderSQL(
-  db,
-  agreementReadModelServiceSQL
-);
+const readModelServiceSQL = readModelServiceBuilderSQL();
 
 const readModelService =
   config.featureFlagSQL &&
@@ -761,7 +754,7 @@ const agreementRouter = (
 
     .get(
       "/tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

@@ -136,6 +136,6 @@ export function purposeReadModelServiceBuilderSQL(
   };
 }
 
-export type PurposeReadModelServiceSQL = ReturnType<
+export type PurposeReadModelService = ReturnType<
   typeof purposeReadModelServiceBuilderSQL
 >;

@@ -28,6 +28,7 @@ import {
   EServiceTemplate,
   EServiceTemplateEvent,
   toEServiceTemplateV2,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -40,9 +41,11 @@ import {
 import { catalogApi } from "pagopa-interop-api-clients";
 import { inject, afterEach } from "vitest";
 import {
+  agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -80,12 +83,17 @@ const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(
   readModelDB,
   catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL
+  tenantReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL
 );
 
 const readModelService =
@@ -169,7 +177,6 @@ export const getMockEService = (): EService => ({
   producerId: generateId(),
   technology: technology.rest,
   descriptors: [],
-  attributes: undefined,
   mode: eserviceMode.deliver,
   riskAnalysis: [],
 });
@@ -195,7 +202,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
-  rejectionReasons: [],
+  // rejectionReasons: [],
 });
 
 export const getMockEServiceAttribute = (): EServiceAttribute => ({
@@ -330,6 +337,7 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };
 
 export const addOneDelegation = async (
@@ -352,4 +360,62 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
   await writeInReadmodel(eServiceTemplate, eserviceTemplates);
+  await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    eServiceTemplate,
+    0
+  );
 };
+
+export const sortBy =
+  <T>(getKey: (item: T) => string) =>
+  (a: T, b: T): number => {
+    const keyA = getKey(a);
+    const keyB = getKey(b);
+
+    if (keyA < keyB) {
+      return -1;
+    }
+    if (keyA > keyB) {
+      return 1;
+    }
+    return 0;
+  };
+
+export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
+  ...descriptor,
+  docs: descriptor.docs.sort(sortBy<Document>((doc) => doc.id)),
+  attributes: {
+    certified: descriptor.attributes.certified.map((array) =>
+      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+    ),
+    declared: descriptor.attributes.declared.map((array) =>
+      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+    ),
+    verified: descriptor.attributes.verified.map((array) =>
+      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+    ),
+  },
+});
+
+export const sortEService = <
+  T extends EService | WithMetadata<EService> | undefined
+>(
+  eservice: T
+): T => {
+  if (!eservice) {
+    return eservice;
+  } else if ("data" in eservice) {
+    return {
+      ...eservice,
+      data: sortEService(eservice.data),
+    };
+  } else {
+    return {
+      ...eservice,
+      descriptors: eservice.descriptors.map(sortDescriptor),
+    };
+  }
+};
+
+export const sortEServices = (eservices: EService[]): EService[] =>
+  eservices.map(sortEService);

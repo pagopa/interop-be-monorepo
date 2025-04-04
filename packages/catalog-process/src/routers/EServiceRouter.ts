@@ -21,6 +21,7 @@ import {
 } from "pagopa-interop-models";
 import {
   catalogReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -78,12 +79,15 @@ import {
   updateEServiceTemplateInstanceErrorMapper,
   updateDraftDescriptorTemplateInstanceErrorMapper,
   createTemplateInstanceDescriptorErrorMapper,
+  updateTemplateInstanceDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
 const db = makeDrizzleConnection(config);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(db);
 
 const readModelRepository = ReadModelRepository.init(config);
 
@@ -91,7 +95,8 @@ const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL(
   db,
   catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL
+  tenantReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL
 );
 
 const readModelService =
@@ -1310,6 +1315,36 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createTemplateInstanceDescriptorErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/update",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const updatedEService =
+            await catalogService.updateTemplateInstanceDescriptor(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTemplateInstanceDescriptorErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

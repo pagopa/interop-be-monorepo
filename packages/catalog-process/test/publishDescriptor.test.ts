@@ -243,15 +243,17 @@ describe("publish descriptor", () => {
     const descriptor1: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
+      version: "1",
       state: descriptorState.published,
       publishedAt: new Date(),
-      interface: mockDocument,
+      interface: getMockDocument(),
     };
     const descriptor2: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
+      version: "2",
       state: descriptorState.draft,
-      interface: mockDocument,
+      interface: getMockDocument(),
     };
     const eservice: EService = {
       ...mockEService,
@@ -298,19 +300,21 @@ describe("publish descriptor", () => {
     });
   });
 
-  it("should also write deprecate the previously published descriptor if there was a valid agreement", async () => {
+  it("should also deprecate the previously published descriptor if there was a valid agreement", async () => {
     const descriptor1: Descriptor = {
       ...mockDescriptor,
+      version: "1",
       id: generateId(),
       state: descriptorState.published,
       publishedAt: new Date(),
-      interface: mockDocument,
+      interface: getMockDocument(),
     };
     const descriptor2: Descriptor = {
       ...mockDescriptor,
+      version: "2",
       id: generateId(),
       state: descriptorState.draft,
-      interface: mockDocument,
+      interface: getMockDocument(),
     };
     const eservice: EService = {
       ...mockEService,
@@ -655,11 +659,13 @@ describe("publish descriptor", () => {
     };
 
     const validRiskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+    const validRiskAnalysis2 = getMockValidRiskAnalysis(producerTenantKind);
+
     const riskAnalysis1 = validRiskAnalysis;
     const riskAnalysis2 = {
-      ...validRiskAnalysis,
+      ...validRiskAnalysis2,
       riskAnalysisForm: {
-        ...validRiskAnalysis.riskAnalysisForm,
+        ...validRiskAnalysis2.riskAnalysisForm,
         singleAnswers: [],
         // ^ validation here is schema only: it checks for missing expected fields, so this is invalid
       },

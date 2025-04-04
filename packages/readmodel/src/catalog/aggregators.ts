@@ -129,7 +129,9 @@ export const aggregateDescriptor = ({
   return {
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
-    docs: documentsSQL.map(documentSQLtoDocument),
+    docs: [...documentsSQL]
+      .sort((doc1, doc2) => (doc1.name < doc2.name ? -1 : 0))
+      .map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
     audience: descriptorSQL.audience,
     voucherLifespan: descriptorSQL.voucherLifespan,
@@ -182,27 +184,29 @@ export const aggregateEservice = ({
   templateRefSQL,
   templateVersionRefsSQL,
 }: EServiceItemsSQL): WithMetadata<EService> => {
-  const descriptors = descriptorsSQL.map((descriptorSQL) =>
-    aggregateDescriptor({
-      descriptorSQL,
-      interfaceSQL: interfacesSQL.find(
-        (descriptorInterface) =>
-          descriptorInterface.descriptorId === descriptorSQL.id
-      ),
-      documentsSQL: documentsSQL.filter(
-        (d) => d.descriptorId === descriptorSQL.id
-      ),
-      attributesSQL: attributesSQL.filter(
-        (a) => a.descriptorId === descriptorSQL.id
-      ),
-      rejectionReasonsSQL: rejectionReasonsSQL.filter(
-        (r) => r.descriptorId === descriptorSQL.id
-      ),
-      templateVersionRefSQL: templateVersionRefsSQL.find(
-        (t) => t.descriptorId === descriptorSQL.id
-      ),
-    })
-  );
+  const descriptors = [...descriptorsSQL]
+    .sort((d1, d2) => Number(d1.version) - Number(d2.version))
+    .map((descriptorSQL) =>
+      aggregateDescriptor({
+        descriptorSQL,
+        interfaceSQL: interfacesSQL.find(
+          (descriptorInterface) =>
+            descriptorInterface.descriptorId === descriptorSQL.id
+        ),
+        documentsSQL: documentsSQL.filter(
+          (d) => d.descriptorId === descriptorSQL.id
+        ),
+        attributesSQL: attributesSQL.filter(
+          (a) => a.descriptorId === descriptorSQL.id
+        ),
+        rejectionReasonsSQL: rejectionReasonsSQL.filter(
+          (r) => r.descriptorId === descriptorSQL.id
+        ),
+        templateVersionRefSQL: templateVersionRefsSQL.find(
+          (t) => t.descriptorId === descriptorSQL.id
+        ),
+      })
+    );
 
   const riskAnalysis = riskAnalysesSQL.map((ra) =>
     aggregateRiskAnalysis(
