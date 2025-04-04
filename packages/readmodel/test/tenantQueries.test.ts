@@ -23,7 +23,7 @@ describe("Tenant Queries", () => {
         tenantDeclaredAttributes,
         tenantVerifiedAttributes,
         tenantFeatures,
-      } = initMockTenant(isTenantComplete);
+      } = initMockTenant({ isTenantComplete });
 
       await tenantReadModelService.upsertTenant(
         tenantForVerifying.data,
@@ -80,7 +80,7 @@ describe("Tenant Queries", () => {
         tenantDeclaredAttributes,
         tenantVerifiedAttributes,
         tenantFeatures,
-      } = initMockTenant(isTenantComplete);
+      } = initMockTenant({ isTenantComplete });
 
       await tenantReadModelService.upsertTenant(
         tenantForVerifying.data,
@@ -137,7 +137,7 @@ describe("Tenant Queries", () => {
         tenantDeclaredAttributes,
         tenantVerifiedAttributes,
         tenantFeatures,
-      } = initMockTenant(isTenantComplete);
+      } = initMockTenant({ isTenantComplete });
       await tenantReadModelService.upsertTenant(
         tenantForVerifying.data,
         tenantForVerifying.metadata.version
@@ -202,8 +202,9 @@ describe("Tenant Queries", () => {
   describe("Get a Tenant", () => {
     it("should get a tenant from a tenantId", async () => {
       const isTenantComplete = true;
-      const { tenant, tenantForVerifying, tenantForRevoking } =
-        initMockTenant(isTenantComplete);
+      const { tenant, tenantForVerifying, tenantForRevoking } = initMockTenant({
+        isTenantComplete,
+      });
 
       await tenantReadModelService.upsertTenant(
         tenantForVerifying.data,
@@ -225,8 +226,9 @@ describe("Tenant Queries", () => {
       expect(sortTenant(retrievedTenant)).toStrictEqual(sortTenant(tenant));
     });
     it("should *not* get a tenant from a tenantId", async () => {
-      const { tenant, tenantForVerifying, tenantForRevoking } =
-        initMockTenant();
+      const { tenant, tenantForVerifying, tenantForRevoking } = initMockTenant({
+        isTenantComplete: true,
+      });
       await tenantReadModelService.upsertTenant(
         tenantForVerifying.data,
         tenantForVerifying.metadata.version
@@ -245,8 +247,9 @@ describe("Tenant Queries", () => {
   });
   describe("Delete a Tenant", () => {
     it("should delete a tenant from a tenantId", async () => {
-      const { tenant, tenantForVerifying, tenantForRevoking } =
-        initMockTenant();
+      const { tenant, tenantForVerifying, tenantForRevoking } = initMockTenant({
+        isTenantComplete: true,
+      });
 
       await tenantReadModelService.upsertTenant(
         tenantForVerifying.data,

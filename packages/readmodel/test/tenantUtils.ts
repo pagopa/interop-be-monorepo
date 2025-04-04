@@ -53,9 +53,11 @@ import { readModelDB } from "./utils.js";
 export const tenantReadModelService =
   tenantReadModelServiceBuilder(readModelDB);
 
-export const initMockTenant = (
-  isTenantComplete: boolean = true
-): {
+export const initMockTenant = ({
+  isTenantComplete,
+}: {
+  isTenantComplete: boolean;
+}): {
   tenant: WithMetadata<Tenant>;
   tenantForVerifying: WithMetadata<Tenant>;
   tenantForRevoking: WithMetadata<Tenant>;
