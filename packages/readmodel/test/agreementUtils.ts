@@ -1,6 +1,6 @@
 /* eslint-disable fp/no-delete */
 import { eq } from "drizzle-orm";
-import { getMockAgreement } from "pagopa-interop-commons-test/index.js";
+import { getMockAgreement } from "pagopa-interop-commons-test";
 import { Agreement, AgreementId } from "pagopa-interop-models";
 import {
   AgreementSQL,
