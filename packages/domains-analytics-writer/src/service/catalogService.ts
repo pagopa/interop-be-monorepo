@@ -223,7 +223,7 @@ export function catalogServiceBuilder(db: DBContext) {
           `Staging data merged into target tables for riskAnalysisId: ${riskAnalysisId}`
         );
       });
-      await descriptorRepo.cleanDeleting();
+      await riskAnalysisRepo.cleanDeleting();
     },
 
     async upsertEServiceDocument(documentData: any): Promise<void> {

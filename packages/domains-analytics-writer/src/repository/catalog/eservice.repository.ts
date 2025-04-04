@@ -50,29 +50,6 @@ export function eserviceRepository(conn: DBConnection) {
       }
     },
 
-    async deleteEservice(
-      t: ITask<unknown>,
-      pgp: IMain,
-      id: string
-    ): Promise<void> {
-      const mapping = {
-        id: () => id,
-        deleted: () => true,
-      };
-      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
-        pgp,
-        mapping,
-        `deleting_by_id_table`
-      );
-      try {
-        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into staging table ${"deleting_by_id_table"}: ${error}`
-        );
-      }
-    },
-
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
