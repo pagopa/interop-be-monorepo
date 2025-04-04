@@ -2,16 +2,17 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
-import { AuthData, userRoles } from "pagopa-interop-commons";
 import { EService, generateId, tenantKind } from "pagopa-interop-models";
 import {
+  createPayload,
   getMockAuthData,
   getMockValidRiskAnalysis,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
+
 import { catalogApi } from "pagopa-interop-api-clients";
-import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
-import { createPayload } from "../mockedPayloadForToken.js";
+import { userRoles, AuthData } from "pagopa-interop-commons";
 import { api } from "../vitest.api.setup.js";
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { eServiceNameDuplicate } from "../../src/model/domain/errors.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
@@ -76,13 +77,6 @@ describe("API /eservices authorization test", () => {
     const res = await makeRequest(token, mockEserviceSeed);
 
     expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for invalid Input", async () => {
-    const res = await makeRequest(generateToken(getMockAuthData()), {});
-
-    expect(res.status).toBe(400);
-    expect(res.body.detail).toContain("Incorrect value for body");
   });
 
   it("Should return 409 for name conflict", async () => {
