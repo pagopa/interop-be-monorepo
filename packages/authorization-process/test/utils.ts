@@ -36,21 +36,19 @@ import {
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
-export const {
-  cleanup,
-  readModelRepository,
-  postgresDB,
-  fileManager,
-  readModelDB,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  inject("eventStoreConfig"),
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  inject("readModelSQLConfig")
-);
+import { config } from "../src/config/config.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+
+export const { cleanup, readModelRepository, postgresDB, readModelDB } =
+  await setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig"),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
 
@@ -78,7 +76,23 @@ export const producerKeychainReadModelServiceSQL =
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+export const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  clientReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  purposeReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  producerKeychainReadModelServiceSQL,
+  delegationReadModelServiceSQL,
+});
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 export const selfcareV2Client: SelfcareV2InstitutionClient =
   {} as SelfcareV2InstitutionClient;
 
