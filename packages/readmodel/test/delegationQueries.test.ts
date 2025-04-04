@@ -15,7 +15,9 @@ import {
 describe("Delegation queries", () => {
   describe("upsertDelegation", () => {
     it("should add a complete (*all* fields) delegation", async () => {
-      const delegation = getCustomMockDelegation();
+      const delegation = getCustomMockDelegation({
+        isDelegationComplete: true,
+      });
 
       await delegationReadModelService.upsertDelegation(delegation.data, 1);
 
@@ -37,7 +39,9 @@ describe("Delegation queries", () => {
     });
 
     it("should add an incomplete (*only* mandatory fields) delegation", async () => {
-      const delegation = getCustomMockDelegation(false);
+      const delegation = getCustomMockDelegation({
+        isDelegationComplete: false,
+      });
 
       await delegationReadModelService.upsertDelegation(delegation.data, 1);
 
@@ -56,7 +60,9 @@ describe("Delegation queries", () => {
     });
 
     it("should update a complete (*all* fields) delegation", async () => {
-      const delegation = getCustomMockDelegation();
+      const delegation = getCustomMockDelegation({
+        isDelegationComplete: true,
+      });
 
       const updatedDelegation: WithMetadata<Delegation> = {
         data: {
@@ -99,7 +105,9 @@ describe("Delegation queries", () => {
 
   describe("getDelegationById", () => {
     it("should get a delegation by id if present", async () => {
-      const delegation = getCustomMockDelegation(false);
+      const delegation = getCustomMockDelegation({
+        isDelegationComplete: false,
+      });
       await delegationReadModelService.upsertDelegation(
         delegation.data,
         delegation.metadata.version
@@ -119,9 +127,11 @@ describe("Delegation queries", () => {
     });
   });
 
-  describe("deleteDelegationtById", () => {
+  describe("deleteDelegationById", () => {
     it("should delete a delegation", async () => {
-      const delegation = getCustomMockDelegation(false);
+      const delegation = getCustomMockDelegation({
+        isDelegationComplete: false,
+      });
 
       await delegationReadModelService.upsertDelegation(
         delegation.data,
