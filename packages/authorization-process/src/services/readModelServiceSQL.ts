@@ -97,7 +97,7 @@ export function readModelServiceBuilderSQL({
       const { name, userIds, consumerId, purposeId, kind } = filters;
 
       const queryResult = await readModelDB.transaction(async (tx) => {
-        const subQuery = tx
+        const subquery = tx
           .select({
             clientId: clientInReadmodelClient.id,
             totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
@@ -149,12 +149,12 @@ export function readModelServiceBuilderSQL({
             clientUser: clientUserInReadmodelClient,
             clientPurpose: clientPurposeInReadmodelClient,
             clientKey: clientKeyInReadmodelClient,
-            totalCount: subQuery.totalCount,
+            totalCount: subquery.totalCount,
           })
           .from(clientInReadmodelClient)
           .innerJoin(
-            subQuery,
-            eq(clientInReadmodelClient.id, subQuery.clientId)
+            subquery,
+            eq(clientInReadmodelClient.id, subquery.clientId)
           )
           .leftJoin(
             // 1
@@ -244,7 +244,7 @@ export function readModelServiceBuilderSQL({
       const { name, userIds, producerId, eserviceId } = filters;
 
       const queryResult = await readModelDB.transaction(async (tx) => {
-        const subQuery = tx
+        const subquery = tx
           .select({
             producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
             totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
@@ -310,14 +310,14 @@ export function readModelServiceBuilderSQL({
             producerKeychainEService:
               producerKeychainEserviceInReadmodelProducerKeychain,
             producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
-            totalCount: subQuery.totalCount,
+            totalCount: subquery.totalCount,
           })
           .from(producerKeychainInReadmodelProducerKeychain)
           .innerJoin(
-            subQuery,
+            subquery,
             eq(
               producerKeychainInReadmodelProducerKeychain.id,
-              subQuery.producerKeychainId
+              subquery.producerKeychainId
             )
           )
           .leftJoin(
