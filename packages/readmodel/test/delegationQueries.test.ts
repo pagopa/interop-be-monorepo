@@ -127,7 +127,7 @@ describe("Delegation queries", () => {
     });
   });
 
-  describe("deleteDelegationtById", () => {
+  describe("deleteDelegationById", () => {
     it("should delete a delegation", async () => {
       const delegation = getCustomMockDelegation({
         isDelegationComplete: false,
