@@ -23,8 +23,7 @@
     "drizzle-orm": "0.39.3",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pg": "8.13.1",
-    "pg-promise": "11.8.0"
+    "pg": "8.13.1"
   },
   "devDependencies": {
     "@types/node": "20.14.6",
