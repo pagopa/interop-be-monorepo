@@ -1,5 +1,4 @@
-import { eq, SQL } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { and, eq, lte, SQL } from "drizzle-orm";
 import {
   Delegation,
   DelegationId,
@@ -10,6 +9,7 @@ import {
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import {
@@ -20,9 +20,7 @@ import {
 } from "./delegation/aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function delegationReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertDelegation(
       delegation: Delegation,
@@ -152,10 +150,21 @@ export function delegationReadModelServiceBuilder(
 
       return aggregateDelegationArray(toDelegationAggregatorArray(queryResult));
     },
-    async deleteDelegationById(delegationId: DelegationId): Promise<void> {
+    async deleteDelegationById(
+      delegationId: DelegationId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(delegationInReadmodelDelegation)
-        .where(eq(delegationInReadmodelDelegation.id, delegationId));
+        .where(
+          and(
+            eq(delegationInReadmodelDelegation.id, delegationId),
+            lte(
+              delegationInReadmodelDelegation.metadataVersion,
+              metadataVersion
+            )
+          )
+        );
     },
   };
 }

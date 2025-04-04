@@ -20,6 +20,15 @@ import {
   authorizationApi,
   selfcareV2InstitutionClientBuilder,
 } from "pagopa-interop-api-clients";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  clientReadModelServiceBuilderSQL,
+  delegationReadModelServiceBuilder,
+  makeDrizzleConnection,
+  producerKeychainReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
@@ -62,10 +71,37 @@ import {
   addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
 } from "../utilities/errorMappers.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
+const readModelDB = makeDrizzleConnection(config);
+const clientReadModelServiceSQL = clientReadModelServiceBuilderSQL(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  clientReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  purposeReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  producerKeychainReadModelServiceSQL,
+  delegationReadModelServiceSQL,
+});
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const authorizationService = authorizationServiceBuilder(
   initDB({
