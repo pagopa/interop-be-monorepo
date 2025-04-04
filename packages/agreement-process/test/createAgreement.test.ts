@@ -206,7 +206,7 @@ describe("create agreement", () => {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
       },
-      get({ authData })
+      getMockContext({ authData })
     );
 
     await expectedAgreementCreation(
