@@ -64,8 +64,8 @@ describe("database test", async () => {
       const retrievedAttribute =
         await attributeReadModelService.getAttributeById(declaredAttribute.id);
 
-      expect(retrievedAttribute?.data).toEqual(declaredAttribute);
-      expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
+      expect(retrievedAttribute?.data).toStrictEqual(declaredAttribute);
+      expect(retrievedAttribute?.metadata).toStrictEqual({ version: 1 });
     });
 
     it("AttributeAdded - verified", async () => {
@@ -90,8 +90,8 @@ describe("database test", async () => {
       const retrievedAttribute =
         await attributeReadModelService.getAttributeById(verifiedAttribute.id);
 
-      expect(retrievedAttribute?.data).toEqual(verifiedAttribute);
-      expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
+      expect(retrievedAttribute?.data).toStrictEqual(verifiedAttribute);
+      expect(retrievedAttribute?.metadata).toStrictEqual({ version: 1 });
     });
 
     it("AttributeDeleted", async () => {
