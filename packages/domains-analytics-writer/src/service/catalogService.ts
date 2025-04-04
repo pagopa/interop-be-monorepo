@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { EService } from "pagopa-interop-models";
-import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
+import {
+  Descriptor,
+  EService,
+  EServiceDescriptorV1,
+} from "pagopa-interop-models";
+import {
+  splitDescriptorIntoObjectsSQL,
+  splitEserviceIntoObjectsSQL,
+} from "pagopa-interop-readmodel";
 import { genericLogger } from "pagopa-interop-commons";
+import { EServiceId } from "pagopa-interop-models";
 import { DBContext } from "../db/db.js";
 import { eserviceRiskAnalysisAnswerRepository } from "../repository/catalog/eserviceRiskAnalysisAnswer.repository.js";
 import { eserviceRiskAnalysisRepository } from "../repository/catalog/eserviceRiskAnalysis.repository.js";
@@ -13,6 +21,8 @@ import { eserviceDescriptorTemplateVersionRefRepository } from "../repository/ca
 import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDescriptor.repository.js";
 import { eserviceTemplateRefRepository } from "../repository/catalog/eserviceTemplateRef.repository.js";
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
+import { CatalogDbTable } from "../model/db.js";
+import { mergeDeletingById } from "../repository/common/mergeDeletingQuery.js";
 
 export function catalogServiceBuilder(db: DBContext) {
   const eserviceRepo = eserviceRepository(db.conn);
@@ -131,13 +141,36 @@ export function catalogServiceBuilder(db: DBContext) {
       await db.conn.tx(async (t) => {
         await eserviceRepo.deleteEservice(t, db.pgp, eserviceId);
         await eserviceRepo.mergeDeleting(t);
+        await eserviceRepo.cleanDeleting();
+
+        await eserviceRepo.deleteByEserviceId(t, db.pgp, eserviceId);
+        await mergeDeletingById(t, "eservice_id", [
+          CatalogDbTable.eservice_descriptor,
+          CatalogDbTable.eservice_descriptor_attribute,
+          CatalogDbTable.eservice_descriptor_document,
+          CatalogDbTable.eservice_descriptor_interface,
+          CatalogDbTable.eservice_descriptor_rejection_reason,
+          CatalogDbTable.eservice_descriptor_template_version_ref,
+          CatalogDbTable.eservice_risk_analysis,
+          CatalogDbTable.eservice_risk_analysis_answer,
+        ]);
       });
       await eserviceRepo.cleanDeleting();
     },
 
-    async upsertEServiceDescriptor(descriptorData: any): Promise<void> {
+    async upsertEServiceDescriptor(
+      descriptorData: EServiceDescriptorV1 | undefined,
+      eserviceId: EServiceId,
+      metadataVersion: number
+    ): Promise<void> {
+      const descriptor = Descriptor.parse(descriptorData);
+      const { descriptorSQL } = splitDescriptorIntoObjectsSQL(
+        eserviceId,
+        descriptor,
+        metadataVersion
+      );
       await db.conn.tx(async (t) => {
-        await descriptorRepo.insert(t, db.pgp, [descriptorData]);
+        await descriptorRepo.insert(t, db.pgp, [descriptorSQL]);
         await descriptorRepo.merge(t);
       });
       await descriptorRepo.clean();
@@ -145,8 +178,44 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async deleteDescriptor(descriptorId: string): Promise<void> {
       await db.conn.tx(async (t) => {
-        await descriptorRepo.deleteDescriptor(t, db.pgp, descriptorId);
+        await descriptorRepo.insertDeletingDescriptor(t, db.pgp, descriptorId);
         await descriptorRepo.mergeDeleting(t);
+        await eserviceRepo.cleanDeleting();
+
+        await descriptorRepo.insertDeletingByDescriptorId(
+          t,
+          db.pgp,
+          descriptorId
+        );
+        await mergeDeletingById(t, "descriptor_id", [
+          CatalogDbTable.eservice_descriptor_attribute,
+          CatalogDbTable.eservice_descriptor_document,
+          CatalogDbTable.eservice_descriptor_interface,
+          CatalogDbTable.eservice_descriptor_rejection_reason,
+          CatalogDbTable.eservice_descriptor_template_version_ref,
+        ]);
+      });
+      await descriptorRepo.cleanDeleting();
+    },
+
+    async deleteEserviceRiskAnalysis(riskAnalysisId: string): Promise<void> {
+      await db.conn.tx(async (t) => {
+        await riskAnalysisRepo.insertDeletingRiskAnalysis(
+          t,
+          db.pgp,
+          riskAnalysisId
+        );
+        await descriptorRepo.mergeDeleting(t);
+        await eserviceRepo.cleanDeleting();
+
+        await riskAnalysisRepo.insertDeletingByRiskAnalysisId(
+          t,
+          db.pgp,
+          riskAnalysisId
+        );
+        await mergeDeletingById(t, "risk_analysis_form_id", [
+          CatalogDbTable.eservice_risk_analysis_answer,
+        ]);
       });
       await descriptorRepo.cleanDeleting();
     },
@@ -164,14 +233,6 @@ export function catalogServiceBuilder(db: DBContext) {
         await documentRepo.mergeDeleting(t);
       });
       await documentRepo.cleanDeleting();
-    },
-
-    async deleteEserviceRiskAnalysis(riskAnalysisId: string): Promise<void> {
-      await db.conn.tx(async (t) => {
-        await riskAnalysisRepo.deleteRiskAnalysis(t, db.pgp, riskAnalysisId);
-        await riskAnalysisRepo.mergeDeleting(t);
-      });
-      await riskAnalysisRepo.cleanDeleting();
     },
   };
 }

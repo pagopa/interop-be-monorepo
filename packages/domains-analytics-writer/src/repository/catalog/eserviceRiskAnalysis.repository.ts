@@ -16,7 +16,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_risk_analysis;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${CatalogDbTable.eservice_risk_analysis}${config.mergeTableSuffix}`;
+  const stagingDeletingTable = CatalogDbTable.deleting_by_id_table;
 
   return {
     async insert(
@@ -47,6 +47,54 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTable}: ${error}`
+        );
+      }
+    },
+
+    async insertDeletingRiskAnalysis(
+      t: ITask<unknown>,
+      pgp: IMain,
+      id: string
+    ): Promise<void> {
+      const mapping = {
+        id: () => id,
+        deleted: () => true,
+      };
+      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        pgp,
+        mapping,
+        stagingDeletingTable
+      );
+      try {
+        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
+    async insertDeletingByRiskAnalysisId(
+      t: ITask<unknown>,
+      pgp: IMain,
+      risk_analysis_form_id: string
+    ): Promise<void> {
+      const mapping = {
+        id: () => risk_analysis_form_id,
+        deleted: () => true,
+      };
+      try {
+        const cs = buildColumnSet<{
+          id: string;
+          deleted: boolean;
+        }>(pgp, mapping, stagingDeletingTable);
+
+        await t.none(
+          pgp.helpers.insert({ risk_analysis_form_id, deleted: true }, cs)
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

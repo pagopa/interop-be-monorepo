@@ -21,7 +21,6 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
 
   const columns = keys.join(", ");
   const values = keys.map((k) => `source.${k}`).join(", ");
-
   return `
   MERGE INTO ${schemaName}.${tableName}
   USING ${stagingTableName} AS source
@@ -32,5 +31,23 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   WHEN NOT MATCHED THEN
     INSERT (${columns})
     VALUES (${values});
+`;
+}
+export function generateMergeDeleteQuery(
+  schemaName: string,
+  tableName: string,
+  stagingTableName: string,
+  deletingKey: string
+): string {
+  const updateSet = `${deletingKey} = source.id,
+   deleted = source.deleted`;
+
+  return `
+  MERGE INTO ${schemaName}.${tableName}
+  USING ${stagingTableName} AS source
+  ON ${schemaName}.${tableName}.${deletingKey} = source.id
+  WHEN MATCHED THEN
+    UPDATE SET
+      ${updateSet};
 `;
 }

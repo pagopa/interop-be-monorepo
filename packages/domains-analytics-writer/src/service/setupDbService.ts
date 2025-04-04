@@ -34,13 +34,28 @@ export function setupDbServiceBuilder(
             const fullStagingTable = `${tableName}${config.mergeTableSuffix}`;
             const query = `
               CREATE TEMPORARY TABLE IF NOT EXISTS ${fullStagingTable} (
-                id VARCHAR(36) PRIMARY KEY,
+                id VARCHAR(36),
                 deleted BOOLEAN NOT NULL
               );
             `;
             return conn.query(query);
           })
         );
+      } catch (error: unknown) {
+        throw error;
+      }
+    },
+    async setupStagingDeletingByIdTables(): Promise<void> {
+      try {
+        const queries = [
+          `
+            CREATE TEMPORARY TABLE IF NOT EXISTS deleting_by_id_table (
+              id VARCHAR(36) PRIMARY KEY,
+              deleted BOOLEAN NOT NULL
+            );
+          `,
+        ];
+        await Promise.all(queries.map((query) => conn.query(query)));
       } catch (error: unknown) {
         throw error;
       }

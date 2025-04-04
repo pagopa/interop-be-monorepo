@@ -16,7 +16,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_document;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${CatalogDbTable.eservice_descriptor_document_deleting}${config.mergeTableSuffix}`;
+  const stagingDeletingTable = CatalogDbTable.deleting_by_id_table;
 
   return {
     async insert(

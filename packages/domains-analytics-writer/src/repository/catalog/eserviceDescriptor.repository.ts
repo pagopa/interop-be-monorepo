@@ -3,11 +3,13 @@ import { genericInternalError } from "pagopa-interop-models";
 import { EServiceDescriptorSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorMapping,
-  descriptorDeletingSchema,
   eserviceDescriptorSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
 import { CatalogDbTable } from "../../model/db.js";
@@ -16,7 +18,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${CatalogDbTable.eservice_descriptor_deleting}${config.mergeTableSuffix}`;
+  const stagingDeletingTable = `deleting_by_id_table`;
 
   return {
     async insert(
@@ -24,7 +26,6 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorSQL[]
     ): Promise<void> {
-      console.log("RECORDS", records[0].eserviceId);
       const mapping: EserviceDescriptorMapping = {
         id: (r: EServiceDescriptorSQL) => r.id,
         eservice_id: (r: EServiceDescriptorSQL) => r.eserviceId,
@@ -89,7 +90,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       }
     },
 
-    async deleteDescriptor(
+    async insertDeletingDescriptor(
       t: ITask<unknown>,
       pgp: IMain,
       id: string
@@ -112,15 +113,37 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       }
     },
 
+    async insertDeletingByDescriptorId(
+      t: ITask<unknown>,
+      pgp: IMain,
+      descriptor_id: string
+    ): Promise<void> {
+      const mapping = {
+        descriptor_id: () => descriptor_id,
+        deleted: () => true,
+      };
+      try {
+        const cs = buildColumnSet<{ descriptor_id: string; deleted: boolean }>(
+          pgp,
+          mapping,
+          stagingDeletingTable
+        );
+
+        await t.none(pgp.helpers.insert({ descriptor_id, deleted: true }, cs));
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        const mergeQuery = generateMergeQuery(
-          descriptorDeletingSchema,
+        const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id",
-          true
+          "id"
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

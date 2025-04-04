@@ -60,7 +60,7 @@ export async function handleCatalogMessageV2(
       },
       async (msg) => {
         const eservice = EService.parse(msg.data.eservice);
-        await catalogService.upsertEService(eservice, msg.event_version);
+        await catalogService.upsertEService(eservice, msg.version);
       }
     )
     .exhaustive();

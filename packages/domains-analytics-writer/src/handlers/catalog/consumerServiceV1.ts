@@ -1,4 +1,9 @@
-import { EService, EServiceEventEnvelopeV1 } from "pagopa-interop-models";
+import {
+  EService,
+  EServiceEventEnvelopeV1,
+  EServiceId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { DBContext } from "../../db/db.js";
@@ -47,10 +52,11 @@ export async function handleCatalogMessageV1(
     .with(
       { type: P.union("EServiceDescriptorAdded", "EServiceDescriptorUpdated") },
       async (msg) => {
-        await catalogService.upsertEServiceDescriptor({
-          ...msg.data.eserviceDescriptor,
-          eserviceId: msg.data.eserviceId,
-        });
+        await catalogService.upsertEServiceDescriptor(
+          msg.data.eserviceDescriptor,
+          unsafeBrandId<EServiceId>(msg.data.eserviceId),
+          msg.version
+        );
       }
     )
     .exhaustive();
