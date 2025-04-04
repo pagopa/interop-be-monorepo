@@ -872,3 +872,31 @@ export const sortPurposes = <
 >(
   purposes: T[]
 ): T[] => purposes.map(sortPurpose);
+
+export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
+  client: T
+): T => {
+  if (!client) {
+    return client;
+  } else if ("data" in client) {
+    return {
+      ...client,
+      data: sortClient(client.data),
+    };
+  } else {
+    return {
+      ...client,
+      purposes: [...client.purposes].sort(),
+      users: [...client.users].sort(),
+      keys: [...client.keys].sort(
+        sortBy<Key>((k) => k.createdAt.toISOString())
+      ),
+    };
+  }
+};
+
+export const sortClients = <
+  T extends Client | WithMetadata<Client> | undefined
+>(
+  clients: T[]
+): T[] => clients.map(sortClient);

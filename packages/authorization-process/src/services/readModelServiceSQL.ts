@@ -119,7 +119,7 @@ export function readModelServiceBuilderSQL({
               // NAME FILTER
               name
                 ? ilike(
-                    clientKeyInReadmodelClient.name,
+                    clientInReadmodelClient.name,
                     `%${ReadModelRepository.escapeRegExp(name)}%`
                   )
                 : undefined,
@@ -140,7 +140,7 @@ export function readModelServiceBuilderSQL({
           .groupBy(clientInReadmodelClient.id)
           .limit(limit)
           .offset(offset)
-          .orderBy(sql`LOWER${clientInReadmodelClient.name}`)
+          .orderBy(sql`LOWER(${clientInReadmodelClient.name})`)
           .as("subquery");
 
         return await tx
@@ -338,7 +338,7 @@ export function readModelServiceBuilderSQL({
           .limit(limit)
           .offset(offset)
           .orderBy(
-            sql`LOWER${producerKeychainInReadmodelProducerKeychain.name}`
+            sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
           )
           .as("subquery");
 
