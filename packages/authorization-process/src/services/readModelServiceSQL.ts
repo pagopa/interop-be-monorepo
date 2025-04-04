@@ -119,7 +119,7 @@ export function readModelServiceBuilderSQL({
               // NAME FILTER
               name
                 ? ilike(
-                    clientKeyInReadmodelClient.name,
+                    clientInReadmodelClient.name,
                     `%${ReadModelRepository.escapeRegExp(name)}%`
                   )
                 : undefined,
@@ -140,7 +140,7 @@ export function readModelServiceBuilderSQL({
           .groupBy(clientInReadmodelClient.id)
           .limit(limit)
           .offset(offset)
-          .orderBy(sql`LOWER${clientInReadmodelClient.name}`)
+          .orderBy(sql`LOWER(${clientInReadmodelClient.name})`)
           .as("subquery");
 
         return await tx
@@ -186,9 +186,49 @@ export function readModelServiceBuilderSQL({
     async getClientsRelatedToPurpose(
       purposeId: PurposeId
     ): Promise<Array<WithMetadata<Client>>> {
-      return clientReadModelServiceSQL.getClientsByFilter(
-        eq(clientPurposeInReadmodelClient.purposeId, purposeId)
-      );
+      const queryResult = await readModelDB.transaction(async (tx) => {
+        const subquery = tx
+          .select({
+            clientId: clientInReadmodelClient.id,
+          })
+          .from(clientInReadmodelClient)
+          .innerJoin(
+            clientPurposeInReadmodelClient,
+            eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+          )
+          .groupBy(clientInReadmodelClient.id)
+          .as("subquery");
+
+        return await tx
+          .select({
+            client: clientInReadmodelClient,
+            clientUser: clientUserInReadmodelClient,
+            clientPurpose: clientPurposeInReadmodelClient,
+            clientKey: clientKeyInReadmodelClient,
+          })
+          .from(clientInReadmodelClient)
+          .innerJoin(
+            subquery,
+            eq(clientInReadmodelClient.id, subquery.clientId)
+          )
+          .leftJoin(
+            clientUserInReadmodelClient,
+            eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
+          )
+          .leftJoin(
+            clientPurposeInReadmodelClient,
+            eq(
+              clientInReadmodelClient.id,
+              clientPurposeInReadmodelClient.clientId
+            )
+          )
+          .leftJoin(
+            clientKeyInReadmodelClient,
+            eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
+          );
+      });
+
+      return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
     async getEServiceById(
       eserviceId: EServiceId
@@ -298,7 +338,7 @@ export function readModelServiceBuilderSQL({
           .limit(limit)
           .offset(offset)
           .orderBy(
-            sql`LOWER${producerKeychainInReadmodelProducerKeychain.name}`
+            sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
           )
           .as("subquery");
 

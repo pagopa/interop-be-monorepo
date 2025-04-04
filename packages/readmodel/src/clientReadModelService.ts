@@ -102,6 +102,7 @@ export function clientReadModelServiceBuilderSQL(
 
       return aggregateClient(toClientAggregator(queryResult));
     },
+    // TODO: delete if not used
     async getClientsByFilter(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<Client>>> {

@@ -36,21 +36,19 @@ import {
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
-export const {
-  cleanup,
-  readModelRepository,
-  postgresDB,
-  fileManager,
-  readModelDB,
-} = await setupTestContainersVitest(
-  inject("readModelConfig"),
-  inject("eventStoreConfig"),
-  undefined,
-  undefined,
-  undefined,
-  undefined,
-  inject("readModelSQLConfig")
-);
+import { config } from "../src/config/config.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+
+export const { cleanup, readModelRepository, postgresDB, readModelDB } =
+  await setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig"),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 
 afterEach(cleanup);
 
@@ -78,7 +76,23 @@ export const producerKeychainReadModelServiceSQL =
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+export const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  clientReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  purposeReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  producerKeychainReadModelServiceSQL,
+  delegationReadModelServiceSQL,
+});
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 export const selfcareV2Client: SelfcareV2InstitutionClient =
   {} as SelfcareV2InstitutionClient;
 
@@ -91,16 +105,16 @@ export const authorizationService = authorizationServiceBuilder(
 export const writeClientInEventstore = async (
   client: Client
 ): Promise<void> => {
-  const authorizationtEvent: AuthorizationEvent = {
+  const authorizationEvent: AuthorizationEvent = {
     type: "ClientAdded",
     event_version: 2,
     data: { client: toClientV2(client) },
   };
   const eventToWrite: StoredEvent<AuthorizationEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: authorizationtEvent.data.client!.id,
+    stream_id: authorizationEvent.data.client!.id,
     version: 0,
-    event: authorizationtEvent,
+    event: authorizationEvent,
   };
 
   await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
@@ -134,16 +148,16 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
 export const writeProducerKeychainInEventstore = async (
   producerKeychain: ProducerKeychain
 ): Promise<void> => {
-  const authorizationtEvent: AuthorizationEvent = {
+  const authorizationEvent: AuthorizationEvent = {
     type: "ProducerKeychainAdded",
     event_version: 2,
     data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
   };
   const eventToWrite: StoredEvent<AuthorizationEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: authorizationtEvent.data.producerKeychain!.id,
+    stream_id: authorizationEvent.data.producerKeychain!.id,
     version: 0,
-    event: authorizationtEvent,
+    event: authorizationEvent,
   };
 
   await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
