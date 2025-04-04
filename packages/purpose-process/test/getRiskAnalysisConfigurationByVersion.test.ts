@@ -5,7 +5,6 @@ import {
   getMockTenant,
   getMockAuthData,
   randomArrayItem,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   EServiceId,
@@ -13,8 +12,6 @@ import {
   eserviceMode,
   generateId,
   tenantKind,
-  toReadModelEService,
-  toReadModelTenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { getFormRulesByVersion } from "pagopa-interop-commons";
@@ -24,7 +21,7 @@ import {
   tenantKindNotFound,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { eservices, tenants, purposeService } from "./utils.js";
+import { purposeService, addOneEService, addOneTenant } from "./utils.js";
 
 describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
   it("should retrieve risk analysis configuration by version (Eservice mode: deliver)", async () => {
@@ -34,8 +31,8 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       ...getMockTenant(),
       kind,
     };
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+    await addOneEService(mockEservice);
+    await addOneTenant(mockTenant);
 
     const riskAnalysisVersion = "1.0";
 
@@ -55,8 +52,8 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       ...getMockTenant(mockEservice.producerId),
       kind,
     };
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+    await addOneEService(mockEservice);
+    await addOneTenant(mockTenant);
 
     const riskAnalysisVersion = "1.0";
 
@@ -72,7 +69,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
   it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
     const mockTenant = getMockTenant();
     const randomId = generateId<EServiceId>();
-    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+    await addOneTenant(mockTenant);
 
     expect(
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
@@ -87,7 +84,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
   it("should throw tenantNotFound if the tenant doesn't exist", async () => {
     const mockEservice = { ...getMockEService(), mode: eserviceMode.deliver };
     const randomTenantId = generateId<TenantId>();
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+    await addOneEService(mockEservice);
 
     expect(
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
@@ -105,8 +102,8 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       ...getMockTenant(),
       kind: undefined,
     };
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+    await addOneEService(mockEservice);
+    await addOneTenant(mockTenant);
 
     expect(
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
@@ -124,8 +121,8 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
-    await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-    await writeInReadmodel(toReadModelTenant(mockTenant), tenants);
+    await addOneEService(mockEservice);
+    await addOneTenant(mockTenant);
 
     const wrongRiskAnalysisVersion = "0.0";
 

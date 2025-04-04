@@ -5,6 +5,8 @@ import {
   FileManagerConfig,
   S3Config,
   ApplicationAuditProducerConfig,
+  FeatureFlagSQLConfig,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -21,7 +23,9 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
       }))
   )
-  .and(ApplicationAuditProducerConfig);
+  .and(ApplicationAuditProducerConfig)
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig.optional());
 
 export type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 

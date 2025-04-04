@@ -1,5 +1,10 @@
-import { and, eq, lte } from "drizzle-orm";
-import { Agreement, AgreementId, WithMetadata } from "pagopa-interop-models";
+import { and, eq, lte, SQL } from "drizzle-orm";
+import {
+  Agreement,
+  AgreementId,
+  genericInternalError,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
@@ -11,7 +16,9 @@ import {
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import {
   aggregateAgreement,
+  aggregateAgreementArray,
   toAgreementAggregator,
+  toAgreementAggregatorArray,
 } from "./agreement/aggregators.js";
 import { checkMetadataVersion } from "./utils.js";
 
@@ -73,6 +80,16 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
     async getAgreementById(
       agreementId: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> {
+      return this.getAgreementByFilter(
+        eq(agreementInReadmodelAgreement.id, agreementId)
+      );
+    },
+    async getAgreementByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<Agreement> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
       /*
       agreement ->1 agreement_stamp
       					->2 agreement_attribute
@@ -88,7 +105,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           contract: agreementContractInReadmodelAgreement,
         })
         .from(agreementInReadmodelAgreement)
-        .where(eq(agreementInReadmodelAgreement.id, agreementId))
+        .where(filter)
         .leftJoin(
           // 1
           agreementStampInReadmodelAgreement,
@@ -127,6 +144,58 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       return aggregateAgreement(toAgreementAggregator(queryResult));
+    },
+    async getAgreementsByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<Agreement>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select({
+          agreement: agreementInReadmodelAgreement,
+          stamp: agreementStampInReadmodelAgreement,
+          attribute: agreementAttributeInReadmodelAgreement,
+          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+          contract: agreementContractInReadmodelAgreement,
+        })
+        .from(agreementInReadmodelAgreement)
+        .where(filter)
+        .leftJoin(
+          // 1
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 2
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 3
+          agreementConsumerDocumentInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementConsumerDocumentInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          // 4
+          agreementContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementContractInReadmodelAgreement.agreementId
+          )
+        );
+
+      return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
     },
     async deleteAgreementById(
       agreementId: AgreementId,

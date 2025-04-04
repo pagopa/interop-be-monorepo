@@ -15,10 +15,7 @@ import {
   purposeVersionState,
   tenantKind,
   toPurposeV2,
-  toReadModelEService,
-  toReadModelAgreement,
   unsafeBrandId,
-  toReadModelTenant,
   TenantId,
   delegationKind,
   delegationState,
@@ -26,7 +23,6 @@ import {
 import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
 import {
-  writeInReadmodel,
   getMockValidRiskAnalysisForm,
   decodeProtobufPayload,
   getMockAgreement,
@@ -53,13 +49,10 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  agreements,
   buildRiskAnalysisFormSeed,
-  eservices,
   getMockEService,
   purposeService,
   readLastPurposeEvent,
-  tenants,
 } from "./utils.js";
 
 describe("createPurpose", () => {
@@ -101,12 +94,9 @@ describe("createPurpose", () => {
   it("should write on event-store for the creation of a purpose", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
 
     const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
       purposeSeed,
@@ -434,9 +424,9 @@ describe("createPurpose", () => {
       consumerId: agreementEservice.consumerId,
     };
 
-    await writeInReadmodel(toReadModelTenant(tenantWithoutKind), tenants);
-    await writeInReadmodel(toReadModelAgreement(agreementEservice), agreements);
-    await writeInReadmodel(toReadModelEService(eService), eservices);
+    await addOneTenant(tenantWithoutKind);
+    await addOneAgreement(agreementEservice);
+    await addOneEService(eService);
 
     expect(
       purposeService.createPurpose(
@@ -490,9 +480,9 @@ describe("createPurpose", () => {
       consumerId: agreement.consumerId,
     };
 
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
-    await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-    await writeInReadmodel(toReadModelEService(eService), eservices);
+    await addOneTenant(tenant);
+    await addOneAgreement(agreement);
+    await addOneEService(eService);
 
     expect(
       purposeService.createPurpose(
@@ -504,12 +494,9 @@ describe("createPurpose", () => {
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
   });
   it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
-    await writeInReadmodel(toReadModelEService(getMockEService()), eservices);
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(getMockEService());
 
     const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
@@ -528,12 +515,9 @@ describe("createPurpose", () => {
     ).rejects.toThrowError(organizationIsNotTheConsumer(tenant.id));
   });
   it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
 
     const mockInvalidRiskAnalysisForm: RiskAnalysisForm = {
       ...mockValidRiskAnalysisForm,
@@ -558,7 +542,7 @@ describe("createPurpose", () => {
       ])
     );
   });
-  it("should throw duplicatedPurposeName if a purpose with same name alreay exists", async () => {
+  it("should throw duplicatedPurposeName if a purpose with same name already exists", async () => {
     const existingPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: unsafeBrandId(purposeSeed.eserviceId),
@@ -567,12 +551,9 @@ describe("createPurpose", () => {
     };
 
     await addOnePurpose(existingPurpose);
-    await writeInReadmodel(toReadModelTenant(tenant), tenants);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
 
     expect(
       purposeService.createPurpose(

@@ -624,10 +624,11 @@ describe("updatePurpose and updateReversePurpose", () => {
     }
   );
   it("Should throw duplicatedPurposeTitle if the purpose title already exists", async () => {
-    const purposeWithDuplicatedTitle = {
+    const purposeWithDuplicatedTitle: Purpose = {
       ...purposeForDeliver,
       id: unsafeBrandId<PurposeId>(generateId()),
       title: "duplicated",
+      versions: [],
     };
     await addOnePurpose(purposeForDeliver);
     await addOnePurpose(purposeWithDuplicatedTitle);
