@@ -8,7 +8,7 @@ export const b64ByteUrlEncode = (b: Uint8Array): string =>
  * Encode a string to a url encoded base64 string, as specified in RFC 7515 Appendix C
  */
 export const b64UrlEncode = (str: string): string =>
-  bufferB64UrlEncode(Buffer.from(str, "binary"));
+  bufferB64UrlEncode(Buffer.from(str, "utf-8"));
 
 const bufferB64UrlEncode = (b: Buffer): string =>
   b
