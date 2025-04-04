@@ -343,44 +343,6 @@ export const eserviceDescriptorInterfaceInReadmodelCatalog =
     ]
   );
 
-export const delegationContractDocumentInReadmodelDelegation =
-  readmodelDelegation.table(
-    "delegation_contract_document",
-    {
-      id: uuid().primaryKey().notNull(),
-      delegationId: uuid("delegation_id").notNull(),
-      metadataVersion: integer("metadata_version").notNull(),
-      name: varchar().notNull(),
-      contentType: varchar("content_type").notNull(),
-      prettyName: varchar("pretty_name").notNull(),
-      path: varchar().notNull(),
-      createdAt: timestamp("created_at", {
-        withTimezone: true,
-        mode: "string",
-      }).notNull(),
-      kind: varchar().notNull(),
-    },
-    (table) => [
-      foreignKey({
-        columns: [table.delegationId],
-        foreignColumns: [delegationInReadmodelDelegation.id],
-        name: "delegation_contract_document_delegation_id_fkey",
-      }).onDelete("cascade"),
-      foreignKey({
-        columns: [table.delegationId, table.metadataVersion],
-        foreignColumns: [
-          delegationInReadmodelDelegation.id,
-          delegationInReadmodelDelegation.metadataVersion,
-        ],
-        name: "delegation_contract_document_delegation_id_metadata_versio_fkey",
-      }),
-      unique("delegation_contract_document_delegation_id_kind_unique").on(
-        table.delegationId,
-        table.kind
-      ),
-    ]
-  );
-
 export const eserviceDescriptorDocumentInReadmodelCatalog =
   readmodelCatalog.table(
     "eservice_descriptor_document",
@@ -491,6 +453,44 @@ export const eserviceRiskAnalysisAnswerInReadmodelCatalog =
     ]
   );
 
+export const delegationContractDocumentInReadmodelDelegation =
+  readmodelDelegation.table(
+    "delegation_contract_document",
+    {
+      id: uuid().primaryKey().notNull(),
+      delegationId: uuid("delegation_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      name: varchar().notNull(),
+      contentType: varchar("content_type").notNull(),
+      prettyName: varchar("pretty_name").notNull(),
+      path: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      kind: varchar().notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.delegationId],
+        foreignColumns: [delegationInReadmodelDelegation.id],
+        name: "delegation_contract_document_delegation_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.delegationId, table.metadataVersion],
+        foreignColumns: [
+          delegationInReadmodelDelegation.id,
+          delegationInReadmodelDelegation.metadataVersion,
+        ],
+        name: "delegation_contract_document_delegation_id_metadata_versio_fkey",
+      }),
+      unique("delegation_contract_document_delegation_id_kind_unique").on(
+        table.delegationId,
+        table.kind
+      ),
+    ]
+  );
+
 export const purposeInReadmodelPurpose = readmodelPurpose.table(
   "purpose",
   {
@@ -513,6 +513,28 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
   },
   (table) => [
     unique("purpose_id_metadata_version_unique").on(
+      table.id,
+      table.metadataVersion
+    ),
+  ]
+);
+
+export const clientInReadmodelClient = readmodelClient.table(
+  "client",
+  {
+    id: uuid().primaryKey().notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    consumerId: uuid("consumer_id").notNull(),
+    name: varchar().notNull(),
+    description: varchar(),
+    kind: varchar().notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    unique("client_id_metadata_version_unique").on(
       table.id,
       table.metadataVersion
     ),
@@ -578,28 +600,6 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
       }),
     ]
   );
-
-export const clientInReadmodelClient = readmodelClient.table(
-  "client",
-  {
-    id: uuid().primaryKey().notNull(),
-    metadataVersion: integer("metadata_version").notNull(),
-    consumerId: uuid("consumer_id").notNull(),
-    name: varchar().notNull(),
-    description: varchar(),
-    kind: varchar().notNull(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-  },
-  (table) => [
-    unique("client_id_metadata_version_unique").on(
-      table.id,
-      table.metadataVersion
-    ),
-  ]
-);
 
 export const purposeVersionInReadmodelPurpose = readmodelPurpose.table(
   "purpose_version",
@@ -881,6 +881,35 @@ export const agreementAttributeInReadmodelAgreement = readmodelAgreement.table(
   ]
 );
 
+export const eserviceTemplateRefInReadmodelCatalog = readmodelCatalog.table(
+  "eservice_template_ref",
+  {
+    eserviceTemplateId: uuid("eservice_template_id").notNull(),
+    eserviceId: uuid("eservice_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    instanceLabel: varchar("instance_label"),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.eserviceId],
+      foreignColumns: [eserviceInReadmodelCatalog.id],
+      name: "eservice_template_ref_eservice_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.eserviceId, table.metadataVersion],
+      foreignColumns: [
+        eserviceInReadmodelCatalog.id,
+        eserviceInReadmodelCatalog.metadataVersion,
+      ],
+      name: "eservice_template_ref_eservice_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.eserviceTemplateId, table.eserviceId],
+      name: "eservice_template_ref_pkey",
+    }),
+  ]
+);
+
 export const tenantVerifiedAttributeInReadmodelTenant = readmodelTenant.table(
   "tenant_verified_attribute",
   {
@@ -943,6 +972,34 @@ export const delegationStampInReadmodelDelegation = readmodelDelegation.table(
   ]
 );
 
+export const tenantCertifiedAttributeInReadmodelTenant = readmodelTenant.table(
+  "tenant_certified_attribute",
+  {
+    attributeId: uuid("attribute_id").notNull(),
+    tenantId: uuid("tenant_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    assignmentTimestamp: timestamp("assignment_timestamp", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+    revocationTimestamp: timestamp("revocation_timestamp", {
+      withTimezone: true,
+      mode: "string",
+    }),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenantInReadmodelTenant.id],
+      name: "tenant_certified_attribute_tenant_id_fkey",
+    }).onDelete("cascade"),
+    primaryKey({
+      columns: [table.attributeId, table.tenantId],
+      name: "tenant_certified_attribute_pkey",
+    }),
+  ]
+);
+
 export const tenantFeatureInReadmodelTenant = readmodelTenant.table(
   "tenant_feature",
   {
@@ -972,34 +1029,6 @@ export const tenantFeatureInReadmodelTenant = readmodelTenant.table(
     primaryKey({
       columns: [table.tenantId, table.kind],
       name: "tenant_feature_pkey",
-    }),
-  ]
-);
-
-export const tenantCertifiedAttributeInReadmodelTenant = readmodelTenant.table(
-  "tenant_certified_attribute",
-  {
-    attributeId: uuid("attribute_id").notNull(),
-    tenantId: uuid("tenant_id").notNull(),
-    metadataVersion: integer("metadata_version").notNull(),
-    assignmentTimestamp: timestamp("assignment_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }).notNull(),
-    revocationTimestamp: timestamp("revocation_timestamp", {
-      withTimezone: true,
-      mode: "string",
-    }),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.tenantId],
-      foreignColumns: [tenantInReadmodelTenant.id],
-      name: "tenant_certified_attribute_tenant_id_fkey",
-    }).onDelete("cascade"),
-    primaryKey({
-      columns: [table.attributeId, table.tenantId],
-      name: "tenant_certified_attribute_pkey",
     }),
   ]
 );
@@ -1100,6 +1129,45 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       primaryKey({
         columns: [table.attributeId, table.descriptorId, table.groupId],
         name: "eservice_descriptor_attribute_pkey",
+      }),
+    ]
+  );
+
+export const eserviceDescriptorTemplateVersionRefInReadmodelCatalog =
+  readmodelCatalog.table(
+    "eservice_descriptor_template_version_ref",
+    {
+      eserviceTemplateVersionId: uuid("eservice_template_version_id").notNull(),
+      eserviceId: uuid("eservice_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      descriptorId: uuid("descriptor_id").notNull(),
+      contactName: varchar("contact_name"),
+      contactEmail: varchar("contact_email"),
+      contactUrl: varchar("contact_url"),
+      termsAndConditionsUrl: varchar("terms_and_conditions_url"),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.eserviceId],
+        foreignColumns: [eserviceInReadmodelCatalog.id],
+        name: "eservice_descriptor_template_version_ref_eservice_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.descriptorId],
+        foreignColumns: [eserviceDescriptorInReadmodelCatalog.id],
+        name: "eservice_descriptor_template_version_ref_descriptor_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.eserviceId, table.metadataVersion],
+        foreignColumns: [
+          eserviceInReadmodelCatalog.id,
+          eserviceInReadmodelCatalog.metadataVersion,
+        ],
+        name: "eservice_descriptor_template__eservice_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.eserviceTemplateVersionId, table.descriptorId],
+        name: "eservice_descriptor_template_version_ref_pkey",
       }),
     ]
   );
