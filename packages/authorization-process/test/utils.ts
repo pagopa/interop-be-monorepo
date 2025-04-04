@@ -105,16 +105,16 @@ export const authorizationService = authorizationServiceBuilder(
 export const writeClientInEventstore = async (
   client: Client
 ): Promise<void> => {
-  const authorizationtEvent: AuthorizationEvent = {
+  const authorizationEvent: AuthorizationEvent = {
     type: "ClientAdded",
     event_version: 2,
     data: { client: toClientV2(client) },
   };
   const eventToWrite: StoredEvent<AuthorizationEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: authorizationtEvent.data.client!.id,
+    stream_id: authorizationEvent.data.client!.id,
     version: 0,
-    event: authorizationtEvent,
+    event: authorizationEvent,
   };
 
   await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
@@ -148,16 +148,16 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
 export const writeProducerKeychainInEventstore = async (
   producerKeychain: ProducerKeychain
 ): Promise<void> => {
-  const authorizationtEvent: AuthorizationEvent = {
+  const authorizationEvent: AuthorizationEvent = {
     type: "ProducerKeychainAdded",
     event_version: 2,
     data: { producerKeychain: toProducerKeychainV2(producerKeychain) },
   };
   const eventToWrite: StoredEvent<AuthorizationEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    stream_id: authorizationtEvent.data.producerKeychain!.id,
+    stream_id: authorizationEvent.data.producerKeychain!.id,
     version: 0,
-    event: authorizationtEvent,
+    event: authorizationEvent,
   };
 
   await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
