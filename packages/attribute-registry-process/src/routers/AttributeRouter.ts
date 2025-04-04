@@ -12,6 +12,11 @@ import {
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import {
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,
@@ -29,9 +34,27 @@ import {
   getAttributeByOriginAndCodeErrorMapper,
   getAttributesByNameErrorMapper,
 } from "../utilities/errorMappers.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
+
+const db = makeDrizzleConnection(config);
+const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
 
 const readModelRepository = ReadModelRepository.init(config);
-const readModelService = readModelServiceBuilder(readModelRepository);
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  attributeReadModelServiceSQL,
+  tenantReadModelServiceSQL
+);
+
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 const attributeRegistryService = attributeRegistryServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
