@@ -99,8 +99,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
-      - name: Download 1.1 Spectral Ruleset of the National Interoperability Model
-        run: wget https://github.com/italia/api-oas-checker-rules/releases/download/1.1/spectral-modi.yml -O spectral-modi.yml
       - uses: stoplightio/spectral-action@2ad0b9302e32a77c1caccf474a9b2191a8060d83 #v0.8.11
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml)"
