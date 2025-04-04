@@ -22,12 +22,13 @@ import {
   tenantUnitType,
   TenantUnitType,
   dateToBigInt,
+  tenantFeatureType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export function toFeatureV1(feature: TenantFeature): TenantFeatureV1 {
   return match<TenantFeature, TenantFeatureV1>(feature)
-    .with({ type: "PersistentCertifier" }, (feature) => ({
+    .with({ type: tenantFeatureType.persistentCertifier }, (feature) => ({
       sealedValue: {
         oneofKind: "certifier",
         certifier: {
