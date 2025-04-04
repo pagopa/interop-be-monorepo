@@ -84,8 +84,7 @@ export const authorizationMiddleware =
           makeApiProblem(
             error,
             (error) => (error.code === "unauthorizedError" ? 403 : 500),
-            ctx.logger,
-            ctx.correlationId
+            ctx
           )
         )
         .otherwise(() =>
@@ -94,8 +93,7 @@ export const authorizationMiddleware =
               "An unexpected error occurred during authorization checks"
             ),
             () => 500,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           )
         );
 

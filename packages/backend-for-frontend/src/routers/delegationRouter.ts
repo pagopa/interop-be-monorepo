@@ -71,8 +71,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getDelegationsErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving delegations`
         );
 
@@ -93,8 +92,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getDelegationByIdErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving delegation by id ${req.params.delegationId}`
         );
 
@@ -119,8 +117,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving contract ${req.params.contractId} of delegation ${req.params.delegationId}`
           );
 

@@ -40,8 +40,7 @@ const toolRouter = (
       const errorRes = makeApiProblem(
         error,
         toolsErrorMapper,
-        ctx.logger,
-        ctx.correlationId,
+        ctx,
         "Error validating token generation request"
       );
       return res.status(errorRes.status).send(errorRes);

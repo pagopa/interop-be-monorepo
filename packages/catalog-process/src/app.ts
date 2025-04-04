@@ -13,6 +13,7 @@ import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
 
 const serviceName = "catalog-process";
+const serviceId = "001";
 
 const app = zodiosCtx.app();
 
@@ -21,7 +22,7 @@ const app = zodiosCtx.app();
 app.disable("x-powered-by");
 
 app.use(healthRouter);
-app.use(contextMiddleware(serviceName));
+app.use(contextMiddleware(serviceName, serviceId));
 app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(await applicationAuditEndMiddleware(serviceName, config));
 app.use(authenticationMiddleware(config));

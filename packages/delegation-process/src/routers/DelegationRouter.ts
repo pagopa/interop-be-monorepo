@@ -106,8 +106,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             getDelegationsErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -144,8 +143,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             getDelegationByIdErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -183,8 +181,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             getDelegationContractErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving contract ${req.params.contractId} of delegation ${req.params.delegationId}`
           );
 
@@ -223,8 +220,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             createProducerDelegationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -249,8 +245,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             approveDelegationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -277,8 +272,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectDelegationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -303,8 +297,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeDelegationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -342,8 +335,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             createConsumerDelegationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -367,8 +359,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             approveDelegationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -394,8 +385,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectDelegationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -420,8 +410,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeDelegationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -461,8 +450,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             getConsumerDelegatorsErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -502,8 +490,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             getConsumerDelegatorsWithAgreementsErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -543,8 +530,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             getConsumerEservicesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);

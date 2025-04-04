@@ -79,8 +79,7 @@ const authorizationServerRouter = (
           const errorRes = makeApiProblem(
             tooManyRequestsError(tokenResult.rateLimitedTenantId),
             authorizationServerErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -96,8 +95,7 @@ const authorizationServerRouter = (
         const errorRes = makeApiProblem(
           err,
           authorizationServerErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
           const cleanedError: Problem = {
