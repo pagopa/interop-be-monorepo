@@ -75,9 +75,10 @@ function getPurposesFilters(
       )
     : undefined;
 
-  const eservicesIdsFilter = eservicesIds?.length
-    ? inArray(purposeInReadmodelPurpose.eserviceId, eservicesIds)
-    : undefined;
+  const eservicesIdsFilter =
+    eservicesIds.length > 0
+      ? inArray(purposeInReadmodelPurpose.eserviceId, eservicesIds)
+      : undefined;
 
   const versionStateFilter =
     states.length > 0
