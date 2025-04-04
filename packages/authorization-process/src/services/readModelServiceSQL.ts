@@ -214,7 +214,7 @@ export function readModelServiceBuilderSQL({
             ])
           )
         )
-      ).data;
+      )?.data;
     },
     async getClientKeyByKid(kid: string): Promise<Key | undefined> {
       const queryResult = await readModelDB
@@ -395,7 +395,7 @@ export function readModelServiceBuilderSQL({
             )
           )
         )
-      ).data;
+      )?.data;
     },
   };
 }
