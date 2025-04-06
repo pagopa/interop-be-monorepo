@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Descriptor } from "pagopa-interop-models";
-import { splitDescriptorIntoObjectsSQL } from "pagopa-interop-readmodel";
+// import { splitDescriptorIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { genericLogger } from "pagopa-interop-commons";
 import { EServiceId } from "pagopa-interop-models";
 import {
+  EServiceDescriptorDocumentSQL,
   EServiceDescriptorSQL,
-  EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { DBContext } from "../db/db.js";
 import { eserviceRiskAnalysisAnswerRepository } from "../repository/catalog/eserviceRiskAnalysisAnswer.repository.js";
@@ -307,7 +307,7 @@ export function catalogServiceBuilder(db: DBContext) {
     },
 
     async upsertBatchEServiceDocument(
-      documents: any[], // todo
+      documents: EServiceDescriptorDocumentSQL[],
       dbContext: DBContext,
       batchSize: number = 50
     ): Promise<void> {

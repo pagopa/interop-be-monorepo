@@ -9,13 +9,13 @@ import {
   Descriptor,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+import // splitDescriptorIntoObjectsSQL,
+// splitEserviceIntoObjectsSQL,
+"pagopa-interop-readmodel";
 import {
-  splitDescriptorIntoObjectsSQL,
-  splitEserviceIntoObjectsSQL,
-} from "pagopa-interop-readmodel";
-import {
+  EServiceDescriptorDocumentSQL,
   EServiceDescriptorSQL,
-  EServiceItemsSQL,
+  // EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { DBContext } from "../../db/db.js";
@@ -31,11 +31,7 @@ export async function handleCatalogMessageV1(
   > = [];
   const deleteEServiceBatch: string[] = [];
   const deleteDescriptorBatch: string[] = [];
-  const upsertEServiceDocumentBatch: Array<{
-    descriptorId: string;
-    documentData: any;
-    event_version: number;
-  }> = [];
+  const upsertEServiceDocumentBatch: EServiceDescriptorDocumentSQL[] = [];
   const deleteEServiceDocumentBatch: string[] = [];
   const deleteRiskAnalysisBatch: string[] = [];
   const upsertDescriptorBatch: Array<{
@@ -71,16 +67,26 @@ export async function handleCatalogMessageV1(
       .with({ type: "EServiceWithDescriptorsDeleted" }, async (msg) => {
         deleteDescriptorBatch.push(msg.data.descriptorId);
       })
-      .with(
-        { type: P.union("EServiceDocumentUpdated", "EServiceDocumentAdded") },
-        async (msg) => {
+      .with({ type: P.union("EServiceDocumentUpdated") }, async (msg) => {
+        if (msg.data.updatedDocument) {
           upsertEServiceDocumentBatch.push({
-            descriptorId: msg.data.descriptorId,
-            documentData: msg.data, // todo
-            event_version: msg.event_version,
+            ...msg.data.updatedDocument,
+            eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+            descriptorId: unsafeBrandId<EServiceId>(msg.data.descriptorId),
+            metadataVersion: msg.version,
           });
         }
-      )
+      })
+      .with({ type: P.union("EServiceDocumentAdded") }, async (msg) => {
+        if (msg.data.document) {
+          upsertEServiceDocumentBatch.push({
+            ...msg.data.document,
+            eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+            descriptorId: unsafeBrandId<EServiceId>(msg.data.descriptorId),
+            metadataVersion: msg.version,
+          });
+        }
+      })
       .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
         deleteEServiceDocumentBatch.push(msg.data.descriptorId);
       })

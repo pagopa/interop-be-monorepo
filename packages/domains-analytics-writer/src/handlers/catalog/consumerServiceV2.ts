@@ -3,8 +3,8 @@
 /* eslint-disable functional/immutable-data */
 import { EService, EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
-import { EServiceItemsSQL } from "pagopa-interop-readmodel-models";
+// import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
+// import { EServiceItemsSQL } from "pagopa-interop-readmodel-models";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { DBContext } from "../../db/db.js";
 
@@ -104,7 +104,6 @@ export async function handleCatalogMessageV2(
       )
       .exhaustive();
   }
-
   if (upsertBatch.length > 0) {
     await catalogService.upsertBatchEservice(upsertBatch, dbContext);
   }

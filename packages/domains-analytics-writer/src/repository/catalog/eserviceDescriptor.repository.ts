@@ -56,6 +56,12 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         if (records.length > 0) {
           await t.none(pgp.helpers.insert(records, cs));
         }
+        await t.none(`
+        DELETE FROM ${stagingTable} a
+        USING ${stagingTable} b
+        WHERE a.id = b.id
+        AND a.metadata_version < b.metadata_version;
+      `);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTable}: ${error}`
@@ -106,7 +112,10 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
           stagingDeletingTable
         );
 
-        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
+        await t.none(
+          pgp.helpers.insert({ id, deleted: true }, cs) +
+            " ON CONFLICT DO NOTHING"
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTable}: ${error}`

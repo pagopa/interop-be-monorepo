@@ -3,11 +3,13 @@ import { genericInternalError } from "pagopa-interop-models";
 import { EServiceRiskAnalysisSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection, IMain, ITask } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceRiskAnalysisMapping,
-  eserviceRiskAnalysisDeletingSchema,
   eserviceRiskAnalysisSchema,
 } from "../../model/catalog/eserviceRiskAnalysis.js";
 import { CatalogDbTable } from "../../model/db.js";
@@ -43,6 +45,12 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       try {
         if (records.length > 0) {
           await t.none(pgp.helpers.insert(records, cs));
+          await t.none(`
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
+          WHERE a.id = b.id
+          AND a.metadata_version < b.metadata_version;
+        `);
         }
       } catch (error: unknown) {
         throw genericInternalError(
@@ -66,7 +74,10 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
         stagingDeletingTable
       );
       try {
-        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
+        await t.none(
+          pgp.helpers.insert({ id, deleted: true }, cs) +
+            " ON CONFLICT DO NOTHING"
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTable}: ${error}`
@@ -103,13 +114,11 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
 
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        const mergeQuery = generateMergeQuery(
-          eserviceRiskAnalysisDeletingSchema,
+        const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id",
-          true
+          "id"
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

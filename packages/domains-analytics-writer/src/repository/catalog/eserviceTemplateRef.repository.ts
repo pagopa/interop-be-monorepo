@@ -37,6 +37,12 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
       try {
         if (records.length > 0) {
           await t.none(pgp.helpers.insert(records, cs));
+          await t.none(`
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
+          WHERE a.eservice_template_id = b.eservice_template_id
+          AND a.metadata_version < b.metadata_version;
+        `);
         }
       } catch (error: unknown) {
         throw genericInternalError(

@@ -43,6 +43,12 @@ export function eserviceRepository(conn: DBConnection) {
       const cs = buildColumnSet<EServiceSQL>(pgp, mapping, stagingTable);
       try {
         await t.none(pgp.helpers.insert(records, cs));
+        await t.none(`
+        DELETE FROM ${stagingTable} a
+        USING ${stagingTable} b
+        WHERE a.id = b.id
+        AND a.metadata_version < b.metadata_version;
+      `);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTable}: ${error}`

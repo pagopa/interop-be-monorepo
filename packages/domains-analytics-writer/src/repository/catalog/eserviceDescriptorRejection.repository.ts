@@ -40,6 +40,12 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
       try {
         if (records.length > 0) {
           await t.none(pgp.helpers.insert(records, cs));
+          await t.none(`
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
+          WHERE a.descriptor_id = b.descriptor_id
+          AND a.metadata_version < b.metadata_version;
+        `);
         }
       } catch (error: unknown) {
         throw genericInternalError(

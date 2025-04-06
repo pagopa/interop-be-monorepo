@@ -43,6 +43,12 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       try {
         if (records.length > 0) {
           await t.none(pgp.helpers.insert(records, cs));
+          await t.none(`
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
+          WHERE a.id = b.id
+          AND a.metadata_version < b.metadata_version;
+        `);
         }
       } catch (error: unknown) {
         throw genericInternalError(
@@ -94,7 +100,8 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       );
       try {
         await t.none(
-          pgp.helpers.insert({ id: descriptorId, deleted: true }, cs)
+          pgp.helpers.insert({ id: descriptorId, deleted: true }, cs) +
+            " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
