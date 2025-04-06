@@ -132,8 +132,8 @@ async function processBatch({
         }
         return async (dbContext: DBContext) => {
           await Promise.all([
-            handleCatalogMessageV1.bind(null, eserviceV1, dbContext),
-            handleCatalogMessageV2.bind(null, eserviceV2, dbContext),
+            handleCatalogMessageV1.bind(null, eserviceV1, dbContext)(),
+            handleCatalogMessageV2.bind(null, eserviceV2, dbContext)(),
           ]);
         };
       })
@@ -151,8 +151,8 @@ async function processBatch({
         }
         return async (dbContext: DBContext) => {
           await Promise.all([
-            handleAgreementMessageV1.bind(null, agreementV1, dbContext),
-            handleAgreementMessageV2.bind(null, agreementV2, dbContext),
+            handleAgreementMessageV1.bind(null, agreementV1, dbContext)(),
+            handleAgreementMessageV2.bind(null, agreementV2, dbContext)(),
           ]);
         };
       })
@@ -177,8 +177,8 @@ async function processBatch({
         }
         return async (dbContext: DBContext) => {
           await Promise.all([
-            handlePurposeMessageV1.bind(null, purposeV1, dbContext),
-            handlePurposeMessageV2.bind(null, purposeV2, dbContext),
+            handlePurposeMessageV1.bind(null, purposeV1, dbContext)(),
+            handlePurposeMessageV2.bind(null, purposeV2, dbContext)(),
           ]);
         };
       })
@@ -196,8 +196,8 @@ async function processBatch({
         }
         return async (dbContext: DBContext) => {
           await Promise.all([
-            handleTenantMessageV1.bind(null, tenantV1, dbContext),
-            handleTenantMessageV2.bind(null, tenantV2, dbContext),
+            handleTenantMessageV1.bind(null, tenantV1, dbContext)(),
+            handleTenantMessageV2.bind(null, tenantV2, dbContext)(),
           ]);
         };
       })
@@ -215,8 +215,8 @@ async function processBatch({
         }
         return async (dbContext: DBContext) => {
           await Promise.all([
-            handleAuthorizationMessageV1.bind(null, authV1, dbContext),
-            handleAuthorizationEventMessageV2.bind(null, authV2, dbContext),
+            handleAuthorizationMessageV1.bind(null, authV1, dbContext)(),
+            handleAuthorizationEventMessageV2.bind(null, authV2, dbContext)(),
           ]);
         };
       })
@@ -251,7 +251,7 @@ async function processBatch({
       });
     promises.push(handler(dbContext));
   }
-  await Promise.all(promises);
+  await Promise.allSettled(promises);
 
   genericLogger.info(
     `Handled batch. Partition: ${
