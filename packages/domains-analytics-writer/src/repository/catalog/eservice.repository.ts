@@ -22,7 +22,7 @@ export function eserviceRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceSQL
+      records: EServiceSQL[]
     ): Promise<void> {
       const mapping: EserviceMapping = {
         id: (r: EServiceSQL) => r.id,
@@ -120,7 +120,10 @@ export function eserviceRepository(conn: DBConnection) {
           stagingDeletingTable
         );
 
-        await t.none(pgp.helpers.insert({ id, deleted: true }, cs));
+        await t.none(
+          pgp.helpers.insert({ id, deleted: true }, cs) +
+            " ON CONFLICT DO NOTHING"
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTable}: ${error}`

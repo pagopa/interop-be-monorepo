@@ -20,7 +20,7 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceTemplateRefSQL[]
+      records: Array<EServiceTemplateRefSQL | undefined>
     ): Promise<void> {
       const mapping: EserviceTemplateRefMapping = {
         eservice_template_id: (r: EServiceTemplateRefSQL) =>

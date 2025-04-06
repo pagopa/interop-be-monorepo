@@ -77,6 +77,31 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
         );
       }
     },
+
+    async deleteInterface(
+      t: ITask<unknown>,
+      pgp: IMain,
+      descriptorId: string
+    ): Promise<void> {
+      const mapping = {
+        id: () => descriptorId,
+        deleted: () => true,
+      };
+      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        pgp,
+        mapping,
+        CatalogDbTable.deleting_by_id_table
+      );
+      try {
+        await t.none(
+          pgp.helpers.insert({ id: descriptorId, deleted: true }, cs)
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${CatalogDbTable.deleting_by_id_table}: ${error}`
+        );
+      }
+    },
   };
 }
 
