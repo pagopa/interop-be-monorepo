@@ -41,7 +41,7 @@ export async function handleCatalogMessageV1(
   }> = [];
 
   for (const msg of messages) {
-    await match(msg)
+    match(msg)
       .with(
         {
           type: P.union(
@@ -53,7 +53,7 @@ export async function handleCatalogMessageV1(
             "EServiceRiskAnalysisUpdated"
           ),
         },
-        async (msg) => {
+        (msg) => {
           const splitResult: EServiceItemsSQL = splitEserviceIntoObjectsSQL(
             EService.parse(msg.data.eservice),
             msg.version
@@ -61,13 +61,13 @@ export async function handleCatalogMessageV1(
           upsertEServiceBatch.push(splitResult);
         }
       )
-      .with({ type: "EServiceDeleted" }, async (msg) => {
+      .with({ type: "EServiceDeleted" }, (msg) => {
         deleteEServiceBatch.push(msg.data.eserviceId);
       })
-      .with({ type: "EServiceWithDescriptorsDeleted" }, async (msg) => {
+      .with({ type: "EServiceWithDescriptorsDeleted" }, (msg) => {
         deleteDescriptorBatch.push(msg.data.descriptorId);
       })
-      .with({ type: P.union("EServiceDocumentUpdated") }, async (msg) => {
+      .with({ type: P.union("EServiceDocumentUpdated") }, (msg) => {
         if (msg.data.updatedDocument) {
           upsertEServiceDocumentBatch.push({
             ...msg.data.updatedDocument,
@@ -77,7 +77,7 @@ export async function handleCatalogMessageV1(
           });
         }
       })
-      .with({ type: P.union("EServiceDocumentAdded") }, async (msg) => {
+      .with({ type: P.union("EServiceDocumentAdded") }, (msg) => {
         if (msg.data.document) {
           upsertEServiceDocumentBatch.push({
             ...msg.data.document,
@@ -87,17 +87,17 @@ export async function handleCatalogMessageV1(
           });
         }
       })
-      .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
+      .with({ type: "EServiceDocumentDeleted" }, (msg) => {
         deleteEServiceDocumentBatch.push(msg.data.descriptorId);
       })
-      .with({ type: "EServiceRiskAnalysisDeleted" }, async (msg) => {
+      .with({ type: "EServiceRiskAnalysisDeleted" }, (msg) => {
         deleteRiskAnalysisBatch.push(msg.data.riskAnalysisId);
       })
       .with(
         {
           type: P.union("EServiceDescriptorAdded", "EServiceDescriptorUpdated"),
         },
-        async (msg) => {
+        (msg) => {
           const descriptor = Descriptor.parse(msg.data.eserviceDescriptor);
           const splitResult = splitDescriptorIntoObjectsSQL(
             unsafeBrandId<EServiceId>(msg.data.eserviceId),

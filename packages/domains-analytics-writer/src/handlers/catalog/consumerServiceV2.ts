@@ -22,23 +22,17 @@ export async function handleCatalogMessageV2(
   const deleteEserviceInterfaceBatch: string[] = [];
 
   for (const message of messages) {
-    await match(message)
-      .with({ type: "EServiceDeleted" }, async (msg) => {
+    match(message)
+      .with({ type: "EServiceDeleted" }, (msg) => {
         deleteEServiceBatch.push(msg.data.eserviceId);
       })
-      .with(
-        { type: P.union("EServiceDraftDescriptorDeleted") },
-        async (msg) => {
-          deleteDescriptorBatch.push(msg.data.descriptorId);
-        }
-      )
-      .with(
-        { type: P.union("EServiceDescriptorDocumentDeleted") },
-        async (msg) => {
-          deleteEServiceDocumentBatch.push(msg.data.descriptorId);
-        }
-      )
-      .with({ type: P.union("EServiceRiskAnalysisDeleted") }, async (msg) => {
+      .with({ type: P.union("EServiceDraftDescriptorDeleted") }, (msg) => {
+        deleteDescriptorBatch.push(msg.data.descriptorId);
+      })
+      .with({ type: P.union("EServiceDescriptorDocumentDeleted") }, (msg) => {
+        deleteEServiceDocumentBatch.push(msg.data.descriptorId);
+      })
+      .with({ type: P.union("EServiceRiskAnalysisDeleted") }, (msg) => {
         deleteEserviceRiskAnalysisBatch.push(msg.data.riskAnalysisId);
       })
       .with(
@@ -48,16 +42,13 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
           ),
         },
-        async (msg) => {
+        (msg) => {
           deleteEServiceDocumentBatch.push(msg.data.documentId);
         }
       )
-      .with(
-        { type: P.union("EServiceDescriptorInterfaceDeleted") },
-        async (msg) => {
-          deleteEserviceInterfaceBatch.push(msg.data.descriptorId);
-        }
-      )
+      .with({ type: P.union("EServiceDescriptorInterfaceDeleted") }, (msg) => {
+        deleteEserviceInterfaceBatch.push(msg.data.descriptorId);
+      })
       .with(
         {
           type: P.union(
@@ -94,7 +85,7 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentAddedByTemplateUpdate"
           ),
         },
-        async (msg) => {
+        (msg) => {
           const splitResult: EServiceItemsSQL = splitEserviceIntoObjectsSQL(
             EService.parse(msg.data.eservice),
             msg.version
