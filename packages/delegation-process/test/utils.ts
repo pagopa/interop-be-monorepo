@@ -65,7 +65,7 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
   agreementReadModelServiceBuilder(readModelDB);
 
-export const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   delegationReadModelServiceSQL,
