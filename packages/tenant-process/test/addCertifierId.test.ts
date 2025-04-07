@@ -5,7 +5,6 @@ import {
   Tenant,
   generateId,
   protobufDecoder,
-  toReadModelAttribute,
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
@@ -14,7 +13,6 @@ import {
   getMockAttribute,
   getMockTenant,
   readLastEventByStreamId,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -22,8 +20,8 @@ import {
   certifierWithExistingAttributes,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAttribute,
   addOneTenant,
-  attributes,
   postgresDB,
   tenantService,
 } from "./utils.js";
@@ -143,7 +141,7 @@ describe("addCertifierId", async () => {
     };
 
     await addOneTenant(certifierTenant);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     expect(
       tenantService.addCertifierId(
         {

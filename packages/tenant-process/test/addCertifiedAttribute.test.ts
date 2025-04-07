@@ -15,12 +15,10 @@ import {
   TenantCertifiedAttributeAssignedV2,
   fromTenantKindV2,
   toTenantV2,
-  toReadModelAttribute,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, beforeAll, vi, afterAll, it, expect } from "vitest";
 import {
-  writeInReadmodel,
   getMockAttribute,
   readLastEventByStreamId,
   getMockCertifiedTenantAttribute,
@@ -35,10 +33,10 @@ import {
   attributeDoesNotBelongToCertifier,
 } from "../src/model/domain/errors.js";
 import {
-  attributes,
   addOneTenant,
   tenantService,
   postgresDB,
+  addOneAttribute,
 } from "./utils.js";
 
 describe("addCertifiedAttribute", async () => {
@@ -76,7 +74,7 @@ describe("addCertifiedAttribute", async () => {
 
   it("Should add the certified attribute if the tenant doesn't have that", async () => {
     await addOneTenant(targetTenant);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(requesterTenant);
     const returnedTenant = await tenantService.addCertifiedAttribute(
       {
@@ -119,7 +117,7 @@ describe("addCertifiedAttribute", async () => {
     expect(returnedTenant).toEqual(updatedTenant);
   });
   it("Should store TenantCertifiedAttributeAssigned and tenantUpdatedKind events", async () => {
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(requesterTenant);
     const tenantWithRevaluatedKind: Tenant = {
       ...targetTenant,
@@ -177,8 +175,7 @@ describe("addCertifiedAttribute", async () => {
       ],
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-
+    await addOneAttribute(attribute);
     await addOneTenant(tenantWithCertifiedAttribute);
     await addOneTenant(requesterTenant);
     const returnedTenant = await tenantService.addCertifiedAttribute(
@@ -232,8 +229,7 @@ describe("addCertifiedAttribute", async () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-
+    await addOneAttribute(attribute);
     await addOneTenant(tenantAlreadyAssigned);
     await addOneTenant(requesterTenant);
     expect(
@@ -251,8 +247,7 @@ describe("addCertifiedAttribute", async () => {
     );
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-
+    await addOneAttribute(attribute);
     expect(
       tenantService.addCertifiedAttribute(
         {
@@ -284,8 +279,7 @@ describe("addCertifiedAttribute", async () => {
 
   it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
     const tenant: Tenant = getMockTenant();
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-
+    await addOneAttribute(attribute);
     await addOneTenant(targetTenant);
     await addOneTenant(tenant);
 
@@ -306,10 +300,7 @@ describe("addCertifiedAttribute", async () => {
       ...attribute,
       origin: generateId(),
     };
-    await writeInReadmodel(
-      toReadModelAttribute(notCompliantOriginAttribute),
-      attributes
-    );
+    await addOneAttribute(notCompliantOriginAttribute);
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
 

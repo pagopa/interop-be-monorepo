@@ -1,13 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { attributeKind, DelegationId, TenantId } from "pagopa-interop-models";
 import {
-  attributeKind,
-  DelegationId,
-  TenantId,
-  toReadModelAttribute,
-} from "pagopa-interop-models";
-import {
-  writeInReadmodel,
   getMockAttribute,
   readLastEventByStreamId,
   getMockTenant,
@@ -34,10 +28,10 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
-  attributes,
   postgresDB,
   tenantService,
   addOneDelegation,
+  addOneAttribute,
 } from "./utils.js";
 
 describe("addDeclaredAttribute", async () => {
@@ -63,7 +57,7 @@ describe("addDeclaredAttribute", async () => {
       attributes: [],
     };
 
-    await writeInReadmodel(toReadModelAttribute(declaredAttribute), attributes);
+    await addOneAttribute(declaredAttribute);
     await addOneTenant(tenantWithoutDeclaredAttribute);
     const returnedTenant = await tenantService.addDeclaredAttribute(
       {
@@ -116,7 +110,7 @@ describe("addDeclaredAttribute", async () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(declaredAttribute), attributes);
+    await addOneAttribute(declaredAttribute);
     await addOneTenant(tenantWithAttributeRevoked);
     const returnedTenant = await tenantService.addDeclaredAttribute(
       {
@@ -167,7 +161,7 @@ describe("addDeclaredAttribute", async () => {
       attributes: [],
     };
 
-    await writeInReadmodel(toReadModelAttribute(declaredAttribute), attributes);
+    await addOneAttribute(declaredAttribute);
     await addOneTenant(delegateWithoutDeclaredAttribute);
     await addOneTenant(delegatorWithoutDeclaredAttribute);
 
@@ -242,7 +236,7 @@ describe("addDeclaredAttribute", async () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(declaredAttribute), attributes);
+    await addOneAttribute(declaredAttribute);
     await addOneTenant(delegateWithoutDeclaredAttribute);
     await addOneTenant(delegatorWithAttributeRevoked);
 
@@ -299,7 +293,7 @@ describe("addDeclaredAttribute", async () => {
     expect(returnedTenant).toEqual(updatedTenant);
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    await writeInReadmodel(toReadModelAttribute(declaredAttribute), attributes);
+    await addOneAttribute(declaredAttribute);
     expect(
       tenantService.addDeclaredAttribute(
         {

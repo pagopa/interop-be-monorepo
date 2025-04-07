@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import {
-  getMockAttribute,
-  getMockTenant,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { getMockAttribute, getMockTenant } from "pagopa-interop-commons-test";
 import {
   Attribute,
   Tenant,
@@ -14,7 +10,6 @@ import {
   protobufDecoder,
   tenantAttributeType,
   tenantKind,
-  toReadModelAttribute,
   toTenantV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -27,8 +22,8 @@ import {
   tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAttribute,
   addOneTenant,
-  attributes,
   readLastTenantEvent,
   tenantService,
 } from "./utils.js";
@@ -65,7 +60,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+    await addOneAttribute(mockAttribute);
     await addOneTenant(requesterTenant);
     await addOneTenant(targetTenant);
 
@@ -125,7 +120,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+    await addOneAttribute(mockAttribute);
     await addOneTenant(targetTenant);
 
     expect(
@@ -161,7 +156,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+    await addOneAttribute(mockAttribute);
     await addOneTenant(requesterTenant);
     await addOneTenant(targetTenant);
 
@@ -199,7 +194,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+    await addOneAttribute(mockAttribute);
     await addOneTenant(requesterTenant);
 
     expect(
@@ -274,7 +269,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
       kind: tenantKind.PA,
       attributes: [],
     };
-    await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+    await addOneAttribute(mockAttribute);
     await addOneTenant(requesterTenant);
     await addOneTenant(targetTenant);
 

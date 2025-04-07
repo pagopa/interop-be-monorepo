@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
-  writeInReadmodel,
   getMockAttribute,
   getMockTenant,
   readEventByStreamIdAndVersion,
@@ -14,9 +13,9 @@ import {
   fromTenantKindV2,
   toTenantV2,
   TenantCertifiedAttributeRevokedV2,
-  toReadModelAttribute,
   Attribute,
   tenantAttributeType,
+  attributeKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -29,8 +28,8 @@ import {
   addOneTenant,
   getMockCertifiedTenantAttribute,
   tenantService,
-  attributes,
   postgresDB,
+  addOneAttribute,
 } from "./utils.js";
 
 describe("testInternalRevokeCertifiedAttribute", async () => {
@@ -58,7 +57,12 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
   });
 
   it("should revoke the certified attribute if it exists", async () => {
-    const mockAttribute = getMockAttribute();
+    const mockAttribute: Attribute = {
+      ...getMockAttribute(),
+      kind: attributeKind.certified,
+      origin: "certifier-id",
+      code: "0001",
+    };
     const tenantWithCertifiedAttribute: Tenant = {
       ...requesterTenant,
       attributes: [
@@ -70,7 +74,7 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
       ],
     };
 
-    await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+    await addOneAttribute(mockAttribute);
     await addOneTenant(tenantWithCertifiedAttribute);
     await tenantService.internalRevokeCertifiedAttribute(
       {
@@ -116,7 +120,7 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
   });
   it("should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
     const mockAttribute = getMockAttribute();
-    await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+    await addOneAttribute(mockAttribute);
     const targetTenant = getMockTenant();
     expect(
       tenantService.internalRevokeCertifiedAttribute(
@@ -169,7 +173,7 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
     };
     await addOneTenant(requesterTenant);
     await addOneTenant(targetTenant);
-    await writeInReadmodel(toReadModelAttribute(mockAttribute), attributes);
+    await addOneAttribute(mockAttribute);
     expect(
       tenantService.internalRevokeCertifiedAttribute(
         {
