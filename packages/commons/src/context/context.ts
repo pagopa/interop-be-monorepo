@@ -6,8 +6,10 @@ import {
 } from "@zodios/express";
 import {
   CorrelationId,
+  generateId,
   makeApiProblemBuilder,
   missingHeader,
+  SpanId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
@@ -18,6 +20,7 @@ export type AppContext<A extends AuthData = AuthData> = {
   serviceName: string;
   authData: A;
   correlationId: CorrelationId;
+  spanId: SpanId;
   requestTimestamp: number;
 };
 
@@ -44,6 +47,7 @@ export const contextMiddleware =
       req.ctx = {
         serviceName,
         correlationId: unsafeBrandId<CorrelationId>(correlationId),
+        spanId: generateId<SpanId>(),
       } as AppContext;
     };
 

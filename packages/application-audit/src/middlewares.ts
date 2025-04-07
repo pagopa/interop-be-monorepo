@@ -1,6 +1,10 @@
 import { RequestHandler, Request } from "express";
 import { initProducer } from "kafka-iam-auth";
-import { genericInternalError } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  genericInternalError,
+  SpanId,
+} from "pagopa-interop-models";
 import {
   AppContext,
   ApplicationAuditProducerConfig,
@@ -19,7 +23,8 @@ const Phase = {
 } as const;
 
 const ApplicationAuditBeginRequest = z.object({
-  correlationId: z.string(),
+  correlationId: CorrelationId,
+  spanId: SpanId,
   service: z.string(),
   serviceVersion: z.string(),
   endpoint: z.string(),
@@ -37,7 +42,8 @@ type ApplicationAuditBeginRequest = z.infer<
 >;
 
 const ApplicationAuditEndRequest = z.object({
-  correlationId: z.string(),
+  correlationId: CorrelationId,
+  spanId: SpanId,
   service: z.string(),
   serviceVersion: z.string(),
   endpoint: z.string(),
@@ -58,7 +64,8 @@ type ApplicationAuditEndRequest = z.infer<typeof ApplicationAuditEndRequest>;
 
 // TODO use this for auth server audit
 // const ApplicationAuditEndRequestAuthServer = z.object({
-//   correlationId: z.string(),
+//   correlationId: CorrelationId,
+//   spanId: SpanId,
 //   service: z.string(),
 //   serviceVersion: z.string(),
 //   endpoint: z.string(),
@@ -80,7 +87,8 @@ type ApplicationAuditEndRequest = z.infer<typeof ApplicationAuditEndRequest>;
 // >;
 
 export const ApplicationAuditEndRequestSessionTokenExchange = z.object({
-  correlationId: z.string(),
+  correlationId: CorrelationId,
+  spanId: SpanId,
   service: z.string(),
   serviceVersion: z.string(),
   endpoint: z.string(),
@@ -146,6 +154,7 @@ export async function applicationAuditBeginMiddleware(
 
     const initialAudit: ApplicationAuditBeginRequest = {
       correlationId,
+      spanId: context.spanId,
       service: serviceName,
       serviceVersion: config.serviceVersion,
       endpoint: req.path,
@@ -197,6 +206,7 @@ export async function applicationAuditEndMiddleware(
 
         const finalAudit: ApplicationAuditEndRequest = {
           correlationId,
+          spanId: context.spanId,
           service: serviceName,
           serviceVersion: config.serviceVersion,
           endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
@@ -275,6 +285,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
 
         const finalAudit: ApplicationAuditEndRequestSessionTokenExchange = {
           correlationId,
+          spanId: context.spanId,
           service: serviceName,
           serviceVersion: config.serviceVersion,
           endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
