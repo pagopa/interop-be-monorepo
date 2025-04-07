@@ -9,10 +9,13 @@ import { describe, expect, it } from "vitest";
 import {
   getMockAuthData,
   getMockProducerKeychain,
-  sortProducerKeychains,
 } from "pagopa-interop-commons-test";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
-import { addOneProducerKeychain, authorizationService } from "./utils.js";
+import {
+  addOneProducerKeychain,
+  authorizationService,
+  generateExpectedProducerKeychains,
+} from "./utils.js";
 
 describe("getProducerKeychains", async () => {
   const producerId: TenantId = generateId();
@@ -77,7 +80,7 @@ describe("getProducerKeychains", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(sortProducerKeychains(result.results)).toEqual([
+    expect(result.results).toEqual([
       mockProducerKeychain1,
       mockProducerKeychain2,
     ]);
@@ -147,12 +150,9 @@ describe("getProducerKeychains", async () => {
     });
 
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([
-      {
-        ...mockProducerKeychain9,
-        users: expect.arrayContaining(mockProducerKeychain9.users),
-      },
-    ]);
+    expect(result.results).toEqual(
+      generateExpectedProducerKeychains([mockProducerKeychain9])
+    );
   });
   it("should get the producer keychains if they exist (parameters: producerId)", async () => {
     await addOneProducerKeychain(mockProducerKeychain1);
@@ -169,7 +169,7 @@ describe("getProducerKeychains", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(sortProducerKeychains(result.results)).toEqual([
+    expect(result.results).toEqual([
       mockProducerKeychain1,
       mockProducerKeychain2,
     ]);
@@ -190,7 +190,7 @@ describe("getProducerKeychains", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(sortProducerKeychains(result.results)).toEqual([
+    expect(result.results).toEqual([
       mockProducerKeychain5,
       mockProducerKeychain6,
     ]);
@@ -226,16 +226,12 @@ describe("getProducerKeychains", async () => {
       limit: 50,
       logger: genericLogger,
     });
-    expect(sortProducerKeychains(result.results)).toEqual([
-      {
-        ...mockProducerKeychainForOffset1,
-        users: expect.arrayContaining(mockProducerKeychainForOffset1.users),
-      },
-      {
-        ...mockProducerKeychainForOffset2,
-        users: expect.arrayContaining(mockProducerKeychainForOffset2.users),
-      },
-    ]);
+    expect(result.results).toEqual(
+      generateExpectedProducerKeychains([
+        mockProducerKeychainForOffset1,
+        mockProducerKeychainForOffset2,
+      ])
+    );
   });
   it("should get the producer keychains if they exist (pagination: limit)", async () => {
     const mockProducerKeychainForLimit1: ProducerKeychain = {
@@ -267,16 +263,12 @@ describe("getProducerKeychains", async () => {
       limit: 2,
       logger: genericLogger,
     });
-    expect(sortProducerKeychains(result.results)).toEqual([
-      {
-        ...mockProducerKeychain3,
-        users: expect.arrayContaining(mockProducerKeychain3.users),
-      },
-      {
-        ...mockProducerKeychain4,
-        users: expect.arrayContaining(mockProducerKeychain4.users),
-      },
-    ]);
+    expect(result.results).toEqual(
+      generateExpectedProducerKeychains([
+        mockProducerKeychain3,
+        mockProducerKeychain4,
+      ])
+    );
   });
   it("should not get the producer keychains if they don't exist", async () => {
     await addOneProducerKeychain(mockProducerKeychain1);
@@ -326,15 +318,11 @@ describe("getProducerKeychains", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(sortProducerKeychains(result.results)).toEqual([
-      {
-        ...completeProducerKeychain1,
-        users: expect.arrayContaining(completeProducerKeychain1.users),
-      },
-      {
-        ...completeProducerKeychain2,
-        users: expect.arrayContaining(completeProducerKeychain2.users),
-      },
-    ]);
+    expect(result.results).toEqual(
+      generateExpectedProducerKeychains([
+        completeProducerKeychain1,
+        completeProducerKeychain2,
+      ])
+    );
   });
 });
