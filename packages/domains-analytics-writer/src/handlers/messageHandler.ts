@@ -42,7 +42,6 @@ import { handlePurposeMessageV1 } from "./purpose/consumerServiceV1.js";
 import { handlePurposeMessageV2 } from "./purpose/consumerServiceV2.js";
 import { handleTenantMessageV1 } from "./tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "./tenant/consumerServiceV2.js";
-
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function handleTopicMessages(
   payloads: EachMessagePayload[],
@@ -55,9 +54,11 @@ export async function handleTopicMessages(
     },
     {}
   );
-  const promises: Array<Promise<void>> = [];
+
+  const handlerFunctions: Array<(db: DBContext) => Promise<void>> = [];
+
   for (const [topic, payloadGroup] of Object.entries(groupsByTopic)) {
-    const handler = match(topic)
+    const handlerFn = match(topic)
       .with(config.catalogTopic, () => {
         const eserviceV1: EServiceEventEnvelopeV1[] = [];
         const eserviceV2: EServiceEventEnvelopeV2[] = [];
@@ -70,20 +71,13 @@ export async function handleTopicMessages(
             .with({ event_version: 2 }, (msg) => eserviceV2.push(msg))
             .exhaustive();
         }
-        return async (dbContext: DBContext) => {
-          const promises: Array<Promise<void>> = [];
-
+        return async (db: DBContext) => {
           if (eserviceV1.length > 0) {
-            promises.push(
-              handleCatalogMessageV1.bind(null, eserviceV1, dbContext)()
-            );
+            await handleCatalogMessageV1(eserviceV1, db);
           }
           if (eserviceV2.length > 0) {
-            promises.push(
-              handleCatalogMessageV2.bind(null, eserviceV2, dbContext)()
-            );
+            await handleCatalogMessageV2(eserviceV2, db);
           }
-          await Promise.all(promises);
         };
       })
       .with(config.agreementTopic, () => {
@@ -98,20 +92,13 @@ export async function handleTopicMessages(
             .with({ event_version: 2 }, (msg) => agreementV2.push(msg))
             .exhaustive();
         }
-        return async (dbContext: DBContext) => {
-          const promises: Array<Promise<void>> = [];
-
+        return async (db: DBContext) => {
           if (agreementV1.length > 0) {
-            promises.push(
-              handleAgreementMessageV1.bind(null, agreementV1, dbContext)()
-            );
+            await handleAgreementMessageV1(agreementV1, db);
           }
           if (agreementV2.length > 0) {
-            promises.push(
-              handleAgreementMessageV2.bind(null, agreementV2, dbContext)()
-            );
+            await handleAgreementMessageV2(agreementV2, db);
           }
-          await Promise.all(promises);
         };
       })
       .with(config.attributeTopic, () => {
@@ -124,15 +111,10 @@ export async function handleTopicMessages(
             .with({ event_version: 1 }, (msg) => attributeV1.push(msg))
             .exhaustive();
         }
-        return async (dbContext: DBContext) => {
-          const promises: Array<Promise<void>> = [];
-
+        return async (db: DBContext) => {
           if (attributeV1.length > 0) {
-            promises.push(
-              handleAttributeMessageV1.bind(null, attributeV1, dbContext)()
-            );
+            await handleAttributeMessageV1(attributeV1, db);
           }
-          await Promise.all(promises);
         };
       })
       .with(config.purposeTopic, () => {
@@ -147,20 +129,13 @@ export async function handleTopicMessages(
             .with({ event_version: 2 }, (msg) => purposeV2.push(msg))
             .exhaustive();
         }
-        return async (dbContext: DBContext) => {
-          const promises: Array<Promise<void>> = [];
-
+        return async (db: DBContext) => {
           if (purposeV1.length > 0) {
-            promises.push(
-              handlePurposeMessageV1.bind(null, purposeV1, dbContext)()
-            );
+            await handlePurposeMessageV1(purposeV1, db);
           }
           if (purposeV2.length > 0) {
-            promises.push(
-              handlePurposeMessageV2.bind(null, purposeV2, dbContext)()
-            );
+            await handlePurposeMessageV2(purposeV2, db);
           }
-          await Promise.all(promises);
         };
       })
       .with(config.tenantTopic, () => {
@@ -175,20 +150,13 @@ export async function handleTopicMessages(
             .with({ event_version: 2 }, (msg) => tenantV2.push(msg))
             .exhaustive();
         }
-        return async (dbContext: DBContext) => {
-          const promises: Array<Promise<void>> = [];
-
+        return async (db: DBContext) => {
           if (tenantV1.length > 0) {
-            promises.push(
-              handleTenantMessageV1.bind(null, tenantV1, dbContext)()
-            );
+            await handleTenantMessageV1(tenantV1, db);
           }
           if (tenantV2.length > 0) {
-            promises.push(
-              handleTenantMessageV2.bind(null, tenantV2, dbContext)()
-            );
+            await handleTenantMessageV2(tenantV2, db);
           }
-          await Promise.all(promises);
         };
       })
       .with(config.authorizationTopic, () => {
@@ -203,20 +171,13 @@ export async function handleTopicMessages(
             .with({ event_version: 2 }, (msg) => authV2.push(msg))
             .exhaustive();
         }
-        return async (dbContext: DBContext) => {
-          const promises: Array<Promise<void>> = [];
-
+        return async (db: DBContext) => {
           if (authV1.length > 0) {
-            promises.push(
-              handleAuthorizationMessageV1.bind(null, authV1, dbContext)()
-            );
+            await handleAuthorizationMessageV1(authV1, db);
           }
           if (authV2.length > 0) {
-            promises.push(
-              handleAuthorizationEventMessageV2.bind(null, authV2, dbContext)()
-            );
+            await handleAuthorizationEventMessageV2(authV2, db);
           }
-          await Promise.all(promises);
         };
       })
       .with(config.delegationTopic, () => {
@@ -229,15 +190,10 @@ export async function handleTopicMessages(
             .with({ event_version: 2 }, (msg) => delegationV2.push(msg))
             .exhaustive();
         }
-        return async (dbContext: DBContext) => {
-          const promises: Array<Promise<void>> = [];
-
+        return async (db: DBContext) => {
           if (delegationV2.length > 0) {
-            promises.push(
-              handleDelegationMessageV2.bind(null, delegationV2, dbContext)()
-            );
+            await handleDelegationMessageV2(delegationV2, db);
           }
-          await Promise.all(promises);
         };
       })
       .with(config.eserviceTemplateTopic, () => {
@@ -250,25 +206,17 @@ export async function handleTopicMessages(
             .with({ event_version: 2 }, (msg) => templateV2.push(msg))
             .exhaustive();
         }
-        return async (dbContext: DBContext) => {
-          const promises: Array<Promise<void>> = [];
-
+        return async (db: DBContext) => {
           if (templateV2.length > 0) {
-            promises.push(
-              handleEserviceTemplateMessageV2.bind(
-                null,
-                templateV2,
-                dbContext
-              )()
-            );
+            await handleEserviceTemplateMessageV2(templateV2, db);
           }
-          await Promise.all(promises);
         };
       })
       .otherwise(() => {
         throw genericInternalError(`Unknown topic`);
       });
-    promises.push(handler(dbContext));
+
+    handlerFunctions.push(handlerFn);
   }
-  return promises;
+  return handlerFunctions.map((fn) => fn(dbContext));
 }

@@ -13,6 +13,37 @@ import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import { AttributeDbtable } from "./model/db.js";
 import { handleTopicMessages } from "./handlers/messageHandler.js";
+const dbInstance = initDB({
+  username: config.dbUsername,
+  password: config.dbPassword,
+  host: config.dbHost,
+  port: config.dbPort,
+  database: config.dbName,
+  useSSL: config.dbUseSSL,
+  maxConnectionPool: config.dbMaxConnectionPool,
+});
+
+const connection = await dbInstance.connect();
+const dbContext: DBContext = {
+  conn: connection,
+  pgp: dbInstance.$config.pgp,
+};
+
+await retryConnection(
+  dbInstance,
+  dbContext,
+  config,
+  async (db) => {
+    await setupDbServiceBuilder(db.conn, config).setupStagingTables([
+      AttributeDbtable.attribute,
+    ]);
+    await setupDbServiceBuilder(
+      db.conn,
+      config
+    ).setupStagingDeletingByIdTables();
+  },
+  logger({ serviceName: config.serviceName })
+);
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function processBatch({
@@ -20,38 +51,6 @@ export async function processBatch({
   heartbeat,
   pause,
 }: EachBatchPayload): Promise<void> {
-  const dbInstance = initDB({
-    username: config.dbUsername,
-    password: config.dbPassword,
-    host: config.dbHost,
-    port: config.dbPort,
-    database: config.dbName,
-    useSSL: config.dbUseSSL,
-    maxConnectionPool: config.dbMaxConnectionPool,
-  });
-
-  const connection = await dbInstance.connect();
-  const dbContext: DBContext = {
-    conn: connection,
-    pgp: dbInstance.$config.pgp,
-  };
-
-  await retryConnection(
-    dbInstance,
-    dbContext,
-    config,
-    async (db) => {
-      await setupDbServiceBuilder(db.conn, config).setupStagingTables([
-        AttributeDbtable.attribute,
-      ]);
-      await setupDbServiceBuilder(
-        db.conn,
-        config
-      ).setupStagingDeletingByIdTables();
-    },
-    logger({ serviceName: config.serviceName })
-  );
-
   const payloads: EachMessagePayload[] = batch.messages.map((message) => ({
     topic: batch.topic,
     partition: batch.partition,
@@ -60,10 +59,7 @@ export async function processBatch({
     message,
   }));
 
-  const promises: Array<Promise<void>> = await handleTopicMessages(
-    payloads,
-    dbContext
-  );
+  const promises = await handleTopicMessages(payloads, dbContext);
   await Promise.allSettled(promises);
 
   genericLogger.info(
@@ -78,13 +74,13 @@ await runBatchConsumer(
   batchConsumerConfig,
   [
     config.attributeTopic,
-    config.agreementTopic,
-    config.catalogTopic,
-    config.purposeTopic,
-    config.tenantTopic,
-    config.delegationTopic,
-    config.authorizationTopic,
-    config.eserviceTemplateTopic,
+    // config.agreementTopic,
+    // config.catalogTopic,
+    // config.purposeTopic,
+    // config.tenantTopic,
+    // config.delegationTopic,
+    // config.authorizationTopic,
+    // config.eserviceTemplateTopic,
   ],
   processBatch
 );
