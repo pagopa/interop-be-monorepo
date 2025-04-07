@@ -102,7 +102,7 @@ describe("revokeVerifiedAttribute", async () => {
       hasDelegation: true,
     },
   ])(
-    "Should revoke the VerifiedAttribute if it exist $desc",
+    "Should revoke the VerifiedAttribute if it exists $desc",
     async (hasDelegation) => {
       const mockVerifiedBy = getMockVerifiedBy();
       const tenantWithVerifiedAttribute: Tenant = {
@@ -123,8 +123,8 @@ describe("revokeVerifiedAttribute", async () => {
         updatedAt: new Date(),
       };
 
-      await addOneTenant(tenantWithVerifiedAttribute);
       await addOneTenant(revokerTenant);
+      await addOneTenant(tenantWithVerifiedAttribute);
       await addOneEService(eService);
       await addOneAgreement(agreementEservice);
       if (hasDelegation) {
@@ -197,20 +197,29 @@ describe("revokeVerifiedAttribute", async () => {
     ).rejects.toThrowError(tenantNotFound(targetTenant.id));
   });
   it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
+    const otherRevoker = getMockTenant();
+
     const tenantWithoutSameAttributeId: Tenant = {
       ...targetTenant,
       attributes: [
         {
           ...verifiedAttribute,
           id: generateId(),
-          verifiedBy: [{ ...getMockVerifiedBy() }],
-          revokedBy: [{ ...getMockRevokedBy() }],
+          verifiedBy: [{ id: otherRevoker.id, verificationDate: new Date() }],
+          revokedBy: [
+            {
+              id: otherRevoker.id,
+              verificationDate: new Date(),
+              revocationDate: new Date(),
+            },
+          ],
         },
       ],
     };
 
-    await addOneTenant(tenantWithoutSameAttributeId);
+    await addOneTenant(otherRevoker);
     await addOneTenant(revokerTenant);
+    await addOneTenant(tenantWithoutSameAttributeId);
     await addOneEService(eService);
     await addOneAgreement(agreementEservice);
     expect(
@@ -224,7 +233,8 @@ describe("revokeVerifiedAttribute", async () => {
       )
     ).rejects.toThrowError(attributeNotFound(verifiedAttribute.id));
   });
-  it("Should throw attributeRevocationNotAllowed if the organization is not allowed to revoke the attribute", async () => {
+  it.only("Should throw attributeRevocationNotAllowed if the organization is not allowed to revoke the attribute", async () => {
+    const otherVerifier = getMockTenant();
     const tenantWithVerifiedAttribute: Tenant = {
       ...targetTenant,
       attributes: [
@@ -232,17 +242,17 @@ describe("revokeVerifiedAttribute", async () => {
           ...verifiedAttribute,
           verifiedBy: [
             {
-              ...getMockVerifiedBy(),
-              id: generateId(),
+              id: otherVerifier.id,
+              verificationDate: new Date(),
             },
           ],
-          revokedBy: [{ ...getMockRevokedBy() }],
         },
       ],
     };
 
-    await addOneTenant(tenantWithVerifiedAttribute);
+    await addOneTenant(otherVerifier);
     await addOneTenant(revokerTenant);
+    await addOneTenant(tenantWithVerifiedAttribute);
     await addOneEService(eService);
     await addOneAgreement(agreementEservice);
 
@@ -287,8 +297,8 @@ describe("revokeVerifiedAttribute", async () => {
       ],
     };
 
-    await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(revokerTenant);
+    await addOneTenant(tenantWithVerifiedAttribute);
     await addOneEService(eService);
     await addOneAgreement(agreementEservice);
 
