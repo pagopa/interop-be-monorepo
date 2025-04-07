@@ -111,9 +111,9 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
         .limit(limit)
-        .offset(offset)
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
+        .offset(offset);
 
       const queryResult = await readModelDB
         .select({
@@ -185,7 +185,8 @@ export function readModelServiceBuilderSQL(
             tenantInReadmodelTenant.id,
             subquery.map((row) => row.tenantId)
           )
-        );
+        )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       return {
         results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
@@ -289,9 +290,9 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
         .limit(limit)
-        .offset(offset)
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
+        .offset(offset);
 
       const queryResult = await readModelDB
         .select({
@@ -363,7 +364,8 @@ export function readModelServiceBuilderSQL(
             tenantInReadmodelTenant.id,
             subquery.map((row) => row.tenantId)
           )
-        );
+        )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       return {
         results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
@@ -405,9 +407,9 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
         .limit(limit)
-        .offset(offset)
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
+        .offset(offset);
 
       const queryResult = await readModelDB
         .select({
@@ -479,7 +481,8 @@ export function readModelServiceBuilderSQL(
             tenantInReadmodelTenant.id,
             subquery.map((row) => row.tenantId)
           )
-        );
+        )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       return {
         results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
@@ -557,6 +560,7 @@ export function readModelServiceBuilderSQL(
         .selectDistinct({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
+          nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
           attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
           attributeName: attributeInReadmodelAttribute.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
@@ -582,12 +586,20 @@ export function readModelServiceBuilderSQL(
             tenantInReadmodelTenant.id
           )
         )
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .orderBy(
+          sql`LOWER(${tenantInReadmodelTenant.name})`,
+          attributeInReadmodelAttribute.name
+        )
         .limit(limit)
         .offset(offset);
 
       return {
-        results: res,
+        results: res.map((row) => ({
+          id: row.id,
+          name: row.name,
+          attributeId: row.attributeId,
+          attributeName: row.attributeName,
+        })),
         totalCount: res[0]?.totalCount || 0,
       };
     },
