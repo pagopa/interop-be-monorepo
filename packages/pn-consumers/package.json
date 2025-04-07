@@ -36,6 +36,6 @@
     "dotenv-flow": "4.1.0",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "zod": "3.23.8"
+    "zod": "3.24.2"
   }
 }

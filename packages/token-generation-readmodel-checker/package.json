@@ -36,7 +36,7 @@
     "json-diff": "1.0.6",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "zod": "3.23.8",
+    "zod": "3.24.2",
     "ts-pattern": "5.2.0"
   }
 }

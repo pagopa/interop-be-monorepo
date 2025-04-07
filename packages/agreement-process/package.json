@@ -49,6 +49,6 @@
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-agreement-lifecycle": "workspace:*",
     "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "zod": "3.24.2"
   }
 }

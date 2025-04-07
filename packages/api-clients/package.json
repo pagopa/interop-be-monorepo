@@ -42,7 +42,7 @@
     "pagopa-interop-commons": "workspace:*",
     "qs": "6.12.3",
     "ts-pattern": "5.2.0",
-    "zod": "3.23.8",
+    "zod": "3.24.2",
     "zod-validation-error": "3.3.0"
   }
 }

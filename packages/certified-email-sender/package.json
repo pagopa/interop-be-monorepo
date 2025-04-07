@@ -44,6 +44,6 @@
     "pagopa-interop-models": "workspace:*",
     "nodemailer": "6.9.14",
     "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "zod": "3.24.2"
   }
 }

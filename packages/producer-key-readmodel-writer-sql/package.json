@@ -40,6 +40,6 @@
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
     "ts-pattern": "5.2.0",
-    "zod": "3.23.8"
+    "zod": "3.24.2"
   }
 }

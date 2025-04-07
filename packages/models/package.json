@@ -25,7 +25,7 @@
     "@protobuf-ts/protoc": "2.9.4",
     "@protobuf-ts/runtime": "2.9.4",
     "ts-pattern": "5.2.0",
-    "zod": "3.23.8",
+    "zod": "3.24.2",
     "zod-validation-error": "3.3.0"
   },
   "devDependencies": {
