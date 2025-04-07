@@ -12,7 +12,6 @@ import {
   writeInEventstore,
   writeInReadmodel,
   readLastEventByStreamId,
-  sortPurposes,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -256,10 +255,15 @@ export function expectSinglePageListResult(
 ): void {
   expect({
     totalCount: actual.totalCount,
-    results: sortPurposes(actual.results),
+    results: actual.results,
   }).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(sortPurposes(expected)),
+    results: expect.arrayContaining(
+      expected.map((purpose) => ({
+        ...purpose,
+        versions: expect.arrayContaining(purpose.versions),
+      }))
+    ),
   });
   expect(actual.results).toHaveLength(expected.length);
 }

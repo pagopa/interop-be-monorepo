@@ -6,7 +6,7 @@ import {
   writeInReadmodel,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
+import { afterEach, expect, inject } from "vitest";
 import {
   Agreement,
   AuthorizationEvent,
@@ -190,3 +190,25 @@ export const readLastAuthorizationEvent = async (
   id: ClientId | ProducerKeychainId
 ): Promise<ReadEvent<AuthorizationEvent>> =>
   await readLastEventByStreamId(id, '"authorization"', postgresDB);
+
+export const generateExpectedClients = (clients: Client[]): Client[] =>
+  clients.map(
+    (client): Client => ({
+      ...client,
+      purposes: expect.arrayContaining(client.purposes),
+      users: expect.arrayContaining(client.users),
+      keys: expect.arrayContaining(client.keys),
+    })
+  );
+
+export const generateExpectedProducerKeychains = (
+  producerKeychains: ProducerKeychain[]
+): ProducerKeychain[] =>
+  producerKeychains.map(
+    (producerKeychain): ProducerKeychain => ({
+      ...producerKeychain,
+      eservices: expect.arrayContaining(producerKeychain.eservices),
+      users: expect.arrayContaining(producerKeychain.users),
+      keys: expect.arrayContaining(producerKeychain.keys),
+    })
+  );
