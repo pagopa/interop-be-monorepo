@@ -754,7 +754,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       offset: number,
       limit: number,
-      logger: Logger
+      { logger }: WithLogger<AppContext>
     ): Promise<ListResult<Consumer>> {
       logger.info(`Retrieving consumers for EService ${eserviceId}`);
       return await readModelService.getEServiceConsumers(

@@ -337,7 +337,7 @@ const eservicesRouter = (
           unsafeBrandId(req.params.eServiceId),
           req.query.offset,
           req.query.limit,
-          ctx.logger
+          ctx
         );
 
         return res.status(200).send(
