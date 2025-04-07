@@ -76,7 +76,7 @@ export const producerKeychainReadModelServiceSQL =
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
 
-export const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
   clientReadModelServiceSQL,
