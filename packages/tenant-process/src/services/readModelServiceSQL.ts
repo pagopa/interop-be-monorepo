@@ -77,37 +77,27 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = await readModelDB
-        .select({
+        .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
+          nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          and(
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.producerId
-            ),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-            ])
-          )
-        )
-        .innerJoin(
+        .leftJoin(
           tenantFeatureInReadmodelTenant,
           and(
             eq(
               tenantInReadmodelTenant.id,
               tenantFeatureInReadmodelTenant.tenantId
-            ),
-            inArray(tenantFeatureInReadmodelTenant.kind, features)
+            )
           )
         )
         .where(
           and(
-            name ? ilike(tenantInReadmodelTenant.name, name) : undefined,
+            features.length > 0
+              ? inArray(tenantFeatureInReadmodelTenant.kind, features)
+              : undefined,
+            name ? ilike(tenantInReadmodelTenant.name, `%${name}%`) : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
