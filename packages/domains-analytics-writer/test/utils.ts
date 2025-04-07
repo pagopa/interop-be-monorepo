@@ -19,7 +19,7 @@ export const dbContext: DBContext = {
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[],
+  tables: string[]
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename

@@ -7,7 +7,7 @@ export interface SetupDbConfig {
 
 export function setupDbServiceBuilder(
   conn: DBConnection,
-  config: SetupDbConfig,
+  config: SetupDbConfig
 ) {
   return {
     async setupStagingTables(tableNames: string[]): Promise<void> {
@@ -20,7 +20,7 @@ export function setupDbServiceBuilder(
               );
             `;
             return conn.query(query);
-          }),
+          })
         );
       } catch (error: unknown) {
         throw error;

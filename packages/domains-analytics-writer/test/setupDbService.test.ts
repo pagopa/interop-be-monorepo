@@ -16,7 +16,7 @@ describe("Setup DB Service tests for catalog tables", () => {
     await dbService.setupStagingTables(catalogTables);
 
     const expectedTables = catalogTables.map(
-      (t) => `${t}${config.mergeTableSuffix}`,
+      (t) => `${t}${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -42,7 +42,7 @@ describe("Setup DB Service tests for catalog tables", () => {
     vi.spyOn(dbContext.conn, "query").mockRejectedValueOnce(mockQueryError);
 
     await expect(
-      dbService.setupStagingTables(catalogTables),
+      dbService.setupStagingTables(catalogTables)
     ).rejects.toThrowError(mockQueryError);
   });
 });

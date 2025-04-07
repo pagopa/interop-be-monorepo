@@ -4,13 +4,13 @@ import { DBContext } from "../../db/db.js";
 
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
-  _dbContext: DBContext,
+  _dbContext: DBContext
 ): Promise<void> {
   for (const message of messages) {
     await match(message)
       .with(
         { type: P.union("EServiceAdded", "ClonedEServiceAdded") },
-        async () => Promise.resolve(),
+        async () => Promise.resolve()
       )
       .with(
         {
@@ -18,10 +18,10 @@ export async function handleCatalogMessageV1(
             "EServiceUpdated",
             "EServiceRiskAnalysisAdded",
             "MovedAttributesFromEserviceToDescriptors",
-            "EServiceRiskAnalysisUpdated",
+            "EServiceRiskAnalysisUpdated"
           ),
         },
-        async () => Promise.resolve(),
+        async () => Promise.resolve()
       )
       .with(
         {
@@ -33,10 +33,10 @@ export async function handleCatalogMessageV1(
             "EServiceDocumentDeleted",
             "EServiceDescriptorAdded",
             "EServiceDescriptorUpdated",
-            "EServiceRiskAnalysisDeleted",
+            "EServiceRiskAnalysisDeleted"
           ),
         },
-        async () => Promise.resolve(),
+        async () => Promise.resolve()
       )
       .exhaustive();
   }

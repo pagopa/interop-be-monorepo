@@ -4,7 +4,7 @@ import { DBContext } from "../../db/db.js";
 
 export async function handleCatalogMessageV2(
   messages: EServiceEventEnvelopeV2[],
-  _dbContext: DBContext,
+  _dbContext: DBContext
 ): Promise<void> {
   for (const message of messages) {
     await match(message)
@@ -48,10 +48,10 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
             "EServiceDescriptorDocumentAddedByTemplateUpdate",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-            "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+            "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
           ),
         },
-        async () => Promise.resolve(),
+        async () => Promise.resolve()
       )
       .exhaustive();
   }
