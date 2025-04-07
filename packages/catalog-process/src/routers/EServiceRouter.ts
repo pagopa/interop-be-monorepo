@@ -2,6 +2,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  authRole,
   ExpressContext,
   fromAppContext,
   initDB,
@@ -100,17 +101,27 @@ const eservicesRouter = (
   const eservicesRouter = ctx.router(catalogApi.processApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
+  const {
+    ADMIN_ROLE,
+    SECURITY_ROLE,
+    API_ROLE,
+    M2M_ROLE,
+    INTERNAL_ROLE,
+    SUPPORT_ROLE,
+  } = authRole;
+
   eservicesRouter
     .get("/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
         validateAuthorization(ctx, [
-          "admin",
-          "api",
-          "support",
-          "security",
-          "m2m",
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
         ]);
 
         const {
@@ -168,7 +179,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         const eservice = await catalogService.createEService(req.body, ctx);
         return res
@@ -188,7 +199,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
         const eService =
           await catalogService.createEServiceInstanceFromTemplate(
             unsafeBrandId(req.params.templateId),
@@ -213,11 +224,11 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [
-          "admin",
-          "api",
-          "support",
-          "security",
-          "m2m",
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
         ]);
 
         const eservice = await catalogService.getEServiceById(
@@ -241,7 +252,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
         const updatedEService = await catalogService.updateEService(
           unsafeBrandId(req.params.eServiceId),
           req.body,
@@ -266,7 +277,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         const updatedEService =
           await catalogService.updateEServiceTemplateInstance(
@@ -293,7 +304,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         await catalogService.deleteEService(
           unsafeBrandId(req.params.eServiceId),
@@ -315,11 +326,11 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [
-          "admin",
-          "api",
-          "support",
-          "security",
-          "m2m",
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
         ]);
 
         const consumers = await catalogService.getEServiceConsumers(
@@ -362,11 +373,11 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [
-            "admin",
-            "api",
-            "support",
-            "security",
-            "m2m",
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
           ]);
 
           const { eServiceId, descriptorId, documentId } = req.params;
@@ -402,7 +413,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -431,7 +442,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           await catalogService.deleteDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -456,7 +467,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const updatedDocument = await catalogService.updateDocument(
             unsafeBrandId(req.params.eServiceId),
@@ -487,7 +498,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
         const descriptor = await catalogService.createDescriptor(
           unsafeBrandId(req.params.eServiceId),
           req.body,
@@ -516,7 +527,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -540,7 +551,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           const updatedEService = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -569,7 +580,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           const updatedEService =
             await catalogService.updateDraftDescriptorTemplateInstance(
               unsafeBrandId(req.params.eServiceId),
@@ -599,7 +610,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -623,7 +634,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -647,7 +658,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
@@ -672,7 +683,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const clonedEserviceByDescriptor =
             await catalogService.cloneDescriptor(
@@ -704,7 +715,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["internal"]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -728,7 +739,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           const updatedEService = await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -755,7 +766,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
         await catalogService.createRiskAnalysis(
           unsafeBrandId(req.params.eServiceId),
           req.body,
@@ -778,7 +789,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           await catalogService.updateRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
@@ -801,7 +812,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
         const updatedEService = await catalogService.updateEServiceDescription(
           unsafeBrandId(req.params.eServiceId),
           req.body.description,
@@ -826,7 +837,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
         const updatedEService =
           await catalogService.updateEServiceDelegationFlags(
             unsafeBrandId(req.params.eServiceId),
@@ -852,7 +863,7 @@ const eservicesRouter = (
     .post("/eservices/:eServiceId/name/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         const updatedEService = await catalogService.updateEServiceName(
           unsafeBrandId(req.params.eServiceId),
@@ -881,7 +892,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
@@ -906,7 +917,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin"]);
+          validateAuthorization(ctx, [ADMIN_ROLE]);
           await catalogService.approveDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -930,7 +941,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           await catalogService.rejectDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -955,7 +966,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin"]);
+          validateAuthorization(ctx, [ADMIN_ROLE]);
           const updatedEService =
             await catalogService.updateDescriptorAttributes(
               unsafeBrandId(req.params.eServiceId),
@@ -983,7 +994,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
         const descriptor = await catalogService.upgradeEServiceInstance(
           unsafeBrandId(req.params.eServiceId),
           ctx
@@ -1011,7 +1022,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["internal"]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
           await catalogService.internalUpdateTemplateInstanceName(
             unsafeBrandId(req.params.eServiceId),
             req.body.name,
@@ -1035,7 +1046,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["internal"]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
           await catalogService.internalUpdateTemplateInstanceDescription(
             unsafeBrandId(req.params.eServiceId),
             req.body.description,
@@ -1059,7 +1070,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["internal"]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
           await catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1084,7 +1095,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["internal"]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
           await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1109,7 +1120,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["internal"]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
           await catalogService.internalCreateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1134,7 +1145,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["internal"]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
           await catalogService.internalDeleteTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1159,7 +1170,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["internal"]);
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
           await catalogService.innerUpdateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1185,7 +1196,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const updatedEservice =
             await catalogService.addEServiceTemplateInstanceInterface(
@@ -1213,7 +1224,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const updatedEservice =
             await catalogService.addEServiceTemplateInstanceInterface(
@@ -1238,7 +1249,7 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         const descriptor =
           await catalogService.createTemplateInstanceDescriptor(
@@ -1269,7 +1280,7 @@ const eservicesRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, ["admin", "api"]);
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
           const updatedEService =
             await catalogService.updateTemplateInstanceDescriptor(
               unsafeBrandId(req.params.eServiceId),

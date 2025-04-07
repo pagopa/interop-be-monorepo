@@ -8,6 +8,7 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   validateAuthorization,
+  authRole,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -51,6 +52,15 @@ const attributeRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
+  const {
+    ADMIN_ROLE,
+    SECURITY_ROLE,
+    API_ROLE,
+    M2M_ROLE,
+    INTERNAL_ROLE,
+    SUPPORT_ROLE,
+  } = authRole;
+
   attributeRouter
     .get(
       "/attributes",
@@ -59,11 +69,11 @@ const attributeRouter = (
         const ctx = fromAppContext(req.ctx);
         try {
           validateAuthorization(ctx, [
-            "admin",
-            "api",
-            "support",
-            "security",
-            "m2m",
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
           ]);
 
           const { limit, offset, kinds, name, origin } = req.query;
@@ -94,11 +104,11 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [
-          "admin",
-          "api",
-          "support",
-          "security",
-          "m2m",
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
         ]);
         const attribute = await attributeRegistryService.getAttributeByName(
           req.params.name,
@@ -124,7 +134,7 @@ const attributeRouter = (
     .get("/attributes/origin/:origin/code/:code", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, ["admin", "support", "m2m"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, M2M_ROLE]);
 
         const { origin, code } = req.params;
         const attribute =
@@ -160,11 +170,11 @@ const attributeRouter = (
 
         try {
           validateAuthorization(ctx, [
-            "admin",
-            "api",
-            "support",
-            "security",
-            "m2m",
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
           ]);
 
           const attribute = await attributeRegistryService.getAttributeById(
@@ -196,11 +206,11 @@ const attributeRouter = (
 
       try {
         validateAuthorization(ctx, [
-          "admin",
-          "api",
-          "support",
-          "security",
-          "m2m",
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
         ]);
 
         const attributes = await attributeRegistryService.getAttributesByIds(
@@ -225,7 +235,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "m2m"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
 
         const attribute =
           await attributeRegistryService.createCertifiedAttribute(
@@ -251,7 +261,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, "api"]);
 
         const attribute =
           await attributeRegistryService.createDeclaredAttribute(req.body, ctx);
@@ -274,7 +284,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["admin", "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, "api"]);
 
         const attribute =
           await attributeRegistryService.createVerifiedAttribute(req.body, ctx);
@@ -297,7 +307,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, ["internal"]);
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
 
         const attribute =
           await attributeRegistryService.internalCreateCertifiedAttribute(

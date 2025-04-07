@@ -20,6 +20,18 @@ export const UserRole = z.enum([
 ]);
 export type UserRole = z.infer<typeof UserRole>;
 
+// System roles = special non-UI tokens
+export const systemRole = {
+  M2M_ROLE: "m2m",
+  INTERNAL_ROLE: "internal",
+  MAINTENANCE_ROLE: "maintenance",
+} as const;
+export const SystemRole = z.enum([
+  Object.values(systemRole)[0],
+  ...Object.values(systemRole).slice(1),
+]);
+export type SystemRole = z.infer<typeof SystemRole>;
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
   z
@@ -105,9 +117,6 @@ export type AuthToken = z.infer<typeof AuthToken>;
   It is used to populate the context object, which is referenced all
   around the application to perform authorization checks.
 */
-
-// System roles = special non-UI tokens
-export type SystemRole = "m2m" | "internal" | "maintenance";
 
 export type UIAuthData = {
   systemRole: undefined;
