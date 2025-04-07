@@ -42,7 +42,17 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, ilike, inArray, isNotNull, or, sql, SQL } from "drizzle-orm";
+import {
+  and,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+  SQL,
+} from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
@@ -544,92 +554,42 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const res = await readModelDB
-        .select()
-        .from(tenantInReadmodelTenant)
+        .selectDistinct({
+          id: tenantInReadmodelTenant.id,
+          name: tenantInReadmodelTenant.name,
+          attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
+          attributeName: attributeInReadmodelAttribute.name,
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
+        })
+        .from(tenantCertifiedAttributeInReadmodelTenant)
         .innerJoin(
-          tenantCertifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantCertifiedAttributeInReadmodelTenant.tenantId
+          attributeInReadmodelAttribute,
+          and(
+            eq(
+              tenantCertifiedAttributeInReadmodelTenant.attributeId,
+              attributeInReadmodelAttribute.id
+            ),
+            eq(attributeInReadmodelAttribute.origin, certifierId),
+            isNull(
+              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
+            )
           )
-        );
-      //   const aggregationPipeline: Document[] = [
-      //     {
-      //       $match: {
-      //         "data.kind": attributeKind.certified,
-      //         "data.origin": certifierId,
-      //       },
-      //     },
-      //     {
-      //       $lookup: {
-      //         from: "tenants",
-      //         localField: "data.id",
-      //         foreignField: "data.attributes.id",
-      //         as: "tenants",
-      //       },
-      //     },
-      //     { $unwind: "$tenants" },
-      //     { $unwind: "$tenants.data.attributes" },
-      //     {
-      //       $addFields: {
-      //         notRevoked: {
-      //           $cond: {
-      //             if: {
-      //               $and: [
-      //                 { $eq: ["$tenants.data.attributes.id", "$data.id"] },
-      //                 { $not: ["$tenants.data.attributes.revocationTimestamp"] },
-      //               ],
-      //             },
-      //             then: true,
-      //             else: false,
-      //           },
-      //         },
-      //       },
-      //     },
-      //     {
-      //       $match: {
-      //         notRevoked: true,
-      //       },
-      //     },
-      //     {
-      //       $project: {
-      //         _id: 0,
-      //         id: "$tenants.data.id",
-      //         name: "$tenants.data.name",
-      //         attributeId: "$data.id",
-      //         attributeName: "$data.name",
-      //         lowerName: { $toLower: "$tenants.data.name" },
-      //       },
-      //     },
-      //     {
-      //       $sort: {
-      //         lowerName: 1,
-      //       },
-      //     },
-      //   ];
-      //   const data = await attributes
-      //     .aggregate(
-      //       [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
-      //       { allowDiskUse: true }
-      //     )
-      //     .toArray();
-      //   const result = z
-      //     .array(tenantApi.CertifiedAttribute.strip()) // "strip" used to remove "lowerName" field
-      //     .safeParse(data);
-      //   if (!result.success) {
-      //     throw genericInternalError(
-      //       `Unable to parse attributes items: result ${JSON.stringify(
-      //         result
-      //       )} - data ${JSON.stringify(data)} `
-      //     );
-      //   }
-      //   return {
-      //     results: result.data,
-      //     totalCount: await ReadModelRepository.getTotalCount(
-      //       attributes,
-      //       aggregationPipeline
-      //     ),
-      //   };
+        )
+        .innerJoin(
+          tenantInReadmodelTenant,
+          eq(
+            tenantCertifiedAttributeInReadmodelTenant.tenantId,
+            tenantInReadmodelTenant.id
+          )
+        )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .limit(limit)
+        .offset(offset);
+
+      return {
+        results: res,
+        totalCount: res[0]?.totalCount || 0,
+      };
     },
 
     async getOneCertifiedAttributeByCertifier({
