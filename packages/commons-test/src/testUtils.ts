@@ -760,6 +760,25 @@ export const getMockContext = ({
   requestTimestamp: Date.now(),
 });
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const getMockJWTClaims = (data: {
+  id: string;
+  name?: string | undefined;
+  roles?: string[];
+}) => ({
+  uid: generateId(),
+  organization: {
+    id: data.id,
+    name: "Public Services",
+    roles: data.roles
+      ? data.roles.map((r) => ({ role: r }))
+      : [{ role: "admin" }],
+  },
+  name: data.name && "John Doe",
+  family_name: "Unknown",
+  email: "JohnDoe@UnknownPersons.com",
+});
+
 export const sortBy =
   <T>(getKey: (item: T) => string) =>
   (a: T, b: T): number => {

@@ -1,6 +1,5 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
-import { FileManager } from "pagopa-interop-commons";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   Descriptor,
@@ -8,15 +7,6 @@ import {
   EServiceTemplate,
   EServiceTemplateVersion,
 } from "pagopa-interop-models";
-import {
-  EServiceTemplateService,
-  eserviceTemplateServiceBuilder,
-} from "../src/services/eserviceTemplateService.js";
-import {
-  AttributeProcessClient,
-  EServiceTemplateProcessClient,
-  TenantProcessClient,
-} from "../src/clients/clientsProvider.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -26,19 +16,6 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
   );
 
 afterEach(cleanup);
-
-export const createEServiceTeamplateService = (
-  eserviceProcessTemplateClient: EServiceTemplateProcessClient,
-  tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
-  fileManager: FileManager
-): EServiceTemplateService =>
-  eserviceTemplateServiceBuilder(
-    eserviceProcessTemplateClient,
-    tenantProcessClient,
-    attributeProcessClient,
-    fileManager
-  );
 
 export const toEserviceTemplateProcessMock = (
   eserviceTemplate: EServiceTemplate,
