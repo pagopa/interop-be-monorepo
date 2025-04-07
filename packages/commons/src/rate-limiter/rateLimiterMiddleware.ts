@@ -2,9 +2,9 @@ import { constants } from "http2";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
   TenantId,
+  genericError,
   makeApiProblemBuilder,
   tooManyRequestsError,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import { ExpressContext, fromAppContext } from "../context/context.js";
 import { getUserInfoFromAuthData } from "../auth/authData.js";
@@ -25,10 +25,8 @@ export function rateLimiterMiddleware(
 
     if (!organizationId) {
       const errorRes = makeApiProblem(
-        unauthorizedError(
-          `No organizationId found in authData -- cannot apply rate limiting`
-        ),
-        () => constants.HTTP_STATUS_UNAUTHORIZED,
+        genericError("Missing expected organizationId claim in token"),
+        () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
         ctx.logger,
         ctx.correlationId
       );
