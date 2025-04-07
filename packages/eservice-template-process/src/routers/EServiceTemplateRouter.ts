@@ -17,6 +17,12 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import {
+  attributeReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
@@ -50,10 +56,30 @@ import {
   eserviceTemplateVersionToApiEServiceTemplateVersion,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
 } from "../model/domain/apiConverter.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
+const readModelDB = makeDrizzleConnection(config);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  eserviceTemplateReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  attributeReadModelServiceSQL,
+});
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const eserviceTemplateService = eserviceTemplateServiceBuilder(
   initDB({

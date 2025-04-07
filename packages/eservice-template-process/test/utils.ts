@@ -24,6 +24,12 @@ import {
 } from "pagopa-interop-models";
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
 import {
@@ -31,20 +37,50 @@ import {
   eserviceTemplateToApiEServiceTemplate,
   technologyToApiTechnology,
 } from "../src/model/domain/apiConverter.js";
+import { config } from "../src/config/config.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
-  );
+export const {
+  cleanup,
+  readModelRepository,
+  postgresDB,
+  fileManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  inject("readModelConfig"),
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
 export const eserviceTemplates = readModelRepository.eserviceTemplates;
 export const attributes = readModelRepository.attributes;
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  eserviceTemplateReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  attributeReadModelServiceSQL,
+});
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 export const tenants = readModelRepository.tenants;
 export const eservices = readModelRepository.eservices;
@@ -78,14 +114,23 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eserviceTemplate);
   await writeInReadmodel(eserviceTemplate, eserviceTemplates);
+
+  await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    eserviceTemplate,
+    0
+  );
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+
+  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const readLastEserviceTemplateEvent = async (
@@ -108,6 +153,8 @@ export const buildRiskAnalysisSeed = (
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
+
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
 
 export const eserviceTemplateToApiEServiceTemplateSeed = (
