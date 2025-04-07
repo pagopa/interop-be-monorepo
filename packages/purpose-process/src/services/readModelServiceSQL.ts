@@ -75,9 +75,10 @@ function getPurposesFilters(
       )
     : undefined;
 
-  const eservicesIdsFilter = eservicesIds?.length
-    ? inArray(purposeInReadmodelPurpose.eserviceId, eservicesIds)
-    : undefined;
+  const eservicesIdsFilter =
+    eservicesIds.length > 0
+      ? inArray(purposeInReadmodelPurpose.eserviceId, eservicesIds)
+      : undefined;
 
   const versionStateFilter =
     states.length > 0
@@ -152,15 +153,13 @@ export function readModelServiceBuilderSQL({
       consumerId: TenantId,
       title: string
     ): Promise<WithMetadata<Purpose> | undefined> {
-      return (
-        await purposeReadModelServiceSQL.getPurposeByFilter(
-          and(
-            eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
-            eq(purposeInReadmodelPurpose.consumerId, consumerId),
-            ilike(purposeInReadmodelPurpose.title, title)
-          ) as SQL
+      return await purposeReadModelServiceSQL.getPurposeByFilter(
+        and(
+          eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
+          eq(purposeInReadmodelPurpose.consumerId, consumerId),
+          ilike(purposeInReadmodelPurpose.title, title)
         )
-      )[0];
+      );
     },
     async getPurposes(
       requesterId: TenantId,
@@ -170,7 +169,7 @@ export function readModelServiceBuilderSQL({
       const { producersIds, consumersIds, ...otherFilters } = filters;
 
       const queryResult = await readModelDB.transaction(async (tx) => {
-        const subQuery = tx
+        const subquery = tx
           .select({
             purposeId: purposeInReadmodelPurpose.id,
             totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
@@ -250,7 +249,7 @@ export function readModelServiceBuilderSQL({
           .limit(limit)
           .offset(offset)
           .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`)
-          .as("subQuery");
+          .as("subquery");
 
         return await tx
           .select({
@@ -260,12 +259,12 @@ export function readModelServiceBuilderSQL({
               purposeRiskAnalysisAnswerInReadmodelPurpose,
             purposeVersion: purposeVersionInReadmodelPurpose,
             purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-            totalCount: subQuery.totalCount,
+            totalCount: subquery.totalCount,
           })
           .from(purposeInReadmodelPurpose)
           .innerJoin(
-            subQuery,
-            eq(purposeInReadmodelPurpose.id, subQuery.purposeId)
+            subquery,
+            eq(purposeInReadmodelPurpose.id, subquery.purposeId)
           )
           .leftJoin(
             purposeRiskAnalysisFormInReadmodelPurpose,
@@ -328,7 +327,7 @@ export function readModelServiceBuilderSQL({
             eq(agreementInReadmodelAgreement.eserviceId, eserviceId),
             eq(agreementInReadmodelAgreement.consumerId, consumerId),
             eq(agreementInReadmodelAgreement.state, agreementState.active)
-          ) as SQL
+          )
         )
       )?.data;
     },
@@ -339,7 +338,7 @@ export function readModelServiceBuilderSQL({
       >
     ): Promise<Purpose[]> {
       return (
-        await purposeReadModelServiceSQL.getPurposeByFilter(
+        await purposeReadModelServiceSQL.getPurposesByFilter(
           and(...getPurposesFilters(readModelDB, filters))
         )
       ).map((d) => d.data);
@@ -358,7 +357,7 @@ export function readModelServiceBuilderSQL({
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedProducer
             )
-          ) as SQL
+          )
         )
       )?.data;
     },
@@ -379,7 +378,7 @@ export function readModelServiceBuilderSQL({
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer
             )
-          ) as SQL
+          )
         )
       )?.data;
     },
@@ -395,7 +394,7 @@ export function readModelServiceBuilderSQL({
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer
             )
-          ) as SQL
+          )
         )
       )?.data;
     },

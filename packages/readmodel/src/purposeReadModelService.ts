@@ -1,6 +1,11 @@
 import { and, eq, lte, SQL } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Purpose, PurposeId, WithMetadata } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  Purpose,
+  PurposeId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
@@ -66,6 +71,17 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     async getPurposeById(
       purposeId: PurposeId
     ): Promise<WithMetadata<Purpose> | undefined> {
+      return await this.getPurposeByFilter(
+        eq(purposeInReadmodelPurpose.id, purposeId)
+      );
+    },
+    async getPurposeByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<Purpose> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       /*
         purpose -> 1 purpose_risk_analysis_form -> 2 purpose_risk_analysis_answer
                 -> 3 purpose_version -> 4 purpose_version_document
@@ -80,7 +96,7 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
-        .where(eq(purposeInReadmodelPurpose.id, purposeId))
+        .where(filter)
         .leftJoin(
           // 1
           purposeRiskAnalysisFormInReadmodelPurpose,
@@ -120,14 +136,13 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
       return aggregatePurpose(toPurposeAggregator(queryResult));
     },
-    async getPurposeByFilter(
+    async getPurposesByFilter(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<Purpose>>> {
-      /*
-        purpose -> 1 purpose_risk_analysis_form -> 2 purpose_risk_analysis_answer
-                -> 3 purpose_version -> 4 purpose_version_document
-      */
-      // eslint-disable-next-line functional/no-let
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       const queryResult = await db
         .select({
           purpose: purposeInReadmodelPurpose,
@@ -174,7 +189,6 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
     },
-
     async deletePurposeById(
       purposeId: PurposeId,
       version: number
