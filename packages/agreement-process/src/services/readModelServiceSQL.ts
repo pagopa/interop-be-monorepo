@@ -18,9 +18,14 @@ import {
   AgreementReadModelService,
   AttributeReadModelService,
   CatalogReadModelService,
+  DelegationReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
-import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
+import {
+  DrizzleReturnType,
+  tenantInReadmodelTenant,
+} from "pagopa-interop-readmodel-models";
+import { sql } from "drizzle-orm";
 import {
   CompactEService,
   CompactOrganization,
@@ -42,13 +47,14 @@ export type AgreementEServicesQueryFilters = {
   producerIds: TenantId[];
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
-  _readmodelDB: DrizzleReturnType,
+  readmodelDB: DrizzleReturnType,
   agreementReadModelServiceSQL: AgreementReadModelService,
-  catalogReadModelService: CatalogReadModelService,
-  tenantReadModelService: TenantReadModelService,
-  attributeReadModelService: AttributeReadModelService
+  catalogReadModelServiceSQL: CatalogReadModelService,
+  tenantReadModelServiceSQL: TenantReadModelService,
+  attributeReadModelServiceSQL: AttributeReadModelService,
+  delegationReadModelServiceSQL: DelegationReadModelService
 ) {
   return {
     async getAgreements(): Promise<ListResult<Agreement>> {
@@ -66,11 +72,11 @@ export function readModelServiceBuilderSQL(
       eserviceId: EServiceId
     ): Promise<EService | undefined> {
       const eserviceWithMetadata =
-        await catalogReadModelService.getEServiceById(eserviceId);
+        await catalogReadModelServiceSQL.getEServiceById(eserviceId);
       return eserviceWithMetadata?.data;
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
-      const tenantWithMetadata = await tenantReadModelService.getTenantById(
+      const tenantWithMetadata = await tenantReadModelServiceSQL.getTenantById(
         tenantId
       );
       return tenantWithMetadata?.data;
@@ -79,11 +85,24 @@ export function readModelServiceBuilderSQL(
       attributeId: AttributeId
     ): Promise<Attribute | undefined> {
       const attributeWithMetadata =
-        await attributeReadModelService.getAttributeById(attributeId);
+        await attributeReadModelServiceSQL.getAttributeById(attributeId);
       return attributeWithMetadata?.data;
     },
-    async getAgreementsConsumers(): Promise<ListResult<CompactOrganization>> {
-      throw new Error("to implement");
+    /**
+     * Retrieving consumers from agreements with consumer name`
+     */
+    async getAgreementsConsumers(
+      requesterId: TenantId,
+      consumerName: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      const resultSet = await readmodelDB
+        .selectDistinctOn([tenantInReadmodelTenant.id], {
+          tenant: tenantInReadmodelTenant,
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
+        })
+        .from(tenantInReadmodelTenant);
     },
     async getAgreementsProducers(): Promise<ListResult<CompactOrganization>> {
       throw new Error("to implement");
@@ -96,8 +115,21 @@ export function readModelServiceBuilderSQL(
     > {
       throw new Error("to implement");
     },
-    async getActiveConsumerDelegationsByEserviceId(): Promise<Delegation[]> {
-      throw new Error("to implement");
+    async getActiveConsumerDelegationsByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation[]> {
+      const result = await delegationReadModelServiceSQL.getDelegationByFilter(
+        and(
+          eq(delegationInReadmodelDelegation.eserviceId, eserviceId),
+          eq(delegationInReadmodelDelegation.delegatorId, consumerId),
+          eq(delegationInReadmodelDelegation.state, delegationState.active),
+          eq(
+            delegationInReadmodelDelegation.kind,
+            delegationKind.delegatedConsumer
+          )
+        )
+      );
+      return result?.data;
     },
     async getActiveConsumerDelegationByAgreement(): Promise<
       Delegation | undefined

@@ -24,6 +24,7 @@ import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -62,6 +63,7 @@ const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
 const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
+const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
 
 const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -71,7 +73,8 @@ const readModelServiceSQL = readModelServiceBuilderSQL(
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
-  attributeReadModelServiceSQL
+  attributeReadModelServiceSQL,
+  delegationReadModelServiceSQL
 );
 
 const readModelService =
