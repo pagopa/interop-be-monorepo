@@ -21,6 +21,7 @@ export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "eserviceRiskNotFound",
       "eserviceDescriptorNotFound",
+      "userNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)

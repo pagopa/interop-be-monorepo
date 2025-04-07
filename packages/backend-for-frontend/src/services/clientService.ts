@@ -18,6 +18,7 @@ import {
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
 import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
+import { userNotFound } from "../model/errors.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -240,18 +241,26 @@ export function clientServiceBuilder(
         headers,
       });
 
-      const users = clientUsers.map(async (id) =>
-        toBffApiCompactUser(
-          await getSelfcareUserById(
-            selfcareUsersClient,
-            id,
-            selfcareId,
-            correlationId
-          ),
-          id
-        )
+      return await Promise.all(
+        clientUsers.map(async (id) => {
+          try {
+            const user = await getSelfcareUserById(
+              selfcareUsersClient,
+              id,
+              selfcareId,
+              correlationId
+            );
+            return toBffApiCompactUser(user, id);
+          } catch (error) {
+            logger.warn(
+              `Unable to get Selfcare user with ID ${id}: ${
+                error instanceof Error ? error.message : String(error)
+              }`
+            );
+            throw userNotFound(id, selfcareId);
+          }
+        })
       );
-      return Promise.all(users);
     },
 
     async getClientKeyById(
@@ -418,20 +427,24 @@ export async function decorateKey(
   members: string[],
   correlationId: CorrelationId
 ): Promise<bffApi.PublicKey> {
-  const user = await getSelfcareUserById(
-    selfcareClient,
-    key.userId,
-    selfcareId,
-    correlationId
-  );
+  try {
+    const user = await getSelfcareUserById(
+      selfcareClient,
+      key.userId,
+      selfcareId,
+      correlationId
+    );
 
-  return {
-    user: toBffApiCompactUser(user, key.userId),
-    name: key.name,
-    keyId: key.kid,
-    createdAt: key.createdAt,
-    isOrphan: !members.includes(key.userId) || user.id === undefined,
-  };
+    return {
+      user: toBffApiCompactUser(user, key.userId),
+      name: key.name,
+      keyId: key.kid,
+      createdAt: key.createdAt,
+      isOrphan: !members.includes(key.userId) || user.id === undefined,
+    };
+  } catch (error) {
+    throw userNotFound(key.userId, selfcareId);
+  }
 }
 
 export const getAllClients = async (
