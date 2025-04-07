@@ -26,6 +26,7 @@ export const systemRole = {
   INTERNAL_ROLE: "internal",
   MAINTENANCE_ROLE: "maintenance",
 } as const;
+
 export const SystemRole = z.enum([
   Object.values(systemRole)[0],
   ...Object.values(systemRole).slice(1),
@@ -52,7 +53,7 @@ const SharedStandardJWTClaims = z.object({
 
 export const M2MAuthToken = SharedStandardJWTClaims.merge(
   z.object({
-    role: z.literal("m2m"),
+    role: z.literal(systemRole.M2M_ROLE),
     organizationId: z.string().uuid(),
     client_id: z.string().uuid(),
     sub: z.string(),
@@ -61,14 +62,14 @@ export const M2MAuthToken = SharedStandardJWTClaims.merge(
 
 export const InternalAuthToken = SharedStandardJWTClaims.merge(
   z.object({
-    role: z.literal("internal"),
+    role: z.literal(systemRole.INTERNAL_ROLE),
     sub: z.string(),
   })
 );
 
 export const MaintenanceAuthToken = SharedStandardJWTClaims.merge(
   z.object({
-    role: z.literal("maintenance"),
+    role: z.literal(systemRole.MAINTENANCE_ROLE),
     sub: z.string(),
   })
 );
@@ -151,10 +152,15 @@ export type AuthData =
 
 export const getAuthDataFromToken = (token: AuthToken): AuthData =>
   match<AuthToken, AuthData>(token)
-    .with({ role: "internal" }, () => ({ systemRole: "internal" }))
-    .with({ role: "maintenance" }, () => ({ systemRole: "maintenance" }))
-    .with({ role: "m2m" }, (t) => ({
-      systemRole: "m2m",
+    .with(
+      { role: systemRole.INTERNAL_ROLE },
+      { role: systemRole.MAINTENANCE_ROLE },
+      (t) => ({
+        systemRole: t.role,
+      })
+    )
+    .with({ role: systemRole.M2M_ROLE }, (t) => ({
+      systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
@@ -184,12 +190,20 @@ export function getUserInfoFromAuthData(
   }
 
   return match<AuthData, AuthDataUserInfo>(authData)
-    .with({ systemRole: P.union("internal", "maintenance") }, () => ({
-      userId: undefined,
-      organizationId: undefined,
-      selfcareId: undefined,
-    }))
-    .with({ systemRole: "m2m" }, (t) => ({
+    .with(
+      {
+        systemRole: P.union(
+          systemRole.INTERNAL_ROLE,
+          systemRole.MAINTENANCE_ROLE
+        ),
+      },
+      () => ({
+        userId: undefined,
+        organizationId: undefined,
+        selfcareId: undefined,
+      })
+    )
+    .with({ systemRole: systemRole.M2M_ROLE }, (t) => ({
       userId: undefined,
       organizationId: t.organizationId,
       selfcareId: undefined,

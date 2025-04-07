@@ -65,7 +65,13 @@ export function validateAuthorization<
 
   match(authData)
     .with(
-      { systemRole: P.union("m2m", "internal", "maintenance") },
+      {
+        systemRole: P.union(
+          systemRole.M2M_ROLE,
+          systemRole.INTERNAL_ROLE,
+          systemRole.MAINTENANCE_ROLE
+        ),
+      },
       ({ systemRole }) => {
         const admittedSystemRoles: SystemRole[] =
           admittedAuthRoles.filter(isSystemRole);
@@ -113,22 +119,50 @@ function isUiAuthData(authData: AuthData): authData is UIAuthData {
   return match(authData)
     .with({ systemRole: undefined }, () => true)
     .with(
-      { systemRole: P.union("m2m", "internal", "maintenance") },
+      {
+        systemRole: P.union(
+          systemRole.M2M_ROLE,
+          systemRole.INTERNAL_ROLE,
+          systemRole.MAINTENANCE_ROLE
+        ),
+      },
       () => false
     )
     .exhaustive();
 }
 function isSystemRole(role: AuthRole): role is SystemRole {
   return match(role)
-    .with("m2m", "internal", "maintenance", () => true)
-    .with("admin", "security", "api", "support", () => false)
+    .with(
+      authRole.M2M_ROLE,
+      authRole.INTERNAL_ROLE,
+      authRole.MAINTENANCE_ROLE,
+      () => true
+    )
+    .with(
+      authRole.ADMIN_ROLE,
+      authRole.SECURITY_ROLE,
+      authRole.API_ROLE,
+      authRole.SUPPORT_ROLE,
+      () => false
+    )
     .exhaustive();
 }
 
 function isUserRole(role: AuthRole): role is UserRole {
   return match(role)
-    .with("admin", "security", "api", "support", () => true)
-    .with("m2m", "internal", "maintenance", () => false)
+    .with(
+      authRole.ADMIN_ROLE,
+      authRole.SECURITY_ROLE,
+      authRole.API_ROLE,
+      authRole.SUPPORT_ROLE,
+      () => true
+    )
+    .with(
+      authRole.M2M_ROLE,
+      authRole.INTERNAL_ROLE,
+      authRole.MAINTENANCE_ROLE,
+      () => false
+    )
     .exhaustive();
 }
 
