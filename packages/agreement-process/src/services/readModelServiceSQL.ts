@@ -13,6 +13,8 @@ import {
   TenantId,
   Delegation,
   AgreementId,
+  delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
@@ -22,10 +24,11 @@ import {
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import {
+  delegationInReadmodelDelegation,
   DrizzleReturnType,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import {
   CompactEService,
   CompactOrganization,
@@ -57,6 +60,7 @@ export function readModelServiceBuilderSQL(
   delegationReadModelServiceSQL: DelegationReadModelService
 ) {
   return {
+    // TODO
     async getAgreements(): Promise<ListResult<Agreement>> {
       throw new Error("to implement");
     },
@@ -65,22 +69,22 @@ export function readModelServiceBuilderSQL(
     ): Promise<WithMetadata<Agreement> | undefined> {
       return await agreementReadModelServiceSQL.getAgreementById(agreementId);
     },
+    // TODO
     async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
       throw new Error("to implement");
     },
+    // DONE
     async getEServiceById(
       eserviceId: EServiceId
     ): Promise<EService | undefined> {
-      const eserviceWithMetadata =
-        await catalogReadModelServiceSQL.getEServiceById(eserviceId);
-      return eserviceWithMetadata?.data;
+      return (await catalogReadModelServiceSQL.getEServiceById(eserviceId))
+        ?.data;
     },
+    // DONE
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
-      const tenantWithMetadata = await tenantReadModelServiceSQL.getTenantById(
-        tenantId
-      );
-      return tenantWithMetadata?.data;
+      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
     },
+    // DONE
     async getAttributeById(
       attributeId: AttributeId
     ): Promise<Attribute | undefined> {
@@ -91,6 +95,7 @@ export function readModelServiceBuilderSQL(
     /**
      * Retrieving consumers from agreements with consumer name`
      */
+    // TODO
     async getAgreementsConsumers(
       requesterId: TenantId,
       consumerName: string | undefined,
@@ -104,37 +109,71 @@ export function readModelServiceBuilderSQL(
         })
         .from(tenantInReadmodelTenant);
     },
+    // TODO
     async getAgreementsProducers(): Promise<ListResult<CompactOrganization>> {
       throw new Error("to implement");
     },
+    // TODO
     async getAgreementsEServices(): Promise<ListResult<CompactEService>> {
       throw new Error("to implement");
     },
-    async getActiveProducerDelegationByEserviceId(): Promise<
-      Delegation | undefined
-    > {
-      throw new Error("to implement");
+    // DONE
+    async getActiveProducerDelegationByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation | undefined> {
+      const delegation =
+        await delegationReadModelServiceSQL.getDelegationByFilter(
+          and(
+            eq(delegationInReadmodelDelegation.eserviceId, eserviceId),
+            eq(delegationInReadmodelDelegation.state, delegationState.active),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedProducer
+            )
+          )
+        );
+      return delegation?.data;
     },
+    // DONE
     async getActiveConsumerDelegationsByEserviceId(
       eserviceId: EServiceId
     ): Promise<Delegation[]> {
-      const result = await delegationReadModelServiceSQL.getDelegationByFilter(
-        and(
-          eq(delegationInReadmodelDelegation.eserviceId, eserviceId),
-          eq(delegationInReadmodelDelegation.delegatorId, consumerId),
-          eq(delegationInReadmodelDelegation.state, delegationState.active),
-          eq(
-            delegationInReadmodelDelegation.kind,
-            delegationKind.delegatedConsumer
+      const delegations =
+        await delegationReadModelServiceSQL.getDelegationsByFilter(
+          and(
+            eq(delegationInReadmodelDelegation.eserviceId, eserviceId),
+            eq(delegationInReadmodelDelegation.state, delegationState.active),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedConsumer
+            )
           )
-        )
-      );
-      return result?.data;
+        );
+      return delegations.map(({ data }) => data);
     },
-    async getActiveConsumerDelegationByAgreement(): Promise<
-      Delegation | undefined
-    > {
-      throw new Error("to implement");
+    // DONE
+    async getActiveConsumerDelegationByAgreement(
+      agreement: Pick<Agreement, "consumerId" | "eserviceId">
+    ): Promise<Delegation | undefined> {
+      const delegation =
+        await delegationReadModelServiceSQL.getDelegationByFilter(
+          and(
+            eq(
+              delegationInReadmodelDelegation.eserviceId,
+              agreement.eserviceId
+            ),
+            eq(
+              delegationInReadmodelDelegation.delegatorId,
+              agreement.consumerId
+            ),
+            eq(delegationInReadmodelDelegation.state, delegationState.active),
+            eq(
+              delegationInReadmodelDelegation.kind,
+              delegationKind.delegatedConsumer
+            )
+          )
+        );
+      return delegation?.data;
     },
   };
 }
