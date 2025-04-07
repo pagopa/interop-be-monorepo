@@ -37,6 +37,7 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
+      name: "attribute 1",
       kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
@@ -44,6 +45,7 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
+      name: "attribute 2",
       kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
@@ -67,29 +69,20 @@ describe("getCertifiedAttributes", () => {
     });
 
     expect(result.totalCount).toBe(2);
-    expect(
-      // eslint-disable-next-line functional/immutable-data
-      result.results.sort((row1, row2) =>
-        row1.attributeName.localeCompare(row2.attributeName)
-      )
-    ).toEqual(
-      [
-        {
-          attributeId: certifiedAttribute1.id,
-          attributeName: certifiedAttribute1.name,
-          id: tenant.id,
-          name: tenant.name,
-        },
-        {
-          attributeId: certifiedAttribute2.id,
-          attributeName: certifiedAttribute2.name,
-          id: tenant.id,
-          name: tenant.name,
-        },
-      ].sort((row1, row2) =>
-        row1.attributeName.localeCompare(row2.attributeName)
-      )
-    );
+    expect(result.results).toEqual([
+      {
+        attributeId: certifiedAttribute1.id,
+        attributeName: certifiedAttribute1.name,
+        id: tenant.id,
+        name: tenant.name,
+      },
+      {
+        attributeId: certifiedAttribute2.id,
+        attributeName: certifiedAttribute2.name,
+        id: tenant.id,
+        name: tenant.name,
+      },
+    ]);
   });
 
   it("should not return the attributes when they are revoked", async () => {

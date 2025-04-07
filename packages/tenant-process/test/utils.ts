@@ -37,6 +37,10 @@ import {
   catalogReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import {
+  tenantVerifiedAttributeRevokerInReadmodelTenant,
+  tenantVerifiedAttributeVerifierInReadmodelTenant,
+} from "pagopa-interop-readmodel-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -54,7 +58,12 @@ export const { cleanup, readModelRepository, postgresDB, readModelDB } =
     inject("readModelSQLConfig")
   );
 
-afterEach(cleanup);
+afterEach(async () => {
+  await readModelDB.delete(tenantVerifiedAttributeVerifierInReadmodelTenant);
+  await readModelDB.delete(tenantVerifiedAttributeRevokerInReadmodelTenant);
+
+  await cleanup();
+});
 
 export const {
   agreements,
@@ -127,7 +136,7 @@ export const getMockVerifiedTenantAttribute = (): VerifiedTenantAttribute => ({
   id: generateId(),
   type: tenantAttributeType.VERIFIED,
   assignmentTimestamp: new Date(),
-  verifiedBy: [getMockVerifiedBy()],
+  verifiedBy: [],
   revokedBy: [],
 });
 

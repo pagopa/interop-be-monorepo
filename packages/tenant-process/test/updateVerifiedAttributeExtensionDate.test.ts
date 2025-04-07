@@ -5,6 +5,7 @@ import {
   protobufDecoder,
   Tenant,
   TenantVerifiedAttributeExtensionUpdatedV2,
+  TenantVerifier,
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
@@ -20,7 +21,6 @@ import {
   addOneTenant,
   tenantService,
   getMockVerifiedTenantAttribute,
-  getMockVerifiedBy,
   readLastTenantEvent,
 } from "./utils.js";
 
@@ -29,7 +29,13 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     currentDate.setDate(currentDate.getDate() + 1)
   );
 
-  const mockVerifiedBy = getMockVerifiedBy();
+  const mockVerifier = getMockTenant();
+  const sixHoursAgo = new Date();
+  sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+  const mockVerifiedBy: TenantVerifier = {
+    id: mockVerifier.id,
+    verificationDate: sixHoursAgo,
+  };
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const tenant: Tenant = {
     ...getMockTenant(),
@@ -55,6 +61,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
         (expirationDate.getTime() - mockVerifiedBy.verificationDate.getTime())
     );
 
+    await addOneTenant(mockVerifier);
     await addOneTenant(tenant);
     const returnedTenant =
       await tenantService.updateVerifiedAttributeExtensionDate(
@@ -127,6 +134,8 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     const attributeId = updatedTenantWithoutExpirationDate.attributes.map(
       (a) => a.id
     )[0];
+
+    await addOneTenant(mockVerifier);
     await addOneTenant(updatedTenantWithoutExpirationDate);
     expect(
       tenantService.updateVerifiedAttributeExtensionDate(
@@ -158,6 +167,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
     );
   });
   it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+    await addOneTenant(mockVerifier);
     await addOneTenant(tenant);
     const verifierId = generateId();
     expect(
