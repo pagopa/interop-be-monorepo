@@ -185,10 +185,12 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
-      const agreement = await agreementProcessClient.getAgreementById({
-        params: { agreementId },
-        headers: ctx.headers,
-      });
+      const { data: agreement } = await agreementProcessClient.getAgreementById(
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
 
       return enrichAgreement(agreement, clients, ctx);
     },
@@ -261,10 +263,12 @@ export function agreementServiceBuilder(
     ): Promise<Buffer> {
       logger.info(`Retrieving contract for agreement ${agreementId}`);
 
-      const agreement = await agreementProcessClient.getAgreementById({
-        params: { agreementId },
-        headers,
-      });
+      const { data: agreement } = await agreementProcessClient.getAgreementById(
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
 
       if (!agreement.contract) {
         if (

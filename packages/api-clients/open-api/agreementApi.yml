@@ -1034,23 +1034,14 @@ components:
       schema:
         type: string
   schemas:
-    WithMetadata:
+    Metadata:
       type: object
       required:
-        - data
-        - metadata
+        - version
       properties:
-        data:
-          type: object
-          description: "The actual data payload"
-        metadata:
-          type: object
-          required:
-            - version
-          properties:
-            version:
-              type: number
-              description: "Version information for the data"
+        version:
+          type: number
+          description: "Version information for the data"
     AgreementPayload:
       type: object
       additionalProperties: false
@@ -1151,12 +1142,15 @@ components:
         - createdAt
       description: business representation of an agreement
     AgreementWithMetadata:
-      allOf:
-        - $ref: "#/components/schemas/WithMetadata"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/Agreement"
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          $ref: "#/components/schemas/Agreement"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
     AgreementRejectionPayload:
       type: object
       additionalProperties: false
