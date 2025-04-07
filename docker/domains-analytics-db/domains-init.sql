@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS domains;
 
 CREATE TABLE IF NOT EXISTS domains.attribute (
-  id UUID,
+  id VARCHAR(36),
   metadata_version INTEGER NOT NULL,
   code VARCHAR,
   kind VARCHAR NOT NULL,

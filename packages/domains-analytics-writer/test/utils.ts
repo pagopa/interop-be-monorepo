@@ -1,7 +1,9 @@
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { genericLogger } from "pagopa-interop-commons";
 import { inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { AttributeSchema } from "../src/model/attribute/attribute.js";
 import { DBContext, DBConnection } from "../src/db/db.js";
 import { config } from "../src/config/config.js";
 import { retryConnection } from "../src/db/buildColumnSet.js";
@@ -62,8 +64,42 @@ export async function getTablesByName(
 export async function getAttributeFromDb(
   id: string,
   db: DBContext
-): Promise<AttributeSQL | null> {
-  return db.conn.oneOrNone(`SELECT * FROM domains.attribute WHERE id = $1`, [
-    id,
-  ]);
+): Promise<AttributeSchema[] | null> {
+  return db.conn.any(`SELECT * FROM domains.attribute WHERE id = $1`, [id]);
 }
+
+export const multipleTopicMessage = [
+  {
+    topic: config.attributeTopic,
+    message: {
+      value: { event_version: 1 },
+    },
+  },
+  {
+    topic: config.agreementTopic,
+    message: {
+      value: { event_version: 1 },
+    },
+  },
+  {
+    topic: config.agreementTopic,
+    message: {
+      value: { event_version: 2 },
+    },
+  },
+  {
+    topic: config.catalogTopic,
+    message: {
+      value: { event_version: 2 },
+    },
+  },
+] as any;
+
+export const singleTopicMessage = [
+  {
+    topic: config.attributeTopic,
+    message: {
+      value: { event_version: 1 },
+    },
+  },
+] as any;

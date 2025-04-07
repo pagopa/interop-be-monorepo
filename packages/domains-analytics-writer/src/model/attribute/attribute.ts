@@ -13,7 +13,7 @@ export const attributeSchema = z.object({
   creation_time: z.string(),
 });
 
-type AttributeSchema = z.infer<typeof attributeSchema>;
+export type AttributeSchema = z.infer<typeof attributeSchema>;
 
 export type AttributeMapping = {
   [K in keyof AttributeSchema]: (record: AttributeSQL) => AttributeSchema[K];

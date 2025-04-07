@@ -1,7 +1,8 @@
-import { describe, expect, it, vi, afterAll, inject } from "vitest";
+import { describe, expect, it, vi, afterAll } from "vitest";
 import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { config } from "../src/config/config.js";
 import { AttributeDbtable, DeletingDbTable } from "../src/model/db.js";
+import { setupStagingTablesError } from "../src/model/errors.js";
 import { dbContext, getTablesByName } from "./utils.js";
 
 describe("Setup DB Service tests for catalog tables", async () => {
@@ -44,6 +45,6 @@ describe("Setup DB Service tests for catalog tables", async () => {
 
     await expect(
       dbService.setupStagingTables(catalogTables)
-    ).rejects.toThrowError(mockQueryError);
+    ).rejects.toThrowError(setupStagingTablesError(mockQueryError));
   });
 });

@@ -11,6 +11,7 @@ import {
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { DeletingDbTable, AttributeDbtable } from "../../model/db.js";
 
+/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
 export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AttributeDbtable.attribute;
@@ -91,7 +92,6 @@ export function attributeRepository(conn: DBConnection) {
           mapping,
           DeletingDbTable.deleting_by_id_table
         );
-
         await t.none(
           pgp.helpers.insert({ id, deleted: true }, cs) +
             " ON CONFLICT DO NOTHING"
