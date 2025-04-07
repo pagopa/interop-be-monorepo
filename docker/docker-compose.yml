@@ -29,6 +29,20 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
+  
+  # analytics POSTGRESQL-15
+  domains-analytics:
+    volumes:
+      - ./domains-analytics-db:/docker-entrypoint-initdb.d
+    image: postgres:15
+    ports:
+      - 6003:5434
+    environment:
+      PGPORT: 5434
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    command: -c 'max_connections=512' -c 'wal_level=logical'
 
   # Zookeeper for Kafka
   zookeeper:
