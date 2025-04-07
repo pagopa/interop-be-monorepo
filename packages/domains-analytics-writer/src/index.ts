@@ -51,6 +51,7 @@ import { handleEserviceTemplateMessageV2 } from "./handlers/eservice-template/co
 import { DBContext, initDB } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
+import { AttributeDbtable } from "./model/db.js";
 
 const dbInstance = initDB({
   username: config.dbUsername,
@@ -74,16 +75,7 @@ await retryConnection(
   config,
   async (db) => {
     await setupDbServiceBuilder(db.conn, config).setupStagingTables([
-      "eservice",
-      "eservice_template_ref",
-      "eservice_descriptor",
-      "eservice_descriptor_template_version_ref",
-      "eservice_descriptor_rejection_reason",
-      "eservice_descriptor_interface",
-      "eservice_descriptor_document",
-      "eservice_descriptor_attribute",
-      "eservice_risk_analysis",
-      "eservice_risk_analysis_answer",
+      AttributeDbtable.attribute,
     ]);
     await setupDbServiceBuilder(
       db.conn,

@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
+import { setupStagingTablesError } from "../model/errors.js";
 
 export interface SetupDbConfig {
   mergeTableSuffix: string;
@@ -23,7 +25,7 @@ export function setupDbServiceBuilder(
           })
         );
       } catch (error: unknown) {
-        throw error;
+        throw setupStagingTablesError(error);
       }
     },
 
@@ -37,7 +39,7 @@ export function setupDbServiceBuilder(
           `;
         return conn.query(query);
       } catch (error: unknown) {
-        throw error;
+        throw setupStagingTablesError(error);
       }
     },
   };

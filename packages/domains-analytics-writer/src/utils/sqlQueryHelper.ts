@@ -5,17 +5,14 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  column: keyof T,
-  useCoalesce = false
+  column: keyof T
 ): string {
   const keys = Object.keys(tableSchema.shape);
 
   const updateSet = keys
     .map((k) => {
       const col = String(k);
-      return useCoalesce
-        ? `${col} = COALESCE(source.${col}, ${schemaName}.${tableName}.${col})`
-        : `${col} = source.${col}`;
+      return `${col} = source.${col}`;
     })
     .join(",\n      ");
 

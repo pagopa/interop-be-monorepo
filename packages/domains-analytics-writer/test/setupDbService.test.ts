@@ -1,14 +1,15 @@
-import { describe, expect, it, vi, afterAll } from "vitest";
+import { describe, expect, it, vi, afterAll, inject } from "vitest";
 import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { config } from "../src/config/config.js";
+import { AttributeDbtable, DeletingDbTable } from "../src/model/db.js";
 import { dbContext, getTablesByName } from "./utils.js";
 
-describe("Setup DB Service tests for catalog tables", () => {
+describe("Setup DB Service tests for catalog tables", async () => {
   afterAll(() => {
     vi.restoreAllMocks();
   });
 
-  const catalogTables = ["attribute"];
+  const catalogTables = [AttributeDbtable.attribute];
 
   const dbService = setupDbServiceBuilder(dbContext.conn, config);
 
@@ -31,10 +32,10 @@ describe("Setup DB Service tests for catalog tables", () => {
     await dbService.setupStagingDeletingByIdTables();
 
     const result = await getTablesByName(dbContext.conn, [
-      "deleting_by_id_table",
+      DeletingDbTable.deleting_by_id_table,
     ]);
     expect(result.length).toBe(1);
-    expect(result[0].tablename).toBe("deleting_by_id_table");
+    expect(result[0].tablename).toBe(DeletingDbTable.deleting_by_id_table);
   });
 
   it("should throw an error if database query fails during staging tables creation", async () => {

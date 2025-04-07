@@ -10,9 +10,9 @@ import {
   KafkaBatchConsumerConfig,
   LoggerConfig,
   EServiceTemplateTopicConfig,
+  AnalyticsSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
-import { DbConfig } from "./dbConfig.js";
 
 export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
   KafkaBatchConsumerConfig
@@ -27,7 +27,7 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
   .and(AuthorizationTopicConfig)
   .and(DelegationTopicConfig)
   .and(EServiceTemplateTopicConfig)
-  .and(DbConfig)
+  .and(AnalyticsSQLDbConfig)
   .and(
     z
       .object({
