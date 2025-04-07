@@ -1,7 +1,7 @@
 meta {
   name: Deletes a key by client and key identifier -kid--
   type: http
-  seq: 2
+  seq: 14
 }
 
 delete {
@@ -17,10 +17,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Given a client and key identifiers it deletes the corresponding key, if any

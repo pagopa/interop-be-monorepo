@@ -6,7 +6,7 @@ import {
   getMockTenant,
   getMockVerifiedTenantAttribute,
   setupTestContainersVitest,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { ReadModelQueriesClient } from "../src/services/readModelQueriesService.js";
 
@@ -17,11 +17,10 @@ const COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID_MOCK =
 const TENANT_COMUNE_ID = randomUUID();
 const TENANT_NON_COMUNE_ID = randomUUID();
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
+export const { cleanup, readModelRepository, postgresDB } =
   await setupTestContainersVitest(
     inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
+    inject("eventStoreConfig")
   );
 
 afterEach(cleanup);

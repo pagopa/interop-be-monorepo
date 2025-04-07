@@ -149,34 +149,42 @@ export function clientServiceBuilder(
       );
     },
 
-    async createKeys(
+    async createKey(
       clientId: string,
-      keySeed: bffApi.KeysSeed,
+      keySeed: bffApi.KeySeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Create keys for client ${clientId}`);
 
-      const body: authorizationApi.KeysSeed = keySeed.map((seed) =>
-        toAuthorizationKeySeed(seed)
+      await authorizationClient.client.createKey(
+        toAuthorizationKeySeed(keySeed),
+        {
+          params: { clientId },
+          headers,
+        }
       );
-
-      await authorizationClient.client.createKeys(body, {
-        params: { clientId },
-        headers,
-      });
     },
 
     async getClientKeys(
-      clientId: string,
-      userIds: string[],
+      {
+        clientId,
+        userIds,
+        limit,
+        offset,
+      }: {
+        clientId: string;
+        userIds: string[];
+        limit: number;
+        offset: number;
+      },
       { logger, headers, authData, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
-      const [{ keys }, { users }] = await Promise.all([
+      const [{ keys, totalCount }, { users }] = await Promise.all([
         authorizationClient.client.getClientKeys({
           params: { clientId },
-          queries: { userIds },
+          queries: { userIds, limit, offset },
           headers,
         }),
         authorizationClient.client.getClient({
@@ -197,7 +205,14 @@ export function clientServiceBuilder(
         )
       );
 
-      return { keys: decoratedKeys };
+      return {
+        pagination: {
+          offset,
+          limit,
+          totalCount,
+        },
+        keys: decoratedKeys,
+      };
     },
 
     async addClientPurpose(

@@ -1,7 +1,7 @@
 meta {
   name: Binds an user to a Client
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
@@ -17,10 +17,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Binds a security user belonging to a consumer to a Client

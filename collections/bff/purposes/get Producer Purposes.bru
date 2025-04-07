@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-bff}}/producer/purposes?producersIds=69e2865e-65ab-4e48-a638-2037a9ee2ee7&offset=0&limit=10
+  url: {{host-bff}}/producers/purposes?producersIds=69e2865e-65ab-4e48-a638-2037a9ee2ee7&offset=0&limit=10
   body: none
   auth: none
 }
@@ -22,7 +22,6 @@ params:query {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
 
 docs {

@@ -2,9 +2,12 @@
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockContext,
+  getMockDelegation,
   getMockValidRiskAnalysis,
+  getMockAuthData,
   randomArrayItem,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -14,23 +17,28 @@ import {
   eserviceMode,
   operationForbidden,
   generateId,
+  delegationState,
+  delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
+import { match } from "ts-pattern";
 import {
   eServiceNotFound,
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   eserviceNotInDraftState,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDocument,
   getMockDescriptor,
   getMockEService,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("update eService", () => {
@@ -38,9 +46,18 @@ describe("update eService", () => {
   const mockDocument = getMockDocument();
   it("should write on event-store for the update of an eService (no technology change)", async () => {
     vi.spyOn(fileManager, "delete");
+
     config.featureFlagSignalhubWhitelist = true;
     config.signalhubWhitelistProducer = [mockEService.producerId];
+
     const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isConsumerDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
+      .with(undefined, () => undefined)
+      .with(true, () => randomArrayItem([false, true, undefined]))
+      .with(false, () => false)
+      .exhaustive();
+
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
@@ -61,18 +78,81 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
         isSignalHubEnabled,
+        isConsumerDelegable,
+        isClientAccessDelegable,
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     const updatedEService: EService = {
       ...eservice,
       name: updatedName,
+      isSignalHubEnabled,
+      isConsumerDelegable,
+      isClientAccessDelegable,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent.stream_id).toBe(mockEService.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe("DraftEServiceUpdated");
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    expect(fileManager.delete).not.toHaveBeenCalled();
+  });
+
+  it("should update an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
+    vi.spyOn(fileManager, "delete");
+
+    const isSignalHubEnabled = randomArrayItem([false, true, undefined]);
+    const isConsumerDelegable: false | undefined = randomArrayItem([
+      false,
+      undefined,
+    ]);
+    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const expectedIsClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      isSignalHubEnabled,
+    };
+    const updatedName = "eservice new name";
+    await addOneEService(eservice);
+    const returnedEService = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: updatedName,
+        description: mockEService.description,
+        technology: "REST",
+        mode: "DELIVER",
+        isSignalHubEnabled,
+        isConsumerDelegable,
+        isClientAccessDelegable,
+      },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    const updatedEService: EService = {
+      ...eservice,
+      name: updatedName,
+      isSignalHubEnabled,
+      isConsumerDelegable,
+      isClientAccessDelegable: expectedIsClientAccessDelegable,
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -137,12 +217,7 @@ describe("update eService", () => {
         technology: "SOAP",
         mode: "DELIVER",
       },
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const updatedEService: EService = {
@@ -204,12 +279,7 @@ describe("update eService", () => {
           technology: "SOAP",
           mode: "DELIVER",
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -234,12 +304,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      {
-        authData: getMockAuthData(mockEService.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
     const updatedEService: EService = {
@@ -262,9 +327,52 @@ describe("update eService", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
+  it("should write on event-store for the update of an eService (delegate)", async () => {
+    const updatedDescription = "eservice new description";
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+    const returnedEService = await catalogService.updateEService(
+      mockEService.id,
+      {
+        name: mockEService.name,
+        description: updatedDescription,
+        technology: "REST",
+        mode: "DELIVER",
+      },
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+    );
+
+    const updatedEService: EService = {
+      ...mockEService,
+      description: updatedDescription,
+      isSignalHubEnabled: false,
+    };
+
+    const writtenEvent = await readLastEserviceEvent(mockEService.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockEService.id,
+      version: "1",
+      type: "DraftEServiceUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: DraftEServiceUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+  });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
     config.featureFlagSignalhubWhitelist = true;
+
     const riskAnalysis = getMockValidRiskAnalysis("PA");
     const eservice: EService = {
       ...mockEService,
@@ -284,12 +392,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const expectedEservice: EService = {
@@ -324,12 +427,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -346,17 +444,36 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceDuplicate if the updated name is already in use", async () => {
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: mockEService.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(mockEService);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: "eservice new name",
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw eServiceNameDuplicate if the updated name is already in use, case insensitive", async () => {
     const eservice1: EService = {
       ...mockEService,
       id: generateId(),
@@ -375,19 +492,16 @@ describe("update eService", () => {
       catalogService.updateEService(
         eservice1.id,
         {
-          name: "eservice name already in use",
+          name: "ESERVICE NAME ALREADY IN USE",
           description: "eservice description",
           technology: "REST",
           mode: "DELIVER",
         },
-        {
-          authData: getMockAuthData(eservice1.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
       )
-    ).rejects.toThrowError(eServiceDuplicate("eservice name already in use"));
+    ).rejects.toThrowError(
+      eServiceNameDuplicate("ESERVICE NAME ALREADY IN USE")
+    );
   });
 
   it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {
@@ -410,12 +524,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -440,12 +549,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -470,12 +574,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -500,13 +599,39 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
+  });
+
+  it("should throw templateInstanceNotAllowed if the eservice is an instance of a template", async () => {
+    const templateId: EServiceTemplateId = generateId();
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: mockDocument,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      templateRef: {
+        id: templateId,
+        instanceLabel: undefined,
+      },
+    };
+    await addOneEService(eservice);
+
+    expect(
+      catalogService.updateEService(
+        mockEService.id,
+        {
+          name: "eservice new name",
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
 });

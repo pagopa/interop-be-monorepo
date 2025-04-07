@@ -2619,6 +2619,28 @@ components:
             type: string
         isSignalHubEnabled:
           type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        templateRef:
+          $ref: "#/components/schemas/EServiceTemplateRef"
+          required: false
+    EServiceTemplateRef:
+      type: object
+      additionalProperties: false
+      required:
+        - templateId
+      properties:
+        templateId:
+          type: string
+          format: uuid
+        instanceLabel:
+          type: string
+          format: uuid
+        templateVersionId:
+          type: string
+          format: uuid
     EServiceAttributes:
       description: the attributes set associated to the EService
       properties:
@@ -2687,6 +2709,7 @@ components:
         - DEPRECATED
         - SUSPENDED
         - ARCHIVED
+        - WAITING_FOR_APPROVAL
     EServiceDescriptors:
       description: eservice descriptors list model
       type: object

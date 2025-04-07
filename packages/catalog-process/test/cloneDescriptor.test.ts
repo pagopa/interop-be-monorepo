@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, FileManagerError } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockContext,
+  getMockDelegation,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -12,24 +17,28 @@ import {
   toEServiceV2,
   generateId,
   operationForbidden,
+  delegationState,
+  delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
-  eServiceDuplicate,
+  eServiceNameDuplicate,
   eServiceNotFound,
   eServiceDescriptorNotFound,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
   fileManager,
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("clone descriptor", () => {
@@ -120,12 +129,7 @@ describe("clone descriptor", () => {
     const newEService = await catalogService.cloneDescriptor(
       eservice.id,
       descriptor.id,
-      {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      }
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
 
     const writtenEvent = await readLastEserviceEvent(newEService.id);
@@ -234,15 +238,14 @@ describe("clone descriptor", () => {
     await addOneEService(eservice);
 
     await expect(
-      catalogService.cloneDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.cloneDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(FileManagerError);
   });
-  it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
+  it("should throw eServiceNameDuplicate if an eservice with the same name already exists, case insensitive", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -251,15 +254,16 @@ describe("clone descriptor", () => {
     };
     const eservice1: EService = {
       ...mockEService,
+      name: mockEService.name.toUpperCase(),
       id: generateId(),
       descriptors: [descriptor],
     };
     await addOneEService(eservice1);
 
     const cloneTimestamp = new Date();
-    const conflictEServiceName = `${
-      eservice1.name
-    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
+    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${formatDateddMMyyyyHHmmss(
+      cloneTimestamp
+    )}`;
 
     const eservice2: EService = {
       ...mockEService,
@@ -270,22 +274,26 @@ describe("clone descriptor", () => {
     await addOneEService(eservice2);
 
     expect(
-      catalogService.cloneDescriptor(eservice1.id, descriptor.id, {
-        authData: getMockAuthData(eservice1.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
-    ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
+      catalogService.cloneDescriptor(
+        eservice1.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+      )
+    ).rejects.toThrowError(
+      eServiceNameDuplicate(
+        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+          cloneTimestamp
+        )}`
+      )
+    );
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(
-      catalogService.cloneDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.cloneDescriptor(
+        mockEService.id,
+        mockDescriptor.id,
+        getMockContext({})
+      )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
   it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -299,12 +307,39 @@ describe("clone descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.cloneDescriptor(eservice.id, descriptor.id, {
-        authData: getMockAuthData(),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.cloneDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({})
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester is a producer delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    expect(
+      catalogService.cloneDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({
+          authData: getMockAuthData(delegation.delegateId),
+        })
+      )
     ).rejects.toThrowError(operationForbidden);
   });
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
@@ -314,14 +349,33 @@ describe("clone descriptor", () => {
     };
     await addOneEService(eservice);
     expect(
-      catalogService.cloneDescriptor(mockEService.id, mockDescriptor.id, {
-        authData: getMockAuthData(eservice.producerId),
-        correlationId: generateId(),
-        serviceName: "",
-        logger: genericLogger,
-      })
+      catalogService.cloneDescriptor(
+        mockEService.id,
+        mockDescriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
+  });
+  it("should throw templateInstanceNotAllowed if teh templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    expect(
+      catalogService.cloneDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
 });

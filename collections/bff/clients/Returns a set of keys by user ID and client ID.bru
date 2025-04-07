@@ -1,7 +1,7 @@
 meta {
   name: Returns a set of keys by user ID and client ID-
   type: http
-  seq: 1
+  seq: 11
 }
 
 get {
@@ -17,10 +17,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Given a user and a client it returns its corresponding set of keys, if any

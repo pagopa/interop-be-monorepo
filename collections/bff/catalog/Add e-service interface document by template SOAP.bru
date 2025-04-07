@@ -1,0 +1,26 @@
+meta {
+  name: Add e-service interface document by template SOAP
+  type: http
+  seq: 40
+}
+
+post {
+  url: {{host-bff}}/templates/eservices/:eServiceId/descriptors/:descriptorId/interface/soap
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: 05facccb-1cee-4bdd-8812-d2ba2617eb4e
+  descriptorId: c9464c1c-7d1d-4dae-9c04-8cc4cb40ed60
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "serverUrls": ["https://test.example2.com","https://test.example3.com"]
+  }
+}

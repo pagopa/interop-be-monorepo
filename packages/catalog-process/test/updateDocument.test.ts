@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockContext,
+  getMockDelegation,
+  getMockAuthData,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -10,23 +14,28 @@ import {
   operationForbidden,
   generateId,
   Document,
+  delegationState,
+  delegationKind,
+  EServiceTemplateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
   eServiceDocumentNotFound,
-  prettyNameDuplicate,
+  documentPrettyNameDuplicate,
+  templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   readLastEserviceEvent,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  addOneDelegation,
 } from "./utils.js";
 
 describe("update Document", () => {
@@ -35,7 +44,9 @@ describe("update Document", () => {
   const mockDocument = getMockDocument();
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.archived
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
     )
   )(
     "should write on event-store for the update of a document in a descriptor in %s state",
@@ -54,12 +65,81 @@ describe("update Document", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      const expectedEservice = toEServiceV2({
+        ...eservice,
+        descriptors: [
+          {
+            ...descriptor,
+            docs: [
+              {
+                ...mockDocument,
+                prettyName: "updated prettyName",
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(writtenEvent.stream_id).toBe(eservice.id);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.type).toBe("EServiceDescriptorDocumentUpdated");
+      expect(writtenEvent.event_version).toBe(2);
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorDocumentUpdatedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+      expect(writtenPayload.documentId).toEqual(mockDocument.id);
+      expect(writtenPayload.eservice).toEqual(expectedEservice);
+      expect(writtenPayload.eservice).toEqual(
+        toEServiceV2({
+          ...eservice,
+          descriptors: [
+            {
+              ...descriptor,
+              docs: [returnedDocument],
+            },
+          ],
+        })
+      );
+    }
+  );
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) =>
+        state !== descriptorState.archived &&
+        state !== descriptorState.waitingForApproval
+    )
+  )(
+    "should write on event-store for the update of a document in a descriptor in %s state (delegate)",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(state),
+        docs: [mockDocument],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      const returnedDocument = await catalogService.updateDocument(
+        eservice.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       const expectedEservice = toEServiceV2({
@@ -109,12 +189,7 @@ describe("update Document", () => {
         mockDescriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -135,12 +210,35 @@ describe("update Document", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({})
+      )
+    ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      docs: [mockDocument],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+    expect(
+      catalogService.updateDocument(
+        eservice.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -156,12 +254,7 @@ describe("update Document", () => {
         mockDescriptor.id,
         generateId(),
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -169,10 +262,12 @@ describe("update Document", () => {
   });
   it.each(
     Object.values(descriptorState).filter(
-      (state) => state === descriptorState.archived
+      (state) =>
+        state === descriptorState.archived ||
+        state === descriptorState.waitingForApproval
     )
   )(
-    "should throw notValidDescriptor if the descriptor is in s% state",
+    "should throw notValidDescriptorState if the descriptor is in s% state",
     async (state) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
@@ -189,16 +284,9 @@ describe("update Document", () => {
           descriptor.id,
           generateId(),
           { prettyName: "updated prettyName" },
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
-      ).rejects.toThrowError(
-        notValidDescriptor(descriptor.id, descriptorState.archived)
-      );
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
   it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {
@@ -218,21 +306,16 @@ describe("update Document", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
     );
   });
-  it("should throw prettyNameDuplicate if a document with the same prettyName already exists in that descriptor", async () => {
+  it("should throw documentPrettyNameDuplicate if a document with the same prettyName already exists in that descriptor, case insensitive", async () => {
     const document1: Document = {
       ...getMockDocument(),
-      prettyName: "test a",
+      prettyName: "TEST A",
     };
     const document2: Document = {
       ...getMockDocument(),
@@ -254,16 +337,38 @@ describe("update Document", () => {
         eservice.id,
         descriptor.id,
         document2.id,
-        { prettyName: document1.prettyName },
-        {
-          authData: getMockAuthData(eservice.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        { prettyName: document1.prettyName.toLowerCase() },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      prettyNameDuplicate(document1.prettyName, descriptor.id)
+      documentPrettyNameDuplicate(
+        document1.prettyName.toLowerCase(),
+        descriptor.id
+      )
     );
+  });
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
+    const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      state: descriptorState.draft,
+      docs: [mockDocument],
+    };
+    const eService: EService = {
+      ...mockEService,
+      templateRef: { id: templateId },
+      descriptors: [descriptor],
+    };
+    await addOneEService(eService);
+    expect(
+      catalogService.updateDocument(
+        eService.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({ authData: getMockAuthData(eService.producerId) })
+      )
+    ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
 });

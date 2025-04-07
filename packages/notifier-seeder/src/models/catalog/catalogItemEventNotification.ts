@@ -4,7 +4,7 @@ import {
   CatalogDocumentV1,
   CatalogItemRiskAnalysisV1,
   CatalogItemV1,
-} from "../../gen/v1/events.js";
+} from "../../protobuf-models/v1/events.js";
 
 /* 
 The notification catalog event types was implemented to allow compatibility with old notifier consumers,

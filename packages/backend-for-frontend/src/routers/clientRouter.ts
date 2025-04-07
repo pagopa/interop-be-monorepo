@@ -263,7 +263,7 @@ const clientRouter = (
     .post("/clients/:clientId/keys", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await clientService.createKeys(req.params.clientId, req.body, ctx);
+        await clientService.createKey(req.params.clientId, req.body, ctx);
 
         return res.status(204).send();
       } catch (error) {
@@ -282,8 +282,12 @@ const clientRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const keys = await clientService.getClientKeys(
-          req.params.clientId,
-          req.query.userIds,
+          {
+            clientId: req.params.clientId,
+            userIds: req.query.userIds,
+            limit: req.query.limit,
+            offset: req.query.offset,
+          },
           ctx
         );
 

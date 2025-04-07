@@ -31,7 +31,44 @@ const agreementRouter = (
   const agreementService = agreementServiceBuilder(clients, fileManager);
 
   agreementRouter
-    .get("/agreements", async (req, res) => {
+    .get("/consumers/agreements", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const {
+          producersIds,
+          eservicesIds,
+          limit,
+          offset,
+          showOnlyUpgradeable,
+          states,
+        } = req.query;
+
+        const result = await agreementService.getConsumerAgreements(
+          {
+            offset,
+            limit,
+            eservicesIds,
+            producersIds,
+            states,
+            showOnlyUpgradeable,
+          },
+          ctx
+        );
+        return res.status(200).send(bffApi.Agreements.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAgreementsErrorMapper,
+          ctx.logger,
+          ctx.correlationId,
+          "Error retrieving agreements"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
+    .get("/producers/agreements", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -40,16 +77,14 @@ const agreementRouter = (
           eservicesIds,
           limit,
           offset,
-          producersIds,
           showOnlyUpgradeable,
           states,
         } = req.query;
 
-        const result = await agreementService.getAgreements(
+        const result = await agreementService.getProducerAgreements(
           {
             offset,
             limit,
-            producersIds,
             eservicesIds,
             consumersIds,
             states,
@@ -91,14 +126,13 @@ const agreementRouter = (
     .get("/producers/agreements/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      const { offset, limit, states, q } = req.query;
+      const { offset, limit, q } = req.query;
       try {
         const requesterId = ctx.authData.organizationId;
-        const result = await agreementService.getAgreementsEserviceProducers(
+        const result = await agreementService.getAgreementsProducerEServices(
           {
             offset,
             limit,
-            states,
             requesterId,
             eServiceName: q,
           },
@@ -124,7 +158,7 @@ const agreementRouter = (
       const { offset, limit, q } = req.query;
       try {
         const requesterId = ctx.authData.organizationId;
-        const result = await agreementService.getAgreementsEserviceConsumers(
+        const result = await agreementService.getAgreementsConsumerEServices(
           {
             offset,
             limit,
@@ -152,7 +186,7 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const result = await agreementService.getAgreementProducers(
+        const result = await agreementService.getAgreementsProducers(
           {
             offset,
             limit,
@@ -178,7 +212,7 @@ const agreementRouter = (
 
       const { offset, limit, q } = req.query;
       try {
-        const result = await agreementService.getAgreementConsumers(
+        const result = await agreementService.getAgreementsConsumers(
           {
             offset,
             limit,
@@ -501,7 +535,35 @@ const agreementRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+
+    .get(
+      "/tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const result = await agreementService.verifyTenantCertifiedAttributes(
+            req.params.tenantId,
+            req.params.eserviceId,
+            req.params.descriptorId,
+            ctx
+          );
+          return res
+            .status(200)
+            .send(bffApi.HasCertifiedAttributes.parse(result));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error verifying certified attributes`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return agreementRouter;
 };

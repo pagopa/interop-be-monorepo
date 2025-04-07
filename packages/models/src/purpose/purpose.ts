@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  DelegationId,
   EServiceId,
   PurposeId,
   PurposeVersionDocumentId,
@@ -7,7 +8,6 @@ import {
   TenantId,
 } from "../brandedIds.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
-import { EServiceMode } from "../eservice/eservice.js";
 
 export const purposeVersionState = {
   draft: "Draft",
@@ -48,6 +48,7 @@ export const Purpose = z.object({
   id: PurposeId,
   eserviceId: EServiceId,
   consumerId: TenantId,
+  delegationId: DelegationId.optional(),
   versions: z.array(PurposeVersion),
   suspendedByConsumer: z.boolean().optional(),
   suspendedByProducer: z.boolean().optional(),
@@ -60,40 +61,3 @@ export const Purpose = z.object({
   freeOfChargeReason: z.string().optional(),
 });
 export type Purpose = z.infer<typeof Purpose>;
-
-export const ownership = {
-  CONSUMER: "CONSUMER",
-  PRODUCER: "PRODUCER",
-  SELF_CONSUMER: "SELF_CONSUMER",
-} as const;
-export const Ownership = z.enum([
-  Object.values(ownership)[0],
-  ...Object.values(ownership).slice(1),
-]);
-export type Ownership = z.infer<typeof Ownership>;
-
-export const PurposeDocumentEServiceInfo = z.object({
-  name: z.string(),
-  mode: EServiceMode,
-  producerName: z.string(),
-  producerOrigin: z.string(),
-  producerIPACode: z.string(),
-  consumerName: z.string(),
-  consumerOrigin: z.string(),
-  consumerIPACode: z.string(),
-});
-export type PurposeDocumentEServiceInfo = z.infer<
-  typeof PurposeDocumentEServiceInfo
->;
-
-export type RiskAnalysisDocumentPDFPayload = {
-  dailyCalls: string;
-  answers: string;
-  eServiceName: string;
-  producerText: string;
-  consumerText: string;
-  freeOfCharge: string;
-  freeOfChargeReason: string;
-  date: string;
-  eServiceMode: string;
-};
