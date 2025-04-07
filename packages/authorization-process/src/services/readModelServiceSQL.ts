@@ -173,7 +173,8 @@ export function readModelServiceBuilderSQL({
             // 3
             clientKeyInReadmodelClient,
             eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
-          );
+          )
+          .orderBy(sql`LOWER(${clientInReadmodelClient.name})`);
       });
 
       return {
@@ -383,6 +384,9 @@ export function readModelServiceBuilderSQL({
               producerKeychainInReadmodelProducerKeychain.id,
               producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
             )
+          )
+          .orderBy(
+            sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
           );
       });
 
