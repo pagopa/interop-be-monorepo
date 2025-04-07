@@ -158,13 +158,14 @@ export const getAuthDataFromToken = (token: AuthToken): AuthData =>
     }))
     .exhaustive();
 
-export function getUserInfoFromAuthData(
-  authData: AuthData | undefined | null
-): {
+type AuthDataUserInfo = {
   userId: UserId | undefined;
   organizationId: TenantId | undefined;
   selfcareId: SelfcareId | undefined;
-} {
+};
+export function getUserInfoFromAuthData(
+  authData: AuthData | undefined | null
+): AuthDataUserInfo {
   if (!authData) {
     return {
       userId: undefined,
@@ -173,14 +174,7 @@ export function getUserInfoFromAuthData(
     };
   }
 
-  return match<
-    AuthData,
-    {
-      userId: UserId | undefined;
-      organizationId: TenantId | undefined;
-      selfcareId: SelfcareId | undefined;
-    }
-  >(authData)
+  return match<AuthData, AuthDataUserInfo>(authData)
     .with({ systemRole: P.union("internal", "maintenance") }, () => ({
       userId: undefined,
       organizationId: undefined,
