@@ -273,8 +273,9 @@ export function readModelServiceBuilderSQL(
           and(
             eq(
               tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.producerId
+              agreementInReadmodelAgreement.consumerId
             ),
+            eq(agreementInReadmodelAgreement.producerId, producerId),
             inArray(agreementInReadmodelAgreement.state, [
               agreementState.active,
               agreementState.suspended,
@@ -283,7 +284,6 @@ export function readModelServiceBuilderSQL(
         )
         .where(
           and(
-            eq(tenantInReadmodelTenant.id, producerId),
             consumerName
               ? ilike(tenantInReadmodelTenant.name, consumerName)
               : undefined,
