@@ -19,7 +19,7 @@ export const dbContext: DBContext = {
 
 export async function getTargetTableCount(
   db: DBConnection,
-  table: string,
+  table: string
 ): Promise<number> {
   const query = `SELECT COUNT(*) as count FROM $1:name.$2:name;`;
   const result = await db.one<{ count: string }>(query, [
@@ -32,7 +32,7 @@ export async function getTargetTableCount(
 export async function truncateTables(
   db: DBConnection,
   schema: string,
-  tables: string[],
+  tables: string[]
 ): Promise<void> {
   for (const table of tables) {
     await db.none(`TRUNCATE TABLE ${schema}.${table};`);
@@ -41,7 +41,7 @@ export async function truncateTables(
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[],
+  tables: string[]
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename

@@ -37,10 +37,7 @@ export async function handleCatalogMessageV2(
       })
       .with(
         {
-          type: P.union(
-            "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-            "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
-          ),
+          type: P.union("EServiceDescriptorDocumentDeletedByTemplateUpdate"),
         },
         (msg) => {
           deleteEServiceDocumentBatch.push(msg.data.documentId);
@@ -80,6 +77,7 @@ export async function handleCatalogMessageV2(
             "EServiceIsClientAccessDelegableDisabled",
             "EServiceNameUpdatedByTemplateUpdate",
             "EServiceDescriptionUpdatedByTemplateUpdate",
+            "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
             "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
             "EServiceDescriptorDocumentAddedByTemplateUpdate"
