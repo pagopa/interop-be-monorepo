@@ -1,4 +1,3 @@
-import { constants } from "http2";
 import {
   ApiError,
   AttributeId,
@@ -66,9 +65,6 @@ export const errorCodes = {
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
-
-export const emptyErrorMapper = (): number =>
-  constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export function selfcareEntityNotFilled(
   className: string,
