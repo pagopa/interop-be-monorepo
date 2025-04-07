@@ -6,13 +6,13 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import {
-  getMockClient,
-  getMockAuthData,
-  sortClients,
-} from "pagopa-interop-commons-test";
+import { getMockClient, getMockAuthData } from "pagopa-interop-commons-test";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
-import { addOneClient, authorizationService } from "./utils.js";
+import {
+  addOneClient,
+  authorizationService,
+  generateExpectedClients,
+} from "./utils.js";
 
 describe("getClients", async () => {
   const consumerId: TenantId = generateId();
@@ -76,9 +76,10 @@ describe("getClients", async () => {
       limit: 50,
       logger: genericLogger,
     });
+
     expect(result.totalCount).toBe(2);
-    expect(sortClients(result.results)).toEqual(
-      sortClients([mockClient1, mockClient2])
+    expect(result.results).toEqual(
+      generateExpectedClients([mockClient1, mockClient2])
     );
   });
   it("should get the clients if they exist (parameters: userIds taken from the authData)", async () => {
@@ -165,8 +166,8 @@ describe("getClients", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(sortClients(result.results)).toEqual(
-      sortClients([mockClient1, mockClient2])
+    expect(result.results).toEqual(
+      generateExpectedClients([mockClient1, mockClient2])
     );
   });
   it("should get the clients if they exist (parameters: purposeId)", async () => {
@@ -185,8 +186,8 @@ describe("getClients", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(sortClients(result.results)).toEqual(
-      sortClients([mockClient5, mockClient6])
+    expect(result.results).toEqual(
+      generateExpectedClients([mockClient5, mockClient6])
     );
   });
   it("should get the clients if they exist (parameters: kind)", async () => {
@@ -205,8 +206,8 @@ describe("getClients", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(sortClients(result.results)).toEqual(
-      sortClients([mockClient1, mockClient2])
+    expect(result.results).toEqual(
+      generateExpectedClients([mockClient1, mockClient2])
     );
   });
   it("should get the clients if they exist (pagination: offset)", async () => {
@@ -240,8 +241,8 @@ describe("getClients", async () => {
       limit: 50,
       logger: genericLogger,
     });
-    expect(sortClients(result.results)).toEqual(
-      sortClients([mockClientForOffset1, mockClientForOffset2])
+    expect(result.results).toEqual(
+      generateExpectedClients([mockClientForOffset1, mockClientForOffset2])
     );
   });
   it("should get the clients if they exist (pagination: limit)", async () => {
@@ -272,8 +273,8 @@ describe("getClients", async () => {
       limit: 2,
       logger: genericLogger,
     });
-    expect(sortClients(result.results)).toEqual(
-      sortClients([mockClient3, mockClient4])
+    expect(result.results).toEqual(
+      generateExpectedClients([mockClient3, mockClient4])
     );
   });
   it("should not get the clients if they don't exist", async () => {
@@ -325,8 +326,8 @@ describe("getClients", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(sortClients(result.results)).toEqual(
-      sortClients([completeClient1, completeClient2])
+    expect(result.results).toEqual(
+      generateExpectedClients([completeClient1, completeClient2])
     );
   });
 });
