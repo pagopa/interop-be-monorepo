@@ -42,18 +42,7 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import {
-  and,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  isNull,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
-import { concat } from "drizzle-orm/pg-core/expressions";
+import { and, eq, ilike, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -308,10 +297,7 @@ export function readModelServiceBuilderSQL({
               and(
                 isNotNull(eserviceTemplateRefInReadmodelCatalog.instanceLabel),
                 eq(
-                  concat(
-                    eserviceInReadmodelCatalog.name,
-                    ` ${eserviceTemplateRefInReadmodelCatalog.instanceLabel}`
-                  ),
+                  sql`${eserviceInReadmodelCatalog.name} || ' ' || ${eserviceTemplateRefInReadmodelCatalog.instanceLabel}`,
                   newName
                 )
               ),
