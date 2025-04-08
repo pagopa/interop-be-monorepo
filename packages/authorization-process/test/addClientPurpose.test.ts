@@ -29,7 +29,6 @@ import {
   toClientV2,
   ClientKind,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   purposeDelegationNotFound,
@@ -396,12 +395,7 @@ describe("addClientPurpose", async () => {
       authorizationService.addClientPurpose({
         clientId: mockClient.id,
         seed: { purposeId: mockPurpose.id },
-        ctx: {
-          serviceName: "test",
-          authData: getMockAuthData(mockConsumerId),
-          correlationId: generateId(),
-          logger: genericLogger,
-        },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
       })
     ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
