@@ -11,14 +11,21 @@ export const FeatureFlagsConfig = z
       .transform((value) => value.split(","))
       .pipe(z.array(z.string().uuid()))
       .optional(),
+  })
+  .transform((c) => ({
+    featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST,
+    signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
+  }));
+export type FeatureFlagsConfig = z.infer<typeof FeatureFlagsConfig>;
+
+export const FeatureFlagSQLConfig = z
+  .object({
     FEATURE_FLAG_SQL: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true"),
   })
   .transform((c) => ({
-    featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST,
-    signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
     featureFlagSQL: c.FEATURE_FLAG_SQL,
   }));
-export type FeatureFlagsConfig = z.infer<typeof FeatureFlagsConfig>;
+export type FeatureFlagSQLConfig = z.infer<typeof FeatureFlagSQLConfig>;
