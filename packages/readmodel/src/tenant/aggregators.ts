@@ -1,5 +1,4 @@
 import {
-  AttributeId,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   DelegationId,
@@ -14,7 +13,6 @@ import {
   TenantFeatureDelegatedProducer,
   TenantFeatureType,
   tenantFeatureType,
-  TenantId,
   TenantKind,
   TenantMail,
   TenantMailKind,
@@ -97,7 +95,7 @@ export const aggregateTenant = ({
   );
 
   const tenant: Tenant = {
-    id: unsafeBrandId<TenantId>(tenantSQL.id),
+    id: unsafeBrandId(tenantSQL.id),
     name: tenantSQL.name,
     ...(tenantSQL.kind ? { kind: TenantKind.parse(tenantSQL.kind) } : {}),
     createdAt: stringToDate(tenantSQL.createdAt),
@@ -194,7 +192,7 @@ const aggregateTenantAttributes = ({
 }): TenantAttribute[] => {
   const certifiedTenantAttributes: CertifiedTenantAttribute[] =
     certifiedAttributesSQL.map((certifiedAttributeSQL) => ({
-      id: unsafeBrandId<AttributeId>(certifiedAttributeSQL.attributeId),
+      id: unsafeBrandId(certifiedAttributeSQL.attributeId),
       type: tenantAttributeType.CERTIFIED,
       assignmentTimestamp: stringToDate(
         certifiedAttributeSQL.assignmentTimestamp
@@ -210,7 +208,7 @@ const aggregateTenantAttributes = ({
 
   const declaredTenantAttributes: DeclaredTenantAttribute[] =
     declaredAttributesSQL.map((declaredAttributeSQL) => ({
-      id: unsafeBrandId<AttributeId>(declaredAttributeSQL.attributeId),
+      id: unsafeBrandId(declaredAttributeSQL.attributeId),
       type: tenantAttributeType.DECLARED,
       assignmentTimestamp: stringToDate(
         declaredAttributeSQL.assignmentTimestamp
@@ -241,7 +239,7 @@ const aggregateTenantAttributes = ({
               currentVerifiedAttributeSQL.attributeId
           )
           .map((tenantVerifierSQL) => ({
-            id: unsafeBrandId<TenantId>(tenantVerifierSQL.tenantVerifierId),
+            id: unsafeBrandId(tenantVerifierSQL.tenantVerifierId),
             verificationDate: stringToDate(tenantVerifierSQL.verificationDate),
             ...(tenantVerifierSQL.expirationDate
               ? {
@@ -272,7 +270,7 @@ const aggregateTenantAttributes = ({
               currentVerifiedAttributeSQL.attributeId
           )
           .map((tenantRevokerSQL) => ({
-            id: unsafeBrandId<TenantId>(tenantRevokerSQL.tenantRevokerId),
+            id: unsafeBrandId(tenantRevokerSQL.tenantRevokerId),
             verificationDate: stringToDate(tenantRevokerSQL.verificationDate),
             ...(tenantRevokerSQL.expirationDate
               ? {
@@ -295,7 +293,7 @@ const aggregateTenantAttributes = ({
           }));
 
       return {
-        id: unsafeBrandId<AttributeId>(currentVerifiedAttributeSQL.attributeId),
+        id: unsafeBrandId(currentVerifiedAttributeSQL.attributeId),
         type: tenantAttributeType.VERIFIED,
         assignmentTimestamp: stringToDate(
           currentVerifiedAttributeSQL.assignmentTimestamp
