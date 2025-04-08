@@ -22,6 +22,7 @@ import {
   DelegationContractDocumentSQL,
   DelegationItemsSQL,
 } from "pagopa-interop-readmodel-models";
+import { match } from "ts-pattern";
 
 export const aggregateDelegationArray = ({
   delegationSQL,
@@ -69,23 +70,37 @@ export const aggregateDelegation = ({
         )
       : undefined;
 
-  const submissionStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === DelegationStampKind.enum.submission
+  const {
+    submission: submissionStampSQL,
+    activation: activationStampSQL,
+    rejection: rejectionStampSQL,
+    revocation: revocationStampSQL,
+  } = stampsSQL.reduce(
+    (acc: { [key in DelegationStampKind]?: DelegationStampSQL }, stamp) =>
+      match(DelegationStampKind.parse(stamp.kind))
+        .with(DelegationStampKind.enum.submission, () => ({
+          ...acc,
+          submission: stamp,
+        }))
+        .with(DelegationStampKind.enum.activation, () => ({
+          ...acc,
+          activation: stamp,
+        }))
+        .with(DelegationStampKind.enum.rejection, () => ({
+          ...acc,
+          rejection: stamp,
+        }))
+        .with(DelegationStampKind.enum.revocation, () => ({
+          ...acc,
+          revocation: stamp,
+        }))
+        .exhaustive(),
+    {}
   );
 
   if (!submissionStampSQL) {
-    throw genericInternalError("submissions stamp can't be missing");
+    throw genericInternalError("Delegation submission stamp can't be missing");
   }
-
-  const activationStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === DelegationStampKind.enum.activation
-  );
-  const rejectionStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === DelegationStampKind.enum.rejection
-  );
-  const revocationStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === DelegationStampKind.enum.revocation
-  );
 
   const delegation: Delegation = {
     id: unsafeBrandId<DelegationId>(delegationSQL.id),
