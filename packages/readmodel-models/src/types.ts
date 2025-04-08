@@ -144,6 +144,13 @@ export type PurposeRiskAnalysisFormSQL = InferSelectModel<
 export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
   typeof purposeRiskAnalysisAnswerInReadmodelPurpose
 >;
+export type PurposeItemsSQL = {
+  purposeSQL: PurposeSQL;
+  riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
+  versionsSQL: PurposeVersionSQL[];
+  versionDocumentsSQL: PurposeVersionDocumentSQL[];
+};
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
 export type ClientUserSQL = InferSelectModel<
@@ -153,6 +160,13 @@ export type ClientPurposeSQL = InferSelectModel<
   typeof clientPurposeInReadmodelClient
 >;
 export type ClientKeySQL = InferSelectModel<typeof clientKeyInReadmodelClient>;
+
+export type ClientItemsSQL = {
+  clientSQL: ClientSQL;
+  usersSQL: ClientUserSQL[];
+  purposesSQL: ClientPurposeSQL[];
+  keysSQL: ClientKeySQL[];
+};
 
 export type ProducerKeychainSQL = InferSelectModel<
   typeof producerKeychainInReadmodelProducerKeychain
@@ -166,6 +180,12 @@ export type ProducerKeychainEServiceSQL = InferSelectModel<
 export type ProducerKeychainKeySQL = InferSelectModel<
   typeof producerKeychainKeyInReadmodelProducerKeychain
 >;
+export type ProducerKeychainItemsSQL = {
+  producerKeychainSQL: ProducerKeychainSQL;
+  usersSQL: ProducerKeychainUserSQL[];
+  eservicesSQL: ProducerKeychainEServiceSQL[];
+  keysSQL: ProducerKeychainKeySQL[];
+};
 
 export type ClientJWKKeySQL = InferSelectModel<
   typeof clientJwkKeyInReadmodelClientJwkKey
