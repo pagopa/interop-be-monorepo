@@ -374,9 +374,9 @@ export function eserviceNotDelegableForClientAccess(
 
 export function clientKindNotAllowed(clientId: ClientId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose operation not allowed for client ${clientId}`,
+    detail: `Client ${clientId} kind is not allowed for requested operation`,
     code: "clientKindNotAllowed",
-    title: "Purpose operation not allowed for client",
+    title: "Operation not allowed on client kind",
   });
 }
 
