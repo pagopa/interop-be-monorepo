@@ -252,11 +252,6 @@ export function clientServiceBuilder(
             );
             return toBffApiCompactUser(user, id);
           } catch (error) {
-            logger.warn(
-              `Unable to get Selfcare user with ID ${id}: ${
-                error instanceof Error ? error.message : String(error)
-              }`
-            );
             throw userNotFound(id, selfcareId);
           }
         })
