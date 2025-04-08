@@ -310,10 +310,13 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Submitting agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.submitAgreement(payload, {
-        params: { agreementId },
-        headers: ctx.headers,
-      });
+      const { data: agreement } = await agreementProcessClient.submitAgreement(
+        payload,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
 
       return enrichAgreement(agreement, clients, ctx);
     },
@@ -323,7 +326,7 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Suspending agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.suspendAgreement(
+      const { data: agreement } = await agreementProcessClient.suspendAgreement(
         undefined,
         {
           params: { agreementId },
@@ -340,10 +343,13 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Rejecting agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.rejectAgreement(payload, {
-        params: { agreementId },
-        headers: ctx.headers,
-      });
+      const { data: agreement } = await agreementProcessClient.rejectAgreement(
+        payload,
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
 
       return enrichAgreement(agreement, clients, ctx);
     },
@@ -381,13 +387,11 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Upgrading agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.upgradeAgreementById(
-        undefined,
-        {
+      const { data: agreement } =
+        await agreementProcessClient.upgradeAgreementById(undefined, {
           params: { agreementId },
           headers: ctx.headers,
-        }
-      );
+        });
       return enrichAgreement(agreement, clients, ctx);
     },
 
@@ -407,13 +411,11 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Activating agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.activateAgreement(
-        undefined,
-        {
+      const { data: agreement } =
+        await agreementProcessClient.activateAgreement(undefined, {
           params: { agreementId },
           headers: ctx.headers,
-        }
-      );
+        });
       return enrichAgreement(agreement, clients, ctx);
     },
 

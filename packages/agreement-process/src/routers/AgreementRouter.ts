@@ -93,16 +93,17 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const agreement = await agreementService.submitAgreement(
+          const { data, metadata } = await agreementService.submitAgreement(
             unsafeBrandId(req.params.agreementId),
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
-            );
+          return res.status(200).send(
+            agreementApi.AgreementWithMetadata.parse({
+              data: agreementToApiAgreement(data),
+              metadata,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -122,16 +123,17 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const agreement = await agreementService.activateAgreement(
+          const { data, metadata } = await agreementService.activateAgreement(
             unsafeBrandId(req.params.agreementId),
             ctx
           );
 
-          return res
-            .status(200)
-            .send(
-              agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
-            );
+          return res.status(200).send(
+            agreementApi.AgreementWithMetadata.parse({
+              data: agreementToApiAgreement(data),
+              metadata,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -239,15 +241,16 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const agreement = await agreementService.suspendAgreement(
+          const { data, metadata } = await agreementService.suspendAgreement(
             unsafeBrandId(req.params.agreementId),
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
-            );
+          return res.status(200).send(
+            agreementApi.AgreementWithMetadata.parse({
+              data: agreementToApiAgreement(data),
+              metadata,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -267,16 +270,17 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const agreement = await agreementService.rejectAgreement(
+          const { data, metadata } = await agreementService.rejectAgreement(
             unsafeBrandId(req.params.agreementId),
             req.body.reason,
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
-            );
+          return res.status(200).send(
+            agreementApi.AgreementWithMetadata.parse({
+              data: agreementToApiAgreement(data),
+              metadata,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -296,15 +300,16 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const agreement = await agreementService.archiveAgreement(
+          const { data, metadata } = await agreementService.archiveAgreement(
             unsafeBrandId(req.params.agreementId),
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
-            );
+          return res.status(200).send(
+            agreementApi.AgreementWithMetadata.parse({
+              data: agreementToApiAgreement(data),
+              metadata,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -622,16 +627,17 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          const agreement = await agreementService.upgradeAgreement(
+          const { data, metadata } = await agreementService.upgradeAgreement(
             unsafeBrandId(req.params.agreementId),
             ctx
           );
 
-          return res
-            .status(200)
-            .send(
-              agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
-            );
+          return res.status(200).send(
+            agreementApi.AgreementWithMetadata.parse({
+              data: agreementToApiAgreement(data),
+              metadata,
+            })
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

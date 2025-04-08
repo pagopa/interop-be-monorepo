@@ -472,7 +472,7 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       payload: agreementApi.AgreementSubmissionPayload,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Submitting agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -645,12 +645,17 @@ export function agreementServiceBuilder(
         ...archivedAgreementsUpdates,
       ]);
 
-      return submittedAgreement;
+      return {
+        data: submittedAgreement,
+        metadata: {
+          version: agreement.metadata.version + 1,
+        },
+      };
     },
     async upgradeAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Upgrading agreement ${agreementId}`);
 
       const agreementToBeUpgraded = await retrieveAgreement(
@@ -763,7 +768,12 @@ export function agreementServiceBuilder(
 
       await repository.createEvents(events);
 
-      return agreement;
+      return {
+        data: agreement,
+        metadata: {
+          version: agreementToBeUpgraded.metadata.version + 1,
+        },
+      };
     },
     async cloneAgreement(
       agreementId: AgreementId,
@@ -917,7 +927,7 @@ export function agreementServiceBuilder(
     async suspendAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Suspending agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -971,7 +981,10 @@ export function agreementServiceBuilder(
         )
       );
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: { version: agreement.metadata.version + 1 },
+      };
     },
     async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
@@ -1044,7 +1057,7 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       rejectionReason: string,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Rejecting agreement ${agreementId}`);
 
       const agreementToBeRejected = await retrieveAgreement(
@@ -1113,12 +1126,15 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
-      return rejectedAgreement;
+      return {
+        data: rejectedAgreement,
+        metadata: { version: agreementToBeRejected.metadata.version + 1 },
+      };
     },
     async activateAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Activating agreement ${agreementId}`);
 
       const contractBuilderInstance = contractBuilder(
@@ -1285,12 +1301,15 @@ export function agreementServiceBuilder(
 
       await repository.createEvents([...activationEvents, ...archiveEvents]);
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: { version: agreement.metadata.version + 1 },
+      };
     },
     async archiveAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Archiving agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -1332,7 +1351,10 @@ export function agreementServiceBuilder(
         )
       );
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: { version: agreement.metadata.version + 1 },
+      };
     },
     async internalArchiveAgreementAfterDelegationRevocation(
       agreementId: AgreementId,

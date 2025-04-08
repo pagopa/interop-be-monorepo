@@ -71,7 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/AgreementWithMetadata"
         "400":
           description: Bad Request
           content:
@@ -115,7 +115,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/AgreementWithMetadata"
         "400":
           description: Bad Request
           content:
@@ -276,7 +276,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/AgreementWithMetadata"
         "400":
           description: Bad Request
           content:
@@ -323,7 +323,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/AgreementWithMetadata"
         "400":
           description: Bad Request
           content:
@@ -364,7 +364,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/AgreementWithMetadata"
         "400":
           description: Bad Request
           content:
@@ -726,7 +726,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/AgreementWithMetadata"
         "400":
           description: Invalid ID supplied
           content:
