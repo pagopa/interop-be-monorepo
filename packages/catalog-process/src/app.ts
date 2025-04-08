@@ -8,7 +8,8 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
-import { serviceName as modelsServiceName } from "pagopa-interop-models";import eservicesRouter from "./routers/EServiceRouter.js";
+import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import eservicesRouter from "./routers/EServiceRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
 

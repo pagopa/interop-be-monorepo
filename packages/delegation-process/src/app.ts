@@ -12,7 +12,8 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
-import { serviceName as modelsServiceName } from "pagopa-interop-models";import healthRouter from "./routers/HealthRouter.js";
+import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import healthRouter from "./routers/HealthRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
