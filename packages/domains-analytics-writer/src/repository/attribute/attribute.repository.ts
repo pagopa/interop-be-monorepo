@@ -16,7 +16,7 @@ export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AttributeDbtable.attribute;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const deletingTable = DeletingDbTable.deleting_by_id_table;
+  const deletingTable = DeletingDbTable.deleting_table;
 
   return {
     async insert(
@@ -90,7 +90,7 @@ export function attributeRepository(conn: DBConnection) {
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          DeletingDbTable.deleting_by_id_table
+          DeletingDbTable.deleting_table
         );
         await t.none(
           pgp.helpers.insert({ id, deleted: true }, cs) +
@@ -98,7 +98,7 @@ export function attributeRepository(conn: DBConnection) {
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${DeletingDbTable.deleting_by_id_table}: ${error}`
+          `Error inserting into deleting table ${DeletingDbTable.deleting_table}: ${error}`
         );
       }
     },

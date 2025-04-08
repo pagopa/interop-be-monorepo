@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 import { EachBatchPayload, EachMessagePayload } from "kafkajs";
-import { genericLogger, logger } from "pagopa-interop-commons";
+import { genericLogger, initDB, logger } from "pagopa-interop-commons";
 
 import { runBatchConsumer } from "kafka-iam-auth";
 import {
@@ -8,7 +8,7 @@ import {
   config,
   batchConsumerConfig,
 } from "./config/config.js";
-import { DBContext, initDB } from "./db/db.js";
+import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import { AttributeDbtable } from "./model/db.js";
@@ -21,7 +21,7 @@ const dbInstance = initDB({
   port: config.dbPort,
   database: config.dbName,
   useSSL: config.dbUseSSL,
-  maxConnectionPool: config.dbMaxConnectionPool,
+  schema: config.dbSchemaName,
 });
 
 const connection = await dbInstance.connect();

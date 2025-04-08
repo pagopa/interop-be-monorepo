@@ -29,6 +29,7 @@ import {
 import { match } from "ts-pattern";
 import { DBContext } from "../db/db.js";
 import { config } from "../config/config.js";
+import { groupMessagesByTopic } from "../utils/groupMessagesByTopic.js";
 import { handleAgreementMessageV1 } from "./agreement/consumerServiceV1.js";
 import { handleAgreementMessageV2 } from "./agreement/consumerServiceV2.js";
 import { handleAttributeMessageV1 } from "./attribute/consumerServiceV1.js";
@@ -61,10 +62,7 @@ export async function buildBatchHandlers(
   messagesPayloads: EachMessagePayload[],
   dbContext: DBContext
 ): Promise<Array<Promise<void>>> {
-  const messagesByTopic: Record<string, EachMessagePayload[]> = {};
-  for (const payload of messagesPayloads) {
-    (messagesByTopic[payload.topic] ||= []).push(payload);
-  }
+  const messagesByTopic = groupMessagesByTopic(messagesPayloads);
 
   const handlerFunctions: Array<(db: DBContext) => Promise<void>> = [];
 

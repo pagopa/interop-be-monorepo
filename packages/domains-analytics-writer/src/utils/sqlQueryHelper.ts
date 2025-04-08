@@ -39,6 +39,18 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
     VALUES (${values});
 `;
 }
+
+/**
+ * Generates a SQL MERGE query to update records in a target table based on a staging table.
+ *
+ * It updates the `deletingKey` field and sets the `deleted` flag based on matching records from the staging table.
+ *
+ * @param schemaName - The name of the schema containing the target table
+ * @param tableName - The name of the target table to update
+ * @param stagingTableName - The name of the staging table containing the updated data
+ * @param deletingKey - The key used to match records between the tables
+ * @returns A SQL MERGE query string
+ */
 export function generateMergeDeleteQuery(
   schemaName: string,
   tableName: string,

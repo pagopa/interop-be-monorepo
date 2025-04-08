@@ -17,7 +17,7 @@ import { dbContext, getAttributeFromDb } from "./utils.js";
 describe("SQL Attribute Service - Events V1", () => {
   beforeEach(async () => {
     await dbContext.conn.none("TRUNCATE domains.attribute CASCADE;");
-    await dbContext.conn.none("TRUNCATE deleting_by_id_table;");
+    await dbContext.conn.none("TRUNCATE deleting_table;");
   });
 
   it("AttributeAdded - certified", async () => {

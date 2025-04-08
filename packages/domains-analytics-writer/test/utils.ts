@@ -25,11 +25,11 @@ const connection = await analyticsPostgresDB.connect();
 
 export const dbContext: DBContext = {
   conn: connection,
-  pgp: analyticsPostgresDB.$config.pgp as any,
+  pgp: analyticsPostgresDB.$config.pgp,
 };
 
 await retryConnection(
-  analyticsPostgresDB as any,
+  analyticsPostgresDB,
   dbContext,
   config,
   async (db) => {

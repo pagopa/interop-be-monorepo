@@ -33,7 +33,7 @@ export function setupDbServiceBuilder(
     async setupStagingDeletingByIdTables(): Promise<void> {
       try {
         const query = `
-            CREATE TEMPORARY TABLE IF NOT EXISTS ${DeletingDbTable.deleting_by_id_table} (
+            CREATE TEMPORARY TABLE IF NOT EXISTS ${DeletingDbTable.deleting_table} (
               id VARCHAR(36) PRIMARY KEY,
               deleted BOOLEAN NOT NULL
             );
