@@ -18,6 +18,7 @@ import {
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateClient = ({
   clientSQL,
@@ -133,9 +134,9 @@ export const toClientAggregatorArray = (
     const userSQL = row.clientUser;
     if (
       userSQL &&
-      !userIdSet.has(uniqueKey([userSQL.clientId, userSQL.userId]))
+      !userIdSet.has(makeUniqueKey([userSQL.clientId, userSQL.userId]))
     ) {
-      userIdSet.add(uniqueKey([userSQL.clientId, userSQL.userId]));
+      userIdSet.add(makeUniqueKey([userSQL.clientId, userSQL.userId]));
       // eslint-disable-next-line functional/immutable-data
       usersSQL.push(userSQL);
     }
@@ -143,16 +144,20 @@ export const toClientAggregatorArray = (
     const purposeSQL = row.clientPurpose;
     if (
       purposeSQL &&
-      !purposeIdSet.has(uniqueKey([purposeSQL.clientId, purposeSQL.purposeId]))
+      !purposeIdSet.has(
+        makeUniqueKey([purposeSQL.clientId, purposeSQL.purposeId])
+      )
     ) {
-      purposeIdSet.add(uniqueKey([purposeSQL.clientId, purposeSQL.purposeId]));
+      purposeIdSet.add(
+        makeUniqueKey([purposeSQL.clientId, purposeSQL.purposeId])
+      );
       // eslint-disable-next-line functional/immutable-data
       purposesSQL.push(purposeSQL);
     }
 
     const keySQL = row.clientKey;
-    if (keySQL && !keyIdSet.has(uniqueKey([keySQL.clientId, keySQL.kid]))) {
-      keyIdSet.add(uniqueKey([keySQL.clientId, keySQL.kid]));
+    if (keySQL && !keyIdSet.has(makeUniqueKey([keySQL.clientId, keySQL.kid]))) {
+      keyIdSet.add(makeUniqueKey([keySQL.clientId, keySQL.kid]));
       // eslint-disable-next-line functional/immutable-data
       keysSQL.push(keySQL);
     }
@@ -165,5 +170,3 @@ export const toClientAggregatorArray = (
     keysSQL,
   };
 };
-
-const uniqueKey = (ids: string[]): string => ids.join("#");
