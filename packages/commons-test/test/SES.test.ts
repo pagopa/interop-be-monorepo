@@ -68,7 +68,7 @@ describe("initSesMailManager", () => {
     const html = "<h1>Hello World</h1>";
 
     await expect(
-      emailManager.send({ from, to, subject, html }, genericLogger)
+      emailManager.send({ from, to, subject, html }, genericLogger, true)
     ).rejects.toThrowError(expectedGenericError);
 
     expect(sesMock.calls()).toHaveLength(1);
@@ -101,7 +101,7 @@ describe("initSesMailManager", () => {
     const subject = "Test Subject";
     const html = "<h1>Hello World</h1>";
 
-    await emailManager.send({ from, to, subject, html }, genericLogger);
+    await emailManager.send({ from, to, subject, html }, genericLogger, false);
 
     expect(sesMock.calls()).toHaveLength(1);
 
