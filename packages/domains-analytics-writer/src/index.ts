@@ -13,6 +13,7 @@ import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import { AttributeDbtable } from "./model/db.js";
 import { buildBatchHandlers } from "./handlers/batchHandlerBuilder.js";
+
 const dbInstance = initDB({
   username: config.dbUsername,
   password: config.dbPassword,

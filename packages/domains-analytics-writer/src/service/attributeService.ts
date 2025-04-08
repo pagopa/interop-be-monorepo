@@ -4,6 +4,7 @@ import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { DBContext } from "../db/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import { attributeRepository } from "../repository/attribute/attribute.repository.js";
+import { config } from "../config/config.js";
 
 export function attributeServiceBuilder(db: DBContext) {
   const repo = attributeRepository(db.conn);
@@ -11,10 +12,9 @@ export function attributeServiceBuilder(db: DBContext) {
   return {
     async upsertBatchAttribute(
       upsertBatch: AttributeSQL[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(upsertBatch, batchSize)) {
+      for (const batch of batchMessages(upsertBatch, config.batchSize)) {
         await dbContext.conn.tx(async (t) => {
           await repo.insert(t, dbContext.pgp, batch);
         });
@@ -37,10 +37,9 @@ export function attributeServiceBuilder(db: DBContext) {
 
     async deleteBatchAttribute(
       attributeIds: string[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(attributeIds, batchSize)) {
+      for (const batch of batchMessages(attributeIds, config.batchSize)) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
             await repo.insertDeletingById(t, dbContext.pgp, id);

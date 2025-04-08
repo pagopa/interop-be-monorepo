@@ -35,10 +35,12 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
           .string()
           .transform((val) => val.replace(/-/g, "")),
         SERVICE_NAME: z.string(),
+        BATCH_SIZE: z.number(),
       })
       .transform((c) => ({
         mergeTableSuffix: c.MERGE_TABLE_SUFFIX,
         serviceName: c.SERVICE_NAME,
+        batchSize: c.BATCH_SIZE,
       }))
   );
 
