@@ -124,7 +124,7 @@ export const aggregateDescriptor = ({
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
     docs: documentsSQL.map(documentSQLtoDocument),
-    state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
+    state: DescriptorState.parse(descriptorSQL.state),
     audience: descriptorSQL.audience,
     voucherLifespan: descriptorSQL.voucherLifespan,
     dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
@@ -144,7 +144,7 @@ export const aggregateDescriptor = ({
       ? {
           agreementApprovalPolicy: AgreementApprovalPolicy.parse(
             descriptorSQL.agreementApprovalPolicy
-          ), // TODO use safeParse?
+          ),
         }
       : {}),
     ...(descriptorSQL.publishedAt
@@ -222,10 +222,10 @@ export const aggregateEservice = ({
     createdAt: stringToDate(eserviceSQL.createdAt),
     producerId: unsafeBrandId(eserviceSQL.producerId),
     description: eserviceSQL.description,
-    technology: Technology.parse(eserviceSQL.technology), // TODO use safeParse?
+    technology: Technology.parse(eserviceSQL.technology),
     descriptors,
     riskAnalysis,
-    mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
+    mode: EServiceMode.parse(eserviceSQL.mode),
     ...(eserviceSQL.isClientAccessDelegable !== null
       ? { isClientAccessDelegable: eserviceSQL.isClientAccessDelegable }
       : {}),
