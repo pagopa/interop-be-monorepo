@@ -11,28 +11,23 @@ import {
   TooManyRequestsException,
 } from "@aws-sdk/client-sesv2";
 import Mail from "nodemailer/lib/mailer/index.js";
-import { PecEmailManagerConfig } from "../index.js";
+import { PecEmailManagerConfig, Logger } from "../index.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
-
-/* 
-  AllowedSESErrors is used to limit other packages to filter only specific error from SESv2Client, 
-  and also avoid dependency on AWS SDK in other packages.
-*/
-export { TooManyRequestsException as AllowedSESErrors };
 
 export type EmailManagerKind = "PEC" | "SES";
 
-export type EmailManager = {
-  kind: EmailManagerKind;
+export type EmailManagerPEC = {
+  kind: "PEC";
   send: (params: Mail.Options) => Promise<void>;
 };
 
-export type EmailManagerPEC = EmailManager & {
-  kind: "PEC";
-};
-
-export type EmailManagerSES = EmailManager & {
+export type EmailManagerSES = {
   kind: "SES";
+  send: (
+    params: Mail.Options,
+    logger: Logger,
+    skipError?: boolean
+  ) => Promise<void>;
 };
 
 export function initPecEmailManager(
@@ -74,7 +69,11 @@ export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
 
   return {
     kind: "SES",
-    send: async (mailOptions: Mail.Options): Promise<void> => {
+    send: async (
+      mailOptions: Mail.Options,
+      logger: Logger,
+      skipError: boolean = false
+    ): Promise<void> => {
       const rawMailData = await new MailComposer(mailOptions).compile().build();
 
       const input: SendEmailCommandInput = {
@@ -83,7 +82,31 @@ export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
         },
       };
 
-      await client.send(new SendEmailCommand(input));
+      try {
+        await client.send(new SendEmailCommand(input));
+      } catch (err) {
+        if (!skipError) {
+          throw err;
+        }
+
+        /*
+          Temporary Hotfix: https://pagopa.atlassian.net/browse/PIN-6514 
+          We want to avoid treating the TooManyRequestsException as a fatal error 
+          when the rate limit is reached with the current configuration.
+          The following statement skips the TooManyRequestsException error thrown by the AWS SES client.
+
+          For more details about the errors and best practices to handle them, refer to:
+          - AWS SES client: https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-ses/Class/SES/
+          - AWS SDK Error Handling: https://aws.amazon.com/blogs/developer/service-error-handling-modular-aws-sdk-js/  
+        */
+        if (err instanceof TooManyRequestsException) {
+          logger.warn(
+            `AWS SES error with name ${err.name} was thrown, it will not be considered fatal, email notification not sent; Error details: ${err.message}`
+          );
+          return;
+        }
+        throw err;
+      }
     },
   };
 }

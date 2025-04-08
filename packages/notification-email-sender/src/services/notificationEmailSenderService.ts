@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import {
   EmailManagerSES,
-  AllowedSESErrors,
   HtmlTemplateService,
   Logger,
   dateAtRomeZone,
@@ -153,36 +152,6 @@ function retrieveLatestPublishedDescriptor(eservice: EService): Descriptor {
   return latestDescriptor;
 }
 
-/*
-  Temporary Hotfix: https://pagopa.atlassian.net/browse/PIN-6514 
-  we want to not consider the TooManyRequestsException as error, it's thrown by SESv2Client
-  when the rate limit is reached with current configuration.
-  For more details about the errors and best practices to handle:
-    https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-ses/Class/SES/
-    https://aws.amazon.com/blogs/developer/service-error-handling-modular-aws-sdk-js/  
-  
-  AllowedSESErrors is used to limit other packages to filter only specific error from SESv2Client, 
-  and also avoid dependency on AWS SDK in other packages.
-  The following function skip TooManyRequestsException error thrown by AWS SES client
-*/
-async function sendEmail(
-  sesEmailManager: EmailManagerSES,
-  mailOptions: Mail.Options,
-  logger: Logger
-): Promise<void> {
-  try {
-    await sesEmailManager.send(mailOptions);
-  } catch (err) {
-    if (err instanceof AllowedSESErrors) {
-      logger.warn(
-        `AWS SES error with name ${err.name} was thrown, it will not be considered fatal, email notification not sent; Error details: ${err.message}`
-      );
-      return;
-    }
-    throw err;
-  }
-}
-
 export function notificationEmailSenderServiceBuilder(
   sesEmailManager: EmailManagerSES,
   sesSenderData: { label: string; mail: string },
@@ -238,7 +207,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending email for agreement ${agreement.id} submission`);
-        await sendEmail(sesEmailManager, mailOptions, logger);
+        await sesEmailManager.send(mailOptions, logger, true);
         logger.info(`Email sent for agreement ${agreement.id} submission`);
       } catch (err) {
         logger.warn(
@@ -300,7 +269,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending email for agreement ${agreement.id} activation (${sesEmailManager.kind})`
         );
-        await sendEmail(sesEmailManager, mailOptions, logger);
+        await sesEmailManager.send(mailOptions, logger, true);
         logger.info(
           `Email sent for agreement ${agreement.id} activation (${sesEmailManager.kind})`
         );
@@ -360,7 +329,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending email for agreement ${agreement.id} rejection`);
-        await sendEmail(sesEmailManager, mailOptions, logger);
+        await sesEmailManager.send(mailOptions, logger, true);
         logger.info(`Email sent for agreement ${agreement.id} rejection`);
       } catch (err) {
         logger.warn(
@@ -412,7 +381,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending an email requesting a change in the load estimate as it is above the threshold, for purpose ${purpose.id}`
         );
-        await sendEmail(sesEmailManager, mailOptions, logger);
+        await sesEmailManager.send(mailOptions, logger, true);
         logger.info(
           `Email sent for requesting  a change in the load estimate as it is above the threshold, for purpose ${purpose.id}`
         );
@@ -463,7 +432,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Send an email with the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id}`
         );
-        await sendEmail(sesEmailManager, mailOptions, logger);
+        await sesEmailManager.send(mailOptions, logger, true);
         logger.info(
           `Email sent for the request to activate the load estimate since it is higher than the threshold, for the purpose ${purpose.id}`
         );
@@ -521,7 +490,7 @@ export function notificationEmailSenderServiceBuilder(
 
       try {
         logger.info(`Sending an email for purpose ${purpose.id} rejection`);
-        await sendEmail(sesEmailManager, mailOptions, logger);
+        await sesEmailManager.send(mailOptions, logger, true);
         logger.info(`Email sent for purpose ${purpose.id} rejection`);
       } catch (err) {
         logger.warn(
@@ -580,7 +549,7 @@ export function notificationEmailSenderServiceBuilder(
             logger.info(
               `Sending an email for published descriptor ${descriptor.id} of eservice ${eservice.id}`
             );
-            await sendEmail(sesEmailManager, mailOptions, logger);
+            await sesEmailManager.send(mailOptions, logger, true);
             logger.info(
               `Email sent for published descriptor ${descriptor.id} of eservice ${eservice.id}`
             );
@@ -638,7 +607,7 @@ export function notificationEmailSenderServiceBuilder(
         logger.info(
           `Sending an email to activate the purpose version,  - Purpose ID: ${purpose.id}`
         );
-        await sendEmail(sesEmailManager, mailOptions, logger);
+        await sesEmailManager.send(mailOptions, logger, true);
         logger.info(
           `Activation email sent for purpose version - Purpose ID: ${purpose.id}`
         );
