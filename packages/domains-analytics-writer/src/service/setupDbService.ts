@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
-import { DeletingDbTable } from "../model/db.js";
+import { AttributeDbtable, DeletingDbTable } from "../model/db.js";
 import { setupStagingTablesError } from "../model/errors.js";
 
 export interface SetupDbConfig {
@@ -13,7 +13,7 @@ export function setupDbServiceBuilder(
   config: SetupDbConfig
 ) {
   return {
-    async setupStagingTables(tableNames: string[]): Promise<void> {
+    async setupStagingTables(tableNames: AttributeDbtable[]): Promise<void> {
       try {
         await Promise.all(
           tableNames.map((tableName) => {
@@ -30,15 +30,21 @@ export function setupDbServiceBuilder(
       }
     },
 
-    async setupStagingDeletingByIdTables(): Promise<void> {
+    async setupStagingDeletingByIdTables(
+      deletingTableName: DeletingDbTable[]
+    ): Promise<void> {
       try {
-        const query = `
-            CREATE TEMPORARY TABLE IF NOT EXISTS ${DeletingDbTable.deleting_table} (
+        await Promise.all(
+          deletingTableName.map((deletingTableName) => {
+            const query = `
+            CREATE TEMPORARY TABLE IF NOT EXISTS ${deletingTableName} (
               id VARCHAR(36) PRIMARY KEY,
               deleted BOOLEAN NOT NULL
             );
           `;
-        return conn.query(query);
+            return conn.query(query);
+          })
+        );
       } catch (error: unknown) {
         throw setupStagingTablesError(error);
       }

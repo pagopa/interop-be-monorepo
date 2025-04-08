@@ -12,12 +12,17 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { handleAttributeMessageV1 } from "../src/handlers/attribute/consumerServiceV1.js";
+import { AttributeDbtable, DeletingDbTable } from "../src/model/db.js";
 import { dbContext, getAttributeFromDb } from "./utils.js";
 
 describe("SQL Attribute Service - Events V1", () => {
   beforeEach(async () => {
-    await dbContext.conn.none("TRUNCATE domains.attribute CASCADE;");
-    await dbContext.conn.none("TRUNCATE deleting_table;");
+    await dbContext.conn.none(
+      `TRUNCATE ${AttributeDbtable.attribute} CASCADE;`
+    );
+    await dbContext.conn.none(
+      `TRUNCATE ${DeletingDbTable.attribute_deleting_table}`
+    );
   });
 
   it("AttributeAdded - certified", async () => {
@@ -187,7 +192,7 @@ describe("SQL Attribute Service - Events V1", () => {
     expect(stored2?.[0]?.id).toBe(attr2.id);
     expect(stored3?.[0]?.id).toBe(attr3.id);
   });
-  it("MaintenanceAttributeDeleted - removes attribute", async () => {
+  it("MaintenanceAttributeDeleted - flags attribute as deleted", async () => {
     const attr: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
@@ -203,6 +208,8 @@ describe("SQL Attribute Service - Events V1", () => {
       log_date: new Date(),
     };
     await handleAttributeMessageV1([insertMessage], dbContext);
+    const storedFirst = await getAttributeFromDb(attr.id, dbContext);
+    expect(storedFirst?.length).toBe(1);
 
     const deleteMessage: AttributeEventEnvelope = {
       sequence_num: 2,
@@ -213,10 +220,8 @@ describe("SQL Attribute Service - Events V1", () => {
       data: { id: attr.id } as any,
       log_date: new Date(),
     };
-
     await handleAttributeMessageV1([deleteMessage], dbContext);
-    const stored = await getAttributeFromDb(attr.id, dbContext);
-
-    expect(stored?.length).toBe(0);
+    const stored = await getAttributeFromDb(deleteMessage.data.id, dbContext);
+    expect(stored?.[0]?.deleted).toBe(true);
   });
 });

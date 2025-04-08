@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
   origin VARCHAR,
   name VARCHAR NOT NULL,
   creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );

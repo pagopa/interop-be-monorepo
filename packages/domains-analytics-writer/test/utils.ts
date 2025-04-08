@@ -8,7 +8,7 @@ import { DBContext, DBConnection } from "../src/db/db.js";
 import { config } from "../src/config/config.js";
 import { retryConnection } from "../src/db/buildColumnSet.js";
 import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
-import { AttributeDbtable } from "../src/model/db.js";
+import { AttributeDbtable, DeletingDbTable } from "../src/model/db.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
@@ -36,10 +36,9 @@ await retryConnection(
     await setupDbServiceBuilder(db.conn, config).setupStagingTables([
       AttributeDbtable.attribute,
     ]);
-    await setupDbServiceBuilder(
-      db.conn,
-      config
-    ).setupStagingDeletingByIdTables();
+    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingByIdTables(
+      [DeletingDbTable.attribute_deleting_table]
+    );
   },
   genericLogger
 );

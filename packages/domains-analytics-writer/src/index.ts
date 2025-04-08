@@ -11,7 +11,7 @@ import {
 import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
-import { AttributeDbtable } from "./model/db.js";
+import { AttributeDbtable, DeletingDbTable } from "./model/db.js";
 import { buildBatchHandlers } from "./handlers/batchHandlerBuilder.js";
 
 const dbInstance = initDB({
@@ -37,7 +37,9 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables([AttributeDbtable.attribute]);
-    await setupDbService.setupStagingDeletingByIdTables();
+    await setupDbService.setupStagingDeletingByIdTables([
+      DeletingDbTable.attribute_deleting_table,
+    ]);
   },
   logger({ serviceName: config.serviceName })
 );

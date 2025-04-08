@@ -30,13 +30,15 @@ describe("Setup DB Service tests for catalog tables", async () => {
   });
 
   it("should create staging deleting table successfully", async () => {
-    await dbService.setupStagingDeletingByIdTables();
+    await dbService.setupStagingDeletingByIdTables([
+      DeletingDbTable.attribute_deleting_table,
+    ]);
 
     const result = await getTablesByName(dbContext.conn, [
-      DeletingDbTable.deleting_table,
+      DeletingDbTable.attribute_deleting_table,
     ]);
     expect(result.length).toBe(1);
-    expect(result[0].tablename).toBe(DeletingDbTable.deleting_table);
+    expect(result[0].tablename).toBe(DeletingDbTable.attribute_deleting_table);
   });
 
   it("should throw an error if database query fails during staging tables creation", async () => {

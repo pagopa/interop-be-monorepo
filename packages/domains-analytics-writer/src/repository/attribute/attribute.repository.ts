@@ -16,7 +16,7 @@ export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AttributeDbtable.attribute;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const deletingTable = DeletingDbTable.deleting_table;
+  const deletingTable = DeletingDbTable.attribute_deleting_table;
 
   return {
     async insert(
@@ -90,7 +90,7 @@ export function attributeRepository(conn: DBConnection) {
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          DeletingDbTable.deleting_table
+          DeletingDbTable.attribute_deleting_table
         );
         await t.none(
           pgp.helpers.insert({ id, deleted: true }, cs) +
@@ -98,7 +98,7 @@ export function attributeRepository(conn: DBConnection) {
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${DeletingDbTable.deleting_table}: ${error}`
+          `Error inserting into deleting table ${DeletingDbTable.attribute_deleting_table}: ${error}`
         );
       }
     },
@@ -106,13 +106,15 @@ export function attributeRepository(conn: DBConnection) {
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
         await t.none(`
-            DELETE FROM ${schemaName}.${tableName} AS target
-            USING ${deletingTable} AS src
-            WHERE target.id = src.id;
-          `);
+          MERGE INTO ${schemaName}.${tableName} AS target
+          USING ${deletingTable} AS src
+          ON target.id = src.id
+          WHEN MATCHED THEN
+            UPDATE SET deleted = src.deleted;
+        `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging deletion from ${deletingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging deletion flag from ${deletingTable} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },

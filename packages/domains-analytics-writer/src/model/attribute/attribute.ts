@@ -11,6 +11,7 @@ export const attributeSchema = z.object({
   origin: z.string().nullable(),
   name: z.string(),
   creation_time: z.string(),
+  deleted: z.boolean(),
 });
 
 export type AttributeSchema = z.infer<typeof attributeSchema>;
