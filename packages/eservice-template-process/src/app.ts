@@ -8,12 +8,11 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
-import { serviceName } from "pagopa-interop-models";
-import eserviceTemplatesRouter from "./routers/EServiceTemplateRouter.js";
+import { serviceName as modelsServiceName } from "pagopa-interop-models";import eserviceTemplatesRouter from "./routers/EServiceTemplateRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
 
-const serviceName = serviceName.ESERVICE_TEMPLATE_PROCESS;
+const serviceName = modelsServiceName.ESERVICE_TEMPLATE_PROCESS;
 
 const app = zodiosCtx.app();
 
