@@ -52,7 +52,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: totalCount[0].count,
+        totalCount: totalCount[0]?.count || 0,
       };
     },
 
