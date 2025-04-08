@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   AppContext,
-  AuthData,
   CreateEvent,
   DB,
   FileManager,
@@ -1469,7 +1468,7 @@ export async function createAndCopyDocumentsForClonedAgreement(
 
 export function createAgreementArchivedByUpgradeEvent(
   agreement: WithMetadata<Agreement>,
-  authData: AuthData,
+  authData: UIAuthData,
   activeDelegations: ActiveDelegations,
   correlationId: CorrelationId
 ): CreateEvent<AgreementEvent> {
