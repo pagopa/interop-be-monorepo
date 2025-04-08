@@ -144,6 +144,13 @@ export type ClientPurposeSQL = InferSelectModel<
 >;
 export type ClientKeySQL = InferSelectModel<typeof clientKeyInReadmodelClient>;
 
+export type ClientItemsSQL = {
+  clientSQL: ClientSQL;
+  usersSQL: ClientUserSQL[];
+  purposesSQL: ClientPurposeSQL[];
+  keysSQL: ClientKeySQL[];
+};
+
 export type ProducerKeychainSQL = InferSelectModel<
   typeof producerKeychainInReadmodelProducerKeychain
 >;
