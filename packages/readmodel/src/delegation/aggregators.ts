@@ -1,19 +1,14 @@
 import {
   Delegation,
   DelegationContractDocument,
-  DelegationContractId,
   delegationContractKind,
-  DelegationId,
   DelegationKind,
   DelegationStamp,
   DelegationStampKind,
   DelegationState,
-  EServiceId,
   genericInternalError,
   stringToDate,
-  TenantId,
   unsafeBrandId,
-  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -104,16 +99,16 @@ export const aggregateDelegation = ({
   }
 
   const delegation: Delegation = {
-    id: unsafeBrandId<DelegationId>(delegationSQL.id),
+    id: unsafeBrandId(delegationSQL.id),
     createdAt: stringToDate(delegationSQL.createdAt),
     ...(delegationSQL.updatedAt
       ? { updatedAt: stringToDate(delegationSQL.updatedAt) }
       : {}),
-    eserviceId: unsafeBrandId<EServiceId>(delegationSQL.eserviceId),
+    eserviceId: unsafeBrandId(delegationSQL.eserviceId),
     state: DelegationState.parse(delegationSQL.state),
     kind: DelegationKind.parse(delegationSQL.kind),
-    delegatorId: unsafeBrandId<TenantId>(delegationSQL.delegatorId),
-    delegateId: unsafeBrandId<TenantId>(delegationSQL.delegateId),
+    delegatorId: unsafeBrandId(delegationSQL.delegatorId),
+    delegateId: unsafeBrandId(delegationSQL.delegateId),
     stamps: {
       submission: stampSQLToStamp(submissionStampSQL),
       ...(activationStampSQL
@@ -168,7 +163,7 @@ export const aggregateDelegationsArray = ({
 const delegationContractDocumentSQLToDelegationContractDocument = (
   contractDocumentSQL: DelegationContractDocumentSQL
 ): DelegationContractDocument => ({
-  id: unsafeBrandId<DelegationContractId>(contractDocumentSQL.id),
+  id: unsafeBrandId(contractDocumentSQL.id),
   path: contractDocumentSQL.path,
   name: contractDocumentSQL.name,
   prettyName: contractDocumentSQL.prettyName,
@@ -177,7 +172,7 @@ const delegationContractDocumentSQLToDelegationContractDocument = (
 });
 
 const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({
-  who: unsafeBrandId<UserId>(stampSQL.who),
+  who: unsafeBrandId(stampSQL.who),
   when: stringToDate(stampSQL.when),
 });
 
