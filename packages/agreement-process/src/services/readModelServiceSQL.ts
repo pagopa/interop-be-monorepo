@@ -1,4 +1,5 @@
 /* eslint-disable no-constant-condition */
+import { ilike, inArray, or } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -24,11 +25,15 @@ import {
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import {
+  agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, sql } from "drizzle-orm";
+
+import { ReadModelRepository } from "pagopa-interop-commons";
 import {
   CompactEService,
   CompactOrganization,
@@ -93,9 +98,14 @@ export function readModelServiceBuilderSQL(
       return attributeWithMetadata?.data;
     },
     /**
-     * Retrieving consumers from agreements with consumer name`
+     * Retrieving consumers from agreements with consumer name
+     * /agreements/filter/consumers
+     * tenant che hanno un agreement con requesterId
+     * tenant sono stati delegati ad avere un agreement con requesterId
+     * tenant che hanno un agreement con il mio delegator (sono stato delegato in erogazione)
+     * tenant che sono stati delegati ad avere un agreement con il mio delegator (sono stato delegato in erogazione)
      */
-    // TODO
+    // DONE BUT
     async getAgreementsConsumers(
       requesterId: TenantId,
       consumerName: string | undefined,
@@ -103,19 +113,221 @@ export function readModelServiceBuilderSQL(
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
       const resultSet = await readmodelDB
-        .selectDistinctOn([tenantInReadmodelTenant.id], {
-          tenant: tenantInReadmodelTenant,
+        .selectDistinct({
+          id: tenantInReadmodelTenant.id,
+          name: tenantInReadmodelTenant.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
         })
-        .from(tenantInReadmodelTenant);
+        .from(tenantInReadmodelTenant)
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(agreementInReadmodelAgreement.producerId, requesterId),
+            eq(
+              tenantInReadmodelTenant.id,
+              agreementInReadmodelAgreement.consumerId
+            )
+          )
+        )
+        .where(
+          consumerName
+            ? ilike(
+                tenantInReadmodelTenant.name,
+                `%${ReadModelRepository.escapeRegExp(consumerName)}%`
+              )
+            : undefined
+        )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .limit(limit)
+        .offset(offset);
+      return {
+        results: resultSet.map(({ id, name }) => ({ id, name })),
+        totalCount: resultSet[0]?.totalCount ?? 0,
+      };
+    },
+
+    // DONE BUT
+    async getAgreementsProducers(
+      requesterId: TenantId,
+      producerName: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      const resultSet = await readmodelDB
+        .selectDistinct({
+          id: tenantInReadmodelTenant.id,
+          name: tenantInReadmodelTenant.name,
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
+        })
+        .from(tenantInReadmodelTenant)
+        .innerJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(agreementInReadmodelAgreement.consumerId, requesterId),
+            eq(
+              tenantInReadmodelTenant.id,
+              agreementInReadmodelAgreement.producerId
+            )
+          )
+        )
+        .where(
+          producerName
+            ? ilike(
+                tenantInReadmodelTenant.name,
+                `%${ReadModelRepository.escapeRegExp(producerName)}%`
+              )
+            : undefined
+        )
+        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .limit(limit)
+        .offset(offset);
+
+      return {
+        results: resultSet.map(({ id, name }) => ({ id, name })),
+        totalCount: resultSet[0]?.totalCount ?? 0,
+      };
     },
     // TODO
-    async getAgreementsProducers(): Promise<ListResult<CompactOrganization>> {
-      throw new Error("to implement");
-    },
-    // TODO
-    async getAgreementsEServices(): Promise<ListResult<CompactEService>> {
-      throw new Error("to implement");
+
+    // trovare e-service che sto erogando
+    // trovare e-service per cui sono delegato in erogazione
+    // ottenere quali e-service hanno un agreement
+    /**
+     * controlli di visibilità: requesterId  is: producer OR consumer | delegate producer | delegate consumer
+     * ritorna gli eservice a partire da degli agreements:
+     * è una getAgreements il cui risultato viene usato per prendere i relativi eservice
+     * (Si applica il filtro per nome agli eservice da ritornare)
+     * si dovrebbe controllare in tutti e 4 i punti
+     * A partire da agreements il cui requesterId è in: producer OR consumer | delegate producer | delegate consumer
+     */
+
+    async getAgreementsEServices(
+      requesterId: TenantId,
+      filters: AgreementEServicesQueryFilters,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactEService>> {
+      const { consumerIds, producerIds, eserviceName } = filters;
+      const resultSet = await readmodelDB
+        .selectDistinctOn([eserviceInReadmodelCatalog.name], {
+          id: eserviceInReadmodelCatalog.id,
+          name: eserviceInReadmodelCatalog.name,
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
+        })
+        .from(eserviceInReadmodelCatalog)
+        .leftJoin(
+          agreementInReadmodelAgreement,
+          and(
+            eq(
+              eserviceInReadmodelCatalog.id,
+              agreementInReadmodelAgreement.eserviceId
+            )
+          )
+        )
+        .leftJoin(
+          delegationInReadmodelDelegation,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              delegationInReadmodelDelegation.eserviceId
+            )
+          )
+        )
+        .where(
+          and(
+            // FILTER NAME
+            eserviceName
+              ? ilike(eserviceInReadmodelCatalog.name, `%${eserviceName}%`)
+              : undefined,
+            // FILTER PRODUCER
+            producerIds.length > 0
+              ? or(
+                  inArray(
+                    agreementInReadmodelAgreement.producerId,
+                    producerIds
+                  ),
+                  and(
+                    inArray(
+                      delegationInReadmodelDelegation.delegateId,
+                      producerIds
+                    ),
+                    eq(
+                      delegationInReadmodelDelegation.state,
+                      delegationState.active
+                    ),
+                    eq(
+                      delegationInReadmodelDelegation.kind,
+                      delegationKind.delegatedProducer
+                    )
+                  )
+                )
+              : undefined,
+            // FILTER CONSUMER
+            consumerIds.length > 0
+              ? or(
+                  inArray(
+                    agreementInReadmodelAgreement.consumerId,
+                    consumerIds
+                  ),
+                  and(
+                    inArray(
+                      delegationInReadmodelDelegation.delegateId,
+                      consumerIds
+                    ),
+                    eq(
+                      delegationInReadmodelDelegation.state,
+                      delegationState.active
+                    ),
+                    eq(
+                      delegationInReadmodelDelegation.kind,
+                      delegationKind.delegatedConsumer
+                    )
+                  )
+                )
+              : undefined,
+            // VISIBILITY
+            or(
+              // REQ IS PRODUCER
+              eq(agreementInReadmodelAgreement.producerId, requesterId),
+              // REQ IS CONSUMER
+              eq(agreementInReadmodelAgreement.consumerId, requesterId),
+              // REQ IS DELEGATE AS PRODUCER
+              and(
+                eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                )
+              ),
+              // REQ IS DELEGATE AS CONSUMER
+              and(
+                eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedConsumer
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                )
+              )
+            )
+          )
+        )
+        .orderBy(eserviceInReadmodelCatalog.name)
+        .groupBy(eserviceInReadmodelCatalog.id, eserviceInReadmodelCatalog.name)
+        .limit(limit)
+        .offset(offset);
+      // .toSQL();
+      // console.log("resultSet", resultSet);
+      return {
+        results: resultSet.map(({ id, name }) => ({ id, name })),
+        totalCount: resultSet[0]?.totalCount ?? 0,
+      };
     },
     // DONE
     async getActiveProducerDelegationByEserviceId(

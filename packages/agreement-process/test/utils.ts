@@ -50,17 +50,34 @@ import puppeteer, { Browser } from "puppeteer";
 import { subDays } from "date-fns";
 import { match } from "ts-pattern";
 import { z } from "zod";
+import {
+  agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { config } from "../src/config/config.js";
 import { contractBuilder } from "../src/services/agreementContractBuilder.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
-  );
+export const {
+  cleanup,
+  readModelRepository,
+  postgresDB,
+  fileManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  inject("readModelConfig"),
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
@@ -79,7 +96,31 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
 export const { agreements, attributes, eservices, tenants, delegations } =
   readModelRepository;
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+export const oldReadModelService = readModelServiceBuilder(readModelRepository);
+
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  readModelDB,
+  agreementReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  attributeReadModelServiceSQL,
+  delegationReadModelServiceSQL
+);
+
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 export const pdfGenerator = await initPDFGenerator();
 
@@ -118,24 +159,29 @@ export const writeAgreementInEventstore = async (
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeAgreementInEventstore(agreement);
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+  await attributeReadModelServiceSQL.upsertAttribute(attribute, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
 };
 
 export const readLastAgreementEvent = async (
