@@ -21,7 +21,7 @@ export async function mergeDeletingById(
     }
   } catch (error: unknown) {
     throw genericInternalError(
-      `Error merging staging tabasdasdle ${DeletingDbTable.deleting_by_id_table}: ${error}`
+      `Error merging staging table ${DeletingDbTable.deleting_by_id_table}: ${error}`
     );
   }
 }

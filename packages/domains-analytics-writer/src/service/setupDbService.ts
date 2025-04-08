@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
+import { DeletingDbTable } from "../model/db.js";
 import { setupStagingTablesError } from "../model/errors.js";
 
 export interface SetupDbConfig {
@@ -32,7 +33,7 @@ export function setupDbServiceBuilder(
     async setupStagingDeletingByIdTables(): Promise<void> {
       try {
         const query = `
-            CREATE TEMPORARY TABLE IF NOT EXISTS deleting_by_id_table (
+            CREATE TEMPORARY TABLE IF NOT EXISTS ${DeletingDbTable.deleting_by_id_table} (
               id VARCHAR(36) PRIMARY KEY,
               deleted BOOLEAN NOT NULL
             );

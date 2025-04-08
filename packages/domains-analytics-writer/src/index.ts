@@ -35,13 +35,9 @@ await retryConnection(
   dbContext,
   config,
   async (db) => {
-    await setupDbServiceBuilder(db.conn, config).setupStagingTables([
-      AttributeDbtable.attribute,
-    ]);
-    await setupDbServiceBuilder(
-      db.conn,
-      config
-    ).setupStagingDeletingByIdTables();
+    const setupDbService = setupDbServiceBuilder(db.conn, config);
+    await setupDbService.setupStagingTables([AttributeDbtable.attribute]);
+    await setupDbService.setupStagingDeletingByIdTables();
   },
   logger({ serviceName: config.serviceName })
 );

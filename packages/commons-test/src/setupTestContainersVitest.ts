@@ -138,7 +138,7 @@ export function setupTestContainersVitest(
   sesEmailManager: EmailManagerSES;
   redisRateLimiter: RateLimiter;
   readModelDB: DrizzleReturnType;
-  analyticsPostgresDb: DB;
+  analyticsPostgresDB: DB;
   cleanup: () => Promise<void>;
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -159,7 +159,7 @@ export async function setupTestContainersVitest(
   sesEmailManager?: EmailManagerSES;
   redisRateLimiter?: RateLimiter;
   readModelDB?: DrizzleReturnType;
-  analyticsPostgresDb?: DB;
+  analyticsPostgresDB?: DB;
   cleanup: () => Promise<void>;
 }> {
   let readModelRepository: ReadModelRepository | undefined;
@@ -170,7 +170,7 @@ export async function setupTestContainersVitest(
   let redisRateLimiter: RateLimiter | undefined;
   const redisRateLimiterGroup = "TEST";
   let readModelDB: DrizzleReturnType | undefined;
-  let analyticsPostgresDb: DB | undefined;
+  let analyticsPostgresDB: DB | undefined;
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
   }
@@ -224,7 +224,7 @@ export async function setupTestContainersVitest(
   }
 
   if (analyticsSQLDbConfig) {
-    analyticsPostgresDb = initDB({
+    analyticsPostgresDB = initDB({
       username: analyticsSQLDbConfig.dbUsername,
       password: analyticsSQLDbConfig.dbPassword,
       host: analyticsSQLDbConfig.dbHost,
@@ -242,7 +242,7 @@ export async function setupTestContainersVitest(
     sesEmailManager,
     redisRateLimiter,
     readModelDB,
-    analyticsPostgresDb,
+    analyticsPostgresDB,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});

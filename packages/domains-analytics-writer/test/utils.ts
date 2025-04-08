@@ -11,7 +11,7 @@ import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { AttributeDbtable } from "../src/model/db.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
 
-export const { cleanup, analyticsPostgresDb } = await setupTestContainersVitest(
+export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
@@ -21,15 +21,15 @@ export const { cleanup, analyticsPostgresDb } = await setupTestContainersVitest(
   undefined,
   inject("analyticsSQLDbConfig")
 );
-const connection = await analyticsPostgresDb.connect();
+const connection = await analyticsPostgresDB.connect();
 
 export const dbContext: DBContext = {
   conn: connection,
-  pgp: analyticsPostgresDb.$config.pgp as any,
+  pgp: analyticsPostgresDB.$config.pgp as any,
 };
 
 await retryConnection(
-  analyticsPostgresDb as any,
+  analyticsPostgresDB as any,
   dbContext,
   config,
   async (db) => {

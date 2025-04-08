@@ -15,6 +15,9 @@ export const AnalyticsSQLDbConfig = z
     ANALYTICS_SQL_DB_CONNECTION_RETRIES: z.coerce.number().default(10),
     ANALYTICS_SQL_DB_CONNECTION_MIN_TIMEOUT: z.coerce.number().default(5000),
     ANALYTICS_SQL_DB_CONNECTION_MAX_TIMEOUT: z.coerce.number().default(10000),
+    ANALYTICS_SQL_DB_MESSAGES_TO_INSERT_PER_BATCH: z.coerce
+      .number()
+      .default(500),
   })
   .transform((c) => ({
     dbHost: c.ANALYTICS_SQL_DB_HOST,
@@ -28,6 +31,7 @@ export const AnalyticsSQLDbConfig = z
     dbConnectionRetries: c.ANALYTICS_SQL_DB_CONNECTION_RETRIES,
     dbConnectionMinTimeout: c.ANALYTICS_SQL_DB_CONNECTION_MIN_TIMEOUT,
     dbConnectionMaxTimeout: c.ANALYTICS_SQL_DB_CONNECTION_MAX_TIMEOUT,
+    dbMessagesToInsertPerBatch: c.ANALYTICS_SQL_DB_MESSAGES_TO_INSERT_PER_BATCH,
   }));
 
 export type AnalyticsSQLDbConfig = z.infer<typeof AnalyticsSQLDbConfig>;

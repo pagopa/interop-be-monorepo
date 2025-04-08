@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import { AttributeEventEnvelope, Attribute } from "pagopa-interop-models";
+import {
+  AttributeEventEnvelope,
+  Attribute,
+  AttributeId,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
@@ -15,7 +19,7 @@ export async function handleAttributeMessageV1(
   const attributeService = attributeServiceBuilder(dbContext);
 
   const upsertBatch: AttributeSQL[] = [];
-  const deleteBatch: string[] = [];
+  const deleteBatch: AttributeId[] = [];
 
   for (const message of messages) {
     match(message)
@@ -25,7 +29,8 @@ export async function handleAttributeMessageV1(
         upsertBatch.push(attributeSql);
       })
       .with({ type: "MaintenanceAttributeDeleted" }, (msg) => {
-        deleteBatch.push(msg.data.id);
+        const attributeId = AttributeId.parse(msg.data.id);
+        deleteBatch.push(attributeId);
       })
       .exhaustive();
   }

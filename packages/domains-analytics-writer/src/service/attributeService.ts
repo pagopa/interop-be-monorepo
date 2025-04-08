@@ -14,7 +14,10 @@ export function attributeServiceBuilder(db: DBContext) {
       upsertBatch: AttributeSQL[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(upsertBatch, config.batchSize)) {
+      for (const batch of batchMessages(
+        upsertBatch,
+        config.dbMessagesToInsertPerBatch
+      )) {
         await dbContext.conn.tx(async (t) => {
           await repo.insert(t, dbContext.pgp, batch);
         });
@@ -39,7 +42,10 @@ export function attributeServiceBuilder(db: DBContext) {
       attributeIds: string[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(attributeIds, config.batchSize)) {
+      for (const batch of batchMessages(
+        attributeIds,
+        config.dbMessagesToInsertPerBatch
+      )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
             await repo.insertDeletingById(t, dbContext.pgp, id);

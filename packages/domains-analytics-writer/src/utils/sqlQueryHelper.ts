@@ -1,5 +1,14 @@
 import { z } from "zod";
-
+/**
+ * Generates a MERGE SQL query
+ *
+ * @param tableSchema - A Zod object schema refering to the table model from which to extract the list of keys.
+ * @param schemaName - The target db schema name.
+ * @param tableName - The  target table name.
+ * @param stagingTableName - The staging table.
+ * @param column - The single column key from the schema used in the ON condition of the MERGE.
+ * @returns The generated MERGE SQL query as a string.
+ */
 export function generateMergeQuery<T extends z.ZodRawShape>(
   tableSchema: z.ZodObject<T>,
   schemaName: string,
