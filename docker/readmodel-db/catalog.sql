@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_template_ref (
-  eservice_template_id UUID,
+  eservice_template_id UUID NOT NULL,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   instance_label VARCHAR,
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_template_version_ref (
-  eservice_template_version_id UUID,
+  eservice_template_version_id UUID NOT NULL,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
