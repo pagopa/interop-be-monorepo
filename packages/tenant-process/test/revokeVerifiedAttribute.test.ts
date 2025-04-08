@@ -233,7 +233,7 @@ describe("revokeVerifiedAttribute", async () => {
       )
     ).rejects.toThrowError(attributeNotFound(verifiedAttribute.id));
   });
-  it.only("Should throw attributeRevocationNotAllowed if the organization is not allowed to revoke the attribute", async () => {
+  it("Should throw attributeRevocationNotAllowed if the organization is not allowed to revoke the attribute", async () => {
     const otherVerifier = getMockTenant();
     const tenantWithVerifiedAttribute: Tenant = {
       ...targetTenant,
