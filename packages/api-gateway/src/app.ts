@@ -10,13 +10,13 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
+import { SERVICE_NAME } from "pagopa-interop-models";
 import healthRouter from "./routers/healthRouter.js";
 import apiGatewayRouter from "./routers/apiGatewayRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
 
-const serviceName = "api-gateway";
-const serviceId = "009";
+const serviceName = SERVICE_NAME.API_GATEWAY;
 
 const clients = getInteropBeClients();
 
@@ -41,7 +41,7 @@ app.use(loggerMiddleware(serviceName));
 app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
-  contextMiddleware(serviceName, serviceId, false),
+  contextMiddleware(serviceName, false),
   await applicationAuditBeginMiddleware(serviceName, config),
   await applicationAuditEndMiddleware(serviceName, config),
   authenticationMiddleware(config),

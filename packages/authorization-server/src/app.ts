@@ -4,11 +4,11 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import express from "express";
+import { SERVICE_NAME } from "pagopa-interop-models";
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationServerRouter from "./routers/AuthorizationServerRouter.js";
 
-const serviceName = "authorization-server";
-const serviceId = "006";
+const serviceName = SERVICE_NAME.AUTHORIZATION_SERVER;
 
 const app = zodiosCtx.app();
 
@@ -17,7 +17,7 @@ const app = zodiosCtx.app();
 app.disable("x-powered-by");
 
 app.use(healthRouter);
-app.use(contextMiddleware(serviceName, serviceId, false));
+app.use(contextMiddleware(serviceName, false));
 app.use(express.urlencoded({ extended: true }));
 app.use(loggerMiddleware(serviceName));
 app.use(authorizationServerRouter(zodiosCtx));

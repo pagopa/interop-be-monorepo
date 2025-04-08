@@ -12,6 +12,7 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
+import { SERVICE_NAME } from "pagopa-interop-models";
 import healthRouter from "./routers/HealthRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
@@ -34,8 +35,7 @@ const eventStore = initDB({
   useSSL: config.eventStoreDbUseSSL,
 });
 
-const serviceName = "delegation-process";
-const serviceId = "010";
+const serviceName = SERVICE_NAME.DELEGATION_PROCESS;
 
 const app = zodiosCtx.app();
 
@@ -44,7 +44,7 @@ const app = zodiosCtx.app();
 app.disable("x-powered-by");
 
 app.use(healthRouter);
-app.use(contextMiddleware(serviceName, serviceId));
+app.use(contextMiddleware(serviceName));
 app.use(await applicationAuditBeginMiddleware(serviceName, config));
 app.use(await applicationAuditEndMiddleware(serviceName, config));
 app.use(authenticationMiddleware(config));

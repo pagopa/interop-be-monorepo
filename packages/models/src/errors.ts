@@ -3,6 +3,7 @@ import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { CorrelationId } from "./brandedIds.js";
+import { SERVICE_ERROR_CODE, ServiceName } from "./services.js";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -73,7 +74,7 @@ type MakeApiProblemFn<T extends string> = (
       warn: (message: string) => void;
     };
     correlationId: CorrelationId;
-    serviceId: string;
+    serviceName: string;
   },
   operationalLogMessage?: string
 ) => Problem;
@@ -94,12 +95,21 @@ export function makeApiProblemBuilder<T extends string>(
 ): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
 
+  function retrieveServiceErrorCode(serviceName: string): string {
+    const serviceNameParsed = ServiceName.safeParse(serviceName);
+    return serviceNameParsed.success
+      ? SERVICE_ERROR_CODE[serviceNameParsed.data]
+      : "000";
+  }
+
   return (
     error,
     httpMapper,
-    { logger, correlationId, serviceId },
+    { logger, correlationId, serviceName },
     operationalLogMessage
   ) => {
+    const serviceErrorCode = retrieveServiceErrorCode(serviceName);
+
     const makeProblem = (
       httpStatus: number,
       { title, detail, errors }: ApiError<T | CommonErrorCodes>
@@ -110,7 +120,7 @@ export function makeApiProblemBuilder<T extends string>(
       detail,
       correlationId,
       errors: errors.map(({ code, detail }) => ({
-        code: `${serviceId}-${allErrors[code]}`,
+        code: `${serviceErrorCode}-${allErrors[code]}`,
         detail,
       })),
     });

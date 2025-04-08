@@ -13,6 +13,7 @@ import {
   applicationAuditEndSessionTokenExchangeMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
+import { SERVICE_NAME } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -38,8 +39,7 @@ import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 
-const serviceName = "backend-for-frontend";
-const serviceId = "008";
+const serviceName = SERVICE_NAME.BACKEND_FOR_FRONTEND;
 
 const fileManager = initFileManager(config);
 const allowList = await getAllowList(serviceName, fileManager, config);
@@ -76,7 +76,7 @@ app.use(loggerMiddleware(serviceName));
 app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
-  contextMiddleware(serviceName, serviceId, false),
+  contextMiddleware(serviceName, false),
   await applicationAuditBeginMiddleware(serviceName, config),
   await applicationAuditEndMiddleware(serviceName, config),
   await applicationAuditEndSessionTokenExchangeMiddleware(serviceName, config),

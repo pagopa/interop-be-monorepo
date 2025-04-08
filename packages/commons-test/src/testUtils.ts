@@ -755,7 +755,6 @@ export const getMockContext = ({
 }): WithLogger<AppContext> => ({
   authData: authData || getMockAuthData(),
   serviceName: serviceName || "test",
-  serviceId: "000",
   correlationId: generateId(),
   spanId: generateId(),
   logger: genericLogger,
