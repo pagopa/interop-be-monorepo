@@ -6,7 +6,6 @@ import {
   Purpose,
   PurposeVersion,
   purposeVersionState,
-  RiskAnalysisId,
   tenantKind,
 } from "pagopa-interop-models";
 import {
@@ -46,18 +45,14 @@ describe("Purpose queries", () => {
         firstActivationAt: new Date(),
         suspendedAt: new Date(),
       };
-      const purposeVersions = [purposeVersion1, purposeVersion2];
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: purposeVersions,
+        versions: [purposeVersion1, purposeVersion2],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
-        riskAnalysisForm: {
-          ...getMockValidRiskAnalysisForm(tenantKind.PA),
-          riskAnalysisId: generateId<RiskAnalysisId>(),
-        },
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
       };
@@ -146,18 +141,14 @@ describe("Purpose queries", () => {
         firstActivationAt: new Date(),
         suspendedAt: new Date(),
       };
-      const purposeVersions = [purposeVersion1, purposeVersion2];
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: purposeVersions,
+        versions: [purposeVersion1, purposeVersion2],
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
-        riskAnalysisForm: {
-          ...getMockValidRiskAnalysisForm(tenantKind.PA),
-          riskAnalysisId: generateId<RiskAnalysisId>(),
-        },
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
       };
@@ -237,10 +228,7 @@ describe("Purpose queries", () => {
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
-        riskAnalysisForm: {
-          ...getMockValidRiskAnalysisForm(tenantKind.PA),
-          riskAnalysisId: generateId<RiskAnalysisId>(),
-        },
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
       };
@@ -270,10 +258,7 @@ describe("Purpose queries", () => {
         delegationId: generateId<DelegationId>(),
         suspendedByConsumer: false,
         suspendedByProducer: false,
-        riskAnalysisForm: {
-          ...getMockValidRiskAnalysisForm(tenantKind.PA),
-          riskAnalysisId: generateId<RiskAnalysisId>(),
-        },
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
       };
