@@ -31,7 +31,6 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
   EServiceTemplateRefSQL,
-  // EServiceTemplateBindingSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const documentSQLtoDocument = (
@@ -63,7 +62,7 @@ export const aggregateDescriptor = ({
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
-  const parsedInterface = interfaceSQL
+  const convertedInterface = interfaceSQL
     ? documentSQLtoDocument(interfaceSQL)
     : undefined;
 
@@ -76,7 +75,6 @@ export const aggregateDescriptor = ({
   const verifiedAttributesSQL = attributesSQL.filter(
     (a) => a.kind === attributeKind.verified
   );
-
   const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
   const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
   const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
@@ -85,7 +83,6 @@ export const aggregateDescriptor = ({
     rejectionReason: rejectionReason.rejectionReason,
     rejectedAt: stringToDate(rejectionReason.rejectedAt),
   }));
-
   const rejectionReasons =
     rejectionReasonsArray.length > 0 ? rejectionReasonsArray : undefined;
 
@@ -136,7 +133,7 @@ export const aggregateDescriptor = ({
       declared: declaredAttributes,
       verified: verifiedAttributes,
     },
-    ...(parsedInterface ? { interface: parsedInterface } : {}),
+    ...(convertedInterface ? { interface: convertedInterface } : {}),
     ...(descriptorSQL.description
       ? { description: descriptorSQL.description }
       : {}),
