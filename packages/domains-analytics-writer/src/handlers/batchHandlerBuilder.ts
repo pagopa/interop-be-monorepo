@@ -42,22 +42,33 @@ import { handlePurposeMessageV1 } from "./purpose/consumerServiceV1.js";
 import { handlePurposeMessageV2 } from "./purpose/consumerServiceV2.js";
 import { handleTenantMessageV1 } from "./tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "./tenant/consumerServiceV2.js";
+
+/**
+ * Processes a batch of Kafka messages by grouping them by topic and delegating
+ * the handling of each group to a topic-specific asynchronous handler.
+ *
+ * For each topic, it creates an asynchronous handler function using topic pattern matching
+ * that decodes messages and calls the corresponding service functions.
+ * After the loop, all handlers are returned
+ *
+ * @param payloads - An array of Kafka message payloads to be processed.
+ * @param dbContext - The database context required by the handler services.
+ *
+ * @returns An array of Promises
+ */
 // eslint-disable-next-line sonarjs/cognitive-complexity
-export async function handleTopicMessages(
-  payloads: EachMessagePayload[],
+export async function buildBatchHandlers(
+  messagesPayloads: EachMessagePayload[],
   dbContext: DBContext
 ): Promise<Array<Promise<void>>> {
-  const groupsByTopic = payloads.reduce<Record<string, EachMessagePayload[]>>(
-    (acc, mp) => {
-      (acc[mp.topic] ||= []).push(mp);
-      return acc;
-    },
-    {}
-  );
+  const messagesByTopic: Record<string, EachMessagePayload[]> = {};
+  for (const payload of messagesPayloads) {
+    (messagesByTopic[payload.topic] ||= []).push(payload);
+  }
 
   const handlerFunctions: Array<(db: DBContext) => Promise<void>> = [];
 
-  for (const [topic, payloadGroup] of Object.entries(groupsByTopic)) {
+  for (const [topic, payloadGroup] of Object.entries(messagesByTopic)) {
     const handlerFn = match(topic)
       .with(config.catalogTopic, () => {
         const eserviceV1: EServiceEventEnvelopeV1[] = [];
@@ -218,5 +229,5 @@ export async function handleTopicMessages(
 
     handlerFunctions.push(handlerFn);
   }
-  return handlerFunctions.map((fn) => fn(dbContext));
+  return handlerFunctions.map((handler) => handler(dbContext));
 }

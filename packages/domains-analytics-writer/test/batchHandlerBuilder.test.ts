@@ -16,8 +16,8 @@ vi.mock("pagopa-interop-commons", async (importOriginal) => {
 });
 
 async function setupHandlerAfterMock() {
-  return (await import("../src/handlers/messageHandler.js"))
-    .handleTopicMessages;
+  return (await import("../src/handlers/batchHandlerBuilder.js"))
+    .buildBatchHandlers;
 }
 
 const mockAttributeHandler = vi.fn().mockResolvedValue(undefined);

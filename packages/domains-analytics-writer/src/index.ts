@@ -12,7 +12,7 @@ import { DBContext, initDB } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import { AttributeDbtable } from "./model/db.js";
-import { handleTopicMessages } from "./handlers/messageHandler.js";
+import { buildBatchHandlers } from "./handlers/batchHandlerBuilder.js";
 const dbInstance = initDB({
   username: config.dbUsername,
   password: config.dbPassword,
@@ -46,7 +46,7 @@ await retryConnection(
 );
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
-export async function processBatch({
+async function processBatch({
   batch,
   heartbeat,
   pause,
@@ -59,7 +59,7 @@ export async function processBatch({
     message,
   }));
 
-  const promises = await handleTopicMessages(payloads, dbContext);
+  const promises = await buildBatchHandlers(payloads, dbContext);
   await Promise.allSettled(promises);
 
   genericLogger.info(
@@ -74,13 +74,13 @@ await runBatchConsumer(
   batchConsumerConfig,
   [
     config.attributeTopic,
-    // config.agreementTopic,
-    // config.catalogTopic,
-    // config.purposeTopic,
-    // config.tenantTopic,
-    // config.delegationTopic,
-    // config.authorizationTopic,
-    // config.eserviceTemplateTopic,
+    config.agreementTopic,
+    config.catalogTopic,
+    config.purposeTopic,
+    config.tenantTopic,
+    config.delegationTopic,
+    config.authorizationTopic,
+    config.eserviceTemplateTopic,
   ],
   processBatch
 );
