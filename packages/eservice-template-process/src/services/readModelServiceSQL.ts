@@ -171,19 +171,19 @@ export function readModelServiceBuilderSQL({
                   ],
                   authData
                 )
-                  ? or(
-                      eq(
-                        eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                        authData.organizationId
-                      ),
-                      isNull(
-                        eserviceTemplateVersionInReadmodelEserviceTemplate.id
-                      )
+                  ? eq(
+                      eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+                      authData.organizationId
                     )
                   : undefined,
-                ne(
-                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                  eserviceTemplateVersionState.draft
+                and(
+                  ne(
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                    eserviceTemplateVersionState.draft
+                  ),
+                  isNotNull(
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                  )
                 )
               )
             )
