@@ -24,7 +24,7 @@ const TenantProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
       }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig)
+  .and(FeatureFlagSQLConfig.optional())
   .and(ReadModelSQLDbConfig.optional());
 
 export type TenantProcessConfig = z.infer<typeof TenantProcessConfig>;
