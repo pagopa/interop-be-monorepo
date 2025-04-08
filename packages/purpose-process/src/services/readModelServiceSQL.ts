@@ -246,9 +246,9 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(purposeInReadmodelPurpose.id)
+          .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`)
           .limit(limit)
           .offset(offset)
-          .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`)
           .as("subquery");
 
         return await tx
@@ -307,7 +307,8 @@ export function readModelServiceBuilderSQL({
               purposeInReadmodelPurpose.eserviceId,
               eserviceInReadmodelCatalog.id
             )
-          );
+          )
+          .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`);
       });
 
       return {
