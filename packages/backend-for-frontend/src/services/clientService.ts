@@ -243,17 +243,13 @@ export function clientServiceBuilder(
 
       return await Promise.all(
         clientUsers.map(async (id) => {
-          try {
-            const user = await getSelfcareUserById(
-              selfcareUsersClient,
-              id,
-              selfcareId,
-              correlationId
-            );
-            return toBffApiCompactUser(user, id);
-          } catch (error) {
-            throw userNotFound(id, selfcareId);
-          }
+          const user = await getSelfcareUserById(
+            selfcareUsersClient,
+            id,
+            selfcareId,
+            correlationId
+          );
+          return toBffApiCompactUser(user, id);
         })
       );
     },
