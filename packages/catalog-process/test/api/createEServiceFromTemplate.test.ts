@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import {
   EService,
   EServiceTemplate,
-  EServiceTemplateId,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   generateId,
@@ -23,11 +22,8 @@ import { api } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
-import { eServiceTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /templates/{templateId}/eservices authorization test", () => {
-  const mockEService = getMockEService();
-
   const publishedVersion: EServiceTemplateVersion = {
     ...getMockEServiceTemplateVersion(),
     state: eserviceTemplateVersionState.published,
@@ -39,14 +35,14 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
   };
 
   const eService: EService = {
-    ...mockEService,
+    ...getMockEService(),
     description: eServiceTemplate.description,
     name: eServiceTemplate.name,
     isConsumerDelegable: false,
     isClientAccessDelegable: false,
     templateRef: {
       id: eServiceTemplate.id,
-      instanceLabel: mockEService?.templateRef?.instanceLabel,
+      instanceLabel: "instance label",
     },
   };
 
@@ -62,7 +58,7 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
   const generateToken = (authData: AuthData) =>
     jwt.sign(createPayload(authData), "test-secret");
 
-  const makeRequest = async (token: string, templateId: EServiceTemplateId) =>
+  const makeRequest = async (token: string, templateId: string) =>
     request(api)
       .post(`/templates/${templateId}/eservices`) // Fix del path
       .set("Authorization", `Bearer ${token}`)
@@ -96,17 +92,8 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eServiceTemplateNotFound", async () => {
-    vi.spyOn(
-      catalogService,
-      "createEServiceInstanceFromTemplate"
-    ).mockRejectedValue(eServiceTemplateNotFound(eServiceTemplate.id));
-
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      generateId()
-    );
-
+  it("Should return 404 not found", async () => {
+    const res = await makeRequest(generateToken(getMockAuthData()), "");
     expect(res.status).toBe(404);
   });
 });

@@ -4,12 +4,9 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import {
   Descriptor,
-  DescriptorId,
   descriptorState,
   Document,
   EService,
-  EServiceDocumentId,
-  EServiceId,
   generateId,
 } from "pagopa-interop-models";
 import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
@@ -22,7 +19,7 @@ import {
 } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 
-describe("API /eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId authorization test", () => {
+describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId} authorization test", () => {
   const document: Document = getMockDocument();
 
   const descriptor: Descriptor = {
@@ -41,9 +38,9 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/documents/:docume
 
   const makeRequest = async (
     token: string,
-    eServiceId: EServiceId,
-    descriptorId: DescriptorId,
-    documentId: EServiceDocumentId
+    eServiceId: string,
+    descriptorId: string,
+    documentId: string
   ) =>
     request(api)
       .delete(
@@ -87,12 +84,7 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/documents/:docume
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      "" as EServiceId,
-      "" as DescriptorId,
-      "" as EServiceDocumentId
-    );
+    const res = await makeRequest(generateToken(getMockAuthData()), "", "", "");
     expect(res.status).toBe(404);
   });
 });

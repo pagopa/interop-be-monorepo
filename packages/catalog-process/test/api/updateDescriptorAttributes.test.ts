@@ -8,13 +8,11 @@ import {
   descriptorState,
   EService,
   generateId,
-  tenantKind,
 } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAttribute,
   getMockAuthData,
-  getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -22,6 +20,7 @@ import { api } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 import { unchangedAttributes } from "../../src/model/domain/errors.js";
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update authorization test", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
@@ -93,8 +92,11 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [descriptor],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
   };
+
+  const apiEservice = catalogApi.EService.parse(
+    eServiceToApiEService(mockEService)
+  );
 
   vi.spyOn(catalogService, "updateDescriptorAttributes").mockResolvedValue(
     mockEService
@@ -122,6 +124,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
       const res = await makeRequest(token, mockEService.id, descriptor.id);
       expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiEservice);
     }
   );
 

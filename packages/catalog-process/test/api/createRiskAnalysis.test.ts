@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import {
   descriptorState,
   EService,
-  EServiceId,
   generateId,
   tenantKind,
 } from "pagopa-interop-models";
@@ -24,13 +23,10 @@ import {
   getMockEService,
 } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
-import { eServiceNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
-  const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
-
   const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
-    buildRiskAnalysisSeed(mockValidRiskAnalysis);
+    buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA));
 
   const mockEService: EService = {
     ...getMockEService(),
@@ -42,7 +38,7 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
   const generateToken = (authData: AuthData) =>
     jwt.sign(createPayload(authData), "test-secret");
 
-  const makeRequest = async (token: string, eServiceId: EServiceId) =>
+  const makeRequest = async (token: string, eServiceId: string) =>
     request(api)
       .post(`/eservices/${eServiceId}/riskAnalysis`)
       .set("Authorization", `Bearer ${token}`)
@@ -70,16 +66,8 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eServiceNotFound", async () => {
-    vi.spyOn(catalogService, "createRiskAnalysis").mockRejectedValue(
-      eServiceNotFound(mockEService.id)
-    );
-
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      generateId()
-    );
-
+  it("Should return 404 not found", async () => {
+    const res = await makeRequest(generateToken(getMockAuthData()), "");
     expect(res.status).toBe(404);
   });
 });

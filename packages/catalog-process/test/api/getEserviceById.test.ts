@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
-import { EService, EServiceId, generateId } from "pagopa-interop-models";
+import { EService, generateId } from "pagopa-interop-models";
 import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -24,7 +24,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
   const generateToken = (authData: AuthData) =>
     jwt.sign(createPayload(authData), "test-secret");
 
-  const makeRequest = async (token: string, eServiceId: EServiceId) =>
+  const makeRequest = async (token: string, eServiceId: string) =>
     request(api)
       .get(`/eservices/${eServiceId}`)
       .set("Authorization", `Bearer ${token}`)

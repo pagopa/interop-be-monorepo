@@ -2,13 +2,8 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
-import { EService, generateId, tenantKind } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAuthData,
-  getMockValidRiskAnalysis,
-} from "pagopa-interop-commons-test";
-
+import { EService, generateId } from "pagopa-interop-models";
+import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { api } from "../vitest.api.setup.js";
@@ -22,26 +17,24 @@ describe("API /eservices authorization test", () => {
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [getMockDescriptor()],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
   };
 
-  const mockApiEservice: catalogApi.EService = catalogApi.EService.parse(
+  const apiEservice: catalogApi.EService = catalogApi.EService.parse(
     eServiceToApiEService(mockEService)
   );
 
-  const mockEserviceSeed: EServiceSeed = {
-    name: mockApiEservice.name,
-    description: mockApiEservice.description,
+  const eserviceSeed: EServiceSeed = {
+    name: apiEservice.name,
+    description: apiEservice.description,
     technology: "REST",
     mode: "RECEIVE",
     descriptor: {
-      audience: mockApiEservice.descriptors[0].audience,
-      voucherLifespan: mockApiEservice.descriptors[0].voucherLifespan,
-      dailyCallsPerConsumer:
-        mockApiEservice.descriptors[0].dailyCallsPerConsumer,
-      dailyCallsTotal: mockApiEservice.descriptors[0].dailyCallsTotal,
+      audience: apiEservice.descriptors[0].audience,
+      voucherLifespan: apiEservice.descriptors[0].voucherLifespan,
+      dailyCallsPerConsumer: apiEservice.descriptors[0].dailyCallsPerConsumer,
+      dailyCallsTotal: apiEservice.descriptors[0].dailyCallsTotal,
       agreementApprovalPolicy:
-        mockApiEservice.descriptors[0].agreementApprovalPolicy,
+        apiEservice.descriptors[0].agreementApprovalPolicy,
     },
   };
 
@@ -50,21 +43,21 @@ describe("API /eservices authorization test", () => {
   const generateToken = (authData: AuthData) =>
     jwt.sign(createPayload(authData), "test-secret");
 
-  const makeRequest = async (token: string, payload: object) =>
+  const makeRequest = async (token: string) =>
     request(api)
       .post("/eservices")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(payload);
+      .send(eserviceSeed);
 
   it.each([userRoles.ADMIN_ROLE, userRoles.API_ROLE])(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
-      const res = await makeRequest(token, mockEserviceSeed);
+      const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockApiEservice);
+      expect(res.body).toEqual(apiEservice);
     }
   );
 
@@ -74,20 +67,17 @@ describe("API /eservices authorization test", () => {
     )
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
-    const res = await makeRequest(token, mockEserviceSeed);
+    const res = await makeRequest(token);
 
     expect(res.status).toBe(403);
   });
 
   it("Should return 409 for name conflict", async () => {
     vi.spyOn(catalogService, "createEService").mockRejectedValue(
-      eServiceNameDuplicate(mockEserviceSeed.name)
+      eServiceNameDuplicate(eserviceSeed.name)
     );
 
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      mockEserviceSeed
-    );
+    const res = await makeRequest(generateToken(getMockAuthData()));
 
     expect(res.status).toBe(409);
   });

@@ -25,7 +25,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
     vi.restoreAllMocks();
   });
 
-  describe("POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest", () => {
+  describe("POST /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/rest", () => {
     let mockEserviceREST: EService;
     let descriptor: Descriptor;
 
@@ -109,7 +109,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
     });
   });
 
-  describe("POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/soap", () => {
+  describe("POST /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap", () => {
     let mockEserviceSOAP: EService;
     let descriptor: Descriptor;
 

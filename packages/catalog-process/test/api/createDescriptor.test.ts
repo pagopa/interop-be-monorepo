@@ -16,7 +16,7 @@ import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 import { descriptorToApiDescriptor } from "../../src/model/domain/apiConverter.js";
 
-describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authorization test", () => {
+describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
   const buildCreateDescriptorSeed = (
     descriptor: Descriptor
   ): catalogApi.EServiceDescriptorSeed => ({
@@ -90,16 +90,12 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
   const generateToken = (authData: AuthData) =>
     jwt.sign(createPayload(authData), "test-secret");
 
-  const makeRequest = async (
-    token: string,
-    eServiceId: string,
-    payload: object
-  ) =>
+  const makeRequest = async (token: string, eServiceId: string) =>
     request(api)
       .post(`/eservices/${eServiceId}/descriptors`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(payload);
+      .send(descriptorSeed);
 
   it.each([userRoles.ADMIN_ROLE, userRoles.API_ROLE])(
     "Should return 200 for user with role %s",
@@ -108,7 +104,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
         ...getMockAuthData(),
         userRoles: [role],
       });
-      const res = await makeRequest(token, eservice.id, descriptorSeed);
+      const res = await makeRequest(token, eservice.id);
 
       expect(res.body).toEqual(apiDescriptor);
       expect(res.status).toBe(200);
@@ -121,13 +117,13 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
     )
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
-    const res = await makeRequest(token, eservice.id, descriptorSeed);
+    const res = await makeRequest(token, eservice.id);
 
     expect(res.status).toBe(403);
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(getMockAuthData()), "", {});
+    const res = await makeRequest(generateToken(getMockAuthData()), "");
     expect(res.status).toBe(404);
   });
 });

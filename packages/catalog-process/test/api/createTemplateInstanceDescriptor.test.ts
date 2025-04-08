@@ -6,7 +6,6 @@ import {
   Descriptor,
   descriptorState,
   EService,
-  EServiceId,
   EServiceTemplate,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
@@ -66,7 +65,7 @@ describe("API /templates/eservices/{eServiceId}/descriptors authorization test",
     },
   };
 
-  const mockApiDescriptor = catalogApi.EServiceDescriptor.parse(
+  const apiDescriptor = catalogApi.EServiceDescriptor.parse(
     descriptorToApiDescriptor(mockDescriptor)
   );
 
@@ -78,7 +77,7 @@ describe("API /templates/eservices/{eServiceId}/descriptors authorization test",
   const generateToken = (authData: AuthData) =>
     jwt.sign(createPayload(authData), "test-secret");
 
-  const makeRequest = async (token: string, eServiceId: EServiceId) =>
+  const makeRequest = async (token: string, eServiceId: string) =>
     request(api)
       .post(`/templates/eservices/${eServiceId}/descriptors`)
       .set("Authorization", `Bearer ${token}`)
@@ -92,7 +91,7 @@ describe("API /templates/eservices/{eServiceId}/descriptors authorization test",
       const res = await makeRequest(token, mockEService.id);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockApiDescriptor);
+      expect(res.body).toEqual(apiDescriptor);
     }
   );
 
@@ -108,10 +107,7 @@ describe("API /templates/eservices/{eServiceId}/descriptors authorization test",
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      "" as EServiceId
-    );
+    const res = await makeRequest(generateToken(getMockAuthData()), "");
     expect(res.status).toBe(404);
   });
 });

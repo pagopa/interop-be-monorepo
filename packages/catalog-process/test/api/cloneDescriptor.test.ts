@@ -20,8 +20,7 @@ import {
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
-describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authorization test", () => {
-  const mockDescriptor = getMockDescriptor();
+describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authorization test", () => {
   const mockDocument = getMockDocument();
 
   const document1 = {
@@ -41,7 +40,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
   };
 
   const descriptor: Descriptor = {
-    ...mockDescriptor,
+    ...getMockDescriptor(),
     state: descriptorState.draft,
     interface: interfaceDocument,
     docs: [document1, document2],

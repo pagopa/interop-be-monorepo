@@ -7,41 +7,30 @@ import {
   descriptorState,
   EService,
   generateId,
-  tenantKind,
 } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAuthData,
   getMockEServiceTemplate,
-  getMockValidRiskAnalysis,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { api } from "../vitest.api.setup.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
+import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /templates/eservices/{eServiceId} authorization test", () => {
-  const mockDescriptor = getMockDescriptor();
-  const mockDocument = getMockDocument();
-
   const descriptor: Descriptor = {
-    ...mockDescriptor,
-    interface: mockDocument,
+    ...getMockDescriptor(),
     state: descriptorState.draft,
   };
 
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [descriptor],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
     templateRef: {
       id: getMockEServiceTemplate().id,
       instanceLabel: undefined,

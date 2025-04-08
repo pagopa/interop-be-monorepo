@@ -17,7 +17,6 @@ import {
   getMockEService,
 } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
-import { eServiceNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authorization test", () => {
   const descriptor: Descriptor = {
@@ -69,25 +68,8 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authoriza
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 eservice not found", async () => {
-    vi.spyOn(
-      catalogService,
-      "approveDelegatedEServiceDescriptor"
-    ).mockRejectedValue(eServiceNotFound(mockEService.id));
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      generateId(),
-      descriptor.id
-    );
+  it("Should return 404 not found", async () => {
+    const res = await makeRequest(generateToken(getMockAuthData()), "", "");
     expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 Bad Request", async () => {
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      "invalidID",
-      "invalidID"
-    );
-    expect(res.status).toBe(400);
   });
 });

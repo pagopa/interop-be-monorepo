@@ -7,13 +7,11 @@ import {
   descriptorState,
   EService,
   generateId,
-  tenantKind,
 } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAuthData,
   getMockEServiceTemplate,
-  getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -23,17 +21,14 @@ import { catalogService } from "../../src/routers/EServiceRouter.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} authorization test", () => {
-  const mockDescriptor = getMockDescriptor();
-
   const descriptor: Descriptor = {
-    ...mockDescriptor,
+    ...getMockDescriptor(),
     state: descriptorState.draft,
   };
 
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [descriptor],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
     templateRef: {
       id: getMockEServiceTemplate().id,
       instanceLabel: "test",

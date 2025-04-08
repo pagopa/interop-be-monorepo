@@ -7,13 +7,8 @@ import {
   descriptorState,
   EService,
   generateId,
-  tenantKind,
 } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAuthData,
-  getMockValidRiskAnalysis,
-} from "pagopa-interop-commons-test";
+import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { api } from "../vitest.api.setup.js";
 import {
@@ -24,11 +19,10 @@ import {
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 
 describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update authorization test", () => {
-  const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
 
   const descriptor: Descriptor = {
-    ...mockDescriptor,
+    ...getMockDescriptor(),
     interface: mockDocument,
     state: descriptorState.published,
   };
@@ -36,7 +30,6 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [descriptor],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
   };
 
   vi.spyOn(

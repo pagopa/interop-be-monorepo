@@ -7,13 +7,8 @@ import {
   descriptorState,
   EService,
   generateId,
-  tenantKind,
 } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAuthData,
-  getMockValidRiskAnalysis,
-} from "pagopa-interop-commons-test";
+import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
@@ -36,7 +31,6 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [descriptor],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
   };
 
   const apiEservice = catalogApi.EService.parse(

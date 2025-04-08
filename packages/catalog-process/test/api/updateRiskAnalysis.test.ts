@@ -2,13 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
-import {
-  Descriptor,
-  descriptorState,
-  EService,
-  generateId,
-  tenantKind,
-} from "pagopa-interop-models";
+import { EService, generateId, tenantKind } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAuthData,
@@ -17,28 +11,14 @@ import {
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
-import {
-  buildRiskAnalysisSeed,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
+import { buildRiskAnalysisSeed, getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 
 describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorization test", () => {
-  const mockDescriptor = getMockDescriptor();
-  const mockDocument = getMockDocument();
   const riskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
-
-  const descriptor: Descriptor = {
-    ...mockDescriptor,
-    interface: mockDocument,
-    state: descriptorState.draft,
-  };
 
   const mockEService: EService = {
     ...getMockEService(),
-    descriptors: [descriptor],
     riskAnalysis: [riskAnalysis],
   };
 

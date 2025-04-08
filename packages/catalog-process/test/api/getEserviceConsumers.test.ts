@@ -6,7 +6,6 @@ import {
   Descriptor,
   descriptorState,
   EService,
-  EServiceId,
   generateId,
 } from "pagopa-interop-models";
 import {
@@ -80,7 +79,7 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
   const generateToken = (authData: AuthData) =>
     jwt.sign(createPayload(authData), "test-secret");
 
-  const makeRequest = async (token: string, eServiceId: EServiceId) =>
+  const makeRequest = async (token: string, eServiceId: string) =>
     request(api)
       .get(`/eservices/${eServiceId}/consumers`)
       .set("Authorization", `Bearer ${token}`)
@@ -117,10 +116,7 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
   );
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      "" as EServiceId
-    );
+    const res = await makeRequest(generateToken(getMockAuthData()), "");
     expect(res.status).toBe(404);
   });
 });

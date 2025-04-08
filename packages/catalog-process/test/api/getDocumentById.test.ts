@@ -4,12 +4,9 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import {
   Descriptor,
-  DescriptorId,
   descriptorState,
   Document,
   EService,
-  EServiceDocumentId,
-  EServiceId,
   generateId,
 } from "pagopa-interop-models";
 import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
@@ -47,9 +44,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
 
   const makeRequest = async (
     token: string,
-    eServiceId: EServiceId,
-    descriptorId: DescriptorId,
-    documentId: EServiceDocumentId
+    eServiceId: string,
+    descriptorId: string,
+    documentId: string
   ) =>
     request(api)
       .get(
@@ -96,12 +93,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
   );
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      "" as EServiceId,
-      "" as DescriptorId,
-      "" as EServiceDocumentId
-    );
+    const res = await makeRequest(generateToken(getMockAuthData()), "", "", "");
     expect(res.status).toBe(404);
   });
 });

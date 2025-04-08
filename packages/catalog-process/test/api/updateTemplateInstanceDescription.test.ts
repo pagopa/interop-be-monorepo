@@ -2,40 +2,15 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
-import {
-  Descriptor,
-  EService,
-  generateId,
-  tenantKind,
-} from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAuthData,
-  getMockValidRiskAnalysis,
-} from "pagopa-interop-commons-test";
+import { EService, generateId } from "pagopa-interop-models";
+import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { api } from "../vitest.api.setup.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
+import { getMockEService } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
 
 describe("API /internal/templates/eservices/{eServiceId}/description/update authorization test", () => {
-  const mockDescriptor = getMockDescriptor();
-  const mockDocument = getMockDocument();
-
-  const descriptor: Descriptor = {
-    ...mockDescriptor,
-    interface: mockDocument,
-  };
-
-  const mockEService: EService = {
-    ...getMockEService(),
-    descriptors: [descriptor],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
-  };
+  const mockEService: EService = getMockEService();
 
   vi.spyOn(
     catalogService,

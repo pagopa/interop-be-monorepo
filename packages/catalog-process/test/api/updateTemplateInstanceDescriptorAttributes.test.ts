@@ -8,13 +8,11 @@ import {
   descriptorState,
   EService,
   generateId,
-  tenantKind,
 } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAttribute,
   getMockAuthData,
-  getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -92,7 +90,6 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [descriptor],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
   };
 
   vi.spyOn(

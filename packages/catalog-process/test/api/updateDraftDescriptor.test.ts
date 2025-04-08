@@ -7,13 +7,11 @@ import {
   descriptorState,
   EService,
   generateId,
-  tenantKind,
 } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAttribute,
   getMockAuthData,
-  getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -24,20 +22,22 @@ import {
   getMockEService,
 } from "../mockUtils.js";
 import { catalogService } from "../../src/routers/EServiceRouter.js";
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization test", () => {
-  const mockDescriptor = getMockDescriptor();
-
   const descriptor: Descriptor = {
-    ...mockDescriptor,
+    ...getMockDescriptor(),
     state: descriptorState.draft,
   };
 
   const mockEService: EService = {
     ...getMockEService(),
     descriptors: [descriptor],
-    riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
   };
+
+  const apiEservice = catalogApi.EService.parse(
+    eServiceToApiEService(mockEService)
+  );
 
   const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
     ...buildUpdateDescriptorSeed(descriptor),
@@ -75,6 +75,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
       const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
       const res = await makeRequest(token, mockEService.id, descriptor.id);
       expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiEservice);
     }
   );
 

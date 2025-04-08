@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
-import { EService, EServiceId, generateId } from "pagopa-interop-models";
+import { EService, generateId } from "pagopa-interop-models";
 import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
 import { userRoles, AuthData } from "pagopa-interop-commons";
 import { api } from "../vitest.api.setup.js";
@@ -17,7 +17,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
   const generateToken = (authData: AuthData) =>
     jwt.sign(createPayload(authData), "test-secret");
 
-  const makeRequest = async (token: string, eServiceId: EServiceId) =>
+  const makeRequest = async (token: string, eServiceId: string) =>
     request(api)
       .delete(`/eservices/${eServiceId}`)
       .set("Authorization", `Bearer ${token}`)
@@ -48,10 +48,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      "" as EServiceId
-    );
+    const res = await makeRequest(generateToken(getMockAuthData()), "");
     expect(res.status).toBe(404);
   });
 });

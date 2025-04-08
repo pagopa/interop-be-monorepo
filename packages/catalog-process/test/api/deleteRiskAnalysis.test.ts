@@ -2,13 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
-import {
-  EService,
-  EServiceId,
-  generateId,
-  RiskAnalysisId,
-  tenantKind,
-} from "pagopa-interop-models";
+import { EService, generateId, tenantKind } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAuthData,
@@ -33,8 +27,8 @@ describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorizatio
 
   const makeRequest = async (
     token: string,
-    eServiceId: EServiceId,
-    riskAnalysisId: RiskAnalysisId
+    eServiceId: string,
+    riskAnalysisId: string
   ) =>
     request(api)
       .delete(`/eservices/${eServiceId}/riskAnalysis/${riskAnalysisId}`)
@@ -66,11 +60,7 @@ describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorizatio
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(getMockAuthData()),
-      "" as EServiceId,
-      "" as RiskAnalysisId
-    );
+    const res = await makeRequest(generateToken(getMockAuthData()), "", "");
     expect(res.status).toBe(404);
   });
 });
