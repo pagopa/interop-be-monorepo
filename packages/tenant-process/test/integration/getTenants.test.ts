@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Tenant, tenantFeatureType } from "pagopa-interop-models";
 import { getMockTenant } from "pagopa-interop-commons-test";
-import { addOneTenant, readModelService } from "./utils.js";
+import { addOneTenant, readModelService } from "../integrationUtils.js";
 
 describe("getTenants", () => {
   const tenant1: Tenant = {

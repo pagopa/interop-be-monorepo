@@ -17,15 +17,17 @@ import {
   expirationDateNotFoundInVerifier,
   verifiedAttributeNotFoundInTenant,
   organizationNotFoundInVerifiers,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
-  currentDate,
   addOneTenant,
   tenantService,
+  readLastTenantEvent,
+} from "../integrationUtils.js";
+import {
+  currentDate,
   getMockVerifiedTenantAttribute,
   getMockVerifiedBy,
-  readLastTenantEvent,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 describe("updateVerifiedAttributeExtensionDate", async () => {
   const expirationDate = new Date(

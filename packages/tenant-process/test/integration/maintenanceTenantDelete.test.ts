@@ -10,8 +10,8 @@ import {
   getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
-import { tenantNotFound } from "../src/model/domain/errors.js";
-import { addOneTenant, postgresDB, tenantService } from "./utils.js";
+import { tenantNotFound } from "../../src/model/domain/errors.js";
+import { addOneTenant, postgresDB, tenantService } from "../integrationUtils.js";
 
 describe("maintenanceTenantDelete", async () => {
   it("should write on event-store for the deletion of a tenant", async () => {

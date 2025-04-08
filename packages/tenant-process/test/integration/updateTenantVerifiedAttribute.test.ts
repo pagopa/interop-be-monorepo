@@ -20,16 +20,18 @@ import {
   expirationDateCannotBeInThePast,
   verifiedAttributeNotFoundInTenant,
   organizationNotFoundInVerifiers,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
+  readLastTenantEvent,
+  tenantService,
+} from "../integrationUtils.js";
+import {
   currentDate,
   getMockCertifiedTenantAttribute,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
-  readLastTenantEvent,
-  tenantService,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 describe("updateTenantVerifiedAttribute", async () => {
   const expirationDate = new Date(

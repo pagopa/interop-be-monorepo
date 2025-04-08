@@ -21,8 +21,12 @@ import {
   getMockTenant,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
-import { selfcareIdConflict } from "../src/model/domain/errors.js";
-import { addOneTenant, readLastTenantEvent, tenantService } from "./utils.js";
+import { selfcareIdConflict } from "../../src/model/domain/errors.js";
+import {
+  addOneTenant,
+  readLastTenantEvent,
+  tenantService,
+} from "../integrationUtils.js";
 
 describe("selfcareUpsertTenant", async () => {
   const mockTenant = getMockTenant();

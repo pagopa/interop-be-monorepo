@@ -3,8 +3,8 @@
 import { describe, expect, it } from "vitest";
 import { Tenant } from "pagopa-interop-models";
 import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
-import { tenantNotFoundBySelfcareId } from "../src/model/domain/errors.js";
-import { addOneTenant, tenantService } from "./utils.js";
+import { tenantNotFoundBySelfcareId } from "../../src/model/domain/errors.js";
+import { addOneTenant, tenantService } from "../integrationUtils.js";
 
 describe("getTenantBySelfcareId", () => {
   const tenant1: Tenant = {

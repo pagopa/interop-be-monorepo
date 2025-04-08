@@ -29,19 +29,21 @@ import {
   attributeNotFound,
   attributeRevocationNotAllowed,
   verifiedAttributeSelfRevocationNotAllowed,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
-  getMockAgreement,
-  getMockVerifiedTenantAttribute,
-  getMockVerifiedBy,
-  getMockRevokedBy,
   tenantService,
   postgresDB,
   addOneEService,
   addOneAgreement,
   addOneDelegation,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import {
+  getMockAgreement,
+  getMockVerifiedTenantAttribute,
+  getMockVerifiedBy,
+  getMockRevokedBy,
+} from "../mockUtils.js";
 
 describe("revokeVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();

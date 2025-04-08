@@ -32,14 +32,14 @@ import {
   attributeNotFound,
   delegationNotFound,
   operationRestrictedToDelegate,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   attributes,
   postgresDB,
   tenantService,
   addOneDelegation,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("addDeclaredAttribute", async () => {
   const declaredAttribute: Attribute = {

@@ -10,7 +10,11 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { addOneEService, addOneTenant, readModelService } from "./utils.js";
+import {
+  addOneEService,
+  addOneTenant,
+  readModelService,
+} from "../integrationUtils.js";
 
 describe("getProducers", () => {
   const tenant1: Tenant = {

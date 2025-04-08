@@ -24,14 +24,14 @@ import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   tenantNotFoundByExternalId,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   tenantService,
   readLastTenantEvent,
   attributes,
   postgresDB,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("internalUpsertTenant", async () => {
   const tenantSeed: tenantApi.InternalTenantSeed = {

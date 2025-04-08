@@ -25,14 +25,14 @@ import {
   tenantIsNotACertifier,
   tenantNotFound,
   tenantNotFoundByExternalId,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   tenantService,
   readLastTenantEvent,
   attributes,
   postgresDB,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("m2mUpsertTenant", async () => {
   const certifierId = generateId();

@@ -25,13 +25,13 @@ import {
   tenantIsNotACertifier,
   tenantNotFound,
   tenantNotFoundByExternalId,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   attributes,
   readLastTenantEvent,
   tenantService,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("m2mRevokeCertifiedAttribute", () => {
   beforeAll(() => {

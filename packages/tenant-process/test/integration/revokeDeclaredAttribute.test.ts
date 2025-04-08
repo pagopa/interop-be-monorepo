@@ -18,8 +18,12 @@ import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import {
   tenantNotFound,
   attributeNotFound,
-} from "../src/model/domain/errors.js";
-import { addOneTenant, postgresDB, tenantService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import {
+  addOneTenant,
+  postgresDB,
+  tenantService,
+} from "../integrationUtils.js";
 
 describe("revokeDeclaredAttribute", async () => {
   const attributeId: AttributeId = generateId();

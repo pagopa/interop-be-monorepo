@@ -24,14 +24,14 @@ import {
   attributeNotFound,
   tenantNotFoundByExternalId,
   attributeNotFoundInTenant,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
-  getMockCertifiedTenantAttribute,
   tenantService,
   attributes,
   postgresDB,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockCertifiedTenantAttribute } from "../mockUtils.js";
 
 describe("testInternalRevokeCertifiedAttribute", async () => {
   const requesterTenant: Tenant = {

@@ -20,9 +20,13 @@ import {
   getMockTenant,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
-import { tenantNotFound } from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
-import { addOneTenant, postgresDB, tenantService } from "./utils.js";
+import { tenantNotFound } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import {
+  addOneTenant,
+  postgresDB,
+  tenantService,
+} from "../integrationUtils.js";
 
 describe("updateTenantDelegatedFeatures", async () => {
   beforeAll(async () => {

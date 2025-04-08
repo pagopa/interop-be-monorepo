@@ -38,13 +38,9 @@ import {
   verifiedAttributeSelfVerificationNotAllowed,
   attributeNotFound,
   expirationDateCannotBeInThePast,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
-  getMockAgreement,
-  getMockVerifiedTenantAttribute,
-  getMockVerifiedBy,
-  getMockRevokedBy,
   tenantService,
   postgresDB,
   addOneAgreement,
@@ -54,7 +50,13 @@ import {
   agreements,
   attributes,
   eservices,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import {
+  getMockAgreement,
+  getMockVerifiedTenantAttribute,
+  getMockVerifiedBy,
+  getMockRevokedBy,
+} from "../mockUtils.js";
 
 describe("verifyVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();

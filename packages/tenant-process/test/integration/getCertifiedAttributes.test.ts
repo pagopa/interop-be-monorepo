@@ -15,8 +15,12 @@ import {
 import {
   tenantIsNotACertifier,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
-import { addOneAttribute, addOneTenant, tenantService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import {
+  addOneAttribute,
+  addOneTenant,
+  tenantService,
+} from "../integrationUtils.js";
 
 describe("getCertifiedAttributes", () => {
   it("should get certified attributes certified by the passed certifier id", async () => {

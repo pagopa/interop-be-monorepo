@@ -14,9 +14,9 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  getMockAgreement,
   readModelService,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockAgreement } from "../mockUtils.js";
 
 describe("getConsumers", () => {
   const tenant1: Tenant = {

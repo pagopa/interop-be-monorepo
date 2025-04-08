@@ -2,8 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { Tenant } from "pagopa-interop-models";
 import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
-import { tenantNotFoundByExternalId } from "../src/model/domain/errors.js";
-import { addOneTenant, tenantService } from "./utils.js";
+import { tenantNotFoundByExternalId } from "../../src/model/domain/errors.js";
+import { addOneTenant, tenantService } from "../integrationUtils.js";
 
 describe("getTenantByExternalId", () => {
   const tenant1: Tenant = {

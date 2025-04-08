@@ -34,13 +34,13 @@ import {
   attributeNotFound,
   tenantIsNotACertifier,
   attributeDoesNotBelongToCertifier,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   attributes,
   addOneTenant,
   tenantService,
   postgresDB,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("addCertifiedAttribute", async () => {
   const tenantAttributeSeed: tenantApi.CertifiedTenantAttributeSeed = {

@@ -15,8 +15,8 @@ import {
   getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
-import { mailNotFound, tenantNotFound } from "../src/model/domain/errors.js";
-import { addOneTenant, postgresDB, tenantService } from "./utils.js";
+import { mailNotFound, tenantNotFound } from "../../src/model/domain/errors.js";
+import { addOneTenant, postgresDB, tenantService } from "../integrationUtils.js";
 
 describe("deleteTenantMailById", async () => {
   const mailId = generateId();
