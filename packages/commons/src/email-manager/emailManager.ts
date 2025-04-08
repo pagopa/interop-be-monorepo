@@ -15,16 +15,10 @@ import { PecEmailManagerConfig } from "../index.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
 
 /* 
-  Temporary Hotfix: https://pagopa.atlassian.net/browse/PIN-6514 
-  we want to not consider the TooManyRequestsException as error, 
-  it's thrown by SESv2Client when the rate limit is reached with current configuration.
-  For more information about the errors and best practices to handle see:
-    https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-ses/Class/SES/
-  
   AllowedSESErrors is used to limit other packages to filter only specific error from SESv2Client, 
   and also avoid dependency on AWS SDK in other packages.
 */
-export declare class AllowedSESErrors extends TooManyRequestsException {}
+export { TooManyRequestsException as AllowedSESErrors };
 
 export type EmailManagerKind = "PEC" | "SES";
 

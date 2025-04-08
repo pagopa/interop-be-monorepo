@@ -154,8 +154,16 @@ function retrieveLatestPublishedDescriptor(eservice: EService): Descriptor {
 }
 
 /*
+  Temporary Hotfix: https://pagopa.atlassian.net/browse/PIN-6514 
+  we want to not consider the TooManyRequestsException as error, it's thrown by SESv2Client
+  when the rate limit is reached with current configuration.
+  For more details about the errors and best practices to handle:
+    https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-ses/Class/SES/
+    https://aws.amazon.com/blogs/developer/service-error-handling-modular-aws-sdk-js/  
+  
+  AllowedSESErrors is used to limit other packages to filter only specific error from SESv2Client, 
+  and also avoid dependency on AWS SDK in other packages.
   The following function skip TooManyRequestsException error thrown by AWS SES client
-  for more details: https://aws.amazon.com/blogs/developer/service-error-handling-modular-aws-sdk-js/
 */
 async function sendEmail(
   sesEmailManager: EmailManagerSES,
