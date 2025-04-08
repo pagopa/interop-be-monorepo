@@ -175,7 +175,7 @@ async function sendEmail(
   } catch (err) {
     if (err instanceof AllowedSESErrors) {
       logger.warn(
-        `AWS SES error with name ${err.name} was thrown, it will not considered as fatal, error email notification could be lost; Error details: ${err.message}`
+        `AWS SES error with name ${err.name} was thrown, it will not be considered fatal, email notification not sent; Error details: ${err.message}`
       );
       return;
     }
