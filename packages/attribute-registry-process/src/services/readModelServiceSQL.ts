@@ -120,7 +120,7 @@ export function readModelServiceBuilderSQL(
         );
 
       if (res.length === 0) {
-        return undefined; // TODO move into aggregator?
+        return undefined;
       }
 
       return aggregateAttribute(res[0]);
@@ -150,7 +150,7 @@ export function readModelServiceBuilderSQL(
         );
 
       if (res.length === 0) {
-        return undefined; // TODO move into aggregator?
+        return undefined;
       }
 
       return aggregateAttribute(res[0]);
@@ -177,7 +177,7 @@ export function readModelServiceBuilderSQL(
         );
 
       if (res.length === 0) {
-        return undefined; // TODO move into aggregator?
+        return undefined;
       }
 
       return aggregateAttribute(res[0]);
