@@ -23,6 +23,7 @@ import {
   DelegationItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateDelegationArray = ({
   delegationSQL,
@@ -229,11 +230,11 @@ export const toDelegationAggregatorArray = (
     if (
       delegationStamp &&
       !delegationStampsIdSet.has(
-        uniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+        makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
       )
     ) {
       delegationStampsIdSet.add(
-        uniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+        makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
       );
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(delegationStamp);
@@ -256,4 +257,3 @@ export const toDelegationAggregatorArray = (
     contractDocumentsSQL,
   };
 };
-const uniqueKey = (ids: string[]): string => ids.join("#");
