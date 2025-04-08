@@ -7,8 +7,18 @@ export * from "./agreement/splitters.js";
 // ATTRIBUTE
 export * from "./attributeReadModelService.js";
 
-// PRODUCER JWK KEY
-export * from "./producerJWKKeyReadModelService.js";
+// CLIENT
+export * from "./clientReadModelService.js";
 
 // CLIENT JWK KEY
 export * from "./clientJWKKeyReadModelService.js";
+
+// PURPOSE
+export * from "./purposeReadModelService.js";
+export * from "./purpose/splitters.js";
+
+// PRODUCER JWK KEY
+export * from "./producerJWKKeyReadModelService.js";
+
+// PRODUCER KEYCHAIN
+export * from "./producerKeychainReadModelService.js";
