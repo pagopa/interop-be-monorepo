@@ -3,7 +3,7 @@ import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { CorrelationId } from "./brandedIds.js";
-import { SERVICE_ERROR_CODE, ServiceName } from "./services.js";
+import { serviceErrorCode, ServiceName } from "./services.js";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -98,7 +98,7 @@ export function makeApiProblemBuilder<T extends string>(
   function retrieveServiceErrorCode(serviceName: string): string {
     const serviceNameParsed = ServiceName.safeParse(serviceName);
     return serviceNameParsed.success
-      ? SERVICE_ERROR_CODE[serviceNameParsed.data]
+      ? serviceErrorCode[serviceNameParsed.data]
       : "000";
   }
 

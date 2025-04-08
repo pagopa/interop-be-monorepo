@@ -8,12 +8,12 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
-import { SERVICE_NAME } from "pagopa-interop-models";
+import { serviceName } from "pagopa-interop-models";
 import purposeRouter from "./routers/PurposeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
 
-const serviceName = SERVICE_NAME.PURPOSE_PROCESS;
+const serviceName = serviceName.PURPOSE_PROCESS;
 
 const app = zodiosCtx.app();
 

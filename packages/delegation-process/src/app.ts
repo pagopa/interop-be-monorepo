@@ -12,7 +12,7 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
-import { SERVICE_NAME } from "pagopa-interop-models";
+import { serviceName } from "pagopa-interop-models";
 import healthRouter from "./routers/HealthRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
@@ -35,7 +35,7 @@ const eventStore = initDB({
   useSSL: config.eventStoreDbUseSSL,
 });
 
-const serviceName = SERVICE_NAME.DELEGATION_PROCESS;
+const serviceName = serviceName.DELEGATION_PROCESS;
 
 const app = zodiosCtx.app();
 

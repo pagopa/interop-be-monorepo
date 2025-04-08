@@ -10,13 +10,13 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
-import { SERVICE_NAME } from "pagopa-interop-models";
+import { serviceName } from "pagopa-interop-models";
 import healthRouter from "./routers/healthRouter.js";
 import apiGatewayRouter from "./routers/apiGatewayRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
 
-const serviceName = SERVICE_NAME.API_GATEWAY;
+const serviceName = serviceName.API_GATEWAY;
 
 const clients = getInteropBeClients();
 
