@@ -19,3 +19,6 @@ export * from "./purpose/splitters.js";
 
 // PRODUCER JWK KEY
 export * from "./producerJWKKeyReadModelService.js";
+
+// PRODUCER KEYCHAIN
+export * from "./producerKeychainReadModelService.js";
