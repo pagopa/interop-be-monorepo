@@ -17,5 +17,7 @@ export const attributeSchema = z.object({
 export type AttributeSchema = z.infer<typeof attributeSchema>;
 
 export type AttributeMapping = {
-  [K in keyof AttributeSchema]: (record: AttributeSQL) => AttributeSchema[K];
+  [K in keyof Omit<AttributeSchema, "deleted">]: (
+    record: AttributeSQL
+  ) => Omit<AttributeSchema, "deleted">[K];
 };
