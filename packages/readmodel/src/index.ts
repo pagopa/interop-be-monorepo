@@ -18,6 +18,9 @@ export * from "./catalogReadModelService.js";
 export * from "./authorization/clientAggregators.js";
 export * from "./clientReadModelService.js";
 
+// CLIENT
+export * from "./clientReadModelService.js";
+
 // CLIENT JWK KEY
 export * from "./authorization/clientJWKKeyAggregators.js";
 export * from "./clientJWKKeyReadModelService.js";
@@ -31,6 +34,11 @@ export * from "./eservice-template/splitters.js";
 export * from "./eservice-template/aggregators.js";
 export * from "./eserviceTemplateReadModelService.js";
 
+// PURPOSE
+export * from "./purpose/splitters.js";
+export * from "./purpose/aggregators.js";
+export * from "./purposeReadModelService.js";
+
 // PRODUCER JWK KEY
 export * from "./authorization/producerJWKKeyAggregators.js";
 export * from "./producerJWKKeyReadModelService.js";
@@ -38,11 +46,6 @@ export * from "./producerJWKKeyReadModelService.js";
 // PRODUCER KEYCHAIN
 export * from "./authorization/producerKeychainAggregators.js";
 export * from "./producerKeychainReadModelService.js";
-
-// PURPOSE
-export * from "./purpose/splitters.js";
-export * from "./purpose/aggregators.js";
-export * from "./purposeReadModelService.js";
 
 // TENANT
 export * from "./tenant/aggregators.js";

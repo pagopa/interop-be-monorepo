@@ -13,7 +13,6 @@ import {
   unsafeBrandId,
   Technology,
   EServiceMode,
-  EServiceDocumentId,
   DescriptorState,
   AgreementApprovalPolicy,
   stringToDate,
@@ -43,7 +42,7 @@ export const documentSQLtoDocument = (
     | EServiceDescriptorDocumentSQL
     | EServiceTemplateVersionDocumentSQL
 ): Document => ({
-  id: unsafeBrandId<EServiceDocumentId>(documentSQL.id),
+  id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
   prettyName: documentSQL.prettyName,
@@ -69,7 +68,7 @@ export const aggregateDescriptor = ({
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
-  const parsedInterface = interfaceSQL
+  const convertedInterface = interfaceSQL
     ? documentSQLtoDocument(interfaceSQL)
     : undefined;
 
@@ -82,7 +81,6 @@ export const aggregateDescriptor = ({
   const verifiedAttributesSQL = attributesSQL.filter(
     (a) => a.kind === attributeKind.verified
   );
-
   const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
   const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
   const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
@@ -91,7 +89,6 @@ export const aggregateDescriptor = ({
     rejectionReason: rejectionReason.rejectionReason,
     rejectedAt: stringToDate(rejectionReason.rejectedAt),
   }));
-
   const rejectionReasons =
     rejectionReasonsArray.length > 0 ? rejectionReasonsArray : undefined;
 
@@ -130,7 +127,7 @@ export const aggregateDescriptor = ({
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
     docs: documentsSQL.map(documentSQLtoDocument),
-    state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
+    state: DescriptorState.parse(descriptorSQL.state),
     audience: descriptorSQL.audience,
     voucherLifespan: descriptorSQL.voucherLifespan,
     dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
@@ -142,7 +139,7 @@ export const aggregateDescriptor = ({
       declared: declaredAttributes,
       verified: verifiedAttributes,
     },
-    ...(parsedInterface ? { interface: parsedInterface } : {}),
+    ...(convertedInterface ? { interface: convertedInterface } : {}),
     ...(descriptorSQL.description
       ? { description: descriptorSQL.description }
       : {}),
@@ -150,7 +147,7 @@ export const aggregateDescriptor = ({
       ? {
           agreementApprovalPolicy: AgreementApprovalPolicy.parse(
             descriptorSQL.agreementApprovalPolicy
-          ), // TODO use safeParse?
+          ),
         }
       : {}),
     ...(descriptorSQL.publishedAt
@@ -228,10 +225,10 @@ export const aggregateEservice = ({
     createdAt: stringToDate(eserviceSQL.createdAt),
     producerId: unsafeBrandId(eserviceSQL.producerId),
     description: eserviceSQL.description,
-    technology: Technology.parse(eserviceSQL.technology), // TODO use safeParse?
+    technology: Technology.parse(eserviceSQL.technology),
     descriptors,
     riskAnalysis,
-    mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
+    mode: EServiceMode.parse(eserviceSQL.mode),
     ...(eserviceSQL.isClientAccessDelegable !== null
       ? { isClientAccessDelegable: eserviceSQL.isClientAccessDelegable }
       : {}),
