@@ -359,7 +359,7 @@ export const aggregateRiskAnalysis = (
           single: [
             ...acc.single,
             {
-              id: unsafeBrandId<RiskAnalysisSingleAnswerId>(answer.id),
+              id: unsafeBrandId(answer.id),
               key: answer.key,
               value: answer.value.length > 0 ? answer.value[0] : undefined,
             } satisfies RiskAnalysisSingleAnswer,
@@ -370,10 +370,10 @@ export const aggregateRiskAnalysis = (
           multi: [
             ...acc.multi,
             {
-              id: unsafeBrandId<RiskAnalysisMultiAnswerId>(answer.id),
+              id: unsafeBrandId(answer.id),
               key: answer.key,
               values: answer.value,
-            },
+            } satisfies RiskAnalysisMultiAnswer,
           ],
         }))
         .exhaustive(),
