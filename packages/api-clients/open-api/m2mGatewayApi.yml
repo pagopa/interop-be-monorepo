@@ -264,8 +264,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}:
-    tags:
-      - agreements
     parameters:
     - name: agreementId
       in: path
@@ -275,6 +273,8 @@ paths:
         type: string
         format: uuid
     get:
+      tags:
+        - agreements
       description: Get agreement
       responses:
         "200":
@@ -356,8 +356,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}/approve:
-    tags:
-      - agreements
     parameters:
       - schema:
           type: string
@@ -366,6 +364,8 @@ paths:
         in: path
         required: true
     post:
+      tags:
+        - agreements
       summary: Approve Pending Agreement
       operationId: approveAgreement
       responses:
@@ -448,8 +448,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}/reject:
-    tags:
-        - agreements
     parameters:
       - schema:
           type: string
@@ -459,6 +457,8 @@ paths:
         required: true
         description: identifier of the pending agreement to be rejected
     post:
+      tags:
+          - agreements
       summary: Reject Agreement
       operationId: rejectAgreement
       requestBody:
@@ -547,8 +547,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}/submit:
-    tags:
-      - agreements
     parameters:
       - schema:
           type: string
@@ -558,6 +556,8 @@ paths:
         required: true
         description: identifier of the draft agreement to be submitted
     post:
+      tags:
+        - agreements
       summary: Agreement Sumbission
       operationId: submitAgreement
       requestBody:
@@ -647,8 +647,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}/suspend:
-    tags:
-      - agreements
     parameters:
       - schema:
           type: string
@@ -658,6 +656,8 @@ paths:
         required: true
         description: identifier of the pending agreement to be suspended
     post:
+      tags:
+        - agreements
       summary: Suspend Agreement
       operationId: suspendAgreement
       responses:
@@ -740,8 +740,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}/unsuspend:
-    tags:
-      - agreements
     parameters:
       - schema:
           type: string
@@ -750,6 +748,8 @@ paths:
         in: path
         required: true
     post:
+      tags:
+        - agreements
       summary: Agreement Unsuspended
       operationId: unsuspendAgreement
       responses:
@@ -832,9 +832,9 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}/upgrade:
-    tags:
-      - agreements
     post:
+      tags:
+        - agreements
       summary: Upgrade the agreement
       description: Upgrades the agreement with a newer eservice version, if any
       parameters:
@@ -925,9 +925,9 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /consumerDelegations:
-    tags:
-      - delegations
     get:
+      tags:
+        - delegations
       description: List delegations
       summary: List delegations
       operationId: getConsumerDelegations
@@ -1039,6 +1039,8 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
     post:
+      tags:
+          - delegations
       description: Creates a consumer delegation
       operationId: createConsumerDelegation
       requestBody:
@@ -1127,9 +1129,9 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /consumerDelegations/{delegationId}/accept:
-    tags:
-      - delegations
     post:
+      tags:
+        - delegations
       description: Accept consumer delegation
       operationId: acceptConsumerDelegation
       parameters:
@@ -1220,9 +1222,9 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /certifiedAttributes:
-    tags:
-      - attributes
     post:
+      tags:
+        - attributes
       summary: Create certified attribute
       description: Create the attribute passed as payload
       requestBody:
@@ -1311,8 +1313,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /certifiedAttributes/{attributeId}:
-    tags:
-      - delegations
     parameters:
     - name: attributeId
       in: path
@@ -1322,6 +1322,8 @@ paths:
         type: string
         format: uuid
     get:
+      tags:
+        - attributes
       description: Get certified attribute
       responses:
         "200":
@@ -1390,8 +1392,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /clients/{clientId}/purposes:
-    tags:
-      - authorization
     parameters:
     - name: clientId
       in: path
@@ -1401,6 +1401,8 @@ paths:
         type: string
         format: uuid
     post:
+      tags:
+        - authorization
       description: Add a purpose to the client
       requestBody:
         content:
@@ -1497,8 +1499,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /consumerDelegations/{delegationId}/reject:
-    tags:
-      - delegations
     parameters:
       - name: delegationId
         in: path
@@ -1508,6 +1508,8 @@ paths:
           type: string
           format: uuid
     post:
+      tags:
+        - delegations
       description: Rejects a consumer delegation
       summary: Consumer delegation rejection
       operationId: rejectConsumerDelegation
@@ -1598,9 +1600,9 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /eservices:
-    tags:
-      - catalog
     get:
+      tags:
+        - catalog
       description: Get eservices
       operationId: getEServices
       parameters:
@@ -1670,8 +1672,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /eservices/{eserviceId}:
-    tags:
-      - catalog
     parameters:
       - name: eserviceId
         in: path
@@ -1681,6 +1681,8 @@ paths:
           type: string
           format: uuid
     get:
+      tags:
+        - catalog
       description: Get eservice
       operationId: getEservice
       responses:
@@ -1750,8 +1752,6 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /eservices/{eserviceId}/descriptors:
-    tags:
-      - catalog
     parameters:
       - name: eserviceId
         in: path
@@ -1778,6 +1778,8 @@ paths:
           type: integer
           format: int32
     get:
+      tags:
+        - catalog
       description: Get eservice descriptors
       operationId: getEserviceDescriptors
       responses:
@@ -1863,6 +1865,8 @@ paths:
           type: string
           format: uuid
     get:
+      tags:
+          - catalog
       description: Get eservice descriptor
       operationId: getEserviceDescriptor
       responses:
@@ -1941,6 +1945,8 @@ paths:
         type: string
         format: uuid
     get:
+      tags:
+          - eserviceTemplates
       operationId: getEserviceTemplate
       responses:
         "200":
@@ -2035,6 +2041,8 @@ paths:
         type: integer
         format: int32
     get:
+      tags:
+        - eserviceTemplates   
       description: Get eservice template versions
       responses:
         "200":
@@ -2105,6 +2113,8 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
     post:
+      tags:
+        - eserviceTemplates
       summary: Adds a version to the specified e-service template
       operationId: createEServiceTemplateVersion
       parameters:
@@ -2210,6 +2220,8 @@ paths:
         type: string
         format: uuid
     get:
+      tags:
+        - eserviceTemplates
       description: Get eservice template version
       responses:
         "200":
@@ -2278,6 +2290,8 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
     patch:
+      tags:
+        - eserviceTemplates
       summary: Updates a draft template version
       operationId: updateDraftTemplateVersion
       parameters:
@@ -2381,6 +2395,8 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /purposes:
     post:
+      tags:
+        - purposes
       description: Creates a purpose
       requestBody:
         content:
@@ -2455,6 +2471,8 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
     get:
+      tags:
+        - purposes
       description: List purposes
       parameters:
       - name: eserviceIds
@@ -2535,6 +2553,8 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /purposes/{purposeId}:
     get:
+      tags:
+        - purposes
       description: Get purpose
       parameters:
       - name: purposeId
@@ -2625,6 +2645,8 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /purposes/{purposeId}/versions:
     get:
+      tags:
+        - purposes
       description: Get purpose versions
       parameters:
       - name: purposeId
@@ -2731,6 +2753,8 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
     post:
+      tags:
+        - purposes
       summary: Create new version
       operationId: createPurposeVersion
       parameters:
@@ -2827,6 +2851,8 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /purposes/{purposeId}/versions/{versionId}:
     get:
+      tags:
+        - purposes
       description: Get purpose version
       parameters:
       - name: purposeId
@@ -2931,6 +2957,8 @@ paths:
           type: string
           format: uuid
     post:
+      tags:
+        - purposes
       description: Activate Draft Purpose
       responses:
         "204":
@@ -3016,6 +3044,8 @@ paths:
           type: string
           format: uuid
     post:
+      tags:
+        - purposes
       description: Archive Purpose
       responses:
         "204":
@@ -3101,6 +3131,8 @@ paths:
           type: string
           format: uuid
     post:
+      tags:
+        - purposes
       description: Approve Waiting for approval Purpose
       responses:
         "204":
@@ -3186,6 +3218,8 @@ paths:
           type: string
           format: uuid
     post:
+      tags:
+        - purposes
       description: Suspend Purpose
       responses:
         "204":
@@ -3271,6 +3305,8 @@ paths:
           type: string
           format: uuid
     post:
+      tags:
+        - purposes
       description: Unsuspend Purpose
       responses:
         "204":
@@ -3373,6 +3409,8 @@ paths:
           minimum: 1
           maximum: 50
     get:
+      tags:
+        - tenants
       operationId: getTenants
       description: Retrieve Tenants
       responses:
@@ -3425,6 +3463,8 @@ paths:
           type: string
           format: uuid
     get:
+      tags:
+        - tenants
       operationId: getTenant
       description: Retrieve a Tenant
       responses:
@@ -3477,6 +3517,8 @@ paths:
           type: string
           format: uuid
     get:
+      tags:
+        - tenants
       operationId: getCertifiedAttributes
       description: Retrieve certified attributes for a Tenant
       responses:
@@ -3520,6 +3562,8 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
     post:
+      tags:
+        - tenants
       operationId: addCertifiedAttribute
       description: Add a certified attribute to a Tenant
       requestBody:
@@ -3633,6 +3677,8 @@ paths:
           type: string
           format: uuid
     delete:
+      tags:
+          - tenants
       operationId: revokeCertifiedAttributeById
       description: Revoke a certified attribute to a Tenant
       responses:
@@ -3712,6 +3758,8 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /status:
     get:
+      tags:
+        - health
       operationId: getStatus
       description: Retrieve the status of the API
       responses:
