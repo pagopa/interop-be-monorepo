@@ -88,7 +88,11 @@ describe("sendPurposeVersionActivatedEmail", () => {
       }),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions);
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mailOptions,
+      genericLogger,
+      true
+    );
 
     const response: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`

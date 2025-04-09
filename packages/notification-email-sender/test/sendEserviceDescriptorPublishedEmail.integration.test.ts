@@ -141,7 +141,11 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       ),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions1);
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mailOptions1,
+      genericLogger,
+      true
+    );
 
     const response1: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
@@ -172,7 +176,11 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       ),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions2);
+    expect(sesEmailManager.send).toHaveBeenCalledWith(
+      mailOptions2,
+      genericLogger,
+      true
+    );
 
     const response2: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
