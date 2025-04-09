@@ -404,7 +404,7 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
-export const getMockClientJWKKey = (): ClientJWKKey => {
+export const getMockClientJWKKey = (clientId?: ClientId): ClientJWKKey => {
   const key = crypto.generateKeyPairSync("rsa", {
     modulusLength: 2048,
   }).publicKey;
@@ -415,11 +415,13 @@ export const getMockClientJWKKey = (): ClientJWKKey => {
 
   return keyToClientJWKKey(
     { ...getMockKey(), encodedPem: base64Key },
-    generateId<ClientId>()
+    clientId || generateId()
   );
 };
 
-export const getMockProducerKKey = (): ProducerJWKKey => {
+export const getMockProducerJWKKey = (
+  producerKeychainId?: ProducerKeychainId
+): ProducerJWKKey => {
   const key = crypto.generateKeyPairSync("rsa", {
     modulusLength: 2048,
   }).publicKey;
@@ -430,7 +432,7 @@ export const getMockProducerKKey = (): ProducerJWKKey => {
 
   return keyToProducerJWKKey(
     { ...getMockKey(), encodedPem: base64Key },
-    generateId<ProducerKeychainId>()
+    producerKeychainId || generateId()
   );
 };
 
