@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockContext,
   getMockProducerKeychain,
   getMockTenant,
@@ -35,7 +36,7 @@ describe("delete producer keychain", () => {
       {
         producerKeychainId: mockProducerKeychain.id,
       },
-      getMockContext({})
+      getMockContext({ authData: getMockAuthData(mockProducer.id) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(
@@ -91,7 +92,7 @@ describe("delete producer keychain", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
         },
-        getMockContext({})
+        getMockContext({ authData: getMockAuthData(mockProducer2.id) })
       )
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
