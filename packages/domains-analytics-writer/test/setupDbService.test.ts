@@ -5,19 +5,19 @@ import { AttributeDbtable, DeletingDbTable } from "../src/model/db.js";
 import { setupStagingTablesError } from "../src/model/errors.js";
 import { dbContext, getTablesByName } from "./utils.js";
 
-describe("Setup DB Service tests for catalog tables", async () => {
+describe("Setup DB Service tests for attribute tables", async () => {
   afterAll(() => {
     vi.restoreAllMocks();
   });
 
-  const catalogTables = [AttributeDbtable.attribute];
+  const attributeTables = [AttributeDbtable.attribute];
 
   const dbService = setupDbServiceBuilder(dbContext.conn, config);
 
   it("should create staging tables successfully for attribute tables", async () => {
-    await dbService.setupStagingTables(catalogTables);
+    await dbService.setupStagingTables(attributeTables);
 
-    const expectedTables = catalogTables.map(
+    const expectedTables = attributeTables.map(
       (t) => `${t}${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
@@ -46,7 +46,7 @@ describe("Setup DB Service tests for catalog tables", async () => {
     vi.spyOn(dbContext.conn, "query").mockRejectedValueOnce(mockQueryError);
 
     await expect(
-      dbService.setupStagingTables(catalogTables)
+      dbService.setupStagingTables(attributeTables)
     ).rejects.toThrowError(setupStagingTablesError(mockQueryError));
   });
 });
