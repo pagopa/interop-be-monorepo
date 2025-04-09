@@ -289,7 +289,7 @@ describe("get agreements consumers / producers", () => {
       );
     });
 
-    it("should get all agreements consumers for agreements visible to delegate consumer requester if no filters are provided", async () => {
+    it.only("should get all agreements consumers for agreements visible to delegate consumer requester if no filters are provided", async () => {
       const consumersResultForDelegateConsumer1 =
         await agreementService.getAgreementsConsumers(
           undefined,

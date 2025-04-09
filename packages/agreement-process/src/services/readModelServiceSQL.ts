@@ -119,6 +119,76 @@ export function readModelServiceBuilderSQL(
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
         })
         .from(tenantInReadmodelTenant)
+        .leftJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            tenantInReadmodelTenant.id,
+            agreementInReadmodelAgreement.consumerId
+          )
+        )
+        .leftJoin(
+          delegationInReadmodelDelegation,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              delegationInReadmodelDelegation.eserviceId
+            )
+          )
+        )
+        .where(
+          and(
+            // FILTER NAME
+            consumerName
+              ? ilike(
+                  tenantInReadmodelTenant.name,
+                  `%${ReadModelRepository.escapeRegExp(consumerName)}%`
+                )
+              : undefined,
+            // VISIBILITY
+            or(
+              // REQ IS PRODUCER
+              eq(agreementInReadmodelAgreement.producerId, requesterId),
+              // REQ IS CONSUMER
+              eq(agreementInReadmodelAgreement.consumerId, requesterId),
+              // REQ IS DELEGATE AS PRODUCER
+              and(
+                eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                )
+              ),
+              // REQ IS DELEGATE AS CONSUMER
+              and(
+                eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedConsumer
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                )
+              )
+            )
+          )
+        )
+        .orderBy(tenantInReadmodelTenant.name)
+        .groupBy(tenantInReadmodelTenant.id, tenantInReadmodelTenant.name)
+        .limit(limit)
+        .offset(offset);
+      /*
+      const resultSet = await readmodelDB
+        .selectDistinct({
+          id: tenantInReadmodelTenant.id,
+          name: tenantInReadmodelTenant.name,
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
+        })
+        .from(tenantInReadmodelTenant)
         .innerJoin(
           agreementInReadmodelAgreement,
           and(
@@ -140,6 +210,8 @@ export function readModelServiceBuilderSQL(
         .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
         .limit(limit)
         .offset(offset);
+        */
+      // console.log("getAgreementsConsumers - resultSet", resultSet);
       return {
         results: resultSet.map(({ id, name }) => ({ id, name })),
         totalCount: resultSet[0]?.totalCount ?? 0,
@@ -160,6 +232,69 @@ export function readModelServiceBuilderSQL(
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
         })
         .from(tenantInReadmodelTenant)
+        .leftJoin(
+          agreementInReadmodelAgreement,
+          eq(
+            tenantInReadmodelTenant.id,
+            agreementInReadmodelAgreement.producerId
+          )
+        )
+        .leftJoin(
+          delegationInReadmodelDelegation,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              delegationInReadmodelDelegation.eserviceId
+            )
+          )
+        )
+        .where(
+          and(
+            // FILTER NAME
+            producerName
+              ? ilike(
+                  tenantInReadmodelTenant.name,
+                  `%${ReadModelRepository.escapeRegExp(producerName)}%`
+                )
+              : undefined,
+            // VISIBILITY
+            or(
+              // REQ IS PRODUCER
+              eq(agreementInReadmodelAgreement.producerId, requesterId),
+              // REQ IS CONSUMER
+              eq(agreementInReadmodelAgreement.consumerId, requesterId),
+              // REQ IS DELEGATE AS PRODUCER
+              and(
+                eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                )
+              ),
+              // REQ IS DELEGATE AS CONSUMER
+              and(
+                eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedConsumer
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                )
+              )
+            )
+          )
+        )
+        .orderBy(tenantInReadmodelTenant.name)
+        .groupBy(tenantInReadmodelTenant.id, tenantInReadmodelTenant.name)
+        .limit(limit)
+        .offset(offset);
+      /*
         .innerJoin(
           agreementInReadmodelAgreement,
           and(
@@ -181,14 +316,15 @@ export function readModelServiceBuilderSQL(
         .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
         .limit(limit)
         .offset(offset);
+        */
 
       return {
         results: resultSet.map(({ id, name }) => ({ id, name })),
         totalCount: resultSet[0]?.totalCount ?? 0,
       };
     },
-    // TODO
 
+    // TODO
     // trovare e-service che sto erogando
     // trovare e-service per cui sono delegato in erogazione
     // ottenere quali e-service hanno un agreement
@@ -209,7 +345,7 @@ export function readModelServiceBuilderSQL(
     ): Promise<ListResult<CompactEService>> {
       const { consumerIds, producerIds, eserviceName } = filters;
       const resultSet = await readmodelDB
-        .selectDistinctOn([eserviceInReadmodelCatalog.name], {
+        .selectDistinct({
           id: eserviceInReadmodelCatalog.id,
           name: eserviceInReadmodelCatalog.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
@@ -319,6 +455,7 @@ export function readModelServiceBuilderSQL(
           )
         )
         .orderBy(eserviceInReadmodelCatalog.name)
+        // .orderBy(desc(sql`lower(${eserviceInReadmodelCatalog.name})`))
         .groupBy(eserviceInReadmodelCatalog.id, eserviceInReadmodelCatalog.name)
         .limit(limit)
         .offset(offset);
