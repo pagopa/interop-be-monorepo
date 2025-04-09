@@ -26,11 +26,12 @@ export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
     FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
       .enum(["true", "false"])
       .default("false")
-      .transform((value) => value === "true"),
+      .transform((value) => value === "true")
+      .optional(),
   })
   .transform((c) => ({
     featureFlagAgreementApprovalPolicyUpdate:
-      c.FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE,
+      c.FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE ?? false,
   }));
 
 export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<

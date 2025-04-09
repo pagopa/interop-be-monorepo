@@ -172,6 +172,7 @@ export const updateAgreementApprovalPolicyErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
+      "notFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)

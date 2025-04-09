@@ -36,6 +36,7 @@ import {
   RiskAnalysis,
   RiskAnalysisId,
   eserviceMode,
+  notFound,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
@@ -1517,6 +1518,9 @@ export function catalogServiceBuilder(
       seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
+      if (config.featureFlagAgreementApprovalPolicyUpdate === false) {
+        throw notFound();
+      }
       logger.info(
         `Updating Agreement approval policy of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
