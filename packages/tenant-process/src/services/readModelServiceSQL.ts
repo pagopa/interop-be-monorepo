@@ -250,8 +250,9 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
-        .select({
+        .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
+          nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -369,8 +370,9 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
-        .select({
+        .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
+          nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
