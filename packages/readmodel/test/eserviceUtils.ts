@@ -31,11 +31,11 @@ import {
   EServiceTemplateRefSQL,
 } from "pagopa-interop-readmodel-models";
 import { expect } from "vitest";
-import { catalogReadModelServiceBuilderSQL } from "../src/catalogReadModelService.js";
+import { catalogReadModelServiceBuilder } from "../src/catalogReadModelService.js";
 import { readModelDB } from "./utils.js";
 
 export const catalogReadModelService =
-  catalogReadModelServiceBuilderSQL(readModelDB);
+  catalogReadModelServiceBuilder(readModelDB);
 
 export const generateEServiceRiskAnalysisAnswersSQL = (
   eserviceId: string,
@@ -136,7 +136,7 @@ export const checkCompleteEService = async (
     rejectionReasonsSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
-    templateRefSQL: templateRefsSQL!,
+    templateRefSQL: templateRefsSQL,
     templateVersionRefsSQL,
   };
 };

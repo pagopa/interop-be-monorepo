@@ -43,7 +43,7 @@ export const documentSQLtoDocument = (
     | EServiceDescriptorDocumentSQL
     | EServiceTemplateVersionDocumentSQL
 ): Document => ({
-  id: unsafeBrandId<EServiceDocumentId>(documentSQL.id),
+  id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
   prettyName: documentSQL.prettyName,
