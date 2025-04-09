@@ -34,6 +34,7 @@ import {
   EServiceTemplateRefSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const documentSQLtoDocument = (
   documentSQL: EServiceDescriptorDocumentSQL
@@ -550,7 +551,7 @@ export const toEServiceAggregatorArray = (
       if (
         attributeSQL &&
         !attributeIdSet.has(
-          uniqueKey([
+          makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.descriptorId,
             attributeSQL.groupId.toString(),
@@ -558,7 +559,7 @@ export const toEServiceAggregatorArray = (
         )
       ) {
         attributeIdSet.add(
-          uniqueKey([
+          makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.descriptorId,
             attributeSQL.groupId.toString(),
@@ -572,14 +573,14 @@ export const toEServiceAggregatorArray = (
       if (
         rejectionReasonSQL &&
         !rejectionReasonsSet.has(
-          uniqueKey([
+          makeUniqueKey([
             rejectionReasonSQL.descriptorId,
             rejectionReasonSQL.rejectedAt,
           ])
         )
       ) {
         rejectionReasonsSet.add(
-          uniqueKey([
+          makeUniqueKey([
             rejectionReasonSQL.descriptorId,
             rejectionReasonSQL.rejectedAt,
           ])
@@ -592,14 +593,14 @@ export const toEServiceAggregatorArray = (
       if (
         templateVersionRefSQL &&
         !templateVersionRefIdSet.has(
-          uniqueKey([
+          makeUniqueKey([
             templateVersionRefSQL.eserviceTemplateVersionId,
             templateVersionRefSQL.descriptorId,
           ])
         )
       ) {
         templateVersionRefIdSet.add(
-          uniqueKey([
+          makeUniqueKey([
             templateVersionRefSQL.eserviceTemplateVersionId,
             templateVersionRefSQL.descriptorId,
           ])
@@ -632,14 +633,14 @@ export const toEServiceAggregatorArray = (
     if (
       templateRefSQL &&
       !templateRefIdSet.has(
-        uniqueKey([
+        makeUniqueKey([
           templateRefSQL.eserviceTemplateId,
           templateRefSQL.eserviceId,
         ])
       )
     ) {
       templateRefIdSet.add(
-        uniqueKey([
+        makeUniqueKey([
           templateRefSQL.eserviceTemplateId,
           templateRefSQL.eserviceId,
         ])
@@ -662,5 +663,3 @@ export const toEServiceAggregatorArray = (
     templateVersionRefsSQL,
   };
 };
-
-const uniqueKey = (ids: string[]): string => ids.join("#");
