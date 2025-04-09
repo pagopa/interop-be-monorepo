@@ -38,8 +38,8 @@ RUN pnpm build && \
   package*.json packages/client-readmodel-writer-sql/package*.json \
   packages/commons \
   packages/models \
-  package/readmodel \
-  package readmodel-models \
+  packages/readmodel/ \
+  packages/readmodel-models/ \
   packages/kafka-iam-auth \
   packages/client-readmodel-writer-sql/dist && \
   find /out -exec touch -h --date=@0 {} \;
