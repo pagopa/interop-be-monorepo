@@ -42,6 +42,7 @@ export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
         UO_URL: APIEndpoint,
         INSTITUTIONS_CATEGORIES_URL: APIEndpoint,
         ATTRIBUTE_CREATION_WAIT_TIME: z.coerce.number(),
+        ECONOMIC_ACCOUNT_COMPANIES_ALLOWLIST: z.string(),
       })
       .transform((c) => ({
         institutionsUrl: c.INSTITUTIONS_URL,
@@ -49,6 +50,10 @@ export const IPACertifiedAttributesImporterConfig = LoggerConfig.and(
         uoUrl: c.UO_URL,
         institutionsCategoriesUrl: c.INSTITUTIONS_CATEGORIES_URL,
         attributeCreationWaitTime: c.ATTRIBUTE_CREATION_WAIT_TIME,
+        economicAccountCompaniesAllowlist:
+          c.ECONOMIC_ACCOUNT_COMPANIES_ALLOWLIST.split(",").map((originId) =>
+            originId.trim()
+          ),
       }))
   );
 
