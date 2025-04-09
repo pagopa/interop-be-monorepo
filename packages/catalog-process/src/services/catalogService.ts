@@ -52,6 +52,7 @@ import {
   toCreateEventEServiceDescriptionUpdated,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
+  toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated,
   toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorPublished,
@@ -1506,6 +1507,54 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+    async updateAgreementApprovalPolicy(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      logger.info(
+        `Updating Agreement approval policy of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended &&
+        descriptor.state !== descriptorState.deprecated
+      ) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event =
+        toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
       await repository.createEvent(event);
 
       return updatedEService;

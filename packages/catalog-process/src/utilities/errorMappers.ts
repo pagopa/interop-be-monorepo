@@ -165,6 +165,19 @@ export const updateDescriptorErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateAgreementApprovalPolicyErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const publishDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

@@ -28,6 +28,7 @@ export const eventV2TypeMapper = (
     )
     .with(
       "EServiceDescriptorQuotasUpdated",
+      "EServiceDescriptorAgreementApprovalPolicyUpdated",
       "EServiceDescriptorActivated",
       "EServiceDescriptorArchived",
       "EServiceDescriptorPublished",

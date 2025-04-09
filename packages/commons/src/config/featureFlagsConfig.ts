@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const FeatureFlagsConfig = z
+export const FeatureFlagSignalhubConfig = z
   .object({
     FEATURE_FLAG_SIGNALHUB_WHITELIST: z
       .enum(["true", "false"])
@@ -17,4 +17,22 @@ export const FeatureFlagsConfig = z
     signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
   }));
 
-export type FeatureFlagsConfig = z.infer<typeof FeatureFlagsConfig>;
+export type FeatureFlagSignalhubConfig = z.infer<
+  typeof FeatureFlagSignalhubConfig
+>;
+
+export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
+  .object({
+    FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+  })
+  .transform((c) => ({
+    featureFlagAgreementApprovalPolicyUpdate:
+      c.FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE,
+  }));
+
+export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
+  typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
+>;

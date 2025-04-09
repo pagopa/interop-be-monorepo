@@ -56,6 +56,7 @@ import {
   updateRiskAnalysisErrorMapper,
   updateDescriptorAttributesErrorMapper,
   updateEServiceNameErrorMapper,
+  updateAgreementApprovalPolicyErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -655,6 +656,36 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          const updatedEService =
+            await catalogService.updateAgreementApprovalPolicy(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateAgreementApprovalPolicyErrorMapper,
             ctx.logger,
             ctx.correlationId
           );

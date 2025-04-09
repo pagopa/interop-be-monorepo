@@ -1,0 +1,27 @@
+meta {
+  name: Update Eservice Descriptor Agreement approval policy
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/:descriptorId/agreementApprovalPolicy
+  body: json
+  auth: none
+}
+
+params:path {
+  descriptorId: {{descriptorId}}
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "agreementApprovalPolicy": "MANUAL"
+  }
+}

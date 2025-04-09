@@ -684,6 +684,57 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update the selected descriptor agreementApprovalPolicy.
+      operationId: updateAgreementApprovalPolicy
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorAgreementApprovalPolicySeed"
+      responses:
+        "200":
+          description: EService descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1407,6 +1458,14 @@ components:
         - voucherLifespan
         - dailyCallsPerConsumer
         - dailyCallsTotal
+    UpdateEServiceDescriptorAgreementApprovalPolicySeed:
+      type: object
+      additionalProperties: false
+      properties:
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+      required:
+        - agreementApprovalPolicy
     CreateEServiceDescriptorDocumentSeed:
       required:
         - documentId
