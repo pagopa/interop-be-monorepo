@@ -76,7 +76,7 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const subquery = await readModelDB
+      const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
           nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
@@ -103,7 +103,8 @@ export function readModelServiceBuilderSQL(
         )
         .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
         .limit(limit)
-        .offset(offset);
+        .offset(offset)
+        .as("subquery");
 
       const queryResult = await readModelDB
         .select({
@@ -115,8 +116,10 @@ export function readModelServiceBuilderSQL(
           verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
           revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
           feature: tenantFeatureInReadmodelTenant,
+          totalCount: subquery.totalCount,
         })
         .from(tenantInReadmodelTenant)
+        .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
           // 1
           tenantMailInReadmodelTenant,
@@ -170,19 +173,13 @@ export function readModelServiceBuilderSQL(
             tenantFeatureInReadmodelTenant.tenantId
           )
         )
-        .where(
-          inArray(
-            tenantInReadmodelTenant.id,
-            subquery.map((row) => row.tenantId)
-          )
-        )
         .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       return {
         results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
           (tenantWithMetadata) => tenantWithMetadata.data
         ),
-        totalCount: subquery[0]?.totalCount || 0,
+        totalCount: queryResult[0]?.totalCount || 0,
       };
     },
 
@@ -252,7 +249,7 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const subquery = await readModelDB
+      const subquery = readModelDB
         .select({
           tenantId: tenantInReadmodelTenant.id,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
@@ -282,7 +279,8 @@ export function readModelServiceBuilderSQL(
         )
         .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
         .limit(limit)
-        .offset(offset);
+        .offset(offset)
+        .as("subquery");
 
       const queryResult = await readModelDB
         .select({
@@ -294,8 +292,10 @@ export function readModelServiceBuilderSQL(
           verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
           revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
           feature: tenantFeatureInReadmodelTenant,
+          totalCount: subquery.totalCount,
         })
         .from(tenantInReadmodelTenant)
+        .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
           // 1
           tenantMailInReadmodelTenant,
@@ -349,19 +349,13 @@ export function readModelServiceBuilderSQL(
             tenantFeatureInReadmodelTenant.tenantId
           )
         )
-        .where(
-          inArray(
-            tenantInReadmodelTenant.id,
-            subquery.map((row) => row.tenantId)
-          )
-        )
         .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       return {
         results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
           (tenantWithMetadata) => tenantWithMetadata.data
         ),
-        totalCount: subquery[0]?.totalCount || 0,
+        totalCount: queryResult[0]?.totalCount || 0,
       };
     },
 
@@ -374,7 +368,7 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const subquery = await readModelDB
+      const subquery = readModelDB
         .select({
           tenantId: tenantInReadmodelTenant.id,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
@@ -399,7 +393,8 @@ export function readModelServiceBuilderSQL(
         )
         .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
         .limit(limit)
-        .offset(offset);
+        .offset(offset)
+        .as("subquery");
 
       const queryResult = await readModelDB
         .select({
@@ -411,8 +406,10 @@ export function readModelServiceBuilderSQL(
           verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
           revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
           feature: tenantFeatureInReadmodelTenant,
+          totalCount: subquery.totalCount,
         })
         .from(tenantInReadmodelTenant)
+        .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
           // 1
           tenantMailInReadmodelTenant,
@@ -466,19 +463,14 @@ export function readModelServiceBuilderSQL(
             tenantFeatureInReadmodelTenant.tenantId
           )
         )
-        .where(
-          inArray(
-            tenantInReadmodelTenant.id,
-            subquery.map((row) => row.tenantId)
-          )
-        )
+
         .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       return {
         results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
           (tenantWithMetadata) => tenantWithMetadata.data
         ),
-        totalCount: subquery[0]?.totalCount || 0,
+        totalCount: queryResult[0]?.totalCount || 0,
       };
     },
 
