@@ -1,6 +1,7 @@
 import pRetry from "p-retry";
-import { AnalyticsSQLDbConfig, Logger } from "pagopa-interop-commons";
-import { IMain, ColumnSet, IColumnDescriptor, DB, DBContext } from "./db.js";
+import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
+import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { DBContext } from "./db.js";
 
 export type ColumnValue = string | number | Date | undefined | null | boolean;
 
