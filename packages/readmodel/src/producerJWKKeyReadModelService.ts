@@ -1,4 +1,4 @@
-import { eq, and, lte } from "drizzle-orm";
+import { eq, and, lte, SQL } from "drizzle-orm";
 import {
   ProducerJWKKey,
   ProducerKeychainId,
@@ -72,6 +72,19 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       }
       return aggregateProducerJWKKey(queryResult[0]);
     },
+    async getProducerJWKKeyByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<ProducerJWKKey> | undefined> {
+      const queryResult = await db
+        .select()
+        .from(producerJwkKeyInReadmodelProducerJwkKey)
+        .where(filter);
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+      return aggregateProducerJWKKey(queryResult[0]);
+    },
+
     async deleteProducerJWKKeyByProducerKeychainAndKid(
       producerKeychainId: ProducerKeychainId,
       kid: string,

@@ -1,4 +1,4 @@
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, lte, SQL } from "drizzle-orm";
 import { ClientId, ClientJWKKey, WithMetadata } from "pagopa-interop-models";
 import {
   clientJwkKeyInReadmodelClientJwkKey,
@@ -60,6 +60,20 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
             eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
           )
         );
+
+      if (queryResult.length === 0) {
+        return undefined;
+      }
+
+      return aggregateClientJWKKey(queryResult[0]);
+    },
+    async getClientJWKKeyByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<ClientJWKKey> | undefined> {
+      const queryResult = await db
+        .select()
+        .from(clientJwkKeyInReadmodelClientJwkKey)
+        .where(filter);
 
       if (queryResult.length === 0) {
         return undefined;
