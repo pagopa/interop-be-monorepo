@@ -4,10 +4,11 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import express from "express";
+import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationServerRouter from "./routers/AuthorizationServerRouter.js";
 
-const serviceName = "authorization-server";
+const serviceName = modelsServiceName.AUTHORIZATION_SERVER;
 
 const app = zodiosCtx.app();
 

@@ -27,8 +27,7 @@ export function rateLimiterMiddleware(
       const errorRes = makeApiProblem(
         genericError("Missing expected organizationId claim in token"),
         () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-        ctx.logger,
-        ctx.correlationId
+        ctx
       );
 
       return res.status(errorRes.status).send(errorRes);
@@ -46,8 +45,7 @@ export function rateLimiterMiddleware(
       const errorRes = makeApiProblem(
         tooManyRequestsError(organizationId),
         () => constants.HTTP_STATUS_TOO_MANY_REQUESTS,
-        ctx.logger,
-        ctx.correlationId
+        ctx
       );
 
       return res.status(errorRes.status).send(errorRes);

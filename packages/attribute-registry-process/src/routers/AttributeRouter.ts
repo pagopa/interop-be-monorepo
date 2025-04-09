@@ -67,6 +67,7 @@ const attributeRouter = (
 
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
           validateAuthorization(ctx, [
             ADMIN_ROLE,
@@ -102,6 +103,7 @@ const attributeRouter = (
     )
     .get("/attributes/name/:name", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
+
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
@@ -110,6 +112,7 @@ const attributeRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
         ]);
+
         const attribute = await attributeRegistryService.getAttributeByName(
           req.params.name,
           ctx
@@ -124,8 +127,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           getAttributesByNameErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -133,6 +135,7 @@ const attributeRouter = (
 
     .get("/attributes/origin/:origin/code/:code", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
+
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, M2M_ROLE]);
 
@@ -155,8 +158,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           getAttributeByOriginAndCodeErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -193,8 +195,7 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             getAttributeByIdErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -251,8 +252,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           createCertifiedAttributesErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -274,8 +274,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           createDeclaredAttributesErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -297,8 +296,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           createVerifiedAttributesErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -323,8 +321,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           createInternalCertifiedAttributesErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }

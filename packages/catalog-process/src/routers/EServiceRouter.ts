@@ -166,12 +166,7 @@ const eservicesRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -186,12 +181,7 @@ const eservicesRouter = (
           .status(200)
           .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          createEServiceErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, createEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -200,6 +190,7 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
         const eService =
           await catalogService.createEServiceInstanceFromTemplate(
             unsafeBrandId(req.params.templateId),
@@ -213,8 +204,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           createEServiceInstanceFromTemplateErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -239,12 +229,7 @@ const eservicesRouter = (
           .status(200)
           .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getEServiceErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, getEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -253,6 +238,7 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
         const updatedEService = await catalogService.updateEService(
           unsafeBrandId(req.params.eServiceId),
           req.body,
@@ -264,12 +250,7 @@ const eservicesRouter = (
             catalogApi.EService.parse(eServiceToApiEService(updatedEService))
           );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          updateEServiceErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, updateEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -294,8 +275,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           updateEServiceTemplateInstanceErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -312,12 +292,7 @@ const eservicesRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          deleteEServiceErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, deleteEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -357,12 +332,7 @@ const eservicesRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -397,12 +367,7 @@ const eservicesRouter = (
               catalogApi.EServiceDoc.parse(documentToApiDocument(document))
             );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            documentGetErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, documentGetErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -414,6 +379,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -429,8 +395,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentCreateErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -443,6 +408,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.deleteDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -454,8 +420,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentDeleteErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -487,8 +452,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentUpdateErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -499,6 +463,7 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
         const descriptor = await catalogService.createDescriptor(
           unsafeBrandId(req.params.eServiceId),
           req.body,
@@ -515,8 +480,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           createDescriptorErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -528,6 +492,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -538,8 +503,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteDraftDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -552,6 +516,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -567,8 +532,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDraftDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -581,6 +545,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService =
             await catalogService.updateDraftDescriptorTemplateInstance(
               unsafeBrandId(req.params.eServiceId),
@@ -597,8 +562,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDraftDescriptorTemplateInstanceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -611,6 +575,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -621,8 +586,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             publishDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -635,6 +599,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -645,8 +610,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             suspendDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -670,8 +634,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             activateDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -702,8 +665,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             cloneEServiceByDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -716,6 +678,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -726,8 +689,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             archiveDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -740,6 +702,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService = await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -755,8 +718,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -767,6 +729,7 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
         await catalogService.createRiskAnalysis(
           unsafeBrandId(req.params.eServiceId),
           req.body,
@@ -777,8 +740,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           createRiskAnalysisErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -790,6 +752,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.updateRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
@@ -801,8 +764,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -813,6 +775,7 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
         const updatedEService = await catalogService.updateEServiceDescription(
           unsafeBrandId(req.params.eServiceId),
           req.body.description,
@@ -827,8 +790,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           updateEServiceDescriptionErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -838,6 +800,7 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
         const updatedEService =
           await catalogService.updateEServiceDelegationFlags(
             unsafeBrandId(req.params.eServiceId),
@@ -854,8 +817,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           updateEServiceFlagsErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -880,8 +842,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           updateEServiceNameErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -904,8 +865,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteRiskAnalysisErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -918,6 +878,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE]);
+
           await catalogService.approveDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -928,8 +889,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             approveDelegatedEServiceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -942,6 +902,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.rejectDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -953,8 +914,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectDelegatedEServiceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -967,6 +927,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE]);
+
           const updatedEService =
             await catalogService.updateDescriptorAttributes(
               unsafeBrandId(req.params.eServiceId),
@@ -983,8 +944,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorAttributesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -995,6 +955,7 @@ const eservicesRouter = (
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
         const descriptor = await catalogService.upgradeEServiceInstance(
           unsafeBrandId(req.params.eServiceId),
           ctx
@@ -1010,8 +971,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           upgradeEServiceInstanceErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -1023,6 +983,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalUpdateTemplateInstanceName(
             unsafeBrandId(req.params.eServiceId),
             req.body.name,
@@ -1033,8 +994,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceNameErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1047,6 +1007,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalUpdateTemplateInstanceDescription(
             unsafeBrandId(req.params.eServiceId),
             req.body.description,
@@ -1057,8 +1018,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1071,6 +1031,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1082,8 +1043,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1096,6 +1056,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1107,8 +1068,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorAttributesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1121,6 +1081,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalCreateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1132,8 +1093,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createTemplateInstanceDescriptorDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1146,6 +1106,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalDeleteTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1157,8 +1118,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteTemplateInstanceDescriptorDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1171,6 +1131,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.innerUpdateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1183,8 +1144,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1210,8 +1170,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             addEServiceTemplateInstanceInterfaceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1238,8 +1197,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             addEServiceTemplateInstanceInterfaceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1268,8 +1226,7 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           createTemplateInstanceDescriptorErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -1281,6 +1238,7 @@ const eservicesRouter = (
 
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService =
             await catalogService.updateTemplateInstanceDescriptor(
               unsafeBrandId(req.params.eServiceId),
@@ -1297,8 +1255,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
