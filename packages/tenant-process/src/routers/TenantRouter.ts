@@ -50,7 +50,7 @@ import { tenantServiceBuilder } from "../services/tenantService.js";
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
-const tenantService = tenantServiceBuilder(
+export const tenantService = tenantServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
