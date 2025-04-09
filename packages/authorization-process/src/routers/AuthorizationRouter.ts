@@ -23,7 +23,7 @@ import {
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
-  clientReadModelServiceBuilderSQL,
+  clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   producerKeychainReadModelServiceBuilder,
@@ -74,7 +74,7 @@ import {
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
-const clientReadModelServiceSQL = clientReadModelServiceBuilderSQL(readModelDB);
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 const agreementReadModelServiceSQL =
