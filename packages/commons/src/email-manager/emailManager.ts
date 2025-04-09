@@ -16,18 +16,17 @@ import { AWSSesConfig } from "../config/awsSesConfig.js";
 
 export type EmailManagerKind = "PEC" | "SES";
 
-export type EmailManagerPEC = {
-  kind: "PEC";
+export type EmailManager = {
+  kind: EmailManagerKind;
   send: (params: Mail.Options) => Promise<void>;
 };
 
-export type EmailManagerSES = {
+export type EmailManagerPEC = EmailManager & {
+  kind: "PEC";
+};
+
+export type EmailManagerSES = EmailManager & {
   kind: "SES";
-  send: (
-    params: Mail.Options,
-    logger: Logger,
-    skipError?: boolean
-  ) => Promise<void>;
 };
 
 export function initPecEmailManager(
@@ -61,7 +60,14 @@ export function initPecEmailManager(
   };
 }
 
-export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
+export function initSesMailManager(
+  awsConfig: AWSSesConfig,
+  errorHandlingOptions?: {
+    logger: Logger;
+    // flag for specific error type forced to true it's the only one available for now
+    skipTooManyRequestsError: true;
+  }
+): EmailManagerSES {
   const client = new SESv2Client({
     region: awsConfig.awsRegion,
     endpoint: awsConfig.awsSesEndpoint,
@@ -69,11 +75,7 @@ export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
 
   return {
     kind: "SES",
-    send: async (
-      mailOptions: Mail.Options,
-      logger: Logger,
-      skipError: boolean = false
-    ): Promise<void> => {
+    send: async (mailOptions: Mail.Options): Promise<void> => {
       const rawMailData = await new MailComposer(mailOptions).compile().build();
 
       const input: SendEmailCommandInput = {
@@ -85,7 +87,7 @@ export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
       try {
         await client.send(new SendEmailCommand(input));
       } catch (err) {
-        if (!skipError) {
+        if (!errorHandlingOptions?.skipTooManyRequestsError) {
           throw err;
         }
 
@@ -100,8 +102,8 @@ export function initSesMailManager(awsConfig: AWSSesConfig): EmailManagerSES {
           - AWS SDK Error Handling: https://aws.amazon.com/blogs/developer/service-error-handling-modular-aws-sdk-js/  
         */
         if (err instanceof TooManyRequestsException) {
-          logger.warn(
-            `AWS SES error with name ${err.name} was thrown, it will not be considered fatal, email notification not sent; Error details: ${err.message}`
+          errorHandlingOptions?.logger.warn(
+            `AWS SES error with name ${err.name} was thrown, skipTooManyRequestsError is true so it will not be considered fatal, but the email is NOT sent; Error details: ${err.message}`
           );
           return;
         }

@@ -110,11 +110,7 @@ describe("sendAgreementActivatedEmail", () => {
       }),
     };
 
-    expect(sesEmailManager.send).toHaveBeenCalledWith(
-      mailOptions,
-      genericLogger,
-      true
-    );
+    expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions);
 
     const response: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
