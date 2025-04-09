@@ -106,152 +106,146 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 
-      const queryResult = await readModelDB.transaction(async (tx) => {
-        const subquery = tx
-          .select({
-            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-            totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
-          })
-          .from(eserviceTemplateInReadmodelEserviceTemplate)
-          .leftJoin(
-            eserviceTemplateVersionInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-            )
+      const subquery = readModelDB
+        .select({
+          eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .leftJoin(
+          eserviceTemplateVersionInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
           )
-          .where(
-            and(
-              // NAME FILTER
-              name
-                ? ilike(
-                    eserviceTemplateInReadmodelEserviceTemplate.name,
-                    `%${ReadModelRepository.escapeRegExp(name)}%`
-                  )
-                : undefined,
-              // IDS FILTER
-              eserviceTemplatesIds.length > 0
-                ? inArray(
-                    eserviceTemplateInReadmodelEserviceTemplate.id,
-                    eserviceTemplatesIds
-                  )
-                : undefined,
-              // CREATORS IDS FILTER
-              creatorsIds.length > 0
-                ? inArray(
+        )
+        .where(
+          and(
+            // NAME FILTER
+            name
+              ? ilike(
+                  eserviceTemplateInReadmodelEserviceTemplate.name,
+                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                )
+              : undefined,
+            // IDS FILTER
+            eserviceTemplatesIds.length > 0
+              ? inArray(
+                  eserviceTemplateInReadmodelEserviceTemplate.id,
+                  eserviceTemplatesIds
+                )
+              : undefined,
+            // CREATORS IDS FILTER
+            creatorsIds.length > 0
+              ? inArray(
+                  eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+                  creatorsIds
+                )
+              : undefined,
+            // STATES FILTER
+            states.length > 0
+              ? inArray(
+                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                  states
+                )
+              : undefined,
+            // VISIBILITY FILTER
+            or(
+              hasPermission(
+                [
+                  userRoles.ADMIN_ROLE,
+                  userRoles.API_ROLE,
+                  userRoles.SUPPORT_ROLE,
+                ],
+                authData
+              )
+                ? eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                    creatorsIds
+                    authData.organizationId
                   )
                 : undefined,
-              // STATES FILTER
-              states.length > 0
-                ? inArray(
-                    eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                    states
-                  )
-                : undefined,
-              // VISIBILITY FILTER
-              or(
-                hasPermission(
-                  [
-                    userRoles.ADMIN_ROLE,
-                    userRoles.API_ROLE,
-                    userRoles.SUPPORT_ROLE,
-                  ],
-                  authData
-                )
-                  ? eq(
-                      eserviceTemplateInReadmodelEserviceTemplate.creatorId,
-                      authData.organizationId
-                    )
-                  : undefined,
-                and(
-                  ne(
-                    eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                    eserviceTemplateVersionState.draft
-                  ),
-                  isNotNull(
-                    eserviceTemplateVersionInReadmodelEserviceTemplate.id
-                  )
-                )
+              and(
+                ne(
+                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                  eserviceTemplateVersionState.draft
+                ),
+                isNotNull(eserviceTemplateVersionInReadmodelEserviceTemplate.id)
               )
             )
           )
-          .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
-          .limit(limit)
-          .offset(offset)
-          .as("subquery");
+        )
+        .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
+        .limit(limit)
+        .offset(offset)
+        .as("subquery");
 
-        return await tx
-          .select({
-            eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
-            version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-            interface:
-              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-            document:
-              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-            attribute:
-              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-            riskAnalysis:
-              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-            riskAnalysisAnswer:
-              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-            totalCount: subquery.totalCount,
-          })
-          .from(eserviceTemplateInReadmodelEserviceTemplate)
-          .innerJoin(
-            subquery,
-            eq(
-              subquery.eserviceTemplateId,
-              eserviceTemplateInReadmodelEserviceTemplate.id
-            )
-          )
-          .leftJoin(
-            eserviceTemplateVersionInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-            )
-          )
-          .leftJoin(
+      const queryResult = await readModelDB
+        .select({
+          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
+          interface:
             eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
-            )
-          )
-          .leftJoin(
-            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
-            )
-          )
-          .leftJoin(
+          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          attribute:
             eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
-            )
-          )
-          .leftJoin(
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
-            )
-          )
-          .leftJoin(
+          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          riskAnalysisAnswer:
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-            eq(
-              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
-              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
-            )
+          totalCount: subquery.totalCount,
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .innerJoin(
+          subquery,
+          eq(
+            subquery.eserviceTemplateId,
+            eserviceTemplateInReadmodelEserviceTemplate.id
           )
-          .orderBy(
-            sql`LOWER(${eserviceTemplateInReadmodelEserviceTemplate.name})`
-          );
-      });
+        )
+        .leftJoin(
+          eserviceTemplateVersionInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
+            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
+          )
+        )
+        .orderBy(
+          sql`LOWER(${eserviceTemplateInReadmodelEserviceTemplate.name})`
+        );
 
       return {
         results: aggregateEServiceTemplateArray(
