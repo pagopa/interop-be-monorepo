@@ -192,6 +192,7 @@ const errorCodes = {
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
   notAllowedMultipleKeysException: "10008",
+  notFound: "10009",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -429,5 +430,13 @@ export function invalidKey(
     detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
     code: "invalidKey",
     title: "Invalid Key",
+  });
+}
+
+export function notFound(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Resource not found`,
+    code: "notFound",
+    title: "Not Found",
   });
 }

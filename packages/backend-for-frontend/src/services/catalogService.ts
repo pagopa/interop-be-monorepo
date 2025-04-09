@@ -17,6 +17,7 @@ import {
   EServiceId,
   RiskAnalysisId,
   TenantId,
+  notFound,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { BffProcessConfig, config } from "../config/config.js";
@@ -933,6 +934,28 @@ export function catalogServiceBuilder(
         `Updating descriptor ${descriptorId} of EService ${eServiceId}`
       );
       return await catalogProcessClient.updateDescriptor(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    updateAgreementApprovalPolicy: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      if (config.featureFlagAgreementApprovalPolicyUpdate === false) {
+        throw notFound();
+      }
+
+      logger.info(
+        `Updating descriptor ${descriptorId} agreementApprovalPolicy of EService ${eServiceId}`
+      );
+
+      return await catalogProcessClient.updateAgreementApprovalPolicy(seed, {
         headers,
         params: {
           eServiceId,

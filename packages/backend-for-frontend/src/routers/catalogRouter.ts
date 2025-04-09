@@ -25,6 +25,7 @@ import {
   emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
+  updateAgreementApprovalPolicyErrorMapper,
 } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
@@ -311,6 +312,34 @@ const catalogRouter = (
             `Error updating descriptor ${req.params.descriptorId} on service ${
               req.params.eServiceId
             } with seed: ${JSON.stringify(req.body)}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.updateAgreementApprovalPolicy(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateAgreementApprovalPolicyErrorMapper,
+            ctx.logger,
+            ctx.correlationId,
+            `Error updating agreementApprovalPolicy descriptor ${
+              req.params.descriptorId
+            } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
+              req.body
+            )}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
