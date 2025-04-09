@@ -1,5 +1,10 @@
 import { IncomingHttpHeaders } from "http";
-import { AppContext, WithLogger, logger } from "pagopa-interop-commons";
+import {
+  AppContext,
+  M2MAuthData,
+  WithLogger,
+  logger,
+} from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 
 export type Headers = {
@@ -8,14 +13,16 @@ export type Headers = {
   "X-Forwarded-For": string | undefined;
 };
 
-export type ApiGatewayAppContext = AppContext & { headers: Headers };
+export type ApiGatewayAppContext = AppContext<M2MAuthData> & {
+  headers: Headers;
+};
 
 export function fromApiGatewayAppContext(
   ctx: AppContext,
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): WithLogger<ApiGatewayAppContext> {
   return {
-    ...ctx,
+    ...(ctx as AppContext<M2MAuthData>), // API Gateway is called only with M2MAuthData
     headers: {
       "X-Correlation-Id": ctx.correlationId,
       Authorization: headers.authorization,
