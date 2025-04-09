@@ -52,7 +52,7 @@ describe("archive agreement", () => {
 
     await addOneAgreement(agreement);
 
-    const returnedAgreement = await agreementService.archiveAgreement(
+    const { data: returnedAgreement } = await agreementService.archiveAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -122,7 +122,7 @@ describe("archive agreement", () => {
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(agreement, addOneDelegation);
 
-    const returnedAgreement = await agreementService.archiveAgreement(
+    const { data: returnedAgreement } = await agreementService.archiveAgreement(
       agreement.id,
       getMockContext({ authData })
     );
