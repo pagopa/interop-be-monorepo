@@ -196,44 +196,6 @@ export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
   ]
 );
 
-export const producerKeychainKeyInReadmodelProducerKeychain =
-  readmodelProducerKeychain.table(
-    "producer_keychain_key",
-    {
-      metadataVersion: integer("metadata_version").notNull(),
-      producerKeychainId: uuid("producer_keychain_id").notNull(),
-      userId: uuid("user_id").notNull(),
-      kid: varchar().notNull(),
-      name: varchar().notNull(),
-      encodedPem: varchar("encoded_pem").notNull(),
-      algorithm: varchar().notNull(),
-      use: varchar().notNull(),
-      createdAt: timestamp("created_at", {
-        withTimezone: true,
-        mode: "string",
-      }).notNull(),
-    },
-    (table) => [
-      foreignKey({
-        columns: [table.producerKeychainId],
-        foreignColumns: [producerKeychainInReadmodelProducerKeychain.id],
-        name: "producer_keychain_key_producer_keychain_id_fkey",
-      }).onDelete("cascade"),
-      foreignKey({
-        columns: [table.metadataVersion, table.producerKeychainId],
-        foreignColumns: [
-          producerKeychainInReadmodelProducerKeychain.id,
-          producerKeychainInReadmodelProducerKeychain.metadataVersion,
-        ],
-        name: "producer_keychain_key_producer_keychain_id_metadata_versio_fkey",
-      }),
-      primaryKey({
-        columns: [table.producerKeychainId, table.kid],
-        name: "producer_keychain_key_pkey",
-      }),
-    ]
-  );
-
 export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
   readmodelEserviceTemplate.table(
     "eservice_template_version_interface",
@@ -273,6 +235,28 @@ export const eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate =
       }),
       unique("eservice_template_version_interface_version_id_key").on(
         table.versionId
+      ),
+    ]
+  );
+
+export const producerKeychainInReadmodelProducerKeychain =
+  readmodelProducerKeychain.table(
+    "producer_keychain",
+    {
+      id: uuid().primaryKey().notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      producerId: uuid("producer_id").notNull(),
+      name: varchar().notNull(),
+      description: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+    },
+    (table) => [
+      unique("producer_keychain_id_metadata_version_unique").on(
+        table.id,
+        table.metadataVersion
       ),
     ]
   );
@@ -735,28 +719,6 @@ export const eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate =
     ]
   );
 
-export const producerKeychainInReadmodelProducerKeychain =
-  readmodelProducerKeychain.table(
-    "producer_keychain",
-    {
-      id: uuid().primaryKey().notNull(),
-      metadataVersion: integer("metadata_version").notNull(),
-      producerId: uuid("producer_id").notNull(),
-      name: varchar().notNull(),
-      description: varchar().notNull(),
-      createdAt: timestamp("created_at", {
-        withTimezone: true,
-        mode: "string",
-      }).notNull(),
-    },
-    (table) => [
-      unique("producer_keychain_id_metadata_version_unique").on(
-        table.id,
-        table.metadataVersion
-      ),
-    ]
-  );
-
 export const purposeInReadmodelPurpose = readmodelPurpose.table(
   "purpose",
   {
@@ -1177,6 +1139,44 @@ export const eserviceTemplateRefInReadmodelCatalog = readmodelCatalog.table(
     }),
   ]
 );
+
+export const producerKeychainKeyInReadmodelProducerKeychain =
+  readmodelProducerKeychain.table(
+    "producer_keychain_key",
+    {
+      metadataVersion: integer("metadata_version").notNull(),
+      producerKeychainId: uuid("producer_keychain_id").notNull(),
+      userId: uuid("user_id").notNull(),
+      kid: varchar().notNull(),
+      name: varchar().notNull(),
+      encodedPem: varchar("encoded_pem").notNull(),
+      algorithm: varchar().notNull(),
+      use: varchar().notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.producerKeychainId],
+        foreignColumns: [producerKeychainInReadmodelProducerKeychain.id],
+        name: "producer_keychain_key_producer_keychain_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.metadataVersion, table.producerKeychainId],
+        foreignColumns: [
+          producerKeychainInReadmodelProducerKeychain.id,
+          producerKeychainInReadmodelProducerKeychain.metadataVersion,
+        ],
+        name: "producer_keychain_key_producer_keychain_id_metadata_versio_fkey",
+      }),
+      primaryKey({
+        columns: [table.producerKeychainId, table.kid],
+        name: "producer_keychain_key_pkey",
+      }),
+    ]
+  );
 
 export const tenantVerifiedAttributeInReadmodelTenant = readmodelTenant.table(
   "tenant_verified_attribute",
