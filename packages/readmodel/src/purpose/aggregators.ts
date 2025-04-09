@@ -76,7 +76,7 @@ export const aggregatePurpose = ({
     PurposeVersionDocumentSQL
   > = versionDocumentsSQL.reduce(
     (acc: Map<PurposeVersionId, PurposeVersionDocumentSQL>, docSQL) => {
-      acc.set(unsafeBrandId<PurposeVersionId>(docSQL.purposeVersionId), docSQL);
+      acc.set(unsafeBrandId(docSQL.purposeVersionId), docSQL);
       return acc;
     },
     new Map()

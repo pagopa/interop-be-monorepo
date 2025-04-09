@@ -27,8 +27,7 @@ export function zodiosValidationErrorToApiProblem(
       makeApiProblem(
         badRequestError(detail, errors),
         () => constants.HTTP_STATUS_BAD_REQUEST,
-        ctx.logger,
-        ctx.correlationId
+        ctx
       )
     );
 }

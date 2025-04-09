@@ -1,7 +1,7 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { Purpose, PurposeId, WithMetadata } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
@@ -13,53 +13,63 @@ import {
   aggregatePurpose,
   toPurposeAggregator,
 } from "./purpose/aggregators.js";
+import { checkMetadataVersion } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeReadModelServiceBuilderSQL(
-  db: ReturnType<typeof drizzle>
-) {
+export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertPurpose(
       purpose: Purpose,
       metadataVersion: number
     ): Promise<void> {
-      const {
-        purposeSQL,
-        riskAnalysisFormSQL,
-        riskAnalysisAnswersSQL,
-        versionsSQL,
-        versionDocumentsSQL,
-      } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
-
       await db.transaction(async (tx) => {
-        await tx
-          .delete(purposeInReadmodelPurpose)
-          .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          purposeInReadmodelPurpose,
+          metadataVersion,
+          purpose.id
+        );
 
-        await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
-
-        if (riskAnalysisFormSQL) {
+        if (shouldUpsert) {
           await tx
-            .insert(purposeRiskAnalysisFormInReadmodelPurpose)
-            .values(riskAnalysisFormSQL);
-        }
+            .delete(purposeInReadmodelPurpose)
+            .where(eq(purposeInReadmodelPurpose.id, purpose.id));
 
-        if (riskAnalysisAnswersSQL) {
-          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+          const {
+            purposeSQL,
+            riskAnalysisFormSQL,
+            riskAnalysisAnswersSQL,
+            versionsSQL,
+            versionDocumentsSQL,
+          } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
+
+          await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
+
+          if (riskAnalysisFormSQL) {
             await tx
-              .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
-              .values(riskAnalysisAnswerSQL);
+              .insert(purposeRiskAnalysisFormInReadmodelPurpose)
+              .values(riskAnalysisFormSQL);
           }
-        }
 
-        for (const versionSQL of versionsSQL) {
-          await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
-        }
+          if (riskAnalysisAnswersSQL) {
+            for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+              await tx
+                .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
+                .values(riskAnalysisAnswerSQL);
+            }
+          }
 
-        for (const versionDocumentSQL of versionDocumentsSQL) {
-          await tx
-            .insert(purposeVersionDocumentInReadmodelPurpose)
-            .values(versionDocumentSQL);
+          for (const versionSQL of versionsSQL) {
+            await tx
+              .insert(purposeVersionInReadmodelPurpose)
+              .values(versionSQL);
+          }
+
+          for (const versionDocumentSQL of versionDocumentsSQL) {
+            await tx
+              .insert(purposeVersionDocumentInReadmodelPurpose)
+              .values(versionDocumentSQL);
+          }
         }
       });
     },
@@ -137,5 +147,5 @@ export function purposeReadModelServiceBuilderSQL(
 }
 
 export type PurposeReadModelService = ReturnType<
-  typeof purposeReadModelServiceBuilderSQL
+  typeof purposeReadModelServiceBuilder
 >;
