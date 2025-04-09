@@ -51,8 +51,7 @@ const selfcareRouter = (
         const errorRes = makeApiProblem(
           error,
           getSelfcareUserErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error while retrieving user ${req.params.userId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -74,8 +73,7 @@ const selfcareRouter = (
         const errorRes = makeApiProblem(
           error,
           getSelfcareErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving products for institution"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -95,8 +93,7 @@ const selfcareRouter = (
         const errorRes = makeApiProblem(
           error,
           getSelfcareErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving institutions`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -120,8 +117,7 @@ const selfcareRouter = (
         const errorRes = makeApiProblem(
           error,
           getSelfcareErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error while retrieving users corresponding to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);

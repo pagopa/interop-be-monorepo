@@ -90,6 +90,7 @@ export * from "./constants.js";
 export * from "./errors.js";
 export * from "./utils.js";
 export * from "./constants.js";
+export * from "./services.js";
 
 //  Generated models
 export * from "./gen/v1/agreement/agreement.js";
