@@ -1,5 +1,4 @@
 import {
-  pgSchema,
   unique,
   uuid,
   integer,
@@ -11,18 +10,18 @@ import {
   primaryKey,
 } from "drizzle-orm/pg-core";
 
-export const readmodelAgreement = pgSchema("readmodel_agreement");
-export const readmodelProducerKeychain = pgSchema(
-  "readmodel_producer_keychain"
-);
-export const readmodelClient = pgSchema("readmodel_client");
-export const readmodelPurpose = pgSchema("readmodel_purpose");
-export const readmodelAttribute = pgSchema("readmodel_attribute");
-export const readmodelDelegation = pgSchema("readmodel_delegation");
-export const readmodelCatalog = pgSchema("readmodel_catalog");
-export const readmodelClientJwkKey = pgSchema("readmodel_client_jwk_key");
-export const readmodelProducerJwkKey = pgSchema("readmodel_producer_jwk_key");
-export const readmodelTenant = pgSchema("readmodel_tenant");
+import {
+  readmodelAgreement,
+  readmodelProducerKeychain,
+  readmodelAttribute,
+  readmodelDelegation,
+  readmodelCatalog,
+  readmodelPurpose,
+  readmodelClient,
+  readmodelTenant,
+  readmodelClientJwkKey,
+  readmodelProducerJwkKey,
+} from "../pgSchema.js";
 
 export const agreementInReadmodelAgreement = readmodelAgreement.table(
   "agreement",
@@ -675,7 +674,9 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
       ],
       name: "purpose_version_document_purpose_id_metadata_version_fkey",
     }),
-    unique("purpose_version_document_purpose_id_key").on(table.purposeId),
+    unique("purpose_version_document_purpose_version_id_key").on(
+      table.purposeVersionId
+    ),
   ]
 );
 
