@@ -29,7 +29,7 @@ import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
-  clientReadModelServiceBuilderSQL,
+  clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
@@ -64,7 +64,7 @@ export const {
 } = readModelRepository;
 
 export const clientReadModelServiceSQL =
-  clientReadModelServiceBuilderSQL(readModelDB);
+  clientReadModelServiceBuilder(readModelDB);
 export const catalogReadModelServiceSQL =
   catalogReadModelServiceBuilder(readModelDB);
 export const purposeReadModelServiceSQL =

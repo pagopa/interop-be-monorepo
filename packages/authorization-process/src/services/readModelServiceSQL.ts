@@ -96,86 +96,81 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Client>> {
       const { name, userIds, consumerId, purposeId, kind } = filters;
 
-      const queryResult = await readModelDB.transaction(async (tx) => {
-        const subquery = tx
-          .select({
-            clientId: clientInReadmodelClient.id,
-            totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
-          })
-          .from(clientInReadmodelClient)
-          .leftJoin(
-            clientUserInReadmodelClient,
-            eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
+      const subquery = readModelDB
+        .select({
+          clientId: clientInReadmodelClient.id,
+          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+        })
+        .from(clientInReadmodelClient)
+        .leftJoin(
+          clientUserInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
+        )
+        .leftJoin(
+          clientPurposeInReadmodelClient,
+          eq(
+            clientInReadmodelClient.id,
+            clientPurposeInReadmodelClient.clientId
           )
-          .leftJoin(
-            clientPurposeInReadmodelClient,
-            eq(
-              clientInReadmodelClient.id,
-              clientPurposeInReadmodelClient.clientId
-            )
+        )
+        .where(
+          and(
+            // NAME FILTER
+            name
+              ? ilike(
+                  clientInReadmodelClient.name,
+                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                )
+              : undefined,
+            // USERS FILTER
+            userIds.length > 0
+              ? inArray(clientUserInReadmodelClient.userId, userIds)
+              : undefined,
+            // CONSUMER FILTER
+            eq(clientInReadmodelClient.consumerId, consumerId),
+            // PURPOSE FILTER
+            purposeId
+              ? eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+              : undefined,
+            // KIND FILTER
+            kind ? eq(clientInReadmodelClient.kind, kind) : undefined
           )
-          .where(
-            and(
-              // NAME FILTER
-              name
-                ? ilike(
-                    clientInReadmodelClient.name,
-                    `%${ReadModelRepository.escapeRegExp(name)}%`
-                  )
-                : undefined,
-              // USERS FILTER
-              userIds.length > 0
-                ? inArray(clientUserInReadmodelClient.userId, userIds)
-                : undefined,
-              // CONSUMER FILTER
-              eq(clientInReadmodelClient.consumerId, consumerId),
-              // PURPOSE FILTER
-              purposeId
-                ? eq(clientPurposeInReadmodelClient.purposeId, purposeId)
-                : undefined,
-              // KIND FILTER
-              kind ? eq(clientInReadmodelClient.kind, kind) : undefined
-            )
-          )
-          .groupBy(clientInReadmodelClient.id)
-          .limit(limit)
-          .offset(offset)
-          .orderBy(sql`LOWER(${clientInReadmodelClient.name})`)
-          .as("subquery");
+        )
+        .groupBy(clientInReadmodelClient.id)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(sql`LOWER(${clientInReadmodelClient.name})`)
+        .as("subquery");
 
-        return await tx
-          .select({
-            client: clientInReadmodelClient,
-            clientUser: clientUserInReadmodelClient,
-            clientPurpose: clientPurposeInReadmodelClient,
-            clientKey: clientKeyInReadmodelClient,
-            totalCount: subquery.totalCount,
-          })
-          .from(clientInReadmodelClient)
-          .innerJoin(
-            subquery,
-            eq(clientInReadmodelClient.id, subquery.clientId)
+      const queryResult = await readModelDB
+        .select({
+          client: clientInReadmodelClient,
+          clientUser: clientUserInReadmodelClient,
+          clientPurpose: clientPurposeInReadmodelClient,
+          clientKey: clientKeyInReadmodelClient,
+          totalCount: subquery.totalCount,
+        })
+        .from(clientInReadmodelClient)
+        .innerJoin(subquery, eq(clientInReadmodelClient.id, subquery.clientId))
+        .leftJoin(
+          // 1
+          clientUserInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
+        )
+        .leftJoin(
+          // 2
+          clientPurposeInReadmodelClient,
+          eq(
+            clientInReadmodelClient.id,
+            clientPurposeInReadmodelClient.clientId
           )
-          .leftJoin(
-            // 1
-            clientUserInReadmodelClient,
-            eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
-          )
-          .leftJoin(
-            // 2
-            clientPurposeInReadmodelClient,
-            eq(
-              clientInReadmodelClient.id,
-              clientPurposeInReadmodelClient.clientId
-            )
-          )
-          .leftJoin(
-            // 3
-            clientKeyInReadmodelClient,
-            eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
-          )
-          .orderBy(sql`LOWER(${clientInReadmodelClient.name})`);
-      });
+        )
+        .leftJoin(
+          // 3
+          clientKeyInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
+        )
+        .orderBy(sql`LOWER(${clientInReadmodelClient.name})`);
 
       return {
         results: aggregateClientArray(toClientAggregatorArray(queryResult)).map(
@@ -187,47 +182,42 @@ export function readModelServiceBuilderSQL({
     async getClientsRelatedToPurpose(
       purposeId: PurposeId
     ): Promise<Array<WithMetadata<Client>>> {
-      const queryResult = await readModelDB.transaction(async (tx) => {
-        const subquery = tx
-          .select({
-            clientId: clientInReadmodelClient.id,
-          })
-          .from(clientInReadmodelClient)
-          .innerJoin(
-            clientPurposeInReadmodelClient,
-            eq(clientPurposeInReadmodelClient.purposeId, purposeId)
-          )
-          .groupBy(clientInReadmodelClient.id)
-          .as("subquery");
+      const subquery = readModelDB
+        .select({
+          clientId: clientInReadmodelClient.id,
+        })
+        .from(clientInReadmodelClient)
+        .innerJoin(
+          clientPurposeInReadmodelClient,
+          eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+        )
+        .groupBy(clientInReadmodelClient.id)
+        .as("subquery");
 
-        return await tx
-          .select({
-            client: clientInReadmodelClient,
-            clientUser: clientUserInReadmodelClient,
-            clientPurpose: clientPurposeInReadmodelClient,
-            clientKey: clientKeyInReadmodelClient,
-          })
-          .from(clientInReadmodelClient)
-          .innerJoin(
-            subquery,
-            eq(clientInReadmodelClient.id, subquery.clientId)
+      const queryResult = await readModelDB
+        .select({
+          client: clientInReadmodelClient,
+          clientUser: clientUserInReadmodelClient,
+          clientPurpose: clientPurposeInReadmodelClient,
+          clientKey: clientKeyInReadmodelClient,
+        })
+        .from(clientInReadmodelClient)
+        .innerJoin(subquery, eq(clientInReadmodelClient.id, subquery.clientId))
+        .leftJoin(
+          clientUserInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
+        )
+        .leftJoin(
+          clientPurposeInReadmodelClient,
+          eq(
+            clientInReadmodelClient.id,
+            clientPurposeInReadmodelClient.clientId
           )
-          .leftJoin(
-            clientUserInReadmodelClient,
-            eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
-          )
-          .leftJoin(
-            clientPurposeInReadmodelClient,
-            eq(
-              clientInReadmodelClient.id,
-              clientPurposeInReadmodelClient.clientId
-            )
-          )
-          .leftJoin(
-            clientKeyInReadmodelClient,
-            eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
-          );
-      });
+        )
+        .leftJoin(
+          clientKeyInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
+        );
 
       return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
@@ -284,116 +274,113 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<ProducerKeychain>> {
       const { name, userIds, producerId, eserviceId } = filters;
 
-      const queryResult = await readModelDB.transaction(async (tx) => {
-        const subquery = tx
-          .select({
-            producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
-            totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
-          })
-          .from(producerKeychainInReadmodelProducerKeychain)
-          .leftJoin(
-            producerKeychainUserInReadmodelProducerKeychain,
+      const subquery = readModelDB
+        .select({
+          producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
+          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+        })
+        .from(producerKeychainInReadmodelProducerKeychain)
+        .leftJoin(
+          producerKeychainUserInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
+          )
+        )
+        .leftJoin(
+          producerKeychainEserviceInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+          )
+        )
+        .where(
+          and(
+            // NAME FILTER
+            name
+              ? ilike(
+                  producerKeychainInReadmodelProducerKeychain.name,
+                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                )
+              : undefined,
+            // USERS FILTER
+            userIds.length > 0
+              ? inArray(
+                  producerKeychainUserInReadmodelProducerKeychain.userId,
+                  userIds
+                )
+              : undefined,
+            // CONSUMER FILTER
             eq(
-              producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
-            )
+              producerKeychainInReadmodelProducerKeychain.producerId,
+              producerId
+            ),
+            // E-SERVICE FILTER
+            eserviceId
+              ? eq(
+                  producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
+                  eserviceId
+                )
+              : undefined
           )
-          .leftJoin(
-            producerKeychainEserviceInReadmodelProducerKeychain,
-            eq(
-              producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
-            )
-          )
-          .where(
-            and(
-              // NAME FILTER
-              name
-                ? ilike(
-                    producerKeychainInReadmodelProducerKeychain.name,
-                    `%${ReadModelRepository.escapeRegExp(name)}%`
-                  )
-                : undefined,
-              // USERS FILTER
-              userIds.length > 0
-                ? inArray(
-                    producerKeychainUserInReadmodelProducerKeychain.userId,
-                    userIds
-                  )
-                : undefined,
-              // CONSUMER FILTER
-              eq(
-                producerKeychainInReadmodelProducerKeychain.producerId,
-                producerId
-              ),
-              // E-SERVICE FILTER
-              eserviceId
-                ? eq(
-                    producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
-                    eserviceId
-                  )
-                : undefined
-            )
-          )
-          .groupBy(producerKeychainInReadmodelProducerKeychain.id)
-          .limit(limit)
-          .offset(offset)
-          .orderBy(
-            sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
-          )
-          .as("subquery");
+        )
+        .groupBy(producerKeychainInReadmodelProducerKeychain.id)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(
+          sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
+        )
+        .as("subquery");
 
-        return await tx
-          .select({
-            producerKeychain: producerKeychainInReadmodelProducerKeychain,
-            producerKeychainUser:
-              producerKeychainUserInReadmodelProducerKeychain,
-            producerKeychainEService:
-              producerKeychainEserviceInReadmodelProducerKeychain,
-            producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
-            totalCount: subquery.totalCount,
-          })
-          .from(producerKeychainInReadmodelProducerKeychain)
-          .innerJoin(
-            subquery,
-            eq(
-              producerKeychainInReadmodelProducerKeychain.id,
-              subquery.producerKeychainId
-            )
-          )
-          .leftJoin(
-            // 1
-            producerKeychainUserInReadmodelProducerKeychain,
-            eq(
-              producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
-            )
-          )
-          .leftJoin(
-            // 2
+      const queryResult = await readModelDB
+        .select({
+          producerKeychain: producerKeychainInReadmodelProducerKeychain,
+          producerKeychainUser: producerKeychainUserInReadmodelProducerKeychain,
+          producerKeychainEService:
             producerKeychainEserviceInReadmodelProducerKeychain,
-            eq(
-              producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
-            )
+          producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
+          totalCount: subquery.totalCount,
+        })
+        .from(producerKeychainInReadmodelProducerKeychain)
+        .innerJoin(
+          subquery,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            subquery.producerKeychainId
           )
-          .leftJoin(
-            // 3
-            producerKeychainKeyInReadmodelProducerKeychain,
-            eq(
-              producerKeychainInReadmodelProducerKeychain.id,
-              producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
-            )
+        )
+        .leftJoin(
+          // 1
+          producerKeychainUserInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
           )
-          .orderBy(
-            sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
-          );
-      });
+        )
+        .leftJoin(
+          // 2
+          producerKeychainEserviceInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
+          )
+        )
+        .leftJoin(
+          // 3
+          producerKeychainKeyInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
+          )
+        )
+        .orderBy(
+          sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
+        );
 
       return {
         results: aggregateProducerKeychainArray(
           toProducerKeychainAggregatorArray(queryResult)
-        ).map((c) => c.data),
+        ).map((p) => p.data),
         totalCount: Number(queryResult[0]?.totalCount ?? 0),
       };
     },

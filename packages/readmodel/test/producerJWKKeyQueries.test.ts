@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from "vitest";
 import { generateId, ProducerKeychainId } from "pagopa-interop-models";
+import { getMockProducerJWKKey } from "pagopa-interop-commons-test";
 import { aggregateProducerJWKKey } from "../src/authorization/producerJWKKeyAggregators.js";
 import { readModelDB } from "./utils.js";
 import {
-  getMockProducerJWKKey,
   producerJWKKeyReadModelService,
   retrieveProducerJWKKeySQLByKid,
 } from "./producerJWKKeyUtils.js";
