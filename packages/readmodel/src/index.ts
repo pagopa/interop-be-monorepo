@@ -6,6 +6,7 @@ export * from "./agreement/splitters.js";
 
 // ATTRIBUTE
 export * from "./attributeReadModelService.js";
+export * from "./attribute/splitters.js";
 
 // CLIENT
 export * from "./clientReadModelService.js";
