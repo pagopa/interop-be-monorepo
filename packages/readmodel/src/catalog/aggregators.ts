@@ -8,7 +8,6 @@ import {
   riskAnalysisAnswerKind,
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
-  RiskAnalysisMultiAnswerId,
   WithMetadata,
   unsafeBrandId,
   Technology,
@@ -20,7 +19,6 @@ import {
   EServiceTemplateRef,
   AttributeKind,
   RiskAnalysisAnswerKind,
-  RiskAnalysisSingleAnswerId,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
