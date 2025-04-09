@@ -7,11 +7,7 @@ import {
 } from "@aws-sdk/client-sesv2";
 import { mockClient } from "aws-sdk-client-mock";
 import { describe, it, expect, beforeEach } from "vitest";
-import {
-  AWSSesConfig,
-  genericLogger,
-  initSesMailManager,
-} from "pagopa-interop-commons";
+import { AWSSesConfig, initSesMailManager } from "pagopa-interop-commons";
 
 const sesMock = mockClient(SESv2Client);
 
