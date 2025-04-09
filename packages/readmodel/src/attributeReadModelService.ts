@@ -1,5 +1,10 @@
 import { and, eq, lte, SQL } from "drizzle-orm";
-import { Attribute, AttributeId, WithMetadata } from "pagopa-interop-models";
+import {
+  Attribute,
+  AttributeId,
+  genericInternalError,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
@@ -51,6 +56,10 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
     async getAttributeByFilter(
       filter: SQL | undefined
     ): Promise<WithMetadata<Attribute> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       const queryResult = await db
         .select()
         .from(attributeInReadmodelAttribute)
