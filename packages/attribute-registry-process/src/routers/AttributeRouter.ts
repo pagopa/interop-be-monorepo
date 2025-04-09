@@ -32,7 +32,7 @@ import {
 
 const readModelRepository = ReadModelRepository.init(config);
 const readModelService = readModelServiceBuilder(readModelRepository);
-const attributeRegistryService = attributeRegistryServiceBuilder(
+export const attributeRegistryService = attributeRegistryServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
