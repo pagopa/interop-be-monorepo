@@ -128,21 +128,42 @@ export const aggregateEServiceTemplate = ({
   attributesSQL,
   documentsSQL,
 }: EServiceTemplateItemsSQL): WithMetadata<EServiceTemplate> => {
+  const interfacesSQLByVersionId = interfacesSQL.reduce((acc, i) => {
+    const versionId = i.versionId;
+    acc.set(versionId, i);
+    return acc;
+  }, new Map<string, EServiceTemplateVersionInterfaceSQL>());
+  const documentsSQLByVersionId = documentsSQL.reduce((acc, doc) => {
+    const versionId = doc.versionId;
+    acc.set(versionId, [...(acc.get(versionId) || []), doc]);
+    return acc;
+  }, new Map<string, EServiceTemplateVersionDocumentSQL[]>());
+  const attributesSQLByVersionId = attributesSQL.reduce((acc, attr) => {
+    const versionId = attr.versionId;
+    acc.set(versionId, [...(acc.get(versionId) || []), attr]);
+    return acc;
+  }, new Map<string, EServiceTemplateVersionAttributeSQL[]>());
   const versions = versionsSQL.map((versionSQL) =>
     aggregateEServiceTemplateVersion({
       versionSQL,
-      interfaceSQL: interfacesSQL.find((i) => i.versionId === versionSQL.id),
-      documentsSQL: documentsSQL.filter((d) => d.versionId === versionSQL.id),
-      attributesSQL: attributesSQL.filter((a) => a.versionId === versionSQL.id),
+      interfaceSQL: interfacesSQLByVersionId.get(versionSQL.id),
+      documentsSQL: documentsSQLByVersionId.get(versionSQL.id) || [],
+      attributesSQL: attributesSQLByVersionId.get(versionSQL.id) || [],
     })
   );
 
+  const riskAnalysisAnswersSQLByFormId = riskAnalysisAnswersSQL.reduce(
+    (acc, answer) => {
+      const formId = answer.riskAnalysisFormId;
+      acc.set(formId, [...(acc.get(formId) || []), answer]);
+      return acc;
+    },
+    new Map<string, EServiceTemplateRiskAnalysisAnswerSQL[]>()
+  );
   const riskAnalysis = riskAnalysesSQL.map((ra) =>
     aggregateRiskAnalysis(
       ra,
-      riskAnalysisAnswersSQL.filter(
-        (answer) => answer.riskAnalysisFormId === ra.riskAnalysisFormId
-      )
+      riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
     )
   );
   const eserviceTemplate: EServiceTemplate = {
