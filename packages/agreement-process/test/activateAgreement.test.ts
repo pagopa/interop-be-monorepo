@@ -320,7 +320,7 @@ describe("activate agreement", () => {
           delegateConsumer,
         });
 
-        const acrivateAgreementReturnValue =
+        const { data: activateAgreementReturnValue } =
           await agreementService.activateAgreement(
             agreement.id,
             getMockContext({ authData })
@@ -475,7 +475,7 @@ describe("activate agreement", () => {
         ).toContain(expectedContract.path);
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
-        expect(acrivateAgreementReturnValue).toMatchObject(
+        expect(activateAgreementReturnValue).toMatchObject(
           expectedActivatedAgreement
         );
       }
@@ -889,7 +889,7 @@ describe("activate agreement", () => {
           delegateConsumer,
         });
 
-        const activateAgreementReturnValue =
+        const { data: activateAgreementReturnValue } =
           await agreementService.activateAgreement(
             agreement.id,
             getMockContext({ authData })
@@ -1021,7 +1021,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
       const relatedAgreements = await addRelatedAgreements(agreement);
 
-      const activateAgreementReturnValue =
+      const { data: activateAgreementReturnValue } =
         await agreementService.activateAgreement(
           agreement.id,
           getMockContext({ authData })
@@ -1241,7 +1241,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           });
 
-          const activateAgreementReturnValue =
+          const { data: activateAgreementReturnValue } =
             await agreementService.activateAgreement(
               agreement.id,
               getMockContext({ authData })
@@ -1301,7 +1301,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           });
 
-          const activateAgreementReturnValue =
+          const { data: activateAgreementReturnValue } =
             await agreementService.activateAgreement(
               agreement.id,
               getMockContext({ authData })
@@ -1538,7 +1538,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           });
 
-          const activateAgreementReturnValue =
+          const { data: activateAgreementReturnValue } =
             await agreementService.activateAgreement(
               agreement.id,
               getMockContext({ authData })
@@ -1591,7 +1591,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           });
 
-          const activateAgreementReturnValue =
+          const { data: activateAgreementReturnValue } =
             await agreementService.activateAgreement(
               agreement.id,
               getMockContext({ authData })

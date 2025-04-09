@@ -1013,13 +1013,14 @@ describe("submit agreement", () => {
         nonArchivableRelatedAgreement,
       } = await addRelatedAgreements(agreement);
 
-      const submittedAgreement = await agreementService.submitAgreement(
-        agreement.id,
-        {
-          consumerNotes: consumerNotesText,
-        },
-        getMockContext({ authData })
-      );
+      const { data: submittedAgreement } =
+        await agreementService.submitAgreement(
+          agreement.id,
+          {
+            consumerNotes: consumerNotesText,
+          },
+          getMockContext({ authData })
+        );
 
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
 
@@ -1193,13 +1194,14 @@ describe("submit agreement", () => {
             delegateConsumer,
           });
 
-          const submittedAgreement = await agreementService.submitAgreement(
-            agreement.id,
-            {
-              consumerNotes: consumerNotesText,
-            },
-            getMockContext({ authData })
-          );
+          const { data: submittedAgreement } =
+            await agreementService.submitAgreement(
+              agreement.id,
+              {
+                consumerNotes: consumerNotesText,
+              },
+              getMockContext({ authData })
+            );
 
           const uploadedFiles = await fileManager.listFiles(
             config.s3Bucket,
@@ -1436,13 +1438,14 @@ describe("submit agreement", () => {
         nonArchivableRelatedAgreement,
       } = await addRelatedAgreements(agreement);
 
-      const submittedAgreement = await agreementService.submitAgreement(
-        agreement.id,
-        {
-          consumerNotes: consumerNotesText,
-        },
-        getMockContext({ authData })
-      );
+      const { data: submittedAgreement } =
+        await agreementService.submitAgreement(
+          agreement.id,
+          {
+            consumerNotes: consumerNotesText,
+          },
+          getMockContext({ authData })
+        );
 
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
 
@@ -1626,13 +1629,14 @@ describe("submit agreement", () => {
             delegateConsumer,
           });
 
-          const submittedAgreement = await agreementService.submitAgreement(
-            agreement.id,
-            {
-              consumerNotes: consumerNotesText,
-            },
-            getMockContext({ authData })
-          );
+          const { data: submittedAgreement } =
+            await agreementService.submitAgreement(
+              agreement.id,
+              {
+                consumerNotes: consumerNotesText,
+              },
+              getMockContext({ authData })
+            );
 
           const uploadedFiles = await fileManager.listFiles(
             config.s3Bucket,
@@ -1903,13 +1907,14 @@ describe("submit agreement", () => {
         delegateConsumer,
       });
 
-      const submittedAgreement = await agreementService.submitAgreement(
-        agreement.id,
-        {
-          consumerNotes: consumerNotesText,
-        },
-        getMockContext({ authData })
-      );
+      const { data: submittedAgreement } =
+        await agreementService.submitAgreement(
+          agreement.id,
+          {
+            consumerNotes: consumerNotesText,
+          },
+          getMockContext({ authData })
+        );
 
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
 
@@ -2054,13 +2059,14 @@ describe("submit agreement", () => {
         delegateConsumer,
       });
 
-      const submittedAgreement = await agreementService.submitAgreement(
-        agreement.id,
-        {
-          consumerNotes: consumerNotesText,
-        },
-        getMockContext({ authData })
-      );
+      const { data: submittedAgreement } =
+        await agreementService.submitAgreement(
+          agreement.id,
+          {
+            consumerNotes: consumerNotesText,
+          },
+          getMockContext({ authData })
+        );
 
       const actualAgreementData = await readLastAgreementEvent(agreement.id);
 

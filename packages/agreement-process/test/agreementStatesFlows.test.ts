@@ -161,7 +161,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       2) Consumer submits the agreement (making it Active)
     ================================= */
-    const submittedAgreement = await agreementService.submitAgreement(
+    const { data: submittedAgreement } = await agreementService.submitAgreement(
       createdAgreement.id,
       {
         consumerNotes: "Some notes here!",
@@ -175,10 +175,11 @@ describe("Agreeement states flows", () => {
     /* =================================
       3) Consumer suspends the agreement (make it SUSPENDED byConsumer)
     ================================= */
-    const suspendedAgreement = await agreementService.suspendAgreement(
-      submittedAgreement.id,
-      getMockContext({ authData: consumerAuthData })
-    );
+    const { data: suspendedAgreement } =
+      await agreementService.suspendAgreement(
+        submittedAgreement.id,
+        getMockContext({ authData: consumerAuthData })
+      );
 
     expect(suspendedAgreement.state).toEqual(agreementState.suspended);
     expect(suspendedAgreement.suspendedByConsumer).toEqual(true);
@@ -231,7 +232,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-    const upgradedAgreement = await agreementService.upgradeAgreement(
+    const { data: upgradedAgreement } = await agreementService.upgradeAgreement(
       suspendedAgreement.id,
       getMockContext({ authData: consumerAuthData })
     );
@@ -246,14 +247,15 @@ describe("Agreeement states flows", () => {
       6) Producer submits the agreement to make it PENDING
       (valid att CERTIFIED and DECLARED)
     ================================= */
-    const submittedUpgradedAgreement = await agreementService.submitAgreement(
-      upgradedAgreement.id,
-      {
-        consumerNotes:
-          "This upgrade is for transit agreement state to PENDING!",
-      },
-      getMockContext({ authData: consumerAuthData })
-    );
+    const { data: submittedUpgradedAgreement } =
+      await agreementService.submitAgreement(
+        upgradedAgreement.id,
+        {
+          consumerNotes:
+            "This upgrade is for transit agreement state to PENDING!",
+        },
+        getMockContext({ authData: consumerAuthData })
+      );
 
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
     await updateAgreementInReadModel(submittedUpgradedAgreement);
@@ -314,10 +316,11 @@ describe("Agreeement states flows", () => {
 
     const producerAuthData = getMockAuthData(producer.id);
 
-    const activatedAgreement = await agreementService.activateAgreement(
-      submittedUpgradedAgreement.id,
-      getMockContext({ authData: producerAuthData })
-    );
+    const { data: activatedAgreement } =
+      await agreementService.activateAgreement(
+        submittedUpgradedAgreement.id,
+        getMockContext({ authData: producerAuthData })
+      );
 
     await updateAgreementInReadModel(activatedAgreement);
 
@@ -410,7 +413,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       2) Consumer submits the agreement (making it Active)
     ================================= */
-    const submittedAgreement = await agreementService.submitAgreement(
+    const { data: submittedAgreement } = await agreementService.submitAgreement(
       createdAgreement.id,
       {
         consumerNotes: "Some notes here!",
@@ -466,7 +469,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-    const upgradedAgreement = await agreementService.upgradeAgreement(
+    const { data: upgradedAgreement } = await agreementService.upgradeAgreement(
       submittedAgreement.id,
       getMockContext({ authData: consumerAuthData })
     );
@@ -481,14 +484,15 @@ describe("Agreeement states flows", () => {
       6) Producer submits the agreement to make it PENDING
       (valid att CERTIFIED and DECLARED)
     ================================= */
-    const submittedUpgradedAgreement = await agreementService.submitAgreement(
-      upgradedAgreement.id,
-      {
-        consumerNotes:
-          "This upgrade is for transit agreement state to PENDING!",
-      },
-      getMockContext({ authData: consumerAuthData })
-    );
+    const { data: submittedUpgradedAgreement } =
+      await agreementService.submitAgreement(
+        upgradedAgreement.id,
+        {
+          consumerNotes:
+            "This upgrade is for transit agreement state to PENDING!",
+        },
+        getMockContext({ authData: consumerAuthData })
+      );
 
     expect(submittedUpgradedAgreement.state).toEqual(agreementState.pending);
     await updateAgreementInReadModel(submittedUpgradedAgreement);
@@ -543,10 +547,11 @@ describe("Agreeement states flows", () => {
 
     const producerAuthData = getMockAuthData(producer.id);
 
-    const activatedAgreement = await agreementService.activateAgreement(
-      submittedUpgradedAgreement.id,
-      getMockContext({ authData: producerAuthData })
-    );
+    const { data: activatedAgreement } =
+      await agreementService.activateAgreement(
+        submittedUpgradedAgreement.id,
+        getMockContext({ authData: producerAuthData })
+      );
 
     await updateAgreementInReadModel(activatedAgreement);
 

@@ -123,7 +123,7 @@ describe("suspend agreement", () => {
     ]);
     const authData = getMockAuthData(requesterId);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const { data: returnedAgreement } = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -239,7 +239,7 @@ describe("suspend agreement", () => {
 
     const authData = getMockAuthData(producerAndConsumerId);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const { data: returnedAgreement } = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -323,7 +323,7 @@ describe("suspend agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(agreement);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const { data: returnedAgreement } = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -474,10 +474,11 @@ describe("suspend agreement", () => {
           },
         };
 
-        const actualAgreement = await agreementService.suspendAgreement(
-          agreement.id,
-          getMockContext({ authData })
-        );
+        const { data: actualAgreement } =
+          await agreementService.suspendAgreement(
+            agreement.id,
+            getMockContext({ authData })
+          );
         expect(actualAgreement).toEqual(expectedAgreement);
       });
     }

@@ -226,10 +226,11 @@ describe("upgrade Agreement", () => {
         await uploadDocument(agreementId, doc.id, doc.name);
       }
 
-      const returnedAgreement = await agreementService.upgradeAgreement(
-        agreement.id,
-        getMockContext({ authData })
-      );
+      const { data: returnedAgreement } =
+        await agreementService.upgradeAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        );
       const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
       const actualAgreementArchivedEvent = await readAgreementEventByVersion(
@@ -482,10 +483,11 @@ describe("upgrade Agreement", () => {
           }
 
           vi.spyOn(pdfGenerator, "generate");
-          const returnedAgreement = await agreementService.upgradeAgreement(
-            agreement.id,
-            getMockContext({ authData })
-          );
+          const { data: returnedAgreement } =
+            await agreementService.upgradeAgreement(
+              agreement.id,
+              getMockContext({ authData })
+            );
           const newAgreementId = unsafeBrandId<AgreementId>(
             returnedAgreement.id
           );
@@ -804,10 +806,11 @@ describe("upgrade Agreement", () => {
         await uploadDocument(agreementId, doc.id, doc.name);
       }
 
-      const returnedAgreement = await agreementService.upgradeAgreement(
-        agreement.id,
-        getMockContext({ authData })
-      );
+      const { data: returnedAgreement } =
+        await agreementService.upgradeAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        );
       const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
 
       expect(newAgreementId).toBeDefined();
