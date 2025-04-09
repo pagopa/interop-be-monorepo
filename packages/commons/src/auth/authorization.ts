@@ -115,7 +115,7 @@ export function hasAtLeastOneUserRole(
   );
 }
 
-function isUiAuthData(authData: AuthData): authData is UIAuthData {
+export function isUiAuthData(authData: AuthData): authData is UIAuthData {
   return match(authData)
     .with({ systemRole: undefined }, () => true)
     .with(
