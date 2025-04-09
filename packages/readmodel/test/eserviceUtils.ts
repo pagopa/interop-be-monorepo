@@ -97,7 +97,7 @@ export const checkCompleteEService = async (
   );
   const riskAnalysisAnswersSQL =
     await retrieveEserviceRiskAnalysisAnswersSQLById(eservice.id, readModelDB);
-  const templateRefsSQL = await retrieveEServiceTemplateRefSQLById(
+  const templateRefSQL = await retrieveEServiceTemplateRefSQLById(
     eservice.id,
     readModelDB
   );
@@ -124,7 +124,7 @@ export const checkCompleteEService = async (
       0
     )
   );
-  expect(templateRefsSQL).toBeDefined();
+  expect(templateRefSQL).toBeDefined();
   expect(templateVersionRefsSQL).toHaveLength(eservice.descriptors.length);
 
   return {
@@ -136,7 +136,7 @@ export const checkCompleteEService = async (
     rejectionReasonsSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
-    templateRefSQL: templateRefsSQL!,
+    templateRefSQL,
     templateVersionRefsSQL,
   };
 };
