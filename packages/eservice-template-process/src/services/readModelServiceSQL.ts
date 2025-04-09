@@ -350,10 +350,12 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset);
 
-      const data = queryResult.map((d) => ({
-        id: d.id,
-        name: d.name,
-      }));
+      const data: eserviceTemplateApi.CompactOrganization[] = queryResult.map(
+        (d) => ({
+          id: d.id,
+          name: d.name,
+        })
+      );
 
       const result = z
         .array(eserviceTemplateApi.CompactOrganization)
