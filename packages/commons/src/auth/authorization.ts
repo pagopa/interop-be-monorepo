@@ -77,7 +77,7 @@ export function validateAuthorization<
           admittedAuthRoles.filter(isSystemRole);
         if (!admittedSystemRoles.includes(systemRole)) {
           throw unauthorizedError(
-            `Invalid role '${systemRole}' for this operation`
+            `Invalid role "${systemRole}" for this operation`
           );
         }
       }
@@ -86,13 +86,10 @@ export function validateAuthorization<
       const admittedUserRoles: UserRole[] =
         admittedAuthRoles.filter(isUserRole);
 
-      if (admittedUserRoles.length === 0) {
-        throw unauthorizedError(
-          `Invalid empty user roles specified for this operation`
-        );
-      }
-
-      if (!hasAtLeastOneUserRole(authData, admittedUserRoles)) {
+      if (
+        admittedUserRoles.length === 0 ||
+        !hasAtLeastOneUserRole(authData, admittedUserRoles)
+      ) {
         throw unauthorizedError(
           `Invalid roles ${JSON.stringify(
             authData.userRoles
