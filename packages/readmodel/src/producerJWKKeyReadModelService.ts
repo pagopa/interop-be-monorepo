@@ -55,22 +55,15 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       producerKeychainId: ProducerKeychainId,
       kid: string
     ): Promise<WithMetadata<ProducerJWKKey> | undefined> {
-      const queryResult = await db
-        .select()
-        .from(producerJwkKeyInReadmodelProducerJwkKey)
-        .where(
-          and(
-            eq(
-              producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-              producerKeychainId
-            ),
-            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kid)
-          )
-        );
-      if (queryResult.length === 0) {
-        return undefined;
-      }
-      return aggregateProducerJWKKey(queryResult[0]);
+      return this.getProducerJWKKeyByFilter(
+        and(
+          eq(
+            producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+            producerKeychainId
+          ),
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kid)
+        )
+      );
     },
     async getProducerJWKKeyByFilter(
       filter: SQL | undefined

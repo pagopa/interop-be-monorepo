@@ -51,21 +51,12 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       clientId: ClientId,
       kid: string
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
-      const queryResult = await db
-        .select()
-        .from(clientJwkKeyInReadmodelClientJwkKey)
-        .where(
-          and(
-            eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
-            eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
-          )
-        );
-
-      if (queryResult.length === 0) {
-        return undefined;
-      }
-
-      return aggregateClientJWKKey(queryResult[0]);
+      return this.getClientJWKKeyByFilter(
+        and(
+          eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
+        )
+      );
     },
     async getClientJWKKeyByFilter(
       filter: SQL | undefined
