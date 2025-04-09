@@ -1,5 +1,10 @@
 import { IncomingHttpHeaders } from "http";
-import { AppContext, WithLogger, logger } from "pagopa-interop-commons";
+import {
+  AppContext,
+  UIAuthData,
+  WithLogger,
+  logger,
+} from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 
 export type Headers = {
@@ -8,14 +13,16 @@ export type Headers = {
   "X-Forwarded-For": string | undefined;
 };
 
-export type BffAppContext = AppContext & { headers: Headers };
+export type BffAppContext = AppContext<UIAuthData> & {
+  headers: Headers;
+};
 
 export function fromBffAppContext(
   ctx: AppContext,
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): WithLogger<BffAppContext> {
   return {
-    ...ctx,
+    ...(ctx as AppContext<UIAuthData>), // BFF is called only with UIAuthData
     headers: {
       "X-Correlation-Id": ctx.correlationId,
       Authorization: headers.authorization,
