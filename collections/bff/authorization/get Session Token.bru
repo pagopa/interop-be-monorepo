@@ -10,10 +10,6 @@ post {
   auth: none
 }
 
-headers {
-  x-correlation-id: {{correlation-id}}
-}
-
 body:json {
   {
     "identity_token": "{{process.env.JWT}}"

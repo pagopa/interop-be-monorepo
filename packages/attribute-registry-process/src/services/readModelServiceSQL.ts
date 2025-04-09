@@ -52,7 +52,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: totalCount[0].count,
+        totalCount: totalCount[0]?.count || 0,
       };
     },
 
@@ -95,7 +95,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: totalCount[0].count,
+        totalCount: totalCount[0]?.count || 0,
       };
     },
 
@@ -120,7 +120,7 @@ export function readModelServiceBuilderSQL(
         );
 
       if (res.length === 0) {
-        return undefined; // TODO move into aggregator?
+        return undefined;
       }
 
       return aggregateAttribute(res[0]);
@@ -150,7 +150,7 @@ export function readModelServiceBuilderSQL(
         );
 
       if (res.length === 0) {
-        return undefined; // TODO move into aggregator?
+        return undefined;
       }
 
       return aggregateAttribute(res[0]);
@@ -177,7 +177,7 @@ export function readModelServiceBuilderSQL(
         );
 
       if (res.length === 0) {
-        return undefined; // TODO move into aggregator?
+        return undefined;
       }
 
       return aggregateAttribute(res[0]);

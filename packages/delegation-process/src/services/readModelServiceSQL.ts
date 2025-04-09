@@ -124,76 +124,65 @@ export function readModelServiceBuilderSQL({
       offset: number;
       limit: number;
     }): Promise<ListResult<Delegation>> {
-      const queryResult = await readModelDB.transaction(async (tx) => {
-        const subquery = tx
-          .select({
-            delegationId: delegationInReadmodelDelegation.id,
-            totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
-          })
-          .from(delegationInReadmodelDelegation)
-          .where(
-            and(
-              delegateIds.length > 0
-                ? inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    delegateIds
-                  )
-                : undefined,
-              delegatorIds.length > 0
-                ? inArray(
-                    delegationInReadmodelDelegation.delegatorId,
-                    delegatorIds
-                  )
-                : undefined,
-              eserviceIds.length > 0
-                ? inArray(
-                    delegationInReadmodelDelegation.eserviceId,
-                    eserviceIds
-                  )
-                : undefined,
-              delegationStates.length > 0
-                ? inArray(
-                    delegationInReadmodelDelegation.state,
-                    delegationStates
-                  )
-                : undefined,
-              kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
-            )
+      const subquery = readModelDB
+        .select({
+          delegationId: delegationInReadmodelDelegation.id,
+          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+        })
+        .from(delegationInReadmodelDelegation)
+        .where(
+          and(
+            delegateIds.length > 0
+              ? inArray(delegationInReadmodelDelegation.delegateId, delegateIds)
+              : undefined,
+            delegatorIds.length > 0
+              ? inArray(
+                  delegationInReadmodelDelegation.delegatorId,
+                  delegatorIds
+                )
+              : undefined,
+            eserviceIds.length > 0
+              ? inArray(delegationInReadmodelDelegation.eserviceId, eserviceIds)
+              : undefined,
+            delegationStates.length > 0
+              ? inArray(delegationInReadmodelDelegation.state, delegationStates)
+              : undefined,
+            kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
           )
-          .groupBy(delegationInReadmodelDelegation.id)
-          .limit(limit)
-          .offset(offset)
-          .as("subquery");
-        // TODO: missing orderBy. Mongo not sorting
+        )
+        .groupBy(delegationInReadmodelDelegation.id)
+        .limit(limit)
+        .offset(offset)
+        .as("subquery");
+      // TODO: missing orderBy. Mongo not sorting
 
-        return await tx
-          .select({
-            delegation: delegationInReadmodelDelegation,
-            delegationStamp: delegationStampInReadmodelDelegation,
-            delegationContractDocument:
-              delegationContractDocumentInReadmodelDelegation,
-            totalCount: subquery.totalCount,
-          })
-          .from(delegationInReadmodelDelegation)
-          .innerJoin(
-            subquery,
-            eq(delegationInReadmodelDelegation.id, subquery.delegationId)
-          )
-          .leftJoin(
-            delegationStampInReadmodelDelegation,
-            eq(
-              delegationInReadmodelDelegation.id,
-              delegationStampInReadmodelDelegation.delegationId
-            )
-          )
-          .leftJoin(
+      const queryResult = await readModelDB
+        .select({
+          delegation: delegationInReadmodelDelegation,
+          delegationStamp: delegationStampInReadmodelDelegation,
+          delegationContractDocument:
             delegationContractDocumentInReadmodelDelegation,
-            eq(
-              delegationInReadmodelDelegation.id,
-              delegationContractDocumentInReadmodelDelegation.delegationId
-            )
-          );
-      });
+          totalCount: subquery.totalCount,
+        })
+        .from(delegationInReadmodelDelegation)
+        .innerJoin(
+          subquery,
+          eq(delegationInReadmodelDelegation.id, subquery.delegationId)
+        )
+        .leftJoin(
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .leftJoin(
+          delegationContractDocumentInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationContractDocumentInReadmodelDelegation.delegationId
+          )
+        );
 
       return {
         results: aggregateDelegationArray(
@@ -252,7 +241,7 @@ export function readModelServiceBuilderSQL({
         .limit(filters.limit)
         .offset(filters.offset);
 
-      const data = queryResult.map((d) => ({
+      const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
         id: d.id,
         name: d.name,
       }));
@@ -339,7 +328,7 @@ export function readModelServiceBuilderSQL({
         .limit(filters.limit)
         .offset(filters.offset);
 
-      const data = queryResult.map((d) => ({
+      const data: delegationApi.CompactTenant[] = queryResult.map((d) => ({
         id: d.id,
         name: d.name,
       }));
