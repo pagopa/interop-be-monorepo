@@ -53,8 +53,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving clients"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -74,8 +73,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -92,8 +90,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -114,8 +111,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error removing purpose ${req.params.purposeId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -137,8 +133,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving keys of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -159,8 +154,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting key ${req.params.keyId} of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -181,8 +175,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding users ${req.body.userIds.join(",")} to client ${
             req.params.clientId
           }`
@@ -206,8 +199,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error removing user ${req.params.userId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -229,8 +221,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding purpose to client ${req.body.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -252,8 +243,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           getClientUsersErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving users of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -270,8 +260,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating keys for client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -296,8 +285,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving keys of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -318,8 +306,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving key ${req.params.keyId} for client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -337,8 +324,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating consumer client with name ${req.body.name}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -356,8 +342,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating api client with name ${req.body.name}`
         );
         return res.status(errorRes.status).send(errorRes);

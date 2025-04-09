@@ -60,8 +60,11 @@ export const contextMiddleware =
         const problem = makeApiProblem(
           missingHeader("X-Correlation-Id"),
           () => constants.HTTP_STATUS_BAD_REQUEST,
-          genericLogger,
-          unsafeBrandId("MISSING")
+          {
+            logger: genericLogger,
+            correlationId: unsafeBrandId("MISSING"),
+            serviceName,
+          }
         );
         return res.status(problem.status).send(problem);
       }
