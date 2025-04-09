@@ -109,12 +109,7 @@ const tenantsRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -148,12 +143,7 @@ const tenantsRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -188,12 +178,7 @@ const tenantsRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -221,12 +206,7 @@ const tenantsRouter = (
             .status(200)
             .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getTenantByIdErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getTenantByIdErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -260,8 +240,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             getTenantByExternalIdErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -293,8 +272,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             getCertifiedAttributesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -324,8 +302,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTenantVerifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -353,8 +330,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             updateVerifiedAttributeExtensionDateErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -381,8 +357,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             maintenanceTenantPromotedToCertifierErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -405,12 +380,7 @@ const tenantsRouter = (
           );
           return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            addTenantMailErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, addTenantMailErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -434,8 +404,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             maintenanceTenantDeletedErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -461,8 +430,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             maintenanceTenantUpdatedErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -489,8 +457,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteTenantMailErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -514,8 +481,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTenantDelegatedFeaturesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -540,8 +506,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             m2mUpsertTenantErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -567,8 +532,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             m2mRevokeCertifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -605,8 +569,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             getTenantBySelfcareIdErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -630,8 +593,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             selfcareUpsertTenantErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -659,8 +621,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             internalUpsertTenantErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -688,8 +649,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             internalAddCertifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -717,8 +677,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             internalRevokeCertifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -752,8 +711,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             addCertifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -780,8 +738,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             addDeclaredAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -811,8 +768,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             verifyVerifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -839,8 +795,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeVerifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -865,8 +820,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeCertifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -893,8 +847,7 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             revokeDeclaredAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
