@@ -1,5 +1,10 @@
 import { and, eq, lte, SQL } from "drizzle-orm";
-import { ClientId, ClientJWKKey, WithMetadata } from "pagopa-interop-models";
+import {
+  ClientId,
+  ClientJWKKey,
+  genericInternalError,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   clientJwkKeyInReadmodelClientJwkKey,
   DrizzleReturnType,
@@ -61,6 +66,9 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
     async getClientJWKKeyByFilter(
       filter: SQL | undefined
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
       const queryResult = await db
         .select()
         .from(clientJwkKeyInReadmodelClientJwkKey)

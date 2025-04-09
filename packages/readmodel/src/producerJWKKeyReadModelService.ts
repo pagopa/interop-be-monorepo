@@ -1,5 +1,6 @@
 import { eq, and, lte, SQL } from "drizzle-orm";
 import {
+  genericInternalError,
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
@@ -68,6 +69,9 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
     async getProducerJWKKeyByFilter(
       filter: SQL | undefined
     ): Promise<WithMetadata<ProducerJWKKey> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
       const queryResult = await db
         .select()
         .from(producerJwkKeyInReadmodelProducerJwkKey)
