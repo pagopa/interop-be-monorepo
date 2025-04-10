@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   Agreement,
   Attribute,
@@ -50,6 +49,7 @@ import {
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
+  DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -88,9 +88,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilderSQL(
-  readModelDB: ReturnType<typeof drizzle>
-) {
+export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
   return {
     async getAllAttributes(): Promise<Array<WithMetadata<Attribute>>> {
       const res = await readModelDB
