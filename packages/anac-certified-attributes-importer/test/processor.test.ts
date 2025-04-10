@@ -8,10 +8,17 @@ import {
   genericLogger,
 } from "pagopa-interop-commons";
 import { generateId, Tenant, unsafeBrandId } from "pagopa-interop-models";
+import {
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
 import { SftpClient } from "../src/service/sftpService.js";
-import { ReadModelQueries } from "../src/service/readmodelQueriesService.js";
+import { readModelQueriesBuilder } from "../src/service/readmodelQueriesService.js";
+import { readModelQueriesBuilderSQL } from "../src/service/readmodelQueriesServiceSQL.js";
 import { importAttributes } from "../src/service/processor.js";
+import { config } from "../src/config/config.js";
 import {
   ATTRIBUTE_ANAC_ASSIGNED_ID,
   ATTRIBUTE_ANAC_ENABLED_ID,
@@ -38,8 +45,23 @@ describe("ANAC Certified Attributes Importer", () => {
   const tenantProcessMock = new TenantProcessService("url");
   const sftpClientMock = new SftpClient(sftpConfigTest);
   const readModelClient = {} as ReadModelRepository;
-  const readModelQueriesMock = new ReadModelQueries(readModelClient);
+  const oldReadModelQueries = readModelQueriesBuilder(readModelClient);
 
+  const db = makeDrizzleConnection(config);
+  const tenantReadModelService = tenantReadModelServiceBuilder(db);
+  const attributeReadModelService = attributeReadModelServiceBuilder(db);
+  const readModelQueriesSQL = readModelQueriesBuilderSQL(
+    db,
+    tenantReadModelService,
+    attributeReadModelService
+  );
+
+  const readModelQueriesMock =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelQueriesSQL
+      : oldReadModelQueries;
   const interopToken: InteropToken = {
     header: {
       alg: "algorithm",
