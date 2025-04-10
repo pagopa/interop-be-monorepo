@@ -103,7 +103,7 @@ export const InterfaceVersion = z
   }));
 export type InterfaceVersion = z.infer<typeof InterfaceVersion>;
 
-const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
+const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
@@ -115,5 +115,5 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
   .and(InterfaceVersion);
 
-export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
-export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
+export type M2MGatewayConfig = z.infer<typeof M2MGatewayConfig>;
+export const config: M2MGatewayConfig = M2MGatewayConfig.parse(process.env);
