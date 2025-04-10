@@ -24,6 +24,7 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenStatesConsumerClientGSIAgreement,
   TokenGenStatesConsumerClientGSIDescriptor,
+  PlatformStatesClientEntry,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -462,6 +463,43 @@ export const writePlatformAgreementEntry = async (
       },
       agreementDescriptorId: {
         S: agreementEntry.agreementDescriptorId,
+      },
+    },
+    TableName: "platform-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const writePlatformStatesClientEntry = async (
+  clientEntry: PlatformStatesClientEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: clientEntry.PK,
+      },
+      state: {
+        S: clientEntry.state,
+      },
+      clientPurposesIds: {
+        L: clientEntry.clientPurposesIds.map((purposeId) => ({
+          S: purposeId,
+        })),
+      },
+      clientKind: {
+        S: clientEntry.clientKind,
+      },
+      clientConsumerId: {
+        S: clientEntry.clientConsumerId,
+      },
+      version: {
+        N: clientEntry.version.toString(),
+      },
+      updatedAt: {
+        S: clientEntry.updatedAt,
       },
     },
     TableName: "platform-states",

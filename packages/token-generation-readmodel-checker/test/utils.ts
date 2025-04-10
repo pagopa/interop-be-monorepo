@@ -1,8 +1,4 @@
-import {
-  DynamoDBClient,
-  PutItemInput,
-  PutItemCommand,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   setupTestContainersVitest,
   writeInReadmodel,
@@ -11,7 +7,6 @@ import {
   Agreement,
   Client,
   EService,
-  PlatformStatesClientEntry,
   Purpose,
   toReadModelAgreement,
   toReadModelClient,
@@ -101,41 +96,4 @@ export const addOneClient = async (client: Client): Promise<void> => {
   );
 
   await clientReadModelServiceSQL.upsertClient(client, 0);
-};
-
-export const writePlatformStatesClientEntry = async (
-  clientEntry: PlatformStatesClientEntry,
-  dynamoDBClient: DynamoDBClient
-): Promise<void> => {
-  const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
-    Item: {
-      PK: {
-        S: clientEntry.PK,
-      },
-      state: {
-        S: clientEntry.state,
-      },
-      clientPurposesIds: {
-        L: clientEntry.clientPurposesIds.map((purposeId) => ({
-          S: purposeId,
-        })),
-      },
-      clientKind: {
-        S: clientEntry.clientKind,
-      },
-      clientConsumerId: {
-        S: clientEntry.clientConsumerId,
-      },
-      version: {
-        N: clientEntry.version.toString(),
-      },
-      updatedAt: {
-        S: clientEntry.updatedAt,
-      },
-    },
-    TableName: "platform-states",
-  };
-  const command = new PutItemCommand(input);
-  await dynamoDBClient.send(command);
 };
