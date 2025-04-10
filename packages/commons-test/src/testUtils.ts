@@ -89,6 +89,9 @@ import {
   dateToSeconds,
   genericLogger,
   InternalAuthData,
+  M2MAuthData,
+  MaintenanceAuthData,
+  systemRole,
   UIAuthData,
   UserRole,
   userRole,
@@ -815,11 +818,44 @@ export const getMockContextInternal = ({
   serviceName?: string;
 }): WithLogger<AppContext<InternalAuthData>> => ({
   authData: {
-    systemRole: "internal",
+    systemRole: systemRole.INTERNAL_ROLE,
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
   logger: genericLogger,
   spanId: generateId(),
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextMaintenance = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<MaintenanceAuthData>> => ({
+  authData: {
+    systemRole: systemRole.MAINTENANCE_ROLE,
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+  spanId: generateId(),
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextM2M = ({
+  organizationId,
+  serviceName,
+}: {
+  organizationId?: TenantId;
+  serviceName?: string;
+}): WithLogger<AppContext<M2MAuthData>> => ({
+  authData: {
+    systemRole: systemRole.M2M_ROLE,
+    organizationId: organizationId || generateId(),
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
   requestTimestamp: Date.now(),
 });
