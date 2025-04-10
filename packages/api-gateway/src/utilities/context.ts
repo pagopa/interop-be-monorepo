@@ -1,5 +1,10 @@
 import { IncomingHttpHeaders } from "http";
-import { AppContext, WithLogger, logger } from "pagopa-interop-commons";
+import {
+  AppContext,
+  AuthData,
+  WithLogger,
+  logger,
+} from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 
 export type Headers = {
@@ -8,10 +13,13 @@ export type Headers = {
   "X-Forwarded-For": string | undefined;
 };
 
-export type ApiGatewayAppContext = AppContext & { headers: Headers };
+export type ApiGatewayAppContext<A extends AuthData = AuthData> =
+  AppContext<A> & {
+    headers: Headers;
+  };
 
 export function fromApiGatewayAppContext(
-  ctx: AppContext,
+  ctx: ApiGatewayAppContext,
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): WithLogger<ApiGatewayAppContext> {
   return {
