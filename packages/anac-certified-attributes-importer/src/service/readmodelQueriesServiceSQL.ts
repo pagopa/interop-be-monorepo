@@ -19,7 +19,6 @@ import {
   tenantCertifiedAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { AnacReadModelTenant } from "../model/tenant.js";
 
@@ -99,11 +98,6 @@ export function readModelQueriesBuilderSQL(
           feature: tenantFeatureInReadmodelTenant,
         })
         .from(tenantInReadmodelTenant)
-        .leftJoin(
-          // 1
-          tenantMailInReadmodelTenant,
-          eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
-        )
         .innerJoin(
           tenantCertifiedAttributeInReadmodelTenant,
           and(
@@ -195,11 +189,6 @@ export function readModelQueriesBuilderSQL(
           feature: tenantFeatureInReadmodelTenant,
         })
         .from(tenantInReadmodelTenant)
-        .leftJoin(
-          // 1
-          tenantMailInReadmodelTenant,
-          eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
-        )
         .innerJoin(
           tenantCertifiedAttributeInReadmodelTenant,
           and(
