@@ -69,39 +69,34 @@ export const aggregateDescriptor = ({
     : undefined;
 
   const {
-    Certified: certifiedAttributesSQL,
-    Verified: declaredAttributesSQL,
-    Declared: verifiedAttributesSQL,
+    certified: certifiedAttributesSQL,
+    verified: declaredAttributesSQL,
+    declared: verifiedAttributesSQL,
   } = attributesSQL.reduce(
-    (
-      acc: { [key in AttributeKind]?: EServiceDescriptorAttributeSQL[] },
-      attributeSQL
-    ) =>
+    (acc, attributeSQL) =>
       match(AttributeKind.parse(attributeSQL.kind))
         .with(attributeKind.certified, () => ({
           ...acc,
-          Certified: [...(acc.Certified || []), attributeSQL],
+          certified: [...acc.certified, attributeSQL],
         }))
         .with(attributeKind.declared, () => ({
           ...acc,
-          Declared: [...(acc.Declared || []), attributeSQL],
+          declared: [...acc.declared, attributeSQL],
         }))
         .with(attributeKind.verified, () => ({
           ...acc,
-          Verified: [...(acc.Verified || []), attributeSQL],
+          verified: [...acc.verified, attributeSQL],
         }))
         .exhaustive(),
-    {}
+    {
+      certified: new Array<EServiceDescriptorAttributeSQL>(),
+      declared: new Array<EServiceDescriptorAttributeSQL>(),
+      verified: new Array<EServiceDescriptorAttributeSQL>(),
+    }
   );
-  const certifiedAttributes = certifiedAttributesSQL
-    ? attributesSQLtoAttributes(certifiedAttributesSQL)
-    : [];
-  const declaredAttributes = declaredAttributesSQL
-    ? attributesSQLtoAttributes(declaredAttributesSQL)
-    : [];
-  const verifiedAttributes = verifiedAttributesSQL
-    ? attributesSQLtoAttributes(verifiedAttributesSQL)
-    : [];
+  const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
+  const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
+  const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
 
   const rejectionReasonsArray = rejectionReasonsSQL.map((rejectionReason) => ({
     rejectionReason: rejectionReason.rejectionReason,
