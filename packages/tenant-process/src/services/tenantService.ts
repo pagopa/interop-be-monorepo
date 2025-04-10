@@ -343,7 +343,8 @@ export function tenantServiceBuilder(
 
         if (isUiAuthData(authData)) {
           // TODO this check is skipped in case of calls that do not come from the UI,
-          // e.g., internal calls - consider creating a dedicated internal route
+          // e.g., internal calls - consider creating a dedicated internal route.
+          // Double check if the non-internal case is actually exposed by BFF/API GW.
           await assertRequesterAllowed(existingTenant.data.id, authData);
         }
 
