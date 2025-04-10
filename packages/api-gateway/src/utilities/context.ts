@@ -19,7 +19,7 @@ export type ApiGatewayAppContext<A extends AuthData = AuthData> =
   };
 
 export function fromApiGatewayAppContext(
-  ctx: AppContext,
+  ctx: ApiGatewayAppContext,
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): WithLogger<ApiGatewayAppContext> {
   return {
