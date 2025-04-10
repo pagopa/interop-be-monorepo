@@ -14,12 +14,12 @@ import { config } from "./config/config.js";
 import { SftpClient } from "./service/sftpService.js";
 import { TenantProcessService } from "./service/tenantProcessService.js";
 import { importAttributes } from "./service/processor.js";
-import { readModelQueriesBuilder } from "./service/readmodelQueriesService.js";
 import { readModelQueriesBuilderSQL } from "./service/readmodelQueriesServiceSQL.js";
+import { ReadModelQueries } from "./service/readmodelQueriesService.js";
 
 const sftpClient: SftpClient = new SftpClient(config);
 const readModelClient = ReadModelRepository.init(config);
-const oldReadModelQueries = readModelQueriesBuilder(readModelClient);
+const oldReadModelQueries = new ReadModelQueries(readModelClient);
 const db = makeDrizzleConnection(config);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
