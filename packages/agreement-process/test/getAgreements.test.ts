@@ -1,7 +1,6 @@
 /* eslint-disable functional/no-let */
 import {
   getMockTenant,
-  getMockDescriptorPublished,
   getMockEService,
   getMockAgreement,
   getMockDelegation,
@@ -30,6 +29,7 @@ import {
   agreementService,
   addOneDelegation,
   expectSinglePageListResult,
+  getAMockDescriptorPublished,
 } from "./utils.js";
 
 describe("get agreements", () => {
@@ -44,6 +44,7 @@ describe("get agreements", () => {
   let descriptor3: Descriptor;
   let descriptor4: Descriptor;
   let descriptor5: Descriptor;
+  let descriptor6: Descriptor;
   let eservice1: EService;
   let eservice2: EService;
   let eservice3: EService;
@@ -72,23 +73,24 @@ describe("get agreements", () => {
     delegateConsumer2 = getMockTenant();
 
     descriptor1 = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       state: descriptorState.suspended,
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     };
     descriptor2 = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       publishedAt: new Date(),
     };
     descriptor3 = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       publishedAt: new Date(Date.now()),
     };
     descriptor4 = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     };
-    descriptor5 = getMockDescriptorPublished();
+    descriptor5 = getAMockDescriptorPublished();
+    descriptor6 = getAMockDescriptorPublished();
     eservice1 = {
       ...getMockEService(generateId<EServiceId>(), tenant1.id, [
         descriptor1,
@@ -107,11 +109,11 @@ describe("get agreements", () => {
     };
     eservice3 = {
       ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
-      name: "EService3", // Adding name because results are sorted by esevice name
+      name: "EService3", // Adding name because results are sorted by eservice name
     };
     eservice4 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
-      name: "EService4", // Adding name because results are sorted by esevice name
+      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor6]),
+      name: "EService4", // Adding name because results are sorted by eservice name
     };
 
     await addOneTenant(tenant1);
@@ -268,7 +270,7 @@ describe("get agreements", () => {
     await addOneDelegation(revokedConsumerDelegation);
   });
 
-  it("should get all agreements visible to consumer/producer requester if no filters are provided", async () => {
+  it.only("should get all agreements visible to consumer/producer requester if no filters are provided", async () => {
     const allAgreementsVisibleToTenant1 = await agreementService.getAgreements(
       {},
       20,

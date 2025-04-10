@@ -13,6 +13,7 @@ import {
   getMockDelegation,
   getMockTenant,
   getMockAuthData,
+  sortBy,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -37,6 +38,13 @@ import {
   delegationKind,
   delegationState,
   ListResult,
+  Descriptor,
+  DescriptorId,
+  descriptorState,
+  EServiceAttribute,
+  DescriptorState,
+  WithMetadata,
+  AgreementAttribute,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -222,6 +230,46 @@ export async function uploadDocument(
     `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
   );
 }
+
+export const getAMockDescriptorPublished = (
+  descriptorId: DescriptorId = generateId<DescriptorId>(),
+  certifiedAttributes: EServiceAttribute[][] = [],
+  declaredAttributes: EServiceAttribute[][] = [],
+  verifiedAttributes: EServiceAttribute[][] = []
+): Descriptor => ({
+  ...getAMockDescriptor(descriptorState.published),
+  id: descriptorId,
+  attributes: {
+    certified: certifiedAttributes,
+    declared: declaredAttributes,
+    verified: verifiedAttributes,
+  },
+  rejectionReasons: undefined,
+});
+
+export const getAMockDescriptor = (state?: DescriptorState): Descriptor => ({
+  id: generateId(),
+  version: "1",
+  docs: [],
+  state: state || descriptorState.draft,
+  audience: ["pagopa.it"],
+  voucherLifespan: 60,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 1000,
+  createdAt: new Date(),
+  serverUrls: ["pagopa.it"],
+  agreementApprovalPolicy: "Automatic",
+  attributes: {
+    certified: [],
+    verified: [],
+    declared: [],
+  },
+  ...(state === descriptorState.archived ? { archivedAt: new Date() } : {}),
+  ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
+  ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
+  ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
+  // rejectionReasons: [],
+});
 
 export function getMockConsumerDocument(
   agreementId: AgreementId,
@@ -423,9 +471,46 @@ export function expectSinglePageListResult<T>(
   actual: ListResult<T>,
   expected: T[]
 ): void {
+  // console.log("actual", actual);
+  // console.log("expected", expected);
   expect(actual).toEqual({
     totalCount: expected.length,
     results: expect.arrayContaining(expected),
   });
   expect(actual.results).toHaveLength(expected.length);
 }
+
+export const sortAgreement = <
+  T extends Agreement | WithMetadata<Agreement> | undefined
+>(
+  agreement: T
+): T => {
+  if (!agreement) {
+    return agreement;
+  } else if ("data" in agreement) {
+    return {
+      ...agreement,
+      data: sortAgreement(agreement.data),
+    };
+  } else {
+    return {
+      ...agreement,
+      stamps: Object.keys(agreement.stamps).toSorted(),
+      verifiedAttributes: agreement.verifiedAttributes.toSorted(
+        sortBy<AgreementAttribute>((attr) => attr.id)
+      ),
+      certifiedAttributes: agreement.certifiedAttributes.toSorted(
+        sortBy<AgreementAttribute>((attr) => attr.id)
+      ),
+      declaredAttributes: agreement.declaredAttributes.toSorted(
+        sortBy<AgreementAttribute>((attr) => attr.id)
+      ),
+      consumerDocuments: agreement.consumerDocuments.toSorted(
+        sortBy<AgreementDocument>((doc) => doc.id)
+      ),
+    };
+  }
+};
+
+export const sortAgreements = (eservices: Agreement[]): Agreement[] =>
+  eservices.map(sortAgreement);

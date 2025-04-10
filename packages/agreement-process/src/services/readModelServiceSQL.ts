@@ -16,24 +16,33 @@ import {
   AgreementId,
   delegationKind,
   delegationState,
+  agreementState,
 } from "pagopa-interop-models";
 import {
+  aggregateAgreementArray,
   AgreementReadModelService,
   AttributeReadModelService,
   CatalogReadModelService,
   DelegationReadModelService,
   TenantReadModelService,
+  toAgreementAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
+  agreementAttributeInReadmodelAgreement,
+  agreementConsumerDocumentInReadmodelAgreement,
+  agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, sql } from "drizzle-orm";
 
 import { ReadModelRepository } from "pagopa-interop-commons";
+import { match, P } from "ts-pattern";
 import {
   CompactEService,
   CompactOrganization,
@@ -66,8 +75,252 @@ export function readModelServiceBuilderSQL(
 ) {
   return {
     // TODO
-    async getAgreements(): Promise<ListResult<Agreement>> {
-      throw new Error("to implement");
+    async getAgreements(
+      requesterId: TenantId,
+      filters: AgreementQueryFilters,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<Agreement>> {
+      const {
+        producerId,
+        consumerId,
+        eserviceId,
+        descriptorId,
+        agreementStates,
+        attributeId,
+        showOnlyUpgradeable,
+      } = filters;
+
+      function toArray<T>(value: T | T[] | undefined | null): T[] {
+        if (!value) {
+          return [];
+        }
+        return Array.isArray(value) ? value : [value];
+      }
+      const producerIds = toArray(producerId);
+      const consumerIds = toArray(consumerId);
+      const eserviceIds = toArray(eserviceId);
+      const descriptorIds = toArray(descriptorId);
+      const attributeIds = toArray(attributeId);
+      const upgradeableStates = [
+        agreementState.draft,
+        agreementState.active,
+        agreementState.suspended,
+      ];
+      const agreementStatesFilters = match(agreementStates)
+        .with(P.nullish, () => (showOnlyUpgradeable ? upgradeableStates : []))
+        .with(
+          P.when(
+            (agreementStates) =>
+              agreementStates.length === 0 && showOnlyUpgradeable
+          ),
+          () => upgradeableStates
+        )
+        .with(
+          P.when(
+            (agreementStates) =>
+              agreementStates.length > 0 && showOnlyUpgradeable
+          ),
+          (agreementStates) =>
+            upgradeableStates.filter((s) => agreementStates.includes(s))
+        )
+        .otherwise((agreementStates) => agreementStates);
+
+      const queryAgreementIds = readmodelDB
+        .select({
+          id: agreementInReadmodelAgreement.id,
+          eserviceName: eserviceInReadmodelCatalog.name,
+          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+        })
+        .from(agreementInReadmodelAgreement)
+        .leftJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            agreementInReadmodelAgreement.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            agreementInReadmodelAgreement.eserviceId,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          delegationInReadmodelDelegation,
+          eq(
+            agreementInReadmodelAgreement.eserviceId,
+            delegationInReadmodelDelegation.eserviceId
+          )
+        )
+        .where(
+          and(
+            // VISIBILITY
+            or(
+              // REQ IS PRODUCER
+              eq(agreementInReadmodelAgreement.producerId, requesterId),
+              // REQ IS CONSUMER
+              eq(agreementInReadmodelAgreement.consumerId, requesterId),
+              // REQ IS DELEGATE AS PRODUCER
+              and(
+                eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                )
+              ),
+              // REQ IS DELEGATE AS CONSUMER
+              and(
+                eq(delegationInReadmodelDelegation.delegateId, requesterId),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedConsumer
+                ),
+                eq(
+                  delegationInReadmodelDelegation.state,
+                  delegationState.active
+                )
+              )
+            ),
+            // END // VISIBILITY
+            // PRODUCERS
+            producerIds.length > 0
+              ? or(
+                  inArray(
+                    agreementInReadmodelAgreement.producerId,
+                    producerIds
+                  ),
+                  inArray(
+                    delegationInReadmodelDelegation.delegateId,
+                    producerIds
+                  )
+                )
+              : undefined,
+            // END PRODUCERS
+            // CONSUMERS
+            consumerIds.length > 0
+              ? or(
+                  inArray(
+                    agreementInReadmodelAgreement.consumerId,
+                    consumerIds
+                  ),
+                  inArray(
+                    delegationInReadmodelDelegation.delegateId,
+                    consumerIds
+                  )
+                )
+              : undefined,
+            // END CONSUMERS
+            // ESERVICES
+            eserviceIds.length > 0
+              ? or(
+                  inArray(agreementInReadmodelAgreement.eserviceId, eserviceIds)
+                )
+              : undefined,
+            // END ESERVICES
+            // DESCRIPTORS
+            descriptorIds.length > 0
+              ? or(
+                  inArray(
+                    eserviceDescriptorInReadmodelCatalog.id,
+                    descriptorIds
+                  )
+                )
+              : undefined,
+            // END DESCRIPTORS
+            // ATTRIBUTES
+            attributeIds.length > 0
+              ? or(
+                  inArray(
+                    agreementAttributeInReadmodelAgreement.attributeId,
+                    attributeIds
+                  )
+                )
+              : undefined,
+            // END ATTRIBUTES
+            // AGREEMENT STATES
+            agreementStatesFilters && agreementStatesFilters.length > 0
+              ? or(
+                  inArray(
+                    agreementInReadmodelAgreement.state,
+                    agreementStatesFilters
+                  )
+                )
+              : undefined
+            // END AGREEMENT STATES
+            // UPGREADABLE TODO!
+          )
+        )
+        .groupBy(
+          agreementInReadmodelAgreement.id,
+          eserviceInReadmodelCatalog.name
+        )
+        .orderBy(eserviceInReadmodelCatalog.name)
+        .limit(limit)
+        .offset(offset)
+        .as("queryAgreementIds");
+
+      const resultSet = await readmodelDB
+        .select({
+          agreement: agreementInReadmodelAgreement,
+          attribute: agreementAttributeInReadmodelAgreement,
+          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+          contract: agreementContractInReadmodelAgreement,
+          stamp: agreementStampInReadmodelAgreement,
+          totalCount: queryAgreementIds.totalCount,
+        })
+        .from(agreementInReadmodelAgreement)
+        .innerJoin(
+          queryAgreementIds,
+          eq(agreementInReadmodelAgreement.id, queryAgreementIds.id)
+        )
+        .leftJoin(
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementConsumerDocumentInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementConsumerDocumentInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        );
+
+      return {
+        results: aggregateAgreementArray(
+          toAgreementAggregatorArray(resultSet)
+        ).map(({ data }) => data),
+        totalCount: Number(resultSet[0]?.totalCount ?? 0),
+      };
     },
     async getAgreementById(
       agreementId: AgreementId
@@ -100,12 +353,8 @@ export function readModelServiceBuilderSQL(
     /**
      * Retrieving consumers from agreements with consumer name
      * /agreements/filter/consumers
-     * tenant che hanno un agreement con requesterId
-     * tenant sono stati delegati ad avere un agreement con requesterId
-     * tenant che hanno un agreement con il mio delegator (sono stato delegato in erogazione)
-     * tenant che sono stati delegati ad avere un agreement con il mio delegator (sono stato delegato in erogazione)
      */
-    // DONE BUT
+    // DONE
     async getAgreementsConsumers(
       requesterId: TenantId,
       consumerName: string | undefined,
@@ -205,7 +454,7 @@ export function readModelServiceBuilderSQL(
       };
     },
 
-    // DONE BUT
+    // DONE
     async getAgreementsProducers(
       requesterId: TenantId,
       producerName: string | undefined,
@@ -305,19 +554,7 @@ export function readModelServiceBuilderSQL(
       };
     },
 
-    // TODO
-    // trovare e-service che sto erogando
-    // trovare e-service per cui sono delegato in erogazione
-    // ottenere quali e-service hanno un agreement
-    /**
-     * controlli di visibilità: requesterId  is: producer OR consumer | delegate producer | delegate consumer
-     * ritorna gli eservice a partire da degli agreements:
-     * è una getAgreements il cui risultato viene usato per prendere i relativi eservice
-     * (Si applica il filtro per nome agli eservice da ritornare)
-     * si dovrebbe controllare in tutti e 4 i punti
-     * A partire da agreements il cui requesterId è in: producer OR consumer | delegate producer | delegate consumer
-     */
-
+    // DONE
     async getAgreementsEServices(
       requesterId: TenantId,
       filters: AgreementEServicesQueryFilters,
@@ -439,8 +676,6 @@ export function readModelServiceBuilderSQL(
         .orderBy(eserviceInReadmodelCatalog.name)
         .limit(limit)
         .offset(offset);
-      // .toSQL();
-      // console.log("resultSet", resultSet);
       return {
         results: resultSet.map(({ id, name }) => ({ id, name })),
         totalCount: resultSet[0]?.totalCount ?? 0,
