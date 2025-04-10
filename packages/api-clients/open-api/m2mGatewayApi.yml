@@ -14,43 +14,43 @@ servers:
 security:
   - bearerAuth: []
 tags:
-  - name: authorization
-    description: Authorization module
+  - name: clients
+    description: Clients routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: attributes
-    description: Attribute Module
+    description: Attribute routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: agreements
-    description: Agreements Module
+    description: Agreements routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: catalog
-    description: Catalog Module
+    description: Catalog routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: purposes
-    description: Purpose Module
+    description: Purpose routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: tenants
-    description: Tenant Module
+    description: Tenant routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: delegations
-    description: Delegation Module
+    description: Delegation routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: eserviceTemplates
-    description: EService Template Module
+    description: EService Template routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -1402,7 +1402,7 @@ paths:
         format: uuid
     post:
       tags:
-        - authorization
+        - clients
       description: Add a purpose to the client
       requestBody:
         content:
