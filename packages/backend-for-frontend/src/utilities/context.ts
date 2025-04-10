@@ -22,7 +22,9 @@ export function fromBffAppContext(
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): WithLogger<BffAppContext> {
   return {
-    ...(ctx as AppContext<UIAuthData>), // BFF is called only with UIAuthData
+    ...(ctx as AppContext<UIAuthData>),
+    // ^ BFF is called only with UIAuthData and this is enforced
+    // by the audience validation + a dedicated middleware checking user roles
     headers: {
       "X-Correlation-Id": ctx.correlationId,
       Authorization: headers.authorization,
