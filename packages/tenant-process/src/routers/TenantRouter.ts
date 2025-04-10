@@ -548,7 +548,12 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          INTERNAL_ROLE,
+        ]);
 
         const id = await tenantService.selfcareUpsertTenant(req.body, ctx);
         return res.status(200).send(tenantApi.ResourceId.parse({ id }));

@@ -10,6 +10,7 @@ import {
   InternalAuthData,
   MaintenanceAuthData,
   M2MAuthData,
+  isUiAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -323,7 +324,11 @@ export function tenantServiceBuilder(
 
     async selfcareUpsertTenant(
       tenantSeed: tenantApi.SelfcareTenantSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
     ): Promise<string> {
       logger.info(
         `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
@@ -335,7 +340,12 @@ export function tenantServiceBuilder(
         logger.info(
           `Updating tenant with external id ${tenantSeed.externalId.origin}/${tenantSeed.externalId.value} via SelfCare request"`
         );
-        await assertRequesterAllowed(existingTenant.data.id, authData);
+
+        if (isUiAuthData(authData)) {
+          // TODO this check is skipped in case of calls that do not come from the UI,
+          // e.g., internal calls - consider creating a dedicated internal route
+          await assertRequesterAllowed(existingTenant.data.id, authData);
+        }
 
         evaluateNewSelfcareId({
           tenant: existingTenant.data,
