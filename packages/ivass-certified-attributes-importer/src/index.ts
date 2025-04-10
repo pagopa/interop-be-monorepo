@@ -6,11 +6,20 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
+import {
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { TenantProcessService } from "./service/tenantProcessService.js";
 import { importAttributes } from "./service/processor.js";
 import { downloadCSV } from "./service/fileDownloader.js";
-import { ReadModelQueries } from "./service/readModelQueriesService.js";
+import {
+  ReadModelQueries,
+  readModelQueriesBuilder,
+} from "./service/readModelQueriesService.js";
+import { readModelQueriesBuilderSQL } from "./service/readmodelQueriesServiceSQL.js";
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
@@ -29,13 +38,28 @@ const csvDownloader = (): Promise<string> =>
   );
 
 const readModelClient = ReadModelRepository.init(config);
-const readModelQueries: ReadModelQueries = new ReadModelQueries(
-  readModelClient
-);
+const oldReadModelQueries: ReadModelQueries =
+  readModelQueriesBuilder(readModelClient);
 
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 const tenantProcess = new TenantProcessService(config.tenantProcessUrl);
+
+const db = makeDrizzleConnection(config);
+const tenantReadModelService = tenantReadModelServiceBuilder(db);
+const attributeReadModelService = attributeReadModelServiceBuilder(db);
+const readModelQueriesSQL = readModelQueriesBuilderSQL(
+  db,
+  tenantReadModelService,
+  attributeReadModelService
+);
+
+const readModelQueries =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelQueriesSQL
+    : oldReadModelQueries;
 
 await importAttributes(
   csvDownloader,
