@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockClient,
+  getMockContext,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
@@ -12,7 +13,6 @@ import {
   generateId,
   toClientV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   addOneClient,
   authorizationService,
@@ -45,11 +45,12 @@ describe("remove client purpose", () => {
     await addOneClient(mockClient2);
     await addOneClient(mockClient3);
 
-    await authorizationService.removePurposeFromClients({
-      purposeIdToRemove,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await authorizationService.removePurposeFromClients(
+      {
+        purposeIdToRemove,
+      },
+      getMockContext({})
+    );
 
     const writtenEvent1 = await readLastAuthorizationEvent(mockClient1.id);
     const writtenEvent2 = await readLastAuthorizationEvent(mockClient2.id);

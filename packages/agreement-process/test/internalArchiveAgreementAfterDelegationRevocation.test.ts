@@ -1,8 +1,8 @@
 import { fail } from "assert";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockContextInternal,
   getMockDelegation,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
@@ -55,8 +55,7 @@ describe("internal archive agreement", () => {
     await agreementService.internalArchiveAgreementAfterDelegationRevocation(
       agreement.id,
       consumerDelegation.id,
-      generateId(),
-      genericLogger
+      getMockContextInternal({})
     );
 
     const actualAgreementData = await readLastAgreementEvent(agreement.id);
@@ -111,8 +110,7 @@ describe("internal archive agreement", () => {
       agreementService.internalArchiveAgreementAfterDelegationRevocation(
         agreement.id,
         generateId<DelegationId>(),
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(agreementNotFound(agreement.id));
   });
@@ -143,8 +141,7 @@ describe("internal archive agreement", () => {
       agreementService.internalArchiveAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, notArchivableState)

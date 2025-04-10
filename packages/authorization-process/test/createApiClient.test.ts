@@ -9,9 +9,10 @@ import {
   toClientV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
@@ -36,12 +37,12 @@ describe("createConsumerClient", () => {
   };
   it("should write on event-store for the creation of a api client", async () => {
     const organizationId: TenantId = generateId();
-    const { client } = await authorizationService.createApiClient({
-      clientSeed,
-      organizationId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    const { client } = await authorizationService.createApiClient(
+      {
+        clientSeed,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
 
     const writtenEvent = await readLastEventByStreamId(
       client.id,
