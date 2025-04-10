@@ -6,7 +6,6 @@ import {
   initRedisRateLimiter,
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
-import express from "express";
 import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
@@ -45,9 +44,6 @@ const redisRateLimiter = await initRedisRateLimiter({
 app.disable("x-powered-by");
 
 app.disable("etag");
-
-// parse application/x-www-form-urlencoded and put it in req.body
-app.use(express.urlencoded({ extended: true }));
 
 app.use(loggerMiddleware(serviceName));
 
