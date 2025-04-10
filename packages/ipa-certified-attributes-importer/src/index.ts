@@ -40,7 +40,7 @@ try {
 
   const registryData = await getRegistryData();
 
-  loggerInstance.info("Getting Plaform data");
+  loggerInstance.info("Getting Platform data");
 
   const attributes = await readModelService.getAttributes();
   const tenants = await readModelService.getIPATenants();
@@ -64,7 +64,7 @@ try {
     loggerInstance
   );
 
-  loggerInstance.info("Assignin new attributes");
+  loggerInstance.info("Assigning new attributes");
 
   const attributesToAssign = await getAttributesToAssign(
     tenants,

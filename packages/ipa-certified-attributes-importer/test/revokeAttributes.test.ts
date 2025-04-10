@@ -64,7 +64,7 @@ describe("GetAttributesToRevoke", async () => {
     expect(attributesToRevoke).toEqual([
       {
         tOrigin: ipaTenants[0].externalId.origin,
-        tExtenalId: ipaTenants[0].externalId.value,
+        tExternalId: ipaTenants[0].externalId.value,
         aOrigin: attributes[2].origin,
         aCode: attributes[2].code,
       },
@@ -123,7 +123,7 @@ describe("GetAttributesToRevoke", async () => {
     expect(attributesToRevoke).toEqual([
       {
         tOrigin: ipaTenants[0].externalId.origin,
-        tExtenalId: ipaTenants[0].externalId.value,
+        tExternalId: ipaTenants[0].externalId.value,
         aOrigin: attributes[1].origin,
         aCode: attributes[1].code,
       },
