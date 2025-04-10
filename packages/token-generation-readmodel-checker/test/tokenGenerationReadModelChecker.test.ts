@@ -67,6 +67,7 @@ import {
   addOneEService,
   addOnePurpose,
   dynamoDBClient,
+  readModelService,
   writePlatformStatesClientEntry,
 } from "./utils.js";
 
@@ -246,6 +247,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const expectedDifferencesLength = 5;
       const differencesCount = await compareTokenGenerationReadModel(
         dynamoDBClient,
+        readModelService,
         genericLogger
       );
 
