@@ -17,7 +17,6 @@ export const errorCodes = {
   tenantNotFound: "0011",
   agreementNotFound: "0012",
   eserviceDescriptorNotFound: "0013",
-  purposeDraftVersionNotFound: "0014",
   dynamoReadingError: "0015",
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
@@ -188,16 +187,6 @@ export function eserviceDescriptorNotFound(
     detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
     code: "eserviceDescriptorNotFound",
     title: "EService descriptor not found",
-  });
-}
-
-export function purposeDraftVersionNotFound(
-  purposeId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
-    code: "purposeDraftVersionNotFound",
-    title: "Purpose draft version not found",
   });
 }
 
