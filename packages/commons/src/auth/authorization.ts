@@ -127,6 +127,7 @@ export function isUiAuthData(authData: AuthData): authData is UIAuthData {
     )
     .exhaustive();
 }
+
 function isSystemRole(role: AuthRole): role is SystemRole {
   return match(role)
     .with(

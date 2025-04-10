@@ -14,6 +14,7 @@ import {
   EServiceDocumentId,
   EServiceId,
   unsafeBrandId,
+  emptyErrorMapper,
 } from "pagopa-interop-models";
 import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -25,7 +26,6 @@ import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
   createEServiceDocumentErrorMapper,
-  emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
   getEServiceTemplateInstancesErrorMapper,
