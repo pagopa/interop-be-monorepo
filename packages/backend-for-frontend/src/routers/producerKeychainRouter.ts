@@ -9,13 +9,11 @@ import {
   bffApi,
   selfcareV2UsersClientBuilder,
 } from "pagopa-interop-api-clients";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { makeApiProblem } from "../model/errors.js";
-import {
-  emptyErrorMapper,
-  getProducerKeychainUsersErrorMapper,
-} from "../utilities/errorMappers.js";
+import { getProducerKeychainUsersErrorMapper } from "../utilities/errorMappers.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
 import { config } from "../config/config.js";
 
