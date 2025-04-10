@@ -15,7 +15,7 @@ export type ReadModelService = {
     descriptorId: DescriptorId
   ) => Promise<Agreement[]>;
 
-  getEServiceById: (id: string) => Promise<EService | undefined>;
+  getEServiceById: (id: EServiceId) => Promise<EService | undefined>;
 };
 
 export function readModelServiceBuilder(
@@ -49,7 +49,9 @@ export function readModelServiceBuilder(
     return result.data;
   }
 
-  async function getEServiceById(id: string): Promise<EService | undefined> {
+  async function getEServiceById(
+    id: EServiceId
+  ): Promise<EService | undefined> {
     const data = await eservices.findOne(
       { "data.id": id },
       { projection: { data: true } }
