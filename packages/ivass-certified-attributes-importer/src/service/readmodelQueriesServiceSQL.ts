@@ -18,7 +18,6 @@ import {
   tenantCertifiedAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { IvassReadModelTenant } from "../model/tenant.js";
 
@@ -42,11 +41,6 @@ export function readModelQueriesBuilderSQL(
           feature: tenantFeatureInReadmodelTenant,
         })
         .from(tenantInReadmodelTenant)
-        .leftJoin(
-          // 1
-          tenantMailInReadmodelTenant,
-          eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
-        )
         .innerJoin(
           tenantCertifiedAttributeInReadmodelTenant,
           and(
