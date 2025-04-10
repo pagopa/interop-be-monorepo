@@ -92,6 +92,7 @@ import {
   M2MAuthData,
   MaintenanceAuthData,
   UIAuthData,
+  UserRole,
   userRole,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -398,11 +399,15 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
-export const getMockAuthData = (organizationId?: TenantId): UIAuthData => ({
+export const getMockAuthData = (
+  organizationId?: TenantId,
+  userId?: UserId,
+  userRoles?: UserRole[]
+): UIAuthData => ({
   systemRole: undefined,
   organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [userRole.ADMIN_ROLE],
+  userId: userId || generateId(),
+  userRoles: userRoles || [userRole.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
