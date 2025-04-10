@@ -91,6 +91,7 @@ import {
   InternalAuthData,
   M2MAuthData,
   MaintenanceAuthData,
+  systemRole,
   UIAuthData,
   UserRole,
   userRole,
@@ -817,7 +818,7 @@ export const getMockContextInternal = ({
   serviceName?: string;
 }): WithLogger<AppContext<InternalAuthData>> => ({
   authData: {
-    systemRole: "internal",
+    systemRole: systemRole.INTERNAL_ROLE,
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -832,7 +833,7 @@ export const getMockContextMaintenance = ({
   serviceName?: string;
 }): WithLogger<AppContext<MaintenanceAuthData>> => ({
   authData: {
-    systemRole: "maintenance",
+    systemRole: systemRole.MAINTENANCE_ROLE,
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -849,7 +850,7 @@ export const getMockContextM2M = ({
   serviceName?: string;
 }): WithLogger<AppContext<M2MAuthData>> => ({
   authData: {
-    systemRole: "m2m",
+    systemRole: systemRole.M2M_ROLE,
     organizationId: organizationId || generateId(),
   },
   serviceName: serviceName || "test",
