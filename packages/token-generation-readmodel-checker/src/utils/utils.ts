@@ -765,7 +765,7 @@ function validateTokenGenerationStates({
                     purposeId: purpose.id,
                   })
                 : undefined,
-              consumerId: client.consumerId,
+              consumerId: purpose.consumerId,
               clientKind: clientKindToTokenGenerationStatesClientKind(
                 client.kind
               ),
