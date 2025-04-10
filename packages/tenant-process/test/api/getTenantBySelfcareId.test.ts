@@ -63,7 +63,7 @@ describe("API /tenants/selfcare/{selfcareId} authorization test", () => {
 
   it("Should return 404 for tenantNotFoundBySelfcareId", async () => {
     vi.spyOn(tenantService, "getTenantBySelfcareId").mockRejectedValue(
-      tenantNotFoundBySelfcareId(tenant.selfcareId!)
+      tenantNotFoundBySelfcareId(generateId())
     );
     const token = generateToken();
     const res = await makeRequest(token);

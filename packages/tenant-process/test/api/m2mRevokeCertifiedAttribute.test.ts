@@ -3,7 +3,6 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import {
-  Attribute,
   Tenant,
   attributeKind,
   generateId,
@@ -30,7 +29,7 @@ import {
 
 describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} authorization test", () => {
   const certifierId = generateId();
-  const mockAttribute: Attribute = {
+  const mockAttribute = {
     ...getMockAttribute(),
     kind: attributeKind.certified,
     origin: certifierId,
@@ -61,9 +60,7 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
   const makeRequest = async (token: string) =>
     request(api)
       .delete(
-        `/m2m/origin/${targetTenant.externalId.origin}/externalId/${
-          targetTenant.externalId.value
-        }/attributes/${mockAttribute.code!}`
+        `/m2m/origin/${targetTenant.externalId.origin}/externalId/${targetTenant.externalId.value}/attributes/${mockAttribute.code}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
@@ -109,7 +106,7 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
 
   it("Should return 400 for attributeNotFound", async () => {
     vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
-      attributeNotFound(mockAttribute.code!)
+      attributeNotFound(mockAttribute.code)
     );
     const token = generateToken();
     const res = await makeRequest(token);
@@ -119,7 +116,7 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
   it("Should return 400 for attributeNotFoundInTenant", async () => {
     vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
       attributeNotFoundInTenant(
-        unsafeBrandId(mockAttribute.code!),
+        unsafeBrandId(mockAttribute.code),
         targetTenant.id
       )
     );

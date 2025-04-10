@@ -25,6 +25,8 @@ import {
 describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId} authorization test", () => {
   const attribute: Attribute = {
     ...getMockAttribute(),
+    origin: "ORIGIN",
+    code: "CODE",
     kind: attributeKind.certified,
   };
   const targetTenant: Tenant = {
@@ -48,9 +50,7 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
   const makeRequest = async (token: string) =>
     request(api)
       .delete(
-        `/internal/origin/${targetTenant.externalId.origin}/externalId/${
-          targetTenant.externalId.value
-        }/attributes/origin/${attribute.origin!}/externalId/${attribute.code!}`
+        `/internal/origin/${targetTenant.externalId.origin}/externalId/${targetTenant.externalId.value}/attributes/origin/${attribute.origin}/externalId/${attribute.code}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());

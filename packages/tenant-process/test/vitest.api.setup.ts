@@ -29,6 +29,7 @@ vi.mock("pagopa-interop-commons", async () => {
             const decoded = decodeJwtToken(jwtToken, genericLogger);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const ctx = (req as any).ctx || {};
+            // eslint-disable-next-line functional/immutable-data
             ctx.authData = readAuthDataFromJwtToken(decoded ? decoded : "");
             return next();
           } catch (error) {

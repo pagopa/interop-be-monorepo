@@ -20,7 +20,11 @@ import {
   notValidMailAddress,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { addOneTenant, postgresDB, tenantService } from "../integrationUtils.js";
+import {
+  addOneTenant,
+  postgresDB,
+  tenantService,
+} from "../integrationUtils.js";
 
 describe("addTenantMail", async () => {
   const mockTenant = getMockTenant();

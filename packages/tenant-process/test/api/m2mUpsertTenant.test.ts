@@ -9,6 +9,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { UserRole, userRoles } from "pagopa-interop-commons";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
 import { tenantService } from "../../src/routers/TenantRouter.js";
 import {
@@ -18,7 +19,6 @@ import {
   tenantNotFound,
   tenantNotFoundByExternalId,
 } from "../../src/model/domain/errors.js";
-import { tenantApi } from "pagopa-interop-api-clients";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 
 describe("API /m2m/tenants authorization test", () => {

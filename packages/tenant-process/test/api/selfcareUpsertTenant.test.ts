@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
-import { generateId, operationForbidden, Tenant } from "pagopa-interop-models";
+import { generateId, operationForbidden } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAuthData,
@@ -15,8 +15,12 @@ import { tenantService } from "../../src/routers/TenantRouter.js";
 import { selfcareIdConflict } from "../../src/model/domain/errors.js";
 
 describe("API /selfcare/tenants authorization test", () => {
-  const tenant: Tenant = getMockTenant();
-  const selfcareId = tenant.selfcareId!;
+  const tenant = {
+    ...getMockTenant(),
+    onboardedAt: new Date(),
+    selfcareId: generateId(),
+  };
+  const selfcareId = tenant.selfcareId;
   const tenantSeed: tenantApi.SelfcareTenantSeed = {
     externalId: {
       origin: tenant.externalId.origin,
@@ -24,7 +28,7 @@ describe("API /selfcare/tenants authorization test", () => {
     },
     name: "A tenant",
     selfcareId,
-    onboardedAt: tenant.onboardedAt!.toISOString(),
+    onboardedAt: tenant.onboardedAt.toISOString(),
     subUnitType: tenant.subUnitType,
   };
 
