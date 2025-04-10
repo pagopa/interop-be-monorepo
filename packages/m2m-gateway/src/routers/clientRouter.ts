@@ -7,23 +7,23 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
 } from "pagopa-interop-commons";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
-import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import { clientServiceBuilder } from "../services/clientService.js";
 
-const authorizationRouter = (
+const clientRouter = (
   ctx: ZodiosContext,
   clients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const authorizationRouter = ctx.router(m2mGatewayApi.authorizationApi.api, {
+  const clientRouter = ctx.router(m2mGatewayApi.clientsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const authorizationService = authorizationServiceBuilder(clients);
-  void authorizationService;
+  const clientService = clientServiceBuilder(clients);
+  void clientService;
 
-  authorizationRouter.post("/clients/:clientId/purposes", async (req, res) => {
+  clientRouter.post("/clients/:clientId/purposes", async (req, res) => {
     const ctx = fromAppContext(req.ctx);
     try {
       return res.status(501).send();
@@ -38,7 +38,7 @@ const authorizationRouter = (
     }
   });
 
-  return authorizationRouter;
+  return clientRouter;
 };
 
-export default authorizationRouter;
+export default clientRouter;

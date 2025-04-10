@@ -7,9 +7,9 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
 } from "pagopa-interop-commons";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 
 const purposeRouter = (

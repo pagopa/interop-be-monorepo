@@ -1,10 +1,14 @@
 /* eslint-disable max-classes-per-file */
+import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
+const { HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
+
+export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
     From the API point of view, it is an info present only in the single error

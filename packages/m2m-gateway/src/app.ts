@@ -21,7 +21,7 @@ import purposeRouter from "./routers/purposeRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
-import authorizationRouter from "./routers/authorizationRouter.js";
+import clientRouter from "./routers/clientRouter.js";
 
 const serviceName = modelsServiceName.M2M_GATEWAY;
 
@@ -63,7 +63,7 @@ app.use(
   tenantRouter(zodiosCtx, clients),
   delegationRouter(zodiosCtx, clients),
   eserviceTemplateRouter(zodiosCtx, clients),
-  authorizationRouter(zodiosCtx, clients)
+  clientRouter(zodiosCtx, clients)
 );
 
 export default app;
