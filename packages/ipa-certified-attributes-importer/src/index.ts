@@ -6,6 +6,11 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
+import {
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { getRegistryData } from "./services/openDataService.js";
@@ -18,6 +23,7 @@ import {
   getTenantUpsertData,
   revokeAttributes,
 } from "./services/ipaCertifiedAttributesImporterService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
@@ -28,9 +34,24 @@ const loggerInstance = logger({
 loggerInstance.info("Starting ipa-certified-attributes-importer");
 
 try {
-  const readModelService = readModelServiceBuilder(
+  const readModelDB = makeDrizzleConnection(config);
+  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+  const attributeReadModelServiceSQL =
+    attributeReadModelServiceBuilder(readModelDB);
+
+  const oldReadModelService = readModelServiceBuilder(
     ReadModelRepository.init(config)
   );
+  const readModelServiceSQL = readModelServiceBuilderSQL({
+    attributeReadModelServiceSQL,
+    tenantReadModelServiceSQL,
+  });
+  const readModelService =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelServiceSQL
+      : oldReadModelService;
 
   const tokenGenerator = new InteropTokenGenerator(config);
   const refreshableToken = new RefreshableInteropToken(tokenGenerator);
