@@ -64,7 +64,7 @@ export const aggregateDescriptor = ({
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
-  const convertedInterface = interfaceSQL
+  const interfaceDoc = interfaceSQL
     ? documentSQLtoDocument(interfaceSQL)
     : undefined;
 
@@ -157,7 +157,7 @@ export const aggregateDescriptor = ({
       declared: declaredAttributes,
       verified: verifiedAttributes,
     },
-    ...(convertedInterface ? { interface: convertedInterface } : {}),
+    ...(interfaceDoc ? { interface: interfaceDoc } : {}),
     ...(descriptorSQL.description
       ? { description: descriptorSQL.description }
       : {}),
