@@ -16,15 +16,16 @@ export type Headers = {
 export type BffAppContext = AppContext<UIAuthData> & {
   headers: Headers;
 };
+/* ^ BFF can be called only by UI, so we can use UIAuthData as auth data type.
+This is enforced by the audience check during authentication and by the
+dedicated BFF middleware that asserts that the auth data is of type UIAuthData. */
 
 export function fromBffAppContext(
-  ctx: AppContext,
+  ctx: BffAppContext,
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
 ): WithLogger<BffAppContext> {
   return {
-    ...(ctx as AppContext<UIAuthData>),
-    // ^ BFF is called only with UIAuthData and this is enforced
-    // by the audience validation + a dedicated middleware checking user roles
+    ...ctx,
     headers: {
       "X-Correlation-Id": ctx.correlationId,
       Authorization: headers.authorization,
