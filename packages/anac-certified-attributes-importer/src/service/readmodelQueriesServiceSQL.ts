@@ -255,3 +255,5 @@ const tenantToAnacTenant = (
   features: tenant.data.features,
   attributes: tenant.data.attributes,
 });
+
+export type ReadModelQueriesSQL = ReturnType<typeof readModelQueriesBuilderSQL>;

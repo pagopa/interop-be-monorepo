@@ -131,3 +131,5 @@ export function readModelQueriesBuilder(readModelClient: ReadModelRepository) {
     },
   };
 }
+
+export type ReadModelQueries = ReturnType<typeof readModelQueriesBuilder>;
