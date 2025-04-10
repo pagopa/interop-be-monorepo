@@ -9,6 +9,11 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import {
+  clientJWKKeyReadModelServiceBuilder,
+  makeDrizzleConnection,
+  producerJWKKeyReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { fromApiGatewayAppContext } from "../utilities/context.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -38,6 +43,7 @@ import { attributeServiceBuilder } from "../services/attributeService.js";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
 const apiGatewayRouter = (
   ctx: ZodiosContext,
@@ -51,7 +57,8 @@ const apiGatewayRouter = (
     authorizationProcessClient,
     delegationProcessClient,
   }: PagoPAInteropBeClients
-): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+): // eslint-disable-next-line sonarjs/cognitive-complexity
+ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = userRoles;
   const apiGatewayRouter = ctx.router(apiGatewayApi.gatewayApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -87,9 +94,27 @@ const apiGatewayRouter = (
 
   const attributeService = attributeServiceBuilder(attributeProcessClient);
 
-  const readModelService = readModelServiceBuilder(
+  const oldReadModelService = readModelServiceBuilder(
     ReadModelRepository.init(config)
   );
+
+  const db = makeDrizzleConnection(config);
+  const clientJWKKeyReadModelServiceSQL =
+    clientJWKKeyReadModelServiceBuilder(db);
+  const producerJWKKeyReadModelServiceSQL =
+    producerJWKKeyReadModelServiceBuilder(db);
+
+  const readModelServiceSQL = readModelServiceBuilderSQL(
+    clientJWKKeyReadModelServiceSQL,
+    producerJWKKeyReadModelServiceSQL
+  );
+
+  const readModelService =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelServiceSQL
+      : oldReadModelService;
 
   const authorizationService = authorizationServiceBuilder(
     authorizationProcessClient,
