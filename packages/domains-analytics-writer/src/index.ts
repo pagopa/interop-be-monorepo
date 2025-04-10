@@ -1,5 +1,5 @@
 /* eslint-disable functional/immutable-data */
-import { EachBatchPayload, EachMessagePayload } from "kafkajs";
+import { EachBatchPayload, KafkaMessage } from "kafkajs";
 import { genericLogger, initDB, logger } from "pagopa-interop-commons";
 
 import { runBatchConsumer } from "kafka-iam-auth";
@@ -12,7 +12,7 @@ import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import { AttributeDbtable, DeletingDbTable } from "./model/db.js";
-import { buildBatchHandlers } from "./handlers/batchHandlerBuilder.js";
+import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
 const dbInstance = initDB({
   username: config.dbUsername,
@@ -44,22 +44,10 @@ await retryConnection(
   logger({ serviceName: config.serviceName })
 );
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
-async function processBatch({
-  batch,
-  heartbeat,
-  pause,
-}: EachBatchPayload): Promise<void> {
-  const payloads: EachMessagePayload[] = batch.messages.map((message) => ({
-    topic: batch.topic,
-    partition: batch.partition,
-    heartbeat,
-    pause,
-    message,
-  }));
+async function processBatch({ batch }: EachBatchPayload): Promise<void> {
+  const messages: KafkaMessage[] = batch.messages;
 
-  const promises = await buildBatchHandlers(payloads, dbContext);
-  await Promise.allSettled(promises);
+  await executeTopicHandler(messages, batch.topic, dbContext);
 
   genericLogger.info(
     `Handled batch. Partition: ${

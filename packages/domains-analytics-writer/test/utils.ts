@@ -3,6 +3,7 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { Batch } from "kafkajs";
 import { AttributeSchema } from "../src/model/attribute/attribute.js";
 import { DBContext, DBConnection } from "../src/db/db.js";
 import { config } from "../src/config/config.js";
@@ -67,38 +68,36 @@ export async function getAttributeFromDb(
   return db.conn.any(`SELECT * FROM domains.attribute WHERE id = $1`, [id]);
 }
 
-export const multipleTopicMessage = [
-  {
-    topic: config.attributeTopic,
-    message: {
+export const mockAttributeBatch: Batch = {
+  topic: config.attributeTopic,
+  partition: 0,
+  highWatermark: "0",
+  messages: [
+    {
       value: { event_version: 1 },
-    },
-  },
-  {
-    topic: config.agreementTopic,
-    message: {
+    } as any,
+  ],
+  isEmpty: () => false,
+  firstOffset: () => "0",
+  lastOffset: () => "0",
+  offsetLag: () => "0",
+  offsetLagLow: () => "0",
+};
+export const mockCatalogBatch: Batch = {
+  topic: config.catalogTopic,
+  partition: 0,
+  highWatermark: "0",
+  messages: [
+    {
       value: { event_version: 1 },
-    },
-  },
-  {
-    topic: config.agreementTopic,
-    message: {
+    } as any,
+    {
       value: { event_version: 2 },
-    },
-  },
-  {
-    topic: config.catalogTopic,
-    message: {
-      value: { event_version: 2 },
-    },
-  },
-] as any;
-
-export const singleTopicMessage = [
-  {
-    topic: config.attributeTopic,
-    message: {
-      value: { event_version: 1 },
-    },
-  },
-] as any;
+    } as any,
+  ],
+  isEmpty: () => false,
+  firstOffset: () => "0",
+  lastOffset: () => "0",
+  offsetLag: () => "0",
+  offsetLagLow: () => "0",
+};
