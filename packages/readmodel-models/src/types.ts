@@ -20,9 +20,11 @@ import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateRefInReadmodelCatalog,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -69,6 +71,12 @@ export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
 >;
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
   typeof eserviceDescriptorAttributeInReadmodelCatalog
+>;
+export type EServiceTemplateRefSQL = InferSelectModel<
+  typeof eserviceTemplateRefInReadmodelCatalog
+>;
+export type EServiceDescriptorTemplateVersionRefSQL = InferSelectModel<
+  typeof eserviceDescriptorTemplateVersionRefInReadmodelCatalog
 >;
 
 export type AttributeSQL = InferSelectModel<
