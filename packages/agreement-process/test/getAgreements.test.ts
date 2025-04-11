@@ -270,13 +270,14 @@ describe("get agreements", () => {
     await addOneDelegation(revokedConsumerDelegation);
   });
 
-  it.only("should get all agreements visible to consumer/producer requester if no filters are provided", async () => {
+  it("should get all agreements visible to consumer/producer requester if no filters are provided", async () => {
     const allAgreementsVisibleToTenant1 = await agreementService.getAgreements(
       {},
       20,
       0,
       getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
+
     expectSinglePageListResult(allAgreementsVisibleToTenant1, [
       agreement1,
       agreement2,

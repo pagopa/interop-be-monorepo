@@ -828,18 +828,32 @@ export const sortAgreement = <
   } else {
     return {
       ...agreement,
-      verifiedAttributes: [...agreement.verifiedAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
-      ),
-      certifiedAttributes: [...agreement.certifiedAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
-      ),
-      declaredAttributes: [...agreement.declaredAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
-      ),
-      consumerDocuments: [...agreement.consumerDocuments].sort(
-        sortBy<AgreementDocument>((doc) => doc.id)
-      ),
+      verifiedAttributes: agreement.verifiedAttributes
+        ? [...agreement.verifiedAttributes].sort(
+            sortBy<AgreementAttribute>((attr) => attr.id)
+          )
+        : [],
+      certifiedAttributes: agreement.certifiedAttributes
+        ? [...agreement.certifiedAttributes].sort(
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
+        : [],
+      declaredAttributes: agreement.declaredAttributes
+        ? [...agreement.declaredAttributes].sort(
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
+        : [],
+      consumerDocuments: agreement.consumerDocuments
+        ? [...agreement.consumerDocuments].sort(
+            sortBy<AgreementDocument>((doc) => doc.id)
+          )
+        : [],
     };
   }
 };
+
+export const sortAgreements = <
+  T extends Agreement | WithMetadata<Agreement> | undefined
+>(
+  agreements: T[]
+): T[] => agreements.map(sortAgreement);

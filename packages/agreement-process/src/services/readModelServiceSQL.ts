@@ -1,5 +1,5 @@
 /* eslint-disable no-constant-condition */
-import { ilike, inArray, or } from "drizzle-orm";
+import { ilike, inArray, or, asc } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -74,7 +74,7 @@ export function readModelServiceBuilderSQL(
   delegationReadModelServiceSQL: DelegationReadModelService
 ) {
   return {
-    // TODO
+    // DOING
     async getAgreements(
       requesterId: TenantId,
       filters: AgreementQueryFilters,
@@ -143,8 +143,8 @@ export function readModelServiceBuilderSQL(
         .leftJoin(
           eserviceDescriptorInReadmodelCatalog,
           eq(
-            agreementInReadmodelAgreement.eserviceId,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
+            agreementInReadmodelAgreement.descriptorId,
+            eserviceDescriptorInReadmodelCatalog.id
           )
         )
         .leftJoin(
@@ -234,7 +234,7 @@ export function readModelServiceBuilderSQL(
             descriptorIds.length > 0
               ? or(
                   inArray(
-                    eserviceDescriptorInReadmodelCatalog.id,
+                    agreementInReadmodelAgreement.descriptorId,
                     descriptorIds
                   )
                 )
@@ -267,7 +267,7 @@ export function readModelServiceBuilderSQL(
           agreementInReadmodelAgreement.id,
           eserviceInReadmodelCatalog.name
         )
-        .orderBy(eserviceInReadmodelCatalog.name)
+        .orderBy(asc(eserviceInReadmodelCatalog.name))
         .limit(limit)
         .offset(offset)
         .as("queryAgreementIds");

@@ -13,7 +13,7 @@ import {
   getMockDelegation,
   getMockTenant,
   getMockAuthData,
-  sortBy,
+  sortAgreements,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -43,8 +43,6 @@ import {
   descriptorState,
   EServiceAttribute,
   DescriptorState,
-  WithMetadata,
-  AgreementAttribute,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -467,50 +465,16 @@ export async function addDelegationsAndDelegates({
   }
 }
 
-export function expectSinglePageListResult<T>(
-  actual: ListResult<T>,
-  expected: T[]
+export function expectSinglePageListResult(
+  actual: ListResult<Agreement>,
+  expected: Agreement[]
 ): void {
-  // console.log("actual", actual);
-  // console.log("expected", expected);
-  expect(actual).toEqual({
+  expect({
+    totalCount: actual.totalCount,
+    results: sortAgreements(actual.results),
+  }).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(expected),
+    results: expect.arrayContaining(sortAgreements(expected)),
   });
   expect(actual.results).toHaveLength(expected.length);
 }
-
-export const sortAgreement = <
-  T extends Agreement | WithMetadata<Agreement> | undefined
->(
-  agreement: T
-): T => {
-  if (!agreement) {
-    return agreement;
-  } else if ("data" in agreement) {
-    return {
-      ...agreement,
-      data: sortAgreement(agreement.data),
-    };
-  } else {
-    return {
-      ...agreement,
-      stamps: Object.keys(agreement.stamps).toSorted(),
-      verifiedAttributes: agreement.verifiedAttributes.toSorted(
-        sortBy<AgreementAttribute>((attr) => attr.id)
-      ),
-      certifiedAttributes: agreement.certifiedAttributes.toSorted(
-        sortBy<AgreementAttribute>((attr) => attr.id)
-      ),
-      declaredAttributes: agreement.declaredAttributes.toSorted(
-        sortBy<AgreementAttribute>((attr) => attr.id)
-      ),
-      consumerDocuments: agreement.consumerDocuments.toSorted(
-        sortBy<AgreementDocument>((doc) => doc.id)
-      ),
-    };
-  }
-};
-
-export const sortAgreements = (eservices: Agreement[]): Agreement[] =>
-  eservices.map(sortAgreement);
