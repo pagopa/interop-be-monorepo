@@ -46,8 +46,7 @@ const supportRouter = (
       makeApiProblem(
         error,
         emptyErrorMapper,
-        ctx.logger,
-        ctx.correlationId,
+        ctx,
         "Error creating a session token"
       );
       return res.status(500).send();

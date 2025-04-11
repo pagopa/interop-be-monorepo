@@ -29,7 +29,6 @@ import {
   agreementNotFound,
   eserviceDescriptorNotFound,
   eServiceNotFound,
-  purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
@@ -123,31 +122,6 @@ export function purposeServiceBuilder(
     headers: Headers
     // eslint-disable-next-line max-params
   ): Promise<bffApi.Purpose> => {
-    const getClientConsumerIds = (
-      delegation: bffApi.DelegationWithCompactTenants | undefined
-    ): string[] => {
-      if (delegation) {
-        if (requesterId === purpose.consumerId) {
-          // The requester is the delegator
-          // The delegator should see its own clients and the delegate
-          return [purpose.consumerId, delegation.delegate.id];
-        } else if (requesterId === delegation.delegate.id) {
-          // The requester is the delegate
-          // The delegate should see only its own clients
-          return [delegation.delegate.id];
-        }
-        return [];
-      }
-
-      if (requesterId === purpose.consumerId) {
-        // The purpose has no delegation and the requester is the consumer
-        // The consumer should see only its own clients
-        return [purpose.consumerId];
-      }
-
-      return [];
-    };
-
     const eservice = eservices.find((e) => e.id === purpose.eserviceId);
     if (!eservice) {
       throw eServiceNotFound(unsafeBrandId(purpose.eserviceId));
@@ -209,20 +183,9 @@ export function purposeServiceBuilder(
         )
       : undefined;
 
-    const clientConsumerIds = getClientConsumerIds(delegation);
-
-    const clients =
-      clientConsumerIds.length > 0
-        ? (
-            await Promise.all(
-              clientConsumerIds.map((id) =>
-                getAllClients(authorizationClient, id, purpose.id, headers)
-              )
-            )
-          )
-            .flat()
-            .map(toBffApiCompactClient)
-        : [];
+    const clients = (
+      await getAllClients(authorizationClient, requesterId, purpose.id, headers)
+    ).map(toBffApiCompactClient);
 
     return {
       id: purpose.id,
@@ -475,12 +438,7 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      const draft = cloned.versions.find(
-        (v) => v.state === purposeApi.PurposeVersionState.Values.DRAFT
-      );
-      if (!draft) {
-        throw purposeDraftVersionNotFound(purposeId);
-      }
+      const draft = cloned.versions[0];
 
       return {
         purposeId: cloned.id,

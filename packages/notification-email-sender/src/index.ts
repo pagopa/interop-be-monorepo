@@ -25,7 +25,10 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "./config/config.js";
-import { notificationEmailSenderServiceBuilder } from "./services/notificationEmailSenderService.js";
+import {
+  NotificationEmailSenderService,
+  notificationEmailSenderServiceBuilder,
+} from "./services/notificationEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 
 interface TopicHandlers {
@@ -39,22 +42,32 @@ const readModelService = readModelServiceBuilder(
 );
 const templateService = buildHTMLTemplateService();
 const interopFeBaseUrl = config.interopFeBaseUrl;
-const sesEmailManager: EmailManagerSES = initSesMailManager(config);
+
 const sesEmailsenderData = {
   label: config.senderLabel,
   mail: config.senderMail,
 };
 
-const notificationEmailSenderService = notificationEmailSenderServiceBuilder(
-  sesEmailManager,
-  sesEmailsenderData,
-  readModelService,
-  templateService,
-  interopFeBaseUrl
-);
+const buildNotificationEmailSenderService = (
+  logger: Logger
+): NotificationEmailSenderService => {
+  const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
+    logger,
+    skipTooManyRequestsError: true,
+  });
+
+  return notificationEmailSenderServiceBuilder(
+    sesEmailManager,
+    sesEmailsenderData,
+    readModelService,
+    templateService,
+    interopFeBaseUrl
+  );
+};
 
 export async function handleCatalogMessage(
   decodedMessage: EServiceEventEnvelopeV2,
+  notificationEmailSenderService: NotificationEmailSenderService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -125,6 +138,7 @@ export async function handleCatalogMessage(
 
 export async function handlePurposeMessage(
   decodedMessage: PurposeEventEnvelopeV2,
+  notificationEmailSenderService: NotificationEmailSenderService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -209,6 +223,7 @@ export async function handlePurposeMessage(
 
 export async function handleAgreementMessage(
   decodedMessage: AgreementEventEnvelopeV2,
+  notificationEmailSenderService: NotificationEmailSenderService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -327,7 +342,10 @@ function processMessage(topicHandlers: TopicHandlers) {
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
 
-    await handleMessage(loggerInstance);
+    const notificationEmailSenderService =
+      buildNotificationEmailSenderService(loggerInstance);
+
+    await handleMessage(notificationEmailSenderService, loggerInstance);
   };
 }
 

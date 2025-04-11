@@ -22,12 +22,13 @@ import { makeApiProblem } from "../model/errors.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  addEServiceInterfceByTemplateErrorMapper,
+  addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
   createEServiceDocumentErrorMapper,
   emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
+  getEServiceTemplateInstancesErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const catalogRouter = (
@@ -69,8 +70,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving Catalog EServices"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -93,8 +93,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving Producer EServices"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -114,8 +113,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving producer eservice ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -139,8 +137,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving producer descriptor ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -165,8 +162,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId} from catalog`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -190,8 +186,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating EService instance from template ${req.params.templateId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -216,8 +211,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error getting consumers of eservice ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -238,8 +232,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error while deleting draft descriptor ${req.params.descriptorId} for E-Service ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -264,8 +257,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating draft descriptor ${
               req.params.descriptorId
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
@@ -295,8 +287,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating draft descriptor ${
               req.params.descriptorId
             } on eservice ${
@@ -321,8 +312,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating descriptor in EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -343,8 +333,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error activating descriptor ${req.params.descriptorId} on service ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -367,8 +356,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating descriptor ${req.params.descriptorId} on service ${
               req.params.eServiceId
             } with seed: ${JSON.stringify(req.body)}`
@@ -392,8 +380,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error publishing descriptor ${req.params.descriptorId} for service ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -415,8 +402,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error suspending descriptor ${req.params.descriptorId} for service ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -439,8 +425,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             createEServiceDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error creating eService document of kind ${req.body.kind} and name ${req.body.prettyName} for eService ${req.params.eServiceId} and descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -463,8 +448,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error deleting document ${req.params.documentId} for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -491,8 +475,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error getting document ${req.params.documentId} for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -519,8 +502,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error cloning eService ${req.params.eServiceId} with descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -554,8 +536,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating document ${documentId} on eService ${eServiceId} for descriptor ${descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -576,8 +557,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating eservice with seed: ${JSON.stringify(req.body)}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -595,8 +575,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -617,8 +596,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -640,8 +618,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating EService ${req.params.eServiceId} template instance`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -661,8 +638,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error inserting risk analysis ${req.body.name} to eservice ${req.params.eServiceId} from catalog`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -681,8 +657,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating description of eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -701,8 +676,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating delegation flags of eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -721,8 +695,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating name of eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -746,8 +719,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -770,8 +742,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -793,8 +764,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetCatalogErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error deleting risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -817,8 +787,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             exportEServiceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error exporting eservice ${req.params.eserviceId} with descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -838,8 +807,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error getting eservice import presigned url"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -861,8 +829,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           importEServiceErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error importing eService"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -883,8 +850,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error approving eService ${req.params.eServiceId} version ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -907,8 +873,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error rejecting eService ${req.params.eServiceId} version ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -931,8 +896,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating attributes for eService ${req.params.eServiceId} descriptor ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -951,8 +915,7 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error upgrading eService ${req.params.eServiceId} to the latest version of its reference template`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -976,9 +939,8 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addEServiceInterfceByTemplateErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            addEServiceInterfaceByTemplateErrorMapper,
+            ctx,
             `Error adding interface for eService ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -1003,9 +965,8 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addEServiceInterfceByTemplateErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            addEServiceInterfaceByTemplateErrorMapper,
+            ctx,
             `Error adding interface for eService ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -1032,9 +993,8 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          getEServiceTemplateInstancesErrorMapper,
+          ctx,
           `Error retrieving eservice template ${templateId} instances`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -1051,13 +1011,39 @@ const catalogRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error checking eservice name availability with name ${name}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post(
+      "/templates/eservices/:eServiceId/descriptors/:descriptorId/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          const { id } = await catalogService.updateTemplateInstanceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(200).send(bffApi.CreatedResource.parse({ id }));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating template instance descriptor ${
+              req.params.descriptorId
+            } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
+              req.body
+            )}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return catalogRouter;
 };

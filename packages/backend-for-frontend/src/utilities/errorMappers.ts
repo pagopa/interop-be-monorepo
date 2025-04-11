@@ -57,11 +57,6 @@ export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("purposeDraftVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
@@ -173,6 +168,18 @@ export const createEServiceDocumentErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createEServiceTemplateDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "invalidInterfaceContentTypeDetected",
+      "invalidInterfaceFileDetected",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const importEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number => {
@@ -227,7 +234,7 @@ export const bffGetCatalogEServiceTemplateErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const addEServiceInterfceByTemplateErrorMapper = (
+export const addEServiceInterfaceByTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -254,4 +261,11 @@ export const addEServiceInterfceByTemplateErrorMapper = (
       "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_INTERNAL_SERVER_ERROR
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getEServiceTemplateInstancesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -3,6 +3,7 @@ import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { CorrelationId } from "./brandedIds.js";
+import { serviceErrorCode, ServiceName } from "./services.js";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -67,8 +68,14 @@ export type Problem = {
 type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
-  logger: { error: (message: string) => void; warn: (message: string) => void },
-  correlationId: CorrelationId,
+  context: {
+    logger: {
+      error: (message: string) => void;
+      warn: (message: string) => void;
+    };
+    correlationId: CorrelationId;
+    serviceName: string;
+  },
   operationalLogMessage?: string
 ) => Problem;
 
@@ -87,7 +94,22 @@ export function makeApiProblemBuilder<T extends string>(
   problemErrorsPassthrough: boolean = true
 ): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
+
+  function retrieveServiceErrorCode(serviceName: string): string {
+    const serviceNameParsed = ServiceName.safeParse(serviceName);
+    return serviceNameParsed.success
+      ? serviceErrorCode[serviceNameParsed.data]
+      : "000";
+  }
+
+  return (
+    error,
+    httpMapper,
+    { logger, correlationId, serviceName },
+    operationalLogMessage
+  ) => {
+    const serviceErrorCode = retrieveServiceErrorCode(serviceName);
+
     const makeProblem = (
       httpStatus: number,
       { title, detail, errors }: ApiError<T | CommonErrorCodes>
@@ -98,7 +120,7 @@ export function makeApiProblemBuilder<T extends string>(
       detail,
       correlationId,
       errors: errors.map(({ code, detail }) => ({
-        code: allErrors[code],
+        code: `${serviceErrorCode}-${allErrors[code]}`,
         detail,
       })),
     });
@@ -192,7 +214,7 @@ const errorCodes = {
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
   invalidKeyLength: "10008",
-  notAnRSAKey: "10000",
+  notAnRSAKey: "10009",
   invalidEserviceInterfaceFileDetected: "10010",
   openapiVersionNotRecognized: "10011",
   interfaceExtractingInfoError: "10012",
@@ -202,6 +224,7 @@ const errorCodes = {
   soapFileParsingError: "10016",
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
+  notAllowedMultipleKeysException: "10019",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -441,6 +464,14 @@ export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
   });
 }
 
+export function notAllowedMultipleKeysException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key contains multiple keys`,
+    code: "notAllowedMultipleKeysException",
+    title: "Not allowed multiple keys exception",
+  });
+}
+
 export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `One or more required JWK claims are missing`,
@@ -480,7 +511,7 @@ export function invalidInterfaceFileDetected(
   resourceId: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface file for EService or EserveiceTemplate with ID ${resourceId} is invalid`,
+    detail: `The interface file for EService or EserviceTemplate with ID ${resourceId} is invalid`,
     code: "invalidEserviceInterfaceFileDetected",
     title: "Invalid interface file detected",
   });
