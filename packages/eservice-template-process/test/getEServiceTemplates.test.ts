@@ -32,9 +32,6 @@ describe("get eservices", () => {
   let eserviceTemplate3: EServiceTemplate;
   let eserviceTemplate4: EServiceTemplate;
   let eserviceTemplate5: EServiceTemplate;
-  const mockEServiceTemplateVersion = getMockEServiceTemplateVersion();
-  const mockEServiceTemplate = getMockEServiceTemplate();
-  const mockDocument = getMockDocument();
 
   beforeEach(async () => {
     organizationId1 = generateId();
@@ -42,15 +39,13 @@ describe("get eservices", () => {
     organizationId3 = generateId();
 
     const eserviceTemplateVersion1: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       state: eserviceTemplateVersionState.published,
     };
 
     eserviceTemplate1 = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice 001 test",
       versions: [eserviceTemplateVersion1],
       creatorId: organizationId1,
@@ -58,15 +53,13 @@ describe("get eservices", () => {
     await addOneEServiceTemplate(eserviceTemplate1);
 
     const eserviceTemplateVersion2: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       state: eserviceTemplateVersionState.published,
     };
 
     eserviceTemplate2 = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 002 test",
       versions: [eserviceTemplateVersion2],
       creatorId: organizationId1,
@@ -74,14 +67,12 @@ describe("get eservices", () => {
     await addOneEServiceTemplate(eserviceTemplate2);
 
     const eserviceTemplateVersion3: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       state: eserviceTemplateVersionState.published,
     };
     eserviceTemplate3 = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 003 test",
       versions: [eserviceTemplateVersion3],
       creatorId: organizationId1,
@@ -89,14 +80,12 @@ describe("get eservices", () => {
     await addOneEServiceTemplate(eserviceTemplate3);
 
     const eserviceTemplateVersion4: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       state: eserviceTemplateVersionState.suspended,
     };
     eserviceTemplate4 = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 004 test",
       creatorId: organizationId2,
       versions: [eserviceTemplateVersion4],
@@ -104,14 +93,12 @@ describe("get eservices", () => {
     await addOneEServiceTemplate(eserviceTemplate4);
 
     const eserviceTemplateVersion5: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       state: eserviceTemplateVersionState.suspended,
     };
     eserviceTemplate5 = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 005",
       creatorId: organizationId2,
       versions: [eserviceTemplateVersion5],
@@ -136,7 +123,12 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eserviceTemplate1, eserviceTemplate2]);
+    expect(result.results).toEqual(
+      [eserviceTemplate1, eserviceTemplate2].map((e) => ({
+        ...e,
+        versions: expect.arrayContaining(e.versions),
+      }))
+    );
   });
   it("should get the eServices templates if they exist (parameters: creatorsIds)", async () => {
     const result = await eserviceTemplateService.getEServiceTemplates(
@@ -289,8 +281,7 @@ describe("get eservices", () => {
   });
   it("should include eservice templates with no versions (requester is the creator, admin)", async () => {
     const eserviceTemplate6: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 006",
       creatorId: organizationId1,
       versions: [],
@@ -322,13 +313,11 @@ describe("get eservices", () => {
   });
   it("should include eservice templates whose only version is draft (requester is the creator, admin)", async () => {
     const eserviceTemplateVersion6: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
+      ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 006",
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6],
@@ -360,13 +349,11 @@ describe("get eservices", () => {
   });
   it("should not include eservice templates whose only version is draft (requester is the creator, not admin nor api, nor support)", async () => {
     const eserviceTemplateVersion6: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
+      ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 006",
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6],
@@ -397,13 +384,11 @@ describe("get eservices", () => {
   });
   it("should not include eservice templates whose only version is draft (requester is not the creator)", async () => {
     const eserviceTemplateVersion6: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
+      ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 006",
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6],
@@ -434,21 +419,18 @@ describe("get eservices", () => {
   });
   it("should not filter out %s versions if the eservice template has both of draft and published versions (requester is the creator, admin)", async () => {
     const eserviceTemplateVersion6a: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       publishedAt: new Date(),
       state: eserviceTemplateVersionState.published,
     };
     const eserviceTemplateVersion6b: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
+      ...getMockEServiceTemplateVersion(),
       version: 2,
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 006",
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
@@ -469,32 +451,34 @@ describe("get eservices", () => {
       getMockContext({ authData })
     );
     expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eserviceTemplate1,
-      eserviceTemplate2,
-      eserviceTemplate3,
-      eserviceTemplate4,
-      eserviceTemplate5,
-      eserviceTemplate6,
-    ]);
+    expect(result.results).toEqual(
+      [
+        eserviceTemplate1,
+        eserviceTemplate2,
+        eserviceTemplate3,
+        eserviceTemplate4,
+        eserviceTemplate5,
+        eserviceTemplate6,
+      ].map((e) => ({
+        ...e,
+        versions: expect.arrayContaining(e.versions),
+      }))
+    );
   });
   it("should filter out draft versions if the eservice has both draft and published versions (requester is the creator, but not admin nor api, nor support)", async () => {
     const eserviceTemplateVersion6a: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       publishedAt: new Date(),
       state: eserviceTemplateVersionState.published,
     };
     const eserviceTemplateVersion6b: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
+      ...getMockEServiceTemplateVersion(),
       version: 2,
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 006",
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
@@ -526,21 +510,18 @@ describe("get eservices", () => {
   });
   it("should filter out draft versions if the eservice template has both of draft and published versions (requester is not the creator)", async () => {
     const eserviceTemplateVersion6a: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       publishedAt: new Date(),
       state: eserviceTemplateVersionState.published,
     };
     const eserviceTemplateVersion6b: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      id: generateId(),
+      ...getMockEServiceTemplateVersion(),
       version: 2,
       state: eserviceTemplateVersionState.draft,
     };
     const eserviceTemplate6: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      id: generateId(),
+      ...getMockEServiceTemplate(),
       name: "eservice template 006",
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],

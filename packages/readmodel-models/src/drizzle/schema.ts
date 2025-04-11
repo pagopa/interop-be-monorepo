@@ -1,5 +1,4 @@
 import {
-  pgSchema,
   unique,
   uuid,
   integer,
@@ -11,22 +10,19 @@ import {
   index,
   primaryKey,
 } from "drizzle-orm/pg-core";
-
-export const readmodelAgreement = pgSchema("readmodel_agreement");
-export const readmodelEserviceTemplate = pgSchema(
-  "readmodel_eservice_template"
-);
-export const readmodelClient = pgSchema("readmodel_client");
-export const readmodelAttribute = pgSchema("readmodel_attribute");
-export const readmodelDelegation = pgSchema("readmodel_delegation");
-export const readmodelCatalog = pgSchema("readmodel_catalog");
-export const readmodelClientJwkKey = pgSchema("readmodel_client_jwk_key");
-export const readmodelProducerKeychain = pgSchema(
-  "readmodel_producer_keychain"
-);
-export const readmodelProducerJwkKey = pgSchema("readmodel_producer_jwk_key");
-export const readmodelPurpose = pgSchema("readmodel_purpose");
-export const readmodelTenant = pgSchema("readmodel_tenant");
+import {
+  readmodelAgreement,
+  readmodelAttribute,
+  readmodelDelegation,
+  readmodelCatalog,
+  readmodelClient,
+  readmodelProducerKeychain,
+  readmodelPurpose,
+  readmodelTenant,
+  readmodelClientJwkKey,
+  readmodelProducerJwkKey,
+  readmodelEserviceTemplate,
+} from "../pgSchema.js";
 
 export const agreementInReadmodelAgreement = readmodelAgreement.table(
   "agreement",

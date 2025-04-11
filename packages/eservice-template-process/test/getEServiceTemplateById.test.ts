@@ -28,12 +28,14 @@ describe("getEServiceTemplateById", () => {
       ...mockEServiceTemplateVersion,
       interface: mockDocument,
       state: eserviceTemplateVersionState.published,
+      version: 1,
     };
 
     const eserviceTemplateDraftVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
-      interface: mockDocument,
+      interface: getMockDocument(),
       state: eserviceTemplateVersionState.draft,
+      version: 2,
     };
 
     const eserviceTemplate: EServiceTemplate = {
@@ -46,8 +48,8 @@ describe("getEServiceTemplateById", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     const eserviceTemplateVersion2: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       state: eserviceTemplateVersionState.published,
     };
     const eserviceTemplate2: EServiceTemplate = {
@@ -59,8 +61,8 @@ describe("getEServiceTemplateById", () => {
     await addOneEServiceTemplate(eserviceTemplate2);
 
     const eserviceTemplateVersion3: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      interface: mockDocument,
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
       state: eserviceTemplateVersionState.published,
     };
     const eserviceTemplate3: EServiceTemplate = {
@@ -80,7 +82,10 @@ describe("getEServiceTemplateById", () => {
         },
       })
     );
-    expect(result).toEqual(eserviceTemplate);
+    expect(result).toEqual({
+      ...eserviceTemplate,
+      versions: expect.arrayContaining(eserviceTemplate.versions),
+    });
   });
 
   it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
@@ -130,12 +135,14 @@ describe("getEServiceTemplateById", () => {
     const eserviceTemplateVersionDraft: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       state: eserviceTemplateVersionState.draft,
+      version: 2,
     };
     const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
+      ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
       interface: mockDocument,
       publishedAt: new Date(),
+      version: 1,
     };
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,

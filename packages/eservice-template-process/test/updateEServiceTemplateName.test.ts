@@ -6,6 +6,8 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockAuthData,
+  getMockEService,
+  getMockDescriptor,
 } from "pagopa-interop-commons-test";
 import {
   operationForbidden,
@@ -16,14 +18,18 @@ import {
   EServiceTemplate,
   toEServiceTemplateV2,
   EServiceTemplateNameUpdatedV2,
+  EService,
+  descriptorState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eserviceTemplateWithoutPublishedVersion,
   eServiceTemplateNotFound,
   eServiceTemplateDuplicate,
+  instanceNameConflict,
 } from "../src/model/domain/errors.js";
 import {
+  addOneEService,
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
@@ -171,5 +177,37 @@ describe("updateEServiceTemplateName", () => {
         })
       )
     ).rejects.toThrowError(eServiceTemplateDuplicate(duplicateName));
+  });
+  it("should throw instanceNameConflict if there's an e-service with the same name of the e-service template's new name", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateRef: {
+        id: eserviceTemplate.id,
+        instanceLabel: "test label",
+      },
+    };
+    await addOneEService(mockEService);
+
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName(
+        eserviceTemplate.id,
+        `${mockEService.name} ${mockEService.templateRef?.instanceLabel}`,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(instanceNameConflict(eserviceTemplate.id));
   });
 });

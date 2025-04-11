@@ -10,7 +10,10 @@ import {
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
-import { aggregateClientJWKKey } from "./authorization/clientJWKKeyAggregators.js";
+import {
+  aggregateClientJWKKey,
+  aggregateClientJWKKeyArray,
+} from "./authorization/clientJWKKeyAggregators.js";
 import { checkMetadataVersionByFilter } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -56,7 +59,7 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       clientId: ClientId,
       kid: string
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
-      return this.getClientJWKKeyByFilter(
+      return await this.getClientJWKKeyByFilter(
         and(
           eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
           eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
@@ -79,6 +82,20 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       return aggregateClientJWKKey(queryResult[0]);
+    },
+    async getClientJWKKeysByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<ClientJWKKey>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select()
+        .from(clientJwkKeyInReadmodelClientJwkKey)
+        .where(filter);
+
+      return aggregateClientJWKKeyArray(queryResult);
     },
     async deleteClientJWKKeyByClientIdAndKid(
       clientId: ClientId,

@@ -140,12 +140,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
             .status(200)
             .send(apiGatewayApi.Agreements.parse(agreements));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getAgreementsErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getAgreementsErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -164,12 +159,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.Agreement.parse(agreement));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -190,12 +180,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
             .status(200)
             .send(apiGatewayApi.Attributes.parse(attributes));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -214,12 +199,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.Purposes.parse(purposes));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -241,8 +221,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
           const errorRes = makeApiProblem(
             error,
             createCertifiedAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -262,12 +241,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getAttributeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -285,12 +259,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
           );
           return res.status(200).send(apiGatewayApi.Client.parse(client));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getClientErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getClientErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -306,12 +275,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
             .status(200)
             .send(apiGatewayApi.CatalogEServices.parse(eservices));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -328,12 +292,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
           );
           return res.status(200).send(apiGatewayApi.EService.parse(eservice));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getEserviceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getEserviceErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -352,12 +311,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
             .status(200)
             .send(apiGatewayApi.EServiceDescriptors.parse(descriptors));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getEserviceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getEserviceErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -380,8 +334,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
           const errorRes = makeApiProblem(
             error,
             getEserviceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -399,12 +352,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
         return res.status(200).send(apiGatewayApi.Events.parse(events));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -423,12 +371,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -448,12 +391,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -473,12 +411,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -499,12 +432,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.Events.parse(events));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -520,12 +448,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.JWK.parse(jwk));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getJWKErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getJWKErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -538,12 +461,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
         return res.status(200).send(apiGatewayApi.Purposes.parse(purposes));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -560,12 +478,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(200).send(apiGatewayApi.Purpose.parse(purpose));
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getPurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getPurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -585,8 +498,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
           const errorRes = makeApiProblem(
             error,
             getAgreementByPurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -611,8 +523,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
           const errorRes = makeApiProblem(
             error,
             getOrganizationErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -633,12 +544,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
 
           return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            upsertTenantErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, upsertTenantErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -660,8 +566,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
           const errorRes = makeApiProblem(
             error,
             revokeTenantAttributeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -686,8 +591,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
           const errorRes = makeApiProblem(
             error,
             getOrganizationEservicesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }

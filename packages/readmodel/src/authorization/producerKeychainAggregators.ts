@@ -15,6 +15,7 @@ import {
   ProducerKeychainKeySQL,
   ProducerKeychainItemsSQL,
 } from "pagopa-interop-readmodel-models";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateProducerKeychain = ({
   producerKeychainSQL,
@@ -132,14 +133,14 @@ export const toProducerKeychainAggregatorArray = (
     if (
       producerKeychainUserSQL &&
       !userIdSet.has(
-        uniqueKey([
+        makeUniqueKey([
           producerKeychainUserSQL.producerKeychainId,
           producerKeychainUserSQL.userId,
         ])
       )
     ) {
       userIdSet.add(
-        uniqueKey([
+        makeUniqueKey([
           producerKeychainUserSQL.producerKeychainId,
           producerKeychainUserSQL.userId,
         ])
@@ -152,14 +153,14 @@ export const toProducerKeychainAggregatorArray = (
     if (
       producerKeychainEserviceSQL &&
       !eserviceIdSet.has(
-        uniqueKey([
+        makeUniqueKey([
           producerKeychainEserviceSQL.producerKeychainId,
           producerKeychainEserviceSQL.eserviceId,
         ])
       )
     ) {
       eserviceIdSet.add(
-        uniqueKey([
+        makeUniqueKey([
           producerKeychainEserviceSQL.producerKeychainId,
           producerKeychainEserviceSQL.eserviceId,
         ])
@@ -172,14 +173,14 @@ export const toProducerKeychainAggregatorArray = (
     if (
       producerKeychainKeySQL &&
       !keyIdSet.has(
-        uniqueKey([
+        makeUniqueKey([
           producerKeychainKeySQL.producerKeychainId,
           producerKeychainKeySQL.kid,
         ])
       )
     ) {
       keyIdSet.add(
-        uniqueKey([
+        makeUniqueKey([
           producerKeychainKeySQL.producerKeychainId,
           producerKeychainKeySQL.kid,
         ])
@@ -196,5 +197,3 @@ export const toProducerKeychainAggregatorArray = (
     keysSQL,
   };
 };
-
-const uniqueKey = (ids: string[]): string => ids.join("#");

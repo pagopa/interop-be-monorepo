@@ -11,7 +11,11 @@ import {
   getMockProducerKeychain,
 } from "pagopa-interop-commons-test";
 import { genericLogger, userRoles } from "pagopa-interop-commons";
-import { addOneProducerKeychain, authorizationService } from "./utils.js";
+import {
+  addOneProducerKeychain,
+  authorizationService,
+  generateExpectedProducerKeychains,
+} from "./utils.js";
 
 describe("getProducerKeychains", async () => {
   const producerId: TenantId = generateId();
@@ -33,6 +37,7 @@ describe("getProducerKeychains", async () => {
   const userId2: UserId = generateId();
   const mockProducerKeychain3: ProducerKeychain = {
     ...getMockProducerKeychain(),
+    name: "test3",
     users: [userId1, userId2],
     producerId,
   };
@@ -40,18 +45,21 @@ describe("getProducerKeychains", async () => {
   const userId4: UserId = generateId();
   const mockProducerKeychain4: ProducerKeychain = {
     ...getMockProducerKeychain(),
+    name: "test4",
     users: [userId3, userId4],
     producerId,
   };
 
   const mockProducerKeychain5: ProducerKeychain = {
     ...getMockProducerKeychain(),
+    name: "test5",
     eservices: [eserviceId],
     producerId,
   };
 
   const mockProducerKeychain6: ProducerKeychain = {
     ...getMockProducerKeychain(),
+    name: "test6",
     eservices: [eserviceId],
     producerId,
   };
@@ -142,7 +150,9 @@ describe("getProducerKeychains", async () => {
     });
 
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([mockProducerKeychain9]);
+    expect(result.results).toEqual(
+      generateExpectedProducerKeychains([mockProducerKeychain9])
+    );
   });
   it("should get the producer keychains if they exist (parameters: producerId)", async () => {
     await addOneProducerKeychain(mockProducerKeychain1);
@@ -190,12 +200,14 @@ describe("getProducerKeychains", async () => {
     await addOneProducerKeychain(mockProducerKeychain4);
     const mockProducerKeychainForOffset1: ProducerKeychain = {
       ...getMockProducerKeychain(),
+      name: "Test producer keychain for offset 1",
       users: [userId1, userId4],
       producerId,
     };
 
     const mockProducerKeychainForOffset2: ProducerKeychain = {
       ...getMockProducerKeychain(),
+      name: "Test producer keychain for offset 2",
       users: [userId2, userId3],
       producerId,
     };
@@ -214,20 +226,24 @@ describe("getProducerKeychains", async () => {
       limit: 50,
       logger: genericLogger,
     });
-    expect(result.results).toEqual([
-      mockProducerKeychainForOffset1,
-      mockProducerKeychainForOffset2,
-    ]);
+    expect(result.results).toEqual(
+      generateExpectedProducerKeychains([
+        mockProducerKeychainForOffset1,
+        mockProducerKeychainForOffset2,
+      ])
+    );
   });
   it("should get the producer keychains if they exist (pagination: limit)", async () => {
     const mockProducerKeychainForLimit1: ProducerKeychain = {
       ...getMockProducerKeychain(),
+      name: "Test producer keychain for limit 1",
       users: [userId1, userId4],
       producerId,
     };
 
     const mockProducerKeychainForLimit2: ProducerKeychain = {
       ...getMockProducerKeychain(),
+      name: "Test producer keychain for limit 2",
       users: [userId2, userId3],
       producerId,
     };
@@ -247,10 +263,12 @@ describe("getProducerKeychains", async () => {
       limit: 2,
       logger: genericLogger,
     });
-    expect(result.results).toEqual([
-      mockProducerKeychain3,
-      mockProducerKeychain4,
-    ]);
+    expect(result.results).toEqual(
+      generateExpectedProducerKeychains([
+        mockProducerKeychain3,
+        mockProducerKeychain4,
+      ])
+    );
   });
   it("should not get the producer keychains if they don't exist", async () => {
     await addOneProducerKeychain(mockProducerKeychain1);
@@ -271,6 +289,7 @@ describe("getProducerKeychains", async () => {
   it("should get the producer keychains if they exist (parameters: name, userIds, producerId, eserviceId)", async () => {
     const completeProducerKeychain1: ProducerKeychain = {
       ...getMockProducerKeychain(),
+      name: "Test producer keychain 1",
       users: [userId2, userId3],
       producerId,
       eservices: [eserviceId],
@@ -278,6 +297,7 @@ describe("getProducerKeychains", async () => {
 
     const completeProducerKeychain2: ProducerKeychain = {
       ...getMockProducerKeychain(),
+      name: "Test producer keychain 2",
       users: [userId2, userId3],
       producerId,
       eservices: [eserviceId],
@@ -298,9 +318,11 @@ describe("getProducerKeychains", async () => {
       logger: genericLogger,
     });
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([
-      completeProducerKeychain1,
-      completeProducerKeychain2,
-    ]);
+    expect(result.results).toEqual(
+      generateExpectedProducerKeychains([
+        completeProducerKeychain1,
+        completeProducerKeychain2,
+      ])
+    );
   });
 });

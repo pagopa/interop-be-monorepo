@@ -26,21 +26,59 @@ import {
   launchPuppeteerBrowser,
 } from "pagopa-interop-commons";
 import puppeteer, { Browser } from "puppeteer";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { config } from "../src/config/config.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
-  );
+export const {
+  cleanup,
+  readModelRepository,
+  postgresDB,
+  fileManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  inject("readModelConfig"),
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
+
 afterEach(cleanup);
 
 export const { delegations, agreements, eservices, tenants } =
   readModelRepository;
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  delegationReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+});
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const testBrowserInstance: Browser = await launchPuppeteerBrowser({
   pipe: true,
@@ -107,15 +145,23 @@ export const addOneDelegation = async (
 ): Promise<void> => {
   await writeSubmitDelegationInEventstore(delegation);
   await writeInReadmodel(delegation, delegations);
+
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
+
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
 export const addOneEservice = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };

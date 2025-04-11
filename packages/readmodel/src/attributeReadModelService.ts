@@ -52,7 +52,6 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
         eq(attributeInReadmodelAttribute.id, attributeId)
       );
     },
-
     async getAttributeByFilter(
       filter: SQL | undefined
     ): Promise<WithMetadata<Attribute> | undefined> {
@@ -71,10 +70,13 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateAttribute(queryResult[0]);
     },
-
     async getAttributesByFilter(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<Attribute>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       const queryResult = await db
         .select()
         .from(attributeInReadmodelAttribute)

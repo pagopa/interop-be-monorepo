@@ -311,6 +311,7 @@ export const getMockPurposeVersion = (
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
+  riskAnalysis: getMockPurposeVersionDocument(),
   dailyCalls: 10,
   createdAt: new Date(),
   ...(state !== purposeVersionState.draft
@@ -406,7 +407,7 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
-export const getMockClientJWKKey = (): ClientJWKKey => {
+export const getMockClientJWKKey = (clientId?: ClientId): ClientJWKKey => {
   const key = crypto.generateKeyPairSync("rsa", {
     modulusLength: 2048,
   }).publicKey;
@@ -417,11 +418,13 @@ export const getMockClientJWKKey = (): ClientJWKKey => {
 
   return keyToClientJWKKey(
     { ...getMockKey(), encodedPem: base64Key },
-    generateId<ClientId>()
+    clientId || generateId()
   );
 };
 
-export const getMockProducerKKey = (): ProducerJWKKey => {
+export const getMockProducerJWKKey = (
+  producerKeychainId?: ProducerKeychainId
+): ProducerJWKKey => {
   const key = crypto.generateKeyPairSync("rsa", {
     modulusLength: 2048,
   }).publicKey;
@@ -432,7 +435,7 @@ export const getMockProducerKKey = (): ProducerJWKKey => {
 
   return keyToProducerJWKKey(
     { ...getMockKey(), encodedPem: base64Key },
-    generateId<ProducerKeychainId>()
+    producerKeychainId || generateId()
   );
 };
 
@@ -797,6 +800,7 @@ export const getMockContext = ({
   authData: authData || getMockAuthData(),
   serviceName: serviceName || "test",
   correlationId: generateId(),
+  spanId: generateId(),
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });
@@ -846,29 +850,3 @@ export const sortAgreement = <
     };
   }
 };
-
-export const sortPurpose = <
-  T extends Purpose | WithMetadata<Purpose> | undefined
->(
-  purpose: T
-): T => {
-  if (!purpose) {
-    return purpose;
-  } else if ("data" in purpose) {
-    return {
-      ...purpose,
-      data: sortPurpose(purpose.data),
-    };
-  } else {
-    return {
-      ...purpose,
-      versions: [...purpose.versions].sort(sortBy<PurposeVersion>((v) => v.id)),
-    };
-  }
-};
-
-export const sortPurposes = <
-  T extends Purpose | WithMetadata<Purpose> | undefined
->(
-  purposes: T[]
-): T[] => purposes.map(sortPurpose);
