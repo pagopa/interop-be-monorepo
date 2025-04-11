@@ -90,7 +90,7 @@ export function dtdCatalogExporterServiceBuilder({
       "Getting e-service's tenants and attributes data from database..."
     );
     const eservicesTenantsIds = getAllTenantsIds(eservices);
-    const eservicesTenants = await readModelService.getEServicesTenants(
+    const eservicesTenants = await readModelService.getTenantsByIds(
       eservicesTenantsIds
     );
     const eservicesTenantsMap = new Map(

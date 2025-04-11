@@ -1,12 +1,12 @@
 import {
   AttributeId,
-  DescriptorReadModel,
+  Descriptor,
   descriptorState,
   DescriptorState,
-  EServiceReadModel,
+  EService,
   genericError,
+  Tenant,
   TenantId,
-  TenantReadModel,
 } from "pagopa-interop-models";
 
 const activeDescriptorStatesFilter: DescriptorState[] = [
@@ -14,9 +14,7 @@ const activeDescriptorStatesFilter: DescriptorState[] = [
   descriptorState.suspended,
 ];
 
-export function getLatestActiveDescriptor(
-  eservice: EServiceReadModel
-): DescriptorReadModel {
+export function getLatestActiveDescriptor(eservice: EService): Descriptor {
   const descriptor = eservice.descriptors
     .filter((d) => activeDescriptorStatesFilter.includes(d.state))
     .sort((a, b) => Number(a.version) - Number(b.version))
@@ -35,7 +33,7 @@ export function getLatestActiveDescriptor(
  * @param eservices - The array of eservices
  * @returns The array of tenants ids
  */
-export function getAllTenantsIds(eservices: EServiceReadModel[]): TenantId[] {
+export function getAllTenantsIds(eservices: EService[]): TenantId[] {
   return Array.from(new Set(eservices.map((eservice) => eservice.producerId)));
 }
 
@@ -46,7 +44,7 @@ export function getAllTenantsIds(eservices: EServiceReadModel[]): TenantId[] {
  * @returns The array of attributes ids
  */
 export function getAllEservicesAttributesIds(
-  eservices: EServiceReadModel[]
+  eservices: EService[]
 ): AttributeId[] {
   const attributesIds: Set<AttributeId> = new Set();
 
@@ -68,9 +66,7 @@ export function getAllEservicesAttributesIds(
  * @param tenants - The array of tenants
  * @returns The array of attributes ids
  */
-export function getAllTenantsAttributesIds(
-  tenants: TenantReadModel[]
-): AttributeId[] {
+export function getAllTenantsAttributesIds(tenants: Tenant[]): AttributeId[] {
   const attributesIds: Set<AttributeId> = new Set();
 
   tenants.forEach((tenant) => {
