@@ -71,37 +71,6 @@ const eserviceTemplateRouter = (
           return res.status(errorRes.status).send();
         }
       }
-    )
-    .post("/eserviceTemplates/:templateId/versions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
-      try {
-        return res.status(501).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error creating eserviceTemplate ${req.params.templateId} version`
-        );
-        return res.status(errorRes.status).send();
-      }
-    })
-    .patch(
-      "/eserviceTemplates/:templateId/versions/:versionId",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          return res.status(501).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error updating draft eservice template ${req.params.templateId} version ${req.params.versionId}`
-          );
-          return res.status(errorRes.status).send();
-        }
-      }
     );
 
   return eserviceTemplateRouter;

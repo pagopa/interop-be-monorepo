@@ -1606,6 +1606,26 @@ paths:
       description: Get eservices
       operationId: getEServices
       parameters:
+        - in: query
+          name: producersIds
+          description: comma separated sequence of producers IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: templatesIds
+          description: comma separated sequence of template IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
         - name: offset
           in: query
           description: The offset used for pagination
@@ -2112,97 +2132,6 @@ paths:
               $ref: '#/components/headers/RateLimitRemainingHeader'
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
-    post:
-      tags:
-        - eserviceTemplates
-      summary: Adds a version to the specified e-service template
-      operationId: createEServiceTemplateVersion
-      parameters:
-        - name: templateId
-          in: path
-          description: The E-Service template id
-          required: true
-          schema:
-            type: string
-      responses:
-        "201":
-          description: EService template version created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EServiceTemplateVersion"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "429":
-          description: Too Many Requests
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
   /eserviceTemplates/{templateId}/versions/{versionId}:
     parameters:
     - name: templateId
@@ -2252,110 +2181,6 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
         "401":
           description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "429":
-          description: Too Many Requests
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-    patch:
-      tags:
-        - eserviceTemplates
-      summary: Updates a draft template version
-      operationId: updateDraftTemplateVersion
-      parameters:
-        - name: templateId
-          in: path
-          description: The E-Service template id
-          required: true
-          schema:
-            type: string
-        - name: versionId
-          in: path
-          description: The E-Service template version Id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: An E-Service template version seed
-        content:
-          application/merge-patch+json:
-            schema:
-              $ref: "#/components/schemas/EServiceTemplateVersionUpdateSeed"
-        required: true
-      responses:
-        "200":
-          description: Template draft version updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EServiceTemplate"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-        "403":
-          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -4292,31 +4117,6 @@ components:
           format: uuid
       required:
         - id
-    EserviceAttributesSeed:
-      additionalProperties: false
-      properties:
-        certified:
-          type: array
-          items:
-            type: array
-            items:
-              $ref: "#/components/schemas/EserviceAttributeSeed"
-        declared:
-          type: array
-          items:
-            type: array
-            items:
-              $ref: "#/components/schemas/EserviceAttributeSeed"
-        verified:
-          type: array
-          items:
-            type: array
-            items:
-              $ref: "#/components/schemas/EserviceAttributeSeed"
-      required:
-        - certified
-        - declared
-        - verified
     EServiceTemplateVersion:
       type: object
       additionalProperties: false
@@ -4395,36 +4195,6 @@ components:
         - offset
         - limit
         - totalCount
-    EServiceTemplateVersionUpdateSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        description:
-          type: string
-          minLength: 10
-          maxLength: 250
-        voucherLifespan:
-          type: integer
-          format: int32
-          minimum: 60
-          maximum: 86400
-        dailyCallsPerConsumer:
-          description: "maximum number of daily calls that this descriptor can afford."
-          type: integer
-          format: int32
-          minimum: 1
-        dailyCallsTotal:
-          description: "total daily calls available for this e-service."
-          type: integer
-          format: int32
-          minimum: 1
-        agreementApprovalPolicy:
-          $ref: "#/components/schemas/AgreementApprovalPolicy"
-        attributes:
-          $ref: "#/components/schemas/EserviceAttributesSeed"
-      required:
-        - voucherLifespan
-        - attributes
     ExternalId:
       properties:
         origin:
