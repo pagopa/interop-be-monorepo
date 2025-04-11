@@ -27,14 +27,14 @@ const readModelService = readModelServiceBuilder(
 const templateService = buildHTMLTemplateService();
 
 const pecEmailManager: EmailManagerPEC = initPecEmailManager(config);
-const pecEmailsenderData = {
+const pecEmailSenderData = {
   label: config.pecSenderLabel,
   mail: config.pecSenderMail,
 };
 
 const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   pecEmailManager,
-  pecEmailsenderData,
+  pecEmailSenderData,
   readModelService,
   templateService
 );

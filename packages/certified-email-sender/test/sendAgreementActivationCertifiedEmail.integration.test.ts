@@ -30,7 +30,7 @@ import {
   certifiedEmailSenderService,
   interopFeBaseUrl,
   pecEmailManager,
-  pecEmailsenderData,
+  pecEmailSenderData,
   templateService,
 } from "./utils.js";
 
@@ -89,8 +89,8 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
 
     const mailOptions: Mail.Options = {
       from: {
-        name: pecEmailsenderData.label,
-        address: pecEmailsenderData.mail,
+        name: pecEmailSenderData.label,
+        address: pecEmailSenderData.mail,
       },
       subject: `Richiesta di fruizione ${agreement.id} attiva`,
       to: [consumerEmail.address, producerEmail.address],

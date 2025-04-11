@@ -31,7 +31,7 @@ export const { cleanup, readModelRepository, pecEmailManager } =
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const templateService = buildHTMLTemplateService();
 
-export const pecEmailsenderData = {
+export const pecEmailSenderData = {
   label: "pec_sender",
   mail: "pec_sender@test.com",
 };
@@ -39,7 +39,7 @@ export const interopFeBaseUrl = "http://localhost/fe";
 
 export const certifiedEmailSenderService = certifiedEmailSenderServiceBuilder(
   pecEmailManager,
-  pecEmailsenderData,
+  pecEmailSenderData,
   readModelService,
   templateService
 );
