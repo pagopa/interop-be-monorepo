@@ -1,0 +1,32 @@
+meta {
+  name: Updates a eservice template instance draft descriptor 
+  type: http
+  seq: 34
+}
+
+post {
+  url: {{host-bff}}/templates/eservices/:eServiceId/descriptors/:descriptorId
+  body: json
+  auth: none
+}
+
+params:path {
+  eServiceId: <uuid>
+  descriptorId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "audience": [
+      "<string>",
+      "<string>"
+    ],
+    "dailyCallsPerConsumer": "<integer>",
+    "dailyCallsTotal": "<integer>",
+    "agreementApprovalPolicy": "MANUAL",
+  }
+}

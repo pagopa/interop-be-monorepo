@@ -28,7 +28,7 @@ import { validateAudience, validatePlatformState } from "../src/utils.js";
 import {
   algorithmNotAllowed,
   algorithmNotFound,
-  digestClaimNotFound,
+  invalidDigestClaim,
   expNotFound,
   invalidEServiceState,
   invalidAgreementState,
@@ -127,7 +127,8 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
-    it("clientAssertionInvalidClaims - header", async () => {
+    // Note: this test is skipped to temporarily accept all claims in client assertion header
+    it.skip("clientAssertionInvalidClaims - header", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: {
           invalidHeaderProp: "wrong",
@@ -143,6 +144,22 @@ describe("validation test", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+    });
+
+    it("ignore unexpected claims in client assertion header", async () => {
+      const { jws } = await getMockClientAssertion({
+        customHeader: {
+          invalidHeaderProp: "wrong",
+        },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+
+      expect(errors).toBeUndefined();
     });
 
     // Note: this test is skipped to temporarily accept all claims in client assertion payload
@@ -524,7 +541,7 @@ describe("validation test", async () => {
       expect(verifiedClientAssertion.data?.payload.digest).toBeUndefined();
     });
 
-    it("digestClaimNotFound", async () => {
+    it("invalidDigestClaim", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: { digest: { alg: "alg", invalidProp: true } },
       });
@@ -536,7 +553,7 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(digestClaimNotFound("").code);
+      expect(errors![0].code).toEqual(invalidDigestClaim("").code);
     });
 
     it("invalidHashLength", async () => {

@@ -1,4 +1,7 @@
-FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
+#default value for compatibility
+ARG NODE_REGISTRY="docker.io"
+
+FROM ${NODE_REGISTRY}/node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
 
 RUN npm install -g corepack@0.31.0 && corepack enable
 
@@ -13,6 +16,8 @@ COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
+COPY ./packages/application-audit/package.json /app/packages/application-audit/package.json
+COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -23,6 +28,8 @@ COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
 COPY ./packages/api-clients /app/packages/api-clients
+COPY ./packages/application-audit /app/packages/application-audit
+COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
     rm -rf /app/node_modules/.modules.yaml && \
@@ -35,10 +42,12 @@ RUN pnpm build && \
       packages/models/ \
       packages/agreement-lifecycle/ \
       packages/api-clients \
+      packages/application-audit \
+      packages/kafka-iam-auth \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
-FROM node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as final 
+FROM ${NODE_REGISTRY}/node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as final 
 
 # Install dependencies for Puppeteer
 RUN apt-get update && \

@@ -87,7 +87,6 @@ const purposeRouter = (
         API_ROLE,
         SECURITY_ROLE,
         M2M_ROLE,
-        INTERNAL_ROLE,
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
@@ -104,7 +103,6 @@ const purposeRouter = (
             limit,
           } = req.query;
           const purposes = await purposeService.getPurposes(
-            req.ctx.authData.organizationId,
             {
               title: name,
               eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
@@ -114,7 +112,7 @@ const purposeRouter = (
               excludeDraft,
             },
             { offset, limit },
-            ctx.logger
+            ctx
           );
           return res.status(200).send(
             purposeApi.Purposes.parse({
@@ -125,12 +123,7 @@ const purposeRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getPurposesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getPurposesErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -151,12 +144,7 @@ const purposeRouter = (
               )
             );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createPurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, createPurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -180,8 +168,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             createReversePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -210,8 +197,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             updateReversePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -232,8 +218,7 @@ const purposeRouter = (
           const { purpose, isRiskAnalysisValid } =
             await purposeService.getPurposeById(
               unsafeBrandId(req.params.id),
-              ctx.authData.organizationId,
-              ctx.logger
+              ctx
             );
           return res
             .status(200)
@@ -243,12 +228,7 @@ const purposeRouter = (
               )
             );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getPurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getPurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -273,12 +253,7 @@ const purposeRouter = (
               )
             );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updatePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -292,12 +267,7 @@ const purposeRouter = (
           await purposeService.deletePurpose(unsafeBrandId(req.params.id), ctx);
           return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deletePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, deletePurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -316,12 +286,7 @@ const purposeRouter = (
           );
           return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deletePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, deletePurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -348,8 +313,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             createPurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -357,7 +321,7 @@ const purposeRouter = (
     )
     .delete(
       "/purposes/:purposeId/versions/:versionId",
-      authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
         try {
@@ -373,8 +337,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             deletePurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -390,8 +353,7 @@ const purposeRouter = (
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             documentId: unsafeBrandId(req.params.documentId),
-            organizationId: req.ctx.authData.organizationId,
-            logger: ctx.logger,
+            ctx,
           });
           return res
             .status(200)
@@ -404,8 +366,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -430,8 +391,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectPurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -462,8 +422,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             activatePurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -489,12 +448,7 @@ const purposeRouter = (
               )
             );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            clonePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, clonePurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -523,8 +477,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             suspendPurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -554,8 +507,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             archivePurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -581,8 +533,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             archivePurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -602,8 +553,7 @@ const purposeRouter = (
           const riskAnalysisConfiguration =
             await purposeService.retrieveLatestRiskAnalysisConfiguration({
               tenantKind: req.query.tenantKind,
-              organizationId: req.ctx.authData.organizationId,
-              logger: ctx.logger,
+              ctx,
             });
           return res
             .status(200)
@@ -615,12 +565,7 @@ const purposeRouter = (
               )
             );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -640,8 +585,7 @@ const purposeRouter = (
             await purposeService.retrieveRiskAnalysisConfigurationByVersion({
               eserviceId: unsafeBrandId(req.query.eserviceId),
               riskAnalysisVersion: req.params.riskAnalysisVersion,
-              organizationId: req.ctx.authData.organizationId,
-              logger: ctx.logger,
+              ctx,
             });
           return res
             .status(200)
@@ -656,8 +600,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             retrieveRiskAnalysisConfigurationByVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }

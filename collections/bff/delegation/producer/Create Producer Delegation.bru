@@ -5,14 +5,13 @@ meta {
 }
 
 post {
-  url: {{host-bff}}/producer/delegations
+  url: {{host-bff}}/producers/delegations
   body: json
   auth: none
 }
 
 headers {
   Authorization: {{JWT}}
-  X-Correlation-Id: {{correlation-id}}
 }
 
 body:json {

@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockContext,
   getMockEService,
   getMockTenant,
+  getMockAuthData,
   randomArrayItem,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   EServiceId,
   TenantId,
@@ -15,7 +17,7 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger, getFormRulesByVersion } from "pagopa-interop-commons";
+import { getFormRulesByVersion } from "pagopa-interop-commons";
 import {
   riskAnalysisConfigVersionNotFound,
   eserviceNotFound,
@@ -41,8 +43,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       await purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion,
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       });
 
     expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -63,8 +64,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       await purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion,
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       });
 
     expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -78,24 +78,26 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: randomId,
         riskAnalysisVersion: "1.0",
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: getMockContext({
+          authData: getMockAuthData(mockTenant.id),
+        }),
       })
     ).rejects.toThrowError(eserviceNotFound(randomId));
   });
   it("should throw tenantNotFound if the tenant doesn't exist", async () => {
     const mockEservice = { ...getMockEService(), mode: eserviceMode.deliver };
-    const randomId = generateId<TenantId>();
+    const randomTenantId = generateId<TenantId>();
     await writeInReadmodel(toReadModelEService(mockEservice), eservices);
 
     expect(
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion: "1.0",
-        organizationId: randomId,
-        logger: genericLogger,
+        ctx: getMockContext({
+          authData: getMockAuthData(randomTenantId),
+        }),
       })
-    ).rejects.toThrowError(tenantNotFound(randomId));
+    ).rejects.toThrowError(tenantNotFound(randomTenantId));
   });
   it("should throw tenantKindNotFound if the tenant kind is undefined", async () => {
     const mockEservice = { ...getMockEService(), mode: eserviceMode.deliver };
@@ -110,8 +112,9 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion: "1.0",
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: getMockContext({
+          authData: getMockAuthData(mockTenant.id),
+        }),
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
@@ -130,8 +133,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion: wrongRiskAnalysisVersion,
-        organizationId: mockTenant.id,
-        logger: genericLogger,
+        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(
       riskAnalysisConfigVersionNotFound(

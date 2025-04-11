@@ -16,6 +16,20 @@ services:
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
 
+  # POSTGRESQL readmodel
+  readmodel-sql:
+    volumes:
+      - ./readmodel-db:/docker-entrypoint-initdb.d
+    image: postgres:14
+    ports:
+      - 6002:5433
+    environment:
+      PGPORT: 5433
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    command: -c 'max_connections=512' -c 'wal_level=logical'
+
   # Zookeeper for Kafka
   zookeeper:
     image: quay.io/debezium/zookeeper:2.3
@@ -60,6 +74,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ./mongo-data:/data/db
 
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:

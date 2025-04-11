@@ -1,6 +1,10 @@
 /* eslint-disable functional/no-let */
 import { genericLogger, AuthData, userRoles } from "pagopa-interop-commons";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockEServiceTemplate,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   TenantId,
   EService,
@@ -12,6 +16,7 @@ import {
   agreementState,
   delegationState,
   delegationKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
 import { getMockDelegation } from "pagopa-interop-commons-test";
@@ -20,13 +25,13 @@ import {
   addOneTenant,
   addOneAgreement,
   catalogService,
-  getMockAuthData,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
   getMockAgreement,
   getMockEServiceAttributes,
   addOneDelegation,
+  addOneEServiceTemplate,
 } from "./utils.js";
 
 describe("get eservices", () => {
@@ -189,6 +194,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -206,6 +212,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -256,6 +263,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -279,6 +287,7 @@ describe("get eservices", () => {
         states: ["Published"],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -301,6 +310,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: ["Active"],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -315,6 +325,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: ["Active", "Draft"],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -336,6 +347,7 @@ describe("get eservices", () => {
         agreementStates: [],
         name: "test",
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -388,6 +400,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
         delegated: true,
       },
       0,
@@ -444,6 +457,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
         delegated: false,
       },
       0,
@@ -468,6 +482,7 @@ describe("get eservices", () => {
         agreementStates: ["Active"],
         name: "test",
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -486,6 +501,7 @@ describe("get eservices", () => {
         agreementStates: ["Active"],
         name: "test",
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -504,6 +520,7 @@ describe("get eservices", () => {
         agreementStates: [],
         name: "test",
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -651,6 +668,7 @@ describe("get eservices", () => {
         agreementStates: [],
         name: "test",
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -673,6 +691,7 @@ describe("get eservices", () => {
         agreementStates: [],
         name: "not-existing",
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -690,6 +709,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       5,
@@ -707,6 +727,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       5,
       5,
@@ -728,6 +749,7 @@ describe("get eservices", () => {
           attributesForDescriptor3.declared[0][1].id,
           attributesForDescriptor4.verified[0][1].id,
         ],
+        templatesIds: [],
       },
       0,
       50,
@@ -751,6 +773,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
         mode: eserviceMode.receive,
       },
       0,
@@ -764,7 +787,7 @@ describe("get eservices", () => {
   });
 
   it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
-    const result = await catalogService.getEServices(
+    const result1 = await catalogService.getEServices(
       getMockAuthData(),
       {
         eservicesIds: [],
@@ -772,15 +795,36 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
         isConsumerDelegable: true,
       },
       0,
       50,
       genericLogger
     );
-    expect(result).toEqual({
+    expect(result1).toEqual({
       totalCount: 2,
       results: [eservice1, eservice4],
+    });
+
+    const result2 = await catalogService.getEServices(
+      getMockAuthData(),
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [],
+        isConsumerDelegable: false,
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result2).toEqual({
+      totalCount: 4,
+      results: [eservice2, eservice3, eservice5, eservice6],
     });
   });
 
@@ -793,6 +837,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
         mode: eserviceMode.deliver,
       },
       0,
@@ -831,6 +876,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
         mode: eserviceMode.deliver,
         delegated: true,
       },
@@ -957,6 +1003,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
         mode: eserviceMode.deliver,
       },
       0,
@@ -978,6 +1025,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [generateId()],
+        templatesIds: [],
       },
       0,
       50,
@@ -997,6 +1045,7 @@ describe("get eservices", () => {
         agreementStates: [],
         name: eservice1.name.slice(-6),
         attributesIds: [attributesForDescriptor1and2.verified[0][1].id],
+        templatesIds: [],
       },
       0,
       50,
@@ -1018,6 +1067,7 @@ describe("get eservices", () => {
           attributesForDescriptor1and2.certified[0][0].id,
           attributesForDescriptor4.verified[0][1].id,
         ],
+        templatesIds: [],
       },
       0,
       50,
@@ -1037,6 +1087,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: ["Active"],
         attributesIds: [attributesForDescriptor1and2.certified[0][0].id],
+        templatesIds: [],
       },
       0,
       50,
@@ -1058,6 +1109,7 @@ describe("get eservices", () => {
           attributesForDescriptor1and2.certified[0][0].id,
           attributesForDescriptor4.verified[0][1].id,
         ],
+        templatesIds: [],
       },
       0,
       50,
@@ -1076,6 +1128,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: ["Draft"],
         attributesIds: [attributesForDescriptor1and2.certified[0][0].id],
+        templatesIds: [],
       },
       0,
       50,
@@ -1083,6 +1136,96 @@ describe("get eservices", () => {
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
+  });
+
+  it("should get the eServices if they exist (parameters: templatesIds)", async () => {
+    const templateId1: EServiceTemplateId = generateId();
+    const eserviceTemplate1 = getMockEServiceTemplate(templateId1);
+    const templateId2: EServiceTemplateId = generateId();
+    const eserviceTemplate2 = getMockEServiceTemplate(templateId2);
+    const eserviceInstance1: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateRef: { id: templateId1 },
+    };
+    const eserviceInstance2: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateRef: { id: templateId1 },
+    };
+    const eserviceInstance3: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateRef: { id: templateId2 },
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate1);
+    await addOneEServiceTemplate(eserviceTemplate2);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
+
+    const result = await catalogService.getEServices(
+      getMockAuthData(organizationId3),
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [templateId1],
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result.totalCount).toBe(2);
+    expect(result.results).toEqual([eserviceInstance1, eserviceInstance2]);
+  });
+
+  it("should get the eServices if they exist (parameters: templatesIds, states)", async () => {
+    const templateId1: EServiceTemplateId = generateId();
+    const eserviceTemplate1 = getMockEServiceTemplate(templateId1);
+    const templateId2: EServiceTemplateId = generateId();
+    const eserviceTemplate2 = getMockEServiceTemplate(templateId2);
+    const eserviceInstance1: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.published)],
+      templateRef: { id: templateId1 },
+    };
+    const eserviceInstance2: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.archived)],
+      templateRef: { id: templateId1 },
+    };
+    const eserviceInstance3: EService = {
+      ...getMockEService(),
+      descriptors: [getMockDescriptor(descriptorState.suspended)],
+      templateRef: { id: templateId2 },
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate1);
+    await addOneEServiceTemplate(eserviceTemplate2);
+    await addOneEService(eserviceInstance1);
+    await addOneEService(eserviceInstance2);
+    await addOneEService(eserviceInstance3);
+
+    const result = await catalogService.getEServices(
+      getMockAuthData(organizationId3),
+      {
+        eservicesIds: [],
+        producersIds: [],
+        states: [descriptorState.published],
+        agreementStates: [],
+        attributesIds: [],
+        templatesIds: [templateId1],
+      },
+      0,
+      50,
+      genericLogger
+    );
+    expect(result.totalCount).toBe(1);
+    expect(result.results).toEqual([eserviceInstance1]);
   });
 
   it("should include eservices with no descriptors (requester is the producer, admin)", async () => {
@@ -1106,6 +1249,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -1143,6 +1287,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -1179,6 +1324,7 @@ describe("get eservices", () => {
         states: [],
         agreementStates: [],
         attributesIds: [],
+        templatesIds: [],
       },
       0,
       50,
@@ -1222,6 +1368,7 @@ describe("get eservices", () => {
           states: [],
           agreementStates: [],
           attributesIds: [],
+          templatesIds: [],
         },
         0,
         50,
@@ -1276,6 +1423,7 @@ describe("get eservices", () => {
           states: [],
           agreementStates: [],
           attributesIds: [],
+          templatesIds: [],
         },
         0,
         50,
@@ -1321,6 +1469,7 @@ describe("get eservices", () => {
           states: [],
           agreementStates: [],
           attributesIds: [],
+          templatesIds: [],
         },
         0,
         50,
@@ -1365,6 +1514,7 @@ describe("get eservices", () => {
           states: [],
           agreementStates: [],
           attributesIds: [],
+          templatesIds: [],
         },
         0,
         50,
@@ -1417,6 +1567,7 @@ describe("get eservices", () => {
           states: [],
           agreementStates: [],
           attributesIds: [],
+          templatesIds: [],
         },
         0,
         50,
@@ -1470,6 +1621,7 @@ describe("get eservices", () => {
           states: [],
           agreementStates: [],
           attributesIds: [],
+          templatesIds: [],
         },
         0,
         50,
@@ -1523,6 +1675,7 @@ describe("get eservices", () => {
           states: [],
           agreementStates: [],
           attributesIds: [],
+          templatesIds: [],
         },
         0,
         50,
@@ -1583,6 +1736,7 @@ describe("get eservices", () => {
           states: [],
           agreementStates: [],
           attributesIds: [],
+          templatesIds: [],
         },
         0,
         50,

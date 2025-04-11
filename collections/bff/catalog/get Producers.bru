@@ -1,7 +1,7 @@
 meta {
   name: get Producers
   type: http
-  seq: 1
+  seq: 24
 }
 
 get {
@@ -18,10 +18,7 @@ params:query {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Retrieve Tenants that have published an EService

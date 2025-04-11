@@ -1,7 +1,7 @@
 meta {
   name: Create Keys for the specific clientId-
   type: http
-  seq: 1
+  seq: 3
 }
 
 post {
@@ -16,10 +16,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 body:json {
   [

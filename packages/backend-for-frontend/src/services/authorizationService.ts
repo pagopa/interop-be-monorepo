@@ -15,18 +15,16 @@ import {
   UID,
   USER_ROLES,
   WithLogger,
-  decodeJwtToken,
   userRoles,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { TenantId, genericError, unsafeBrandId } from "pagopa-interop-models";
+import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
-  missingClaim,
   missingSelfcareId,
+  missingUserRolesInIdentityToken,
   tenantLoginNotAllowed,
-  tokenVerificationFailed,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
@@ -61,37 +59,26 @@ export function authorizationServiceBuilder(
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
-    const verified = await verifyJwtToken(identityToken, config, logger);
-    if (!verified) {
-      throw tokenVerificationFailed();
-    }
-
-    const decoded = decodeJwtToken(identityToken, logger);
-
-    const userRoles: string[] = decoded?.organization?.roles
-      ? decoded.organization.roles.map((r: { role: string }) => r.role)
-      : decoded?.[USER_ROLES]
-      ? decoded[USER_ROLES].split(",")
-      : decoded?.role
-      ? decoded.role.split(",")
-      : [];
-
-    if (userRoles.length === 0) {
-      throw genericError("Unable to extract userRoles from claims");
-    }
+    const { decoded } = await verifyJwtToken(identityToken, config, logger);
 
     const { data: sessionClaims, error } = SessionClaims.safeParse(decoded);
+
     if (error) {
-      const claim = error.errors[0].path.join(".");
-      throw missingClaim(claim);
+      throw invalidClaim(error);
     }
 
-    const selfcareId = sessionClaims[ORGANIZATION].id;
+    const userRoles: string[] = sessionClaims.organization.roles.map(
+      (r: { role: string }) => r.role
+    );
+
+    if (userRoles.length === 0) {
+      throw missingUserRolesInIdentityToken();
+    }
 
     return {
       roles: userRoles.join(","),
       sessionClaims,
-      selfcareId,
+      selfcareId: sessionClaims.organization.id,
     };
   };
 
@@ -187,12 +174,7 @@ export function authorizationServiceBuilder(
         });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
-      const tenant = await tenantProcessClient.tenant.getTenant({
-        params: { id: tenantId },
-        headers: internalHeaders,
-      });
-
-      assertTenantAllowed(selfcareId, tenant.externalId.origin);
+      assertTenantAllowed(selfcareId, tenantBySelfcareId.externalId.origin);
 
       const { limitReached, ...rateLimiterStatus } =
         await rateLimiter.rateLimitByOrganization(tenantId, logger);
@@ -210,8 +192,8 @@ export function authorizationServiceBuilder(
         roles,
         tenantId,
         selfcareId,
-        tenant.externalId.origin,
-        tenant.externalId.value
+        tenantBySelfcareId.externalId.origin,
+        tenantBySelfcareId.externalId.value
       );
 
       const { serialized: sessionToken } =

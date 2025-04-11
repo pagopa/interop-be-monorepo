@@ -4,6 +4,8 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   TenantId,
 } from "../brandedIds.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
@@ -71,6 +73,26 @@ export type DescriptorRejectionReason = z.infer<
   typeof DescriptorRejectionReason
 >;
 
+export const TemplateInstanceInterfaceMetadata = z.object({
+  contactName: z.string().optional(),
+  contactEmail: z.string().optional(),
+  contactUrl: z.string().optional(),
+  termsAndConditionsUrl: z.string().optional(),
+});
+
+export type TemplateInstanceInterfaceMetadata = z.infer<
+  typeof TemplateInstanceInterfaceMetadata
+>;
+
+export const EServiceTemplateVersionRef = z.object({
+  id: EServiceTemplateVersionId,
+  interfaceMetadata: TemplateInstanceInterfaceMetadata.optional(),
+});
+
+export type EServiceTemplateVersionRef = z.infer<
+  typeof EServiceTemplateVersionRef
+>;
+
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
@@ -91,6 +113,7 @@ export const Descriptor = z.object({
   archivedAt: z.coerce.date().optional(),
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
+  templateVersionRef: EServiceTemplateVersionRef.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -103,6 +126,13 @@ export const EServiceMode = z.enum([
   ...Object.values(eserviceMode).slice(1),
 ]);
 export type EServiceMode = z.infer<typeof EServiceMode>;
+
+export const EServiceTemplateRef = z.object({
+  id: EServiceTemplateId,
+  instanceLabel: z.string().optional(),
+});
+
+export type EServiceTemplateRef = z.infer<typeof EServiceTemplateRef>;
 
 export const EService = z.object({
   id: EServiceId,
@@ -118,5 +148,7 @@ export const EService = z.object({
   isSignalHubEnabled: z.boolean().optional(),
   isConsumerDelegable: z.boolean().optional(),
   isClientAccessDelegable: z.boolean().optional(),
+  templateRef: EServiceTemplateRef.optional(),
 });
+
 export type EService = z.infer<typeof EService>;

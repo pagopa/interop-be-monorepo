@@ -1,7 +1,7 @@
 meta {
   name: Retrieve Consumers for an EService
   type: http
-  seq: 1
+  seq: 12
 }
 
 get {
@@ -16,8 +16,5 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
   Accept: application/octet-stream
 }
-
-

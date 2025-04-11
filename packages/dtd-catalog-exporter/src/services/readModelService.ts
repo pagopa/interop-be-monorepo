@@ -46,7 +46,7 @@ export function readModelServiceBuilder(
      * @param attributeIds - The array of attributes ids
      * @returns The array of attributes
      * */
-    async getEServicesAttributes(
+    async getAttributes(
       attributeIds: AttributeId[]
     ): Promise<AttributeReadmodel[]> {
       const data = await attributes
@@ -70,12 +70,36 @@ export function readModelServiceBuilder(
     /**
      * Fetches all the tenants from the database filtering by the passed tenant ids;
      *
-     * @param eservices - The array of e-services which all the attributes ids will be taken from
-     * @returns The array of attributes
+     * @param tenantIds - The array of tenant ids to retrieve
+     * @returns The array of tenants
      * */
     async getEServicesTenants(tenantIds: string[]): Promise<TenantReadModel[]> {
       const data = await tenants
         .find({ "data.id": { $in: tenantIds } })
+        .map(({ data }) => data)
+        .toArray();
+
+      const result = z.array(TenantReadModel).safeParse(data);
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse tenants items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
+    },
+
+    /**
+     * Fetches all tenants from the database
+     *
+     * @returns The array of all tenants
+     */
+    async getAllTenants(): Promise<TenantReadModel[]> {
+      const data = await tenants
+        .find()
         .map(({ data }) => data)
         .toArray();
 

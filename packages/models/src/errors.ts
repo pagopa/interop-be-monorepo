@@ -3,6 +3,7 @@ import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { CorrelationId } from "./brandedIds.js";
+import { serviceErrorCode, ServiceName } from "./services.js";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -67,8 +68,14 @@ export type Problem = {
 type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
-  logger: { error: (message: string) => void; warn: (message: string) => void },
-  correlationId: CorrelationId,
+  context: {
+    logger: {
+      error: (message: string) => void;
+      warn: (message: string) => void;
+    };
+    correlationId: CorrelationId;
+    serviceName: string;
+  },
   operationalLogMessage?: string
 ) => Problem;
 
@@ -87,7 +94,22 @@ export function makeApiProblemBuilder<T extends string>(
   problemErrorsPassthrough: boolean = true
 ): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
+
+  function retrieveServiceErrorCode(serviceName: string): string {
+    const serviceNameParsed = ServiceName.safeParse(serviceName);
+    return serviceNameParsed.success
+      ? serviceErrorCode[serviceNameParsed.data]
+      : "000";
+  }
+
+  return (
+    error,
+    httpMapper,
+    { logger, correlationId, serviceName },
+    operationalLogMessage
+  ) => {
+    const serviceErrorCode = retrieveServiceErrorCode(serviceName);
+
     const makeProblem = (
       httpStatus: number,
       { title, detail, errors }: ApiError<T | CommonErrorCodes>
@@ -98,7 +120,7 @@ export function makeApiProblemBuilder<T extends string>(
       detail,
       correlationId,
       errors: errors.map(({ code, detail }) => ({
-        code: allErrors[code],
+        code: `${serviceErrorCode}-${allErrors[code]}`,
         detail,
       })),
     });
@@ -186,11 +208,23 @@ const errorCodes = {
   jwkDecodingError: "10000",
   notAllowedPrivateKeyException: "10001",
   missingRequiredJWKClaim: "10002",
-  invalidKey: "10003",
+  invalidPublicKey: "10003",
   tooManyRequestsError: "10004",
   notAllowedCertificateException: "10005",
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
+  invalidKeyLength: "10008",
+  notAnRSAKey: "10009",
+  invalidEserviceInterfaceFileDetected: "10010",
+  openapiVersionNotRecognized: "10011",
+  interfaceExtractingInfoError: "10012",
+  invalidInterfaceContentTypeDetected: "10013",
+  tokenVerificationFailed: "10014",
+  invalidEserviceInterfaceData: "10015",
+  soapFileParsingError: "10016",
+  interfaceExtractingSoapFieldValueError: "10017",
+  soapFileCreatingError: "10018",
+  notAllowedMultipleKeysException: "10019",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -254,14 +288,26 @@ export function tokenGenerationError(
 export function kafkaMessageProcessError(
   topic: string,
   partition: number,
-  offset: string,
+  {
+    offset,
+    streamId,
+    eventType,
+    eventVersion,
+  }: {
+    offset: string;
+    streamId?: string;
+    eventType?: string;
+    eventVersion?: number;
+  },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}. ${
-      error ? parseErrorMessage(error) : ""
-    }`,
+    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}${
+      streamId ? ` - streamId ${streamId}` : ""
+    }${eventType ? ` - eventType ${eventType}` : ""}${
+      eventVersion ? ` - eventVersion ${eventVersion}` : ""
+    }. ${error ? parseErrorMessage(error) : ""}`,
   });
 }
 
@@ -349,6 +395,20 @@ export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
   });
 }
 
+export function tokenVerificationFailed(
+  uid: string | undefined,
+  selfcareId: string | undefined
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail:
+      "Token verification failed" +
+      (uid ? " for user " + uid : "") +
+      (selfcareId ? " for tenant " + selfcareId : ""),
+    code: "tokenVerificationFailed",
+    title: "Token verification failed",
+  });
+}
+
 export function missingHeader(headerName?: string): ApiError<CommonErrorCodes> {
   const title = "Header has not been passed";
   return new ApiError({
@@ -404,6 +464,14 @@ export function notAllowedCertificateException(): ApiError<CommonErrorCodes> {
   });
 }
 
+export function notAllowedMultipleKeysException(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The received key contains multiple keys`,
+    code: "notAllowedMultipleKeysException",
+    title: "Not allowed multiple keys exception",
+  });
+}
+
 export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `One or more required JWK claims are missing`,
@@ -412,13 +480,104 @@ export function missingRequiredJWKClaim(): ApiError<CommonErrorCodes> {
   });
 }
 
-export function invalidKey(
-  kid: string,
-  error: unknown
+export function invalidPublicKey(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Public key is invalid`,
+    code: "invalidPublicKey",
+    title: "Invalid Key",
+  });
+}
+
+export function invalidKeyLength(
+  length: number | undefined,
+  minLength: number = 2048
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
-    code: "invalidKey",
-    title: "Invalid Key",
+    detail: `Invalid RSA key length: ${length} bits. It must be at least ${minLength}`,
+    code: "invalidKeyLength",
+    title: "Invalid Key length",
+  });
+}
+
+export function notAnRSAKey(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Provided key is not an RSA key`,
+    code: "notAnRSAKey",
+    title: "Not an RSA key",
+  });
+}
+
+export function invalidInterfaceFileDetected(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService or EserviceTemplate with ID ${resourceId} is invalid`,
+    code: "invalidEserviceInterfaceFileDetected",
+    title: "Invalid interface file detected",
+  });
+}
+
+export function invalidInterfaceData(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface data provided for EService ${resourceId} is invalid`,
+    code: "invalidEserviceInterfaceData",
+    title: "Invalid interface file data provided",
+  });
+}
+
+export function openapiVersionNotRecognized(
+  version: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `OpenAPI version not recognized - ${version}`,
+    code: "openapiVersionNotRecognized",
+    title: "OpenAPI version not recognized",
+  });
+}
+
+export function parsingSoapFileError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error parsing SOAP file`,
+    code: "soapFileParsingError",
+    title: "Error parsing SOAP file",
+  });
+}
+
+export function buildingSoapFileError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error creating SOAP file`,
+    code: "soapFileCreatingError",
+    title: "Error creating SOAP file",
+  });
+}
+
+export function interfaceExtractingInfoError(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting info from interface file`,
+    code: "interfaceExtractingInfoError",
+    title: "Error extracting info from interface file",
+  });
+}
+export function interfaceExtractingSoapFiledError(
+  fieldName: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Error extracting field ${fieldName} from SOAP file`,
+    code: "interfaceExtractingSoapFieldValueError",
+    title: "Error extracting field from SOAP file",
+  });
+}
+
+export function invalidInterfaceContentTypeDetected(
+  eServiceId: string,
+  contentType: string,
+  technology: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
+    code: "invalidInterfaceContentTypeDetected",
+    title: "Invalid content type detected",
   });
 }

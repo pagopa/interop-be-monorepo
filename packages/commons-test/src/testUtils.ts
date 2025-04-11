@@ -73,8 +73,25 @@ import {
   UserId,
   delegationState,
   delegationKind,
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
+  agreementApprovalPolicy,
+  EServiceTemplateVersionState,
+  AgreementDocument,
+  AgreementStamp,
+  WithMetadata,
 } from "pagopa-interop-models";
-import { AuthData, dateToSeconds } from "pagopa-interop-commons";
+import {
+  AppContext,
+  AuthData,
+  dateToSeconds,
+  genericLogger,
+  userRoles,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
@@ -122,14 +139,6 @@ export const getTenantOneCertifierFeature = (
   }
   return certifiedFeatures[0];
 };
-
-export const getRandomAuthData = (
-  organizationId: TenantId = generateId<TenantId>()
-): AuthData => ({
-  ...generateMock(AuthData),
-  userRoles: ["admin"],
-  organizationId,
-});
 
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
@@ -230,6 +239,12 @@ export const getMockTenantMail = (
   address: generateMock(z.string().email()),
 });
 
+export const getMockAgreementStamp = (): AgreementStamp => ({
+  who: generateId(),
+  when: new Date(),
+  delegationId: generateId<DelegationId>(),
+});
+
 export const getMockAgreementStamps = (): AgreementStamps => {
   const stamps = generateMock(AgreementStamps);
   delete stamps.submission?.delegationId;
@@ -263,8 +278,6 @@ export const getMockAttribute = (
   kind,
   description: "attribute description",
   creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
 });
 
 export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
@@ -284,12 +297,7 @@ export const getMockPurposeVersion = (
 ): PurposeVersion => ({
   id: generateId(),
   state: state || purposeVersionState.draft,
-  riskAnalysis: {
-    id: generateId(),
-    contentType: "json",
-    path: "path",
-    createdAt: new Date(),
-  },
+  riskAnalysis: getMockPurposeVersionDocument(),
   dailyCalls: 10,
   createdAt: new Date(),
   ...(state !== purposeVersionState.draft
@@ -345,6 +353,15 @@ export const getMockDocument = (): Document => ({
   uploadDate: new Date(),
 });
 
+export const getMockAgreementDocument = (): AgreementDocument => ({
+  id: generateId(),
+  name: "fileName",
+  prettyName: "prettyName",
+  contentType: "json",
+  path: "filePath",
+  createdAt: new Date(),
+});
+
 export const getMockClient = (): Client => ({
   id: generateId(),
   consumerId: generateId(),
@@ -381,7 +398,7 @@ export const getMockKey = (): Key => ({
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
-  userRoles: [],
+  userRoles: [userRoles.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -418,7 +435,6 @@ export const getMockDelegation = ({
     delegateId,
     eserviceId,
     createdAt: creationTime,
-    submittedAt: creationTime,
     state,
     activationContract,
     revocationContract,
@@ -685,5 +701,103 @@ export const addSomeRandomDelegations = async <
         })
       );
     }
+  }
+};
+
+export const getMockEServiceTemplateVersion = (
+  eserviceTemplateVersionId: EServiceTemplateVersionId = generateId<EServiceTemplateVersionId>(),
+  state: EServiceTemplateVersionState = eserviceTemplateVersionState.draft
+): EServiceTemplateVersion => ({
+  id: eserviceTemplateVersionId,
+  version: 1,
+  description: "eService template version description",
+  createdAt: new Date(),
+  attributes: {
+    certified: [],
+    declared: [],
+    verified: [],
+  },
+  docs: [],
+  state,
+  voucherLifespan: 60,
+  agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+});
+
+export const getMockEServiceTemplate = (
+  eserviceTemplateId: EServiceTemplateId = generateId<EServiceTemplateId>(),
+  creatorId: TenantId = generateId<TenantId>(),
+  versions: EServiceTemplateVersion[] = [getMockEServiceTemplateVersion()]
+): EServiceTemplate => ({
+  id: eserviceTemplateId,
+  creatorId,
+  name: "eService template name",
+  intendedTarget: "eService template inteded target",
+  description: "eService template description",
+  createdAt: new Date(),
+  technology: technology.rest,
+  versions,
+  riskAnalysis: [],
+  mode: "Deliver",
+  isSignalHubEnabled: true,
+});
+
+export const getMockContext = ({
+  authData,
+  serviceName,
+}: {
+  authData?: AuthData;
+  serviceName?: string;
+}): WithLogger<AppContext> => ({
+  authData: authData || getMockAuthData(),
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
+  requestTimestamp: Date.now(),
+});
+
+export const sortBy =
+  <T>(getKey: (item: T) => string) =>
+  (a: T, b: T): number => {
+    const keyA = getKey(a);
+    const keyB = getKey(b);
+
+    if (keyA < keyB) {
+      return -1;
+    }
+    if (keyA > keyB) {
+      return 1;
+    }
+    return 0;
+  };
+
+export const sortAgreement = <
+  T extends Agreement | WithMetadata<Agreement> | undefined
+>(
+  agreement: T
+): T => {
+  if (!agreement) {
+    return agreement;
+  } else if ("data" in agreement) {
+    return {
+      ...agreement,
+      data: sortAgreement(agreement.data),
+    };
+  } else {
+    return {
+      ...agreement,
+      verifiedAttributes: [...agreement.verifiedAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      certifiedAttributes: [...agreement.certifiedAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      declaredAttributes: [...agreement.declaredAttributes].sort(
+        sortBy<AgreementAttribute>((att) => att.id)
+      ),
+      consumerDocuments: [...agreement.consumerDocuments].sort(
+        sortBy<AgreementDocument>((doc) => doc.id)
+      ),
+    };
   }
 };

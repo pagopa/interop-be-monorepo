@@ -29,7 +29,6 @@ import {
   agreementNotFound,
   eserviceDescriptorNotFound,
   eServiceNotFound,
-  purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
@@ -158,18 +157,6 @@ export function purposeServiceBuilder(
       );
     }
 
-    const clients =
-      requesterId === purpose.consumerId
-        ? (
-            await getAllClients(
-              authorizationClient,
-              purpose.consumerId,
-              purpose.id,
-              headers
-            )
-          ).map(toBffApiCompactClient)
-        : [];
-
     const currentVersion = getCurrentVersion(purpose.versions);
     const waitingForApprovalVersion = purpose.versions.find(
       (v) =>
@@ -196,11 +183,20 @@ export function purposeServiceBuilder(
         )
       : undefined;
 
+    const clients = (
+      await getAllClients(authorizationClient, requesterId, purpose.id, headers)
+    ).map(toBffApiCompactClient);
+
     return {
       id: purpose.id,
       title: purpose.title,
       description: purpose.description,
-      consumer: { id: consumer.id, name: consumer.name },
+      consumer: {
+        id: consumer.id,
+        name: consumer.name,
+        kind: consumer.kind,
+        contactMail: getLatestTenantContactEmail(consumer),
+      },
       riskAnalysisForm: purpose.riskAnalysisForm,
       eservice: {
         id: eservice.id,
@@ -442,12 +438,7 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      const draft = cloned.versions.find(
-        (v) => v.state === purposeApi.PurposeVersionState.Values.DRAFT
-      );
-      if (!draft) {
-        throw purposeDraftVersionNotFound(purposeId);
-      }
+      const draft = cloned.versions[0];
 
       return {
         purposeId: cloned.id,
@@ -623,7 +614,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Updating Purpose ${id}`);
 
-      const result = await purposeProcessClient.updatePurpose(seed, {
+      const updatedPurpose = await purposeProcessClient.updatePurpose(seed, {
         params: {
           id,
         },
@@ -632,7 +623,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId: id,
-        versionId: result.id,
+        versionId: updatedPurpose.versions[0].id,
       };
     },
     async getPurpose(
@@ -666,19 +657,20 @@ export function purposeServiceBuilder(
         throw agreementNotFound(unsafeBrandId(purpose.consumerId));
       }
 
-      const consumer = await tenantProcessClient.tenant.getTenant({
-        params: {
-          id: agreement.consumerId,
-        },
-        headers,
-      });
-
-      const producer = await tenantProcessClient.tenant.getTenant({
-        params: {
-          id: agreement.producerId,
-        },
-        headers,
-      });
+      const [consumer, producer] = await Promise.all([
+        tenantProcessClient.tenant.getTenant({
+          params: {
+            id: agreement.consumerId,
+          },
+          headers,
+        }),
+        tenantProcessClient.tenant.getTenant({
+          params: {
+            id: agreement.producerId,
+          },
+          headers,
+        }),
+      ]);
 
       return await enhancePurpose(
         authData.organizationId,

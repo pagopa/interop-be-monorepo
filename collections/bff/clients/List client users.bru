@@ -1,7 +1,7 @@
 meta {
   name: List client users
   type: http
-  seq: 1
+  seq: 7
 }
 
 get {
@@ -16,10 +16,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   List client users

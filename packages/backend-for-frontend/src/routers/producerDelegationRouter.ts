@@ -36,7 +36,7 @@ const producerDelegationRouter = (
   );
 
   producerDelegationRouter
-    .post("/producer/delegations", async (req, res) => {
+    .post("/producers/delegations", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         const delegationResource =
@@ -49,15 +49,14 @@ const producerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating delegation`
         );
 
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/producer/delegations/:delegationId/approve", async (req, res) => {
+    .post("/producers/delegations/:delegationId/approve", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await delegationService.approveProducerDelegation(
@@ -70,15 +69,14 @@ const producerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error approving delegation with id ${req.params.delegationId}`
         );
 
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/producer/delegations/:delegationId/reject", async (req, res) => {
+    .post("/producers/delegations/:delegationId/reject", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
         await delegationService.rejectProducerDelegation(
@@ -92,15 +90,14 @@ const producerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error rejecting delegation with id ${req.params.delegationId}`
         );
 
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .delete("/producer/delegations/:delegationId", async (req, res) => {
+    .delete("/producers/delegations/:delegationId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
@@ -114,8 +111,7 @@ const producerDelegationRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error revoking delegation with id ${req.params.delegationId}`
         );
 

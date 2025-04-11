@@ -2,10 +2,11 @@ import { fileURLToPath } from "url";
 import path from "path";
 import {
   decodeProtobufPayload,
+  getMockContext,
   getMockDelegation,
   getMockEService,
   getMockTenant,
-  getRandomAuthData,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   Delegation,
@@ -76,7 +77,7 @@ describe.each([
     const eserviceId = generateId<EServiceId>();
     const delegatorId = generateId<TenantId>();
     const delegateId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
 
     const delegationCreationDate = new Date();
     delegationCreationDate.setMonth(currentExecutionTime.getMonth() - 2);
@@ -99,8 +100,6 @@ describe.each([
         delegateId,
       }),
       eserviceId,
-      approvedAt: delegationActivationDate,
-      submittedAt: delegationCreationDate,
       stamps: {
         submission: {
           who: generateId<UserId>(),
@@ -115,12 +114,7 @@ describe.each([
 
     await addOneDelegation(existentDelegation);
 
-    await revokeFn(existentDelegation.id, {
-      authData,
-      logger: genericLogger,
-      correlationId: generateId(),
-      serviceName: "DelegationServiceTest",
-    });
+    await revokeFn(existentDelegation.id, getMockContext({ authData }));
 
     const event = await readLastDelegationEvent(existentDelegation.id);
     expect(event.version).toBe("1");
@@ -155,7 +149,7 @@ describe.each([
     const revokedDelegationWithoutContract: Delegation = {
       ...existentDelegation,
       state: delegationState.revoked,
-      revokedAt: currentExecutionTime,
+      updatedAt: currentExecutionTime,
       stamps: {
         ...existentDelegation.stamps,
         revocation: {
@@ -176,6 +170,10 @@ describe.each([
         kind === delegationKind.delegatedConsumer
           ? "alla fruizione"
           : "all’erogazione",
+      delegationActionText:
+        kind === delegationKind.delegatedConsumer
+          ? "a gestire la fruizione dell’"
+          : "ad erogare l’",
       todayDate: dateAtRomeZone(currentExecutionTime),
       todayTime: timeAtRomeZone(currentExecutionTime),
       delegationId: revokedDelegationWithoutContract.id,
@@ -204,15 +202,10 @@ describe.each([
 
   it("should throw a delegationNotFound if Delegation does not exist", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegationId = generateId<DelegationId>();
     await expect(
-      revokeFn(delegationId, {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "DelegationServiceTest",
-      })
+      revokeFn(delegationId, getMockContext({ authData }))
     ).rejects.toThrow(delegationNotFound(delegationId, kind));
   });
 
@@ -229,19 +222,17 @@ describe.each([
     await addOneDelegation(delegation);
 
     await expect(
-      revokeFn(delegation.id, {
-        authData: getRandomAuthData(delegate.id),
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      revokeFn(
+        delegation.id,
+        getMockContext({ authData: getMockAuthData(delegate.id) })
+      )
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
   });
 
   it("should throw a delegatorNotAllowToRevoke if Requester is not Delegator", async () => {
     const delegatorId = generateId<TenantId>();
     const delegateId = generateId<TenantId>();
-    const authData = getRandomAuthData(delegatorId);
+    const authData = getMockAuthData(delegatorId);
     const delegationId = generateId<DelegationId>();
 
     const existentDelegation = getMockDelegation({
@@ -253,12 +244,7 @@ describe.each([
     await addOneDelegation(existentDelegation);
 
     await expect(
-      revokeFn(delegationId, {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "DelegationServiceTest",
-      })
+      revokeFn(delegationId, getMockContext({ authData }))
     ).rejects.toThrow(
       operationRestrictedToDelegator(delegatorId, delegationId)
     );
@@ -270,7 +256,7 @@ describe.each([
     async (state) => {
       const delegatorId = generateId<TenantId>();
       const delegateId = generateId<TenantId>();
-      const authData = getRandomAuthData(delegatorId);
+      const authData = getMockAuthData(delegatorId);
 
       const existentDelegation: Delegation = getMockDelegation({
         kind,
@@ -282,12 +268,7 @@ describe.each([
       await addOneDelegation(existentDelegation);
 
       await expect(
-        revokeFn(existentDelegation.id, {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "DelegationServiceTest",
-        })
+        revokeFn(existentDelegation.id, getMockContext({ authData }))
       ).rejects.toThrow(
         incorrectState(
           existentDelegation.id,

@@ -4,16 +4,17 @@ import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
+  getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
-  getRandomAuthData,
+  getMockAuthData,
   randomArrayItem,
   randomBoolean,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementSetDraftByPlatformV2,
@@ -31,7 +32,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger, userRoles } from "pagopa-interop-commons";
+import { userRoles } from "pagopa-interop-commons";
 import { addDays } from "date-fns";
 import {
   addOneAgreement,
@@ -43,7 +44,7 @@ import {
 describe("compute Agreements state by attribute", () => {
   describe("when the given attribute is not satisfied", async () => {
     const authData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.INTERNAL_ROLE],
     };
 
@@ -90,15 +91,10 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableActiveAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         invalidCertifiedAttribute.id,
         consumer,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const agreementStateUpdateEvent = await readLastAgreementEvent(
@@ -140,15 +136,10 @@ describe("compute Agreements state by attribute", () => {
 
         await addOneAgreement(updatableDraftOrPendingAgreement);
 
-        await agreementService.computeAgreementsStateByAttribute(
+        await agreementService.internalComputeAgreementsStateByAttribute(
           invalidCertifiedAttribute.id,
           consumer,
-          {
-            authData,
-            serviceName: "",
-            correlationId: generateId(),
-            logger: genericLogger,
-          }
+          getMockContext({ authData })
         );
 
         const agreementStateUpdateEvent = await readLastAgreementEvent(
@@ -195,15 +186,10 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableSuspendedAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         invalidCertifiedAttribute.id,
         consumer,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const agreementStateUpdateEvent = await readLastAgreementEvent(
@@ -234,7 +220,7 @@ describe("compute Agreements state by attribute", () => {
 
   describe("when the given attribute is satisfied", async () => {
     const authData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.INTERNAL_ROLE],
     };
 
@@ -302,19 +288,14 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableSuspendedAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         randomArrayItem([
           tenantCertifiedAttribute.id,
           tenantDeclaredAttribute.id,
           tenantVerifiedAttribute.id,
         ]),
         consumer,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const agreementStateUpdateEvent = await readLastAgreementEvent(
@@ -358,19 +339,14 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableMissingCertAttributesAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         randomArrayItem([
           tenantCertifiedAttribute.id,
           tenantDeclaredAttribute.id,
           tenantVerifiedAttribute.id,
         ]),
         consumer,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const agreementStateUpdateEvent = await readLastAgreementEvent(
@@ -416,19 +392,14 @@ describe("compute Agreements state by attribute", () => {
 
       await addOneAgreement(updatableSuspendedAgreement);
 
-      await agreementService.computeAgreementsStateByAttribute(
+      await agreementService.internalComputeAgreementsStateByAttribute(
         randomArrayItem([
           tenantCertifiedAttribute.id,
           tenantDeclaredAttribute.id,
           tenantVerifiedAttribute.id,
         ]),
         consumer,
-        {
-          authData,
-          serviceName: "",
-          correlationId: generateId(),
-          logger: genericLogger,
-        }
+        getMockContext({ authData })
       );
 
       const agreementStateUpdateEvent = await readLastAgreementEvent(
@@ -459,7 +430,7 @@ describe("compute Agreements state by attribute", () => {
 
   it("updates the state of multiple updatable Agreements for multiple Eservices, without modifying non-updatable Agreements", async () => {
     const authData = {
-      ...getRandomAuthData(),
+      ...getMockAuthData(),
       userRoles: [userRoles.INTERNAL_ROLE],
     };
 
@@ -539,15 +510,10 @@ describe("compute Agreements state by attribute", () => {
     await addOneAgreement(updatableAgreement2);
     await addOneAgreement(nonUpdatableAgreement);
 
-    await agreementService.computeAgreementsStateByAttribute(
+    await agreementService.internalComputeAgreementsStateByAttribute(
       invalidCertifiedAttribute.id,
       consumer,
-      {
-        authData,
-        serviceName: "",
-        correlationId: generateId(),
-        logger: genericLogger,
-      }
+      getMockContext({ authData })
     );
 
     const nonUpdatableAgreementStateUpdateEvent = await readLastAgreementEvent(

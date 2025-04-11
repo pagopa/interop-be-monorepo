@@ -4,6 +4,9 @@ import { z } from "zod";
 export const CorrelationId = z.string().brand("CorrelationId");
 export type CorrelationId = z.infer<typeof CorrelationId>;
 
+export const SpanId = z.string().brand("SpanId");
+export type SpanId = z.infer<typeof SpanId>;
+
 export const EServiceId = z.string().uuid().brand("EServiceId");
 export type EServiceId = z.infer<typeof EServiceId>;
 
@@ -153,8 +156,20 @@ export type GSIPKClientIdPurposeId = z.infer<typeof GSIPKClientIdPurposeId>;
 export const GSIPKClientIdKid = z.string().brand("clientId#kid");
 export type GSIPKClientIdKid = z.infer<typeof GSIPKClientIdKid>;
 
+export const EServiceTemplateId = z.string().uuid().brand("EServiceTemplateId");
+export type EServiceTemplateId = z.infer<typeof EServiceTemplateId>;
+
+export const EServiceTemplateVersionId = z
+  .string()
+  .uuid()
+  .brand("EServiceTemplateVersionId");
+export type EServiceTemplateVersionId = z.infer<
+  typeof EServiceTemplateVersionId
+>;
+
 type IDS =
   | CorrelationId
+  | SpanId
   | EServiceId
   | EServiceDocumentId
   | AgreementId
@@ -184,7 +199,9 @@ type IDS =
   | TokenGenerationStatesClientKidPK
   | GSIPKEServiceIdDescriptorId
   | GSIPKClientIdPurposeId
-  | GSIPKClientIdKid;
+  | GSIPKClientIdKid
+  | EServiceTemplateId
+  | EServiceTemplateVersionId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result

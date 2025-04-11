@@ -1,0 +1,80 @@
+meta {
+  name: Get EService Template Version Document
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceTemplateVersionId: {{eserviceTemplateVersionId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
+  documentId: {{interfaceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+docs {
+  Endpoint: Recupero Documento di un Template eService
+  
+  Descrizione
+  
+  Questo endpoint permette di recuperare le informazioni di un documento associato a una versione specifica di un template eService.
+  
+  Parametri URL
+  
+  eServiceTemplateId (String, obbligatorio): Identificativo univoco del template eService.
+  
+  eServiceTemplateVersionId (String, obbligatorio): Identificativo univoco della versione del template eService.
+  
+  documentId (String, obbligatorio): Identificativo univoco del documento richiesto.
+  
+  Risposta
+  
+  La risposta è un oggetto JSON contenente i dettagli del documento richiesto.
+  
+  Esempio di Risposta
+  
+  {
+    "id": "2ec1e496-8534-4100-94f6-59f053830d3c",
+    "name": "testfile",
+    "contentType": "test",
+    "prettyName": "Test File Name",
+    "path": "eservices/templates/docs/5d6d2677-f6b3-4c2a-ae25-d9685cb464b0/testfile",
+    "checksum": "checksum",
+    "uploadDate": "2025-02-20T13:54:50.276Z"
+  }
+  
+  Descrizione dei Campi
+  
+  id (String): Identificativo univoco del documento.
+  
+  name (String): Nome del file.
+  
+  contentType (String): Tipo di contenuto del file.
+  
+  prettyName (String): Nome leggibile del file.
+  
+  path (String): Percorso del documento nel sistema (S3 o MinIO).
+  
+  checksum (String): Valore hash per verificare l'integrità del file.
+  
+  uploadDate (String, formato ISO 8601): Data e ora di caricamento del documento.
+  
+  Codici di Risposta
+  
+  200 OK: Il documento è stato recuperato con successo.
+  
+  400 Bad Request: La versione del template richiesta è in stato Draft e il chiamante non è l'utente che ha creato il file.
+  
+  404 Not Found: Il documento specificato non è stato trovato.
+  
+  500 Internal Server Error: Errore interno del server.
+}

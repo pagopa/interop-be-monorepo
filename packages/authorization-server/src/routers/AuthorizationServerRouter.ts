@@ -79,8 +79,7 @@ const authorizationServerRouter = (
           const errorRes = makeApiProblem(
             tooManyRequestsError(tokenResult.rateLimitedTenantId),
             authorizationServerErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
 
           return res.status(errorRes.status).send(errorRes);
@@ -89,14 +88,14 @@ const authorizationServerRouter = (
         return res.status(200).send({
           access_token: tokenResult.token.serialized,
           token_type: "Bearer",
-          expires_in: tokenResult.token.payload.exp,
+          expires_in:
+            tokenResult.token.payload.exp - tokenResult.token.payload.iat,
         });
       } catch (err) {
         const errorRes = makeApiProblem(
           err,
           authorizationServerErrorMapper,
-          ctx.logger,
-          ctx.correlationId
+          ctx
         );
         if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
           const cleanedError: Problem = {

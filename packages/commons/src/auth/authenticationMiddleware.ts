@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import {
-  makeApiProblemBuilder,
-  unauthorizedError,
-} from "pagopa-interop-models";
+import { makeApiProblemBuilder } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   ExpressContext,
@@ -11,7 +8,6 @@ import {
   JWTConfig,
   jwtFromAuthHeader,
 } from "../index.js";
-import { AuthData } from "./authData.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
@@ -27,26 +23,21 @@ export const authenticationMiddleware: (
 
     try {
       const jwtToken = jwtFromAuthHeader(req, ctx.logger);
-      const valid = await verifyJwtToken(jwtToken, config, ctx.logger);
-      if (!valid) {
-        throw unauthorizedError("Invalid token");
-      }
+      const { decoded } = await verifyJwtToken(jwtToken, config, ctx.logger);
 
-      const authData: AuthData = readAuthDataFromJwtToken(jwtToken, ctx.logger);
       // eslint-disable-next-line functional/immutable-data
-      req.ctx.authData = authData;
+      req.ctx.authData = readAuthDataFromJwtToken(decoded);
       return next();
     } catch (error) {
       const problem = makeApiProblem(
         error,
         (err) =>
           match(err.code)
-            .with("unauthorizedError", () => 401)
+            .with("tokenVerificationFailed", () => 401)
             .with("operationForbidden", () => 403)
-            .with("missingHeader", "badBearerToken", () => 400)
+            .with("missingHeader", "badBearerToken", "invalidClaim", () => 400)
             .otherwise(() => 500),
-        ctx.logger,
-        ctx.correlationId
+        ctx
       );
       return res.status(problem.status).send(problem);
     }

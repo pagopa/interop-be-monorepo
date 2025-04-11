@@ -1,0 +1,21 @@
+meta {
+  name: Activate EService Template Version
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/:eserviceTemplateVersionId/activate
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceTemplateId}}
+  eserviceTemplateVersionId: {{eserviceTemplateVersionId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

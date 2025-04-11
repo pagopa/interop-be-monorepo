@@ -1,7 +1,7 @@
 meta {
   name: Updates EService delegation flags
   type: http
-  seq: 3
+  seq: 30
 }
 
 post {
@@ -16,7 +16,6 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  X-Correlation-Id: {{correlation-id}}
 }
 
 body:json {

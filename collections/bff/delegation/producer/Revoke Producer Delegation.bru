@@ -5,7 +5,7 @@ meta {
 }
 
 delete {
-  url: {{host-bff}}/producer/delegations/:delegationId
+  url: {{host-bff}}/producers/delegations/:delegationId
   body: none
   auth: none
 }
@@ -16,5 +16,4 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  X-Correlation-Id: {{correlation-id}}
 }
