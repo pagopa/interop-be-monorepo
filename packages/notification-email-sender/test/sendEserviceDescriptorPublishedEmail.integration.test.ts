@@ -37,7 +37,7 @@ import {
 } from "./utils.js";
 
 describe("sendEserviceDescriptorPublishedEmail", () => {
-  it("should send an email on EserviceDescriptorPublished when there're active agrrements", async () => {
+  it("should send an email on EserviceDescriptorPublished when there're active agreements", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail1 = getMockTenantMail(tenantMailKind.ContactEmail);
     const consumerEmail2 = getMockTenantMail(tenantMailKind.ContactEmail);
@@ -187,7 +187,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     });
   });
 
-  it("Sholdn't send an email if there are no active agreements", async () => {
+  it("Shouldn't send an email if there are no active agreements", async () => {
     vi.spyOn(sesEmailManager, "send");
 
     const consumer1: Tenant = {
