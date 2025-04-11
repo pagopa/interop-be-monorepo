@@ -217,6 +217,16 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
               error.includes("The group is rebalancing, so a rejoin is needed"),
             () => logLevel.INFO
           )
+          .with(
+            P.string,
+            (error) =>
+              level === logLevel.ERROR &&
+              (error.includes("Connection error: read ECONNRESET") ||
+                error.includes(
+                  "The replica is not available for the requested topic-partition"
+                )),
+            () => logLevel.WARN
+          )
           .otherwise(() => level);
 
         // eslint-disable-next-line sonarjs/no-nested-template-literals
