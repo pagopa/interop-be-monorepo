@@ -19,7 +19,7 @@ import {
 import { DrizzleReturnType } from "../../../readmodel-models/dist/types.js";
 import { AttributeReadModelService } from "../../../readmodel/dist/attributeReadModelService.js";
 
-export function readModelServiceBuilder(
+export function readModelServiceBuilderSQL(
   readModelDB: DrizzleReturnType,
   attributeReadModelService: AttributeReadModelService,
   tenantReadModelService: TenantReadModelService,
