@@ -28,7 +28,7 @@ import {
   interopFeBaseUrl,
   sesEmailManager,
   sesEmailManagerConfig,
-  sesEmailsenderData,
+  sesEmailSenderData,
   templateService,
   addOnePurpose,
 } from "./utils.js";
@@ -74,8 +74,8 @@ describe("sendNewPurposeVersionWaitingForApprovalEmail", () => {
 
     const mailOptions: Mail.Options = {
       from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
+        name: sesEmailSenderData.label,
+        address: sesEmailSenderData.mail,
       },
       subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
       to: [consumerEmail.address],
@@ -96,7 +96,7 @@ describe("sendNewPurposeVersionWaitingForApprovalEmail", () => {
     expect(lastEmail.body.html).toContain(mailOptions.html);
     expect(lastEmail).toMatchObject({
       subject: mailOptions.subject,
-      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      from: `"${sesEmailSenderData.label}" <${sesEmailSenderData.mail}>`,
       destination: { to: mailOptions.to },
     });
   });

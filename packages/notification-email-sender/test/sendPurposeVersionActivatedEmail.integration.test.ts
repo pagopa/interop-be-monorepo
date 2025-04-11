@@ -30,7 +30,7 @@ import {
   interopFeBaseUrl,
   sesEmailManager,
   sesEmailManagerConfig,
-  sesEmailsenderData,
+  sesEmailSenderData,
   templateService,
   addOnePurpose,
 } from "./utils.js";
@@ -77,8 +77,8 @@ describe("sendPurposeVersionActivatedEmail", () => {
 
     const mailOptions: Mail.Options = {
       from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
+        name: sesEmailSenderData.label,
+        address: sesEmailSenderData.mail,
       },
       subject: `Accettazione richiesta di adeguamento stima di carico`,
       to: [consumerEmail.address],
@@ -98,7 +98,7 @@ describe("sendPurposeVersionActivatedEmail", () => {
     expect(lastEmail.body.html).toContain(mailOptions.html);
     expect(lastEmail).toMatchObject({
       subject: mailOptions.subject,
-      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      from: `"${sesEmailSenderData.label}" <${sesEmailSenderData.mail}>`,
       destination: { to: mailOptions.to },
     });
   });

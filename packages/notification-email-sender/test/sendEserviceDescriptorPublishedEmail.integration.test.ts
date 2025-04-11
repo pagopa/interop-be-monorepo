@@ -32,7 +32,7 @@ import {
   interopFeBaseUrl,
   sesEmailManager,
   sesEmailManagerConfig,
-  sesEmailsenderData,
+  sesEmailSenderData,
   templateService,
 } from "./utils.js";
 
@@ -126,8 +126,8 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
 
     const mailOptions1: Mail.Options = {
       from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
+        name: sesEmailSenderData.label,
+        address: sesEmailSenderData.mail,
       },
       subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
       to: [consumerEmail1.address],
@@ -151,14 +151,14 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     expect(lastEmail1.body.html).toContain(mailOptions1.html);
     expect(lastEmail1).toMatchObject({
       subject: mailOptions1.subject,
-      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      from: `"${sesEmailSenderData.label}" <${sesEmailSenderData.mail}>`,
       destination: { to: mailOptions1.to },
     });
 
     const mailOptions2: Mail.Options = {
       from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
+        name: sesEmailSenderData.label,
+        address: sesEmailSenderData.mail,
       },
       subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
       to: [consumerEmail2.address],
@@ -182,7 +182,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     expect(lastEmail2.body.html).toContain(mailOptions2.html);
     expect(lastEmail2).toMatchObject({
       subject: mailOptions2.subject,
-      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      from: `"${sesEmailSenderData.label}" <${sesEmailSenderData.mail}>`,
       destination: { to: mailOptions2.to },
     });
   });

@@ -75,7 +75,7 @@ export const sesEmailManagerFailure: EmailManagerSES = {
   send: vi.fn().mockRejectedValue(new Error("Generic error during send email")),
 };
 
-export const sesEmailsenderData = {
+export const sesEmailSenderData = {
   label: "ses_sender",
   mail: "ses_sender@test.com",
 };
@@ -85,7 +85,7 @@ export const interopFeBaseUrl = "http://localhost/fe";
 export const notificationEmailSenderService =
   notificationEmailSenderServiceBuilder(
     sesEmailManager,
-    sesEmailsenderData,
+    sesEmailSenderData,
     readModelService,
     templateService,
     interopFeBaseUrl
@@ -94,7 +94,7 @@ export const notificationEmailSenderService =
 export const notificationEmailSenderServiceFailure =
   notificationEmailSenderServiceBuilder(
     sesEmailManagerFailure,
-    sesEmailsenderData,
+    sesEmailSenderData,
     readModelService,
     templateService,
     interopFeBaseUrl
