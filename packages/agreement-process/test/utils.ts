@@ -469,6 +469,8 @@ export function expectSinglePageListResult(
   actual: ListResult<Agreement>,
   expected: Agreement[]
 ): void {
+  // console.log("actual", actual.results);
+  // console.log("expected", expected);
   expect({
     totalCount: actual.totalCount,
     results: sortAgreements(actual.results),

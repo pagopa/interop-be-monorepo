@@ -156,9 +156,29 @@ export function readModelServiceBuilderSQL(
         )
         .leftJoin(
           delegationInReadmodelDelegation,
-          eq(
-            agreementInReadmodelAgreement.eserviceId,
-            delegationInReadmodelDelegation.eserviceId
+          and(
+            eq(
+              delegationInReadmodelDelegation.eserviceId,
+              agreementInReadmodelAgreement.eserviceId
+            ),
+            or(
+              eq(
+                delegationInReadmodelDelegation.delegatorId,
+                agreementInReadmodelAgreement.consumerId
+              ),
+              eq(
+                delegationInReadmodelDelegation.delegatorId,
+                agreementInReadmodelAgreement.producerId
+              ),
+              eq(
+                delegationInReadmodelDelegation.delegateId,
+                agreementInReadmodelAgreement.consumerId
+              ),
+              eq(
+                delegationInReadmodelDelegation.delegateId,
+                agreementInReadmodelAgreement.producerId
+              )
+            )
           )
         )
         .where(
