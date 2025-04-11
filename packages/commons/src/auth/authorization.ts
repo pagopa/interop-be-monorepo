@@ -13,6 +13,7 @@ import {
   userRole,
   systemRole,
   SystemRole,
+  M2MAdminAuthData,
 } from "./authData.js";
 
 export const authRole = {
@@ -44,6 +45,10 @@ type AllowedAuthData<AdmittedRoles extends NonEmptyArray<AuthRole>> =
   | ([ContainsAuthRole<AdmittedRoles, "m2m">] extends [true]
       ? M2MAuthData
       : never)
+  // If "m2m-admin" is in the array, add M2MAdminAuthData
+  | ([ContainsAuthRole<AdmittedRoles, "m2m-admin">] extends [true]
+      ? M2MAdminAuthData
+      : never)
   // If "internal" is in the array, add InternalAuthData
   | ([ContainsAuthRole<AdmittedRoles, "internal">] extends [true]
       ? InternalAuthData
@@ -69,7 +74,8 @@ export function validateAuthorization<
         systemRole: P.union(
           systemRole.M2M_ROLE,
           systemRole.INTERNAL_ROLE,
-          systemRole.MAINTENANCE_ROLE
+          systemRole.MAINTENANCE_ROLE,
+          systemRole.M2M_ADMIN_ROLE
         ),
       },
       ({ systemRole }) => {
@@ -120,7 +126,8 @@ export function isUiAuthData(authData: AuthData): authData is UIAuthData {
         systemRole: P.union(
           systemRole.M2M_ROLE,
           systemRole.INTERNAL_ROLE,
-          systemRole.MAINTENANCE_ROLE
+          systemRole.MAINTENANCE_ROLE,
+          systemRole.M2M_ADMIN_ROLE
         ),
       },
       () => false
@@ -134,6 +141,7 @@ function isSystemRole(role: AuthRole): role is SystemRole {
       authRole.M2M_ROLE,
       authRole.INTERNAL_ROLE,
       authRole.MAINTENANCE_ROLE,
+      authRole.M2M_ADMIN_ROLE,
       () => true
     )
     .with(
@@ -159,6 +167,7 @@ function isUserRole(role: AuthRole): role is UserRole {
       authRole.M2M_ROLE,
       authRole.INTERNAL_ROLE,
       authRole.MAINTENANCE_ROLE,
+      authRole.M2M_ADMIN_ROLE,
       () => false
     )
     .exhaustive();
@@ -245,13 +254,13 @@ function isUserRole(role: AuthRole): role is UserRole {
 // -------------------------------------------------------
 
 // EXAMPLE 8 - M2M and Internal
-const mockContext = {} as AppContext;
-/* eslint-disable @typescript-eslint/no-unused-vars */
-validateAuthorization(mockContext, [authRole.M2M_ROLE, authRole.INTERNAL_ROLE]); // compiles
-const sysRole = mockContext.authData.systemRole; // compiles and is "m2m" or "internal"
-const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
-const userId = mockContext.authData.userId; // TS error: userId is not available in both M2M or Internal contexts
-const selfcareId = mockContext.authData.selfcareId; // TS error: selfcareId is not available in both M2M or Internal contexts
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorization(mockContext, [authRole.M2M_ROLE, authRole.INTERNAL_ROLE]); // compiles
+// const sysRole = mockContext.authData.systemRole; // compiles and is "m2m" or "internal"
+// const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
+// const userId = mockContext.authData.userId; // TS error: userId is not available in M2M or Internal contexts
+// const selfcareId = mockContext.authData.selfcareId; // TS error: selfcareId is not available in M2M or Internal contexts
 // -------------------------------------------------------
 
 // EXAMPLE 9 - M2M and Internal and UI with multiple user roles
@@ -265,5 +274,30 @@ const selfcareId = mockContext.authData.selfcareId; // TS error: selfcareId is n
 // ]); // compiles
 // const sysRole = mockContext.authData.systemRole; // compiles and is "m2m" or "internal" or undefined
 // const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
-// const userId = mockContext.authData.userId; // TS error: userId is not available in Internal context
+// const userId = mockContext.authData.userId; // TS error: userId is not available in Internal or M2M contexts
+// const selfcareId = mockContext.authData.selfcareId; // TS error: selfcareId is not available in Internal or M2M contexts
+// -------------------------------------------------------
+
+// EXAMPLE 10 - M2M Admin
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorization(mockContext, [authRole.M2M_ADMIN_ROLE]); // compiles
+// const sysRole = mockContext.authData.systemRole; // compiles and is "m2m-admin"
+// const orgId = mockContext.authData.organizationId; // compiles
+// const userId = mockContext.authData.userId; // compiles
+// const selfcareId = mockContext.authData.selfcareId; // TS error: selfcareId is not available in M2M Admin context
+// -------------------------------------------------------
+
+// EXAMPLE 11 - M2M Admin and UI
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorization(mockContext, [
+//   authRole.M2M_ADMIN_ROLE,
+//   authRole.API_ROLE,
+//   authRole.SECURITY_ROLE,
+// ]); // compiles
+// const sysRole = mockContext.authData.systemRole; // compiles and is "m2m-admin" or undefined
+// const orgId = mockContext.authData.organizationId; // compiles
+// const userId = mockContext.authData.userId; // compiles
+// const selfcareId = mockContext.authData.selfcareId; // TS error: selfcareId is not available in M2M Admin context
 // -------------------------------------------------------
