@@ -80,6 +80,7 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
+  DescriptorRejectionReason,
   AgreementDocument,
   AgreementStamp,
   WithMetadata,
@@ -185,7 +186,6 @@ export const getMockEService = (
   producerId,
   technology: technology.rest,
   descriptors,
-  attributes: undefined,
   riskAnalysis: [],
   mode: "Deliver",
 });
@@ -335,7 +335,6 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
     verified: [],
     declared: [],
   },
-  rejectionReasons: undefined,
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {
@@ -633,6 +632,12 @@ export const getMockClientAssertion = async (props?: {
     publicKeyEncodedPem,
   };
 };
+
+export const getMockDescriptorRejectionReason =
+  (): DescriptorRejectionReason => ({
+    rejectionReason: "Rejection Reason",
+    rejectedAt: new Date(),
+  });
 
 export const generateKeySet = (): {
   keySet: crypto.KeyPairKeyObjectResult;
