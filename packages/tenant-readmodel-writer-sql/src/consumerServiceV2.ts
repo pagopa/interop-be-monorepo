@@ -4,7 +4,7 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { ReadModelService } from "./readModelService.js";
 
 export async function handleMessageV2(
@@ -19,25 +19,29 @@ export async function handleMessageV2(
       );
     })
     .with(
-      { type: "TenantOnboarded" },
-      { type: "TenantOnboardDetailsUpdated" },
-      { type: "TenantCertifiedAttributeAssigned" },
-      { type: "TenantCertifiedAttributeRevoked" },
-      { type: "TenantDeclaredAttributeAssigned" },
-      { type: "TenantDeclaredAttributeRevoked" },
-      { type: "TenantVerifiedAttributeAssigned" },
-      { type: "TenantVerifiedAttributeRevoked" },
-      { type: "TenantVerifiedAttributeExpirationUpdated" },
-      { type: "TenantVerifiedAttributeExtensionUpdated" },
-      { type: "TenantMailAdded" },
-      { type: "MaintenanceTenantPromotedToCertifier" },
-      { type: "MaintenanceTenantUpdated" },
-      { type: "TenantMailDeleted" },
-      { type: "TenantKindUpdated" },
-      { type: "TenantDelegatedProducerFeatureAdded" },
-      { type: "TenantDelegatedProducerFeatureRemoved" },
-      { type: "TenantDelegatedConsumerFeatureAdded" },
-      { type: "TenantDelegatedConsumerFeatureRemoved" },
+      {
+        type: P.union(
+          "TenantOnboarded",
+          "TenantOnboardDetailsUpdated",
+          "TenantCertifiedAttributeAssigned",
+          "TenantCertifiedAttributeRevoked",
+          "TenantDeclaredAttributeAssigned",
+          "TenantDeclaredAttributeRevoked",
+          "TenantVerifiedAttributeAssigned",
+          "TenantVerifiedAttributeRevoked",
+          "TenantVerifiedAttributeExpirationUpdated",
+          "TenantVerifiedAttributeExtensionUpdated",
+          "TenantMailAdded",
+          "MaintenanceTenantPromotedToCertifier",
+          "MaintenanceTenantUpdated",
+          "TenantMailDeleted",
+          "TenantKindUpdated",
+          "TenantDelegatedProducerFeatureAdded",
+          "TenantDelegatedProducerFeatureRemoved",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved"
+        ),
+      },
       async (message) => {
         if (!message.data.tenant) {
           throw genericInternalError("Tenant not found in message");
