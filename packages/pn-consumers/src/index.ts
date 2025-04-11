@@ -6,9 +6,9 @@ import {
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { config } from "./configs/config.js";
-import { ReadModelQueriesClient } from "./services/readModelQueriesService.js";
 import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
 import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 
 const loggerInstance = logger({
   serviceName: "pn-consumers",
@@ -19,14 +19,15 @@ async function main(): Promise<void> {
   loggerInstance.info("Program started.\n");
 
   loggerInstance.info("> Connecting to database...");
-  const readModel = ReadModelRepository.init(config);
 
-  const readModelsQueriesClient = new ReadModelQueriesClient(readModel);
+  const readModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
   loggerInstance.info("> Connected to database!\n");
 
   loggerInstance.info("> Getting data...");
 
-  const purposes = await readModelsQueriesClient.getSENDPurposes(
+  const purposes = await readModelService.getSENDPurposes(
     config.pnEserviceId,
     config.comuniELoroConsorziEAssociazioniAttributeId
   );
