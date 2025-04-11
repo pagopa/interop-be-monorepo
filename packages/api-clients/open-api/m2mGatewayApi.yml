@@ -20,7 +20,7 @@ tags:
       description: Find out more
       url: "http://swagger.io"
   - name: attributes
-    description: Attribute routes
+    description: Attributes routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -29,8 +29,8 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
-  - name: catalog
-    description: Catalog routes
+  - name: eservices
+    description: EServices routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -1602,7 +1602,7 @@ paths:
   /eservices:
     get:
       tags:
-        - catalog
+        - eservices
       description: Get eservices
       operationId: getEServices
       parameters:
@@ -1702,7 +1702,7 @@ paths:
           format: uuid
     get:
       tags:
-        - catalog
+        - eservices
       description: Get eservice
       operationId: getEservice
       responses:
@@ -1799,7 +1799,7 @@ paths:
           format: int32
     get:
       tags:
-        - catalog
+        - eservices
       description: Get eservice descriptors
       operationId: getEserviceDescriptors
       responses:
@@ -1886,7 +1886,7 @@ paths:
           format: uuid
     get:
       tags:
-          - catalog
+        - eservices
       description: Get eservice descriptor
       operationId: getEserviceDescriptor
       responses:
@@ -1966,7 +1966,7 @@ paths:
         format: uuid
     get:
       tags:
-          - eserviceTemplates
+        - eserviceTemplates
       operationId: getEserviceTemplate
       responses:
         "200":
@@ -3503,7 +3503,7 @@ paths:
           format: uuid
     delete:
       tags:
-          - tenants
+        - tenants
       operationId: revokeCertifiedAttributeById
       description: Revoke a certified attribute to a Tenant
       responses:

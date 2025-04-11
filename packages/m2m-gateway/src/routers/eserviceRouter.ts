@@ -10,20 +10,20 @@ import {
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
+import { eserviceServiceBuilder } from "../services/eserviceService.js";
 
-const catalogRouter = (
+const eserviceRouter = (
   ctx: ZodiosContext,
   clients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const catalogRouter = ctx.router(m2mGatewayApi.catalogApi.api, {
+  const eserviceRouter = ctx.router(m2mGatewayApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const catalogService = catalogServiceBuilder(clients);
-  void catalogService;
+  const eserviceService = eserviceServiceBuilder(clients);
+  void eserviceService;
 
-  catalogRouter
+  eserviceRouter
     .get("/eservices", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
@@ -84,7 +84,7 @@ const catalogRouter = (
       }
     );
 
-  return catalogRouter;
+  return eserviceRouter;
 };
 
-export default catalogRouter;
+export default eserviceRouter;

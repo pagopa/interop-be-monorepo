@@ -16,7 +16,7 @@ import { getInteropBeClients } from "./clients/clientsProvider.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
-import catalogRouter from "./routers/catalogRouter.js";
+import eserviceRouter from "./routers/eserviceRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
@@ -56,7 +56,7 @@ app.use(
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
-  catalogRouter(zodiosCtx, clients),
+  eserviceRouter(zodiosCtx, clients),
   attributeRouter(zodiosCtx, clients),
   purposeRouter(zodiosCtx, clients),
   agreementRouter(zodiosCtx, clients),
