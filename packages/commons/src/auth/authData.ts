@@ -173,7 +173,7 @@ export const getAuthDataFromToken = (token: AuthToken): AuthData =>
     }))
     .exhaustive();
 
-type AuthDataUserInfo = {
+export type AuthDataUserInfo = {
   userId: UserId | undefined;
   organizationId: TenantId | undefined;
   selfcareId: SelfcareId | undefined;
