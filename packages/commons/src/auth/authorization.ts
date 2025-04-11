@@ -245,13 +245,13 @@ function isUserRole(role: AuthRole): role is UserRole {
 // -------------------------------------------------------
 
 // EXAMPLE 8 - M2M and Internal
-const mockContext = {} as AppContext;
-/* eslint-disable @typescript-eslint/no-unused-vars */
-validateAuthorization(mockContext, [authRole.M2M_ROLE, authRole.INTERNAL_ROLE]); // compiles
-const sysRole = mockContext.authData.systemRole; // compiles and is "m2m" or "internal"
-const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
-const userId = mockContext.authData.userId; // TS error: userId is not available in both M2M or Internal contexts
-const selfcareId = mockContext.authData.selfcareId; // TS error: selfcareId is not available in both M2M or Internal contexts
+// const mockContext = {} as AppContext;
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// validateAuthorization(mockContext, [authRole.M2M_ROLE, authRole.INTERNAL_ROLE]); // compiles
+// const sysRole = mockContext.authData.systemRole; // compiles and is "m2m" or "internal"
+// const orgId = mockContext.authData.organizationId; // TS error: organizationId is not available in Internal context
+// const userId = mockContext.authData.userId; // TS error: userId is not available in both M2M or Internal contexts
+// const selfcareId = mockContext.authData.selfcareId; // TS error: selfcareId is not available in both M2M or Internal contexts
 // -------------------------------------------------------
 
 // EXAMPLE 9 - M2M and Internal and UI with multiple user roles
