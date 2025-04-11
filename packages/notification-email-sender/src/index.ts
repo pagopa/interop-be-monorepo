@@ -41,14 +41,14 @@ const readModelService = readModelServiceBuilder(
 const templateService = buildHTMLTemplateService();
 const interopFeBaseUrl = config.interopFeBaseUrl;
 const sesEmailManager: EmailManagerSES = initSesMailManager(config);
-const sesEmailsenderData = {
+const sesEmailSenderData = {
   label: config.senderLabel,
   mail: config.senderMail,
 };
 
 const notificationEmailSenderService = notificationEmailSenderServiceBuilder(
   sesEmailManager,
-  sesEmailsenderData,
+  sesEmailSenderData,
   readModelService,
   templateService,
   interopFeBaseUrl
