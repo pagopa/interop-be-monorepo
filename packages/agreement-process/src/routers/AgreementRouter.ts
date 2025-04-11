@@ -18,6 +18,7 @@ import {
   EServiceId,
   unsafeBrandId,
   DelegationId,
+  emptyErrorMapper,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -355,7 +356,7 @@ const agreementRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -385,7 +386,7 @@ const agreementRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -415,7 +416,7 @@ const agreementRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -637,7 +638,7 @@ const agreementRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })

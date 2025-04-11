@@ -10,7 +10,7 @@ import {
   authRole,
   validateAuthorization,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   apiTenantFeatureTypeToTenantFeatureType,
@@ -107,7 +107,7 @@ const tenantsRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -139,7 +139,7 @@ const tenantsRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -172,7 +172,7 @@ const tenantsRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })

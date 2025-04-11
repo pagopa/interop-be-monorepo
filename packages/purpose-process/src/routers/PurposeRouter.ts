@@ -12,7 +12,12 @@ import {
   authRole,
   validateAuthorization,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceId,
+  TenantId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   apiPurposeVersionStateToPurposeVersionState,
@@ -567,7 +572,7 @@ const purposeRouter = (
             )
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
