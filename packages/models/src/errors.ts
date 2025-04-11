@@ -288,14 +288,26 @@ export function tokenGenerationError(
 export function kafkaMessageProcessError(
   topic: string,
   partition: number,
-  offset: string,
+  {
+    offset,
+    streamId,
+    eventType,
+    eventVersion,
+  }: {
+    offset: string;
+    streamId?: string;
+    eventType?: string;
+    eventVersion?: number;
+  },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}. ${
-      error ? parseErrorMessage(error) : ""
-    }`,
+    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}${
+      streamId ? ` - streamId ${streamId}` : ""
+    }${eventType ? ` - eventType ${eventType}` : ""}${
+      eventVersion ? ` - eventVersion ${eventVersion}` : ""
+    }. ${error ? parseErrorMessage(error) : ""}`,
   });
 }
 
