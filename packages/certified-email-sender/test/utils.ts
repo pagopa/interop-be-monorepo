@@ -13,22 +13,46 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { certifiedEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { config } from "../src/config/config.js";
 
-export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
 
-export const { cleanup, readModelRepository, pecEmailManager } =
+export const { cleanup, readModelRepository, pecEmailManager, readModelDB } =
   await setupTestContainersVitest(
-    readModelConfig,
+    inject("readModelConfig"),
     undefined,
     undefined,
     emailManagerConfig,
     undefined,
-    undefined
+    undefined,
+    inject("readModelSQLConfig")
   );
-export const readModelService = readModelServiceBuilder(readModelRepository);
+
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+});
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 export const templateService = buildHTMLTemplateService();
 
 export const pecEmailSenderData = {
@@ -51,6 +75,8 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
     toReadModelTenant(tenant),
     readModelRepository.tenants
   );
+
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
@@ -58,6 +84,8 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
     toReadModelAgreement(agreement),
     readModelRepository.agreements
   );
+
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
@@ -65,6 +93,8 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
     toReadModelEService(eservice),
     readModelRepository.eservices
   );
+
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 type Mail = {
