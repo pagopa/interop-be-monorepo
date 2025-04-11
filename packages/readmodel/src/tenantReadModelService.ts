@@ -184,10 +184,6 @@ export function tenantReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
     async getTenantsByFilter(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<Tenant>>> {
-      if (filter === undefined) {
-        throw genericInternalError("Filter cannot be undefined");
-      }
-
       const queryResult = await db
         .select({
           tenant: tenantInReadmodelTenant,
