@@ -18,10 +18,17 @@ import {
   toReadModelTenant,
 } from "pagopa-interop-models";
 import { afterEach, inject, vi } from "vitest";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { notificationEmailSenderServiceBuilder } from "../src/services/notificationEmailSenderService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { config } from "../src/config/config.js";
 
-export const readModelConfig = inject("readModelConfig");
 export const emailManagerConfig = inject("emailManagerConfig");
 export const sesEmailManagerConfig = inject("sesEmailManagerConfig");
 
@@ -30,15 +37,37 @@ export const {
   readModelRepository,
   pecEmailManager,
   sesEmailManager,
+  readModelDB,
 } = await setupTestContainersVitest(
-  readModelConfig,
+  inject("readModelConfig"),
   undefined,
   undefined,
   emailManagerConfig,
   undefined,
-  sesEmailManagerConfig
+  sesEmailManagerConfig,
+  inject("readModelSQLConfig")
 );
-export const readModelService = readModelServiceBuilder(readModelRepository);
+
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  agreementReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+});
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 export const templateService = buildHTMLTemplateService();
 
 export const sesEmailManagerFailure: EmailManagerSES = {
@@ -78,6 +107,8 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
     toReadModelTenant(tenant),
     readModelRepository.tenants
   );
+
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
@@ -85,6 +116,8 @@ export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
     toReadModelAgreement(agreement),
     readModelRepository.agreements
   );
+
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
@@ -92,6 +125,8 @@ export const addOneEService = async (eservice: EService): Promise<void> => {
     toReadModelEService(eservice),
     readModelRepository.eservices
   );
+
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
@@ -99,6 +134,8 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
     toReadModelPurpose(purpose),
     readModelRepository.purposes
   );
+
+  await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
 };
 
 type Mail = {
