@@ -21,6 +21,8 @@ import {
   purposes,
   readModelService,
   seedCollection,
+  seedPurposes,
+  seedTenants,
   tenants,
 } from "./utils.js";
 
@@ -36,9 +38,13 @@ describe("MetricsManager", () => {
     const tenantsData: Tenant[] = [
       {
         ...getMockTenant(TENANT_COMUNE_ID, [
-          getMockVerifiedTenantAttribute(
-            COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID_MOCK
-          ),
+          {
+            ...getMockVerifiedTenantAttribute(
+              COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID_MOCK
+            ),
+            verifiedBy: [],
+            revokedBy: [],
+          },
         ]),
         name: "tenant-comune",
         externalId: { origin: "origin", value: "value" },
@@ -50,6 +56,7 @@ describe("MetricsManager", () => {
       },
     ];
     await seedCollection(tenants, tenantsData.map(toReadModelTenant));
+    await seedTenants(tenantsData);
 
     const purposesData: Purpose[] = [
       {
@@ -66,6 +73,7 @@ describe("MetricsManager", () => {
       },
     ];
     await seedCollection(purposes, purposesData.map(toReadModelPurpose));
+    await seedPurposes(purposesData);
 
     const result = await readModelService.getSENDPurposes(
       PN_ESERVICE_ID_MOCK,
