@@ -1,25 +1,29 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
-  genericInternalError,
   AttributeId,
   EService,
   Tenant,
   Attribute,
+  descriptorState,
 } from "pagopa-interop-models";
-import { z } from "zod";
-import { inArray } from "drizzle-orm";
+import { exists, inArray } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
+  eserviceDescriptorInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { TenantReadModelService } from "pagopa-interop-readmodel";
+import {
+  CatalogReadModelService,
+  TenantReadModelService,
+} from "pagopa-interop-readmodel";
 import { DrizzleReturnType } from "../../../readmodel-models/dist/types.js";
 import { AttributeReadModelService } from "../../../readmodel/dist/attributeReadModelService.js";
 
 export function readModelServiceBuilder(
   readModelDB: DrizzleReturnType,
   attributeReadModelService: AttributeReadModelService,
-  tenantReadModelService: TenantReadModelService
+  tenantReadModelService: TenantReadModelService,
+  catalogReadModelService: CatalogReadModelService
 ) {
   return {
     /**
@@ -29,22 +33,24 @@ export function readModelServiceBuilder(
      * @returns The array of e-services
      */
     async getActiveEServices(): Promise<EService[]> {
-      const data = await eservices
-        .find({ "data.descriptors.state": { $in: ["Published", "Suspended"] } })
-        .map(({ data }) => data)
-        .toArray();
-
-      const result = z.array(EService).safeParse(data);
-
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse eservices items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
+      const eservicesWithMetadata =
+        await catalogReadModelService.getEServicesByFilter(
+          exists(
+            readModelDB
+              .select()
+              .from(eserviceDescriptorInReadmodelCatalog)
+              .where(
+                inArray(eserviceDescriptorInReadmodelCatalog.state, [
+                  descriptorState.published,
+                  descriptorState.suspended,
+                ])
+              )
+          )
         );
-      }
 
-      return result.data;
+      return eservicesWithMetadata.map(
+        (eserviceWithMetadata) => eserviceWithMetadata.data
+      );
     },
 
     /**
