@@ -1,5 +1,5 @@
 /* eslint-disable no-constant-condition */
-import { ilike, inArray, or } from "drizzle-orm";
+import { ilike, inArray, or, SQL } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -28,10 +28,10 @@ import {
   toAgreementAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
+  agreementInReadmodelAgreement,
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
-  agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
@@ -63,6 +63,48 @@ export type AgreementEServicesQueryFilters = {
   consumerIds: TenantId[];
   producerIds: TenantId[];
 };
+
+const delegationsJoinConditions = (
+  agreementTable: typeof agreementInReadmodelAgreement,
+  delegationTable: typeof delegationInReadmodelDelegation
+): SQL<unknown> | undefined =>
+  and(
+    eq(delegationTable.eserviceId, agreementTable.eserviceId),
+    or(
+      and(
+        eq(delegationTable.delegatorId, agreementTable.consumerId),
+        eq(delegationTable.kind, delegationKind.delegatedConsumer)
+      ),
+      and(
+        eq(delegationTable.delegatorId, agreementTable.producerId),
+        eq(delegationTable.kind, delegationKind.delegatedProducer)
+      )
+    )
+  );
+
+const delegationsVisibilityConditions = (
+  requesterId: TenantId,
+  agreementTable: typeof agreementInReadmodelAgreement,
+  delegationTable: typeof delegationInReadmodelDelegation
+): SQL<unknown> | undefined =>
+  or(
+    // REQ IS PRODUCER
+    eq(agreementTable.producerId, requesterId),
+    // REQ IS CONSUMER
+    eq(agreementTable.consumerId, requesterId),
+    // REQ IS DELEGATE AS PRODUCER
+    and(
+      eq(delegationTable.delegateId, requesterId),
+      eq(delegationTable.kind, delegationKind.delegatedProducer),
+      eq(delegationTable.state, delegationState.active)
+    ),
+    // REQ IS DELEGATE AS CONSUMER
+    and(
+      eq(delegationTable.delegateId, requesterId),
+      eq(delegationTable.kind, delegationKind.delegatedConsumer),
+      eq(delegationTable.state, delegationState.active)
+    )
+  );
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
@@ -155,68 +197,20 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
+          // DELEGATION
           delegationInReadmodelDelegation,
-          and(
-            eq(
-              delegationInReadmodelDelegation.eserviceId,
-              agreementInReadmodelAgreement.eserviceId
-            ),
-            or(
-              and(
-                eq(
-                  delegationInReadmodelDelegation.delegatorId,
-                  agreementInReadmodelAgreement.consumerId
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedConsumer
-                )
-              ),
-              and(
-                eq(
-                  delegationInReadmodelDelegation.delegatorId,
-                  agreementInReadmodelAgreement.producerId
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                )
-              )
-            )
+          delegationsJoinConditions(
+            agreementInReadmodelAgreement,
+            delegationInReadmodelDelegation
           )
         )
         .where(
           and(
             // VISIBILITY
-            or(
-              // REQ IS PRODUCER
-              eq(agreementInReadmodelAgreement.producerId, requesterId),
-              // REQ IS CONSUMER
-              eq(agreementInReadmodelAgreement.consumerId, requesterId),
-              // REQ IS DELEGATE AS PRODUCER
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                )
-              ),
-              // REQ IS DELEGATE AS CONSUMER
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedConsumer
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                )
-              )
+            delegationsVisibilityConditions(
+              requesterId,
+              agreementInReadmodelAgreement,
+              delegationInReadmodelDelegation
             ),
             // END // VISIBILITY
             // PRODUCERS
@@ -411,34 +405,11 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
+          // DELEGATION
           delegationInReadmodelDelegation,
-          and(
-            eq(
-              delegationInReadmodelDelegation.eserviceId,
-              agreementInReadmodelAgreement.eserviceId
-            ),
-            or(
-              and(
-                eq(
-                  delegationInReadmodelDelegation.delegatorId,
-                  agreementInReadmodelAgreement.consumerId
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedConsumer
-                )
-              ),
-              and(
-                eq(
-                  delegationInReadmodelDelegation.delegatorId,
-                  agreementInReadmodelAgreement.producerId
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                )
-              )
-            )
+          delegationsJoinConditions(
+            agreementInReadmodelAgreement,
+            delegationInReadmodelDelegation
           )
         )
         .where(
@@ -451,36 +422,12 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // VISIBILITY
-            or(
-              // REQ IS PRODUCER
-              eq(agreementInReadmodelAgreement.producerId, requesterId),
-              // REQ IS CONSUMER
-              eq(agreementInReadmodelAgreement.consumerId, requesterId),
-              // REQ IS DELEGATE AS PRODUCER
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                )
-              ),
-              // REQ IS DELEGATE AS CONSUMER
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedConsumer
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                )
-              )
+            delegationsVisibilityConditions(
+              requesterId,
+              agreementInReadmodelAgreement,
+              delegationInReadmodelDelegation
             )
+            // END // VISIBILITY
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
@@ -515,34 +462,11 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
+          // DELEGATION
           delegationInReadmodelDelegation,
-          and(
-            eq(
-              delegationInReadmodelDelegation.eserviceId,
-              agreementInReadmodelAgreement.eserviceId
-            ),
-            or(
-              and(
-                eq(
-                  delegationInReadmodelDelegation.delegatorId,
-                  agreementInReadmodelAgreement.consumerId
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedConsumer
-                )
-              ),
-              and(
-                eq(
-                  delegationInReadmodelDelegation.delegatorId,
-                  agreementInReadmodelAgreement.producerId
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                )
-              )
-            )
+          delegationsJoinConditions(
+            agreementInReadmodelAgreement,
+            delegationInReadmodelDelegation
           )
         )
         .where(
@@ -555,36 +479,12 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // VISIBILITY
-            or(
-              // REQ IS PRODUCER
-              eq(agreementInReadmodelAgreement.producerId, requesterId),
-              // REQ IS CONSUMER
-              eq(agreementInReadmodelAgreement.consumerId, requesterId),
-              // REQ IS DELEGATE AS PRODUCER
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                )
-              ),
-              // REQ IS DELEGATE AS CONSUMER
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedConsumer
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                )
-              )
+            delegationsVisibilityConditions(
+              requesterId,
+              agreementInReadmodelAgreement,
+              delegationInReadmodelDelegation
             )
+            // END // VISIBILITY
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
@@ -622,34 +522,11 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
+          // DELEGATION
           delegationInReadmodelDelegation,
-          and(
-            eq(
-              delegationInReadmodelDelegation.eserviceId,
-              agreementInReadmodelAgreement.eserviceId
-            ),
-            or(
-              and(
-                eq(
-                  delegationInReadmodelDelegation.delegatorId,
-                  agreementInReadmodelAgreement.consumerId
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedConsumer
-                )
-              ),
-              and(
-                eq(
-                  delegationInReadmodelDelegation.delegatorId,
-                  agreementInReadmodelAgreement.producerId
-                ),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                )
-              )
-            )
+          delegationsJoinConditions(
+            agreementInReadmodelAgreement,
+            delegationInReadmodelDelegation
           )
         )
         .where(
@@ -705,36 +582,12 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // VISIBILITY
-            or(
-              // REQ IS PRODUCER
-              eq(agreementInReadmodelAgreement.producerId, requesterId),
-              // REQ IS CONSUMER
-              eq(agreementInReadmodelAgreement.consumerId, requesterId),
-              // REQ IS DELEGATE AS PRODUCER
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                )
-              ),
-              // REQ IS DELEGATE AS CONSUMER
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedConsumer
-                ),
-                eq(
-                  delegationInReadmodelDelegation.state,
-                  delegationState.active
-                )
-              )
+            delegationsVisibilityConditions(
+              requesterId,
+              agreementInReadmodelAgreement,
+              delegationInReadmodelDelegation
             )
+            // END // VISIBILITY
           )
         )
         .groupBy(eserviceInReadmodelCatalog.id)
