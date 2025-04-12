@@ -298,8 +298,8 @@ export function readModelServiceBuilderSQL(
         .offset(offset)
         .as("queryAgreementIds");
 
-      const result = await readmodelDB.select().from(queryAgreementIds);
-      console.log("result", result);
+      // const result = await readmodelDB.select().from(queryAgreementIds);
+      // console.log("result", result);
 
       const resultSet = await readmodelDB
         .select({

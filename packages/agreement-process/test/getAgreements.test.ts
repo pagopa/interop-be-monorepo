@@ -350,9 +350,6 @@ describe("get agreements", () => {
         0,
         getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
       );
-    console.log("agreement6", agreement6.id);
-    console.log("agreement10", agreement10.id);
-    console.log("agreement5", agreement5.id);
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer2, [
       agreement6,
       agreement10,
