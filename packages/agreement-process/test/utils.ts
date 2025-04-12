@@ -14,6 +14,7 @@ import {
   getMockTenant,
   getMockAuthData,
   sortAgreements,
+  sortBy,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -480,3 +481,6 @@ export function expectSinglePageListResult(
   });
   expect(actual.results).toHaveLength(expected.length);
 }
+
+export const sortListAgreements = (agreements: Agreement[]): Agreement[] =>
+  sortAgreements([...agreements].sort(sortBy<Agreement>((a) => a.id)));

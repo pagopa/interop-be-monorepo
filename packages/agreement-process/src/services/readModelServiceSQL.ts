@@ -1,5 +1,5 @@
 /* eslint-disable no-constant-condition */
-import { ilike, inArray, or, asc } from "drizzle-orm";
+import { ilike, inArray, or } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -162,21 +162,25 @@ export function readModelServiceBuilderSQL(
               agreementInReadmodelAgreement.eserviceId
             ),
             or(
-              eq(
-                delegationInReadmodelDelegation.delegatorId,
-                agreementInReadmodelAgreement.consumerId
+              and(
+                eq(
+                  delegationInReadmodelDelegation.delegatorId,
+                  agreementInReadmodelAgreement.consumerId
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedConsumer
+                )
               ),
-              eq(
-                delegationInReadmodelDelegation.delegatorId,
-                agreementInReadmodelAgreement.producerId
-              ),
-              eq(
-                delegationInReadmodelDelegation.delegateId,
-                agreementInReadmodelAgreement.consumerId
-              ),
-              eq(
-                delegationInReadmodelDelegation.delegateId,
-                agreementInReadmodelAgreement.producerId
+              and(
+                eq(
+                  delegationInReadmodelDelegation.delegatorId,
+                  agreementInReadmodelAgreement.producerId
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                )
               )
             )
           )
@@ -280,17 +284,22 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined
             // END AGREEMENT STATES
-            // UPGREADABLE TODO!
           )
         )
         .groupBy(
           agreementInReadmodelAgreement.id,
           eserviceInReadmodelCatalog.name
         )
-        .orderBy(asc(eserviceInReadmodelCatalog.name))
+        .orderBy(
+          eserviceInReadmodelCatalog.name,
+          agreementInReadmodelAgreement.id
+        )
         .limit(limit)
         .offset(offset)
         .as("queryAgreementIds");
+
+      const result = await readmodelDB.select().from(queryAgreementIds);
+      console.log("result", result);
 
       const resultSet = await readmodelDB
         .select({
@@ -335,10 +344,16 @@ export function readModelServiceBuilderSQL(
           )
         );
 
+      const agreements = aggregateAgreementArray(
+        toAgreementAggregatorArray(resultSet)
+      ).map(({ data }) => data);
+
+      // const filteredAgreements = showOnlyUpgradeable
+      //   ? agreements.filter(({ descriptorId }) => {})
+      //   : agreements;
+
       return {
-        results: aggregateAgreementArray(
-          toAgreementAggregatorArray(resultSet)
-        ).map(({ data }) => data),
+        results: agreements,
         totalCount: Number(resultSet[0]?.totalCount ?? 0),
       };
     },
@@ -403,21 +418,25 @@ export function readModelServiceBuilderSQL(
               agreementInReadmodelAgreement.eserviceId
             ),
             or(
-              eq(
-                delegationInReadmodelDelegation.delegatorId,
-                agreementInReadmodelAgreement.consumerId
+              and(
+                eq(
+                  delegationInReadmodelDelegation.delegatorId,
+                  agreementInReadmodelAgreement.consumerId
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedConsumer
+                )
               ),
-              eq(
-                delegationInReadmodelDelegation.delegatorId,
-                agreementInReadmodelAgreement.producerId
-              ),
-              eq(
-                delegationInReadmodelDelegation.delegateId,
-                agreementInReadmodelAgreement.consumerId
-              ),
-              eq(
-                delegationInReadmodelDelegation.delegateId,
-                agreementInReadmodelAgreement.producerId
+              and(
+                eq(
+                  delegationInReadmodelDelegation.delegatorId,
+                  agreementInReadmodelAgreement.producerId
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                )
               )
             )
           )
@@ -503,21 +522,25 @@ export function readModelServiceBuilderSQL(
               agreementInReadmodelAgreement.eserviceId
             ),
             or(
-              eq(
-                delegationInReadmodelDelegation.delegatorId,
-                agreementInReadmodelAgreement.consumerId
+              and(
+                eq(
+                  delegationInReadmodelDelegation.delegatorId,
+                  agreementInReadmodelAgreement.consumerId
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedConsumer
+                )
               ),
-              eq(
-                delegationInReadmodelDelegation.delegatorId,
-                agreementInReadmodelAgreement.producerId
-              ),
-              eq(
-                delegationInReadmodelDelegation.delegateId,
-                agreementInReadmodelAgreement.consumerId
-              ),
-              eq(
-                delegationInReadmodelDelegation.delegateId,
-                agreementInReadmodelAgreement.producerId
+              and(
+                eq(
+                  delegationInReadmodelDelegation.delegatorId,
+                  agreementInReadmodelAgreement.producerId
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                )
               )
             )
           )
@@ -602,8 +625,30 @@ export function readModelServiceBuilderSQL(
           delegationInReadmodelDelegation,
           and(
             eq(
-              agreementInReadmodelAgreement.eserviceId,
-              delegationInReadmodelDelegation.eserviceId
+              delegationInReadmodelDelegation.eserviceId,
+              agreementInReadmodelAgreement.eserviceId
+            ),
+            or(
+              and(
+                eq(
+                  delegationInReadmodelDelegation.delegatorId,
+                  agreementInReadmodelAgreement.consumerId
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedConsumer
+                )
+              ),
+              and(
+                eq(
+                  delegationInReadmodelDelegation.delegatorId,
+                  agreementInReadmodelAgreement.producerId
+                ),
+                eq(
+                  delegationInReadmodelDelegation.kind,
+                  delegationKind.delegatedProducer
+                )
+              )
             )
           )
         )

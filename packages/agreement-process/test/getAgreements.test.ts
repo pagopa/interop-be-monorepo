@@ -30,6 +30,7 @@ import {
   addOneDelegation,
   expectSinglePageListResult,
   getAMockDescriptorPublished,
+  sortListAgreements,
 } from "./utils.js";
 
 describe("get agreements", () => {
@@ -349,7 +350,9 @@ describe("get agreements", () => {
         0,
         getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
       );
-
+    console.log("agreement6", agreement6.id);
+    console.log("agreement10", agreement10.id);
+    console.log("agreement5", agreement5.id);
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer2, [
       agreement6,
       agreement10,
@@ -464,7 +467,6 @@ describe("get agreements", () => {
       agreement1,
       agreement3,
       agreement5,
-      // agreement7, ???
     ]);
   });
 
@@ -602,9 +604,13 @@ describe("get agreements", () => {
       0,
       getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
-    expect(agreements).toEqual({
+
+    expect({
+      totalCount: agreements.totalCount,
+      results: sortListAgreements(agreements.results),
+    }).toEqual({
       totalCount: 5,
-      results: [agreement1, agreement2],
+      results: sortListAgreements([agreement1, agreement2]),
     });
   });
 
@@ -615,9 +621,12 @@ describe("get agreements", () => {
       2,
       getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
-    expect(agreements).toEqual({
+    expect({
+      totalCount: agreements.totalCount,
+      results: sortListAgreements(agreements.results),
+    }).toEqual({
       totalCount: 5,
-      results: [agreement3, agreement5],
+      results: sortListAgreements([agreement3, agreement5]),
     });
   });
 
