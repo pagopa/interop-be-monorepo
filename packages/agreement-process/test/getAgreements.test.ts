@@ -511,7 +511,7 @@ describe("get agreements", () => {
     expectSinglePageListResult(agreements, [agreement2, agreement3]);
   });
 
-  it("should get agreements with filters: showOnlyUpgradeable", async () => {
+  it.only("should get agreements with filters: showOnlyUpgradeable", async () => {
     const agreements = await agreementService.getAgreements(
       {
         showOnlyUpgradeable: true,
@@ -520,6 +520,7 @@ describe("get agreements", () => {
       0,
       getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
+    console.log("agreement1", agreement1);
     expectSinglePageListResult(agreements, [
       agreement1,
       // also agreement4 could upgrade to newer descriptor but it is not in an upgradeable state

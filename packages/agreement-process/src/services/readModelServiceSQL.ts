@@ -38,6 +38,8 @@ import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   tenantInReadmodelTenant,
+  AgreementSQL,
+  EServiceDescriptorSQL,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, sql } from "drizzle-orm";
 
@@ -292,8 +294,121 @@ export function readModelServiceBuilderSQL(
         .offset(offset)
         .as("queryAgreementIds");
 
-      // const result = await readmodelDB.select().from(queryAgreementIds);
-      // console.log("result", result);
+      const result = await readmodelDB.select().from(queryAgreementIds);
+      console.log("result", result);
+
+      // eslint-disable-next-line functional/no-let
+      const agreementsUpgradableIds: string[] = [];
+      if (showOnlyUpgradeable) {
+        const agreementsAndDescriptors = await readmodelDB
+          .select({
+            agreementId: agreementInReadmodelAgreement.id,
+            eserviceId: eserviceInReadmodelCatalog.id,
+            descriptor: eserviceDescriptorInReadmodelCatalog,
+          })
+          .from(agreementInReadmodelAgreement)
+          .innerJoin(
+            queryAgreementIds,
+            eq(agreementInReadmodelAgreement.id, queryAgreementIds.id)
+          )
+          .leftJoin(
+            eserviceInReadmodelCatalog,
+            eq(
+              eserviceInReadmodelCatalog.id,
+              agreementInReadmodelAgreement.eserviceId
+            )
+          )
+          .leftJoin(
+            eserviceDescriptorInReadmodelCatalog,
+            eq(
+              eserviceDescriptorInReadmodelCatalog.eserviceId,
+              agreementInReadmodelAgreement.eserviceId
+            )
+          );
+        console.log("agreementsAndDescriptors", agreementsAndDescriptors);
+
+        // const groupDescriptorsByAgreementId = (
+        //   items: Array<{
+        //     agreement: AgreementSQL;
+        //     descriptor: EServiceDescriptorSQL;
+        //   }>
+        // ): {
+        //   [agreementId: string]: EServiceDescriptorSQL[];
+        // } => {
+        //   // eslint-disable-next-line functional/no-let
+        //   const result: {
+        //     [agreementId: string]: EServiceDescriptorSQL[];
+        //   } = {};
+
+        //   items.forEach(({ agreement, descriptor }) => {
+        //     const id = agreement.id;
+        //     const eserviceId = agreement.eserviceId;
+
+        //     if (!result[id]) {
+        //       // eslint-disable-next-line functional/immutable-data
+        //       result[id] = [];
+        //     }
+
+        //     // eslint-disable-next-line functional/immutable-data
+        //     result[id].push(descriptor);
+        //   });
+
+        //   return result;
+        // };
+
+        // // Esempio di utilizzo
+
+        // const descriptorsByAgreementId = groupDescriptorsByAgreementId(
+        //   agreementsAndDescriptors
+        // );
+
+        // console.log("descriptorsByAgreementId", descriptorsByAgreementId);
+
+        // // eslint-disable-next-line functional/no-let
+        // const agreementObj: Array<{
+        //   agreementId: string;
+        //   descriptors: Array<typeof eserviceDescriptorInReadmodelCatalog>;
+        // }> = {};
+
+        // agreementsAndDescriptors.forEach(({ agreement, descriptor }) => {
+        //   const agreementId = agreement.id;
+
+        //   if (agreementObj[agreementId]) {
+        //     // Aggiungi il descriptor all'array esistente
+        //     agreementObj[agreementId].push(descriptor);
+        //   } else {
+        //     // Crea un nuovo array con questo descriptor
+        //     // eslint-disable-next-line functional/immutable-data
+        //     agreementObj[agreementId] = [descriptor];
+        //   }
+        // });
+
+        // const agreementsUpgradable = agreementsEservicesDescriptors.filter(
+        //   ({ agreement, descriptor }) => {
+        //     // Find the current descriptor associated with the agreement
+        //     const currentDescriptor = descriptor;
+
+        //     // Get the publish date (defaulting to epoch time if undefined)
+        //     const currentPublishedDate =
+        //       currentDescriptor?.publishedAt ?? new Date(0);
+
+        //     // Check if there's at least one upgradable descriptor
+        //     return eservice.some((upgradableDescriptor) => {
+        //       const upgradablePublishedDate =
+        //         upgradableDescriptor.publishedAt ?? new Date(0);
+
+        //       const isNewerVersion =
+        //         upgradablePublishedDate > currentPublishedDate;
+        //       const hasValidState = [
+        //         descriptorState.published,
+        //         descriptorState.suspended,
+        //       ].includes(upgradableDescriptor.state);
+
+        //       return isNewerVersion && hasValidState;
+        //     });
+        //   }
+        // );
+      }
 
       const resultSet = await readmodelDB
         .select({
@@ -336,6 +451,11 @@ export function readModelServiceBuilderSQL(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
           )
+        )
+        .where(
+          showOnlyUpgradeable
+            ? inArray(agreementInReadmodelAgreement.id, agreementsUpgradableIds)
+            : undefined
         );
 
       const agreements = aggregateAgreementArray(
