@@ -61,29 +61,28 @@ const ApplicationAuditEndRequest = z.object({
 });
 type ApplicationAuditEndRequest = z.infer<typeof ApplicationAuditEndRequest>;
 
-// TODO use this for auth server audit
-// const ApplicationAuditEndRequestAuthServer = z.object({
-//   correlationId: CorrelationId,
-//   spanId: SpanId,
-//   service: z.string(),
-//   serviceVersion: z.string(),
-//   endpoint: z.string(),
-//   httpMethod: z.string(),
-//   phase: z.literal(phase.END_REQUEST),
-//   requesterIpAddress: z.string().optional(),
-//   nodeIp: z.string(),
-//   podName: z.string(),
-//   uptimeSeconds: z.number(),
-//   timestamp: z.number(),
-//   amazonTraceId: z.string().optional(),
-//   organizationId: z.string().optional(),
-//   clientId: z.string().optional(),
-//   httpResponseStatus: z.number(),
-//   executionTimeMs: z.number(),
-// });
-// type ApplicationAuditEndRequestAuthServer = z.infer<
-//   typeof ApplicationAuditEndRequestAuthServer
-// >;
+const ApplicationAuditEndRequestAuthServer = z.object({
+  correlationId: CorrelationId,
+  spanId: SpanId,
+  service: z.string(),
+  serviceVersion: z.string(),
+  endpoint: z.string(),
+  httpMethod: z.string(),
+  phase: z.literal(Phase.END_REQUEST),
+  requesterIpAddress: z.string().optional(),
+  nodeIp: z.string(),
+  podName: z.string(),
+  uptimeSeconds: z.number(),
+  timestamp: z.number(),
+  amazonTraceId: z.string().optional(),
+  organizationId: z.string().optional(),
+  clientId: z.string().optional(),
+  httpResponseStatus: z.number(),
+  executionTimeMs: z.number(),
+});
+type ApplicationAuditEndRequestAuthServer = z.infer<
+  typeof ApplicationAuditEndRequestAuthServer
+>;
 
 export const ApplicationAuditEndRequestSessionTokenExchange = z.object({
   correlationId: CorrelationId,
