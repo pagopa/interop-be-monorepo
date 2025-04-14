@@ -92,7 +92,11 @@ const createClientSQLPropertyMap = <
 ): Map<ClientId, T[]> =>
   items.reduce((acc, item) => {
     const clientId = unsafeBrandId<ClientId>(item.clientId);
-    acc.set(clientId, [...(acc.get(clientId) || []), item]);
+    const values = acc.get(clientId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(clientId, values);
+
     return acc;
   }, new Map<ClientId, T[]>());
 

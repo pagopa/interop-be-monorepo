@@ -360,7 +360,11 @@ const createEServiceSQLPropertyMap = <
 ): Map<EServiceId, T[]> =>
   items.reduce((acc, item) => {
     const eserviceId = unsafeBrandId<EServiceId>(item.eserviceId);
-    acc.set(eserviceId, [...(acc.get(eserviceId) || []), item]);
+    const values = acc.get(eserviceId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(eserviceId, values);
+
     return acc;
   }, new Map<EServiceId, T[]>());
 

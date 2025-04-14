@@ -198,7 +198,11 @@ const createTenantSQLPropertyMap = <
 ): Map<TenantId, T[]> =>
   items.reduce((acc, item) => {
     const tenantId = unsafeBrandId<TenantId>(item.tenantId);
-    acc.set(tenantId, [...(acc.get(tenantId) || []), item]);
+    const values = acc.get(tenantId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(tenantId, values);
+
     return acc;
   }, new Map<TenantId, T[]>());
 

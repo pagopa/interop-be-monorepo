@@ -69,7 +69,11 @@ const createAgreementSQLPropertyMap = <
 ): Map<AgreementId, T[]> =>
   items.reduce((acc, item) => {
     const agreementId = unsafeBrandId<AgreementId>(item.agreementId);
-    acc.set(agreementId, [...(acc.get(agreementId) || []), item]);
+    const values = acc.get(agreementId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(agreementId, values);
+
     return acc;
   }, new Map<AgreementId, T[]>());
 

@@ -74,7 +74,11 @@ const createPurposeSQLPropertyMap = <
 ): Map<PurposeId, T[]> =>
   items.reduce((acc, item) => {
     const purposeId = unsafeBrandId<PurposeId>(item.purposeId);
-    acc.set(purposeId, [...(acc.get(purposeId) || []), item]);
+    const values = acc.get(purposeId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(purposeId, values);
+
     return acc;
   }, new Map<PurposeId, T[]>());
 

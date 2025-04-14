@@ -99,7 +99,11 @@ const createProducerKeychainSQLPropertyMap = <
     const producerKeychainId = unsafeBrandId<ProducerKeychainId>(
       item.producerKeychainId
     );
-    acc.set(producerKeychainId, [...(acc.get(producerKeychainId) || []), item]);
+    const values = acc.get(producerKeychainId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(producerKeychainId, values);
+
     return acc;
   }, new Map<ProducerKeychainId, T[]>());
 
