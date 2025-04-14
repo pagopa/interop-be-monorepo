@@ -8,6 +8,10 @@ export * from "./agreement/splitters.js";
 export * from "./attributeReadModelService.js";
 export * from "./attribute/splitters.js";
 
+// CATALOG
+export * from "./catalogReadModelService.js";
+export * from "./catalog/splitters.js";
+
 // CLIENT
 export * from "./clientReadModelService.js";
 export * from "./authorization/clientSplitters.js";
