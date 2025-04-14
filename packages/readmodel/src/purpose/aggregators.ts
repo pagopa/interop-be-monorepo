@@ -2,6 +2,7 @@ import {
   DelegationId,
   genericInternalError,
   Purpose,
+  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
@@ -40,24 +41,41 @@ export const aggregatePurposeArray = ({
   riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
-}): Array<WithMetadata<Purpose>> =>
-  purposesSQL.map((purposeSQL) =>
-    aggregatePurpose({
-      purposeSQL,
-      riskAnalysisFormSQL: riskAnalysisFormsSQL.find(
-        (formSQL) => formSQL.purposeId === purposeSQL.id
-      ),
-      riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.filter(
-        (answerSQL) => answerSQL.purposeId === purposeSQL.id
-      ),
-      versionsSQL: versionsSQL.filter(
-        (versionSQL) => versionSQL.purposeId === purposeSQL.id
-      ),
-      versionDocumentsSQL: versionDocumentsSQL.filter(
-        (docSQL) => docSQL.purposeId === purposeSQL.id
-      ),
-    })
+}): Array<WithMetadata<Purpose>> => {
+  const riskAnalysisFormsSQLByPurposeId =
+    createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
+  const riskAnalysisAnswersSQLByPurposeId = createPurposeSQLPropertyMap(
+    riskAnalysisAnswersSQL
   );
+  const versionsSQLByPurposeId = createPurposeSQLPropertyMap(versionsSQL);
+  const versionDocumentsSQLByPurposeId =
+    createPurposeSQLPropertyMap(versionDocumentsSQL);
+  return purposesSQL.map((purposeSQL) => {
+    const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
+    return aggregatePurpose({
+      purposeSQL,
+      riskAnalysisFormSQL: riskAnalysisFormsSQLByPurposeId.get(purposeId)?.[0],
+      riskAnalysisAnswersSQL: riskAnalysisAnswersSQLByPurposeId.get(purposeId),
+      versionsSQL: versionsSQLByPurposeId.get(purposeId) || [],
+      versionDocumentsSQL: versionDocumentsSQLByPurposeId.get(purposeId) || [],
+    });
+  });
+};
+
+const createPurposeSQLPropertyMap = <
+  T extends
+    | PurposeRiskAnalysisFormSQL
+    | PurposeRiskAnalysisAnswerSQL
+    | PurposeVersionSQL
+    | PurposeVersionDocumentSQL
+>(
+  items: T[]
+): Map<PurposeId, T[]> =>
+  items.reduce((acc, item) => {
+    const purposeId = unsafeBrandId<PurposeId>(item.purposeId);
+    acc.set(purposeId, [...(acc.get(purposeId) || []), item]);
+    return acc;
+  }, new Map<PurposeId, T[]>());
 
 export const aggregatePurpose = ({
   purposeSQL,
