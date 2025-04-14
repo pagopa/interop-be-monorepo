@@ -38,7 +38,6 @@ export const splitEserviceIntoObjectsSQL = (
           eserviceTemplateId: eservice.templateRef.id,
           eserviceId: eservice.id,
           metadataVersion: version,
-          instanceLabel: eservice.templateRef.instanceLabel ?? null,
         }
       : undefined;
 

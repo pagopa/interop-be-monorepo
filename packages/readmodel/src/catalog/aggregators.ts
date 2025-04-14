@@ -251,9 +251,6 @@ export const aggregateEservice = ({
   const templateRef: EServiceTemplateRef | undefined = templateRefSQL
     ? {
         id: unsafeBrandId(templateRefSQL.eserviceTemplateId),
-        ...(templateRefSQL.instanceLabel
-          ? { instanceLabel: templateRefSQL.instanceLabel }
-          : {}),
       }
     : undefined;
 

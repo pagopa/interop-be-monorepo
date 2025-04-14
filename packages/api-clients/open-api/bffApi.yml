@@ -5841,7 +5841,7 @@ paths:
             format: uuid
       requestBody:
         description: Template instantiation parameters
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -17534,10 +17534,6 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -18099,8 +18095,6 @@ components:
           type: string
           format: uuid
         templateName:
-          type: string
-        instanceLabel:
           type: string
         templateInterface:
           $ref: "#/components/schemas/EServiceDoc"
@@ -20512,10 +20506,6 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:
@@ -20575,8 +20565,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
-        instanceLabel:
-          type: string
     EServiceTemplateInstances:
       type: object
       additionalProperties: false

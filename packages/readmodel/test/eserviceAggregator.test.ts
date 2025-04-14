@@ -36,7 +36,6 @@ describe("E-service aggregator", () => {
     const isConsumerDelegable = true;
     const templateRef: EServiceTemplateRef = {
       id: generateId(),
-      instanceLabel: "test instance label",
     };
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),

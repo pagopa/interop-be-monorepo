@@ -48,7 +48,6 @@ describe("E-service splitter", () => {
     const isConsumerDelegable = true;
     const templateRef: EServiceTemplateRef = {
       id: generateId(),
-      instanceLabel: "test instance label",
     };
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
@@ -202,7 +201,6 @@ describe("E-service splitter", () => {
       metadataVersion: 1,
       eserviceId: eservice.id,
       eserviceTemplateId: templateRef.id,
-      instanceLabel: templateRef.instanceLabel ?? null,
     };
 
     const expectedTemplateVersionRef: EServiceDescriptorTemplateVersionRefSQL =

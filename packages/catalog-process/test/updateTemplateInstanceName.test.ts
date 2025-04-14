@@ -11,6 +11,7 @@ import {
   generateId,
   EServiceNameUpdatedByTemplateUpdateV2,
   TenantId,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -27,7 +28,7 @@ import {
 } from "./utils.js";
 
 describe("updateTemplateInstanceName", () => {
-  it("should write on event-store for the internal update of the eService name without instanceLabel", async () => {
+  it("should write on event-store for the internal update of the eService name", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
       interface: getMockDocument(),
@@ -69,49 +70,6 @@ describe("updateTemplateInstanceName", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
   });
 
-  it("should write on event-store for the internal update of the eService name with instanceLabel", async () => {
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
-      interface: getMockDocument(),
-    };
-
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-      templateRef: { id: generateId(), instanceLabel: "test" },
-    };
-
-    await addOneEService(eservice);
-
-    const updatedName = "eservice new name";
-
-    await catalogService.internalUpdateTemplateInstanceName(
-      eservice.id,
-      updatedName,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
-
-    const updatedEService: EService = {
-      ...eservice,
-      name: `${updatedName} test`,
-    };
-
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceNameUpdatedByTemplateUpdate",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceNameUpdatedByTemplateUpdateV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-  });
-
   it("should not write on event-store if the e-service already has the new name", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -123,8 +81,8 @@ describe("updateTemplateInstanceName", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      templateRef: { id: generateId(), instanceLabel: "test" },
-      name: `${updatedName} test`,
+      templateRef: { id: generateId<EServiceTemplateId>() },
+      name: updatedName,
     };
 
     await addOneEService(eservice);
@@ -165,7 +123,7 @@ describe("updateTemplateInstanceName", () => {
       descriptors: [descriptor],
     };
 
-    const duplicateName = "eservice duplciate name";
+    const duplicateName = "eservice duplicate name";
 
     const eserviceWithSameName: EService = {
       ...getMockEService(),

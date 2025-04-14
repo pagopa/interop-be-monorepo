@@ -79,7 +79,6 @@ describe("E-service queries", () => {
         isClientAccessDelegable: true,
         templateRef: {
           id: generateId(),
-          instanceLabel: "instance label",
         },
       };
 
@@ -177,7 +176,7 @@ describe("E-service queries", () => {
       expect(riskAnalysisAnswersSQL).toHaveLength(0);
 
       const retrievedEService = aggregateEservice({
-        eserviceSQL: eserviceSQL!,
+        eserviceSQL,
         descriptorsSQL,
         interfacesSQL,
         documentsSQL,
@@ -240,7 +239,6 @@ describe("E-service queries", () => {
         isClientAccessDelegable: true,
         templateRef: {
           id: generateId(),
-          instanceLabel: "instance label",
         },
       };
 
@@ -321,7 +319,6 @@ describe("E-service queries", () => {
           isClientAccessDelegable: true,
           templateRef: {
             id: generateId(),
-            instanceLabel: "instance label",
           },
         },
         metadata: {
@@ -378,7 +375,6 @@ describe("E-service queries", () => {
         riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
         templateRef: {
           id: generateId(),
-          instanceLabel: "instance label",
         },
       };
       await catalogReadModelService.upsertEService(eservice1, 1);
@@ -411,7 +407,6 @@ describe("E-service queries", () => {
         riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
         templateRef: {
           id: generateId(),
-          instanceLabel: "instance label",
         },
       };
       await catalogReadModelService.upsertEService(eservice2, 1);

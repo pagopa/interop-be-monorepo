@@ -20,7 +20,6 @@ message EServiceV2 {
 
 message EServiceTemplateRefV2 {
   string id = 1;
-  optional string instanceLabel = 2;
 }
 
 message EServiceRiskAnalysisV2 {

@@ -462,7 +462,6 @@ export function catalogServiceBuilder(
         templateRef: eserviceTemplate && {
           templateId: eserviceTemplate.id,
           templateName: eserviceTemplate.name,
-          instanceLabel: eservice.templateRef?.instanceLabel,
           templateVersionId: descriptor.templateVersionRef?.id,
           templateInterface: eserviceTemplateInterface
             ? toBffCatalogApiDescriptorDoc(eserviceTemplateInterface)
@@ -1695,14 +1694,10 @@ export function catalogServiceBuilder(
     },
     createEServiceInstanceFromTemplate: async (
       templateId: EServiceTemplateId,
-      seed: bffApi.InstanceEServiceSeed,
+      seed: bffApi.InstanceEServiceSeed | undefined,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedEServiceDescriptor> => {
-      logger.info(
-        `Creating EService from template ${templateId} ${
-          seed.instanceLabel ? `with instanceLabel ${seed.instanceLabel}` : ""
-        }`
-      );
+      logger.info(`Creating EService from template ${templateId}`);
 
       const eService =
         await catalogProcessClient.createEServiceInstanceFromTemplate(seed, {

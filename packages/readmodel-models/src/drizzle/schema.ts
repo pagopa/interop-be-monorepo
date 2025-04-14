@@ -893,7 +893,6 @@ export const eserviceTemplateRefInReadmodelCatalog = readmodelCatalog.table(
     eserviceTemplateId: uuid("eservice_template_id").notNull(),
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    instanceLabel: varchar("instance_label"),
   },
   (table) => [
     foreignKey({

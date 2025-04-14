@@ -33,7 +33,6 @@ function toOutboundEServiceTemplateRefV2(
 ): Exact<OutboundEServiceTemplateRefV2, EServiceTemplateRefV2> {
   return {
     id: templateRef.id,
-    instanceLabel: templateRef.instanceLabel,
   };
 }
 

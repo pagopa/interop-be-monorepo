@@ -91,11 +91,7 @@ import {
   tenantNotFound,
   unchangedAttributes,
 } from "../model/domain/errors.js";
-import {
-  ApiGetEServicesFilters,
-  Consumer,
-  EServiceTemplateReferences,
-} from "../model/domain/models.js";
+import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -467,7 +463,13 @@ async function innerCreateEService(
     template,
   }: {
     seed: catalogApi.EServiceSeed;
-    template: EServiceTemplateReferences | undefined;
+    template:
+      | {
+          id: EServiceTemplateId;
+          versionId: EServiceTemplateVersionId;
+          attributes: EserviceAttributes;
+        }
+      | undefined;
   },
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext>
@@ -512,7 +514,6 @@ async function innerCreateEService(
     templateRef: template
       ? {
           id: template.id,
-          instanceLabel: template.instanceLabel,
         }
       : undefined,
   };
@@ -921,31 +922,10 @@ export function catalogServiceBuilder(
       );
 
       assertEServiceIsTemplateInstance(eservice.data);
-
-      const template = await retrieveEServiceTemplate(
-        eservice.data.templateRef.id,
-        readModelService
-      );
-
       assertIsDraftEservice(eservice.data);
-
-      const newName = `${template.name} ${
-        eserviceSeed.instanceLabel ?? ""
-      }`.trim();
-
-      await assertNotDuplicatedEServiceName(
-        newName,
-        eservice.data,
-        readModelService
-      );
 
       const updatedEService: EService = {
         ...eservice.data,
-        name: newName,
-        templateRef: {
-          id: eservice.data.templateRef.id,
-          instanceLabel: eserviceSeed.instanceLabel,
-        },
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
@@ -2560,24 +2540,19 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const instanceLabel = eservice.data.templateRef?.instanceLabel;
-      const updatedName = instanceLabel
-        ? `${newName} ${instanceLabel}`
-        : newName;
-
-      if (updatedName === eservice.data.name) {
+      if (newName === eservice.data.name) {
         return;
       }
 
       await assertNotDuplicatedEServiceName(
-        updatedName,
+        newName,
         eservice.data,
         readModelService
       );
 
       const updatedEservice: EService = {
         ...eservice.data,
-        name: updatedName,
+        name: newName,
       };
 
       await repository.createEvent(
@@ -2929,7 +2904,7 @@ export function catalogServiceBuilder(
     },
     async createEServiceInstanceFromTemplate(
       templateId: EServiceTemplateId,
-      seed: catalogApi.InstanceEServiceSeed,
+      seed: catalogApi.InstanceEServiceSeed | undefined,
       ctx: WithLogger<AppContext>
     ): Promise<EService> {
       ctx.logger.info(`Creating EService from template ${templateId}`);
@@ -2953,7 +2928,7 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: `${template.name} ${seed.instanceLabel ?? ""}`.trim(),
+            name: template.name,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -2970,14 +2945,13 @@ export function catalogServiceBuilder(
                 ),
             },
             isSignalHubEnabled:
-              seed.isSignalHubEnabled ?? template.isSignalHubEnabled,
-            isConsumerDelegable: seed.isConsumerDelegable ?? false,
-            isClientAccessDelegable: seed.isClientAccessDelegable ?? false,
+              seed?.isSignalHubEnabled ?? template.isSignalHubEnabled,
+            isConsumerDelegable: seed?.isConsumerDelegable ?? false,
+            isClientAccessDelegable: seed?.isClientAccessDelegable ?? false,
           },
           template: {
             id: template.id,
             versionId: publishedVersion.id,
-            instanceLabel: seed.instanceLabel,
             attributes: publishedVersion.attributes,
           },
         },
