@@ -15,6 +15,7 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   EServiceTemplateId,
   TenantId,
+  emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { config } from "../config/config.js";
@@ -734,7 +735,7 @@ const eserviceTemplatesRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     });

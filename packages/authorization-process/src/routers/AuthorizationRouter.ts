@@ -14,6 +14,7 @@ import {
   EServiceId,
   PurposeId,
   UserId,
+  emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -527,7 +528,7 @@ const authorizationRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     });
