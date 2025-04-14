@@ -30,3 +30,4 @@ export * from "./authorization/producerKeychainSplitters.js";
 
 // TENANT
 export * from "./tenantReadModelService.js";
+export * from "./tenant/splitters.js";
