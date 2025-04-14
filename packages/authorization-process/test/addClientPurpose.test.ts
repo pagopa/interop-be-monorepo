@@ -402,11 +402,13 @@ describe("addClientPurpose", async () => {
     await addOnePurpose(mockPurpose);
 
     expect(
-      authorizationService.addClientPurpose({
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
-      })
+      authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+      )
     ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
