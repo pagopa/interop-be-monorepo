@@ -25,3 +25,6 @@ export * from "./producerKeychainReadModelService.js";
 
 // DELEGATION
 export * from "./delegationReadModelService.js";
+
+// TENANT
+export * from "./tenantReadModelService.js";
