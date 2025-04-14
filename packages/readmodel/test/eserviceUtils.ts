@@ -33,8 +33,6 @@ import {
 import { expect } from "vitest";
 import { catalogReadModelServiceBuilder } from "../src/catalogReadModelService.js";
 import { readModelDB } from "./utils.js";
-import { RiskAnalysis, riskAnalysisAnswerKind } from "pagopa-interop-models";
-import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
 
 export const catalogReadModelService =
   catalogReadModelServiceBuilder(readModelDB);
