@@ -139,8 +139,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             submitAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -168,8 +167,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             activateAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -200,8 +198,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             addConsumerDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -231,8 +228,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             getConsumerDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -256,8 +252,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             removeConsumerDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -284,8 +279,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             suspendAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -313,8 +307,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -341,8 +334,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             archiveAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -375,8 +367,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             createAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -421,12 +412,7 @@ const agreementRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -458,12 +444,7 @@ const agreementRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -495,12 +476,7 @@ const agreementRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -529,12 +505,7 @@ const agreementRouter = (
               agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
             );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -556,8 +527,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -582,8 +552,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -608,8 +577,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             archiveAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -638,8 +606,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             updateAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -667,8 +634,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             upgradeAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -696,8 +662,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             cloneAgreementErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -722,8 +687,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             computeAgreementsStateErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -760,12 +724,7 @@ const agreementRouter = (
             })
           );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, () => 500, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
@@ -795,8 +754,7 @@ const agreementRouter = (
           const errorRes = makeApiProblem(
             error,
             verifyTenantCertifiedAttributesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
