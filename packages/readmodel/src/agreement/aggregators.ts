@@ -8,20 +8,14 @@ import {
 } from "pagopa-interop-readmodel-models";
 import {
   Agreement,
-  AgreementId,
   unsafeBrandId,
   WithMetadata,
-  EServiceId,
-  TenantId,
-  DescriptorId,
   AgreementState,
   stringToDate,
   attributeKind,
   AttributeId,
   AgreementDocument,
-  AgreementDocumentId,
   AgreementStamp,
-  UserId,
   DelegationId,
   AgreementStampKind,
   AgreementAttribute,
@@ -156,11 +150,11 @@ export const aggregateAgreement = ({
   );
 
   const agreement: Agreement = {
-    id: unsafeBrandId<AgreementId>(agreementSQL.id),
-    eserviceId: unsafeBrandId<EServiceId>(agreementSQL.eserviceId),
-    descriptorId: unsafeBrandId<DescriptorId>(agreementSQL.descriptorId),
-    producerId: unsafeBrandId<TenantId>(agreementSQL.producerId),
-    consumerId: unsafeBrandId<TenantId>(agreementSQL.consumerId),
+    id: unsafeBrandId(agreementSQL.id),
+    eserviceId: unsafeBrandId(agreementSQL.eserviceId),
+    descriptorId: unsafeBrandId(agreementSQL.descriptorId),
+    producerId: unsafeBrandId(agreementSQL.producerId),
+    consumerId: unsafeBrandId(agreementSQL.consumerId),
     state: AgreementState.parse(agreementSQL.state),
     verifiedAttributes,
     certifiedAttributes,
@@ -237,7 +231,7 @@ export const aggregateAgreement = ({
 const documentSQLtoDocument = (
   documentSQL: AgreementContractSQL | AgreementConsumerDocumentSQL
 ): AgreementDocument => ({
-  id: unsafeBrandId<AgreementDocumentId>(documentSQL.id),
+  id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
   prettyName: documentSQL.prettyName,
@@ -246,7 +240,7 @@ const documentSQLtoDocument = (
 });
 
 const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
-  who: unsafeBrandId<UserId>(stampSQL.who),
+  who: unsafeBrandId(stampSQL.who),
   when: stringToDate(stampSQL.when),
   ...(stampSQL.delegationId !== null
     ? {

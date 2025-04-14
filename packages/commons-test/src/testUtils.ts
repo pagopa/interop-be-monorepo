@@ -80,6 +80,7 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
+  DescriptorRejectionReason,
   AgreementDocument,
   AgreementStamp,
   WithMetadata,
@@ -185,7 +186,6 @@ export const getMockEService = (
   producerId,
   technology: technology.rest,
   descriptors,
-  attributes: undefined,
   riskAnalysis: [],
   mode: "Deliver",
 });
@@ -335,7 +335,6 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
     verified: [],
     declared: [],
   },
-  rejectionReasons: undefined,
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {
@@ -634,6 +633,12 @@ export const getMockClientAssertion = async (props?: {
   };
 };
 
+export const getMockDescriptorRejectionReason =
+  (): DescriptorRejectionReason => ({
+    rejectionReason: "Rejection Reason",
+    rejectedAt: new Date(),
+  });
+
 export const generateKeySet = (): {
   keySet: crypto.KeyPairKeyObjectResult;
   publicKeyEncodedPem: string;
@@ -770,6 +775,29 @@ export const sortBy =
     }
     return 0;
   };
+
+export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
+  tenant: T
+): T => {
+  if (tenant === undefined) {
+    return tenant;
+  } else if ("data" in tenant && "metadata" in tenant) {
+    return {
+      ...tenant,
+      data: sortTenant(tenant.data),
+    };
+  } else {
+    return {
+      ...tenant,
+      attributes: [...tenant.attributes].sort(
+        sortBy<TenantAttribute>((att) => att.id)
+      ),
+      features: [...tenant.features].sort(
+        sortBy<TenantFeature>((feature) => feature.type)
+      ),
+    };
+  }
+};
 
 export const sortAgreement = <
   T extends Agreement | WithMetadata<Agreement> | undefined
