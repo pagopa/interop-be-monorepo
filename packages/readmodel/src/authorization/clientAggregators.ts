@@ -1,12 +1,10 @@
 import {
   Client,
-  ClientId,
   ClientKind,
   Key,
   KeyUse,
   PurposeId,
   stringToDate,
-  TenantId,
   unsafeBrandId,
   UserId,
   WithMetadata,
@@ -18,6 +16,7 @@ import {
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateClient = ({
   clientSQL,
@@ -25,12 +24,12 @@ export const aggregateClient = ({
   purposesSQL,
   keysSQL,
 }: ClientItemsSQL): WithMetadata<Client> => {
-  const users: UserId[] = usersSQL.map((u) => unsafeBrandId<UserId>(u.userId));
+  const users: UserId[] = usersSQL.map((u) => unsafeBrandId(u.userId));
   const purposes: PurposeId[] = purposesSQL.map((p) =>
-    unsafeBrandId<PurposeId>(p.purposeId)
+    unsafeBrandId(p.purposeId)
   );
   const keys: Key[] = keysSQL.map((keySQL) => ({
-    userId: unsafeBrandId<UserId>(keySQL.userId),
+    userId: unsafeBrandId(keySQL.userId),
     kid: keySQL.kid,
     name: keySQL.name,
     encodedPem: keySQL.encodedPem,
@@ -41,8 +40,8 @@ export const aggregateClient = ({
 
   return {
     data: {
-      id: unsafeBrandId<ClientId>(clientSQL.id),
-      consumerId: unsafeBrandId<TenantId>(clientSQL.consumerId),
+      id: unsafeBrandId(clientSQL.id),
+      consumerId: unsafeBrandId(clientSQL.consumerId),
       name: clientSQL.name,
       purposes,
       ...(clientSQL.description !== null
@@ -78,3 +77,94 @@ export const aggregateClientArray = ({
       keysSQL: keysSQL.filter((k) => k.clientId === clientSQL.id),
     })
   );
+
+export const toClientAggregator = (
+  queryRes: Array<{
+    client: ClientSQL;
+    clientUser: ClientUserSQL | null;
+    clientPurpose: ClientPurposeSQL | null;
+    clientKey: ClientKeySQL | null;
+  }>
+): ClientItemsSQL => {
+  const { clientsSQL, usersSQL, purposesSQL, keysSQL } =
+    toClientAggregatorArray(queryRes);
+  return {
+    clientSQL: clientsSQL[0],
+    usersSQL,
+    purposesSQL,
+    keysSQL,
+  };
+};
+
+export const toClientAggregatorArray = (
+  queryRes: Array<{
+    client: ClientSQL;
+    clientUser: ClientUserSQL | null;
+    clientPurpose: ClientPurposeSQL | null;
+    clientKey: ClientKeySQL | null;
+  }>
+): {
+  clientsSQL: ClientSQL[];
+  usersSQL: ClientUserSQL[];
+  purposesSQL: ClientPurposeSQL[];
+  keysSQL: ClientKeySQL[];
+} => {
+  const clientIdSet = new Set<string>();
+  const clientsSQL: ClientSQL[] = [];
+
+  const userIdSet = new Set<string>();
+  const usersSQL: ClientUserSQL[] = [];
+
+  const purposeIdSet = new Set<string>();
+  const purposesSQL: ClientPurposeSQL[] = [];
+
+  const keyIdSet = new Set<string>();
+  const keysSQL: ClientKeySQL[] = [];
+
+  queryRes.forEach((row) => {
+    const clientSQL = row.client;
+    if (!clientIdSet.has(clientSQL.id)) {
+      clientIdSet.add(clientSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      clientsSQL.push(clientSQL);
+    }
+
+    const userSQL = row.clientUser;
+    if (
+      userSQL &&
+      !userIdSet.has(makeUniqueKey([userSQL.clientId, userSQL.userId]))
+    ) {
+      userIdSet.add(makeUniqueKey([userSQL.clientId, userSQL.userId]));
+      // eslint-disable-next-line functional/immutable-data
+      usersSQL.push(userSQL);
+    }
+
+    const purposeSQL = row.clientPurpose;
+    if (
+      purposeSQL &&
+      !purposeIdSet.has(
+        makeUniqueKey([purposeSQL.clientId, purposeSQL.purposeId])
+      )
+    ) {
+      purposeIdSet.add(
+        makeUniqueKey([purposeSQL.clientId, purposeSQL.purposeId])
+      );
+      // eslint-disable-next-line functional/immutable-data
+      purposesSQL.push(purposeSQL);
+    }
+
+    const keySQL = row.clientKey;
+    if (keySQL && !keyIdSet.has(makeUniqueKey([keySQL.clientId, keySQL.kid]))) {
+      keyIdSet.add(makeUniqueKey([keySQL.clientId, keySQL.kid]));
+      // eslint-disable-next-line functional/immutable-data
+      keysSQL.push(keySQL);
+    }
+  });
+
+  return {
+    clientsSQL,
+    usersSQL,
+    purposesSQL,
+    keysSQL,
+  };
+};
