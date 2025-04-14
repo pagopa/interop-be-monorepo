@@ -27,6 +27,7 @@ import {
   generateId,
   purposeVersionState,
   toClientV2,
+  ClientKind,
 } from "pagopa-interop-models";
 import {
   clientNotFound,
@@ -39,6 +40,7 @@ import {
   organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
+  clientKindNotAllowed,
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -372,6 +374,30 @@ describe("addClientPurpose", async () => {
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
     );
+  });
+  it("should throw clientKindNotAllowed if the requester is the client api", async () => {
+    const mockConsumerId: TenantId = generateId();
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+    };
+
+    const mockClient: Client = {
+      ...getMockClient(),
+      kind: ClientKind.Enum.Api,
+    };
+
+    await addOneClient(mockClient);
+    await addOnePurpose(mockPurpose);
+
+    expect(
+      authorizationService.addClientPurpose({
+        clientId: mockClient.id,
+        seed: { purposeId: mockPurpose.id },
+        ctx: getMockContext({ authData: getMockAuthData(mockConsumerId) }),
+      })
+    ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const mockDescriptor: Descriptor = {

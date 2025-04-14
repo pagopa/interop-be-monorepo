@@ -1,12 +1,10 @@
 import {
   Client,
-  ClientId,
   ClientKind,
   Key,
   KeyUse,
   PurposeId,
   stringToDate,
-  TenantId,
   unsafeBrandId,
   UserId,
   WithMetadata,
@@ -26,12 +24,12 @@ export const aggregateClient = ({
   purposesSQL,
   keysSQL,
 }: ClientItemsSQL): WithMetadata<Client> => {
-  const users: UserId[] = usersSQL.map((u) => unsafeBrandId<UserId>(u.userId));
+  const users: UserId[] = usersSQL.map((u) => unsafeBrandId(u.userId));
   const purposes: PurposeId[] = purposesSQL.map((p) =>
-    unsafeBrandId<PurposeId>(p.purposeId)
+    unsafeBrandId(p.purposeId)
   );
   const keys: Key[] = keysSQL.map((keySQL) => ({
-    userId: unsafeBrandId<UserId>(keySQL.userId),
+    userId: unsafeBrandId(keySQL.userId),
     kid: keySQL.kid,
     name: keySQL.name,
     encodedPem: keySQL.encodedPem,
@@ -42,8 +40,8 @@ export const aggregateClient = ({
 
   return {
     data: {
-      id: unsafeBrandId<ClientId>(clientSQL.id),
-      consumerId: unsafeBrandId<TenantId>(clientSQL.consumerId),
+      id: unsafeBrandId(clientSQL.id),
+      consumerId: unsafeBrandId(clientSQL.consumerId),
       name: clientSQL.name,
       purposes,
       ...(clientSQL.description !== null
