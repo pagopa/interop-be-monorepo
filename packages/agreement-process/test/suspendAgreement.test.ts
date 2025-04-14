@@ -188,7 +188,7 @@ describe("suspend agreement", () => {
       toAgreementV2(returnedAgreement.data)
     );
     expect(returnedAgreement).toEqual({
-      data: actualAgreementSuspended,
+      data: expectedAgreementSuspended,
       metadata: { version: 1 },
     });
   });
@@ -291,7 +291,7 @@ describe("suspend agreement", () => {
       toAgreementV2(returnedAgreement.data)
     );
     expect(returnedAgreement).toEqual({
-      data: actualAgreementSuspended,
+      data: expectedAgreementSuspended,
       metadata: { version: 1 },
     });
   });
@@ -398,7 +398,7 @@ describe("suspend agreement", () => {
       toAgreementV2(returnedAgreement.data)
     );
     expect(returnedAgreement).toEqual({
-      data: actualAgreementSuspended,
+      data: expectedAgreementSuspended,
       metadata: { version: 1 },
     });
   });

@@ -96,7 +96,7 @@ describe("archive agreement", () => {
     expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement.data));
 
     expect(returnedAgreement).toEqual({
-      data: actualAgreement,
+      data: expectedAgreemenentArchived,
       metadata: { version: 1 },
     });
 
@@ -160,6 +160,7 @@ describe("archive agreement", () => {
       stamps: {
         ...agreement.stamps,
         archiving: {
+          delegationId: delegation.id,
           who: authData.userId,
           when: new Date(),
         },
@@ -173,7 +174,7 @@ describe("archive agreement", () => {
     expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement.data));
 
     expect(returnedAgreement).toEqual({
-      data: actualAgreement,
+      data: expectedAgreemenentArchived,
       metadata: { version: 1 },
     });
 

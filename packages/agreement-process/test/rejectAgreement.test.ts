@@ -257,7 +257,7 @@ describe("reject agreement", () => {
         toAgreementV2(returnedAgreement.data)
       );
       expect(returnedAgreement).toEqual({
-        data: actualAgreementRejected,
+        data: expectedAgreementRejected,
         metadata: { version: 1 },
       });
       vi.useRealTimers();
