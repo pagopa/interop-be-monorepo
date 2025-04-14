@@ -35,7 +35,7 @@ export const ReadModelSQLDbConfig = z
     readModelSQLDbSchemaClientJwkKey: c.READMODEL_SQL_DB_SCHEMA_CLIENT_JWK_KEY,
     readModelSQLDbSchemaClient: c.READMODEL_SQL_DB_SCHEMA_CLIENT,
     readModelSQLDbSchemaDelegation: c.READMODEL_SQL_DB_SCHEMA_DELEGATION,
-    readModelSQLDbSchemaEserviceTemplate:
+    readModelSQLDbSchemaEServiceTemplate:
       c.READMODEL_SQL_DB_SCHEMA_ESERVICE_TEMPLATE,
     readModelSQLDbSchemaProducerJwkKey:
       c.READMODEL_SQL_DB_SCHEMA_PRODUCER_JWK_KEY,
