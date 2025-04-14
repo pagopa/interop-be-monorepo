@@ -50,6 +50,7 @@ export const aggregatePurposeArray = ({
   const versionsSQLByPurposeId = createPurposeSQLPropertyMap(versionsSQL);
   const versionDocumentsSQLByPurposeId =
     createPurposeSQLPropertyMap(versionDocumentsSQL);
+
   return purposesSQL.map((purposeSQL) => {
     const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
     return aggregatePurpose({
