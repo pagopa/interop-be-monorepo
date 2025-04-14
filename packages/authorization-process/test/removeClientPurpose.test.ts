@@ -149,13 +149,13 @@ describe("remove client purpose", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.removeClientPurpose({
-        clientId: mockClient.id,
-        purposeIdToRemove: generateId(),
-        organizationId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.removeClientPurpose(
+        {
+          clientId: mockClient.id,
+          purposeIdToRemove: generateId(),
+        },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
     ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
 });
