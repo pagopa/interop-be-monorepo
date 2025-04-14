@@ -11,6 +11,7 @@ import {
   LoggerConfig,
   EServiceTemplateTopicConfig,
   AnalyticsSQLDbConfig,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -40,7 +41,8 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
         mergeTableSuffix: c.MERGE_TABLE_SUFFIX,
         serviceName: c.SERVICE_NAME,
       }))
-  );
+  )
+  .and(ReadModelSQLDbConfig);
 
 export type DomainsAnalyticsWriterConfig = z.infer<
   typeof DomainsAnalyticsWriterConfig
