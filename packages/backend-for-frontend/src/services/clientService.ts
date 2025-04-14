@@ -240,18 +240,17 @@ export function clientServiceBuilder(
         headers,
       });
 
-      const users = clientUsers.map(async (id) =>
-        toBffApiCompactUser(
-          await getSelfcareUserById(
+      return await Promise.all(
+        clientUsers.map(async (id) => {
+          const user = await getSelfcareUserById(
             selfcareUsersClient,
             id,
             selfcareId,
             correlationId
-          ),
-          id
-        )
+          );
+          return toBffApiCompactUser(user, id);
+        })
       );
-      return Promise.all(users);
     },
 
     async getClientKeyById(
@@ -402,17 +401,13 @@ export async function getSelfcareUserById(
   selfcareId: string,
   correlationId: CorrelationId
 ): Promise<selfcareV2ClientApi.UserResponse> {
-  try {
-    return selfcareClient.getUserInfoUsingGET({
-      params: { id: userId },
-      queries: { institutionId: selfcareId },
-      headers: {
-        "X-Correlation-Id": correlationId,
-      },
-    });
-  } catch (error) {
-    return {} as selfcareV2ClientApi.UserResponse;
-  }
+  return selfcareClient.getUserInfoUsingGET({
+    params: { id: userId },
+    queries: { institutionId: selfcareId },
+    headers: {
+      "X-Correlation-Id": correlationId,
+    },
+  });
 }
 
 export async function decorateKey(
