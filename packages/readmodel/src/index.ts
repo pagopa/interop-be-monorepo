@@ -27,3 +27,6 @@ export * from "./authorization/producerJWKKeySplitters.js";
 // PRODUCER KEYCHAIN
 export * from "./producerKeychainReadModelService.js";
 export * from "./authorization/producerKeychainSplitters.js";
+
+// TENANT
+export * from "./tenantReadModelService.js";
