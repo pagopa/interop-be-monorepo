@@ -3,6 +3,7 @@ import {
   Key,
   KeyUse,
   ProducerKeychain,
+  ProducerKeychainId,
   stringToDate,
   unsafeBrandId,
   UserId,
@@ -62,21 +63,45 @@ export const aggregateProducerKeychainArray = ({
   usersSQL: ProducerKeychainUserSQL[];
   eservicesSQL: ProducerKeychainEServiceSQL[];
   keysSQL: ProducerKeychainKeySQL[];
-}): Array<WithMetadata<ProducerKeychain>> =>
-  producerKeychainsSQL.map((producerKeychainSQL) =>
-    aggregateProducerKeychain({
-      producerKeychainSQL,
-      usersSQL: producerKeychainUsersSQL.filter(
-        (user) => user.producerKeychainId === producerKeychainSQL.id
-      ),
-      eservicesSQL: producerKeychainEServicesSQL.filter(
-        (eservice) => eservice.producerKeychainId === producerKeychainSQL.id
-      ),
-      keysSQL: producerKeychainKeysSQL.filter(
-        (key) => key.producerKeychainId === producerKeychainSQL.id
-      ),
-    })
+}): Array<WithMetadata<ProducerKeychain>> => {
+  const usersSQLByProducerKeychainId = createProducerKeychainSQLPropertyMap(
+    producerKeychainUsersSQL
   );
+  const eservicesSQLByProducerKeychainId = createProducerKeychainSQLPropertyMap(
+    producerKeychainEServicesSQL
+  );
+  const keysSQLByProducerKeychainId = createProducerKeychainSQLPropertyMap(
+    producerKeychainKeysSQL
+  );
+
+  return producerKeychainsSQL.map((producerKeychainSQL) => {
+    const producerKeychainId = unsafeBrandId<ProducerKeychainId>(
+      producerKeychainSQL.id
+    );
+    return aggregateProducerKeychain({
+      producerKeychainSQL,
+      usersSQL: usersSQLByProducerKeychainId.get(producerKeychainId) || [],
+      eservicesSQL:
+        eservicesSQLByProducerKeychainId.get(producerKeychainId) || [],
+      keysSQL: keysSQLByProducerKeychainId.get(producerKeychainId) || [],
+    });
+  });
+};
+const createProducerKeychainSQLPropertyMap = <
+  T extends
+    | ProducerKeychainUserSQL
+    | ProducerKeychainEServiceSQL
+    | ProducerKeychainKeySQL
+>(
+  items: T[]
+): Map<ProducerKeychainId, T[]> =>
+  items.reduce((acc, item) => {
+    const producerKeychainId = unsafeBrandId<ProducerKeychainId>(
+      item.producerKeychainId
+    );
+    acc.set(producerKeychainId, [...(acc.get(producerKeychainId) || []), item]);
+    return acc;
+  }, new Map<ProducerKeychainId, T[]>());
 
 export const toProducerKeychainAggregator = (
   queryRes: Array<{
