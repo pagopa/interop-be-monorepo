@@ -8,6 +8,11 @@ export * from "./agreementReadModelService.js";
 // ATTRIBUTE
 export * from "./attribute/aggregators.js";
 export * from "./attributeReadModelService.js";
+export * from "./attribute/splitters.js";
+
+// CATALOG
+export * from "./catalogReadModelService.js";
+export * from "./catalog/splitters.js";
 
 // CATALOG
 export * from "./catalog/splitters.js";
@@ -20,10 +25,12 @@ export * from "./clientReadModelService.js";
 
 // CLIENT
 export * from "./clientReadModelService.js";
+export * from "./authorization/clientSplitters.js";
 
 // CLIENT JWK KEY
 export * from "./authorization/clientJWKKeyAggregators.js";
 export * from "./clientJWKKeyReadModelService.js";
+export * from "./authorization/clientJWKKeySplitters.js";
 
 // DELEGATION
 export * from "./delegation/aggregators.js";
@@ -42,11 +49,14 @@ export * from "./purposeReadModelService.js";
 // PRODUCER JWK KEY
 export * from "./authorization/producerJWKKeyAggregators.js";
 export * from "./producerJWKKeyReadModelService.js";
+export * from "./authorization/producerJWKKeySplitters.js";
 
 // PRODUCER KEYCHAIN
 export * from "./authorization/producerKeychainAggregators.js";
 export * from "./producerKeychainReadModelService.js";
+export * from "./authorization/producerKeychainSplitters.js";
 
 // TENANT
 export * from "./tenant/aggregators.js";
 export * from "./tenantReadModelService.js";
+export * from "./tenant/splitters.js";
