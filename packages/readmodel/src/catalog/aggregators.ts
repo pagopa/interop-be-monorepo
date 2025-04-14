@@ -19,6 +19,7 @@ import {
   EServiceTemplateRef,
   AttributeKind,
   RiskAnalysisAnswerKind,
+  EServiceId,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -305,40 +306,63 @@ export const aggregateEserviceArray = ({
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateRefsSQL: EServiceTemplateRefSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
-}): Array<WithMetadata<EService>> =>
-  eservicesSQL.map((eserviceSQL) =>
-    aggregateEservice({
-      eserviceSQL,
-      riskAnalysesSQL: riskAnalysesSQL.filter(
-        (ra) => ra.eserviceId === eserviceSQL.id
-      ),
-      riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.filter(
-        (answer) => answer.eserviceId === eserviceSQL.id
-      ),
-      descriptorsSQL: descriptorsSQL.filter(
-        (d) => d.eserviceId === eserviceSQL.id
-      ),
-      interfacesSQL: interfacesSQL.filter(
-        (descriptorInterface) =>
-          descriptorInterface.eserviceId === eserviceSQL.id
-      ),
-      documentsSQL: documentsSQL.filter(
-        (doc) => doc.eserviceId === eserviceSQL.id
-      ),
-      attributesSQL: attributesSQL.filter(
-        (attr) => attr.eserviceId === eserviceSQL.id
-      ),
-      rejectionReasonsSQL: rejectionReasonsSQL.filter(
-        (rejectionReason) => rejectionReason.eserviceId === eserviceSQL.id
-      ),
-      templateRefSQL: templateRefsSQL.find(
-        (t) => t.eserviceId === eserviceSQL.id
-      ),
-      templateVersionRefsSQL: templateVersionRefsSQL.filter(
-        (t) => t.eserviceId === eserviceSQL.id
-      ),
-    })
+}): Array<WithMetadata<EService>> => {
+  const riskAnalysesSQLByEServiceId =
+    createEServiceSQLPropertyMap(riskAnalysesSQL);
+  const riskAnalysisAnswersSQLByEServiceId = createEServiceSQLPropertyMap(
+    riskAnalysisAnswersSQL
   );
+  const descriptorsSQLByEServiceId =
+    createEServiceSQLPropertyMap(descriptorsSQL);
+  const interfacesSQLByEServiceId = createEServiceSQLPropertyMap(interfacesSQL);
+  const documentsSQLByEServiceId = createEServiceSQLPropertyMap(documentsSQL);
+  const attributesSQLByEServiceId = createEServiceSQLPropertyMap(attributesSQL);
+  const rejectionReasonsSQLByEServiceId =
+    createEServiceSQLPropertyMap(rejectionReasonsSQL);
+  const templateRefsSQLByEServiceId =
+    createEServiceSQLPropertyMap(templateRefsSQL);
+  const templateVersionRefsSQLByEServiceId = createEServiceSQLPropertyMap(
+    templateVersionRefsSQL
+  );
+
+  return eservicesSQL.map((eserviceSQL) => {
+    const eserviceId = unsafeBrandId<EServiceId>(eserviceSQL.id);
+    return aggregateEservice({
+      eserviceSQL,
+      riskAnalysesSQL: riskAnalysesSQLByEServiceId.get(eserviceId) || [],
+      riskAnalysisAnswersSQL:
+        riskAnalysisAnswersSQLByEServiceId.get(eserviceId) || [],
+      descriptorsSQL: descriptorsSQLByEServiceId.get(eserviceId) || [],
+      interfacesSQL: interfacesSQLByEServiceId.get(eserviceId) || [],
+      documentsSQL: documentsSQLByEServiceId.get(eserviceId) || [],
+      attributesSQL: attributesSQLByEServiceId.get(eserviceId) || [],
+      rejectionReasonsSQL:
+        rejectionReasonsSQLByEServiceId.get(eserviceId) || [],
+      templateRefSQL: templateRefsSQLByEServiceId.get(eserviceId)?.[0],
+      templateVersionRefsSQL:
+        templateVersionRefsSQLByEServiceId.get(eserviceId) || [],
+    });
+  });
+};
+const createEServiceSQLPropertyMap = <
+  T extends
+    | EServiceRiskAnalysisSQL
+    | EServiceRiskAnalysisAnswerSQL
+    | EServiceDescriptorSQL
+    | EServiceDescriptorInterfaceSQL
+    | EServiceDescriptorDocumentSQL
+    | EServiceDescriptorAttributeSQL
+    | EServiceDescriptorRejectionReasonSQL
+    | EServiceTemplateRefSQL
+    | EServiceDescriptorTemplateVersionRefSQL
+>(
+  items: T[]
+): Map<EServiceId, T[]> =>
+  items.reduce((acc, item) => {
+    const eserviceId = unsafeBrandId<EServiceId>(item.eserviceId);
+    acc.set(eserviceId, [...(acc.get(eserviceId) || []), item]);
+    return acc;
+  }, new Map<EServiceId, T[]>());
 
 export const aggregateRiskAnalysis = (
   riskAnalysisSQL: EServiceRiskAnalysisSQL,
