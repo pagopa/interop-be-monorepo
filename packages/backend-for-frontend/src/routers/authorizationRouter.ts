@@ -60,8 +60,7 @@ const authorizationRouter = (
         const errorRes = makeApiProblem(
           error,
           sessionTokenErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error creating a session token"
         );
 

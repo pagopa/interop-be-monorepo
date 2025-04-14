@@ -26,5 +26,5 @@ export const readmodelProducerJwkKey = pgSchema(
 );
 export const readmodelTenant = pgSchema(config.readModelSQLDbSchemaTenant);
 export const readmodelEserviceTemplate = pgSchema(
-  config.readModelSQLDbSchemaEserviceTemplate
+  config.readModelSQLDbSchemaEServiceTemplate
 );
