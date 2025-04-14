@@ -102,6 +102,7 @@ import {
   assertRequesterIsDelegateConsumer,
   assertUserSelfcareSecurityPrivileges,
   assertSecurityRoleIsClientMember,
+  assertClientIsConsumer,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -445,6 +446,9 @@ export function authorizationServiceBuilder(
       );
 
       const client = await retrieveClient(clientId, readModelService);
+
+      assertClientIsConsumer(client.data);
+
       assertOrganizationIsClientConsumer(organizationId, client.data);
 
       // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
@@ -623,6 +627,9 @@ export function authorizationServiceBuilder(
       const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
 
       const client = await retrieveClient(clientId, readModelService);
+
+      assertClientIsConsumer(client.data);
+
       assertOrganizationIsClientConsumer(authData.organizationId, client.data);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
