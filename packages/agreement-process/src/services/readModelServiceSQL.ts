@@ -64,40 +64,6 @@ export type AgreementEServicesQueryFilters = {
   producerIds: TenantId[];
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function createAgreementsStatesFilter(
-  agreementStates:
-    | Array<
-        | "Active"
-        | "Draft"
-        | "Suspended"
-        | "Archived"
-        | "Pending"
-        | "MissingCertifiedAttributes"
-        | "Rejected"
-      >
-    | undefined,
-  showOnlyUpgradeable: boolean | undefined,
-  upgradeableStates: Array<"Active" | "Draft" | "Suspended">
-) {
-  return match(agreementStates)
-    .with(P.nullish, () => (showOnlyUpgradeable ? upgradeableStates : []))
-    .with(
-      P.when(
-        (agreementStates) => agreementStates.length === 0 && showOnlyUpgradeable
-      ),
-      () => upgradeableStates
-    )
-    .with(
-      P.when(
-        (agreementStates) => agreementStates.length > 0 && showOnlyUpgradeable
-      ),
-      (agreementStates) =>
-        upgradeableStates.filter((s) => agreementStates.includes(s))
-    )
-    .otherwise((agreementStates) => agreementStates);
-}
-
 const delegationsJoinConditions = (
   agreementTable: typeof agreementInReadmodelAgreement,
   delegationTable: typeof delegationInReadmodelDelegation
@@ -232,6 +198,66 @@ const toArray = <T>(value: T | T[] | undefined | null): T[] => {
   return Array.isArray(value) ? value : [value];
 };
 
+const explicitFilters = (
+  filters: AgreementQueryFilters
+): {
+  producerIds: TenantId[];
+  consumerIds: TenantId[];
+  eserviceIds: EServiceId[];
+  descriptorIds: DescriptorId[];
+  attributeIds: AttributeId[];
+  states: AgreementState[];
+  showOnlyUpgradeable: boolean;
+} => {
+  const {
+    producerId,
+    consumerId,
+    eserviceId,
+    descriptorId,
+    agreementStates,
+    attributeId,
+    showOnlyUpgradeable,
+  } = filters;
+
+  const producerIds = toArray(producerId);
+  const consumerIds = toArray(consumerId);
+  const eserviceIds = toArray(eserviceId);
+  const descriptorIds = toArray(descriptorId);
+  const attributeIds = toArray(attributeId);
+
+  const upgradeableStates = [
+    agreementState.draft,
+    agreementState.active,
+    agreementState.suspended,
+  ];
+  const states = match(agreementStates)
+    .with(P.nullish, () => (showOnlyUpgradeable ? upgradeableStates : []))
+    .with(
+      P.when(
+        (agreementStates) => agreementStates.length === 0 && showOnlyUpgradeable
+      ),
+      () => upgradeableStates
+    )
+    .with(
+      P.when(
+        (agreementStates) => agreementStates.length > 0 && showOnlyUpgradeable
+      ),
+      (agreementStates) =>
+        upgradeableStates.filter((s) => agreementStates.includes(s))
+    )
+    .otherwise((agreementStates) => agreementStates);
+
+  return {
+    producerIds,
+    consumerIds,
+    eserviceIds,
+    descriptorIds,
+    attributeIds,
+    states,
+    showOnlyUpgradeable: showOnlyUpgradeable === true,
+  };
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
   readmodelDB: DrizzleReturnType,
@@ -242,7 +268,6 @@ export function readModelServiceBuilderSQL(
   delegationReadModelServiceSQL: DelegationReadModelService
 ) {
   return {
-    // eslint-disable-next-line sonarjs/cognitive-complexity
     async getAgreements(
       requesterId: TenantId,
       filters: AgreementQueryFilters,
@@ -250,26 +275,14 @@ export function readModelServiceBuilderSQL(
       offset: number
     ): Promise<ListResult<Agreement>> {
       const {
-        producerId,
-        consumerId,
-        eserviceId,
-        descriptorId,
-        agreementStates,
-        attributeId,
+        producerIds,
+        consumerIds,
+        eserviceIds,
+        descriptorIds,
+        attributeIds,
+        states,
         showOnlyUpgradeable,
-      } = filters;
-
-      const producerIds = toArray(producerId);
-      const consumerIds = toArray(consumerId);
-      const eserviceIds = toArray(eserviceId);
-      const descriptorIds = toArray(descriptorId);
-      const attributeIds = toArray(attributeId);
-
-      const agreementStatesFilters = createAgreementsStatesFilter(
-        agreementStates,
-        showOnlyUpgradeable,
-        [agreementState.draft, agreementState.active, agreementState.suspended]
-      );
+      } = explicitFilters(filters);
 
       const queryBaseAgreementIds = readmodelDB
         .select({
@@ -372,13 +385,8 @@ export function readModelServiceBuilderSQL(
               : undefined,
             // END ATTRIBUTES
             // AGREEMENT STATES
-            agreementStatesFilters && agreementStatesFilters.length > 0
-              ? or(
-                  inArray(
-                    agreementInReadmodelAgreement.state,
-                    agreementStatesFilters
-                  )
-                )
+            states && states.length > 0
+              ? or(inArray(agreementInReadmodelAgreement.state, states))
               : undefined
             // END AGREEMENT STATES
           )
@@ -490,22 +498,178 @@ export function readModelServiceBuilderSQL(
     ): Promise<WithMetadata<Agreement> | undefined> {
       return await agreementReadModelServiceSQL.getAgreementById(agreementId);
     },
-    // TODO
-    async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
-      throw new Error("to implement");
+    async getAllAgreements(
+      filters: AgreementQueryFilters
+    ): Promise<Array<WithMetadata<Agreement>>> {
+      const {
+        producerIds,
+        consumerIds,
+        eserviceIds,
+        descriptorIds,
+        attributeIds,
+        states,
+      } = explicitFilters(filters);
+
+      const queryBaseAgreementIds = readmodelDB
+        .select({
+          id: agreementInReadmodelAgreement.id,
+          eserviceName: eserviceInReadmodelCatalog.name,
+          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+        })
+        .from(agreementInReadmodelAgreement)
+        .leftJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            agreementInReadmodelAgreement.eserviceId,
+            eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            agreementInReadmodelAgreement.descriptorId,
+            eserviceDescriptorInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .where(
+          and(
+            // PRODUCERS
+            producerIds.length > 0
+              ? or(
+                  inArray(
+                    agreementInReadmodelAgreement.producerId,
+                    producerIds
+                  ),
+                  inArray(
+                    delegationInReadmodelDelegation.delegateId,
+                    producerIds
+                  )
+                )
+              : undefined,
+            // END PRODUCERS
+            // CONSUMERS
+            consumerIds.length > 0
+              ? or(
+                  inArray(
+                    agreementInReadmodelAgreement.consumerId,
+                    consumerIds
+                  ),
+                  inArray(
+                    delegationInReadmodelDelegation.delegateId,
+                    consumerIds
+                  )
+                )
+              : undefined,
+            // END CONSUMERS
+            // ESERVICES
+            eserviceIds.length > 0
+              ? or(
+                  inArray(agreementInReadmodelAgreement.eserviceId, eserviceIds)
+                )
+              : undefined,
+            // END ESERVICES
+            // DESCRIPTORS
+            descriptorIds.length > 0
+              ? or(
+                  inArray(
+                    agreementInReadmodelAgreement.descriptorId,
+                    descriptorIds
+                  )
+                )
+              : undefined,
+            // END DESCRIPTORS
+            // ATTRIBUTES
+            attributeIds.length > 0
+              ? or(
+                  inArray(
+                    agreementAttributeInReadmodelAgreement.attributeId,
+                    attributeIds
+                  )
+                )
+              : undefined,
+            // END ATTRIBUTES
+            // AGREEMENT STATES
+            states && states.length > 0
+              ? or(inArray(agreementInReadmodelAgreement.state, states))
+              : undefined
+            // END AGREEMENT STATES
+          )
+        )
+        .groupBy(
+          agreementInReadmodelAgreement.id,
+          eserviceInReadmodelCatalog.name
+        )
+        .orderBy(
+          sql`LOWER(${eserviceInReadmodelCatalog.name}), ${agreementInReadmodelAgreement.id}`
+        );
+
+      const queryAgreementIds = queryBaseAgreementIds.as("queryAgreementIds");
+
+      const resultSet = await readmodelDB
+        .select({
+          eserviceName: queryAgreementIds.eserviceName,
+          agreement: agreementInReadmodelAgreement,
+          attribute: agreementAttributeInReadmodelAgreement,
+          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+          contract: agreementContractInReadmodelAgreement,
+          stamp: agreementStampInReadmodelAgreement,
+          totalCount: queryAgreementIds.totalCount,
+        })
+        .from(agreementInReadmodelAgreement)
+        .innerJoin(
+          queryAgreementIds,
+          eq(agreementInReadmodelAgreement.id, queryAgreementIds.id)
+        )
+        .leftJoin(
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementConsumerDocumentInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementConsumerDocumentInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementContractInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        );
+
+      return aggregateAgreementArray(toAgreementAggregatorArray(resultSet));
     },
-    // DONE
+
     async getEServiceById(
       eserviceId: EServiceId
     ): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(eserviceId))
         ?.data;
     },
-    // DONE
+
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
     },
-    // DONE
+
     async getAttributeById(
       attributeId: AttributeId
     ): Promise<Attribute | undefined> {
@@ -517,7 +681,7 @@ export function readModelServiceBuilderSQL(
      * Retrieving consumers from agreements with consumer name
      * /agreements/filter/consumers
      */
-    // DONE
+
     async getAgreementsConsumers(
       requesterId: TenantId,
       consumerName: string | undefined,
@@ -574,7 +738,6 @@ export function readModelServiceBuilderSQL(
       };
     },
 
-    // DONE
     async getAgreementsProducers(
       requesterId: TenantId,
       producerName: string | undefined,
@@ -631,7 +794,6 @@ export function readModelServiceBuilderSQL(
       };
     },
 
-    // DONE
     async getAgreementsEServices(
       requesterId: TenantId,
       filters: AgreementEServicesQueryFilters,
@@ -733,7 +895,7 @@ export function readModelServiceBuilderSQL(
         totalCount: resultSet[0]?.totalCount ?? 0,
       };
     },
-    // DONE
+
     async getActiveProducerDelegationByEserviceId(
       eserviceId: EServiceId
     ): Promise<Delegation | undefined> {
@@ -750,7 +912,7 @@ export function readModelServiceBuilderSQL(
         );
       return delegation?.data;
     },
-    // DONE
+
     async getActiveConsumerDelegationsByEserviceId(
       eserviceId: EServiceId
     ): Promise<Delegation[]> {
@@ -767,7 +929,7 @@ export function readModelServiceBuilderSQL(
         );
       return delegations.map(({ data }) => data);
     },
-    // DONE
+
     async getActiveConsumerDelegationByAgreement(
       agreement: Pick<Agreement, "consumerId" | "eserviceId">
     ): Promise<Delegation | undefined> {
