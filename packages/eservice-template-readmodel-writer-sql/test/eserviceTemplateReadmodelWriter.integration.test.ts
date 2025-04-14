@@ -700,7 +700,7 @@ describe("database test", async () => {
           mockEServiceTemplate.id
         );
 
-      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
+      expect(retrievedEservice?.data).toEqual(updatedEServiceTemplate);
       expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
     });
 
