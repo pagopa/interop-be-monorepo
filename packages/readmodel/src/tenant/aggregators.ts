@@ -13,6 +13,7 @@ import {
   TenantFeatureDelegatedProducer,
   TenantFeatureType,
   tenantFeatureType,
+  TenantId,
   TenantKind,
   TenantMail,
   TenantMailKind,
@@ -144,31 +145,62 @@ export const aggregateTenantArray = ({
   verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
   featuresSQL: TenantFeatureSQL[];
-}): Array<WithMetadata<Tenant>> =>
-  tenantsSQL.map((tenantSQL) =>
-    aggregateTenant({
-      tenantSQL,
-      mailsSQL: mailsSQL.filter((mailSQL) => mailSQL.tenantId === tenantSQL.id),
-      certifiedAttributesSQL: certifiedAttributesSQL.filter(
-        (attr) => attr.tenantId === tenantSQL.id
-      ),
-      declaredAttributesSQL: declaredAttributesSQL.filter(
-        (attr) => attr.tenantId === tenantSQL.id
-      ),
-      verifiedAttributesSQL: verifiedAttributesSQL.filter(
-        (attr) => attr.tenantId === tenantSQL.id
-      ),
-      verifiedAttributeVerifiersSQL: verifiedAttributeVerifiersSQL.filter(
-        (verifier) => verifier.tenantId === tenantSQL.id
-      ),
-      verifiedAttributeRevokersSQL: verifiedAttributeRevokersSQL.filter(
-        (revoker) => revoker.tenantId === tenantSQL.id
-      ),
-      featuresSQL: featuresSQL.filter(
-        (feature) => feature.tenantId === tenantSQL.id
-      ),
-    })
+}): Array<WithMetadata<Tenant>> => {
+  const mailsSQLByTenantId = createTenantSQLPropertyMap(mailsSQL);
+  const certifiedAttributesSQLByTenantId = createTenantSQLPropertyMap(
+    certifiedAttributesSQL
   );
+  const declaredAttributesSQLByTenantId = createTenantSQLPropertyMap(
+    declaredAttributesSQL
+  );
+  const verifiedAttributesSQLByTenantId = createTenantSQLPropertyMap(
+    verifiedAttributesSQL
+  );
+  const verifiedAttributeVerifiersSQLByTenantId = createTenantSQLPropertyMap(
+    verifiedAttributeVerifiersSQL
+  );
+  const verifiedAttributeRevokersSQLByTenantId = createTenantSQLPropertyMap(
+    verifiedAttributeRevokersSQL
+  );
+  const featuresSQLByTenantId = createTenantSQLPropertyMap(featuresSQL);
+
+  return tenantsSQL.map((tenantSQL) => {
+    const tenantId = unsafeBrandId<TenantId>(tenantSQL.id);
+    return aggregateTenant({
+      tenantSQL,
+      mailsSQL: mailsSQLByTenantId.get(tenantId) || [],
+      certifiedAttributesSQL:
+        certifiedAttributesSQLByTenantId.get(tenantId) || [],
+      declaredAttributesSQL:
+        declaredAttributesSQLByTenantId.get(tenantId) || [],
+      verifiedAttributesSQL:
+        verifiedAttributesSQLByTenantId.get(tenantId) || [],
+      verifiedAttributeVerifiersSQL:
+        verifiedAttributeVerifiersSQLByTenantId.get(tenantId) || [],
+      verifiedAttributeRevokersSQL:
+        verifiedAttributeRevokersSQLByTenantId.get(tenantId) || [],
+      featuresSQL: featuresSQLByTenantId.get(tenantId) || [],
+    });
+  });
+};
+
+const createTenantSQLPropertyMap = <
+  T extends
+    | TenantMailSQL
+    | TenantCertifiedAttributeSQL
+    | TenantDeclaredAttributeSQL
+    | TenantVerifiedAttributeSQL
+    | TenantVerifiedAttributeVerifierSQL
+    | TenantVerifiedAttributeRevokerSQL
+    | TenantFeatureSQL
+>(
+  items: T[]
+): Map<TenantId, T[]> =>
+  items.reduce((acc, item) => {
+    const tenantId = unsafeBrandId<TenantId>(item.tenantId);
+    acc.set(tenantId, [...(acc.get(tenantId) || []), item]);
+    return acc;
+  }, new Map<TenantId, T[]>());
 
 const tenantMailSQLToTenantMail = (mail: TenantMailSQL): TenantMail => ({
   id: mail.id,
