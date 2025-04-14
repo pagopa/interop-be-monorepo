@@ -18,8 +18,8 @@ import {
   tenantKindNotFound,
   tenantNotFound,
   riskAnalysisConfigLatestVersionNotFound,
-} from "../src/model/domain/errors.js";
-import { tenants, purposeService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import { tenants, purposeService } from "../integrationUtils.js";
 
 describe("retrieveLatestRiskAnalysisConfiguration", async () => {
   it.each(Object.values(tenantKind))(

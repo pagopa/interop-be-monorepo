@@ -51,19 +51,21 @@ import {
   duplicatedPurposeTitle,
   organizationIsNotTheDelegatedConsumer,
   puroposeDelegationNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
-  getMockEService,
-  buildRiskAnalysisSeed,
   addOnePurpose,
-  createUpdatedPurpose,
   readLastPurposeEvent,
   purposeService,
   addOneDelegation,
   addOneTenant,
   addOneEService,
   addOneAgreement,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import {
+  getMockEService,
+  buildRiskAnalysisSeed,
+  createUpdatedPurpose,
+} from "../mockUtils.js";
 
 describe("updatePurpose and updateReversePurpose", () => {
   const tenantType = randomArrayItem(Object.values(tenantKind));

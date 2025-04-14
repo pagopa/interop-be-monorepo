@@ -38,7 +38,7 @@ import {
   purposeCannotBeCloned,
   purposeNotFound,
   tenantKindNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -47,7 +47,7 @@ import {
   addOneTenant,
   purposeService,
   readLastPurposeEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("clonePurpose", async () => {
   beforeAll(() => {

@@ -26,13 +26,13 @@ import {
   purposeVersionNotFound,
   notValidVersionState,
   puroposeDelegationNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOnePurpose,
   purposeService,
   readLastPurposeEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
   it("should write on event-store for the archiving of a purpose version", async () => {

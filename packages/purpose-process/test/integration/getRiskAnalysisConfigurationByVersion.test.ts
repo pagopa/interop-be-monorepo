@@ -23,8 +23,8 @@ import {
   eserviceNotFound,
   tenantKindNotFound,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
-import { eservices, tenants, purposeService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import { eservices, tenants, purposeService } from "../integrationUtils.js";
 
 describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
   it("should retrieve risk analysis configuration by version (Eservice mode: deliver)", async () => {

@@ -2,40 +2,32 @@
 import {
   initPDFGenerator,
   launchPuppeteerBrowser,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   ReadEvent,
   StoredEvent,
+  readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
   writeInReadmodel,
-  readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import {
   EService,
   Purpose,
   PurposeEvent,
-  RiskAnalysis,
-  RiskAnalysisForm,
-  generateId,
-  technology,
   toPurposeV2,
-  unsafeBrandId,
   toReadModelPurpose,
-  PurposeId,
   toReadModelEService,
   Tenant,
   toReadModelTenant,
   toReadModelAgreement,
   Agreement,
   Delegation,
+  PurposeId,
   ListResult,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import puppeteer, { Browser } from "puppeteer";
-import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
 
@@ -117,76 +109,6 @@ export const writePurposeInEventstore = async (
 
   await writeInEventstore(eventToWrite, "purpose", postgresDB);
 };
-
-export const getMockEService = (): EService => ({
-  id: generateId(),
-  name: "eService name",
-  description: "eService description",
-  createdAt: new Date(),
-  producerId: generateId(),
-  technology: technology.rest,
-  descriptors: [],
-  attributes: undefined,
-  riskAnalysis: [],
-  mode: "Deliver",
-});
-
-export const buildRiskAnalysisSeed = (
-  riskAnalysis: RiskAnalysis
-): purposeApi.RiskAnalysisFormSeed =>
-  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
-
-export const buildRiskAnalysisFormSeed = (
-  riskAnalysisForm: RiskAnalysisForm
-): purposeApi.RiskAnalysisFormSeed =>
-  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-
-export const createUpdatedPurpose = (
-  mockPurpose: Purpose,
-  purposeUpdateContent:
-    | purposeApi.PurposeUpdateContent
-    | purposeApi.ReversePurposeUpdateContent,
-  mockValidRiskAnalysis: RiskAnalysis,
-  writtenRiskAnalysisForm: PurposeRiskAnalysisFormV2
-): Purpose => ({
-  ...mockPurpose,
-  title: purposeUpdateContent.title,
-  description: purposeUpdateContent.description,
-  isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
-  freeOfChargeReason: purposeUpdateContent.freeOfChargeReason,
-  versions: [
-    {
-      ...mockPurpose.versions[0],
-      dailyCalls: purposeUpdateContent.dailyCalls,
-      updatedAt: new Date(),
-    },
-  ],
-  updatedAt: new Date(),
-  riskAnalysisForm: {
-    ...mockValidRiskAnalysis.riskAnalysisForm,
-    id: unsafeBrandId(writtenRiskAnalysisForm.id),
-    singleAnswers: mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-      (singleAnswer) => ({
-        ...singleAnswer,
-        id: unsafeBrandId(
-          writtenRiskAnalysisForm.singleAnswers.find(
-            (sa) => sa.key === singleAnswer.key
-          )!.id
-        ),
-      })
-    ),
-    multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-      (multiAnswer) => ({
-        ...multiAnswer,
-        id: unsafeBrandId(
-          writtenRiskAnalysisForm.multiAnswers.find(
-            (ma) => ma.key === multiAnswer.key
-          )!.id
-        ),
-      })
-    ),
-  },
-});
 
 export const readLastPurposeEvent = async (
   purposeId: PurposeId

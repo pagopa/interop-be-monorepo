@@ -28,15 +28,15 @@ import {
   purposeVersionNotFound,
   notValidVersionState,
   organizationIsNotTheDelegatedProducer,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
-  getMockEService,
   addOnePurpose,
   readLastPurposeEvent,
   purposeService,
   addOneDelegation,
   addOneEService,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockEService } from "../mockUtils.js";
 
 describe("rejectPurposeVersion", () => {
   it("should write on event-store for the rejection of a purpose version ", async () => {

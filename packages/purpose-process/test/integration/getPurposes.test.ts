@@ -20,9 +20,9 @@ import {
   addOneEService,
   addOnePurpose,
   expectSinglePageListResult,
-  getMockEService,
   purposeService,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockEService } from "../mockUtils.js";
 
 describe("getPurposes", async () => {
   const producerId1: TenantId = generateId();

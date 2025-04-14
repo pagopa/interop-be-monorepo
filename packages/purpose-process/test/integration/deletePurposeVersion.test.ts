@@ -36,17 +36,17 @@ import {
   purposeVersionCannotBeDeleted,
   organizationIsNotTheDelegatedConsumer,
   puroposeDelegationNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  getMockEService,
   purposeService,
   readLastPurposeEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockEService } from "../mockUtils.js";
 
 describe("deletePurposeVersion", () => {
   it("should write in event-store for the deletion of a purpose version", async () => {
