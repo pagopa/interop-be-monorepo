@@ -52,21 +52,23 @@ const SharedStandardJWTClaims = z.object({
   jti: z.string(),
 });
 
-export const M2MAuthToken = SharedStandardJWTClaims.merge(
+const M2MAuthTokenCommonProps = SharedStandardJWTClaims.merge(
   z.object({
-    role: z.literal(systemRole.M2M_ROLE),
     organizationId: z.string().uuid(),
     client_id: z.string().uuid(),
     sub: z.string(),
   })
 );
 
-export const M2MAdminAuthToken = SharedStandardJWTClaims.merge(
+export const M2MAuthToken = M2MAuthTokenCommonProps.merge(
+  z.object({
+    role: z.literal(systemRole.M2M_ROLE),
+  })
+);
+
+export const M2MAdminAuthToken = M2MAuthTokenCommonProps.merge(
   z.object({
     role: z.literal(systemRole.M2M_ADMIN_ROLE),
-    organizationId: z.string().uuid(),
-    client_id: z.string().uuid(),
-    sub: z.string(),
     userId: z.string().uuid(),
     // ^ ID of the admin user associated with the client
   })
