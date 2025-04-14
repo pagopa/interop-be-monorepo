@@ -32,11 +32,17 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
   EServiceTemplateRefSQL,
+  EServiceTemplateRiskAnalysisAnswerSQL,
+  EServiceTemplateRiskAnalysisSQL,
+  EServiceTemplateVersionAttributeSQL,
+  EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 
 export const documentSQLtoDocument = (
-  documentSQL: EServiceDescriptorDocumentSQL
+  documentSQL:
+    | EServiceDescriptorDocumentSQL
+    | EServiceTemplateVersionDocumentSQL
 ): Document => ({
   id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
@@ -341,8 +347,10 @@ export const aggregateEserviceArray = ({
   );
 
 export const aggregateRiskAnalysis = (
-  riskAnalysisSQL: EServiceRiskAnalysisSQL,
-  answers: EServiceRiskAnalysisAnswerSQL[]
+  riskAnalysisSQL: EServiceRiskAnalysisSQL | EServiceTemplateRiskAnalysisSQL,
+  answers:
+    | EServiceRiskAnalysisAnswerSQL[]
+    | EServiceTemplateRiskAnalysisAnswerSQL[]
 ): RiskAnalysis => {
   const { single: singleAnswers, multi: multiAnswers } = answers.reduce(
     (acc, answer) =>
@@ -391,7 +399,9 @@ export const aggregateRiskAnalysis = (
 };
 
 export const attributesSQLtoAttributes = (
-  attributesSQL: EServiceDescriptorAttributeSQL[]
+  attributesSQL:
+    | EServiceDescriptorAttributeSQL[]
+    | EServiceTemplateVersionAttributeSQL[]
 ): EServiceAttribute[][] => {
   const attributesMap = new Map<number, EServiceAttribute[]>();
   attributesSQL.forEach((current) => {
