@@ -8,6 +8,7 @@ import {
 import {
   Client,
   ClientId,
+  clientKind,
   CorrelationId,
   Delegation,
   delegationKind,
@@ -30,6 +31,7 @@ import {
   organizationNotAllowedOnEService,
   keyAlreadyExists,
   securityUserNotMember,
+  clientKindNotAllowed,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -169,5 +171,11 @@ export const assertSecurityRoleIsClientMember = (
     !client.users.includes(authData.userId)
   ) {
     throw securityUserNotMember(authData.userId);
+  }
+};
+
+export const assertClientIsConsumer = (client: Client): void => {
+  if (client.kind !== clientKind.consumer) {
+    throw clientKindNotAllowed(client.id);
   }
 };

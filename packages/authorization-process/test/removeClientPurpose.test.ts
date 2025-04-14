@@ -13,10 +13,13 @@ import {
   PurposeId,
   generateId,
   toClientV2,
+  ClientKind,
+  TenantId,
 } from "pagopa-interop-models";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
+  clientKindNotAllowed,
   purposeNotFound,
 } from "../src/model/domain/errors.js";
 import {
@@ -134,5 +137,25 @@ describe("remove client purpose", () => {
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
     );
+  });
+  it("should throw clientKindNotAllowed if the requester is the client api", async () => {
+    const mockClient: Client = {
+      ...getMockClient(),
+      kind: ClientKind.Enum.Api,
+    };
+
+    const organizationId: TenantId = generateId();
+
+    await addOneClient(mockClient);
+
+    expect(
+      authorizationService.removeClientPurpose({
+        clientId: mockClient.id,
+        purposeIdToRemove: generateId(),
+        organizationId,
+        correlationId: generateId(),
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
 });
