@@ -320,7 +320,7 @@ describe("activate agreement", () => {
           delegateConsumer,
         });
 
-        const { data: activateAgreementReturnValue } =
+        const activateAgreementReturnValue =
           await agreementService.activateAgreement(
             agreement.id,
             getMockContext({ authData })
@@ -475,9 +475,10 @@ describe("activate agreement", () => {
         ).toContain(expectedContract.path);
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
-        expect(activateAgreementReturnValue).toMatchObject(
-          expectedActivatedAgreement
-        );
+        expect(activateAgreementReturnValue).toMatchObject({
+          data: expectedActivatedAgreement,
+          metadata: { version: 1 },
+        });
       }
     );
 
@@ -889,7 +890,7 @@ describe("activate agreement", () => {
           delegateConsumer,
         });
 
-        const { data: activateAgreementReturnValue } =
+        const activateAgreementReturnValue =
           await agreementService.activateAgreement(
             agreement.id,
             getMockContext({ authData })
@@ -932,9 +933,10 @@ describe("activate agreement", () => {
           expectedActivatedAgreement
         );
 
-        expect(activateAgreementReturnValue).toMatchObject(
-          expectedActivatedAgreement
-        );
+        expect(activateAgreementReturnValue).toMatchObject({
+          data: expectedActivatedAgreement,
+          metadata: { version: 1 },
+        });
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
       }
@@ -1021,7 +1023,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
       const relatedAgreements = await addRelatedAgreements(agreement);
 
-      const { data: activateAgreementReturnValue } =
+      const activateAgreementReturnValue =
         await agreementService.activateAgreement(
           agreement.id,
           getMockContext({ authData })
@@ -1063,9 +1065,10 @@ describe("activate agreement", () => {
         expectedActivatedAgreement
       );
 
-      expect(activateAgreementReturnValue).toMatchObject(
-        expectedActivatedAgreement
-      );
+      expect(activateAgreementReturnValue).toMatchObject({
+        data: expectedActivatedAgreement,
+        metadata: { version: 1 },
+      });
 
       await testRelatedAgreementsArchiviation(relatedAgreements);
     });
@@ -1241,7 +1244,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           });
 
-          const { data: activateAgreementReturnValue } =
+          const activateAgreementReturnValue =
             await agreementService.activateAgreement(
               agreement.id,
               getMockContext({ authData })
@@ -1268,7 +1271,10 @@ describe("activate agreement", () => {
 
           expect(actualAgreementUnsuspended).toMatchObject(expected);
 
-          expect(activateAgreementReturnValue).toMatchObject(expected);
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expected,
+            metadata: { version: 1 },
+          });
         });
 
         it("if suspendedByPlatform === true, unsuspends by Producer or Consumer and also by platform, and remains in a Suspended state", async () => {
@@ -1301,7 +1307,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           });
 
-          const { data: activateAgreementReturnValue } =
+          const activateAgreementReturnValue =
             await agreementService.activateAgreement(
               agreement.id,
               getMockContext({ authData })
@@ -1347,7 +1353,10 @@ describe("activate agreement", () => {
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspendedByPlatform).toMatchObject(expected2);
-          expect(activateAgreementReturnValue).toMatchObject(expected2);
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expected2,
+            metadata: { version: 1 },
+          });
         });
       }
     );
@@ -1538,7 +1547,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           });
 
-          const { data: activateAgreementReturnValue } =
+          const activateAgreementReturnValue =
             await agreementService.activateAgreement(
               agreement.id,
               getMockContext({ authData })
@@ -1558,7 +1567,10 @@ describe("activate agreement", () => {
           );
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspended).toMatchObject(expected);
-          expect(activateAgreementReturnValue).toMatchObject(expected);
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expected,
+            metadata: { version: 1 },
+          });
         });
 
         it("if suspendedByPlatform === false, unsuspends by Producer or Consumer and also suspends by platform, and remains in a Suspended state", async () => {
@@ -1591,7 +1603,7 @@ describe("activate agreement", () => {
             delegateConsumer,
           });
 
-          const { data: activateAgreementReturnValue } =
+          const activateAgreementReturnValue =
             await agreementService.activateAgreement(
               agreement.id,
               getMockContext({ authData })
@@ -1637,7 +1649,10 @@ describe("activate agreement", () => {
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspendedByPlatform).toMatchObject(expected2);
-          expect(activateAgreementReturnValue).toMatchObject(expected2);
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expected2,
+            metadata: { version: 1 },
+          });
         });
       }
     );

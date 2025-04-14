@@ -75,28 +75,40 @@ describe("get agreement", () => {
         agreement.id,
         getMockContext({ authData: getMockAuthData(consumer.id) })
       );
-    expect(retrievedAgreementByConsumer.data).toEqual(agreement);
+    expect(retrievedAgreementByConsumer).toEqual({
+      data: agreement,
+      metadata: { version: 0 },
+    });
 
     const retrievedAgreementByProducer =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(producer.id) })
       );
-    expect(retrievedAgreementByProducer.data).toEqual(agreement);
+    expect(retrievedAgreementByProducer).toEqual({
+      data: agreement,
+      metadata: { version: 0 },
+    });
 
     const retrievedAgreementByProducerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(producerDelegate.id) })
       );
-    expect(retrievedAgreementByProducerDelegate.data).toEqual(agreement);
+    expect(retrievedAgreementByProducerDelegate).toEqual({
+      data: agreement,
+      metadata: { version: 0 },
+    });
 
     const retrievedAgreementByConsumerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
       );
-    expect(retrievedAgreementByConsumerDelegate.data).toEqual(agreement);
+    expect(retrievedAgreementByConsumerDelegate).toEqual({
+      data: agreement,
+      metadata: { version: 0 },
+    });
   });
 
   it(`should throw an organizationNotAllowed error when the requester is

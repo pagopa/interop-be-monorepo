@@ -123,7 +123,7 @@ describe("suspend agreement", () => {
     ]);
     const authData = getMockAuthData(requesterId);
 
-    const { data: returnedAgreement } = await agreementService.suspendAgreement(
+    const returnedAgreement = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -184,7 +184,13 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(actualAgreementSuspended).toEqual(
+      toAgreementV2(returnedAgreement.data)
+    );
+    expect(returnedAgreement).toEqual({
+      data: actualAgreementSuspended,
+      metadata: { version: 1 },
+    });
   });
 
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
@@ -239,7 +245,7 @@ describe("suspend agreement", () => {
 
     const authData = getMockAuthData(producerAndConsumerId);
 
-    const { data: returnedAgreement } = await agreementService.suspendAgreement(
+    const returnedAgreement = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -281,7 +287,13 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(actualAgreementSuspended).toEqual(
+      toAgreementV2(returnedAgreement.data)
+    );
+    expect(returnedAgreement).toEqual({
+      data: actualAgreementSuspended,
+      metadata: { version: 1 },
+    });
   });
 
   it("should preserve the suspension flags and the stamps that it does not update", async () => {
@@ -323,7 +335,7 @@ describe("suspend agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(agreement);
 
-    const { data: returnedAgreement } = await agreementService.suspendAgreement(
+    const returnedAgreement = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -382,7 +394,13 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(actualAgreementSuspended).toEqual(
+      toAgreementV2(returnedAgreement.data)
+    );
+    expect(returnedAgreement).toEqual({
+      data: actualAgreementSuspended,
+      metadata: { version: 1 },
+    });
   });
 
   describe.each(agreementSuspendableStates)(
@@ -474,12 +492,15 @@ describe("suspend agreement", () => {
           },
         };
 
-        const { data: actualAgreement } =
-          await agreementService.suspendAgreement(
-            agreement.id,
-            getMockContext({ authData })
-          );
-        expect(actualAgreement).toEqual(expectedAgreement);
+        const actualAgreement = await agreementService.suspendAgreement(
+          agreement.id,
+          getMockContext({ authData })
+        );
+        expect(actualAgreement.data).toEqual(expectedAgreement);
+        expect(actualAgreement).toEqual({
+          data: expectedAgreement,
+          metadata: { version: 1 },
+        });
       });
     }
   );

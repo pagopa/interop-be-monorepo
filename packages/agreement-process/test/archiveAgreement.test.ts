@@ -52,11 +52,11 @@ describe("archive agreement", () => {
 
     await addOneAgreement(agreement);
 
-    const { data: returnedAgreement } = await agreementService.archiveAgreement(
+    const returnedAgreement = await agreementService.archiveAgreement(
       agreement.id,
       getMockContext({ authData })
     );
-    const agreementId = returnedAgreement.id;
+    const agreementId = returnedAgreement.data.id;
 
     expect(agreementId).toBeDefined();
     const actualAgreementData = await readLastAgreementEvent(agreementId);
@@ -93,7 +93,12 @@ describe("archive agreement", () => {
       toAgreementV2(expectedAgreemenentArchived)
     );
 
-    expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
+    expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement.data));
+
+    expect(returnedAgreement).toEqual({
+      data: actualAgreement,
+      metadata: { version: 1 },
+    });
 
     vi.useRealTimers();
   });
@@ -122,12 +127,12 @@ describe("archive agreement", () => {
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(agreement, addOneDelegation);
 
-    const { data: returnedAgreement } = await agreementService.archiveAgreement(
+    const returnedAgreement = await agreementService.archiveAgreement(
       agreement.id,
       getMockContext({ authData })
     );
 
-    const agreementId = returnedAgreement.id;
+    const agreementId = returnedAgreement.data.id;
 
     expect(agreementId).toBeDefined();
 
@@ -165,7 +170,12 @@ describe("archive agreement", () => {
       toAgreementV2(expectedAgreemenentArchived)
     );
 
-    expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
+    expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement.data));
+
+    expect(returnedAgreement).toEqual({
+      data: actualAgreement,
+      metadata: { version: 1 },
+    });
 
     vi.useRealTimers();
   });
