@@ -85,6 +85,18 @@ export type EServiceTemplateRefSQL = InferSelectModel<
 export type EServiceDescriptorTemplateVersionRefSQL = InferSelectModel<
   typeof eserviceDescriptorTemplateVersionRefInReadmodelCatalog
 >;
+export type EServiceItemsSQL = {
+  eserviceSQL: EServiceSQL;
+  templateRefSQL: EServiceTemplateRefSQL | undefined;
+  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+};
 
 export type EServiceTemplateSQL = InferSelectModel<
   typeof eserviceTemplateInReadmodelEserviceTemplate
