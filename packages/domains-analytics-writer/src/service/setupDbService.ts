@@ -10,7 +10,7 @@ export interface SetupDbConfig {
 
 export function setupDbServiceBuilder(
   conn: DBConnection,
-  config: SetupDbConfig,
+  config: SetupDbConfig
 ) {
   return {
     async setupStagingTables(tableNames: AttributeDbtable[]): Promise<void> {
@@ -23,7 +23,7 @@ export function setupDbServiceBuilder(
               );
             `;
             return conn.query(query);
-          }),
+          })
         );
       } catch (error: unknown) {
         throw setupStagingTablesError(error);
@@ -31,7 +31,7 @@ export function setupDbServiceBuilder(
     },
 
     async setupStagingDeletingByIdTables(
-      deletingTableName: DeletingDbTable[],
+      deletingTableName: DeletingDbTable[]
     ): Promise<void> {
       try {
         await Promise.all(
@@ -43,7 +43,7 @@ export function setupDbServiceBuilder(
             );
           `;
             return conn.query(query);
-          }),
+          })
         );
       } catch (error: unknown) {
         throw setupStagingTablesError(error);

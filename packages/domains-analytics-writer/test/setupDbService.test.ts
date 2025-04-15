@@ -18,7 +18,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(attributeTables);
 
     const expectedTables = attributeTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`,
+      (t) => `${t}_${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -46,7 +46,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     vi.spyOn(dbContext.conn, "query").mockRejectedValueOnce(mockQueryError);
 
     await expect(
-      dbService.setupStagingTables(attributeTables),
+      dbService.setupStagingTables(attributeTables)
     ).rejects.toThrowError(setupStagingTablesError(mockQueryError));
   });
 });
