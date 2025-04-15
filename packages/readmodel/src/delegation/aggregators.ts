@@ -1,19 +1,14 @@
 import {
   Delegation,
   DelegationContractDocument,
-  DelegationContractId,
   delegationContractKind,
-  DelegationId,
   DelegationKind,
   DelegationStamp,
   DelegationStampKind,
   DelegationState,
-  EServiceId,
   genericInternalError,
   stringToDate,
-  TenantId,
   unsafeBrandId,
-  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -22,6 +17,8 @@ import {
   DelegationContractDocumentSQL,
   DelegationItemsSQL,
 } from "pagopa-interop-readmodel-models";
+import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateDelegationArray = ({
   delegationSQL,
@@ -69,35 +66,49 @@ export const aggregateDelegation = ({
         )
       : undefined;
 
-  const submissionStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === DelegationStampKind.enum.submission
+  const {
+    submission: submissionStampSQL,
+    activation: activationStampSQL,
+    rejection: rejectionStampSQL,
+    revocation: revocationStampSQL,
+  } = stampsSQL.reduce(
+    (acc: { [key in DelegationStampKind]?: DelegationStampSQL }, stamp) =>
+      match(DelegationStampKind.parse(stamp.kind))
+        .with(DelegationStampKind.enum.submission, () => ({
+          ...acc,
+          submission: stamp,
+        }))
+        .with(DelegationStampKind.enum.activation, () => ({
+          ...acc,
+          activation: stamp,
+        }))
+        .with(DelegationStampKind.enum.rejection, () => ({
+          ...acc,
+          rejection: stamp,
+        }))
+        .with(DelegationStampKind.enum.revocation, () => ({
+          ...acc,
+          revocation: stamp,
+        }))
+        .exhaustive(),
+    {}
   );
 
   if (!submissionStampSQL) {
-    throw genericInternalError("submissions stamp can't be missing");
+    throw genericInternalError("Delegation submission stamp can't be missing");
   }
 
-  const activationStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === DelegationStampKind.enum.activation
-  );
-  const rejectionStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === DelegationStampKind.enum.rejection
-  );
-  const revocationStampSQL = stampsSQL.find(
-    (stamp) => stamp.kind === DelegationStampKind.enum.revocation
-  );
-
   const delegation: Delegation = {
-    id: unsafeBrandId<DelegationId>(delegationSQL.id),
+    id: unsafeBrandId(delegationSQL.id),
     createdAt: stringToDate(delegationSQL.createdAt),
     ...(delegationSQL.updatedAt
       ? { updatedAt: stringToDate(delegationSQL.updatedAt) }
       : {}),
-    eserviceId: unsafeBrandId<EServiceId>(delegationSQL.eserviceId),
+    eserviceId: unsafeBrandId(delegationSQL.eserviceId),
     state: DelegationState.parse(delegationSQL.state),
     kind: DelegationKind.parse(delegationSQL.kind),
-    delegatorId: unsafeBrandId<TenantId>(delegationSQL.delegatorId),
-    delegateId: unsafeBrandId<TenantId>(delegationSQL.delegateId),
+    delegatorId: unsafeBrandId(delegationSQL.delegatorId),
+    delegateId: unsafeBrandId(delegationSQL.delegateId),
     stamps: {
       submission: stampSQLToStamp(submissionStampSQL),
       ...(activationStampSQL
@@ -152,7 +163,7 @@ export const aggregateDelegationsArray = ({
 const delegationContractDocumentSQLToDelegationContractDocument = (
   contractDocumentSQL: DelegationContractDocumentSQL
 ): DelegationContractDocument => ({
-  id: unsafeBrandId<DelegationContractId>(contractDocumentSQL.id),
+  id: unsafeBrandId(contractDocumentSQL.id),
   path: contractDocumentSQL.path,
   name: contractDocumentSQL.name,
   prettyName: contractDocumentSQL.prettyName,
@@ -161,7 +172,7 @@ const delegationContractDocumentSQLToDelegationContractDocument = (
 });
 
 const stampSQLToStamp = (stampSQL: DelegationStampSQL): DelegationStamp => ({
-  who: unsafeBrandId<UserId>(stampSQL.who),
+  who: unsafeBrandId(stampSQL.who),
   when: stringToDate(stampSQL.when),
 });
 
@@ -214,11 +225,11 @@ export const toDelegationAggregatorArray = (
     if (
       delegationStamp &&
       !delegationStampsIdSet.has(
-        uniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+        makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
       )
     ) {
       delegationStampsIdSet.add(
-        uniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+        makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
       );
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(delegationStamp);
@@ -241,4 +252,3 @@ export const toDelegationAggregatorArray = (
     contractDocumentsSQL,
   };
 };
-const uniqueKey = (ids: string[]): string => ids.join("#");
