@@ -7,7 +7,6 @@ import {
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
@@ -52,6 +51,8 @@ import {
   addOneTenant,
   agreementService,
   readLastAgreementEvent,
+  getAMockDescriptorPublished,
+  sortAgreementAttributes,
 } from "./utils.js";
 
 describe("reject agreement", () => {
@@ -70,7 +71,11 @@ describe("reject agreement", () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
-      const producerId = generateId<TenantId>();
+      const producer: Tenant = getMockTenant();
+      const producerId = producer.id;
+      const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
+      const tenantAnotherOnlyForVerifierAttribute: Tenant = getMockTenant();
+
       const tenantCertifiedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
@@ -98,14 +103,19 @@ describe("reject agreement", () => {
             extensionDate: addDays(new Date(), 30),
           },
         ],
+        revokedBy: [],
       };
 
       const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
         {
           ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
-            { id: generateId<TenantId>(), verificationDate: new Date() },
+            {
+              id: tenantOnlyForVerifierAttribute.id,
+              verificationDate: new Date(),
+            },
           ],
+          revokedBy: [],
         };
 
       const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
@@ -118,6 +128,19 @@ describe("reject agreement", () => {
               extensionDate: addDays(new Date(), 300),
             },
           ],
+          revokedBy: [],
+        };
+
+      const tenantVerfiedAttributeNoMatchDescAttribute: VerifiedTenantAttribute =
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: tenantAnotherOnlyForVerifierAttribute.id,
+              verificationDate: new Date(),
+            },
+          ],
+          revokedBy: [],
         };
 
       const consumer: Tenant = {
@@ -132,13 +155,13 @@ describe("reject agreement", () => {
           tenantVerfiedAttributeWithExpiredExtension,
           // Adding some attributes not matching with descriptor attributes
           // to test that they are not kept in the agreement
-          getMockVerifiedTenantAttribute(),
+          tenantVerfiedAttributeNoMatchDescAttribute,
           getMockCertifiedTenantAttribute(),
           getMockDeclaredTenantAttribute(),
         ],
       };
       const descriptor: Descriptor = {
-        ...getMockDescriptorPublished(),
+        ...getAMockDescriptorPublished(),
         attributes: {
           // I add also some attributes not matching with tenant attributes
           // to test that they are not kept in the agreement
@@ -184,6 +207,9 @@ describe("reject agreement", () => {
         consumerId: consumer.id,
         state: randomArrayItem(agreementRejectableStates),
       };
+      await addOneTenant(tenantOnlyForVerifierAttribute);
+      await addOneTenant(tenantAnotherOnlyForVerifierAttribute);
+      await addOneTenant(producer);
       await addOneTenant(consumer);
       await addOneEService(eservice);
       await addOneAgreement(agreement);
@@ -250,8 +276,9 @@ describe("reject agreement", () => {
           },
         },
       };
-      expect(actualAgreementRejected).toMatchObject(
-        toAgreementV2(expectedAgreementRejected)
+
+      expect(sortAgreementAttributes(actualAgreementRejected)).toEqual(
+        sortAgreementAttributes(toAgreementV2(expectedAgreementRejected))
       );
       expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
       vi.useRealTimers();
@@ -332,7 +359,7 @@ describe("reject agreement", () => {
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
 
-    const descriptor = getMockDescriptorPublished();
+    const descriptor = getAMockDescriptorPublished();
 
     const eservice: EService = {
       ...getMockEService(),
@@ -363,7 +390,7 @@ describe("reject agreement", () => {
   it("should throw a descriptorNotFound error when the descriptor does not exist", async () => {
     const eservice: EService = {
       ...getMockEService(),
-      descriptors: [getMockDescriptorPublished()],
+      descriptors: [getAMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
     const agreement = {
@@ -392,7 +419,7 @@ describe("reject agreement", () => {
   it("should throw organizationIsNotTheDelegateProducer when the requester is the producer and there is an active delegation", async () => {
     const eservice: EService = {
       ...getMockEService(),
-      descriptors: [getMockDescriptorPublished()],
+      descriptors: [getAMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
     const delegate = getMockTenant();
@@ -435,7 +462,7 @@ describe("reject agreement", () => {
   it("should throw a organizationIsNotTheProducer error when the requester is the delegate but the delegation in not active", async () => {
     const eservice: EService = {
       ...getMockEService(),
-      descriptors: [getMockDescriptorPublished()],
+      descriptors: [getAMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
     const agreement = {

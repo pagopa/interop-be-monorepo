@@ -44,6 +44,10 @@ import {
   descriptorState,
   EServiceAttribute,
   DescriptorState,
+  AgreementV2,
+  VerifiedAttributeV2,
+  CertifiedAttributeV2,
+  DeclaredAttributeV2,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -495,3 +499,29 @@ export function expectGenericSinglePageListResult<T>(
 
 export const sortListAgreements = (agreements: Agreement[]): Agreement[] =>
   sortAgreements([...agreements].sort(sortBy<Agreement>((a) => a.id)));
+
+export const sortAgreementAttributes = <T extends AgreementV2 | undefined>(
+  agreement: T
+): T => {
+  if (!agreement) {
+    return agreement;
+  }
+  return {
+    ...agreement,
+    verifiedAttributes: agreement.verifiedAttributes
+      ? [...agreement.verifiedAttributes].sort(
+          sortBy<VerifiedAttributeV2>((attr) => attr.id)
+        )
+      : [],
+    certifiedAttributes: agreement.certifiedAttributes
+      ? [...agreement.certifiedAttributes].sort(
+          sortBy<CertifiedAttributeV2>((att) => att.id)
+        )
+      : [],
+    declaredAttributes: agreement.declaredAttributes
+      ? [...agreement.declaredAttributes].sort(
+          sortBy<DeclaredAttributeV2>((att) => att.id)
+        )
+      : [],
+  };
+};
