@@ -1,24 +1,45 @@
+import { WithLogger } from "pagopa-interop-commons";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function agreementServiceBuilder(_clients: PagoPAInteropBeClients) {
+export function agreementServiceBuilder({
+  agreementProcessClient,
+}: PagoPAInteropBeClients) {
   return {
     getAgreements: async (
-      ctx: WithLogger<ApiGatewayAppContext>,
-      queryParams: apiGatewayApi.GetAgreementsQueryParams
-    ): Promise<apiGatewayApi.Agreements> => {
-      const { producerId, consumerId, eserviceId, descriptorId, states } =
+      ctx: WithLogger<M2MGatewayAppContext>,
+      queryParams: m2mGatewayApi.GetAgreementsQueryParams
+    ): Promise<m2mGatewayApi.Agreements> => {
+      const { consumerIds, eserviceIds, producerIds, states, limit, offset } =
         queryParams;
 
       ctx.logger.info(
-        `Retrieving agreements for producerId ${producerId} consumerId ${consumerId} eServiceId ${eserviceId} descriptorId ${descriptorId} states ${states}`
+        `Retrieving agreements for producerId ${producerIds} consumerId ${consumerIds} eServiceId ${eserviceIds} states ${states}`
       );
 
-      if (producerId === undefined && consumerId === undefined) {
-        throw producerAndConsumerParamMissing();
-      }
+      const { results, totalCount } =
+        await agreementProcessClient.getAgreements({
+          queries: {
+            consumersIds: consumerIds,
+            producersIds: producerIds,
+            eservicesIds: eserviceIds,
+            states,
+            limit,
+            offset,
+          },
+          headers: ctx.headers,
+        });
 
-      return await getAllAgreements(agreementProcessClient, ctx, queryParams);
+      return {
+        results,
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
     },
   };
 }
