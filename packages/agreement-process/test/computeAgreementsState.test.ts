@@ -6,7 +6,6 @@ import {
   getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDeclaredTenantAttribute,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
@@ -39,6 +38,7 @@ import {
   addOneEService,
   agreementService,
   readLastAgreementEvent,
+  getAMockDescriptorPublished,
 } from "./utils.js";
 
 describe("compute Agreements state by attribute", () => {
@@ -66,7 +66,7 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
         declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
@@ -113,7 +113,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
+      expect(agreementStateUpdateEventData).toEqual({
         agreement: toAgreementV2({
           ...updatableActiveAgreement,
           state: agreementState.suspended,
@@ -158,7 +158,7 @@ describe("compute Agreements state by attribute", () => {
           payload: agreementStateUpdateEvent.data,
         });
 
-        expect(agreementStateUpdateEventData).toMatchObject({
+        expect(agreementStateUpdateEventData).toEqual({
           agreement: toAgreementV2({
             ...updatableDraftOrPendingAgreement,
             state: agreementState.missingCertifiedAttributes,
@@ -208,7 +208,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
+      expect(agreementStateUpdateEventData).toEqual({
         agreement: toAgreementV2({
           ...updatableSuspendedAgreement,
           state: agreementState.suspended,
@@ -261,7 +261,7 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(tenantCertifiedAttribute.id)]],
         declared: [[getMockEServiceAttribute(tenantDeclaredAttribute.id)]],
@@ -314,7 +314,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
+      expect(agreementStateUpdateEventData).toEqual({
         agreement: toAgreementV2({
           ...updatableSuspendedAgreement,
           state: agreementState.active,
@@ -365,7 +365,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
+      expect(agreementStateUpdateEventData).toEqual({
         agreement: toAgreementV2({
           ...updatableMissingCertAttributesAgreement,
           state: agreementState.draft,
@@ -418,7 +418,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
+      expect(agreementStateUpdateEventData).toEqual({
         agreement: toAgreementV2({
           ...updatableSuspendedAgreement,
           state: agreementState.suspended,
@@ -448,7 +448,7 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const descriptor1: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
         declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
@@ -462,7 +462,7 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const descriptor2: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
         declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
@@ -543,7 +543,7 @@ describe("compute Agreements state by attribute", () => {
       payload: agreement1StateUpdateEvent.data,
     });
 
-    expect(agreement1StateUpdateEventData).toMatchObject({
+    expect(agreement1StateUpdateEventData).toEqual({
       agreement: toAgreementV2({
         ...updatableAgreement1,
         state: agreementState.missingCertifiedAttributes,
@@ -567,7 +567,7 @@ describe("compute Agreements state by attribute", () => {
       payload: agreement2StateUpdateEvent.data,
     });
 
-    expect(agreement2StateUpdateEventData).toMatchObject({
+    expect(agreement2StateUpdateEventData).toEqual({
       agreement: toAgreementV2({
         ...updatableAgreement2,
         state: agreementState.suspended,
