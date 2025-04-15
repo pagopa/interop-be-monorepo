@@ -41,6 +41,10 @@ export * from "./eservice-template/splitters.js";
 export * from "./eservice-template/aggregators.js";
 export * from "./eserviceTemplateReadModelService.js";
 
+// E-SERVICE TEMPLATE
+export * from "./eserviceTemplateReadModelService.js";
+export * from "./eservice-template/splitters.js";
+
 // PURPOSE
 export * from "./purpose/splitters.js";
 export * from "./purpose/aggregators.js";

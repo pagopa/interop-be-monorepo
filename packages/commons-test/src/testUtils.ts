@@ -758,6 +758,7 @@ export const getMockEServiceTemplateVersion = (
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
   version: 1,
+  description: "eService template version description",
   createdAt: new Date(),
   attributes: {
     certified: [],
