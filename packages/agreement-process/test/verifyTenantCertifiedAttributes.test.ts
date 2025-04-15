@@ -3,7 +3,6 @@ import {
   getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
@@ -30,6 +29,7 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
+  getAMockDescriptorPublished,
 } from "./utils.js";
 
 describe("Verify Tenant Certified Attributes", () => {
@@ -51,7 +51,7 @@ describe("Verify Tenant Certified Attributes", () => {
     attribute2,
     attribute3,
   ]);
-  const mockDescriptor = getMockDescriptorPublished(
+  const mockDescriptor = getAMockDescriptorPublished(
     generateId<DescriptorId>(),
     [
       [
