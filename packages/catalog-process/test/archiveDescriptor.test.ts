@@ -2,9 +2,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  getMockDelegation,
+  getMockContextInternal,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -12,9 +10,6 @@ import {
   EService,
   EServiceDescriptorActivatedV2,
   toEServiceV2,
-  operationForbidden,
-  delegationState,
-  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -22,7 +17,6 @@ import {
   eServiceDescriptorNotFound,
 } from "../src/model/domain/errors.js";
 import {
-  addOneDelegation,
   addOneEService,
   catalogService,
   getMockDescriptor,
@@ -35,6 +29,7 @@ describe("archive descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+
   it("should write on event-store for the archiving of a descriptor", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -49,61 +44,7 @@ describe("archive descriptor", () => {
     await catalogService.archiveDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
-
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent.stream_id).toBe(eservice.id);
-    expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceDescriptorArchived");
-    expect(writtenEvent.event_version).toBe(2);
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorActivatedV2,
-      payload: writtenEvent.data,
-    });
-
-    const expectedDescriptor = {
-      ...descriptor,
-      state: descriptorState.archived,
-      archivedAt: new Date(
-        Number(writtenPayload.eservice!.descriptors[0]!.archivedAt)
-      ),
-    };
-
-    const expectedEService = toEServiceV2({
-      ...eservice,
-      descriptors: [expectedDescriptor],
-    });
-    expect(writtenPayload.eservice).toEqual(expectedEService);
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-  });
-
-  it("should write on event-store for the archiving of a descriptor (delegate)", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.suspended,
-    };
-    const delegate = getMockAuthData();
-
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      delegateId: delegate.organizationId,
-      eserviceId: eservice.id,
-      state: delegationState.active,
-    });
-
-    await addOneEService(eservice);
-    await addOneDelegation(delegation);
-
-    await catalogService.archiveDescriptor(
-      eservice.id,
-      descriptor.id,
-      getMockContext({ authData: getMockAuthData(delegate.organizationId) })
+      getMockContextInternal({})
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -137,7 +78,7 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -153,56 +94,10 @@ describe("archive descriptor", () => {
       catalogService.archiveDescriptor(
         eservice.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
-  });
-
-  it("should throw operationForbidden if the requester is not the producer", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-    expect(
-      catalogService.archiveDescriptor(
-        eservice.id,
-        descriptor.id,
-        getMockContext({})
-      )
-    ).rejects.toThrowError(operationForbidden);
-  });
-
-  it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      eserviceId: eservice.id,
-      state: delegationState.active,
-    });
-
-    await addOneEService(eservice);
-    await addOneDelegation(delegation);
-
-    expect(
-      catalogService.archiveDescriptor(
-        eservice.id,
-        descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(operationForbidden);
   });
 });

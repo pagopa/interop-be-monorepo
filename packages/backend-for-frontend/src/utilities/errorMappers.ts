@@ -26,8 +26,6 @@ export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
-
 export const reversePurposeUpdateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -139,9 +137,6 @@ export const acceptPrivacyNoticeErrorMapper = (
     )
     .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const attributeEmptyErrorMapper = (): number =>
-  HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export const getProducerKeychainUsersErrorMapper = (
   error: ApiError<ErrorCodes>

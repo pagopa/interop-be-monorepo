@@ -5,6 +5,7 @@ import {
   getMockProducerKeychain,
   getMockKey,
   getMockTenant,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   ProducerKeychainKeyDeletedV2,
@@ -14,7 +15,7 @@ import {
   ProducerKeychain,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
-import { genericLogger, userRoles } from "pagopa-interop-commons";
+import { userRole } from "pagopa-interop-commons";
 import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   producerKeychainNotFound,
@@ -35,10 +36,7 @@ describe("remove producer keychain key", () => {
     const keyToRemove = getMockKey();
     const keyToNotRemove = getMockKey();
 
-    const authData = {
-      ...getMockAuthData(mockProducer.id),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+    const authData = getMockAuthData(mockProducer.id);
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -49,13 +47,13 @@ describe("remove producer keychain key", () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    await authorizationService.removeProducerKeychainKeyById({
-      producerKeychainId: mockProducerKeychain.id,
-      keyIdToRemove: keyToRemove.kid,
-      authData,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await authorizationService.removeProducerKeychainKeyById(
+      {
+        producerKeychainId: mockProducerKeychain.id,
+        keyIdToRemove: keyToRemove.kid,
+      },
+      getMockContext({ authData })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(
       mockProducerKeychain.id
@@ -86,11 +84,7 @@ describe("remove producer keychain key", () => {
     const mockUserId: UserId = generateId();
     const anotherUserId: UserId = generateId();
 
-    const authData = {
-      ...getMockAuthData(mockProducer.id),
-      userRoles: [userRoles.ADMIN_ROLE],
-      userId: mockUserId,
-    };
+    const authData = getMockAuthData(mockProducer.id, mockUserId);
 
     const keyToRemove: Key = {
       ...getMockKey(),
@@ -105,13 +99,13 @@ describe("remove producer keychain key", () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    await authorizationService.removeProducerKeychainKeyById({
-      producerKeychainId: mockProducerKeychain.id,
-      keyIdToRemove: keyToRemove.kid,
-      authData,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await authorizationService.removeProducerKeychainKeyById(
+      {
+        producerKeychainId: mockProducerKeychain.id,
+        keyIdToRemove: keyToRemove.kid,
+      },
+      getMockContext({ authData })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(
       mockProducerKeychain.id
@@ -153,13 +147,13 @@ describe("remove producer keychain key", () => {
     await addOneProducerKeychain(getMockProducerKeychain());
 
     expect(
-      authorizationService.removeProducerKeychainKeyById({
-        producerKeychainId: mockProducerKeychain.id,
-        keyIdToRemove: keyToRemove.kid,
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.removeProducerKeychainKeyById(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keyIdToRemove: keyToRemove.kid,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
   it("should throw producerKeyNotFound if the key doesn't exist in that producer keychain", async () => {
@@ -179,13 +173,13 @@ describe("remove producer keychain key", () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.removeProducerKeychainKeyById({
-        producerKeychainId: mockProducerKeychain.id,
-        keyIdToRemove: notExistingKeyId,
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.removeProducerKeychainKeyById(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keyIdToRemove: notExistingKeyId,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       producerKeyNotFound(notExistingKeyId, mockProducerKeychain.id)
     );
@@ -207,13 +201,13 @@ describe("remove producer keychain key", () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.removeProducerKeychainKeyById({
-        producerKeychainId: mockProducerKeychain.id,
-        keyIdToRemove: keyToRemove.kid,
-        authData,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.removeProducerKeychainKeyById(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keyIdToRemove: keyToRemove.kid,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
         mockProducer2.id,
@@ -238,17 +232,17 @@ describe("remove producer keychain key", () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.removeProducerKeychainKeyById({
-        producerKeychainId: mockProducerKeychain.id,
-        keyIdToRemove: keyToRemove.kid,
-        authData: {
-          ...getMockAuthData(mockProducer.id),
-          userRoles: [userRoles.SECURITY_ROLE],
-          userId: mockUserId,
+      authorizationService.removeProducerKeychainKeyById(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keyIdToRemove: keyToRemove.kid,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        getMockContext({
+          authData: getMockAuthData(mockProducer.id, mockUserId, [
+            userRole.SECURITY_ROLE,
+          ]),
+        })
+      )
     ).rejects.toThrowError(
       userNotAllowedOnProducerKeychain(mockUserId, mockProducerKeychain.id)
     );
@@ -267,17 +261,17 @@ describe("remove producer keychain key", () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.removeProducerKeychainKeyById({
-        producerKeychainId: mockProducerKeychain.id,
-        keyIdToRemove: keyToRemove.kid,
-        authData: {
-          ...getMockAuthData(mockProducer.id),
-          userRoles: [userRoles.SECURITY_ROLE],
-          userId: mockUserId,
+      authorizationService.removeProducerKeychainKeyById(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keyIdToRemove: keyToRemove.kid,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        getMockContext({
+          authData: getMockAuthData(mockProducer.id, mockUserId, [
+            userRole.SECURITY_ROLE,
+          ]),
+        })
+      )
     ).rejects.toThrowError(
       userNotAllowedToDeleteProducerKeychainKey(
         mockUserId,

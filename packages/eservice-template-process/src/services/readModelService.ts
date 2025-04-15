@@ -1,11 +1,12 @@
 import {
-  AuthData,
   EServiceTemplateCollection,
-  hasPermission,
   ReadModelFilter,
   ReadModelRepository,
-  userRoles,
   TenantCollection,
+  UIAuthData,
+  M2MAuthData,
+  hasAtLeastOneUserRole,
+  userRole,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -254,7 +255,7 @@ export function readModelServiceBuilder({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: AuthData
+      authData: UIAuthData | M2MAuthData
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 
@@ -282,33 +283,35 @@ export function readModelServiceBuilder({
           "data.versions.state": { $in: states },
         });
 
-      const visibilityFilter: ReadModelFilter<EServiceTemplate> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-        authData
-      )
-        ? {
-            $or: [
-              { "data.creatorId": authData.organizationId },
-              { "data.versions.1": { $exists: true } },
-              {
-                "data.versions": { $size: 1 },
-                "data.versions.0.state": {
-                  $ne: eserviceTemplateVersionState.draft,
+      const visibilityFilter: ReadModelFilter<EServiceTemplate> =
+        hasAtLeastOneUserRole(authData, [
+          userRole.ADMIN_ROLE,
+          userRole.API_ROLE,
+          userRole.SUPPORT_ROLE,
+        ])
+          ? {
+              $or: [
+                { "data.creatorId": authData.organizationId },
+                { "data.versions.1": { $exists: true } },
+                {
+                  "data.versions": { $size: 1 },
+                  "data.versions.0.state": {
+                    $ne: eserviceTemplateVersionState.draft,
+                  },
                 },
-              },
-            ],
-          }
-        : {
-            $or: [
-              { "data.versions.1": { $exists: true } },
-              {
-                "data.versions": { $size: 1 },
-                "data.versions.0.state": {
-                  $ne: eserviceTemplateVersionState.draft,
+              ],
+            }
+          : {
+              $or: [
+                { "data.versions.1": { $exists: true } },
+                {
+                  "data.versions": { $size: 1 },
+                  "data.versions.0.state": {
+                    $ne: eserviceTemplateVersionState.draft,
+                  },
                 },
-              },
-            ],
-          };
+              ],
+            };
 
       const aggregationPipeline = [
         { $match: nameFilter },

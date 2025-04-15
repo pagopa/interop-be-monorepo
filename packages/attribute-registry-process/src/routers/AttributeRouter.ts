@@ -2,13 +2,13 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  userRoles,
   ZodiosContext,
-  authorizationMiddleware,
   ReadModelRepository,
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
+  validateAuthorization,
+  authRole,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -51,6 +51,7 @@ const attributeRouter = (
   const attributeRouter = ctx.router(attributeRegistryApi.attributeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,
@@ -58,21 +59,24 @@ const attributeRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
-  } = userRoles;
+  } = authRole;
+
   attributeRouter
     .get(
       "/attributes",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
+
       async (req, res) => {
-        const { logger } = fromAppContext(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+          ]);
+
           const { limit, offset, kinds, name, origin } = req.query;
           const attributes =
             await attributeRegistryService.getAttributesByKindsNameOrigin(
@@ -83,7 +87,7 @@ const attributeRouter = (
                 offset,
                 limit,
               },
-              logger
+              ctx
             );
 
           return res.status(200).send(
@@ -97,98 +101,87 @@ const attributeRouter = (
         }
       }
     )
-    .get(
-      "/attributes/name/:name",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    .get("/attributes/name/:name", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const attribute = await attributeRegistryService.getAttributeByName(
-            req.params.name,
-            ctx.logger
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+        ]);
+
+        const attribute = await attributeRegistryService.getAttributeByName(
+          req.params.name,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute.data))
           );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAttributesByNameErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
 
-          return res
-            .status(200)
-            .send(
-              attributeRegistryApi.Attribute.parse(
-                toApiAttribute(attribute.data)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getAttributesByNameErrorMapper,
+    .get("/attributes/origin/:origin/code/:code", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, M2M_ROLE]);
+
+        const { origin, code } = req.params;
+        const attribute =
+          await attributeRegistryService.getAttributeByOriginAndCode(
+            {
+              origin,
+              code,
+            },
             ctx
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
 
-    .get(
-      "/attributes/origin/:origin/code/:code",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        INTERNAL_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const { origin, code } = req.params;
-          const attribute =
-            await attributeRegistryService.getAttributeByOriginAndCode(
-              {
-                origin,
-                code,
-              },
-              ctx.logger
-            );
-
-          return res
-            .status(200)
-            .send(
-              attributeRegistryApi.Attribute.parse(
-                toApiAttribute(attribute.data)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getAttributeByOriginAndCodeErrorMapper,
-            ctx
+        return res
+          .status(200)
+          .send(
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute.data))
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAttributeByOriginAndCodeErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
 
     .get(
       "/attributes/:attributeId",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
+
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+          ]);
+
           const attribute = await attributeRegistryService.getAttributeById(
             unsafeBrandId(req.params.attributeId),
-            ctx.logger
+            ctx
           );
 
           return res
@@ -208,147 +201,131 @@ const attributeRouter = (
         }
       }
     )
-    .post(
-      "/bulk/attributes",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const { logger } = fromAppContext(req.ctx);
-        const { limit, offset } = req.query;
+    .post("/bulk/attributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      const { limit, offset } = req.query;
 
-        try {
-          const attributes = await attributeRegistryService.getAttributesByIds(
-            {
-              ids: req.body.map((a) => unsafeBrandId(a)),
-              offset,
-              limit,
-            },
-            logger
-          );
-          return res.status(200).send(
-            attributeRegistryApi.Attributes.parse({
-              results: attributes.results.map(toApiAttribute),
-              totalCount: attributes.totalCount,
-            })
-          );
-        } catch (error) {
-          return res.status(500).send();
-        }
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+        ]);
+
+        const attributes = await attributeRegistryService.getAttributesByIds(
+          {
+            ids: req.body.map((a) => unsafeBrandId(a)),
+            offset,
+            limit,
+          },
+          ctx
+        );
+        return res.status(200).send(
+          attributeRegistryApi.Attributes.parse({
+            results: attributes.results.map(toApiAttribute),
+            totalCount: attributes.totalCount,
+          })
+        );
+      } catch (error) {
+        return res.status(500).send();
       }
-    )
-    .post(
-      "/certifiedAttributes",
-      authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    })
+    .post("/certifiedAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const attribute =
-            await attributeRegistryService.createCertifiedAttribute(
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createCertifiedAttributesErrorMapper,
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
+
+        const attribute =
+          await attributeRegistryService.createCertifiedAttribute(
+            req.body,
             ctx
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res
+          .status(200)
+          .send(
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createCertifiedAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/declaredAttributes",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    })
+    .post("/declaredAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const attribute =
-            await attributeRegistryService.createDeclaredAttribute(
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createDeclaredAttributesErrorMapper,
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, "api"]);
+
+        const attribute =
+          await attributeRegistryService.createDeclaredAttribute(req.body, ctx);
+        return res
+          .status(200)
+          .send(
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createDeclaredAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/verifiedAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, "api"]);
+
+        const attribute =
+          await attributeRegistryService.createVerifiedAttribute(req.body, ctx);
+        return res
+          .status(200)
+          .send(
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createVerifiedAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/internal/certifiedAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const attribute =
+          await attributeRegistryService.internalCreateCertifiedAttribute(
+            req.body,
             ctx
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/verifiedAttributes",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const attribute =
-            await attributeRegistryService.createVerifiedAttribute(
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createVerifiedAttributesErrorMapper,
-            ctx
+        return res
+          .status(200)
+          .send(
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createInternalCertifiedAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/internal/certifiedAttributes",
-      authorizationMiddleware([INTERNAL_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const attribute =
-            await attributeRegistryService.createInternalCertifiedAttribute(
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createInternalCertifiedAttributesErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    );
+    });
 
   return attributeRouter;
 };
