@@ -16,15 +16,12 @@ import {
   notAnRSAKey,
   invalidPublicKey,
 } from "pagopa-interop-models";
-import {
-  AuthData,
-  genericLogger,
-  calculateKid,
-  createJWK,
-} from "pagopa-interop-commons";
+import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockClient,
+  getMockContext,
   getMockKey,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
@@ -95,16 +92,7 @@ describe("createProducerKeychainKey", () => {
     surname: "surname_test",
   };
 
-  const mockAuthData: AuthData = {
-    organizationId: producerId,
-    selfcareId: generateId(),
-    externalId: {
-      value: "",
-      origin: "",
-    },
-    userId,
-    userRoles: [],
-  };
+  const mockAuthData: AuthData = getMockAuthData(producerId, userId);
 
   const mockProducerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain(),
@@ -118,13 +106,13 @@ describe("createProducerKeychainKey", () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     const producerKeychain =
-      await authorizationService.createProducerKeychainKey({
-        producerKeychainId: mockProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      );
 
     const writtenEvent = await readLastEventByStreamId(
       producerKeychain.id,
@@ -168,13 +156,13 @@ describe("createProducerKeychainKey", () => {
     await addOneProducerKeychain(getMockProducerKeychain());
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: mockProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the consumer", async () => {
@@ -187,13 +175,13 @@ describe("createProducerKeychainKey", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: notProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: notProducerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
         producerId,
@@ -207,13 +195,13 @@ describe("createProducerKeychainKey", () => {
     mockSelfcareV2ClientCall([]);
 
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: mockProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(
       userWithoutSecurityPrivileges(mockAuthData.organizationId, userId)
     );
@@ -234,13 +222,13 @@ describe("createProducerKeychainKey", () => {
     await addOneProducerKeychain(producerKeychainWith30Keys);
 
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: producerKeychainWith30Keys.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: producerKeychainWith30Keys.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(
       tooManyKeysPerProducerKeychain(
         producerKeychainWith30Keys.id,
@@ -257,13 +245,13 @@ describe("createProducerKeychainKey", () => {
     await addOneProducerKeychain(noUsersProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: noUsersProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: noUsersProducerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(
       userNotFound(mockAuthData.userId, mockAuthData.selfcareId)
     );
@@ -287,13 +275,13 @@ describe("createProducerKeychainKey", () => {
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: mockProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed: keySeedByPrivateKey,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed: keySeedByPrivateKey,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(notAllowedPrivateKeyException());
   });
   it("should throw keyAlreadyExists if the kid already exists in the keys of that producer keychain ", async () => {
@@ -310,13 +298,13 @@ describe("createProducerKeychainKey", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: producerKeychainWithDuplicateKey.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: producerKeychainWithDuplicateKey.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
   it("should throw keyAlreadyExists if the kid already exists in the keys of a different producer keychain ", async () => {
@@ -341,13 +329,13 @@ describe("createProducerKeychainKey", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: producerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: producerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
   it("should throw keyAlreadyExists if the kid already exists in a client", async () => {
@@ -368,13 +356,13 @@ describe("createProducerKeychainKey", () => {
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
 
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: producerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: producerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(keyAlreadyExists(key.kid));
   });
   it("should throw invalidKey if the key is not an RSA key", async () => {
@@ -396,13 +384,13 @@ describe("createProducerKeychainKey", () => {
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: mockProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(notAnRSAKey());
   });
   it("should throw invalidKey if the key doesn't have the delimiters", async () => {
@@ -416,13 +404,13 @@ describe("createProducerKeychainKey", () => {
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: mockProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(invalidPublicKey());
   });
 
@@ -445,13 +433,13 @@ describe("createProducerKeychainKey", () => {
     await addOneProducerKeychain(mockProducerKeychain);
     mockSelfcareV2ClientCall([mockSelfCareUsers]);
     expect(
-      authorizationService.createProducerKeychainKey({
-        producerKeychainId: mockProducerKeychain.id,
-        authData: mockAuthData,
-        keySeed,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
     ).rejects.toThrowError(invalidKeyLength(1024, 2048));
   });
 });

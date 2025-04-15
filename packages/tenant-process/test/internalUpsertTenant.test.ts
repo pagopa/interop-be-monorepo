@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
-import { AuthData } from "pagopa-interop-commons";
 import {
-  getMockAuthData,
-  getMockContext,
+  getMockContextInternal,
   getMockTenant,
   readEventByStreamIdAndVersion,
   writeInReadmodel,
@@ -73,17 +71,11 @@ describe("internalUpsertTenant", async () => {
       kind: tenantKind.PA,
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["internal"],
-    };
-
     await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
     await addOneTenant(mockTenant);
     const returnedTenant = await tenantService.internalUpsertTenant(
       tenantSeed,
-      getMockContext({ authData })
+      getMockContextInternal({})
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       mockTenant.id,
@@ -132,11 +124,6 @@ describe("internalUpsertTenant", async () => {
       kind: tenantKind.PA,
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["internal"],
-    };
     const tenantSeed2: tenantApi.InternalTenantSeed = {
       ...tenantSeed,
       certifiedAttributes: [
@@ -180,7 +167,7 @@ describe("internalUpsertTenant", async () => {
 
     const returnedTenant = await tenantService.internalUpsertTenant(
       tenantSeed2,
-      getMockContext({ authData })
+      getMockContextInternal({})
     );
 
     const writtenEvent = await readLastTenantEvent(mockTenant.id);
@@ -238,19 +225,10 @@ describe("internalUpsertTenant", async () => {
       kind: tenantKind.PA,
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: tenantAlreadyAssigned.id,
-      userRoles: ["internal"],
-    };
-
     await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
     await addOneTenant(tenantAlreadyAssigned);
     expect(
-      tenantService.internalUpsertTenant(
-        tenantSeed,
-        getMockContext({ authData })
-      )
+      tenantService.internalUpsertTenant(tenantSeed, getMockContextInternal({}))
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(
         unsafeBrandId(attribute1.id),
@@ -268,17 +246,9 @@ describe("internalUpsertTenant", async () => {
       kind: tenantKind.PA,
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["internal"],
-    };
     await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
     expect(
-      tenantService.internalUpsertTenant(
-        tenantSeed,
-        getMockContext({ authData })
-      )
+      tenantService.internalUpsertTenant(tenantSeed, getMockContextInternal({}))
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
         mockTenant.externalId.origin,
@@ -296,18 +266,10 @@ describe("internalUpsertTenant", async () => {
       kind: tenantKind.PA,
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["internal"],
-    };
     await addOneTenant(mockTenant);
 
     expect(
-      tenantService.internalUpsertTenant(
-        tenantSeed,
-        getMockContext({ authData })
-      )
+      tenantService.internalUpsertTenant(tenantSeed, getMockContextInternal({}))
     ).rejects.toThrowError(
       attributeNotFound(
         `${tenantSeed.certifiedAttributes[0].origin}/${tenantSeed.certifiedAttributes[0].code}`
