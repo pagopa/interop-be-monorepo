@@ -717,7 +717,7 @@ function validateTokenGenerationStates({
           const lastPurposeVersion = getLastPurposeVersion(purpose.versions);
           const agreements = agreementsByConsumerIdEserviceId.get(
             makeGSIPKConsumerIdEServiceId({
-              consumerId: client.consumerId,
+              consumerId: purpose.consumerId,
               eserviceId: purpose.eserviceId,
             })
           );
@@ -765,7 +765,7 @@ function validateTokenGenerationStates({
                     purposeId: purpose.id,
                   })
                 : undefined,
-              consumerId: client.consumerId,
+              consumerId: purpose.consumerId,
               clientKind: clientKindToTokenGenerationStatesClientKind(
                 client.kind
               ),
@@ -786,7 +786,7 @@ function validateTokenGenerationStates({
                       getPurposeStateFromPurposeVersion(lastPurposeVersion),
                     purposeVersionId: lastPurposeVersion.id,
                     GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-                      consumerId: client.consumerId,
+                      consumerId: purpose.consumerId,
                       eserviceId: purpose.eserviceId,
                     }),
                     agreementId: agreement.id,
