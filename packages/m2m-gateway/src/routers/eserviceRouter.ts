@@ -35,7 +35,7 @@ const eserviceRouter = (
           ctx,
           `Error retrieving eservices`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/eservices/:eserviceId", async (req, res) => {
@@ -49,7 +49,7 @@ const eserviceRouter = (
           ctx,
           `Error retrieving eservice with id ${req.params.eserviceId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/eservices/:eserviceId/descriptors", async (req, res) => {
@@ -63,7 +63,7 @@ const eserviceRouter = (
           ctx,
           `Error retrieving eservice ${req.params.eserviceId} descriptors`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -79,7 +79,7 @@ const eserviceRouter = (
             ctx,
             `Error retrieving eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
-          return res.status(errorRes.status).send();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

@@ -35,7 +35,7 @@ const attributeRouter = (
           ctx,
           `Error retrieving certified attribute with id ${req.params.attributeId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/certifiedAttributes", async (req, res) => {
@@ -49,7 +49,7 @@ const attributeRouter = (
           ctx,
           "Error creating certified attribute"
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 

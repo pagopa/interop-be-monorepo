@@ -38,7 +38,7 @@ const eserviceTemplateRouter = (
           ctx,
           `Error retrieving eservice template with id ${req.params.templateId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/eserviceTemplates/:templateId/versions", async (req, res) => {
@@ -52,7 +52,7 @@ const eserviceTemplateRouter = (
           ctx,
           `Error retrieving eservice template ${req.params.templateId} versions`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
@@ -68,7 +68,7 @@ const eserviceTemplateRouter = (
             ctx,
             `Error retrieving eservice template ${req.params.templateId} version ${req.params.versionId}`
           );
-          return res.status(errorRes.status).send();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

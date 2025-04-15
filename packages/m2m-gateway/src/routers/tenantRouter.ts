@@ -35,7 +35,7 @@ const tenantRouter = (
           ctx,
           "Error retrieving tenants"
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/tenants/:tenantId", async (req, res) => {
@@ -49,7 +49,7 @@ const tenantRouter = (
           ctx,
           `Error retrieving tenant with id ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
@@ -63,7 +63,7 @@ const tenantRouter = (
           ctx,
           `Error retrieving tenant ${req.params.tenantId} certified attributes`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
@@ -77,7 +77,7 @@ const tenantRouter = (
           ctx,
           `Error assigning certified attribute to tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete(
@@ -93,7 +93,7 @@ const tenantRouter = (
             ctx,
             `Error revoking certified attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
           );
-          return res.status(errorRes.status).send();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

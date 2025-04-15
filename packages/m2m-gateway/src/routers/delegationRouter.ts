@@ -35,7 +35,7 @@ const delegationRouter = (
           ctx,
           "Error retrieving consumer delegations"
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/consumerDelegations", async (req, res) => {
@@ -49,7 +49,7 @@ const delegationRouter = (
           ctx,
           "Error creating consumer delegation"
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/consumerDelegations/:delegationId/accept", async (req, res) => {
@@ -63,7 +63,7 @@ const delegationRouter = (
           ctx,
           `Error accepting consumer delegation with id ${req.params.delegationId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/consumerDelegations/:delegationId/reject", async (req, res) => {
@@ -77,7 +77,7 @@ const delegationRouter = (
           ctx,
           `Error rejecting consumer delegation with id ${req.params.delegationId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 

@@ -34,7 +34,7 @@ const clientRouter = (
         ctx,
         `Error adding purpose to client with id ${req.params.clientId}`
       );
-      return res.status(errorRes.status).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 

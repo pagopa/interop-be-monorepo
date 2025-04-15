@@ -36,7 +36,7 @@ const agreementRouter = (
           ctx,
           "Error retrieving agreements"
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/agreements/:agreementId", async (req, res) => {
@@ -50,7 +50,7 @@ const agreementRouter = (
           ctx,
           `Error getting agreement by id ${req.params.agreementId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/agreements", async (req, res) => {
@@ -64,7 +64,7 @@ const agreementRouter = (
           ctx,
           `Error creating agreement`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/agreements/:agreementId/approve", async (req, res) => {
@@ -78,7 +78,7 @@ const agreementRouter = (
           ctx,
           `Error approving agreement with id ${req.params.agreementId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/agreements/:agreementId/reject", async (req, res) => {
@@ -92,7 +92,7 @@ const agreementRouter = (
           ctx,
           `Error rejecting agreement with id ${req.params.agreementId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/agreements/:agreementId/submit", async (req, res) => {
@@ -106,7 +106,7 @@ const agreementRouter = (
           ctx,
           `Error submitting agreement with id ${req.params.agreementId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/agreements/:agreementId/suspend", async (req, res) => {
@@ -120,7 +120,7 @@ const agreementRouter = (
           ctx,
           `Error suspending agreement with id ${req.params.agreementId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/agreements/:agreementId/unsuspend", async (req, res) => {
@@ -134,7 +134,7 @@ const agreementRouter = (
           ctx,
           `Error unsuspending agreement with id ${req.params.agreementId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/agreements/:agreementId/upgrade", async (req, res) => {
@@ -148,7 +148,7 @@ const agreementRouter = (
           ctx,
           `Error upgrading agreement with id ${req.params.agreementId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 
