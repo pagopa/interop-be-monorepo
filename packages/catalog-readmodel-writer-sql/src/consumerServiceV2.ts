@@ -15,7 +15,7 @@ export async function handleMessageV2(
   await match(message)
     .with({ type: "EServiceDeleted" }, async (message) => {
       await catalogReadModelService.deleteEServiceById(
-        unsafeBrandId<EServiceId>(message.stream_id),
+        unsafeBrandId(message.stream_id),
         message.version
       );
     })

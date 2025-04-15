@@ -6,9 +6,6 @@ import {
   fromEServiceV1,
   genericInternalError,
   unsafeBrandId,
-  EServiceId,
-  DescriptorId,
-  EServiceDocumentId,
 } from "pagopa-interop-models";
 import { CustomReadModelService } from "./readModelService.js";
 
@@ -43,8 +40,8 @@ export async function handleMessageV1(
       { type: "EServiceWithDescriptorsDeleted" },
       async (msg) =>
         await customReadModeService.deleteDescriptorById({
-          eserviceId: unsafeBrandId<EServiceId>(msg.stream_id),
-          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          eserviceId: unsafeBrandId(msg.stream_id),
+          descriptorId: unsafeBrandId(msg.data.descriptorId),
           metadataVersion: msg.version,
         })
     )
@@ -60,8 +57,8 @@ export async function handleMessageV1(
       // important: this doesn't handle interface update
 
       await customReadModeService.upsertDocument({
-        eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-        descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+        eserviceId: unsafeBrandId(msg.data.eserviceId),
+        descriptorId: unsafeBrandId(msg.data.descriptorId),
         document: fromDocumentV1(documentV1),
         metadataVersion: msg.version,
       });
@@ -70,7 +67,7 @@ export async function handleMessageV1(
       { type: "EServiceDeleted" },
       async (msg) =>
         await customReadModeService.deleteEServiceById(
-          unsafeBrandId<EServiceId>(msg.data.eserviceId),
+          unsafeBrandId(msg.data.eserviceId),
           msg.version
         )
     )
@@ -85,16 +82,16 @@ export async function handleMessageV1(
 
       if (msg.data.isInterface) {
         await customReadModeService.upsertInterface({
-          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          eserviceId: unsafeBrandId(msg.data.eserviceId),
+          descriptorId: unsafeBrandId(msg.data.descriptorId),
           descriptorInterface: fromDocumentV1(documentV1),
           metadataVersion: msg.version,
           serverUrls: msg.data.serverUrls,
         });
       } else {
         await customReadModeService.upsertDocument({
-          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          eserviceId: unsafeBrandId(msg.data.eserviceId),
+          descriptorId: unsafeBrandId(msg.data.descriptorId),
           document: fromDocumentV1(documentV1),
           metadataVersion: msg.version,
         });
@@ -102,9 +99,9 @@ export async function handleMessageV1(
     })
     .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
       await customReadModeService.deleteDocumentOrInterface({
-        eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-        descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
-        documentId: unsafeBrandId<EServiceDocumentId>(msg.data.documentId),
+        eserviceId: unsafeBrandId(msg.data.eserviceId),
+        descriptorId: unsafeBrandId(msg.data.descriptorId),
+        documentId: unsafeBrandId(msg.data.documentId),
         metadataVersion: msg.version,
       });
     })
@@ -121,7 +118,7 @@ export async function handleMessageV1(
         }
 
         await customReadModeService.upsertDescriptor({
-          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+          eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptor: fromDescriptorV1(descriptorV1),
           metadataVersion: msg.version,
         });
