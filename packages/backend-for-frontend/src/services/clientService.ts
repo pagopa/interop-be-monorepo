@@ -240,17 +240,18 @@ export function clientServiceBuilder(
         headers,
       });
 
-      return await Promise.all(
-        clientUsers.map(async (id) => {
-          const user = await getSelfcareUserById(
+      const users = clientUsers.map(async (id) =>
+        toBffApiCompactUser(
+          await getSelfcareUserById(
             selfcareUsersClient,
             id,
             selfcareId,
             correlationId
-          );
-          return toBffApiCompactUser(user, id);
-        })
+          ),
+          id
+        )
       );
+      return Promise.all(users);
     },
 
     async getClientKeyById(
