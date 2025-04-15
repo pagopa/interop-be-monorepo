@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-models";
 import {
   CatalogReadModelService,
+  checkMetadataVersion,
   documentToDocumentSQL,
   splitDescriptorIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
@@ -105,16 +106,17 @@ export function customReadModelServiceBuilder(
       metadataVersion: number;
     }): Promise<void> {
       await db.transaction(async (tx) => {
-        await tx.delete(eserviceDescriptorInReadmodelCatalog).where(
-          and(
-            eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
-            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId), // TODO redundant?
-            lte(
-              eserviceDescriptorInReadmodelCatalog.metadataVersion,
-              metadataVersion
+        await tx
+          .delete(eserviceDescriptorInReadmodelCatalog)
+          .where(
+            and(
+              eq(eserviceDescriptorInReadmodelCatalog.id, descriptorId),
+              lte(
+                eserviceDescriptorInReadmodelCatalog.metadataVersion,
+                metadataVersion
+              )
             )
-          )
-        );
+          );
 
         await updateMetadataVersionInCatalogTables(
           tx,
@@ -136,48 +138,19 @@ export function customReadModelServiceBuilder(
       metadataVersion: number;
     }): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
-            })
-            .from(eserviceDescriptorDocumentInReadmodelCatalog)
-            .where(
-              and(
-                eq(
-                  eserviceDescriptorDocumentInReadmodelCatalog.id,
-                  document.id
-                ),
-                eq(
-                  eserviceDescriptorDocumentInReadmodelCatalog.descriptorId, // TODO redundant?
-                  descriptorId
-                ),
-                eq(
-                  eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, // TODO redundant?
-                  eserviceId
-                )
-              )
-            )
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          eserviceDescriptorDocumentInReadmodelCatalog,
+          metadataVersion,
+          document.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
-          await tx.delete(eserviceDescriptorDocumentInReadmodelCatalog).where(
-            and(
-              eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id),
-              eq(
-                eserviceDescriptorDocumentInReadmodelCatalog.eserviceId, // TODO redundant?
-                eserviceId
-              ),
-              eq(
-                eserviceDescriptorDocumentInReadmodelCatalog.descriptorId, // TODO redundant?
-                descriptorId
-              )
-            )
-          );
+        if (shouldUpsert) {
+          await tx
+            .delete(eserviceDescriptorDocumentInReadmodelCatalog)
+            .where(
+              eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id)
+            );
 
           const documentSQL = documentToDocumentSQL(
             document,
@@ -213,51 +186,22 @@ export function customReadModelServiceBuilder(
       metadataVersion: number;
     }): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                eserviceDescriptorInterfaceInReadmodelCatalog.metadataVersion,
-            })
-            .from(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .where(
-              and(
-                eq(
-                  eserviceDescriptorInterfaceInReadmodelCatalog.id,
-                  descriptorInterface.id
-                ),
-                eq(
-                  eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId, // TODO redundant?
-                  descriptorId
-                ),
-                eq(
-                  eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId, // TODO redundant?
-                  eserviceId
-                )
-              )
-            )
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          eserviceDescriptorInterfaceInReadmodelCatalog,
+          metadataVersion,
+          descriptorInterface.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
-          await tx.delete(eserviceDescriptorInterfaceInReadmodelCatalog).where(
-            and(
+        if (shouldUpsert) {
+          await tx
+            .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .where(
               eq(
                 eserviceDescriptorInterfaceInReadmodelCatalog.id,
                 descriptorInterface.id
-              ),
-              eq(
-                eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId, // TODO redundant?
-                descriptorId
-              ),
-              eq(
-                eserviceDescriptorInterfaceInReadmodelCatalog.eserviceId, // TODO redundant?
-                eserviceId
               )
-            )
-          );
+            );
 
           const interfaceSQL = documentToDocumentSQL(
             descriptorInterface,
@@ -358,31 +302,17 @@ export function customReadModelServiceBuilder(
       metadataVersion: number;
     }): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion = (
-          await tx
-            .select({
-              metadataVersion:
-                eserviceDescriptorInReadmodelCatalog.metadataVersion,
-            })
-            .from(eserviceDescriptorInReadmodelCatalog)
-            .where(
-              and(
-                eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id),
-                eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId) // TODO redundant?
-              )
-            )
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          eserviceDescriptorInReadmodelCatalog,
+          metadataVersion,
+          descriptor.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
-          await tx.delete(eserviceDescriptorInReadmodelCatalog).where(
-            and(
-              eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id),
-              eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId) // TODO redundant?
-            )
-          );
+        if (shouldUpsert) {
+          await tx
+            .delete(eserviceDescriptorInReadmodelCatalog)
+            .where(eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id));
 
           const {
             descriptorSQL,
