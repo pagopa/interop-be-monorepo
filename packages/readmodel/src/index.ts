@@ -32,6 +32,10 @@ export * from "./authorization/producerJWKKeySplitters.js";
 export * from "./producerKeychainReadModelService.js";
 export * from "./authorization/producerKeychainSplitters.js";
 
+// DELEGATION
+export * from "./delegationReadModelService.js";
+export * from "./delegation/splitters.js";
+
 // TENANT
 export * from "./tenantReadModelService.js";
 export * from "./tenant/splitters.js";

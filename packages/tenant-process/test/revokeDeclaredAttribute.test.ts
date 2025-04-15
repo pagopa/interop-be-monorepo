@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockAuthData,
+  getMockContext,
   getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
@@ -13,7 +15,6 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -50,10 +51,8 @@ describe("revokeDeclaredAttribute", async () => {
     const returnedTenant = await tenantService.revokeDeclaredAttribute(
       {
         attributeId,
-        organizationId: tenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({ authData: getMockAuthData(tenant.id) })
     );
     const writtenEvent = await readLastEventByStreamId(
       tenant.id,
@@ -91,10 +90,8 @@ describe("revokeDeclaredAttribute", async () => {
       tenantService.revokeDeclaredAttribute(
         {
           attributeId,
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -114,10 +111,8 @@ describe("revokeDeclaredAttribute", async () => {
       tenantService.revokeDeclaredAttribute(
         {
           attributeId,
-          organizationId: notDeclaredAttributeTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(attributeNotFound(attributeId));
   });

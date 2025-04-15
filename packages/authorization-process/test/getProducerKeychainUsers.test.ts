@@ -1,4 +1,8 @@
-import { getMockProducerKeychain } from "pagopa-interop-commons-test/src/testUtils.js";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   ProducerKeychain,
   ProducerKeychainId,
@@ -7,7 +11,6 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   organizationNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
@@ -27,22 +30,24 @@ describe("getProducerKeychainUsers", async () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    const users = await authorizationService.getProducerKeychainUsers({
-      producerKeychainId: mockProducerKeychain.id,
-      organizationId,
-      logger: genericLogger,
-    });
+    const users = await authorizationService.getProducerKeychainUsers(
+      {
+        producerKeychainId: mockProducerKeychain.id,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
     expect(users).toEqual([userId1, userId2]);
   });
   it("should throw producerKeychainNotFound if the producer keychain with the specified Id doesn't exist", async () => {
     await addOneProducerKeychain(getMockProducerKeychain());
     const producerKeychainId: ProducerKeychainId = generateId();
     await expect(
-      authorizationService.getProducerKeychainUsers({
-        producerKeychainId,
-        organizationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.getProducerKeychainUsers(
+        {
+          producerKeychainId,
+        },
+        getMockContext({})
+      )
     ).rejects.toThrowError(producerKeychainNotFound(producerKeychainId));
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
@@ -50,11 +55,14 @@ describe("getProducerKeychainUsers", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
     const organizationIdNotMatchWithProducer: TenantId = generateId();
     await expect(
-      authorizationService.getProducerKeychainUsers({
-        producerKeychainId: mockProducerKeychain.id,
-        organizationId: organizationIdNotMatchWithProducer,
-        logger: genericLogger,
-      })
+      authorizationService.getProducerKeychainUsers(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+        },
+        getMockContext({
+          authData: getMockAuthData(organizationIdNotMatchWithProducer),
+        })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
         organizationIdNotMatchWithProducer,
