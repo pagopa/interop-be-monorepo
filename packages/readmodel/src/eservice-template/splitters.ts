@@ -270,26 +270,6 @@ export const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
   };
 };
 
-// TODO: rename
-export const eserviceTemplateVersionDocumentToEServiceTemplateVersionDocumentSQL =
-  (
-    document: Document,
-    eserviceTemplateVersionId: EServiceTemplateVersionId,
-    eserviceTemplateId: EServiceTemplateId,
-    metadataVersion: number
-  ): EServiceTemplateVersionDocumentSQL => ({
-    id: document.id,
-    eserviceTemplateId,
-    metadataVersion,
-    versionId: eserviceTemplateVersionId,
-    name: document.name,
-    contentType: document.contentType,
-    prettyName: document.prettyName,
-    path: document.path,
-    checksum: document.checksum,
-    uploadDate: dateToString(document.uploadDate),
-  });
-
 const documentToDocumentSQL = (
   document: Document,
   eserviceTemplateVersionId: EServiceTemplateVersionId,
