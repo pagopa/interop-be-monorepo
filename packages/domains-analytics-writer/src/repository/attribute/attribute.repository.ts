@@ -15,14 +15,14 @@ import { DeletingDbTable, AttributeDbtable } from "../../model/db.js";
 export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AttributeDbtable.attribute;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTable = DeletingDbTable.attribute_deleting_table;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: AttributeSQL[]
+      records: AttributeSQL[],
     ): Promise<void> {
       const mapping: AttributeMapping = {
         id: (r: AttributeSQL) => r.id,
@@ -45,7 +45,7 @@ export function attributeRepository(conn: DBConnection) {
           `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTable}: ${error}`,
         );
       }
     },
@@ -57,12 +57,12 @@ export function attributeRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingTable,
-          "id"
+          "id",
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`,
         );
       }
     },
@@ -72,7 +72,7 @@ export function attributeRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTable}: ${error}`,
         );
       }
     },
@@ -80,7 +80,7 @@ export function attributeRepository(conn: DBConnection) {
     async insertDeletingById(
       t: ITask<unknown>,
       pgp: IMain,
-      id: string
+      id: string,
     ): Promise<void> {
       const mapping = {
         id: () => id,
@@ -90,15 +90,15 @@ export function attributeRepository(conn: DBConnection) {
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          DeletingDbTable.attribute_deleting_table
+          DeletingDbTable.attribute_deleting_table,
         );
         await t.none(
           pgp.helpers.insert({ id, deleted: true }, cs) +
-            " ON CONFLICT DO NOTHING"
+            " ON CONFLICT DO NOTHING",
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${DeletingDbTable.attribute_deleting_table}: ${error}`
+          `Error inserting into deleting table ${DeletingDbTable.attribute_deleting_table}: ${error}`,
         );
       }
     },
@@ -114,7 +114,7 @@ export function attributeRepository(conn: DBConnection) {
         `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging deletion flag from ${deletingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging deletion flag from ${deletingTable} into ${schemaName}.${tableName}: ${error}`,
         );
       }
     },
@@ -124,7 +124,7 @@ export function attributeRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${deletingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning deleting table ${deletingTable}: ${error}`
+          `Error cleaning deleting table ${deletingTable}: ${error}`,
         );
       }
     },
