@@ -3,7 +3,6 @@ import {
   getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDeclaredTenantAttribute,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
@@ -31,6 +30,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { addDays, subDays } from "date-fns";
+import { getAMockDescriptorPublished } from "./utils.js";
 import {
   addOneAttribute,
   addOneEService,
@@ -110,7 +110,7 @@ describe("Agreeement states flows", () => {
 
     const descriptorId = generateId<DescriptorId>();
     const descriptorV1: Descriptor = {
-      ...getMockDescriptorPublished(
+      ...getAMockDescriptorPublished(
         descriptorId,
         [[validCertifiedEserviceAttribute]],
         [[validDeclaredEserviceAttribute]]
@@ -359,7 +359,7 @@ describe("Agreeement states flows", () => {
 
     const descriptorId = generateId<DescriptorId>();
     const descriptorV1: Descriptor = {
-      ...getMockDescriptorPublished(
+      ...getAMockDescriptorPublished(
         descriptorId,
         [[validCertifiedEserviceAttribute]],
         [[validDeclaredEserviceAttribute]]
