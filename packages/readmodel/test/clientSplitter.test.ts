@@ -20,6 +20,7 @@ describe("Client splitter", () => {
 
     const client: Client = {
       ...getMockClient(),
+      adminId: generateId<UserId>(),
       users: [userId1, userId2],
       purposes: [purposeId1, purposeId2],
       keys: [key1, key2],
@@ -32,6 +33,7 @@ describe("Client splitter", () => {
     const expectedClientSQL: ClientSQL = {
       id: client.id,
       consumerId: client.consumerId,
+      adminId: client.adminId ? client.adminId : null,
       name: client.name,
       createdAt: client.createdAt.toISOString(),
       description: null,

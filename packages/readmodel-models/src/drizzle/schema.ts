@@ -585,6 +585,7 @@ export const clientInReadmodelClient = readmodelClient.table(
     id: uuid().primaryKey().notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     consumerId: uuid("consumer_id").notNull(),
+    adminId: uuid("admin_id"),
     name: varchar().notNull(),
     description: varchar(),
     kind: varchar().notNull(),

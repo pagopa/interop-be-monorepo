@@ -11,6 +11,7 @@ export const splitClientIntoObjectsSQL = (
   {
     id,
     consumerId,
+    adminId,
     name,
     purposes,
     description,
@@ -28,6 +29,7 @@ export const splitClientIntoObjectsSQL = (
     id,
     metadataVersion,
     consumerId,
+    adminId: adminId || null,
     name,
     description: description || null,
     kind,

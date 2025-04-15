@@ -42,6 +42,11 @@ export const aggregateClient = ({
     data: {
       id: unsafeBrandId(clientSQL.id),
       consumerId: unsafeBrandId(clientSQL.consumerId),
+      ...(clientSQL.adminId !== null
+        ? {
+            adminId: unsafeBrandId<UserId>(clientSQL.adminId),
+          }
+        : {}),
       name: clientSQL.name,
       purposes,
       ...(clientSQL.description !== null

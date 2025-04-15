@@ -15,6 +15,7 @@ export type ClientKind = z.infer<typeof ClientKind>;
 export const Client = z.object({
   id: ClientId,
   consumerId: TenantId,
+  adminId: UserId.optional(),
   name: z.string(),
   purposes: z.array(PurposeId),
   description: z.string().optional(),

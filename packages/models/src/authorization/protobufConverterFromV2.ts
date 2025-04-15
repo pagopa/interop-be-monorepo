@@ -37,6 +37,7 @@ export const fromClientV2 = (input: ClientV2): Client => ({
   ...input,
   id: unsafeBrandId(input.id),
   consumerId: unsafeBrandId(input.consumerId),
+  adminId: input.adminId ? unsafeBrandId<UserId>(input.adminId) : undefined,
   purposes: input.purposes.map((purposeId) => unsafeBrandId(purposeId)),
   users: input.users.map(unsafeBrandId<UserId>),
   kind: fromClientKindV2(input.kind),
