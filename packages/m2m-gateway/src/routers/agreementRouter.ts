@@ -28,7 +28,9 @@ const agreementRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
-        return res.status(501).send();
+        const agreements = await agreementService.getAgreements(ctx, req.query);
+
+        return res.status(200).send(m2mGatewayApi.Agreements.parse(agreements));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
