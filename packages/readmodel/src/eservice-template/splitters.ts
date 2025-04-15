@@ -22,8 +22,6 @@ import {
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 
-// TODO: rename functions with something better
-
 export const splitEServiceTemplateIntoObjectsSQL = (
   eserviceTemplate: EServiceTemplate,
   metadataVersion: number
@@ -111,7 +109,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
   };
 };
 
-const eserviceTemplateVersionAttributeToEServiceTemplateVersionAttributeSQL = ({
+const attributeToAttributeSQL = ({
   attribute,
   eserviceTemplateVersionId,
   groupId,
@@ -144,7 +142,7 @@ const attributesNestedArrayToAttributeSQLarray = (
 ): EServiceTemplateVersionAttributeSQL[] =>
   attributes.flatMap((group, index) =>
     group.map((attribute) =>
-      eserviceTemplateVersionAttributeToEServiceTemplateVersionAttributeSQL({
+      attributeToAttributeSQL({
         attribute,
         eserviceTemplateVersionId,
         groupId: index,
@@ -155,7 +153,7 @@ const attributesNestedArrayToAttributeSQLarray = (
     )
   );
 
-export const splitEServiceTemplateVersionIntoObjectsSQL = (
+const splitEServiceTemplateVersionIntoObjectsSQL = (
   eserviceTemplateId: EServiceTemplateId,
   eserviceTemplateVersion: EServiceTemplateVersion,
   metadataVersion: number
@@ -195,7 +193,7 @@ export const splitEServiceTemplateVersionIntoObjectsSQL = (
     ),
   ];
   const interfaceSQL = eserviceTemplateVersion.interface
-    ? eserviceTemplateVersionDocumentToEServiceTemplateVersionDocumentSQL(
+    ? documentToDocumentSQL(
         eserviceTemplateVersion.interface,
         eserviceTemplateVersion.id,
         eserviceTemplateId,
@@ -204,7 +202,7 @@ export const splitEServiceTemplateVersionIntoObjectsSQL = (
     : undefined;
 
   const documentsSQL = eserviceTemplateVersion.docs.map((doc) =>
-    eserviceTemplateVersionDocumentToEServiceTemplateVersionDocumentSQL(
+    documentToDocumentSQL(
       doc,
       eserviceTemplateVersion.id,
       eserviceTemplateId,
@@ -272,27 +270,25 @@ export const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
   };
 };
 
-// TODO: rename
-export const eserviceTemplateVersionDocumentToEServiceTemplateVersionDocumentSQL =
-  (
-    document: Document,
-    eserviceTemplateVersionId: EServiceTemplateVersionId,
-    eserviceTemplateId: EServiceTemplateId,
-    metadataVersion: number
-  ): EServiceTemplateVersionDocumentSQL => ({
-    id: document.id,
-    eserviceTemplateId,
-    metadataVersion,
-    versionId: eserviceTemplateVersionId,
-    name: document.name,
-    contentType: document.contentType,
-    prettyName: document.prettyName,
-    path: document.path,
-    checksum: document.checksum,
-    uploadDate: dateToString(document.uploadDate),
-  });
+const documentToDocumentSQL = (
+  document: Document,
+  eserviceTemplateVersionId: EServiceTemplateVersionId,
+  eserviceTemplateId: EServiceTemplateId,
+  metadataVersion: number
+): EServiceTemplateVersionDocumentSQL => ({
+  id: document.id,
+  eserviceTemplateId,
+  metadataVersion,
+  versionId: eserviceTemplateVersionId,
+  name: document.name,
+  contentType: document.contentType,
+  prettyName: document.prettyName,
+  path: document.path,
+  checksum: document.checksum,
+  uploadDate: dateToString(document.uploadDate),
+});
 
-export const eserviceTemplateVersionToEServiceTemplateVersionSQL = (
+const eserviceTemplateVersionToEServiceTemplateVersionSQL = (
   eserviceTemplateId: EServiceTemplateId,
   eserviceTemplateVersion: EServiceTemplateVersion,
   metadataVersion: number
@@ -314,7 +310,7 @@ export const eserviceTemplateVersionToEServiceTemplateVersionSQL = (
   deprecatedAt: dateToString(eserviceTemplateVersion.deprecatedAt),
 });
 
-export const eserviceTemplateToEServiceTemplateSQL = (
+const eserviceTemplateToEServiceTemplateSQL = (
   eserviceTemplate: EServiceTemplate,
   metadataVersion: number
 ): EServiceTemplateSQL => ({

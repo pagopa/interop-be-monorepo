@@ -758,6 +758,7 @@ export const getMockEServiceTemplateVersion = (
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
   version: 1,
+  description: "eService template version description",
   createdAt: new Date(),
   attributes: {
     certified: [],
@@ -817,6 +818,29 @@ export const sortBy =
     }
     return 0;
   };
+
+export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
+  tenant: T
+): T => {
+  if (tenant === undefined) {
+    return tenant;
+  } else if ("data" in tenant && "metadata" in tenant) {
+    return {
+      ...tenant,
+      data: sortTenant(tenant.data),
+    };
+  } else {
+    return {
+      ...tenant,
+      attributes: [...tenant.attributes].sort(
+        sortBy<TenantAttribute>((att) => att.id)
+      ),
+      features: [...tenant.features].sort(
+        sortBy<TenantFeature>((feature) => feature.type)
+      ),
+    };
+  }
+};
 
 export const sortAgreement = <
   T extends Agreement | WithMetadata<Agreement> | undefined
