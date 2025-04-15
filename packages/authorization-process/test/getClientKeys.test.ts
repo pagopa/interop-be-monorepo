@@ -58,13 +58,15 @@ describe("getClientKeys", async () => {
     };
     await addOneClient(clientWithKeyUser);
 
-    const keys = await authorizationService.getClientKeys({
-      clientId: mockClient.id,
-      userIds: [keyUserId1, keyUserId2, keyUserId3],
-      offset: 0,
-      limit: 50,
-      ctx: getMockContext({ authData }),
-    });
+    const keys = await authorizationService.getClientKeys(
+      {
+        clientId: mockClient.id,
+        userIds: [keyUserId1, keyUserId2, keyUserId3],
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData })
+    );
     expect(keys).toEqual({
       results: [keyWithUser1, keyWithUser2, keyWithUser3],
       totalCount: 3,
@@ -96,13 +98,15 @@ describe("getClientKeys", async () => {
     };
     await addOneClient(clientWithKeyUser);
 
-    const keys = await authorizationService.getClientKeys({
-      clientId: clientWithKeyUser.id,
-      userIds: [keyUserId1],
-      offset: 0,
-      limit: 50,
-      ctx: getMockContext({ authData }),
-    });
+    const keys = await authorizationService.getClientKeys(
+      {
+        clientId: clientWithKeyUser.id,
+        userIds: [keyUserId1],
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData })
+    );
     expect(keys).toEqual({
       results: [keyWithUser1],
       totalCount: 1,
@@ -113,13 +117,15 @@ describe("getClientKeys", async () => {
     const clientId = generateId();
 
     await expect(
-      authorizationService.getClientKeys({
-        clientId: unsafeBrandId(clientId),
-        userIds: [],
-        offset: 0,
-        limit: 50,
-        ctx: getMockContext({ authData }),
-      })
+      authorizationService.getClientKeys(
+        {
+          clientId: unsafeBrandId(clientId),
+          userIds: [],
+          offset: 0,
+          limit: 50,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(clientNotFound(unsafeBrandId(clientId)));
   });
   it("should throw securityUserNotMember if the requester has SECURITY_ROLE and the user is not a member of the organization", async () => {
@@ -131,13 +137,15 @@ describe("getClientKeys", async () => {
     };
 
     await expect(
-      authorizationService.getClientKeys({
-        clientId: unsafeBrandId(mockClient.id),
-        userIds: [],
-        offset: 0,
-        limit: 50,
-        ctx: getMockContext({ authData }),
-      })
+      authorizationService.getClientKeys(
+        {
+          clientId: unsafeBrandId(mockClient.id),
+          userIds: [],
+          offset: 0,
+          limit: 50,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       securityUserNotMember(unsafeBrandId(authData.userId))
     );
@@ -152,13 +160,15 @@ describe("getClientKeys", async () => {
     };
 
     await expect(
-      authorizationService.getClientKeys({
-        clientId: mockClient.id,
-        userIds: [],
-        offset: 0,
-        limit: 50,
-        ctx: getMockContext({ authData }),
-      })
+      authorizationService.getClientKeys(
+        {
+          clientId: mockClient.id,
+          userIds: [],
+          offset: 0,
+          limit: 50,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(
         unsafeBrandId(organizationId),
@@ -214,13 +224,15 @@ describe("getClientKeys", async () => {
 
     await addOneClient(clientWithKeyUser);
 
-    const keys = await authorizationService.getClientKeys({
-      clientId: mockClient.id,
-      userIds: [keyUserId1, keyUserId2, keyUserId3, keyUserId4, keyUserId5],
-      offset: 2,
-      limit: 1,
-      ctx: getMockContext({ authData }),
-    });
+    const keys = await authorizationService.getClientKeys(
+      {
+        clientId: mockClient.id,
+        userIds: [keyUserId1, keyUserId2, keyUserId3, keyUserId4, keyUserId5],
+        offset: 2,
+        limit: 1,
+      },
+      getMockContext({ authData })
+    );
     expect(keys).toEqual({
       results: [keyWithUser3],
       totalCount: 5,

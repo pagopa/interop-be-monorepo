@@ -34,6 +34,7 @@ export * from "./authorization/producerKeychainSplitters.js";
 
 // DELEGATION
 export * from "./delegationReadModelService.js";
+export * from "./delegation/splitters.js";
 
 // TENANT
 export * from "./tenantReadModelService.js";

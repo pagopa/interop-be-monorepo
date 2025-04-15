@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto, { JsonWebKey } from "crypto";
-import { createJWK, genericLogger } from "pagopa-interop-commons";
+import { createJWK } from "pagopa-interop-commons";
 import { Client } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
+import {
+  getMockClient,
+  getMockContext,
+  getMockKey,
+} from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   clientNotFound,
@@ -41,11 +45,13 @@ describe("getKeyWithClientByKeyId", async () => {
     await addOneClient(mockClient);
 
     const { key: jwkKey, client } =
-      await authorizationService.getKeyWithClientByKeyId({
-        clientId: mockClient.id,
-        kid: mockKey1.kid,
-        logger: genericLogger,
-      });
+      await authorizationService.getKeyWithClientByKeyId(
+        {
+          clientId: mockClient.id,
+          kid: mockKey1.kid,
+        },
+        getMockContext({})
+      );
     expect(jwkKey).toEqual(expectedJwkKey);
     expect(client).toEqual(clientToApiClient(mockClient, { showUsers: false }));
   });
@@ -57,11 +63,13 @@ describe("getKeyWithClientByKeyId", async () => {
     };
 
     expect(
-      authorizationService.getKeyWithClientByKeyId({
-        clientId: mockClient.id,
-        kid: mockKey.kid,
-        logger: genericLogger,
-      })
+      authorizationService.getKeyWithClientByKeyId(
+        {
+          clientId: mockClient.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({})
+      )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
   it("should throw clientKeyNotFound if the key doesn't exist", async () => {
@@ -73,11 +81,13 @@ describe("getKeyWithClientByKeyId", async () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.getKeyWithClientByKeyId({
-        clientId: mockClient.id,
-        kid: mockKey.kid,
-        logger: genericLogger,
-      })
+      authorizationService.getKeyWithClientByKeyId(
+        {
+          clientId: mockClient.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({})
+      )
     ).rejects.toThrowError(clientKeyNotFound(mockKey.kid, mockClient.id));
   });
 });

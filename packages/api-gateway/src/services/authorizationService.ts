@@ -1,5 +1,5 @@
 import { authorizationApi, apiGatewayApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { M2MAuthData, WithLogger } from "pagopa-interop-commons";
 import {
   ClientJWKKey,
   operationForbidden,
@@ -29,7 +29,7 @@ export function authorizationServiceBuilder(
         logger,
         headers,
         authData: { organizationId },
-      }: WithLogger<ApiGatewayAppContext>,
+      }: WithLogger<ApiGatewayAppContext<M2MAuthData>>,
       clientId: authorizationApi.Client["id"]
     ): Promise<apiGatewayApi.Client> => {
       logger.info(`Retrieving Client ${clientId}`);
