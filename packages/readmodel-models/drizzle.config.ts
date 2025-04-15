@@ -22,6 +22,7 @@ export default defineConfig({
     readmodelDBConfig.readModelSQLDbSchemaClientJwkKey,
     readmodelDBConfig.readModelSQLDbSchemaClient,
     readmodelDBConfig.readModelSQLDbSchemaDelegation,
+    readmodelDBConfig.readModelSQLDbSchemaEServiceTemplate,
     readmodelDBConfig.readModelSQLDbSchemaProducerJwkKey,
     readmodelDBConfig.readModelSQLDbSchemaProducerKeychain,
     readmodelDBConfig.readModelSQLDbSchemaPurpose,
