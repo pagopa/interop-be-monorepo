@@ -3,7 +3,6 @@ import {
   getMockAgreement,
   getMockContext,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
   getMockAuthData,
@@ -25,6 +24,7 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
+  getAMockDescriptorPublished,
 } from "./utils.js";
 
 describe("get agreement", () => {
@@ -38,7 +38,7 @@ describe("get agreement", () => {
       ...getMockEService(),
       producerId: producer.id,
       consumerId: consumer.id,
-      descriptors: [getMockDescriptorPublished()],
+      descriptors: [getAMockDescriptorPublished()],
     };
     const agreement = {
       ...getMockAgreement(eservice.id),
