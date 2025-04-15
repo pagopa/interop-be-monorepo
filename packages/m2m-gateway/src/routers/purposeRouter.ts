@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -25,7 +25,7 @@ const purposeRouter = (
 
   purposeRouter
     .get("/purposes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -35,11 +35,11 @@ const purposeRouter = (
           ctx,
           "Error retrieving purposes"
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/purposes/:purposeId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -49,11 +49,11 @@ const purposeRouter = (
           ctx,
           `Error retrieving purpose with id ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/purposes/:purposeId/versions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -63,11 +63,11 @@ const purposeRouter = (
           ctx,
           `Error retrieving purpose ${req.params.purposeId} versions`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/purposes/:purposeId/versions/:versionId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -77,11 +77,11 @@ const purposeRouter = (
           ctx,
           `Error retrieving purpose ${req.params.purposeId} version ${req.params.versionId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -91,11 +91,11 @@ const purposeRouter = (
           ctx,
           `Error creating purpose`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId/versions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -105,11 +105,11 @@ const purposeRouter = (
           ctx,
           `Error creating purpose ${req.params.purposeId} version`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId/activate", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -119,11 +119,11 @@ const purposeRouter = (
           ctx,
           `Error activating purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId/approve", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -133,11 +133,11 @@ const purposeRouter = (
           ctx,
           `Error approving purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId/archive", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -147,11 +147,11 @@ const purposeRouter = (
           ctx,
           `Error archiving purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId/suspend", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -161,11 +161,11 @@ const purposeRouter = (
           ctx,
           `Error suspending purpose ${req.params.purposeId} version`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/purposes/:purposeId/unsuspend", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -175,7 +175,7 @@ const purposeRouter = (
           ctx,
           `Error unsuspending purpose ${req.params.purposeId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 

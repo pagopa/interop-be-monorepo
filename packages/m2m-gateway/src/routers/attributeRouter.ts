@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
@@ -25,7 +25,7 @@ const attributeRouter = (
 
   attributeRouter
     .get("/certifiedAttributes/:attributeId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -35,11 +35,11 @@ const attributeRouter = (
           ctx,
           `Error retrieving certified attribute with id ${req.params.attributeId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/certifiedAttributes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -49,7 +49,7 @@ const attributeRouter = (
           ctx,
           "Error creating certified attribute"
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     });
 

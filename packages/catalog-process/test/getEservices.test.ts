@@ -1,7 +1,8 @@
 /* eslint-disable functional/no-let */
-import { genericLogger, AuthData, userRoles } from "pagopa-interop-commons";
+import { AuthData, userRole } from "pagopa-interop-commons";
 import {
   getMockAuthData,
+  getMockContext,
   getMockEServiceTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
@@ -187,7 +188,6 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: eservicesIds)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [eservice1.id, eservice2.id],
         producersIds: [],
@@ -198,14 +198,13 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([eservice1, eservice2]);
   });
   it("should get the eServices if they exist (parameters: producersIds)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId1],
@@ -216,7 +215,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([eservice1, eservice2, eservice3]);
@@ -252,7 +251,6 @@ describe("get eservices", () => {
     await addOneDelegation(delegation3);
 
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [
@@ -267,7 +265,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(5);
     expect(result.results).toEqual([
@@ -280,7 +278,6 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: states)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -291,7 +288,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(4);
     expect(result.results).toEqual([
@@ -303,7 +300,6 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: agreementStates)", async () => {
     const result1 = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -314,11 +310,12 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(organizationId3),
+      })
     );
 
     const result2 = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -329,7 +326,9 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(organizationId3),
+      })
     );
 
     expect(result1.totalCount).toBe(2);
@@ -339,7 +338,6 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: name)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -351,7 +349,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(5);
     expect(result.results).toEqual([
@@ -393,7 +391,6 @@ describe("get eservices", () => {
     await addOneDelegation(delegation3);
 
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -405,7 +402,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([eservice4, eservice5]);
@@ -450,7 +447,6 @@ describe("get eservices", () => {
     await addOneDelegation(delegation4);
 
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -462,7 +458,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(4);
     expect(result.results).toEqual([
@@ -474,7 +470,6 @@ describe("get eservices", () => {
   });
   it("should get the eServices if they exist (parameters: statestates, name)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -486,14 +481,15 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(organizationId3),
+      })
     );
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([eservice1, eservice3]);
   });
   it("should not get the eServices if they don't exist (parameters: statestates, name)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -505,14 +501,13 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
   });
   it("should get the eServices if they exist (parameters: producersIds, states, name)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId2],
@@ -524,7 +519,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(1);
     expect(result.results).toEqual([eservice5]);
@@ -656,7 +651,6 @@ describe("get eservices", () => {
     await addOneDelegation(delegation5);
 
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [
@@ -672,7 +666,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(3);
     expect(result.results).toEqual([
@@ -683,7 +677,6 @@ describe("get eservices", () => {
   });
   it("should not get the eServices if they don't exist (parameters: producersIds, states, name)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId2],
@@ -695,14 +688,13 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
   });
   it("should get the eServices if they exist (pagination: limit)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -713,14 +705,13 @@ describe("get eservices", () => {
       },
       0,
       5,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(6);
     expect(result.results.length).toBe(5);
   });
   it("should get the eServices if they exist (pagination: offset, limit)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -731,14 +722,13 @@ describe("get eservices", () => {
       },
       5,
       5,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(6);
     expect(result.results.length).toBe(1);
   });
   it("should get the eServices if they exist (parameters: attributesIds)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -753,7 +743,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(4);
     expect(result.results).toEqual([
@@ -766,7 +756,6 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: mode)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -778,7 +767,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result).toEqual({
       totalCount: 1,
@@ -788,7 +777,6 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: isConsumerDelegable)", async () => {
     const result1 = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -800,7 +788,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result1).toEqual({
       totalCount: 2,
@@ -808,7 +796,6 @@ describe("get eservices", () => {
     });
 
     const result2 = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -820,7 +807,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result2).toEqual({
       totalCount: 4,
@@ -830,7 +817,6 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: producersIds, mode)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId2],
@@ -842,7 +828,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result).toEqual({
       totalCount: 2,
@@ -869,7 +855,6 @@ describe("get eservices", () => {
     await addOneDelegation(delegation2);
 
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [organizationId2],
@@ -882,7 +867,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result).toEqual({
       totalCount: 1,
@@ -992,7 +977,6 @@ describe("get eservices", () => {
     await addOneDelegation(delegation4);
 
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [
@@ -1008,7 +992,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result).toEqual({
       totalCount: 4,
@@ -1018,7 +1002,6 @@ describe("get eservices", () => {
 
   it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1029,7 +1012,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
@@ -1037,7 +1020,6 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: attributesIds, name)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1049,7 +1031,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
     expect(result.totalCount).toBe(1);
     expect(result.results).toEqual([eservice1]);
@@ -1057,7 +1039,6 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: attributesIds, states)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1071,7 +1052,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({})
     );
 
     expect(result.totalCount).toBe(1);
@@ -1080,7 +1061,6 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: attributesIdstates, producersIds)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [organizationId1],
@@ -1091,7 +1071,9 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(organizationId3),
+      })
     );
     expect(result.totalCount).toBe(1);
     expect(result.results).toEqual([eservice1]);
@@ -1099,7 +1081,6 @@ describe("get eservices", () => {
 
   it("should get the eServices if they exist (parameters: attributesIdstates, eservicesIds)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
       {
         eservicesIds: [eservice1.id, eservice4.id],
         producersIds: [organizationId1, organizationId2],
@@ -1113,7 +1094,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({ authData: getMockAuthData(organizationId3) })
     );
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([eservice1, eservice4]);
@@ -1121,7 +1102,6 @@ describe("get eservices", () => {
 
   it("should not get the eServices if they don't exist (parameters: attributesIdstates)", async () => {
     const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1132,7 +1112,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({ authData: getMockAuthData(organizationId3) })
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
@@ -1166,7 +1146,6 @@ describe("get eservices", () => {
     await addOneEService(eserviceInstance3);
 
     const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1177,7 +1156,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({ authData: getMockAuthData(organizationId3) })
     );
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([eserviceInstance1, eserviceInstance2]);
@@ -1211,7 +1190,6 @@ describe("get eservices", () => {
     await addOneEService(eserviceInstance3);
 
     const result = await catalogService.getEServices(
-      getMockAuthData(organizationId3),
       {
         eservicesIds: [],
         producersIds: [],
@@ -1222,7 +1200,9 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(organizationId3),
+      })
     );
     expect(result.totalCount).toBe(1);
     expect(result.results).toEqual([eserviceInstance1]);
@@ -1238,11 +1218,10 @@ describe("get eservices", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice7);
     const result = await catalogService.getEServices(
-      authData,
       {
         eservicesIds: [],
         producersIds: [],
@@ -1253,7 +1232,9 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({
+        authData,
+      })
     );
     expect(result.totalCount).toBe(7);
     expect(result.results).toEqual([
@@ -1276,11 +1257,10 @@ describe("get eservices", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SECURITY_ROLE],
+      userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(eservice7);
     const result = await catalogService.getEServices(
-      authData,
       {
         eservicesIds: [],
         producersIds: [],
@@ -1291,7 +1271,9 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({
+        authData,
+      })
     );
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
@@ -1313,11 +1295,10 @@ describe("get eservices", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice7);
     const result = await catalogService.getEServices(
-      authData,
       {
         eservicesIds: [],
         producersIds: [],
@@ -1328,7 +1309,9 @@ describe("get eservices", () => {
       },
       0,
       50,
-      genericLogger
+      getMockContext({
+        authData,
+      })
     );
     expect(result.totalCount).toBe(6);
     expect(result.results).toEqual([
@@ -1357,11 +1340,10 @@ describe("get eservices", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(organizationId1),
-        userRoles: [userRoles.ADMIN_ROLE],
+        userRoles: [userRole.ADMIN_ROLE],
       };
       await addOneEService(eservice8);
       const result = await catalogService.getEServices(
-        authData,
         {
           eservicesIds: [],
           producersIds: [],
@@ -1372,7 +1354,7 @@ describe("get eservices", () => {
         },
         0,
         50,
-        genericLogger
+        getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
@@ -1411,12 +1393,11 @@ describe("get eservices", () => {
       });
       const authData: AuthData = {
         ...getMockAuthData(organizationId2),
-        userRoles: [userRoles.ADMIN_ROLE],
+        userRoles: [userRole.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
       await addOneDelegation(delegation);
       const result = await catalogService.getEServices(
-        authData,
         {
           eservicesIds: [],
           producersIds: [],
@@ -1427,7 +1408,7 @@ describe("get eservices", () => {
         },
         0,
         50,
-        genericLogger
+        getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
@@ -1458,11 +1439,10 @@ describe("get eservices", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(organizationId1),
-        userRoles: [userRoles.SECURITY_ROLE],
+        userRoles: [userRole.SECURITY_ROLE],
       };
       await addOneEService(eservice8);
       const result = await catalogService.getEServices(
-        authData,
         {
           eservicesIds: [],
           producersIds: [],
@@ -1473,7 +1453,7 @@ describe("get eservices", () => {
         },
         0,
         50,
-        genericLogger
+        getMockContext({ authData })
       );
       expect(result.totalCount).toBe(6);
       expect(result.results).toEqual([
@@ -1503,11 +1483,10 @@ describe("get eservices", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
+        userRoles: [userRole.ADMIN_ROLE],
       };
       await addOneEService(eservice8);
       const result = await catalogService.getEServices(
-        authData,
         {
           eservicesIds: [],
           producersIds: [],
@@ -1518,7 +1497,7 @@ describe("get eservices", () => {
         },
         0,
         50,
-        genericLogger
+        getMockContext({ authData })
       );
       expect(result.totalCount).toBe(6);
       expect(result.results).toEqual([
@@ -1556,11 +1535,10 @@ describe("get eservices", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(organizationId1),
-        userRoles: [userRoles.ADMIN_ROLE],
+        userRoles: [userRole.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
       const result = await catalogService.getEServices(
-        authData,
         {
           eservicesIds: [],
           producersIds: [],
@@ -1571,7 +1549,7 @@ describe("get eservices", () => {
         },
         0,
         50,
-        genericLogger
+        getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
@@ -1610,11 +1588,10 @@ describe("get eservices", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(organizationId1),
-        userRoles: [userRoles.SECURITY_ROLE],
+        userRoles: [userRole.SECURITY_ROLE],
       };
       await addOneEService(eservice9);
       const result = await catalogService.getEServices(
-        authData,
         {
           eservicesIds: [],
           producersIds: [],
@@ -1625,7 +1602,7 @@ describe("get eservices", () => {
         },
         0,
         50,
-        genericLogger
+        getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
@@ -1664,11 +1641,10 @@ describe("get eservices", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
+        userRoles: [userRole.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
       const result = await catalogService.getEServices(
-        authData,
         {
           eservicesIds: [],
           producersIds: [],
@@ -1679,7 +1655,7 @@ describe("get eservices", () => {
         },
         0,
         50,
-        genericLogger
+        getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
@@ -1724,12 +1700,11 @@ describe("get eservices", () => {
       });
       const authData: AuthData = {
         ...getMockAuthData(organizationId2),
-        userRoles: [userRoles.ADMIN_ROLE],
+        userRoles: [userRole.ADMIN_ROLE],
       };
       await addOneEService(eservice9);
       await addOneDelegation(delegation);
       const result = await catalogService.getEServices(
-        authData,
         {
           eservicesIds: [],
           producersIds: [],
@@ -1740,7 +1715,7 @@ describe("get eservices", () => {
         },
         0,
         50,
-        genericLogger
+        getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([

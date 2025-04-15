@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { eserviceServiceBuilder } from "../services/eserviceService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const eserviceRouter = (
   ctx: ZodiosContext,
@@ -25,7 +25,7 @@ const eserviceRouter = (
 
   eserviceRouter
     .get("/eservices", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -35,11 +35,11 @@ const eserviceRouter = (
           ctx,
           `Error retrieving eservices`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/eservices/:eserviceId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -49,11 +49,11 @@ const eserviceRouter = (
           ctx,
           `Error retrieving eservice with id ${req.params.eserviceId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/eservices/:eserviceId/descriptors", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -63,13 +63,13 @@ const eserviceRouter = (
           ctx,
           `Error retrieving eservice ${req.params.eserviceId} descriptors`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get(
       "/eservices/:eserviceId/descriptors/:descriptorId",
       async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           return res.status(501).send();
         } catch (error) {
@@ -79,7 +79,7 @@ const eserviceRouter = (
             ctx,
             `Error retrieving eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
-          return res.status(errorRes.status).send();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

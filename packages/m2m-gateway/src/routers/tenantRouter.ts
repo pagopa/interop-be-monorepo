@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
@@ -25,7 +25,7 @@ const tenantRouter = (
 
   tenantRouter
     .get("/tenants", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -35,11 +35,11 @@ const tenantRouter = (
           ctx,
           "Error retrieving tenants"
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/tenants/:tenantId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -49,11 +49,11 @@ const tenantRouter = (
           ctx,
           `Error retrieving tenant with id ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .get("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -63,11 +63,11 @@ const tenantRouter = (
           ctx,
           `Error retrieving tenant ${req.params.tenantId} certified attributes`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -77,13 +77,13 @@ const tenantRouter = (
           ctx,
           `Error assigning certified attribute to tenant ${req.params.tenantId}`
         );
-        return res.status(errorRes.status).send();
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .delete(
       "/tenants/:tenantId/certifiedAttributes/:attributeId",
       async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           return res.status(501).send();
         } catch (error) {
@@ -93,7 +93,7 @@ const tenantRouter = (
             ctx,
             `Error revoking certified attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
           );
-          return res.status(errorRes.status).send();
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     );

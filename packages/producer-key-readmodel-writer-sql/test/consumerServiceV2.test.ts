@@ -2,7 +2,7 @@ import crypto from "crypto";
 import {
   getMockKey,
   getMockProducerKeychain,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV2,
   generateId,
