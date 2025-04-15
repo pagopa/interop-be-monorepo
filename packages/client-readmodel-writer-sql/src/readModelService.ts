@@ -91,13 +91,7 @@ export function readModelServiceBuilder(
       await db.transaction(async (tx) => {
         await tx
           .delete(clientUserInReadmodelClient)
-          .where(
-            and(
-              eq(clientUserInReadmodelClient.clientId, clientId),
-              eq(clientUserInReadmodelClient.userId, userId),
-              lte(clientUserInReadmodelClient.metadataVersion, metadataVersion)
-            )
-          );
+          .where(eq(clientUserInReadmodelClient.userId, userId));
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -136,16 +130,7 @@ export function readModelServiceBuilder(
       await db.transaction(async (tx) => {
         await tx
           .delete(clientPurposeInReadmodelClient)
-          .where(
-            and(
-              eq(clientPurposeInReadmodelClient.clientId, clientId),
-              eq(clientPurposeInReadmodelClient.purposeId, purposeId),
-              lte(
-                clientPurposeInReadmodelClient.metadataVersion,
-                metadataVersion
-              )
-            )
-          );
+          .where(eq(clientPurposeInReadmodelClient.purposeId, purposeId));
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -190,13 +175,7 @@ export function readModelServiceBuilder(
       await db.transaction(async (tx) => {
         await tx
           .delete(clientKeyInReadmodelClient)
-          .where(
-            and(
-              eq(clientKeyInReadmodelClient.clientId, clientId),
-              eq(clientKeyInReadmodelClient.kid, keyId),
-              lte(clientKeyInReadmodelClient.metadataVersion, metadataVersion)
-            )
-          );
+          .where(eq(clientKeyInReadmodelClient.kid, keyId));
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -218,7 +197,6 @@ export function readModelServiceBuilder(
           .set({ userId })
           .where(
             and(
-              eq(clientKeyInReadmodelClient.clientId, clientId),
               eq(clientKeyInReadmodelClient.kid, keyId),
               lte(clientKeyInReadmodelClient.metadataVersion, metadataVersion)
             )
