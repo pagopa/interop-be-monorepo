@@ -622,3 +622,7 @@ export function notificationEmailSenderServiceBuilder(
     },
   };
 }
+
+export type NotificationEmailSenderService = ReturnType<
+  typeof notificationEmailSenderServiceBuilder
+>;

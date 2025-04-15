@@ -1,11 +1,13 @@
 import { constants } from "http2";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
+  TenantId,
   genericError,
   makeApiProblemBuilder,
   tooManyRequestsError,
 } from "pagopa-interop-models";
 import { ExpressContext, fromAppContext } from "../context/context.js";
+import { getUserInfoFromAuthData } from "../auth/authData.js";
 import { RateLimiter } from "./rateLimiterModel.js";
 import { rateLimiterHeadersFromStatus } from "./rateLimiterUtils.js";
 
@@ -17,18 +19,22 @@ export function rateLimiterMiddleware(
   return async (req, res, next) => {
     const ctx = fromAppContext(req.ctx);
 
-    if (!ctx.authData?.organizationId) {
+    const organizationId: TenantId | undefined = getUserInfoFromAuthData(
+      ctx.authData
+    ).organizationId;
+
+    if (!organizationId) {
       const errorRes = makeApiProblem(
         genericError("Missing expected organizationId claim in token"),
         () => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-        ctx.logger,
-        ctx.correlationId
+        ctx
       );
+
       return res.status(errorRes.status).send(errorRes);
     }
 
     const rateLimiterStatus = await rateLimiter.rateLimitByOrganization(
-      ctx.authData.organizationId,
+      organizationId,
       ctx.logger
     );
 
@@ -37,10 +43,9 @@ export function rateLimiterMiddleware(
 
     if (rateLimiterStatus.limitReached) {
       const errorRes = makeApiProblem(
-        tooManyRequestsError(ctx.authData.organizationId),
+        tooManyRequestsError(organizationId),
         () => constants.HTTP_STATUS_TOO_MANY_REQUESTS,
-        ctx.logger,
-        ctx.correlationId
+        ctx
       );
 
       return res.status(errorRes.status).send(errorRes);

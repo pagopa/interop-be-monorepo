@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockAuthData,
+  getMockContext,
   getMockDelegation,
   getMockEService,
   getMockTenant,
@@ -11,7 +13,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
+
 import {
   addOneDelegation,
   addOneEservice,
@@ -109,12 +111,11 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          requesterId,
           eserviceIds: [],
           offset: 1,
           limit: 1,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -130,13 +131,12 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          requesterId,
           eserviceIds: [],
           offset: 0,
           limit: 50,
           delegatorName: "Comune",
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -155,13 +155,12 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          requesterId,
           eserviceIds: [],
           offset: 0,
           limit: 50,
           delegatorName: "PagoPA",
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -177,12 +176,11 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          requesterId,
           eserviceIds: [eservice1.id, eservice2.id],
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -202,12 +200,11 @@ describe("getConsumerDelegators", () => {
     expect(
       await delegationService.getConsumerDelegators(
         {
-          requesterId: generateId<TenantId>(),
           eserviceIds: [],
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({})
       )
     ).toEqual({
       results: [],

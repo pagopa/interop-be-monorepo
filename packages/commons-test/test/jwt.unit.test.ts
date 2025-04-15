@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import jwt from "jsonwebtoken";
-import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
-import { invalidClaim } from "pagopa-interop-models";
+import {
+  InternalAuthData,
+  M2MAuthData,
+  MaintenanceAuthData,
+  UIAuthData,
+  readAuthDataFromJwtToken,
+} from "pagopa-interop-commons";
+import { invalidClaim, unsafeBrandId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { match, P } from "ts-pattern";
 import { randomArrayItem } from "../src/testUtils.js";
 
 const mockUiToken = {
@@ -15,7 +20,7 @@ const mockUiToken = {
   "user-roles": "security,api",
   selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
   organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-  aud: "dev.interop.pagopa.it/ui",
+  aud: "dev.interop.pagopa.it/ui,interop.pagopa.it/ui",
   uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
   nbf: 1710841859,
   organization: {
@@ -38,9 +43,21 @@ const mockUiToken = {
   email: "m.rossi@psp.it",
 };
 
+const mockExpectedUiAuthData: UIAuthData = {
+  systemRole: undefined,
+  externalId: {
+    origin: "IPA",
+    value: "5N2TR557",
+  },
+  selfcareId: unsafeBrandId("1962d21c-c701-4805-93f6-53a877898756"),
+  organizationId: unsafeBrandId("69e2865e-65ab-4e48-a638-2037a9ee2ee7"),
+  userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
+  userRoles: ["security", "api"],
+};
+
 const mockM2MToken = {
   organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
-  aud: "dev.interop.pagopa.it/m2m",
+  aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
   role: "m2m",
   nbf: 1710511524,
@@ -51,8 +68,13 @@ const mockM2MToken = {
   jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
 };
 
+const mockM2MExpectedAuthData: M2MAuthData = {
+  systemRole: "m2m",
+  organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
+};
+
 const mockInternalToken = {
-  aud: "dev.interop.pagopa.it/m2m",
+  aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
   role: "internal",
   nbf: 1710511524,
@@ -62,8 +84,12 @@ const mockInternalToken = {
   jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
 };
 
+const mockInternalExpectedAuthData: InternalAuthData = {
+  systemRole: "internal",
+};
+
 const mockMaintenanceToken = {
-  aud: "dev.interop.pagopa.it/fake",
+  aud: "dev.interop.pagopa.it/maintenance,interop.pagopa.it/maintenance",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
   role: "maintenance",
   nbf: 1710511524,
@@ -71,6 +97,10 @@ const mockMaintenanceToken = {
   exp: 1810511523,
   iat: 1710511524,
   jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
+};
+
+const mockMaintenanceExpectedAuthData: MaintenanceAuthData = {
+  systemRole: "maintenance",
 };
 
 const mockSupportToken = {
@@ -82,7 +112,7 @@ const mockSupportToken = {
   "user-roles": "support",
   selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
   organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-  aud: "dev.interop.pagopa.it/ui",
+  aud: "dev.interop.pagopa.it/ui,interop.pagopa.it/ui",
   uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
   nbf: 1710841859,
   organization: {
@@ -99,6 +129,18 @@ const mockSupportToken = {
   jti: "e82bd774-9cac-4885-931b-015b2eb4e9a5",
 };
 
+const mockSupportExpectedAuthData: UIAuthData = {
+  systemRole: undefined,
+  externalId: {
+    origin: "IPA",
+    value: "5N2TR557",
+  },
+  selfcareId: unsafeBrandId("1962d21c-c701-4805-93f6-53a877898756"),
+  organizationId: unsafeBrandId("69e2865e-65ab-4e48-a638-2037a9ee2ee7"),
+  userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
+  userRoles: ["support"],
+};
+
 const getMockSignedToken = (token: object): string =>
   jwt.sign(token, "test-secret");
 
@@ -112,16 +154,12 @@ describe("JWT tests", () => {
         })
       );
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual({
-        externalId: {
-          origin: "IPA",
-          value: "5N2TR557",
-        },
-        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
-        organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-        userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+      const expectedUIAuthData: UIAuthData = {
+        ...mockExpectedUiAuthData,
         userRoles: ["admin"],
-      });
+      };
+
+      expect(readAuthDataFromJwtToken(token!)).toEqual(expectedUIAuthData);
     });
 
     it("should successfully read auth data from a UI token with multiple comma separated user roles", async () => {
@@ -132,16 +170,12 @@ describe("JWT tests", () => {
         })
       );
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual({
-        externalId: {
-          origin: "IPA",
-          value: "5N2TR557",
-        },
-        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
-        organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-        userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+      const expectedUIAuthData: UIAuthData = {
+        ...mockExpectedUiAuthData,
         userRoles: ["security", "api"],
-      });
+      };
+
+      expect(readAuthDataFromJwtToken(token!)).toEqual(expectedUIAuthData);
     });
 
     it("should fail reading auth data from a UI token with invalid user roles", async () => {
@@ -181,16 +215,7 @@ describe("JWT tests", () => {
     it("should successfully read auth data from a M2M token", async () => {
       const token = jwt.decode(getMockSignedToken(mockM2MToken));
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual({
-        externalId: {
-          origin: "",
-          value: "",
-        },
-        organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
-        selfcareId: "",
-        userId: "",
-        userRoles: ["m2m"],
-      });
+      expect(readAuthDataFromJwtToken(token!)).toEqual(mockM2MExpectedAuthData);
     });
 
     it("should fail if some required fields are missing", async () => {
@@ -236,31 +261,17 @@ describe("JWT tests", () => {
     it("should successfully read auth data from an Internal token", async () => {
       const token = jwt.decode(getMockSignedToken(mockInternalToken));
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual({
-        externalId: {
-          origin: "",
-          value: "",
-        },
-        organizationId: "",
-        selfcareId: "",
-        userId: "",
-        userRoles: ["internal"],
-      });
+      expect(readAuthDataFromJwtToken(token!)).toEqual(
+        mockInternalExpectedAuthData
+      );
     });
 
     it("should successfully read auth data from a Maintenance token", async () => {
       const token = jwt.decode(getMockSignedToken(mockMaintenanceToken));
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual({
-        externalId: {
-          origin: "",
-          value: "",
-        },
-        organizationId: "",
-        selfcareId: "",
-        userId: "",
-        userRoles: ["maintenance"],
-      });
+      expect(readAuthDataFromJwtToken(token!)).toEqual(
+        mockMaintenanceExpectedAuthData
+      );
     });
 
     it("should fail when the token is invalid", async () => {
@@ -280,16 +291,9 @@ describe("JWT tests", () => {
     it("should successfully read auth data from a Support token", async () => {
       const token = jwt.decode(getMockSignedToken(mockSupportToken));
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual({
-        externalId: {
-          origin: "IPA",
-          value: "5N2TR557",
-        },
-        organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
-        userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
-        userRoles: ["support"],
-      });
+      expect(readAuthDataFromJwtToken(token!)).toEqual(
+        mockSupportExpectedAuthData
+      );
     });
 
     it("should fail reading auth data from a Support token with invalid user roles", async () => {
@@ -310,30 +314,16 @@ describe("JWT tests", () => {
     });
 
     it("should also accept audience as a JSON array", async () => {
-      const mockToken = randomArrayItem([
-        mockUiToken,
-        mockM2MToken,
-        mockInternalToken,
-      ]);
       const token = jwt.decode(
         getMockSignedToken({
-          ...mockToken,
-          aud: ["dev.interop.pagopa.it/ui", "dev.interop.pagopa.it/fake"],
+          ...mockUiToken,
+          aud: ["dev.interop.pagopa.it/ui", "interop.pagopa.it/ui"],
         })
       );
 
       const authData = readAuthDataFromJwtToken(token!);
 
-      expect(authData).toMatchObject({
-        userRoles: match(mockToken)
-          .with({ role: P.not(P.nullish) }, (t) => [t.role])
-          .with({ "user-roles": P.not(P.nullish) }, (t) =>
-            t["user-roles"].split(",")
-          )
-          .otherwise(() => {
-            throw new Error("Unexpected user roles in token");
-          }),
-      });
+      expect(authData).toMatchObject(mockExpectedUiAuthData);
     });
   });
 });
