@@ -23,6 +23,7 @@ export type UserRole = z.infer<typeof UserRole>;
 // System roles = special non-UI tokens
 export const systemRole = {
   M2M_ROLE: "m2m",
+  M2M_ADMIN_ROLE: "m2m-admin",
   INTERNAL_ROLE: "internal",
   MAINTENANCE_ROLE: "maintenance",
 } as const;
@@ -56,12 +57,25 @@ const SharedStandardJWTClaims = z.object({
   jti: z.string(),
 });
 
-export const M2MAuthToken = SharedStandardJWTClaims.merge(
+const M2MAuthTokenCommonProps = SharedStandardJWTClaims.merge(
   z.object({
-    role: z.literal(systemRole.M2M_ROLE),
     organizationId: z.string().uuid(),
     client_id: z.string().uuid(),
     sub: z.string(),
+  })
+);
+
+export const M2MAuthToken = M2MAuthTokenCommonProps.merge(
+  z.object({
+    role: z.literal(systemRole.M2M_ROLE),
+  })
+);
+
+export const M2MAdminAuthToken = M2MAuthTokenCommonProps.merge(
+  z.object({
+    role: z.literal(systemRole.M2M_ADMIN_ROLE),
+    userId: z.string().uuid(),
+    // ^ ID of the admin user associated with the client
   })
 );
 
@@ -112,6 +126,7 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
 
 export const AuthToken = z.discriminatedUnion("role", [
   M2MAuthToken,
+  M2MAdminAuthToken,
   InternalAuthToken,
   MaintenanceAuthToken,
   UIAuthToken,
@@ -141,6 +156,12 @@ export type M2MAuthData = {
   organizationId: TenantId;
 };
 
+export type M2MAdminAuthData = {
+  systemRole: Extract<SystemRole, "m2m-admin">;
+  organizationId: TenantId;
+  userId: UserId;
+};
+
 export type InternalAuthData = {
   systemRole: Extract<SystemRole, "internal">;
 };
@@ -152,6 +173,7 @@ export type MaintenanceAuthData = {
 export type AuthData =
   | UIAuthData
   | M2MAuthData
+  | M2MAdminAuthData
   | InternalAuthData
   | MaintenanceAuthData;
 
@@ -167,6 +189,11 @@ export const getAuthDataFromToken = (token: AuthToken): AuthData =>
     .with({ role: systemRole.M2M_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
+    }))
+    .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
+      systemRole: t.role,
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      userId: unsafeBrandId<UserId>(t.userId),
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
       systemRole: undefined,
@@ -210,6 +237,11 @@ export function getUserInfoFromAuthData(
     )
     .with({ systemRole: systemRole.M2M_ROLE }, (t) => ({
       userId: undefined,
+      organizationId: t.organizationId,
+      selfcareId: undefined,
+    }))
+    .with({ systemRole: systemRole.M2M_ADMIN_ROLE }, (t) => ({
+      userId: t.userId,
       organizationId: t.organizationId,
       selfcareId: undefined,
     }))
