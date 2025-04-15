@@ -56,6 +56,9 @@ export * from "./authorization/producerKeychainAggregators.js";
 export * from "./producerKeychainReadModelService.js";
 export * from "./authorization/producerKeychainSplitters.js";
 
+// DELEGATION
+export * from "./delegationReadModelService.js";
+
 // TENANT
 export * from "./tenant/aggregators.js";
 export * from "./tenantReadModelService.js";
