@@ -89,9 +89,7 @@ describe("archive agreement", () => {
       },
     };
 
-    expect(actualAgreement).toMatchObject(
-      toAgreementV2(expectedAgreemenentArchived)
-    );
+    expect(actualAgreement).toEqual(toAgreementV2(expectedAgreemenentArchived));
 
     expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
 
@@ -157,13 +155,12 @@ describe("archive agreement", () => {
         archiving: {
           who: authData.userId,
           when: new Date(),
+          delegationId: delegation.id,
         },
       },
     };
 
-    expect(actualAgreement).toMatchObject(
-      toAgreementV2(expectedAgreemenentArchived)
-    );
+    expect(actualAgreement).toEqual(toAgreementV2(expectedAgreemenentArchived));
 
     expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
 
