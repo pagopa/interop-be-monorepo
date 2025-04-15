@@ -5,8 +5,14 @@ import {
   createPayload,
   getMockAttribute,
   getMockAuthData,
+  getSystemOrUserAuthData,
 } from "pagopa-interop-commons-test";
-import { userRoles, AuthData } from "pagopa-interop-commons";
+import {
+  Allrole,
+  AuthData,
+  systemRole,
+  userRole,
+} from "pagopa-interop-commons";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -47,10 +53,10 @@ describe("API /declaredAttributes authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(mockDeclaredAttributeSeed);
 
-  it.each([userRoles.ADMIN_ROLE, userRoles.M2M_ROLE, userRoles.API_ROLE])(
+  it.each([userRole.ADMIN_ROLE, systemRole.M2M_ROLE, userRole.API_ROLE])(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+      const token = generateToken(getSystemOrUserAuthData(role));
       const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
@@ -59,14 +65,14 @@ describe("API /declaredAttributes authorization test", () => {
   );
 
   it.each(
-    Object.values(userRoles).filter(
+    Object.values(Allrole).filter(
       (role) =>
-        role !== userRoles.ADMIN_ROLE &&
-        role !== userRoles.M2M_ROLE &&
-        role !== userRoles.API_ROLE
+        role !== userRole.ADMIN_ROLE &&
+        role !== systemRole.M2M_ROLE &&
+        role !== userRole.API_ROLE
     )
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+    const token = generateToken(getSystemOrUserAuthData(role));
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });

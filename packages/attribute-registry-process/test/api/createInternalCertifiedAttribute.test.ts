@@ -4,9 +4,9 @@ import { Attribute, generateId } from "pagopa-interop-models";
 import {
   createPayload,
   getMockAttribute,
-  getMockAuthData,
+  getSystemOrUserAuthData,
 } from "pagopa-interop-commons-test";
-import { userRoles, AuthData } from "pagopa-interop-commons";
+import { Allrole, AuthData, systemRole } from "pagopa-interop-commons";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -37,7 +37,7 @@ describe("API /internal/certifiedAttributes authorization test", () => {
 
   vi.spyOn(
     attributeRegistryService,
-    "createInternalCertifiedAttribute"
+    "internalCreateCertifiedAttribute"
   ).mockResolvedValue(mockAttribute);
 
   const generateToken = (authData: AuthData) =>
@@ -51,10 +51,9 @@ describe("API /internal/certifiedAttributes authorization test", () => {
       .send(mockInternalCertifiedAttributeSeed);
 
   it("Should return 200 for user with role Internal", async () => {
-    const token = generateToken({
-      ...getMockAuthData(),
-      userRoles: [userRoles.INTERNAL_ROLE],
-    });
+    const token = generateToken(
+      getSystemOrUserAuthData(systemRole.INTERNAL_ROLE)
+    );
     const res = await makeRequest(token);
 
     expect(res.status).toBe(200);
@@ -62,9 +61,9 @@ describe("API /internal/certifiedAttributes authorization test", () => {
   });
 
   it.each(
-    Object.values(userRoles).filter((role) => role !== userRoles.INTERNAL_ROLE)
+    Object.values(Allrole).filter((role) => role !== systemRole.INTERNAL_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+    const token = generateToken(getSystemOrUserAuthData(role));
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
@@ -72,7 +71,7 @@ describe("API /internal/certifiedAttributes authorization test", () => {
   it("Should return 409 for conflict", async () => {
     vi.spyOn(
       attributeRegistryService,
-      "createInternalCertifiedAttribute"
+      "internalCreateCertifiedAttribute"
     ).mockRejectedValue(
       attributeDuplicateByNameAndCode(
         mockInternalCertifiedAttributeSeed.name,
@@ -81,10 +80,7 @@ describe("API /internal/certifiedAttributes authorization test", () => {
     );
 
     const res = await makeRequest(
-      generateToken({
-        ...getMockAuthData(),
-        userRoles: [userRoles.INTERNAL_ROLE],
-      })
+      generateToken(getSystemOrUserAuthData(systemRole.INTERNAL_ROLE))
     );
 
     expect(res.status).toBe(409);

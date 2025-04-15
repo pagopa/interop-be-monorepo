@@ -5,8 +5,14 @@ import {
   createPayload,
   getMockAttribute,
   getMockAuthData,
+  getSystemOrUserAuthData,
 } from "pagopa-interop-commons-test";
-import { userRoles, AuthData } from "pagopa-interop-commons";
+import {
+  userRole,
+  AuthData,
+  systemRole,
+  Allrole,
+} from "pagopa-interop-commons";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -49,10 +55,10 @@ describe("API /certifiedAttributes authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(mockCertifiedAttributeSeed);
 
-  it.each([userRoles.ADMIN_ROLE, userRoles.M2M_ROLE])(
+  it.each([userRole.ADMIN_ROLE, systemRole.M2M_ROLE])(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+      const token = generateToken(getSystemOrUserAuthData(role));
       const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
@@ -61,11 +67,11 @@ describe("API /certifiedAttributes authorization test", () => {
   );
 
   it.each(
-    Object.values(userRoles).filter(
-      (role) => role !== userRoles.ADMIN_ROLE && role !== userRoles.M2M_ROLE
+    Object.values(Allrole).filter(
+      (role) => role !== userRole.ADMIN_ROLE && role !== systemRole.M2M_ROLE
     )
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+    const token = generateToken(getSystemOrUserAuthData(role));
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });

@@ -7,8 +7,9 @@ import {
   createPayload,
   getMockAttribute,
   getMockAuthData,
+  getSystemOrUserAuthData,
 } from "pagopa-interop-commons-test";
-import { userRoles, AuthData } from "pagopa-interop-commons";
+import { AuthData, systemRole, userRole } from "pagopa-interop-commons";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
@@ -37,28 +38,22 @@ describe("API /attributes/{attributeId} authorization test", () => {
       .send();
 
   it.each([
-    userRoles.ADMIN_ROLE,
-    userRoles.API_ROLE,
-    userRoles.SECURITY_ROLE,
-    userRoles.M2M_ROLE,
-    userRoles.SUPPORT_ROLE,
+    userRole.ADMIN_ROLE,
+    userRole.API_ROLE,
+    userRole.SECURITY_ROLE,
+    systemRole.M2M_ROLE,
+    userRole.SUPPORT_ROLE,
   ])("Should return 200 for user with role %s", async (role) => {
-    const token = generateToken({
-      ...getMockAuthData(),
-      userRoles: [role],
-    });
+    const token = generateToken(getSystemOrUserAuthData(role));
     const res = await makeRequest(token, attribute.id);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(apiAttribute);
   });
 
-  it.each([userRoles.INTERNAL_ROLE, userRoles.MAINTENANCE_ROLE])(
+  it.each([systemRole.INTERNAL_ROLE, systemRole.MAINTENANCE_ROLE])(
     "Should return 403 for user with role %s",
     async (role) => {
-      const token = generateToken({
-        ...getMockAuthData(),
-        userRoles: [role],
-      });
+      const token = generateToken(getSystemOrUserAuthData(role));
       const res = await makeRequest(token, attribute.id);
 
       expect(res.status).toBe(403);

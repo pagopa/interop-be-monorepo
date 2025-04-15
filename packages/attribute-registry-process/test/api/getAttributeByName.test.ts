@@ -8,7 +8,7 @@ import {
   getMockAttribute,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
-import { userRoles, AuthData } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
