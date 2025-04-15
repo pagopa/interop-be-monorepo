@@ -698,6 +698,7 @@ describe("upgrade Agreement", () => {
             extensionDate: new Date(), // invalid because of this
           },
         ],
+        revokedBy: [],
       };
 
       const declaredAttribute = getMockAttribute(attributeKind.declared);
@@ -720,8 +721,8 @@ describe("upgrade Agreement", () => {
         ...getMockTenant(),
         attributes: [validCertifiedTenantAttribute, invalidAttribute],
       };
-      await addOneTenant(consumer);
       await addOneTenant(producer);
+      await addOneTenant(consumer);
       await addOneAttribute(certifiedAttribute);
       await addOneAttribute(verifiedAttribute);
       await addOneAttribute(declaredAttribute);
