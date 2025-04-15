@@ -9,9 +9,9 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAttribute,
+  getMockContextMaintenance,
   getMockTenant,
   readLastEventByStreamId,
   writeInReadmodel,
@@ -47,9 +47,8 @@ describe("addCertifierId", async () => {
       {
         tenantId: mockTenant.id,
         certifierId,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContextMaintenance({})
     );
     const writtenEvent = await readLastEventByStreamId(
       mockTenant.id,
@@ -91,9 +90,8 @@ describe("addCertifierId", async () => {
         {
           tenantId: mockTenant.id,
           certifierId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextMaintenance({})
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
@@ -115,9 +113,8 @@ describe("addCertifierId", async () => {
         {
           tenantId: certifierTenant.id,
           certifierId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextMaintenance({})
       )
     ).rejects.toThrowError(
       tenantIsAlreadyACertifier(certifierTenant.id, certifierId)
@@ -149,9 +146,8 @@ describe("addCertifierId", async () => {
         {
           tenantId: certifierTenant.id,
           certifierId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextMaintenance({})
       )
     ).rejects.toThrowError(
       certifierWithExistingAttributes(certifierTenant.id, previousCertifierId)

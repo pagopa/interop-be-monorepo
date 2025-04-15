@@ -15,7 +15,7 @@ import {
   UID,
   USER_ROLES,
   WithLogger,
-  userRoles,
+  userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
@@ -114,7 +114,7 @@ export function authorizationServiceBuilder(
       name: tenant.name,
       roles: [
         {
-          role: userRoles.SUPPORT_ROLE,
+          role: userRole.SUPPORT_ROLE,
         },
       ],
     };
@@ -126,7 +126,7 @@ export function authorizationServiceBuilder(
 
     return {
       ...buildJwtCustomClaims(
-        userRoles.SUPPORT_ROLE,
+        userRole.SUPPORT_ROLE,
         tenant.id,
         selfcareId,
         tenant.externalId.origin,
