@@ -1,3 +1,4 @@
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   Agreement,
   CertifiedTenantAttribute,
@@ -10,6 +11,7 @@ import {
   EServiceId,
   DescriptorId,
   agreementState,
+  tenantKind,
 } from "pagopa-interop-models";
 
 export const currentDate = new Date();
@@ -73,3 +75,16 @@ export const getMockAgreement = ({
     archiving: undefined,
   },
 });
+
+export const getMockMaintenanceTenantUpdate =
+  (): tenantApi.MaintenanceTenantUpdate => ({
+    selfcareId: generateId(),
+    externalId: {
+      value: generateId(),
+      origin: "IPA",
+    },
+    mails: [],
+    name: "A tenant",
+    kind: tenantKind.PA,
+    onboardedAt: new Date().toISOString(),
+  });

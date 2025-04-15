@@ -5,24 +5,14 @@ import jwt from "jsonwebtoken";
 import { generateId, TenantId } from "pagopa-interop-models";
 import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
 import { UserRole, userRoles } from "pagopa-interop-commons";
-import { tenantApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
 import { tenantService } from "../../src/routers/TenantRouter.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
+import { getMockMaintenanceTenantUpdate } from "../mockUtils.js";
 
 describe("API /maintenance/tenants/{tenantId} authorization test", () => {
   const tenantId = generateId<TenantId>();
-  const maintenanceTenantUpdate: tenantApi.MaintenanceTenantUpdate = {
-    selfcareId: generateId(),
-    externalId: {
-      value: generateId(),
-      origin: "IPA",
-    },
-    mails: [],
-    name: "A tenant",
-    kind: "PA",
-    onboardedAt: new Date().toISOString(),
-  };
+  const maintenanceTenantUpdate = getMockMaintenanceTenantUpdate();
 
   vi.spyOn(tenantService, "maintenanceTenantUpdate").mockResolvedValue();
 
