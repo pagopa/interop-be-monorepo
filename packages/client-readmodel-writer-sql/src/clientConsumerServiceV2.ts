@@ -1,6 +1,5 @@
 import {
   AuthorizationEventEnvelopeV2,
-  ClientId,
   fromClientV2,
   genericInternalError,
   unsafeBrandId,
@@ -38,7 +37,7 @@ export async function handleMessageV2(
     )
     .with({ type: "ClientDeleted" }, async (message) => {
       await readModelService.deleteClientById(
-        unsafeBrandId<ClientId>(message.data.clientId),
+        unsafeBrandId(message.data.clientId),
         message.version
       );
     })
