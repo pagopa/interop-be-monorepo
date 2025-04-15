@@ -315,7 +315,8 @@ export const attributeInReadmodelAttribute = readmodelAttribute.table(
       withTimezone: true,
       mode: "string",
     }).notNull(),
-  }
+  },
+  (table) => [unique("attribute_name_key").on(table.name)]
 );
 
 export const delegationInReadmodelDelegation = readmodelDelegation.table(
