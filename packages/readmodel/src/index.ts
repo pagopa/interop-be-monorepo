@@ -1,14 +1,14 @@
 export * from "./utils.js";
 
 // AGREEMENT
+export * from "./agreementReadModelService.js";
 export * from "./agreement/splitters.js";
 export * from "./agreement/aggregators.js";
-export * from "./agreementReadModelService.js";
 
 // ATTRIBUTE
-export * from "./attribute/aggregators.js";
 export * from "./attributeReadModelService.js";
 export * from "./attribute/splitters.js";
+export * from "./attribute/aggregators.js";
 
 // CATALOG
 export * from "./catalogReadModelService.js";
@@ -20,17 +20,14 @@ export * from "./catalog/aggregators.js";
 export * from "./catalogReadModelService.js";
 
 // CLIENT
-export * from "./authorization/clientAggregators.js";
-export * from "./clientReadModelService.js";
-
-// CLIENT
 export * from "./clientReadModelService.js";
 export * from "./authorization/clientSplitters.js";
+export * from "./authorization/clientAggregators.js";
 
 // CLIENT JWK KEY
-export * from "./authorization/clientJWKKeyAggregators.js";
 export * from "./clientJWKKeyReadModelService.js";
 export * from "./authorization/clientJWKKeySplitters.js";
+export * from "./authorization/clientJWKKeyAggregators.js";
 
 // DELEGATION
 export * from "./delegation/aggregators.js";
@@ -46,24 +43,24 @@ export * from "./eserviceTemplateReadModelService.js";
 export * from "./eservice-template/splitters.js";
 
 // PURPOSE
+export * from "./purposeReadModelService.js";
 export * from "./purpose/splitters.js";
 export * from "./purpose/aggregators.js";
-export * from "./purposeReadModelService.js";
 
 // PRODUCER JWK KEY
-export * from "./authorization/producerJWKKeyAggregators.js";
 export * from "./producerJWKKeyReadModelService.js";
 export * from "./authorization/producerJWKKeySplitters.js";
+export * from "./authorization/producerJWKKeyAggregators.js";
 
 // PRODUCER KEYCHAIN
-export * from "./authorization/producerKeychainAggregators.js";
 export * from "./producerKeychainReadModelService.js";
 export * from "./authorization/producerKeychainSplitters.js";
+export * from "./authorization/producerKeychainAggregators.js";
 
 // DELEGATION
 export * from "./delegationReadModelService.js";
 
 // TENANT
-export * from "./tenant/aggregators.js";
 export * from "./tenantReadModelService.js";
 export * from "./tenant/splitters.js";
+export * from "./tenant/aggregators.js";
