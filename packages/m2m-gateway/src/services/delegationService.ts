@@ -1,6 +1,5 @@
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { DelegationId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { pollResource } from "../utils/polling.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -26,16 +25,41 @@ export function delegationServiceBuilder({
       seed: m2mGatewayApi.DelegationSeed,
       { headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegation> {
-      const delegationToBeCreated =
+      const response =
         await delegationProcessClient.consumer.createConsumerDelegation(seed, {
           headers,
         });
 
-      // TODO poll version after adding it to the getDelegation return body in delegation-process
-      return await pollDelegation(
-        delegationToBeCreated.id,
+      const polledResource = await pollDelegation(
+        response.data.id,
         headers
-      )({ checkFn: (d) => d.id === delegationToBeCreated.id });
+      )({
+        // TODO consider making checkFn optional, not needed in case we look for version 0
+        // because it just means that the resource exists
+        checkFn: (polled) => {
+          console.log(polled); // TODO remove this after debugging
+          return (
+            polled.metadata?.version !== undefined &&
+            polled.metadata.version >= 0
+          );
+        },
+      });
+
+      // TODO create a converter from delegationApi.Delegation to m2mGatewayApi.ConsumerDelegation
+      return {
+        id: polledResource.data.id,
+        delegatorId: polledResource.data.delegatorId,
+        delegateId: polledResource.data.delegateId,
+        eserviceId: polledResource.data.eserviceId,
+        createdAt: polledResource.data.createdAt,
+        updatedAt: polledResource.data.updatedAt,
+        rejectionReason: polledResource.data.rejectionReason,
+        revokedAt: polledResource.data.revokedAt,
+        state: polledResource.data.state,
+        activationContract: polledResource.data.activationContract,
+        revocationContract: polledResource.data.revocationContract,
+        stamps: polledResource.data.stamps,
+      };
     },
   };
 }

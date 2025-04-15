@@ -119,17 +119,18 @@ const delegationRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const delegation = await delegationService.getDelegationById(
+        const { data, metadata } = await delegationService.getDelegationById(
           unsafeBrandId(delegationId),
           ctx
         );
 
+        res.set({
+          "X-Metadata-Version": metadata.version,
+        });
         return res
           .status(200)
           .send(
-            delegationApi.Delegation.parse(
-              delegationToApiDelegation(delegation)
-            )
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -307,6 +308,7 @@ const delegationRouter = (
           },
           ctx
         );
+
         return res
           .status(200)
           .json(

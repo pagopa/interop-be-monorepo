@@ -21,7 +21,6 @@ const delegationRouter = (
   });
 
   const delegationService = delegationServiceBuilder(clients);
-  void delegationService;
 
   delegationRouter
     .get("/consumerDelegations", async (req, res) => {
@@ -41,7 +40,12 @@ const delegationRouter = (
     .post("/consumerDelegations", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        const createdDelegation =
+          await delegationService.createConsumerDelegation(req.body, ctx);
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.ConsumerDelegation.parse(createdDelegation));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

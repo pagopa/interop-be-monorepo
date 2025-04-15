@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 import { isAxiosError } from "axios";
 import { config } from "../config/config.js";
+import { WithMaybeMetadata } from "./zodiosMetadataPlugin.js";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,18 +14,20 @@ function delay(ms: number): Promise<void> {
  * @param options - Additional configuration
  * @returns Promise that resolves to the created/ready object
  */
-export function pollResource<T>(fetchResource: () => Promise<T | null>) {
+export function pollResource<T>(
+  fetchResource: () => Promise<WithMaybeMetadata<T>>
+) {
   return async function poll({
     checkFn,
     maxAttempts = config.defaultPollingMaxAttempts,
     intervalMs = config.defaultPollingIntervalMs,
   }: {
-    checkFn: (resource: T) => boolean;
+    checkFn: (resource: WithMaybeMetadata<T>) => boolean;
     maxAttempts?: number;
     intervalMs?: number;
-  }): Promise<T> {
+  }): Promise<WithMaybeMetadata<T>> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      let resource: T | null = null;
+      let resource: WithMaybeMetadata<T> | null = null;
 
       try {
         resource = await fetchResource();

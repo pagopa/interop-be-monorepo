@@ -282,6 +282,11 @@ paths:
         - delegation
       operationId: getDelegation
       responses:
+        headers:
+          X-Metadata-Version:
+            description: The version number of the resource in the read model
+            schema:
+              type: integer
         "200":
           description: Delegation retrieved
           content:

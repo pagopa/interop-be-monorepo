@@ -9,6 +9,11 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
+import { zodiosMetadataPlugin } from "../utils/zodiosMetadataPlugin.js";
+import {
+  PatchZodiosClient,
+  patchZodiosClient,
+} from "../utils/zodiosMetadataPlugin.js";
 
 export type TenantProcessClient = {
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
@@ -34,8 +39,12 @@ export type PurposeProcessClient = ReturnType<
 
 export type DelegationProcessClient = {
   producer: ReturnType<typeof delegationApi.createProducerApiClient>;
-  consumer: ReturnType<typeof delegationApi.createConsumerApiClient>;
-  delegation: ReturnType<typeof delegationApi.createDelegationApiClient>;
+  consumer: PatchZodiosClient<
+    ReturnType<typeof delegationApi.createConsumerApiClient>
+  >;
+  delegation: PatchZodiosClient<
+    ReturnType<typeof delegationApi.createDelegationApiClient>
+  >;
 };
 
 export type AuthorizationProcessClient = {
@@ -63,6 +72,15 @@ export type PagoPAInteropBeClients = {
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
+  const consumerDelegationsClient = patchZodiosClient(
+    delegationApi.createConsumerApiClient(config.delegationProcessUrl)
+  );
+  consumerDelegationsClient.use(zodiosMetadataPlugin());
+
+  const delegationClient = patchZodiosClient(
+    delegationApi.createDelegationApiClient(config.delegationProcessUrl)
+  );
+  delegationClient.use(zodiosMetadataPlugin());
   return {
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
@@ -95,12 +113,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       producer: delegationApi.createProducerApiClient(
         config.delegationProcessUrl
       ),
-      consumer: delegationApi.createConsumerApiClient(
-        config.delegationProcessUrl
-      ),
-      delegation: delegationApi.createDelegationApiClient(
-        config.delegationProcessUrl
-      ),
+      consumer: consumerDelegationsClient,
+      delegation: delegationClient,
     },
     eserviceTemplateProcessClient: eserviceTemplateApi.createProcessApiClient(
       config.eserviceTemplateProcessUrl

@@ -412,14 +412,13 @@ export function delegationServiceBuilder(
     async getDelegationById(
       delegationId: DelegationId,
       { logger }: WithLogger<AppContext>
-    ): Promise<Delegation> {
+    ): Promise<WithMetadata<Delegation>> {
       logger.info(`Retrieving delegation by id ${delegationId}`);
 
-      const delegation = await retrieveDelegationById(
+      return await retrieveDelegationById(
         { delegationId, kind: undefined },
         readModelService
       );
-      return delegation.data;
     },
     async getDelegations(
       {
