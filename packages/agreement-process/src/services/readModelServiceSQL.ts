@@ -542,30 +542,12 @@ export function readModelServiceBuilderSQL(
           and(
             // PRODUCERS
             producerIds.length > 0
-              ? or(
-                  inArray(
-                    agreementInReadmodelAgreement.producerId,
-                    producerIds
-                  ),
-                  inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    producerIds
-                  )
-                )
+              ? inArray(agreementInReadmodelAgreement.producerId, producerIds)
               : undefined,
             // END PRODUCERS
             // CONSUMERS
             consumerIds.length > 0
-              ? or(
-                  inArray(
-                    agreementInReadmodelAgreement.consumerId,
-                    consumerIds
-                  ),
-                  inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    consumerIds
-                  )
-                )
+              ? inArray(agreementInReadmodelAgreement.consumerId, consumerIds)
               : undefined,
             // END CONSUMERS
             // ESERVICES
