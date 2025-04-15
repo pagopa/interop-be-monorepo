@@ -8,7 +8,7 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
@@ -48,7 +48,12 @@ const agreementRouter = (
     .get("/agreements/:agreementId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        const agreement = await agreementService.getAgreement(
+          ctx,
+          unsafeBrandId(req.params.agreementId)
+        );
+
+        return res.status(200).send(m2mGatewayApi.Agreement.parse(agreement));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
