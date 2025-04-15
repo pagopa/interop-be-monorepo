@@ -153,6 +153,7 @@ export async function handleMessageV2(
               clientId: client.id,
               kid: msg.data.kid,
             }),
+            adminId: client.adminId,
             consumerId: client.consumerId,
             clientKind: clientKindTokenGenStates.api,
             publicKey: pem,

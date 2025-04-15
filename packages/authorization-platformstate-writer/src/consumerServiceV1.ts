@@ -110,6 +110,7 @@ export async function handleMessageV1(
           clientPurposesIds,
           version: msg.version,
           updatedAt: new Date().toISOString(),
+          adminId: clientEntry.adminId,
         };
         await upsertPlatformClientEntry(
           platformClientEntry,
@@ -201,6 +202,7 @@ export async function handleMessageV1(
                 clientId,
                 kid,
               }),
+              adminId: platformClientEntry.adminId,
               consumerId: platformClientEntry.clientConsumerId,
               clientKind: clientKindTokenGenStates.api,
               publicKey: pem,

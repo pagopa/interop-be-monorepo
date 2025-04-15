@@ -164,6 +164,7 @@ export class InteropTokenGenerator {
       kid: this.config.generatedInteropTokenKid,
     };
 
+    // andare a recuperare in DB se quel clientId ha un adminId, se si, token M2M_ADMIN sennò Token M2M base
     const payload: InteropJwtApiPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
