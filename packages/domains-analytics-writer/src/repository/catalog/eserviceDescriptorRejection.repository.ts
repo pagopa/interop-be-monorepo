@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { EServiceDescriptorRejectionReasonSQL } from "pagopa-interop-readmodel-models";
-import { DBConnection, IMain, ITask } from "../../db/db.js";
+import { ITask, IMain } from "pg-promise";
+import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";

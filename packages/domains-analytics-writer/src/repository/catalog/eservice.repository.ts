@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { EServiceSQL } from "pagopa-interop-readmodel-models";
-import { DBConnection, IMain, ITask } from "../../db/db.js";
+import { IMain, ITask } from "pg-promise";
+import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
@@ -80,8 +81,7 @@ export function eserviceRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id",
-          true
+          "id"
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

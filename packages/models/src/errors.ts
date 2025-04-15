@@ -3,6 +3,7 @@ import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { CorrelationId } from "./brandedIds.js";
+import { serviceErrorCode, ServiceName } from "./services.js";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -67,8 +68,14 @@ export type Problem = {
 type MakeApiProblemFn<T extends string> = (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
-  logger: { error: (message: string) => void; warn: (message: string) => void },
-  correlationId: CorrelationId,
+  context: {
+    logger: {
+      error: (message: string) => void;
+      warn: (message: string) => void;
+    };
+    correlationId: CorrelationId;
+    serviceName: string;
+  },
   operationalLogMessage?: string
 ) => Problem;
 
@@ -87,7 +94,22 @@ export function makeApiProblemBuilder<T extends string>(
   problemErrorsPassthrough: boolean = true
 ): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper, logger, correlationId, operationalLogMessage) => {
+
+  function retrieveServiceErrorCode(serviceName: string): string {
+    const serviceNameParsed = ServiceName.safeParse(serviceName);
+    return serviceNameParsed.success
+      ? serviceErrorCode[serviceNameParsed.data]
+      : "000";
+  }
+
+  return (
+    error,
+    httpMapper,
+    { logger, correlationId, serviceName },
+    operationalLogMessage
+  ) => {
+    const serviceErrorCode = retrieveServiceErrorCode(serviceName);
+
     const makeProblem = (
       httpStatus: number,
       { title, detail, errors }: ApiError<T | CommonErrorCodes>
@@ -98,7 +120,7 @@ export function makeApiProblemBuilder<T extends string>(
       detail,
       correlationId,
       errors: errors.map(({ code, detail }) => ({
-        code: allErrors[code],
+        code: `${serviceErrorCode}-${allErrors[code]}`,
         detail,
       })),
     });
@@ -266,14 +288,26 @@ export function tokenGenerationError(
 export function kafkaMessageProcessError(
   topic: string,
   partition: number,
-  offset: string,
+  {
+    offset,
+    streamId,
+    eventType,
+    eventVersion,
+  }: {
+    offset: string;
+    streamId?: string;
+    eventType?: string;
+    eventVersion?: number;
+  },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}. ${
-      error ? parseErrorMessage(error) : ""
-    }`,
+    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}${
+      streamId ? ` - streamId ${streamId}` : ""
+    }${eventType ? ` - eventType ${eventType}` : ""}${
+      eventVersion ? ` - eventVersion ${eventVersion}` : ""
+    }. ${error ? parseErrorMessage(error) : ""}`,
   });
 }
 

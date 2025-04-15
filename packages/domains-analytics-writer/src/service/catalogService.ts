@@ -6,7 +6,9 @@ import { EServiceId } from "pagopa-interop-models";
 import {
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorSQL,
+  EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
+import { splitDescriptorIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { DBContext } from "../db/db.js";
 import { eserviceRiskAnalysisAnswerRepository } from "../repository/catalog/eserviceRiskAnalysisAnswer.repository.js";
 import { eserviceRiskAnalysisRepository } from "../repository/catalog/eserviceRiskAnalysis.repository.js";

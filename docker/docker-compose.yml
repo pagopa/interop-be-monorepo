@@ -31,7 +31,7 @@ services:
     command: -c 'max_connections=512' -c 'wal_level=logical'
   
   # analytics POSTGRESQL-15
-  domains-analytics:
+  domains-analytics-sql:
     volumes:
       - ./domains-analytics-db:/docker-entrypoint-initdb.d
     image: postgres:15
@@ -88,6 +88,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ./mongo-data:/data/db
 
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:

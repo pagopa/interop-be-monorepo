@@ -15,8 +15,13 @@ import // splitDescriptorIntoObjectsSQL,
 import {
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorSQL,
+  EServiceItemsSQL,
   // EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
+import {
+  splitDescriptorIntoObjectsSQL,
+  splitEserviceIntoObjectsSQL,
+} from "pagopa-interop-readmodel";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { DBContext } from "../../db/db.js";
 

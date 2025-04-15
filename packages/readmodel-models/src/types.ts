@@ -20,9 +20,11 @@ import {
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateRefInReadmodelCatalog,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -70,6 +72,24 @@ export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
   typeof eserviceDescriptorAttributeInReadmodelCatalog
 >;
+export type EServiceTemplateRefSQL = InferSelectModel<
+  typeof eserviceTemplateRefInReadmodelCatalog
+>;
+export type EServiceDescriptorTemplateVersionRefSQL = InferSelectModel<
+  typeof eserviceDescriptorTemplateVersionRefInReadmodelCatalog
+>;
+export type EServiceItemsSQL = {
+  eserviceSQL: EServiceSQL;
+  templateRefSQL: EServiceTemplateRefSQL | undefined;
+  riskAnalysesSQL: EServiceRiskAnalysisSQL[];
+  riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+};
 
 export type AttributeSQL = InferSelectModel<
   typeof attributeInReadmodelAttribute
@@ -120,6 +140,16 @@ export type TenantVerifiedAttributeRevokerSQL = InferSelectModel<
 export type TenantFeatureSQL = InferSelectModel<
   typeof tenantFeatureInReadmodelTenant
 >;
+export type TenantItemsSQL = {
+  tenantSQL: TenantSQL;
+  mailsSQL: TenantMailSQL[];
+  certifiedAttributesSQL: TenantCertifiedAttributeSQL[];
+  declaredAttributesSQL: TenantDeclaredAttributeSQL[];
+  verifiedAttributesSQL: TenantVerifiedAttributeSQL[];
+  verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
+  verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
+  featuresSQL: TenantFeatureSQL[];
+};
 
 export type PurposeSQL = InferSelectModel<typeof purposeInReadmodelPurpose>;
 export type PurposeVersionSQL = InferSelectModel<
@@ -134,6 +164,13 @@ export type PurposeRiskAnalysisFormSQL = InferSelectModel<
 export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
   typeof purposeRiskAnalysisAnswerInReadmodelPurpose
 >;
+export type PurposeItemsSQL = {
+  purposeSQL: PurposeSQL;
+  riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
+  riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] | undefined;
+  versionsSQL: PurposeVersionSQL[];
+  versionDocumentsSQL: PurposeVersionDocumentSQL[];
+};
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
 export type ClientUserSQL = InferSelectModel<
@@ -143,6 +180,13 @@ export type ClientPurposeSQL = InferSelectModel<
   typeof clientPurposeInReadmodelClient
 >;
 export type ClientKeySQL = InferSelectModel<typeof clientKeyInReadmodelClient>;
+
+export type ClientItemsSQL = {
+  clientSQL: ClientSQL;
+  usersSQL: ClientUserSQL[];
+  purposesSQL: ClientPurposeSQL[];
+  keysSQL: ClientKeySQL[];
+};
 
 export type ProducerKeychainSQL = InferSelectModel<
   typeof producerKeychainInReadmodelProducerKeychain
@@ -156,6 +200,12 @@ export type ProducerKeychainEServiceSQL = InferSelectModel<
 export type ProducerKeychainKeySQL = InferSelectModel<
   typeof producerKeychainKeyInReadmodelProducerKeychain
 >;
+export type ProducerKeychainItemsSQL = {
+  producerKeychainSQL: ProducerKeychainSQL;
+  usersSQL: ProducerKeychainUserSQL[];
+  eservicesSQL: ProducerKeychainEServiceSQL[];
+  keysSQL: ProducerKeychainKeySQL[];
+};
 
 export type ClientJWKKeySQL = InferSelectModel<
   typeof clientJwkKeyInReadmodelClientJwkKey
@@ -174,3 +224,8 @@ export type DelegationStampSQL = InferSelectModel<
 export type DelegationContractDocumentSQL = InferSelectModel<
   typeof delegationContractDocumentInReadmodelDelegation
 >;
+export type DelegationItemsSQL = {
+  delegationSQL: DelegationSQL;
+  stampsSQL: DelegationStampSQL[];
+  contractDocumentsSQL: DelegationContractDocumentSQL[];
+};

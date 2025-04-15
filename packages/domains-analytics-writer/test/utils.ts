@@ -1,43 +1,52 @@
-import { initDB, DBContext, DBConnection } from "../src/db/db.js";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { genericLogger } from "pagopa-interop-commons";
+import { inject } from "vitest";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { Batch } from "kafkajs";
+import { AttributeSchema } from "../src/model/attribute/attribute.js";
+import { DBContext, DBConnection } from "../src/db/db.js";
 import { config } from "../src/config/config.js";
+import { retryConnection } from "../src/db/buildColumnSet.js";
+import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
+import { AttributeDbtable, DeletingDbTable } from "../src/model/db.js";
+import { attributeServiceBuilder } from "../src/service/attributeService.js";
 
-const dbInstance = initDB({
-  username: config.dbUsername,
-  password: config.dbPassword,
-  host: config.dbHost,
-  port: config.dbPort,
-  database: config.dbName,
-  useSSL: config.dbUseSSL,
-  maxConnectionPool: config.dbMaxConnectionPool,
-});
+export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  inject("analyticsSQLDbConfig")
+);
+const connection = await analyticsPostgresDB.connect();
 
-const connection = await dbInstance.connect();
 export const dbContext: DBContext = {
   conn: connection,
-  pgp: dbInstance.$config.pgp,
+  pgp: analyticsPostgresDB.$config.pgp,
 };
 
-export async function getTargetTableCount(
-  db: DBConnection,
-  table: string
-): Promise<number> {
-  const query = `SELECT COUNT(*) as count FROM $1:name.$2:name;`;
-  const result = await db.one<{ count: string }>(query, [
-    config.dbSchemaName,
-    [table],
-  ]);
-  return Number(result.count);
-}
+await retryConnection(
+  analyticsPostgresDB,
+  dbContext,
+  config,
+  async (db) => {
+    await setupDbServiceBuilder(db.conn, config).setupStagingTables([
+      AttributeDbtable.attribute,
+    ]);
+    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingByIdTables(
+      [DeletingDbTable.attribute_deleting_table]
+    );
+  },
+  genericLogger
+);
 
-export async function truncateTables(
-  db: DBConnection,
-  schema: string,
-  tables: string[]
-): Promise<void> {
-  for (const table of tables) {
-    await db.none(`TRUNCATE TABLE ${schema}.${table};`);
-  }
-}
+export const attributeService = attributeServiceBuilder(dbContext);
+
+export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,
@@ -51,3 +60,44 @@ export async function getTablesByName(
     `;
   return await db.query<Array<{ tablename: string }>>(query, [tables]);
 }
+
+export async function getAttributeFromDb(
+  id: string,
+  db: DBContext
+): Promise<AttributeSchema[] | null> {
+  return db.conn.any(`SELECT * FROM domains.attribute WHERE id = $1`, [id]);
+}
+
+export const mockAttributeBatch: Batch = {
+  topic: config.attributeTopic,
+  partition: 0,
+  highWatermark: "0",
+  messages: [
+    {
+      value: { event_version: 1 },
+    } as any,
+  ],
+  isEmpty: () => false,
+  firstOffset: () => "0",
+  lastOffset: () => "0",
+  offsetLag: () => "0",
+  offsetLagLow: () => "0",
+};
+export const mockCatalogBatch: Batch = {
+  topic: config.catalogTopic,
+  partition: 0,
+  highWatermark: "0",
+  messages: [
+    {
+      value: { event_version: 1 },
+    } as any,
+    {
+      value: { event_version: 2 },
+    } as any,
+  ],
+  isEmpty: () => false,
+  firstOffset: () => "0",
+  lastOffset: () => "0",
+  offsetLag: () => "0",
+  offsetLagLow: () => "0",
+};

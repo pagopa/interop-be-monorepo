@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
+import { DeletingDbTable } from "../model/db.js";
+import { setupStagingTablesError } from "../model/errors.js";
 
 export interface SetupDbConfig {
   mergeTableSuffix: string;
@@ -23,41 +26,27 @@ export function setupDbServiceBuilder(
           })
         );
       } catch (error: unknown) {
-        throw error;
+        throw setupStagingTablesError(error);
       }
     },
 
-    async setupStagingDeletingTables(tableNames: string[]): Promise<void> {
+    async setupStagingDeletingByIdTables(
+      deletingTableName: DeletingDbTable[]
+    ): Promise<void> {
       try {
         await Promise.all(
-          tableNames.map((tableName) => {
-            const fullStagingTable = `${tableName}${config.mergeTableSuffix}`;
+          deletingTableName.map((deletingTableName) => {
             const query = `
-              CREATE TEMPORARY TABLE IF NOT EXISTS ${fullStagingTable} (
-                id VARCHAR(36),
-                deleted BOOLEAN NOT NULL
-              );
-            `;
+            CREATE TEMPORARY TABLE IF NOT EXISTS ${deletingTableName} (
+              id VARCHAR(36) PRIMARY KEY,
+              deleted BOOLEAN NOT NULL
+            );
+          `;
             return conn.query(query);
           })
         );
       } catch (error: unknown) {
-        throw error;
-      }
-    },
-    async setupStagingDeletingByIdTables(): Promise<void> {
-      try {
-        const queries = [
-          `
-            CREATE TEMPORARY TABLE IF NOT EXISTS deleting_by_id_table (
-              id VARCHAR(36) PRIMARY KEY,
-              deleted BOOLEAN NOT NULL
-            );
-          `,
-        ];
-        await Promise.all(queries.map((query) => conn.query(query)));
-      } catch (error: unknown) {
-        throw error;
+        throw setupStagingTablesError(error);
       }
     },
   };

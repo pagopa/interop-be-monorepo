@@ -10,9 +10,10 @@ import {
   KafkaBatchConsumerConfig,
   LoggerConfig,
   EServiceTemplateTopicConfig,
+  AnalyticsSQLDbConfig,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
-import { DbConfig } from "./dbConfig.js";
 
 export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
   KafkaBatchConsumerConfig
@@ -27,7 +28,7 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
   .and(AuthorizationTopicConfig)
   .and(DelegationTopicConfig)
   .and(EServiceTemplateTopicConfig)
-  .and(DbConfig)
+  .and(AnalyticsSQLDbConfig)
   .and(
     z
       .object({
@@ -40,7 +41,8 @@ export const DomainsAnalyticsWriterConfig = KafkaConsumerConfig.and(
         mergeTableSuffix: c.MERGE_TABLE_SUFFIX,
         serviceName: c.SERVICE_NAME,
       }))
-  );
+  )
+  .and(ReadModelSQLDbConfig);
 
 export type DomainsAnalyticsWriterConfig = z.infer<
   typeof DomainsAnalyticsWriterConfig

@@ -1,7 +1,7 @@
 import pRetry from "p-retry";
-import { Logger } from "pagopa-interop-commons";
-import { DbConfig } from "../config/dbConfig.js";
-import { IMain, ColumnSet, IColumnDescriptor, DB, DBContext } from "./db.js";
+import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
+import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { DBContext } from "./db.js";
 
 export type ColumnValue = string | number | Date | undefined | null | boolean;
 
@@ -47,7 +47,7 @@ export const buildColumnSet = <T>(
 const attachErrorHandler = (
   dbInstance: DB,
   dbContext: DBContext,
-  dbConfig: DbConfig,
+  dbConfig: AnalyticsSQLDbConfig,
   runFn: (context: DBContext) => Promise<void>,
   logger: Logger
 ): void => {
@@ -89,7 +89,7 @@ const attachErrorHandler = (
 export const retryConnection = async (
   dbInstance: DB,
   dbContext: DBContext,
-  dbConfig: DbConfig,
+  dbConfig: AnalyticsSQLDbConfig,
   runFn: (context: DBContext) => Promise<void>,
   logger: Logger
 ): Promise<void> => {

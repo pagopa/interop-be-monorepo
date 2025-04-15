@@ -1,5 +1,5 @@
 import { genericInternalError } from "pagopa-interop-models";
-import { ITask } from "../../db/db.js";
+import { ITask } from "pg-promise";
 import { generateMergeDeleteQuery } from "../../utils/sqlQueryHelper.js";
 import { CatalogDbTable } from "../../model/db.js";
 import { config } from "../../config/config.js";

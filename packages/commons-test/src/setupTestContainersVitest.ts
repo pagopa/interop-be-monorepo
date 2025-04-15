@@ -24,6 +24,7 @@ import {
   AWSSesConfig,
   initSesMailManager,
   ReadModelSQLDbConfig,
+  AnalyticsSQLDbConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -120,6 +121,26 @@ export function setupTestContainersVitest(
   readModelDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
+export function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
+  emailManagerConfig?: PecEmailManagerConfigTest,
+  RedisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig,
+  analyticsSQLDbConfig?: AnalyticsSQLDbConfig
+): Promise<{
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  pecEmailManager: EmailManagerPEC;
+  sesEmailManager: EmailManagerSES;
+  redisRateLimiter: RateLimiter;
+  readModelDB: DrizzleReturnType;
+  analyticsPostgresDB: DB;
+  cleanup: () => Promise<void>;
+}>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
@@ -128,7 +149,8 @@ export async function setupTestContainersVitest(
   emailManagerConfig?: PecEmailManagerConfigTest,
   redisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig,
-  readModelSQLDbConfig?: ReadModelSQLDbConfig
+  readModelSQLDbConfig?: ReadModelSQLDbConfig,
+  analyticsSQLDbConfig?: AnalyticsSQLDbConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
@@ -137,6 +159,7 @@ export async function setupTestContainersVitest(
   sesEmailManager?: EmailManagerSES;
   redisRateLimiter?: RateLimiter;
   readModelDB?: DrizzleReturnType;
+  analyticsPostgresDB?: DB;
   cleanup: () => Promise<void>;
 }> {
   let readModelRepository: ReadModelRepository | undefined;
@@ -147,7 +170,7 @@ export async function setupTestContainersVitest(
   let redisRateLimiter: RateLimiter | undefined;
   const redisRateLimiterGroup = "TEST";
   let readModelDB: DrizzleReturnType | undefined;
-
+  let analyticsPostgresDB: DB | undefined;
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
   }
@@ -199,6 +222,18 @@ export async function setupTestContainersVitest(
     });
     readModelDB = drizzle({ client: pool });
   }
+
+  if (analyticsSQLDbConfig) {
+    analyticsPostgresDB = initDB({
+      username: analyticsSQLDbConfig.dbUsername,
+      password: analyticsSQLDbConfig.dbPassword,
+      host: analyticsSQLDbConfig.dbHost,
+      port: analyticsSQLDbConfig.dbPort,
+      database: analyticsSQLDbConfig.dbName,
+      useSSL: analyticsSQLDbConfig.dbUseSSL,
+      schema: analyticsSQLDbConfig.dbSchemaName,
+    });
+  }
   return {
     readModelRepository,
     postgresDB,
@@ -207,6 +242,7 @@ export async function setupTestContainersVitest(
     sesEmailManager,
     redisRateLimiter,
     readModelDB,
+    analyticsPostgresDB,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});
