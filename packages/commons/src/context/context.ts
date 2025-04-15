@@ -24,8 +24,8 @@ export type AppContext<A extends AuthData = AuthData> = {
   correlationId: CorrelationId;
   spanId: SpanId;
   requestTimestamp: number;
-  clientId: ClientId.optional(),
-  organizationId: TenantId.optional(),
+  clientId?: ClientId;
+  organizationId?: TenantId;
 };
 
 export const zodiosCtx = zodiosContext();
