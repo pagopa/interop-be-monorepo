@@ -6,11 +6,13 @@ import {
 } from "@zodios/express";
 import { z } from "zod";
 import {
+  ClientId,
   CorrelationId,
   generateId,
   makeApiProblemBuilder,
   missingHeader,
   SpanId,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
@@ -23,6 +25,8 @@ export const AppContext = z.object({
   correlationId: CorrelationId,
   spanId: SpanId,
   requestTimestamp: z.number(),
+  clientId: ClientId.optional(),
+  organizationId: TenantId.optional(),
 });
 export type AppContext = z.infer<typeof AppContext>;
 

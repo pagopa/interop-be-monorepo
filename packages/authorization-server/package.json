@@ -42,6 +42,7 @@
     "kafka-iam-auth": "workspace:*",
     "openapi-zod-client": "1.18.1",
     "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-client-assertion-validation": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

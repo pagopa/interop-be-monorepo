@@ -64,11 +64,7 @@ const authorizationServerRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const tokenResult = await tokenService.generateToken(
-          req.body,
-          ctx.correlationId,
-          ctx.logger
-        );
+        const tokenResult = await tokenService.generateToken(req.body, ctx);
 
         const headers = rateLimiterHeadersFromStatus(
           tokenResult.rateLimiterStatus
@@ -77,7 +73,7 @@ const authorizationServerRouter = (
 
         if (tokenResult.limitReached) {
           const errorRes = makeApiProblem(
-            tooManyRequestsError(tokenResult.rateLimitedTenantId),
+            tooManyRequestsError(tokenResult.tenantId),
             authorizationServerErrorMapper,
             ctx
           );

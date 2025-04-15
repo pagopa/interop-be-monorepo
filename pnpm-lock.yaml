@@ -962,6 +962,9 @@ importers:
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-client-assertion-validation:
         specifier: workspace:*
         version: link:../client-assertion-validation

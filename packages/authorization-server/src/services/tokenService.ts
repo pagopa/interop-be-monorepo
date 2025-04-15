@@ -35,6 +35,7 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
+  AppContext,
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
@@ -45,6 +46,7 @@ import {
   RateLimiter,
   RateLimiterStatus,
   secondsToMilliseconds,
+  WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import { config } from "../config/config.js";
@@ -63,12 +65,13 @@ export type GenerateTokenReturnType =
   | {
       limitReached: true;
       token: undefined;
-      rateLimitedTenantId: TenantId;
+      tenantId: TenantId;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
     }
   | {
       limitReached: false;
       token: InteropConsumerToken | InteropApiToken;
+      tenantId: TenantId;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
     };
 
@@ -89,10 +92,9 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      correlationId: CorrelationId,
-      logger: Logger
+      ctx: WithLogger<AppContext>
     ): Promise<GenerateTokenReturnType> {
-      logger.info(`[CLIENTID=${request.client_id}] Token requested`);
+      ctx.logger.info(`[CLIENTID=${request.client_id}] Token requested`);
 
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
@@ -113,7 +115,7 @@ export function tokenServiceBuilder({
           request.client_assertion,
           request.client_id,
           config.clientAssertionAudience,
-          logger
+          ctx.logger
         );
 
       if (clientAssertionErrors) {
@@ -132,7 +134,7 @@ export function tokenServiceBuilder({
         clientKind: undefined,
         tokenJti: undefined,
         message: "Client assertion validated",
-        logger,
+        logger: ctx.logger,
       });
 
       const pk = purposeId
@@ -150,7 +152,7 @@ export function tokenServiceBuilder({
         clientKind: key.clientKind,
         tokenJti: undefined,
         message: "Key retrieved",
-        logger,
+        logger: ctx.logger,
       });
 
       const { errors: clientAssertionSignatureErrors } =
@@ -176,12 +178,15 @@ export function tokenServiceBuilder({
       }
 
       const { limitReached, ...rateLimiterStatus } =
-        await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
+        await redisRateLimiter.rateLimitByOrganization(
+          key.consumerId,
+          ctx.logger
+        );
       if (limitReached) {
         return {
           limitReached: true,
           token: undefined,
-          rateLimitedTenantId: key.consumerId,
+          tenantId: key.consumerId,
           rateLimiterStatus,
         };
       }
@@ -203,9 +208,9 @@ export function tokenServiceBuilder({
               generatedToken: token,
               key,
               clientAssertion: jwt,
-              correlationId,
+              correlationId: ctx.correlationId,
               fileManager,
-              logger,
+              logger: ctx.logger,
             });
 
             logTokenGenerationInfo({
@@ -213,12 +218,13 @@ export function tokenServiceBuilder({
               clientKind: key.clientKind,
               tokenJti: token.payload.jti,
               message: "Token generated",
-              logger,
+              logger: ctx.logger,
             });
 
             return {
               limitReached: false as const,
               token,
+              tenantId: key.consumerId,
               rateLimiterStatus,
             };
           }
@@ -234,12 +240,13 @@ export function tokenServiceBuilder({
             clientKind: key.clientKind,
             tokenJti: token.payload.jti,
             message: "Token generated",
-            logger,
+            logger: ctx.logger,
           });
 
           return {
             limitReached: false as const,
             token,
+            tenantId: key.consumerId,
             rateLimiterStatus,
           };
         })
