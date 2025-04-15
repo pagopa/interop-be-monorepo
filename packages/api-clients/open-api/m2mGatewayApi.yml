@@ -35,22 +35,22 @@ tags:
       description: Find out more
       url: "http://swagger.io"
   - name: purposes
-    description: Purpose routes
+    description: Purposes routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: tenants
-    description: Tenant routes
+    description: Tenants routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: delegations
-    description: Delegation routes
+    description: Delegations routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
   - name: eserviceTemplates
-    description: EService Template routes
+    description: EService Templates routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
