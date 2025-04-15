@@ -1,3 +1,4 @@
+import { notFound } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const FeatureFlagSignalhubConfig = z
@@ -5,7 +6,8 @@ export const FeatureFlagSignalhubConfig = z
     FEATURE_FLAG_SIGNALHUB_WHITELIST: z
       .enum(["true", "false"])
       .default("false")
-      .transform((value) => value === "true"),
+      .transform((value) => value === "true")
+      .optional(),
     SIGNALHUB_WHITELIST_PRODUCER: z
       .string()
       .transform((value) => value.split(","))
@@ -13,7 +15,7 @@ export const FeatureFlagSignalhubConfig = z
       .optional(),
   })
   .transform((c) => ({
-    featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST,
+    featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST ?? false,
     signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
   }));
 
@@ -37,3 +39,9 @@ export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
 export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
   typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
 >;
+
+export const assertFeatureFlag = (featureFlag: boolean): void => {
+  if (featureFlag !== true) {
+    throw notFound();
+  }
+};

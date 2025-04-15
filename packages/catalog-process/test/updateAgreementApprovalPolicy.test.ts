@@ -10,6 +10,7 @@ import {
   generateId,
   agreementApprovalPolicy,
   EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
+  notFound,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -18,6 +19,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptor,
 } from "../src/model/domain/errors.js";
+import { config } from "../src/config/config.js";
 import {
   addOneEService,
   catalogService,
@@ -205,5 +207,22 @@ describe("update descriptor agreement approval policy", () => {
         }
       )
     ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw notFound if the feature flag is not enabled", async () => {
+    config.featureFlagAgreementApprovalPolicyUpdate = false;
+    await expect(
+      catalogService.updateAgreementApprovalPolicy(
+        mockEService.id,
+        mockDescriptor.id,
+        { agreementApprovalPolicy: "MANUAL" },
+        {
+          authData: getMockAuthData(),
+          correlationId: generateId(),
+          serviceName: "",
+          logger: genericLogger,
+        }
+      )
+    ).rejects.toThrowError(notFound());
   });
 });
