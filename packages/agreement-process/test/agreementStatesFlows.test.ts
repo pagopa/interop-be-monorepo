@@ -8,10 +8,8 @@ import {
   getMockTenant,
   getMockVerifiedTenantAttribute,
   getMockAuthData,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
-  Agreement,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -24,53 +22,24 @@ import {
   attributeKind,
   descriptorState,
   generateId,
-  toReadModelAgreement,
-  toReadModelEService,
-  toReadModelTenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { addDays, subDays } from "date-fns";
-import { getAMockDescriptorPublished } from "./utils.js";
+import {
+  writeOnlyOneAgreement,
+  getAMockDescriptorPublished,
+  updateAgreementInReadModel,
+  updateOneEService,
+  updateOneTenant,
+} from "./utils.js";
 import {
   addOneAttribute,
   addOneEService,
   addOneTenant,
   agreementService,
-  agreements,
-  eservices,
-  tenants,
 } from "./utils.js";
 
 describe("Agreeement states flows", () => {
-  async function updateAgreementInReadModel(
-    agreement: Agreement
-  ): Promise<void> {
-    const currentVersion = (
-      await agreements.findOne({
-        "data.id": agreement.id,
-      })
-    )?.metadata.version;
-
-    if (currentVersion === undefined) {
-      throw new Error("Agreement not found in read model. Cannot update.");
-    }
-
-    await agreements.updateOne(
-      {
-        "data.id": agreement.id,
-        "metadata.version": currentVersion,
-      },
-      {
-        $set: {
-          data: toReadModelAgreement(agreement),
-          metadata: {
-            version: currentVersion + 1,
-          },
-        },
-      }
-    );
-  }
-
   it("agreement for descriptor V1 >> suspended by consumer >> V2 with new verified attributes >> upgrade >> producer verifies attributes and activates >> should still be SUSPENDED by consumer", async () => {
     /* Test added in https://github.com/pagopa/interop-be-monorepo/pull/619 to
     verify the fix for https://pagopa.atlassian.net/browse/IMN-587 -- before the fix,
@@ -156,7 +125,8 @@ describe("Agreeement states flows", () => {
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
-    await writeInReadmodel(toReadModelAgreement(createdAgreement), agreements);
+    // await writeInReadmodel(toReadModelAgreement(createdAgreement), agreements);
+    await writeOnlyOneAgreement(createdAgreement);
 
     /* =================================
       2) Consumer submits the agreement (making it Active)
@@ -212,7 +182,8 @@ describe("Agreeement states flows", () => {
         descriptorV2,
       ],
     };
-
+    await updateOneEService(updatedEservice);
+    /*
     await eservices.updateOne(
       {
         "data.id": updatedEservice.id,
@@ -227,6 +198,7 @@ describe("Agreeement states flows", () => {
         },
       }
     );
+    */
 
     /* =================================
       5) Consumer upgrades the Agreement
@@ -240,7 +212,8 @@ describe("Agreeement states flows", () => {
     expect(upgradedAgreement.suspendedByConsumer).toEqual(true);
     expect(upgradedAgreement.suspendedByProducer).toEqual(undefined);
     expect(upgradedAgreement.suspendedByPlatform).toEqual(undefined);
-    await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
+    // await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
+    await writeOnlyOneAgreement(upgradedAgreement);
 
     /* =================================
       6) Producer submits the agreement to make it PENDING
@@ -279,20 +252,7 @@ describe("Agreeement states flows", () => {
       attributes: [...consumer.attributes, validVerifiedTenantAttribute],
     };
 
-    await tenants.updateOne(
-      {
-        "data.id": updatedConsumer.id,
-        "metadata.version": 0,
-      },
-      {
-        $set: {
-          data: toReadModelTenant(updatedConsumer),
-          metadata: {
-            version: 1,
-          },
-        },
-      }
-    );
+    await updateOneTenant(updatedConsumer);
 
     await addOneAttribute({
       id: validVerifiedTenantAttribute.id,
@@ -405,7 +365,8 @@ describe("Agreeement states flows", () => {
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
-    await writeInReadmodel(toReadModelAgreement(createdAgreement), agreements);
+    // await writeInReadmodel(toReadModelAgreement(createdAgreement), agreements);
+    await writeOnlyOneAgreement(createdAgreement);
 
     /* =================================
       2) Consumer submits the agreement (making it Active)
@@ -448,20 +409,7 @@ describe("Agreeement states flows", () => {
       ],
     };
 
-    await eservices.updateOne(
-      {
-        "data.id": updatedEservice.id,
-        "metadata.version": 0,
-      },
-      {
-        $set: {
-          data: toReadModelEService(updatedEservice),
-          metadata: {
-            version: 1,
-          },
-        },
-      }
-    );
+    await updateOneEService(updatedEservice);
 
     /* =================================
       5) Consumer upgrades the Agreement
@@ -475,7 +423,8 @@ describe("Agreeement states flows", () => {
     expect(upgradedAgreement.suspendedByConsumer).toEqual(undefined);
     expect(upgradedAgreement.suspendedByProducer).toEqual(undefined);
     expect(upgradedAgreement.suspendedByPlatform).toEqual(undefined);
-    await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
+    // await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
+    await writeOnlyOneAgreement(upgradedAgreement);
 
     /* =================================
       6) Producer submits the agreement to make it PENDING
@@ -514,20 +463,7 @@ describe("Agreeement states flows", () => {
       attributes: [...consumer.attributes, validVerifiedTenantAttribute],
     };
 
-    await tenants.updateOne(
-      {
-        "data.id": updatedConsumer.id,
-        "metadata.version": 0,
-      },
-      {
-        $set: {
-          data: toReadModelTenant(updatedConsumer),
-          metadata: {
-            version: 1,
-          },
-        },
-      }
-    );
+    await updateOneTenant(updatedConsumer);
 
     await addOneAttribute({
       id: validVerifiedTenantAttribute.id,
