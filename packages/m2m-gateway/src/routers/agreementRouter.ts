@@ -24,7 +24,6 @@ const agreementRouter = (
   });
 
   const agreementService = agreementServiceBuilder(clients);
-  void agreementService;
 
   agreementRouter
     .get("/agreements", async (req, res) => {
