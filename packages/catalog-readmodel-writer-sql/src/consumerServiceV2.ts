@@ -1,6 +1,5 @@
 import {
   EServiceEventEnvelopeV2,
-  EServiceId,
   fromEServiceV2,
   genericInternalError,
   unsafeBrandId,
