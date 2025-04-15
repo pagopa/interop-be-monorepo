@@ -3,6 +3,7 @@ import {
   ClientId,
   PurposeId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -49,6 +50,7 @@ export type InteropJwtApiPayload = InteropJwtCommonPayload & {
   sub: ClientId;
   [ORGANIZATION_ID_CLAIM]: TenantId;
   [ROLE_CLAIM]: string;
+  user_id?: UserId;
 };
 
 export type InteropJwtPayload = InteropJwtCommonPayload & {
