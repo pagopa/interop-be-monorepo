@@ -68,6 +68,7 @@ describe("certified attribute internal creation", () => {
       id: attribute.id,
       code: "code",
       kind: attributeKind.certified,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       creationTime: new Date(writtenPayload.attribute!.creationTime),
       origin: getTenantOneCertifierFeature(tenant).certifierId,
     };

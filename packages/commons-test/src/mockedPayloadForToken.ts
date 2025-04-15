@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { AuthData, UserRole } from "pagopa-interop-commons";
+import { AuthData, M2MAuthData, UIAuthData } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-function createUserPayload(authData: AuthData) {
+function createUserPayload(authData: UIAuthData) {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
@@ -32,21 +32,20 @@ function createUserPayload(authData: AuthData) {
   };
 }
 
-function createMaintenancePayload(authData: AuthData) {
+function createMaintenancePayload() {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
-    uid: authData.userId,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "maintenance",
-    sub: authData.userId,
+    sub: "interop.testing",
   };
 }
 
-function createM2MPayload(authData: AuthData) {
+function createM2MPayload(authData: M2MAuthData) {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
@@ -57,44 +56,29 @@ function createM2MPayload(authData: AuthData) {
     role: "m2m",
     organizationId: authData.organizationId,
     client_id: generateId(),
-    sub: authData.userId,
+    sub: generateId(),
   };
 }
 
-function createInternalPayload(authData: AuthData) {
+function createInternalPayload() {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
-    uid: authData.userId,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "internal",
-    sub: authData.userId,
+    sub: "interop.testing",
   };
 }
 
-const uiRoles: UserRole[] = ["admin", "api", "security", "support"];
-
 export const createPayload = (authData: AuthData) =>
-  match(authData.userRoles)
-    .when(
-      (roles) => roles.includes("maintenance"),
-      () => createMaintenancePayload(authData)
+  match(authData)
+    .with({ systemRole: "maintenance" }, () => createMaintenancePayload())
+    .with({ systemRole: "m2m" }, (data: M2MAuthData) => createM2MPayload(data))
+    .with({ systemRole: "internal" }, () => createInternalPayload())
+    .with({ systemRole: undefined }, (data: UIAuthData) =>
+      createUserPayload(data)
     )
-    .when(
-      (roles) => roles.includes("m2m"),
-      () => createM2MPayload(authData)
-    )
-    .when(
-      (roles) => roles.includes("internal"),
-      () => createInternalPayload(authData)
-    )
-    .when(
-      (roles) => uiRoles.some((role) => roles.includes(role)),
-      () => createUserPayload(authData)
-    )
-    .otherwise(() => {
-      throw Error("Unexpexted Role");
-    });
+    .exhaustive();
