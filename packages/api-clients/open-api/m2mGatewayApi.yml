@@ -265,17 +265,18 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}:
     parameters:
-    - name: agreementId
-      in: path
-      description: The agreement id
-      required: true
-      schema:
-        type: string
-        format: uuid
+      - name: agreementId
+        in: path
+        description: The agreement id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - agreements
       description: Get agreement
+      operationId: getAgreement
       responses:
         "200":
           description: Agreement retrieved
@@ -832,19 +833,20 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /agreements/{agreementId}/upgrade:
+    parameters:
+      - name: agreementId
+        in: path
+        description: The identifier of the agreement to update
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       tags:
         - agreements
       summary: Upgrade the agreement
       description: Upgrades the agreement with a newer eservice version, if any
-      parameters:
-        - name: agreementId
-          in: path
-          description: The identifier of the agreement to update
-          required: true
-          schema:
-            type: string
-            format: uuid
+      operationId: upgradeAgreement
       responses:
         "200":
           description: Agreement updated
@@ -1129,19 +1131,19 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /consumerDelegations/{delegationId}/accept:
+    parameters:
+      - name: delegationId
+        in: path
+        description: The delegation id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       tags:
         - delegations
       description: Accept consumer delegation
       operationId: acceptConsumerDelegation
-      parameters:
-        - name: delegationId
-          in: path
-          description: The delegation id
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "200":
           description: Delegation updated
@@ -1227,6 +1229,7 @@ paths:
         - attributes
       summary: Create certified attribute
       description: Create the attribute passed as payload
+      operationId: createCertifiedAttribute
       requestBody:
         required: true
         content:
@@ -1314,17 +1317,18 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /certifiedAttributes/{attributeId}:
     parameters:
-    - name: attributeId
-      in: path
-      description: The attribute id
-      required: true
-      schema:
-        type: string
-        format: uuid
+      - name: attributeId
+        in: path
+        description: The attribute id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - attributes
       description: Get certified attribute
+      operationId: getCertifiedAttribute
       responses:
         "200":
           description: Certified attribute retrieved
@@ -1393,17 +1397,18 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /clients/{clientId}/purposes:
     parameters:
-    - name: clientId
-      in: path
-      description: The client id
-      required: true
-      schema:
-        type: string
-        format: uuid
+      - name: clientId
+        in: path
+        description: The client id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       tags:
         - clients
       description: Add a purpose to the client
+      operationId: addClientPurpose
       requestBody:
         content:
           application/json:
@@ -1780,28 +1785,29 @@ paths:
         schema:
           type: string
           format: uuid
-      - name: state
-        in: query
-        description: The descriptor state
-        schema:
-          $ref: "#/components/schemas/EServiceDescriptorState"
-      - name: offset
-        in: query
-        description: The offset used for pagination
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        description: The limit used for pagination
-        schema:
-          type: integer
-          format: int32
     get:
       tags:
         - eservices
       description: Get eservice descriptors
-      operationId: getEserviceDescriptors
+      operationId: getEServiceDescriptors
+      parameters:
+        - name: state
+          in: query
+          description: The descriptor state
+          schema:
+            $ref: "#/components/schemas/EServiceDescriptorState"
+        - name: offset
+          in: query
+          description: The offset used for pagination
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: The limit used for pagination
+          schema:
+            type: integer
+            format: int32
       responses:
         "200":
           description: E-Service descriptors retrieved
@@ -1888,7 +1894,7 @@ paths:
       tags:
         - eservices
       description: Get eservice descriptor
-      operationId: getEserviceDescriptor
+      operationId: getEServiceDescriptor
       responses:
         "200":
           description: E-Service descriptor retrieved
@@ -1957,13 +1963,13 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /eserviceTemplates/{templateId}:
     parameters:
-    - name: templateId
-      in: path
-      description: The template id
-      required: true
-      schema:
-        type: string
-        format: uuid
+      - name: templateId
+        in: path
+        description: The template id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - eserviceTemplates
@@ -2036,34 +2042,36 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /eserviceTemplates/{templateId}/versions:
     parameters:
-    - name: templateId
-      in: path
-      description: The template id
-      required: true
-      schema:
-        type: string
-        format: uuid
-    - name: state
-      in: query
-      description: The version state
-      schema:
-        $ref: "#/components/schemas/EServiceTemplateVersionState"
-    - name: offset
-      in: query
-      description: The offset used for pagination
-      schema:
-        type: integer
-        format: int32
-    - name: limit
-      in: query
-      description: The limit used for pagination
-      schema:
-        type: integer
-        format: int32
+      - name: templateId
+        in: path
+        description: The template id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - eserviceTemplates   
       description: Get eservice template versions
+      operationId: getEServiceTemplateVersions
+      parameters:
+        - name: state
+          in: query
+          description: The version state
+          schema:
+            $ref: "#/components/schemas/EServiceTemplateVersionState"
+        - name: offset
+          in: query
+          description: The offset used for pagination
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: The limit used for pagination
+          schema:
+            type: integer
+            format: int32
       responses:
         "200":
           description: E-Service template versions retrieved
@@ -2134,24 +2142,25 @@ paths:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /eserviceTemplates/{templateId}/versions/{versionId}:
     parameters:
-    - name: templateId
-      in: path
-      description: The template id
-      required: true
-      schema:
-        type: string
-        format: uuid
-    - name: versionId
-      in: path
-      description: The version id
-      required: true
-      schema:
-        type: string
-        format: uuid
+      - name: templateId
+        in: path
+        description: The template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        description: The version id
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       tags:
         - eserviceTemplates
       description: Get eservice template version
+      operationId: getEServiceTemplateVersion
       responses:
         "200":
           description: E-Service template version retrieved
@@ -2222,6 +2231,7 @@ paths:
     post:
       tags:
         - purposes
+      operationId: createPurpose
       description: Creates a purpose
       requestBody:
         content:
@@ -2298,29 +2308,30 @@ paths:
     get:
       tags:
         - purposes
+      operationId: getPurposes
       description: List purposes
       parameters:
-      - name: eserviceIds
-        in: query
-        schema:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        explode: false
-      - name: offset
-        in: query
-        description: The offset used for pagination
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        description: The limit used for pagination
-        schema:
-          type: integer
-          format: int32
+        - name: eserviceIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - name: offset
+          in: query
+          description: The offset used for pagination
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: The limit used for pagination
+          schema:
+            type: integer
+            format: int32
       responses:
         "200":
           description: Purposes retrieved
@@ -2377,11 +2388,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /purposes/{purposeId}:
-    get:
-      tags:
-        - purposes
-      description: Get purpose
-      parameters:
+    parameters:
       - name: purposeId
         in: path
         description: The purpose id
@@ -2389,6 +2396,11 @@ paths:
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - purposes
+      operationId: getPurpose
+      description: Get purpose
       responses:
         "200":
           description: Purpose retrieved
@@ -2469,35 +2481,36 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /purposes/{purposeId}/versions:
-    get:
-      tags:
-        - purposes
-      description: Get purpose versions
-      parameters:
+    parameters:
       - name: purposeId
         in: path
-        description: The purpose id
+        description: The Purpose id
         required: true
         schema:
           type: string
-          format: uuid
-      - name: state
-        in: query
-        description: The version state
-        schema:
-          $ref: "#/components/schemas/PurposeVersionState"
-      - name: offset
-        in: query
-        description: The offset used for pagination
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        description: The limit used for pagination
-        schema:
-          type: integer
-          format: int32
+    get:
+      tags:
+        - purposes
+      operationId: getPurposeVersions
+      description: Get purpose versions
+      parameters:
+        - name: state
+          in: query
+          description: The version state
+          schema:
+            $ref: "#/components/schemas/PurposeVersionState"
+        - name: offset
+          in: query
+          description: The offset used for pagination
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: The limit used for pagination
+          schema:
+            type: integer
+            format: int32
       responses:
         "200":
           description: Purpose versions retrieved
@@ -2582,13 +2595,6 @@ paths:
         - purposes
       summary: Create new version
       operationId: createPurposeVersion
-      parameters:
-        - name: purposeId
-          in: path
-          description: The Purpose id
-          required: true
-          schema:
-            type: string
       requestBody:
         content:
           application/json:
@@ -2675,11 +2681,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /purposes/{purposeId}/versions/{versionId}:
-    get:
-      tags:
-        - purposes
-      description: Get purpose version
-      parameters:
+    parameters:
       - name: purposeId
         in: path
         description: The purpose id
@@ -2694,6 +2696,11 @@ paths:
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - purposes
+      operationId: getPurposeVersion
+      description: Get purpose version
       responses:
         "200":
           description: Purpose version retrieved
@@ -2784,6 +2791,7 @@ paths:
     post:
       tags:
         - purposes
+      operationId: activateDraftPurpose
       description: Activate Draft Purpose
       responses:
         "204":
@@ -2871,6 +2879,7 @@ paths:
     post:
       tags:
         - purposes
+      operationId: archivePurpose
       description: Archive Purpose
       responses:
         "204":
@@ -2958,6 +2967,7 @@ paths:
     post:
       tags:
         - purposes
+      operationId: approvePurpose
       description: Approve Waiting for approval Purpose
       responses:
         "204":
@@ -3045,6 +3055,7 @@ paths:
     post:
       tags:
         - purposes
+      operationId: suspendPurpose
       description: Suspend Purpose
       responses:
         "204":
@@ -3132,6 +3143,7 @@ paths:
     post:
       tags:
         - purposes
+      operationId: unsuspendPurpose
       description: Unsuspend Purpose
       responses:
         "204":
@@ -3209,35 +3221,35 @@ paths:
             X-Rate-Limit-Interval:
               $ref: '#/components/headers/RateLimitIntervalHeader'
   /tenants:
-    parameters:
-      - in: query
-        name: externalIdOrigin
-        schema:
-          type: string
-      - in: query
-        name: externalIdValue
-        schema:
-          type: string
-      - in: query
-        name: offset
-        required: true
-        schema:
-          type: integer
-          format: int32
-          minimum: 0
-      - in: query
-        name: limit
-        required: true
-        schema:
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 50
     get:
       tags:
         - tenants
       operationId: getTenants
       description: Retrieve Tenants
+      parameters:
+        - in: query
+          name: externalIdOrigin
+          schema:
+            type: string
+        - in: query
+          name: externalIdValue
+          schema:
+            type: string
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Tenants retrieved

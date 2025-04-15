@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
@@ -25,7 +25,7 @@ const tenantRouter = (
 
   tenantRouter
     .get("/tenants", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -39,7 +39,7 @@ const tenantRouter = (
       }
     })
     .get("/tenants/:tenantId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -53,7 +53,7 @@ const tenantRouter = (
       }
     })
     .get("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -67,7 +67,7 @@ const tenantRouter = (
       }
     })
     .post("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -83,7 +83,7 @@ const tenantRouter = (
     .delete(
       "/tenants/:tenantId/certifiedAttributes/:attributeId",
       async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           return res.status(501).send();
         } catch (error) {

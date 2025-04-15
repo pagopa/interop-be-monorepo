@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
@@ -28,7 +28,7 @@ const eserviceTemplateRouter = (
 
   eserviceTemplateRouter
     .get("/eserviceTemplates/:templateId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -42,7 +42,7 @@ const eserviceTemplateRouter = (
       }
     })
     .get("/eserviceTemplates/:templateId/versions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -58,7 +58,7 @@ const eserviceTemplateRouter = (
     .get(
       "/eserviceTemplates/:templateId/versions/:versionId",
       async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           return res.status(501).send();
         } catch (error) {

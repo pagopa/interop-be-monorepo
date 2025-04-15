@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -25,7 +25,7 @@ const purposeRouter = (
 
   purposeRouter
     .get("/purposes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -39,7 +39,7 @@ const purposeRouter = (
       }
     })
     .get("/purposes/:purposeId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -53,7 +53,7 @@ const purposeRouter = (
       }
     })
     .get("/purposes/:purposeId/versions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -67,7 +67,7 @@ const purposeRouter = (
       }
     })
     .get("/purposes/:purposeId/versions/:versionId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -81,7 +81,7 @@ const purposeRouter = (
       }
     })
     .post("/purposes", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -95,7 +95,7 @@ const purposeRouter = (
       }
     })
     .post("/purposes/:purposeId/versions", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -109,7 +109,7 @@ const purposeRouter = (
       }
     })
     .post("/purposes/:purposeId/activate", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -123,7 +123,7 @@ const purposeRouter = (
       }
     })
     .post("/purposes/:purposeId/approve", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -137,7 +137,7 @@ const purposeRouter = (
       }
     })
     .post("/purposes/:purposeId/archive", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -151,7 +151,7 @@ const purposeRouter = (
       }
     })
     .post("/purposes/:purposeId/suspend", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -165,7 +165,7 @@ const purposeRouter = (
       }
     })
     .post("/purposes/:purposeId/unsuspend", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {

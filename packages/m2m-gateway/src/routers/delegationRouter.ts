@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const delegationRouter = (
   ctx: ZodiosContext,
@@ -25,7 +25,7 @@ const delegationRouter = (
 
   delegationRouter
     .get("/consumerDelegations", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -39,7 +39,7 @@ const delegationRouter = (
       }
     })
     .post("/consumerDelegations", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -53,7 +53,7 @@ const delegationRouter = (
       }
     })
     .post("/consumerDelegations/:delegationId/accept", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -67,7 +67,7 @@ const delegationRouter = (
       }
     })
     .post("/consumerDelegations/:delegationId/reject", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {

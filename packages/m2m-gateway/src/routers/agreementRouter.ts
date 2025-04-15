@@ -5,12 +5,12 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  fromAppContext,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
@@ -25,7 +25,7 @@ const agreementRouter = (
 
   agreementRouter
     .get("/agreements", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
         return res.status(501).send();
@@ -40,7 +40,7 @@ const agreementRouter = (
       }
     })
     .get("/agreements/:agreementId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -54,7 +54,7 @@ const agreementRouter = (
       }
     })
     .post("/agreements", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -68,7 +68,7 @@ const agreementRouter = (
       }
     })
     .post("/agreements/:agreementId/approve", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -82,7 +82,7 @@ const agreementRouter = (
       }
     })
     .post("/agreements/:agreementId/reject", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -96,7 +96,7 @@ const agreementRouter = (
       }
     })
     .post("/agreements/:agreementId/submit", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -110,7 +110,7 @@ const agreementRouter = (
       }
     })
     .post("/agreements/:agreementId/suspend", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -124,7 +124,7 @@ const agreementRouter = (
       }
     })
     .post("/agreements/:agreementId/unsuspend", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
@@ -138,7 +138,7 @@ const agreementRouter = (
       }
     })
     .post("/agreements/:agreementId/upgrade", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         return res.status(501).send();
       } catch (error) {
