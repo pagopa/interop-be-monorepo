@@ -2,9 +2,9 @@
 import { randomUUID } from "crypto";
 import {
   getTenantOneCertifierFeature,
-  getMockContext,
   decodeProtobufPayload,
   getMockAttribute,
+  getMockContextInternal,
 } from "pagopa-interop-commons-test";
 import {
   Tenant,
@@ -24,8 +24,8 @@ import {
 import { getMockTenant } from "../mockUtils.js";
 
 describe("certified attribute internal creation", () => {
-  const mockAttribute = getMockAttribute();
   const mockTenant = getMockTenant();
+  const mockAttribute = getMockAttribute();
   it("should write on event-store for the internal creation of a certified attribute", async () => {
     const tenant: Tenant = {
       ...mockTenant,
@@ -40,14 +40,14 @@ describe("certified attribute internal creation", () => {
     await addOneTenant(tenant);
 
     const attribute =
-      await attributeRegistryService.createInternalCertifiedAttribute(
+      await attributeRegistryService.internalCreateCertifiedAttribute(
         {
           name: mockAttribute.name,
           code: "code",
           origin: getTenantOneCertifierFeature(tenant).certifierId,
           description: mockAttribute.description,
         },
-        getMockContext({})
+        getMockContextInternal({})
       );
     expect(attribute).toBeDefined();
 
@@ -68,7 +68,6 @@ describe("certified attribute internal creation", () => {
       id: attribute.id,
       code: "code",
       kind: attributeKind.certified,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       creationTime: new Date(writtenPayload.attribute!.creationTime),
       origin: getTenantOneCertifierFeature(tenant).certifierId,
     };
@@ -96,14 +95,14 @@ describe("certified attribute internal creation", () => {
     await addOneTenant(tenant);
     await addOneAttribute(attribute);
     expect(
-      attributeRegistryService.createInternalCertifiedAttribute(
+      attributeRegistryService.internalCreateCertifiedAttribute(
         {
           name: attribute.name.toLowerCase(),
           code: attribute.code.toLowerCase(),
           origin: getTenantOneCertifierFeature(tenant).certifierId,
           description: attribute.description,
         },
-        getMockContext({})
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       attributeDuplicateByNameAndCode(

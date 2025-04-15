@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import { describe, it, expect } from "vitest";
-import { getMockAttribute } from "pagopa-interop-commons-test";
+import { getMockAttribute, getMockContext } from "pagopa-interop-commons-test";
 import { Attribute, generateId, attributeKind } from "pagopa-interop-models";
 import { attributeNotFound } from "../../src/model/domain/errors.js";
 import {
@@ -26,7 +25,7 @@ describe("getAttributeByOriginAndCode", () => {
           origin: "IPA",
           code: "12345A",
         },
-        genericLogger
+        getMockContext({})
       );
     expect(attribute?.data).toEqual(attribute1);
   });
@@ -37,7 +36,7 @@ describe("getAttributeByOriginAndCode", () => {
           origin: "IPA",
           code: "12345D",
         },
-        genericLogger
+        getMockContext({})
       )
     ).rejects.toThrowError(attributeNotFound("IPA/12345D"));
   });
