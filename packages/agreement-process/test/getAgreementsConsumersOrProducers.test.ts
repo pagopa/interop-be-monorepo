@@ -21,7 +21,7 @@ import {
   addOneAgreement,
   agreementService,
   addOneDelegation,
-  expectSinglePageListResult,
+  expectGenericSinglePageListResult,
 } from "./utils.js";
 
 describe("get agreements consumers / producers", () => {
@@ -199,7 +199,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant1.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForTenant1,
         [tenant2].map(toCompactOrganization)
       );
@@ -212,7 +212,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant2.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForTenant2,
         [tenant2, tenant3].map(toCompactOrganization)
       );
@@ -225,7 +225,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant3.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForTenant3,
         [tenant3, tenant4, tenant6, delegateProducer1].map(
           toCompactOrganization
@@ -240,7 +240,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant4.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForTenant4,
         [tenant4, tenant5, delegateConsumer1, delegateConsumer2].map(
           toCompactOrganization
@@ -255,7 +255,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant5.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForTenant5,
         [tenant5].map(toCompactOrganization)
       );
@@ -268,7 +268,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant6.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForTenant6,
         [tenant6].map(toCompactOrganization)
       );
@@ -283,7 +283,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(delegateProducer1.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForDelegateProducer1,
         [tenant2, delegateProducer1].map(toCompactOrganization)
       );
@@ -298,7 +298,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(delegateConsumer1.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForDelegateConsumer1,
         [tenant3, delegateConsumer1].map(toCompactOrganization)
       );
@@ -311,7 +311,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumersResultForDelegateConsumer2,
         [tenant4, delegateConsumer2].map(toCompactOrganization)
       );
@@ -325,7 +325,7 @@ describe("get agreements consumers / producers", () => {
         getMockContext({ authData: getMockAuthData(tenant4.id) })
       );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         consumers,
         [tenant5, delegateConsumer1].map(toCompactOrganization)
       );
@@ -397,7 +397,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant1.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producerResultsForTenant1,
         [tenant1].map(toCompactOrganization)
       );
@@ -410,7 +410,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant2.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producerResultsForTenant2,
         [tenant1, tenant2].map(toCompactOrganization)
       );
@@ -423,7 +423,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant3.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producerResultsForTenant3,
         [tenant2, tenant3].map(toCompactOrganization)
       );
@@ -436,7 +436,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant4.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producerResultsForTenant4,
         [tenant3, tenant4].map(toCompactOrganization)
       );
@@ -449,7 +449,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant5.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producerResultsForTenant5,
         [tenant4].map(toCompactOrganization)
       );
@@ -462,7 +462,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(tenant6.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producerResultsForTenant6,
         [tenant3].map(toCompactOrganization)
       );
@@ -477,7 +477,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(delegateProducer1.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producersResultForDelegateProducer1,
         [tenant3, tenant1].map(toCompactOrganization)
       );
@@ -492,7 +492,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(delegateConsumer1.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producersResultForDelegateConsumer1,
         [tenant2, tenant4].map(toCompactOrganization)
       );
@@ -505,7 +505,7 @@ describe("get agreements consumers / producers", () => {
           getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
         );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producersResultForDelegateConsumer2,
         [tenant3, tenant4].map(toCompactOrganization)
       );
@@ -519,7 +519,7 @@ describe("get agreements consumers / producers", () => {
         getMockContext({ authData: getMockAuthData(tenant2.id) })
       );
 
-      expectSinglePageListResult(
+      expectGenericSinglePageListResult(
         producers,
         [tenant2].map(toCompactOrganization)
       );

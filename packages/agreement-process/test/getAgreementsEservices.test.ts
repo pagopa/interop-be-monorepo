@@ -23,7 +23,7 @@ import {
   addOneAgreement,
   agreementService,
   addOneDelegation,
-  expectSinglePageListResult,
+  expectGenericSinglePageListResult,
 } from "./utils.js";
 
 describe("get agreements eservices", () => {
@@ -186,7 +186,7 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
 
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       resultsForTenant1,
       [eservice1, eservice3].map(toCompactEService)
     );
@@ -202,7 +202,7 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant2.id) })
     );
 
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       resultsForTenant2,
       [eservice1, eservice2].map(toCompactEService)
     );
@@ -218,7 +218,7 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       resultsForTenant3,
       [eservice2, eservice3, eservice4].map(toCompactEService)
     );
@@ -236,7 +236,7 @@ describe("get agreements eservices", () => {
         0,
         getMockContext({ authData: getMockAuthData(delegateProducer1.id) })
       );
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       resultsForDelegateProducer1,
       [eservice1, eservice4].map(toCompactEService)
     );
@@ -254,7 +254,7 @@ describe("get agreements eservices", () => {
         0,
         getMockContext({ authData: getMockAuthData(delegateConsumer1.id) })
       );
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       resultsForDelegateConsumer1,
       [eservice3, eservice4].map(toCompactEService)
     );
@@ -270,7 +270,7 @@ describe("get agreements eservices", () => {
         0,
         getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
       );
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       resultsForDelegateConsumer2,
       [eservice1, eservice2].map(toCompactEService)
     );
@@ -288,7 +288,7 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       eservices,
       [eservice3, eservice4].map(toCompactEService)
     );
@@ -306,7 +306,7 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       eservices,
       [eservice3, eservice4].map(toCompactEService)
     );
@@ -324,7 +324,10 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant2.id) })
     );
 
-    expectSinglePageListResult(eservices, [eservice1].map(toCompactEService));
+    expectGenericSinglePageListResult(
+      eservices,
+      [eservice1].map(toCompactEService)
+    );
   });
 
   it("should get agreements eservices with filters: name, consumerId, producerId", async () => {
@@ -393,7 +396,7 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
 
-    expectSinglePageListResult(eservices, []);
+    expectGenericSinglePageListResult(eservices, []);
   });
 
   it("should get agreement eservice for a delegated eservice with filters: producerId", async () => {
@@ -408,7 +411,10 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant2.id) })
     );
 
-    expectSinglePageListResult(eservices, [eservice1].map(toCompactEService));
+    expectGenericSinglePageListResult(
+      eservices,
+      [eservice1].map(toCompactEService)
+    );
   });
 
   it("should get agreement eservice for a delegated agreement with filters: consumerId", async () => {
@@ -423,7 +429,7 @@ describe("get agreements eservices", () => {
       getMockContext({ authData: getMockAuthData(tenant3.id) })
     );
 
-    expectSinglePageListResult(
+    expectGenericSinglePageListResult(
       eservices,
       [eservice3, eservice4].map(toCompactEService)
     );

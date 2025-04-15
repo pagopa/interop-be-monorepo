@@ -482,5 +482,16 @@ export function expectSinglePageListResult(
   expect(actual.results).toHaveLength(expected.length);
 }
 
+export function expectGenericSinglePageListResult<T>(
+  actual: ListResult<T>,
+  expected: T[]
+): void {
+  expect(actual).toEqual({
+    totalCount: expected.length,
+    results: expect.arrayContaining(expected),
+  });
+  expect(actual.results).toHaveLength(expected.length);
+}
+
 export const sortListAgreements = (agreements: Agreement[]): Agreement[] =>
   sortAgreements([...agreements].sort(sortBy<Agreement>((a) => a.id)));
