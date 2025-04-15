@@ -138,7 +138,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -151,7 +151,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -164,7 +164,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -201,7 +201,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -214,7 +214,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -227,7 +227,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -240,7 +240,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -253,7 +253,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -294,7 +294,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -307,7 +307,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -320,7 +320,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -333,7 +333,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -346,7 +346,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -386,7 +386,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -399,7 +399,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -412,7 +412,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -425,7 +425,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -438,7 +438,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -485,7 +485,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -498,7 +498,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -511,7 +511,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -524,7 +524,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -537,7 +537,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -585,7 +585,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -598,7 +598,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -611,7 +611,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -624,7 +624,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -637,7 +637,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -678,7 +678,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -691,7 +691,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -704,7 +704,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -717,7 +717,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -730,7 +730,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -770,7 +770,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -783,7 +783,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -796,7 +796,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -809,7 +809,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -822,7 +822,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -864,7 +864,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -877,7 +877,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -890,7 +890,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -903,7 +903,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -916,7 +916,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1004,7 +1004,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1017,7 +1017,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1030,7 +1030,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1068,7 +1068,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1081,7 +1081,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1094,7 +1094,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1107,7 +1107,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1120,7 +1120,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1161,7 +1161,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1174,7 +1174,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1187,7 +1187,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1200,7 +1200,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1213,7 +1213,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1253,7 +1253,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1266,7 +1266,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1279,7 +1279,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1292,7 +1292,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1305,7 +1305,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1346,7 +1346,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1359,7 +1359,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1372,7 +1372,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1385,7 +1385,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1428,7 +1428,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1441,7 +1441,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1454,7 +1454,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1467,7 +1467,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1480,7 +1480,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1493,7 +1493,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1542,7 +1542,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1555,7 +1555,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1568,7 +1568,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1581,7 +1581,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1594,7 +1594,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1660,7 +1660,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1673,7 +1673,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1686,7 +1686,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1727,7 +1727,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1740,7 +1740,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1753,7 +1753,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1766,7 +1766,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1825,7 +1825,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1838,7 +1838,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1851,7 +1851,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1864,7 +1864,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1912,7 +1912,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1925,7 +1925,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1938,7 +1938,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1951,7 +1951,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1991,7 +1991,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2004,7 +2004,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2017,7 +2017,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2030,7 +2030,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2091,7 +2091,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2104,7 +2104,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2117,7 +2117,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2130,7 +2130,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2178,7 +2178,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2191,7 +2191,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2204,7 +2204,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2217,7 +2217,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2256,7 +2256,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2269,7 +2269,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2282,7 +2282,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2295,7 +2295,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2351,7 +2351,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2364,7 +2364,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2377,7 +2377,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2418,7 +2418,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2431,7 +2431,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2444,7 +2444,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2457,7 +2457,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2470,7 +2470,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2528,7 +2528,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2541,7 +2541,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2554,7 +2554,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2567,7 +2567,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2580,7 +2580,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2618,7 +2618,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2631,7 +2631,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2644,7 +2644,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2657,7 +2657,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2670,7 +2670,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2718,7 +2718,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2731,7 +2731,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2744,7 +2744,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2757,7 +2757,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2770,7 +2770,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2806,7 +2806,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2819,7 +2819,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2832,7 +2832,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2845,7 +2845,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2858,7 +2858,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2894,7 +2894,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2907,7 +2907,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2920,7 +2920,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2933,7 +2933,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2946,7 +2946,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2982,7 +2982,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2995,7 +2995,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3008,7 +3008,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3021,7 +3021,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3034,7 +3034,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3070,7 +3070,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3083,7 +3083,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3096,7 +3096,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3109,7 +3109,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3122,7 +3122,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3158,7 +3158,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3171,7 +3171,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3184,7 +3184,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3197,7 +3197,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3210,7 +3210,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3267,7 +3267,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3280,7 +3280,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3321,7 +3321,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3334,7 +3334,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3375,7 +3375,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3388,7 +3388,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3422,7 +3422,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3435,7 +3435,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3448,7 +3448,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3461,7 +3461,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3474,7 +3474,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3487,7 +3487,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3531,7 +3531,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3544,7 +3544,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3557,7 +3557,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3570,7 +3570,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3583,7 +3583,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3603,7 +3603,7 @@ paths:
         "200":
           description: Status retrieved
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
