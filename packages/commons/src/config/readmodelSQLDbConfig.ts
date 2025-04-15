@@ -16,6 +16,7 @@ export const ReadModelSQLDbConfig = z
     READMODEL_SQL_DB_SCHEMA_CLIENT_JWK_KEY: z.string(),
     READMODEL_SQL_DB_SCHEMA_CLIENT: z.string(),
     READMODEL_SQL_DB_SCHEMA_DELEGATION: z.string(),
+    READMODEL_SQL_DB_SCHEMA_ESERVICE_TEMPLATE: z.string(),
     READMODEL_SQL_DB_SCHEMA_PRODUCER_JWK_KEY: z.string(),
     READMODEL_SQL_DB_SCHEMA_PRODUCER_KEYCHAIN: z.string(),
     READMODEL_SQL_DB_SCHEMA_PURPOSE: z.string(),
@@ -34,6 +35,8 @@ export const ReadModelSQLDbConfig = z
     readModelSQLDbSchemaClientJwkKey: c.READMODEL_SQL_DB_SCHEMA_CLIENT_JWK_KEY,
     readModelSQLDbSchemaClient: c.READMODEL_SQL_DB_SCHEMA_CLIENT,
     readModelSQLDbSchemaDelegation: c.READMODEL_SQL_DB_SCHEMA_DELEGATION,
+    readModelSQLDbSchemaEServiceTemplate:
+      c.READMODEL_SQL_DB_SCHEMA_ESERVICE_TEMPLATE,
     readModelSQLDbSchemaProducerJwkKey:
       c.READMODEL_SQL_DB_SCHEMA_PRODUCER_JWK_KEY,
     readModelSQLDbSchemaProducerKeychain:
