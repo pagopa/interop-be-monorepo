@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { AuthData, M2MAuthData, UIAuthData } from "pagopa-interop-commons";
+import {
+  AuthData,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -73,10 +78,29 @@ function createInternalPayload() {
   };
 }
 
+function createM2M_AdminPayload(authData: M2MAdminAuthData) {
+  return {
+    iss: "dev.interop.pagopa.it",
+    aud: "dev.interop.pagopa.it/ui",
+    userId: authData.userId,
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    nbf: Math.floor(Date.now() / 1000),
+    iat: Math.floor(Date.now() / 1000),
+    jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
+    role: "m2m",
+    organizationId: authData.organizationId,
+    client_id: generateId(),
+    sub: generateId(),
+  };
+}
+
 export const createPayload = (authData: AuthData) =>
   match(authData)
     .with({ systemRole: "maintenance" }, () => createMaintenancePayload())
     .with({ systemRole: "m2m" }, (data: M2MAuthData) => createM2MPayload(data))
+    .with({ systemRole: "m2m-admin" }, (data: M2MAdminAuthData) =>
+      createM2M_AdminPayload(data)
+    )
     .with({ systemRole: "internal" }, () => createInternalPayload())
     .with({ systemRole: undefined }, (data: UIAuthData) =>
       createUserPayload(data)
