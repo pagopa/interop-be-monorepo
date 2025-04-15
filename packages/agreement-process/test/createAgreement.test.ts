@@ -7,7 +7,6 @@ import {
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
@@ -56,6 +55,7 @@ import {
   addOneTenant,
   agreementService,
   readLastAgreementEvent,
+  getAMockDescriptorPublished,
 } from "./utils.js";
 
 /**
@@ -133,7 +133,7 @@ describe("create agreement", () => {
     const descriptorId = generateId<DescriptorId>();
     const attributeId = generateId<AttributeId>();
 
-    const descriptor = getMockDescriptorPublished(descriptorId, [
+    const descriptor = getAMockDescriptorPublished(descriptorId, [
       [getMockEServiceAttribute(attributeId)],
     ]);
     const eservice = getMockEService(eserviceId, authData.organizationId, [
@@ -170,7 +170,7 @@ describe("create agreement", () => {
     const certifiedDescriptorAttribute2: EServiceAttribute =
       getMockEServiceAttribute();
 
-    const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
+    const descriptor = getAMockDescriptorPublished(generateId<DescriptorId>(), [
       [certifiedDescriptorAttribute1],
       [certifiedDescriptorAttribute2],
     ]);
@@ -226,7 +226,7 @@ describe("create agreement", () => {
     const certifiedDescriptorAttribute2: EServiceAttribute =
       getMockEServiceAttribute();
 
-    const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
+    const descriptor = getAMockDescriptorPublished(generateId<DescriptorId>(), [
       [certifiedDescriptorAttribute1],
       [certifiedDescriptorAttribute2],
     ]);
@@ -299,7 +299,7 @@ describe("create agreement", () => {
     const consumer: Tenant = getMockTenant();
 
     // Descriptor has no certified attributes - no requirements for the consumer
-    const descriptor = getMockDescriptorPublished();
+    const descriptor = getAMockDescriptorPublished();
 
     const eservice = getMockEService(
       generateId<EServiceId>(),
@@ -333,15 +333,15 @@ describe("create agreement", () => {
   it("should succeed when EService's latest Descriptors are draft, and the latest non-draft Descriptor is published", async () => {
     const tenant: Tenant = getMockTenant();
 
-    const descriptor0: Descriptor = getMockDescriptorPublished();
+    const descriptor0: Descriptor = getAMockDescriptorPublished();
     const descriptor1: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       version: "1",
       state: descriptorState.draft,
     };
 
     const descriptor2: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       version: "2",
       state: descriptorState.draft,
     };
@@ -376,7 +376,7 @@ describe("create agreement", () => {
 
   it("should succeed when Agreements in non-conflicting states exist for the same EService and consumer", async () => {
     const tenant: Tenant = getMockTenant();
-    const descriptor: Descriptor = getMockDescriptorPublished();
+    const descriptor: Descriptor = getAMockDescriptorPublished();
 
     const eservice = getMockEService(generateId<EServiceId>(), tenant.id, [
       descriptor,
@@ -463,12 +463,12 @@ describe("create agreement", () => {
     );
 
     const descriptor0: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       version: "0",
       state: randomArrayItem(notDraftDescriptorStates),
     };
     const descriptor1: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       version: "1",
       state: randomArrayItem(notDraftDescriptorStates),
     };
@@ -499,7 +499,7 @@ describe("create agreement", () => {
     const eserviceId = generateId<EServiceId>();
 
     const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
+      ...getAMockDescriptorPublished(),
       version: "0",
       state: randomArrayItem(
         Object.values(descriptorState).filter(
@@ -535,7 +535,7 @@ describe("create agreement", () => {
 
   it("should throw an agreementAlreadyExists error when an Agreement in a conflicting state already exists for the same EService and consumer", async () => {
     const consumer: Tenant = getMockTenant();
-    const descriptor: Descriptor = getMockDescriptorPublished();
+    const descriptor: Descriptor = getAMockDescriptorPublished();
 
     const eservice = getMockEService(generateId<EServiceId>(), consumer.id, [
       descriptor,
@@ -574,7 +574,7 @@ describe("create agreement", () => {
 
     const delegate = getMockTenant(authData.organizationId);
 
-    const descriptor = getMockDescriptorPublished();
+    const descriptor = getAMockDescriptorPublished();
     const eservice = getMockEService(
       generateId<EServiceId>(),
       eserviceProducer.id,
@@ -616,7 +616,7 @@ describe("create agreement", () => {
 
   it("should throw a tenantNotFound error when the consumer Tenant does not exist", async () => {
     const consumer: Tenant = getMockTenant();
-    const descriptor: Descriptor = getMockDescriptorPublished();
+    const descriptor: Descriptor = getAMockDescriptorPublished();
 
     const eservice = getMockEService(
       generateId<EServiceId>(),
@@ -648,7 +648,7 @@ describe("create agreement", () => {
     const certifiedDescriptorAttribute2: EServiceAttribute =
       getMockEServiceAttribute();
 
-    const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
+    const descriptor = getAMockDescriptorPublished(generateId<DescriptorId>(), [
       [certifiedDescriptorAttribute1],
       [certifiedDescriptorAttribute2],
     ]);
@@ -695,7 +695,7 @@ describe("create agreement", () => {
     const certifiedDescriptorAttribute2: EServiceAttribute =
       getMockEServiceAttribute();
 
-    const descriptor: Descriptor = getMockDescriptorPublished(
+    const descriptor: Descriptor = getAMockDescriptorPublished(
       generateId<DescriptorId>(),
       [[certifiedDescriptorAttribute1], [certifiedDescriptorAttribute2]]
     );
@@ -747,7 +747,7 @@ describe("create agreement", () => {
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      [getMockDescriptorPublished()]
+      [getAMockDescriptorPublished()]
     );
 
     const delegation = getMockDelegation({
@@ -780,7 +780,7 @@ describe("create agreement", () => {
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      [getMockDescriptorPublished()]
+      [getAMockDescriptorPublished()]
     );
 
     await addOneEService(eservice);
@@ -808,7 +808,7 @@ describe("create agreement", () => {
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
-      [getMockDescriptorPublished()]
+      [getAMockDescriptorPublished()]
     );
 
     const delegation = getMockDelegation({
