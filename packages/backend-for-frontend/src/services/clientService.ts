@@ -402,13 +402,17 @@ export async function getSelfcareUserById(
   selfcareId: string,
   correlationId: CorrelationId
 ): Promise<selfcareV2ClientApi.UserResponse> {
-  return selfcareClient.getUserInfoUsingGET({
-    params: { id: userId },
-    queries: { institutionId: selfcareId },
-    headers: {
-      "X-Correlation-Id": correlationId,
-    },
-  });
+  try {
+    return selfcareClient.getUserInfoUsingGET({
+      params: { id: userId },
+      queries: { institutionId: selfcareId },
+      headers: {
+        "X-Correlation-Id": correlationId,
+      },
+    });
+  } catch (error) {
+    return {} as selfcareV2ClientApi.UserResponse;
+  }
 }
 
 export async function decorateKey(
