@@ -16,8 +16,8 @@ import { describe, expect, it } from "vitest";
 import {
   delegationContractNotFound,
   delegationNotFound,
-} from "../src/model/domain/errors.js";
-import { addOneDelegation, delegationService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import { addOneDelegation, delegationService } from "../integrationUtils.js";
 
 describe("getDelegationContract", () => {
   const mockContract: DelegationContractDocument = {

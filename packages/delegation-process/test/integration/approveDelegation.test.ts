@@ -33,9 +33,9 @@ import {
   delegationNotFound,
   operationRestrictedToDelegate,
   incorrectState,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
-import { DelegationActivationPDFPayload } from "../src/model/domain/models.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import { DelegationActivationPDFPayload } from "../../src/model/domain/models.js";
 import {
   addOneDelegation,
   addOneTenant,
@@ -44,7 +44,7 @@ import {
   readLastDelegationEvent,
   pdfGenerator,
   delegationService,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 const currentExecutionTime = new Date();
 
@@ -170,7 +170,7 @@ describe.each([
     expect(pdfGenerator.generate).toHaveBeenCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        "../src",
+        "../../src",
         "resources/templates",
         "delegationApprovedTemplate.html"
       ),

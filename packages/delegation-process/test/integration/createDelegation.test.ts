@@ -27,20 +27,20 @@ import {
   originNotCompliant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 
 import {
   activeDelegationStates,
   inactiveDelegationStates,
-} from "../src/services/validators.js";
-import { config } from "../src/config/config.js";
+} from "../../src/services/validators.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneDelegation,
   addOneEservice,
   addOneTenant,
   delegationService,
   readLastDelegationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 /**
  * Validates the creation of a delegation by comparing the actual delegation
