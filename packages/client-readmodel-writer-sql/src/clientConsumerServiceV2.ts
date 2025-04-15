@@ -1,6 +1,5 @@
 import {
   AuthorizationEventEnvelopeV2,
-  ClientId,
   fromClientV2,
   genericInternalError,
   unsafeBrandId,
