@@ -96,7 +96,7 @@ export function readModelServiceBuilder(
           await tx
             .delete(agreementConsumerDocumentInReadmodelAgreement)
             .where(
-              and(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id))
+              eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id)
             );
 
           const consumerDocumentSQL = agreementDocumentToAgreementDocumentSQL(
@@ -163,9 +163,7 @@ export function readModelServiceBuilder(
         if (shouldUpsert) {
           await tx
             .delete(agreementContractInReadmodelAgreement)
-            .where(
-              and(eq(agreementContractInReadmodelAgreement.id, contract.id))
-            );
+            .where(eq(agreementContractInReadmodelAgreement.id, contract.id));
 
           const contractDocumentSQL = agreementDocumentToAgreementDocumentSQL(
             contract,

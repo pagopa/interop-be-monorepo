@@ -20,7 +20,7 @@ import {
   Delegation,
   delegationState,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
+import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
   filterCertifiedAttributes,
@@ -133,31 +133,25 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 
 const assertRequesterIsConsumer = (
   consumerId: TenantId,
-  authData: AuthData
+  authData: UIAuthData | M2MAuthData
 ): void => {
-  if (
-    !authData.userRoles.includes("internal") &&
-    authData.organizationId !== consumerId
-  ) {
+  if (authData.organizationId !== consumerId) {
     throw organizationIsNotTheConsumer(authData.organizationId);
   }
 };
 
 const assertRequesterIsProducer = (
   agreement: Agreement,
-  authData: AuthData
+  authData: UIAuthData | M2MAuthData
 ): void => {
-  if (
-    !authData.userRoles.includes("internal") &&
-    authData.organizationId !== agreement.producerId
-  ) {
+  if (authData.organizationId !== agreement.producerId) {
     throw organizationIsNotTheProducer(authData.organizationId);
   }
 };
 
 export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
-  authData: AuthData,
+  authData: UIAuthData,
   activeDelegations: ActiveDelegations
 ): void => {
   try {
@@ -182,7 +176,7 @@ export const assertRequesterCanActAsConsumerOrProducer = (
 
 export const assertRequesterCanRetrieveAgreement = async (
   agreement: Agreement,
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<void> => {
   // This validator is for retrieval operations that can be performed by all the tenants involved:
@@ -223,7 +217,7 @@ export const assertRequesterCanRetrieveAgreement = async (
 
 export const assertRequesterCanActAsProducer = (
   agreement: Agreement,
-  authData: AuthData,
+  authData: UIAuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (!activeProducerDelegation) {
@@ -241,7 +235,7 @@ export const assertRequesterCanActAsProducer = (
 
 const assertRequesterIsDelegateProducer = (
   agreement: Agreement,
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (
@@ -294,7 +288,7 @@ export const assertActivableState = (agreement: Agreement): void => {
 export const assertRequesterIsDelegateConsumer = (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (
@@ -314,7 +308,7 @@ export const assertRequesterIsDelegateConsumer = (
 export const assertRequesterCanActAsConsumer = (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  authData: AuthData,
+  authData: UIAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {
