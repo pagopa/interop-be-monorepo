@@ -17781,6 +17781,9 @@ components:
           format: date-time
         consumer:
           $ref: "#/components/schemas/CompactOrganization"
+        adminId:
+          type: string
+          format: uuid
         name:
           type: string
         purposes:
@@ -19208,6 +19211,9 @@ components:
           type: string
           format: uuid
         tenantId:
+          type: string
+          format: uuid
+        adminId:
           type: string
           format: uuid
         name:

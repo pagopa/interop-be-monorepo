@@ -1559,6 +1559,9 @@ components:
         consumerId:
           type: string
           format: uuid
+        adminId:
+          type: string
+          format: uuid
         createdAt:
           type: string
           format: date-time
