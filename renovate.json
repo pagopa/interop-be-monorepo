@@ -33,6 +33,7 @@
   "minor": {
     "enabled": true
   },
+  "npmrc": "save-prefix=\nauto-install-peers=true\nstrict-peer-dependencies=false",
   "patch": {
     "enabled": true
   },

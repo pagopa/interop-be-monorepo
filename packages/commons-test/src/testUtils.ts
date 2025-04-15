@@ -413,8 +413,8 @@ export const getMockDelegation = ({
   eserviceId = generateId<EServiceId>(),
   state = "WaitingForApproval",
   submitterId = generateId<UserId>(),
-  activationContract = undefined,
-  revocationContract = undefined,
+  activationContract,
+  revocationContract,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -435,8 +435,8 @@ export const getMockDelegation = ({
     eserviceId,
     createdAt: creationTime,
     state,
-    activationContract,
-    revocationContract,
+    ...(activationContract ? { activationContract } : {}),
+    ...(revocationContract ? { revocationContract } : {}),
     kind,
     stamps: {
       submission: {
