@@ -22,6 +22,7 @@ export const AttributeDbtable = {
 
 export const DeletingDbTable = {
   attribute_deleting_table: "attribute_deleting_table",
+  catalog_deleting_table: "catalog_deleting_table",
 };
 
 export type AttributeDbtable =

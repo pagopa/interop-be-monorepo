@@ -13,8 +13,6 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
   PRIMARY KEY (id)
 );
 
-CREATE SCHEMA IF NOT EXISTS domains;
-
 CREATE TABLE domains.eservice (
   id VARCHAR(36),
   metadata_version INTEGER ,

@@ -52,7 +52,7 @@ await retryConnection(
       "eservice_risk_analysis_answer",
     ]);
     await setupDbServiceBuilder(db.conn, config).setupStagingDeletingByIdTables(
-      [DeletingDbTable.attribute_deleting_table]
+      [DeletingDbTable.attribute_deleting_table],
     );
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables([
@@ -70,9 +70,10 @@ await retryConnection(
     ]);
     await setupDbService.setupStagingDeletingByIdTables([
       DeletingDbTable.attribute_deleting_table,
+      DeletingDbTable.catalog_deleting_table,
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -83,7 +84,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -100,5 +101,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
 );
