@@ -1,19 +1,14 @@
 import {
   Delegation,
   DelegationContractDocument,
-  DelegationContractId,
   delegationContractKind,
-  DelegationId,
   DelegationKind,
   DelegationStamp,
   DelegationStampKind,
   DelegationState,
-  EServiceId,
   genericInternalError,
   stringToDate,
-  TenantId,
   unsafeBrandId,
-  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
