@@ -32,30 +32,27 @@ export function readModelServiceBuilder(
       id: DelegationId,
       kind: DelegationKind | undefined = undefined
     ): Promise<WithMetadata<Delegation> | undefined> {
-      const getDelegation = async (
-        filter: Filter<{ data: DelegationReadModel }>
-      ): Promise<WithMetadata<Delegation> | undefined> => {
-        const data = await delegations.findOne(filter, {
+      const data = await delegations.findOne(
+        {
+          "data.id": id,
+          ...(kind ? { "data.kind": kind } : {}),
+        },
+        {
           projection: { data: true, metadata: true },
-        });
-        if (data) {
-          const result = Delegation.safeParse(data.data);
-          if (!result.success) {
-            throw genericInternalError(
-              `Unable to parse delegation item: result ${JSON.stringify(
-                result
-              )} - data ${JSON.stringify(data)} `
-            );
-          }
-          return data;
         }
-        return undefined;
-      };
-
-      return getDelegation({
-        "data.id": id,
-        ...(kind ? { "data.kind": kind } : {}),
-      });
+      );
+      if (data) {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return data;
+      }
+      return undefined;
     },
     async findDelegations(filters: {
       eserviceId?: EServiceId;
