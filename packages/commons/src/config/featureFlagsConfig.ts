@@ -40,8 +40,20 @@ export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
   typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
 >;
 
-export const assertFeatureFlag = (featureFlag: boolean): void => {
+export const assertFeatureFlag = <
+  T extends Record<string, unknown>,
+  K extends keyof T & string
+>(
+  config: T,
+  featureFlagName: K extends `featureFlag${string}` ? K : never
+): void => {
+  const featureFlag = config[featureFlagName];
+
+  if (featureFlag === undefined) {
+    throw notFound(); // Flag doesn't exist in the config
+  }
+
   if (featureFlag !== true) {
-    throw notFound();
+    throw notFound(); // Flag exists but isn't enabled
   }
 };

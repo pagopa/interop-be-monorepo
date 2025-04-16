@@ -1518,7 +1518,7 @@ export function catalogServiceBuilder(
       seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<EService> {
-      assertFeatureFlag(config.featureFlagAgreementApprovalPolicyUpdate);
+      assertFeatureFlag(config, "featureFlagAgreementApprovalPolicyUpdate");
 
       logger.info(
         `Updating Agreement approval policy of Descriptor ${descriptorId} for EService ${eserviceId}`
