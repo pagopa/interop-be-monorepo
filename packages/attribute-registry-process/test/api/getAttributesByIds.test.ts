@@ -64,7 +64,7 @@ describe("API /bulk/attributes authorization test", () => {
     systemRole.INTERNAL_ROLE,
     systemRole.MAINTENANCE_ROLE,
     systemRole.M2M_ADMIN_ROLE,
-  ])("Should return 403 for user with role %s", async (role) => {
+  ])("Should return 500 for user with role %s", async (role) => {
     const token = generateToken(getSystemOrUserAuthData(role));
     const res = await makeRequest(token, [attribute1.id]);
     // This is because the route catches any type of error and returns a 500
