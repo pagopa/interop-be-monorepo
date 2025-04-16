@@ -13,7 +13,7 @@ import {
   notFound,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, beforeEach } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -34,6 +34,9 @@ describe("update descriptor agreement approval policy", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+  beforeEach(() => {
+    config.featureFlagAgreementApprovalPolicyUpdate = true;
+  });
   it.each([
     descriptorState.published,
     descriptorState.suspended,

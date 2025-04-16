@@ -13,6 +13,7 @@ import {
   userRoles,
   formatDateddMMyyyyHHmmss,
   assertFeatureFlag,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -455,7 +456,10 @@ export function catalogServiceBuilder(
         descriptors: [],
         createdAt: creationDate,
         riskAnalysis: [],
-        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+        isSignalHubEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagSignalhubWhitelist"
+        )
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
               seed.isSignalHubEnabled
@@ -581,7 +585,10 @@ export function catalogServiceBuilder(
               serverUrls: [],
             }))
           : eservice.data.descriptors,
-        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+        isSignalHubEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagSignalhubWhitelist"
+        )
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
               eservice.data.isSignalHubEnabled
