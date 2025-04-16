@@ -246,7 +246,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-
   "/attributes/name/{name}":
     get:
       summary: Get Attribute by name
