@@ -1116,34 +1116,6 @@ export const agreementAttributeInReadmodelAgreement = readmodelAgreement.table(
   ]
 );
 
-export const eserviceTemplateRefInReadmodelCatalog = readmodelCatalog.table(
-  "eservice_template_ref",
-  {
-    eserviceTemplateId: uuid("eservice_template_id").notNull(),
-    eserviceId: uuid("eservice_id").notNull(),
-    metadataVersion: integer("metadata_version").notNull(),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.eserviceId],
-      foreignColumns: [eserviceInReadmodelCatalog.id],
-      name: "eservice_template_ref_eservice_id_fkey",
-    }).onDelete("cascade"),
-    foreignKey({
-      columns: [table.eserviceId, table.metadataVersion],
-      foreignColumns: [
-        eserviceInReadmodelCatalog.id,
-        eserviceInReadmodelCatalog.metadataVersion,
-      ],
-      name: "eservice_template_ref_eservice_id_metadata_version_fkey",
-    }),
-    primaryKey({
-      columns: [table.eserviceTemplateId, table.eserviceId],
-      name: "eservice_template_ref_pkey",
-    }),
-  ]
-);
-
 export const tenantVerifiedAttributeInReadmodelTenant = readmodelTenant.table(
   "tenant_verified_attribute",
   {
