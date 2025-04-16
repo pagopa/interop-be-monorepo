@@ -12,7 +12,6 @@ message ClientV1 {
   required ClientKindV1 kind = 8;
   optional int64 createdAt = 9;
   repeated string users = 10; 
-  optional string adminId = 11;
 }
 
 message ClientPurposesEntryV1 {
