@@ -39,11 +39,13 @@ describe("getClientKeyById", async () => {
     };
     await addOneClient(mockClient);
 
-    const retrievedKey = await authorizationService.getClientKeyById({
-      clientId: mockClient.id,
-      kid: mockKey1.kid,
-      ctx: getMockContext({ authData }),
-    });
+    const retrievedKey = await authorizationService.getClientKeyById(
+      {
+        clientId: mockClient.id,
+        kid: mockKey1.kid,
+      },
+      getMockContext({ authData })
+    );
     expect(retrievedKey).toEqual(mockKey1);
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
@@ -62,11 +64,13 @@ describe("getClientKeyById", async () => {
     };
 
     expect(
-      authorizationService.getClientKeyById({
-        clientId: mockClient.id,
-        kid: mockKey.kid,
-        ctx: getMockContext({ authData }),
-      })
+      authorizationService.getClientKeyById(
+        {
+          clientId: mockClient.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(organizationId, mockClient.id)
     );
@@ -80,11 +84,13 @@ describe("getClientKeyById", async () => {
     };
 
     expect(
-      authorizationService.getClientKeyById({
-        clientId: mockClient.id,
-        kid: mockKey.kid,
-        ctx: getMockContext({ authData }),
-      })
+      authorizationService.getClientKeyById(
+        {
+          clientId: mockClient.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
   it("should throw securityUserNotMember if the requester has SECURITY_ROLE and the user is not a member of the organization", async () => {
@@ -102,11 +108,13 @@ describe("getClientKeyById", async () => {
     };
 
     expect(
-      authorizationService.getClientKeyById({
-        clientId: mockClient.id,
-        kid: mockKey.kid,
-        ctx: getMockContext({ authData }),
-      })
+      authorizationService.getClientKeyById(
+        {
+          clientId: mockClient.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(securityUserNotMember(authData.userId));
   });
   it("should throw clientKeyNotFound if the key doesn't exist", async () => {
@@ -119,11 +127,13 @@ describe("getClientKeyById", async () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.getClientKeyById({
-        clientId: mockClient.id,
-        kid: mockKey.kid,
-        ctx: getMockContext({ authData }),
-      })
+      authorizationService.getClientKeyById(
+        {
+          clientId: mockClient.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({ authData })
+      )
     ).rejects.toThrowError(clientKeyNotFound(mockKey.kid, mockClient.id));
   });
 });

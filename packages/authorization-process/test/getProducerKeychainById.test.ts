@@ -1,4 +1,3 @@
-import { genericLogger } from "pagopa-interop-commons";
 import {
   ProducerKeychain,
   ProducerKeychainId,
@@ -7,7 +6,11 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { getMockProducerKeychain } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test";
 import { producerKeychainNotFound } from "../src/model/domain/errors.js";
 import { addOneProducerKeychain, authorizationService } from "./utils.js";
 
@@ -26,11 +29,12 @@ describe("getProducerKeychainById", async () => {
     await addOneProducerKeychain(expectedProducerKeychain);
 
     const { producerKeychain } =
-      await authorizationService.getProducerKeychainById({
-        producerKeychainId: expectedProducerKeychain.id,
-        organizationId,
-        logger: genericLogger,
-      });
+      await authorizationService.getProducerKeychainById(
+        {
+          producerKeychainId: expectedProducerKeychain.id,
+        },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      );
     expect(producerKeychain).toEqual(expectedProducerKeychain);
   });
   it("should get from the readModel the producer keychain with the specified Id without users", async () => {
@@ -43,22 +47,24 @@ describe("getProducerKeychainById", async () => {
     await addOneProducerKeychain(expectedProducerKeychainWithoutUser);
 
     const { producerKeychain } =
-      await authorizationService.getProducerKeychainById({
-        producerKeychainId: expectedProducerKeychainWithoutUser.id,
-        organizationId,
-        logger: genericLogger,
-      });
+      await authorizationService.getProducerKeychainById(
+        {
+          producerKeychainId: expectedProducerKeychainWithoutUser.id,
+        },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      );
     expect(producerKeychain).toEqual(expectedProducerKeychainWithoutUser);
   });
   it("should throw producerKeychainNotFound if the producerKeychain with the specified Id doesn't exist", async () => {
     await addOneProducerKeychain(getMockProducerKeychain());
     const producerKeychainId: ProducerKeychainId = generateId();
     await expect(
-      authorizationService.getProducerKeychainById({
-        producerKeychainId,
-        organizationId,
-        logger: genericLogger,
-      })
+      authorizationService.getProducerKeychainById(
+        {
+          producerKeychainId,
+        },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
     ).rejects.toThrowError(producerKeychainNotFound(producerKeychainId));
   });
 });
