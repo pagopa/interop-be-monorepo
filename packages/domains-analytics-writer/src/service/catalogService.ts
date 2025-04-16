@@ -27,6 +27,7 @@ import { eserviceRepository } from "../repository/catalog/eservice.repository.js
 import { CatalogDbTable, DeletingDbTable } from "../model/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import { mergeDeletingById } from "../utils/sqlQueryHelper.js";
+import { config } from "../config/config.js";
 
 export function catalogServiceBuilder(db: DBContext) {
   const eserviceRepo = eserviceRepository(db.conn);
@@ -46,10 +47,12 @@ export function catalogServiceBuilder(db: DBContext) {
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertBatchEservice(
       upsertBatch: EServiceItemsSQL[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ) {
-      for (const batch of batchMessages(upsertBatch, batchSize)) {
+      for (const batch of batchMessages(
+        upsertBatch,
+        config.dbMessagesToInsertPerBatch
+      )) {
         const batchItems = {
           eserviceSQL: batch.map((item) => item.eserviceSQL),
           descriptorsSQL: batch.map((item) => item.descriptorsSQL).flat(),
@@ -178,10 +181,12 @@ export function catalogServiceBuilder(db: DBContext) {
         eserviceId: EServiceId;
         metadataVersion: number;
       }>,
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(items, batchSize)) {
+      for (const batch of batchMessages(
+        items,
+        config.dbMessagesToInsertPerBatch
+      )) {
         const batchItems: {
           descriptorSQLArray: EServiceDescriptorSQL[];
           attributesSQLArray: EServiceDescriptorAttributeSQL[];
@@ -299,10 +304,12 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async upsertBatchEServiceDocument(
       documents: EServiceDescriptorDocumentSQL[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(documents, batchSize)) {
+      for (const batch of batchMessages(
+        documents,
+        config.dbMessagesToInsertPerBatch
+      )) {
         await dbContext.conn.tx(async (t) => {
           await documentRepo.insert(t, dbContext.pgp, batch);
         });
@@ -323,10 +330,12 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async deleteBatchEService(
       eserviceIds: string[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(eserviceIds, batchSize)) {
+      for (const batch of batchMessages(
+        eserviceIds,
+        config.dbMessagesToInsertPerBatch
+      )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
             await eserviceRepo.insertDeletingByEserviceId(t, dbContext.pgp, id);
@@ -364,10 +373,12 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async deleteBatchDescriptor(
       descriptorIds: string[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(descriptorIds, batchSize)) {
+      for (const batch of batchMessages(
+        descriptorIds,
+        config.dbMessagesToInsertPerBatch
+      )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
             await descriptorRepo.insertDeletingByDescriptorId(
@@ -404,10 +415,12 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async deleteBatchEserviceRiskAnalysis(
       riskAnalysisIds: string[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(riskAnalysisIds, batchSize)) {
+      for (const batch of batchMessages(
+        riskAnalysisIds,
+        config.dbMessagesToInsertPerBatch
+      )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
             await riskAnalysisRepo.insertDeletingRiskAnalysis(
@@ -432,10 +445,12 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async deleteBatchEServiceDocument(
       documentIds: string[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(documentIds, batchSize)) {
+      for (const batch of batchMessages(
+        documentIds,
+        config.dbMessagesToInsertPerBatch
+      )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
             await documentRepo.deleteDocument(t, dbContext.pgp, id);
@@ -461,10 +476,12 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async deleteBatchEserviceInterface(
       descriptorIds: string[],
-      dbContext: DBContext,
-      batchSize: number = 50
+      dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(descriptorIds, batchSize)) {
+      for (const batch of batchMessages(
+        descriptorIds,
+        config.dbMessagesToInsertPerBatch
+      )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
             await interfaceRepo.deleteInterface(t, dbContext.pgp, id);

@@ -39,21 +39,6 @@ await retryConnection(
   dbContext,
   config,
   async (db) => {
-    await setupDbServiceBuilder(db.conn, config).setupStagingTables([
-      "eservice",
-      "eservice_template_ref",
-      "eservice_descriptor",
-      "eservice_descriptor_template_version_ref",
-      "eservice_descriptor_rejection_reason",
-      "eservice_descriptor_interface",
-      "eservice_descriptor_document",
-      "eservice_descriptor_attribute",
-      "eservice_risk_analysis",
-      "eservice_risk_analysis_answer",
-    ]);
-    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingByIdTables(
-      [DeletingDbTable.attribute_deleting_table]
-    );
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables([
       AttributeDbtable.attribute,

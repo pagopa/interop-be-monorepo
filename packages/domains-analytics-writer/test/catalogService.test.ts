@@ -36,51 +36,51 @@ describe("Catalog Service - Batch Operations", () => {
 
         const storedEservice = await getEserviceFromDb(
           eserviceItem.eserviceSQL.id,
-          dbContext,
+          dbContext
         );
         expect(storedEservice).toBeDefined();
         expect(storedEservice.metadata_version).toBe(1);
 
         const storedDescriptors = await getDescriptorFromDb(
           eserviceItem.descriptorsSQL[0].id,
-          dbContext,
+          dbContext
         );
         expect(storedDescriptors.length).toBeGreaterThan(0);
 
         const storedInterfaces = await getInterfaceFromDb(
           eserviceItem.interfacesSQL[0].id,
-          dbContext,
+          dbContext
         );
         expect(storedInterfaces.length).toBeGreaterThan(0);
 
         const storedDocuments = await getDocumentFromDb(
           eserviceItem.documentsSQL[0].id,
-          dbContext,
+          dbContext
         );
         expect(storedDocuments.length).toBeGreaterThan(0);
 
         const storedRiskAnalysis = await getRiskAnalysisFromDb(
           eserviceItem.riskAnalysesSQL[0].id,
-          dbContext,
+          dbContext
         );
         expect(storedRiskAnalysis.length).toBeGreaterThan(0);
 
         // Verify sub-objects inserted via direct queries
         const storedRiskAnswer = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_risk_analysis_answer WHERE id = $1`,
-          [sampleRiskAnswer.id],
+          [sampleRiskAnswer.id]
         );
         expect(storedRiskAnswer.length).toBeGreaterThan(0);
 
         const storedTemplateRef = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_template_ref WHERE eservice_template_id = $1`,
-          [sampleTemplateRef.eserviceTemplateId],
+          [sampleTemplateRef.eserviceTemplateId]
         );
         expect(storedTemplateRef.length).toBeGreaterThan(0);
 
         const storedAttribute = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_attribute WHERE attribute_id = $1`,
-          [sampleAttribute.attributeId],
+          [sampleAttribute.attributeId]
         );
         expect(storedAttribute.length).toBeGreaterThan(0);
 
@@ -89,13 +89,13 @@ describe("Catalog Service - Batch Operations", () => {
           [
             eserviceItem.descriptorsSQL[0].id,
             sampleRejectionReason.rejectionReason,
-          ],
+          ]
         );
         expect(storedRejectionReason.length).toBeGreaterThan(0);
 
         const storedTemplateVersionRef = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_template_version_ref WHERE eservice_template_version_id = $1`,
-          [sampleTemplateVersionRef.eserviceTemplateVersionId],
+          [sampleTemplateVersionRef.eserviceTemplateVersionId]
         );
         expect(storedTemplateVersionRef.length).toBeGreaterThan(0);
       });
@@ -136,8 +136,8 @@ describe("Catalog Service - Batch Operations", () => {
         await expect(
           catalogService.upsertBatchEServiceDescriptor(
             [descriptorItem],
-            dbContext,
-          ),
+            dbContext
+          )
         ).rejects.toThrow();
       });
 
@@ -153,42 +153,42 @@ describe("Catalog Service - Batch Operations", () => {
 
         await catalogService.upsertBatchEServiceDescriptor(
           [descriptorItem],
-          dbContext,
+          dbContext
         );
 
         const storedDescriptors = await getDescriptorFromDb(
           descriptorSQL.id,
-          dbContext,
+          dbContext
         );
         expect(storedDescriptors.length).toBe(1);
 
         const storedInterface = await getInterfaceFromDb(
           eserviceItem.interfacesSQL[0].id,
-          dbContext,
+          dbContext
         );
         expect(storedInterface.length).toBe(1);
 
         const storedDocument = await getDocumentFromDb(
           eserviceItem.documentsSQL[0].id,
-          dbContext,
+          dbContext
         );
         expect(storedDocument.length).toBe(1);
 
         const storedAttributes = await getDescriptorAttributeFromDb(
           eserviceItem.attributesSQL[0].attributeId,
-          dbContext,
+          dbContext
         );
         expect(storedAttributes?.length).toBeGreaterThan(0);
 
         const storedRejectionReasons = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_rejection_reason WHERE descriptor_id = $1`,
-          [descriptorSQL.id],
+          [descriptorSQL.id]
         );
         expect(storedRejectionReasons.length).toBe(1);
 
         const storedTemplateVersionRef = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_template_version_ref WHERE descriptor_id = $1`,
-          [descriptorSQL.id],
+          [descriptorSQL.id]
         );
         expect(storedTemplateVersionRef.length).toBe(1);
       });
@@ -217,7 +217,7 @@ describe("Catalog Service - Batch Operations", () => {
 
         await catalogService.upsertBatchEServiceDocument(
           [documentSQL],
-          dbContext,
+          dbContext
         );
         const storedDocument = await getDocumentFromDb(docId, dbContext);
         expect(storedDocument.length).toBeGreaterThan(0);
@@ -232,62 +232,62 @@ describe("Catalog Service - Batch Operations", () => {
         await catalogService.upsertBatchEservice([eserviceItem], dbContext);
         await catalogService.deleteBatchEService(
           [eserviceItem.eserviceSQL.id],
-          dbContext,
+          dbContext
         );
 
         const storedEservice = await getEserviceFromDb(
           eserviceItem.eserviceSQL.id,
-          dbContext,
+          dbContext
         );
         expect(storedEservice.deleted).toBe(true);
 
         const storedDescriptors = await getDescriptorFromDb(
           eserviceItem.descriptorsSQL[0].id,
-          dbContext,
+          dbContext
         );
         storedDescriptors.forEach((d: { deleted: any }) =>
-          expect(d.deleted).toBe(true),
+          expect(d.deleted).toBe(true)
         );
 
         const storedInterfaces = await getInterfaceFromDb(
           eserviceItem.interfacesSQL[0].id,
-          dbContext,
+          dbContext
         );
         storedInterfaces.forEach((i: { deleted: any }) =>
-          expect(i.deleted).toBe(true),
+          expect(i.deleted).toBe(true)
         );
 
         const storedDocuments = await getDocumentFromDb(
           eserviceItem.documentsSQL[0].id,
-          dbContext,
+          dbContext
         );
         storedDocuments.forEach((d: { deleted: any }) =>
-          expect(d.deleted).toBe(true),
+          expect(d.deleted).toBe(true)
         );
 
         const storedRiskAnalysis = await getRiskAnalysisFromDb(
           eserviceItem.riskAnalysesSQL[0].id,
-          dbContext,
+          dbContext
         );
         storedRiskAnalysis.forEach((r: { deleted: any }) =>
-          expect(r.deleted).toBe(true),
+          expect(r.deleted).toBe(true)
         );
 
         const storedRiskAnswer = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_risk_analysis_answer WHERE id = $1`,
-          [sampleRiskAnswer.id],
+          [sampleRiskAnswer.id]
         );
         storedRiskAnswer.forEach((r) => expect(r.deleted).toBe(true));
 
         const storedTemplateRef = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_template_ref WHERE eservice_template_id = $1`,
-          [sampleTemplateRef.eserviceTemplateId],
+          [sampleTemplateRef.eserviceTemplateId]
         );
         storedTemplateRef.forEach((t) => expect(t.deleted).toBe(true));
 
         const storedAttributes = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_attribute WHERE attribute_id = $1`,
-          [sampleAttribute.attributeId],
+          [sampleAttribute.attributeId]
         );
         storedAttributes.forEach((a) => expect(a.deleted).toBe(true));
 
@@ -296,13 +296,13 @@ describe("Catalog Service - Batch Operations", () => {
           [
             eserviceItem.descriptorsSQL[0].id,
             sampleRejectionReason.rejectionReason,
-          ],
+          ]
         );
         storedRejectionReasons.forEach((r) => expect(r.deleted).toBe(true));
 
         const storedTemplateVersionRefs = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_template_version_ref WHERE eservice_template_version_id = $1`,
-          [sampleTemplateVersionRef.eserviceTemplateVersionId],
+          [sampleTemplateVersionRef.eserviceTemplateVersionId]
         );
         storedTemplateVersionRefs.forEach((t) => expect(t.deleted).toBe(true));
       });
@@ -376,46 +376,46 @@ describe("Catalog Service - Batch Operations", () => {
 
         await catalogService.upsertBatchEServiceDescriptor(
           [descriptorItem],
-          dbContext,
+          dbContext
         );
         await catalogService.deleteBatchDescriptor(
           [newDescriptorId],
-          dbContext,
+          dbContext
         );
 
         const storedDescriptors = await getDescriptorFromDb(
           newDescriptorId,
-          dbContext,
+          dbContext
         );
         expect(storedDescriptors[0].deleted).toBe(true);
 
         const descriptorAttributes = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_attribute WHERE descriptor_id = $1`,
-          [newDescriptorId],
+          [newDescriptorId]
         );
         descriptorAttributes.forEach((attr) => expect(attr.deleted).toBe(true));
 
         const descriptorDocs = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_document WHERE descriptor_id = $1`,
-          [newDescriptorId],
+          [newDescriptorId]
         );
         descriptorDocs.forEach((doc) => expect(doc.deleted).toBe(true));
 
         const descriptorInterfaces = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_interface WHERE descriptor_id = $1`,
-          [newDescriptorId],
+          [newDescriptorId]
         );
         descriptorInterfaces.forEach((intf) => expect(intf.deleted).toBe(true));
 
         const rejectionReasons = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_rejection_reason WHERE descriptor_id = $1`,
-          [newDescriptorId],
+          [newDescriptorId]
         );
         rejectionReasons.forEach((reason) => expect(reason.deleted).toBe(true));
 
         const templateVersionRefs = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_template_version_ref WHERE descriptor_id = $1`,
-          [newDescriptorId],
+          [newDescriptorId]
         );
         templateVersionRefs.forEach((ref) => expect(ref.deleted).toBe(true));
       });
@@ -458,19 +458,19 @@ describe("Catalog Service - Batch Operations", () => {
         const catalogService = catalogServiceBuilder(dbContext);
         await catalogService.upsertBatchEservice(
           [riskAnalysisEserviceItem],
-          dbContext,
+          dbContext
         );
         await catalogService.deleteBatchEserviceRiskAnalysis(
           [riskAnalysisIdForDeletion],
-          dbContext,
+          dbContext
         );
 
         const storedRiskAnalysis = await getRiskAnalysisFromDb(
           riskAnalysisIdForDeletion,
-          dbContext,
+          dbContext
         );
         storedRiskAnalysis.forEach((r: { deleted: any }) =>
-          expect(r.deleted).toBe(true),
+          expect(r.deleted).toBe(true)
         );
       });
     });
@@ -498,7 +498,7 @@ describe("Catalog Service - Batch Operations", () => {
 
         await catalogService.upsertBatchEServiceDocument(
           [documentSQL],
-          dbContext,
+          dbContext
         );
         await catalogService.deleteBatchEServiceDocument([docId], dbContext);
 
