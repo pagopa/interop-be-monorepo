@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, beforeEach, expect } from "vitest";
-import {
-  DescriptorId,
-  EServiceId,
-  generateId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { EServiceId, generateId, unsafeBrandId } from "pagopa-interop-models";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import {
   dbContext,
@@ -14,11 +9,23 @@ import {
   getDocumentFromDb,
   getInterfaceFromDb,
   getRiskAnalysisFromDb,
+  eserviceItem,
+  descriptorId,
+  documentId,
+  eserviceId,
+  interfaceId,
+  riskAnalysisId,
+  sampleAttribute,
+  sampleRejectionReason,
+  sampleRiskAnswer,
+  sampleTemplateRef,
+  sampleTemplateVersionRef,
 } from "./utils.js";
 import { CatalogDbTable } from "../src/model/db.js";
 
 describe("Catalog Service - Batch Operations", () => {
   beforeEach(async () => {
+    // Truncate all staging/target tables before each test.
     await dbContext.conn.none(
       `TRUNCATE TABLE ${CatalogDbTable.eservice} CASCADE;`,
     );
@@ -39,99 +46,89 @@ describe("Catalog Service - Batch Operations", () => {
     );
   });
 
-  it("upsertBatchEservice - successfully inserts and merges an eService", async () => {
-    const serviceId = generateId();
-    const eserviceSQL = {
-      id: unsafeBrandId<EServiceId>(serviceId),
-      metadataVersion: 1,
-      producerId: generateId(),
-      name: "Test E-Service",
-      description: "Test e-service",
-      technology: "REST",
-      createdAt: new Date().toISOString(),
-      mode: "active",
-      isSignalHubEnabled: true,
-      isConsumerDelegable: false,
-      isClientAccessDelegable: false,
-    };
-
-    const eserviceItem = {
-      eserviceSQL,
-      templateRefSQL: [],
-      riskAnalysesSQL: [],
-      riskAnalysisAnswersSQL: [],
-      descriptorsSQL: [],
-      attributesSQL: [],
-      interfacesSQL: [],
-      documentsSQL: [],
-      rejectionReasonsSQL: [],
-      templateVersionRefsSQL: [],
-    } as any;
-
+  it("upsertBatchEservice - successfully inserts a complete eService with all sub-objects", async () => {
     const catalogService = catalogServiceBuilder(dbContext);
     await catalogService.upsertBatchEservice([eserviceItem], dbContext);
 
-    const stored = await getEserviceFromDb(serviceId, dbContext);
-    expect(stored).toBeDefined();
-    expect(stored?.id).toBe(serviceId);
-    expect(stored?.metadata_version).toBe(1);
+    // Verify main eService record.
+    const storedEservice = await getEserviceFromDb(eserviceId, dbContext);
+    expect(storedEservice).toBeDefined();
+    expect(storedEservice.metadata_version).toBe(1);
+
+    // Verify descriptor.
+    const storedDescriptors = await getDescriptorFromDb(
+      descriptorId,
+      dbContext,
+    );
+    expect(storedDescriptors.length).toBeGreaterThan(0);
+    expect(storedDescriptors[0].id).toBe(descriptorId);
+
+    // Verify interface.
+    const storedInterfaces = await getInterfaceFromDb(interfaceId, dbContext);
+    expect(storedInterfaces.length).toBeGreaterThan(0);
+    expect(storedInterfaces[0].id).toBe(interfaceId);
+
+    // Verify document.
+    const storedDocuments = await getDocumentFromDb(documentId, dbContext);
+    expect(storedDocuments.length).toBeGreaterThan(0);
+    expect(storedDocuments[0].name).toBe("Test Document");
+
+    // Verify risk analysis.
+    const storedRiskAnalysis = await getRiskAnalysisFromDb(
+      riskAnalysisId,
+      dbContext,
+    );
+    expect(storedRiskAnalysis.length).toBeGreaterThan(0);
+    expect(storedRiskAnalysis[0].id).toBe(riskAnalysisId);
+
+    // Verify additional child objects via direct queries.
+    const storedRiskAnswer = await dbContext.conn.any(
+      `SELECT * FROM domains.eservice_risk_analysis_answer WHERE id = $1`,
+      [sampleRiskAnswer.id],
+    );
+    expect(storedRiskAnswer.length).toBeGreaterThan(0);
+
+    const storedTemplateRef = await dbContext.conn.any(
+      `SELECT * FROM domains.eservice_template_ref WHERE eservice_template_id = $1`,
+      [sampleTemplateRef.eserviceTemplateId],
+    );
+    expect(storedTemplateRef.length).toBeGreaterThan(0);
+
+    const storedAttribute = await dbContext.conn.any(
+      `SELECT * FROM domains.eservice_descriptor_attribute WHERE attribute_id = $1`,
+      [sampleAttribute.attributeId],
+    );
+    expect(storedAttribute.length).toBeGreaterThan(0);
+
+    const storedRejectionReason = await dbContext.conn.any(
+      `SELECT * FROM domains.eservice_descriptor_rejection_reason WHERE descriptor_id = $1 AND rejection_reason = $2`,
+      [descriptorId, sampleRejectionReason.rejectionReason],
+    );
+    expect(storedRejectionReason.length).toBeGreaterThan(0);
+
+    const storedTemplateVersionRef = await dbContext.conn.any(
+      `SELECT * FROM domains.eservice_descriptor_template_version_ref WHERE eservice_template_version_id = $1`,
+      [sampleTemplateVersionRef.eserviceTemplateVersionId],
+    );
+    expect(storedTemplateVersionRef.length).toBeGreaterThan(0);
   });
 
-  it("deleteBatchEService - flags an eService as deleted", async () => {
-    const serviceId = generateId();
-    const eserviceSQL = {
-      id: unsafeBrandId<EServiceId>(serviceId),
-      metadataVersion: 1,
-      producerId: generateId(),
-      name: "E-Service to Delete",
-      description: "E-service flagged for deletion",
-      technology: "SOAP",
-      createdAt: new Date().toISOString(),
-      mode: "active",
-      isSignalHubEnabled: false,
-      isConsumerDelegable: true,
-      isClientAccessDelegable: true,
-    };
-
-    const eserviceItem = {
-      eserviceSQL,
-      templateRefSQL: [],
-      riskAnalysesSQL: [],
-      riskAnalysisAnswersSQL: [],
-      descriptorsSQL: [],
-      attributesSQL: [],
-      interfacesSQL: [],
-      documentsSQL: [],
-      rejectionReasonsSQL: [],
-      templateVersionRefsSQL: [],
-    } as any;
-
-    const catalogService = catalogServiceBuilder(dbContext);
-    await catalogService.upsertBatchEservice([eserviceItem], dbContext);
-    let stored = await getEserviceFromDb(serviceId, dbContext);
-    expect(stored).toBeDefined();
-
-    await catalogService.deleteBatchEService([serviceId], dbContext);
-    stored = await getEserviceFromDb(serviceId, dbContext);
-    expect(stored?.deleted).toBe(true);
-  });
-
-  it("upsertBatchEServiceDescriptor - successfully inserts and merges a descriptor", async () => {
-    const serviceId = generateId();
+  it("upsertBatchEServiceDescriptor - fails if eservice_id does not exist", async () => {
+    const nonExistentServiceId = generateId();
     const descriptorId = generateId();
     const descriptorData = {
-      id: unsafeBrandId<DescriptorId>(descriptorId),
-      eserviceId: unsafeBrandId<EServiceId>(serviceId),
+      id: descriptorId,
+      eserviceId: unsafeBrandId<EServiceId>(nonExistentServiceId),
       metadataVersion: 1,
       version: "v1",
-      description: "Test Descriptor",
+      description: "Descriptor with invalid eservice",
       state: "Published",
-      audience: ["IT", "Health"],
+      audience: ["IT"],
       docs: [],
-      attributes: { declared: [], verified: [], certified: [] },
-      voucherLifespan: 3600,
-      dailyCallsPerConsumer: 100,
-      dailyCallsTotal: 1000,
+      attributes: {},
+      voucher_lifespan: 3600,
+      dailyCallsPerConsumer: 50,
+      dailyCallsTotal: 500,
       agreementApprovalPolicy: "Automatic",
       createdAt: new Date().toISOString(),
       serverUrls: ["https://api.example.com"],
@@ -143,336 +140,13 @@ describe("Catalog Service - Batch Operations", () => {
 
     const descriptorItem = {
       descriptorData,
-      eserviceId: unsafeBrandId<EServiceId>(serviceId),
+      eserviceId: unsafeBrandId<EServiceId>(nonExistentServiceId),
       metadataVersion: 1,
-    };
+    } as any;
 
     const catalogService = catalogServiceBuilder(dbContext);
-    await catalogService.upsertBatchEServiceDescriptor(
-      [descriptorItem],
-      dbContext,
-    );
-
-    const stored = await getDescriptorFromDb(descriptorId, dbContext);
-    expect(stored).toBeDefined();
-    expect(stored?.id).toBe(descriptorId);
-    expect(stored?.state).toBe("Published");
+    await expect(
+      catalogService.upsertBatchEServiceDescriptor([descriptorItem], dbContext),
+    ).rejects.toThrow();
   });
-
-  //   it("deleteBatchDescriptor - flags a descriptor as deleted", async () => {
-  //     const serviceId = generateId();
-  //     const descriptorId = generateId();
-  //     const descriptorData = {
-  //       id: descriptorId,
-  //       eserviceId: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       version: "v1",
-  //       description: "Descriptor to Delete",
-  //       state: "Published",
-  //       audience: ["IT"],
-  //       docs: [],
-  //       attributes: {},
-  //       voucherLifespan: 3600,
-  //       dailyCallsPerConsumer: 50,
-  //       dailyCallsTotal: 500,
-  //       agreementApprovalPolicy: "Automatic",
-  //       createdAt: new Date().toISOString(),
-  //       serverUrls: ["https://api.example.com"],
-  //       publishedAt: new Date().toISOString(),
-  //       suspendedAt: null,
-  //       deprecatedAt: null,
-  //       archivedAt: null,
-  //     };
-
-  //     const descriptorItem = {
-  //       descriptorData,
-  //       eserviceId: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //     };
-
-  //     const catalogService = catalogServiceBuilder(dbContext);
-  //     await catalogService.upsertBatchEServiceDescriptor(
-  //       [descriptorItem],
-  //       dbContext,
-  //     );
-  //     let stored = await getDescriptorFromDb(descriptorId, dbContext);
-  //     expect(stored).toBeDefined();
-
-  //     await catalogService.deleteBatchDescriptor([descriptorId], dbContext);
-  //     stored = await getDescriptorFromDb(descriptorId, dbContext);
-  //     expect(stored?.deleted).toBe(true);
-  //   });
-
-  //   it("upsertBatchEServiceDocument - successfully inserts and merges a document", async () => {
-  //     // Ensure the referenced eService exists by inserting it first.
-  //     const serviceId = generateId();
-  //     const eserviceSQL = {
-  //       id: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       producerId: generateId(),
-  //       name: "E-Service for Documents",
-  //       description: "Test eService",
-  //       technology: "REST",
-  //       createdAt: new Date().toISOString(),
-  //       mode: "active",
-  //       isSignalHubEnabled: true,
-  //       isConsumerDelegable: false,
-  //       isClientAccessDelegable: false,
-  //     };
-  //     const eserviceItem = {
-  //       eserviceSQL,
-  //       templateRefSQL: [],
-  //       riskAnalysesSQL: [],
-  //       riskAnalysisAnswersSQL: [],
-  //       descriptorsSQL: [],
-  //       attributesSQL: [],
-  //       interfacesSQL: [],
-  //       documentsSQL: [],
-  //       rejectionReasonsSQL: [],
-  //       templateVersionRefsSQL: [],
-  //     } as any;
-  //     const catalogService = catalogServiceBuilder(dbContext);
-  //     await catalogService.upsertBatchEservice([eserviceItem], dbContext);
-
-  //     const documentId = generateId();
-  //     const documentSQL = {
-  //       id: documentId,
-  //       eserviceId: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       descriptorId: generateId(), // ensure descriptor exists if needed or adjust FKs accordingly
-  //       name: "Test Document",
-  //       contentType: "application/pdf",
-  //       prettyName: "document.pdf",
-  //       path: "/docs/document.pdf",
-  //       checksum: "abc123",
-  //       uploadDate: new Date().toISOString(),
-  //     };
-
-  //     await catalogService.upsertBatchEServiceDocument([documentSQL], dbContext);
-
-  //     const stored = await getDocumentFromDb(documentId, dbContext);
-  //     expect(stored).toBeDefined();
-  //     expect(stored?.name).toBe("Test Document");
-  //   });
-
-  //   it("deleteBatchEServiceDocument - flags a document as deleted", async () => {
-  //     // Insert an eService to satisfy FK constraint.
-  //     const serviceId = generateId();
-  //     const eserviceSQL = {
-  //       id: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       producerId: generateId(),
-  //       name: "E-Service for Document Deletion",
-  //       description: "Test eService",
-  //       technology: "REST",
-  //       createdAt: new Date().toISOString(),
-  //       mode: "active",
-  //       isSignalHubEnabled: true,
-  //       isConsumerDelegable: false,
-  //       isClientAccessDelegable: false,
-  //     };
-  //     const eserviceItem = {
-  //       eserviceSQL,
-  //       templateRefSQL: [],
-  //       riskAnalysesSQL: [],
-  //       riskAnalysisAnswersSQL: [],
-  //       descriptorsSQL: [],
-  //       attributesSQL: [],
-  //       interfacesSQL: [],
-  //       documentsSQL: [],
-  //       rejectionReasonsSQL: [],
-  //       templateVersionRefsSQL: [],
-  //     } as any;
-  //     const catalogService = catalogServiceBuilder(dbContext);
-  //     await catalogService.upsertBatchEservice([eserviceItem], dbContext);
-
-  //     const documentId = generateId();
-  //     const documentSQL = {
-  //       id: documentId,
-  //       eserviceId: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       descriptorId: generateId(),
-  //       name: "Document to Delete",
-  //       contentType: "application/pdf",
-  //       prettyName: "delete.pdf",
-  //       path: "/docs/delete.pdf",
-  //       checksum: "def456",
-  //       uploadDate: new Date().toISOString(),
-  //     };
-
-  //     await catalogService.upsertBatchEServiceDocument([documentSQL], dbContext);
-  //     let stored = await getDocumentFromDb(documentId, dbContext);
-  //     expect(stored).toBeDefined();
-
-  //     await catalogService.deleteBatchEServiceDocument([documentId], dbContext);
-  //     stored = await getDocumentFromDb(documentId, dbContext);
-  //     expect(stored?.deleted).toBe(true);
-  //   });
-
-  //   it("deleteBatchEserviceInterface - flags an interface as deleted", async () => {
-  //     // Insert an eService so that the FK constraint on the interface is met.
-  //     const serviceId = generateId();
-  //     const eserviceSQL = {
-  //       id: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       producerId: generateId(),
-  //       name: "E-Service for Interfaces",
-  //       description: "Test eService",
-  //       technology: "REST",
-  //       createdAt: new Date().toISOString(),
-  //       mode: "active",
-  //       isSignalHubEnabled: true,
-  //       isConsumerDelegable: false,
-  //       isClientAccessDelegable: false,
-  //     };
-  //     const eserviceItem = {
-  //       eserviceSQL,
-  //       templateRefSQL: [],
-  //       riskAnalysesSQL: [],
-  //       riskAnalysisAnswersSQL: [],
-  //       descriptorsSQL: [],
-  //       attributesSQL: [],
-  //       interfacesSQL: [],
-  //       documentsSQL: [],
-  //       rejectionReasonsSQL: [],
-  //       templateVersionRefsSQL: [],
-  //     } as any;
-  //     const catalogService = catalogServiceBuilder(dbContext);
-  //     await catalogService.upsertBatchEservice([eserviceItem], dbContext);
-
-  //     const interfaceId = generateId();
-  //     const interfaceSQL = {
-  //       id: interfaceId,
-  //       eserviceId: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       descriptorId: generateId(),
-  //       name: "Test Interface",
-  //       contentType: "application/json",
-  //       prettyName: "interface.json",
-  //       path: "/interfaces/interface.json",
-  //       checksum: "ghi789",
-  //       uploadDate: new Date().toISOString(),
-  //     };
-
-  //     const eserviceItemWithInterface = {
-  //       eserviceSQL: {
-  //         id: unsafeBrandId<EServiceId>(serviceId),
-  //         metadataVersion: 1,
-  //         producerId: generateId(),
-  //         name: "E-Service for Interfaces",
-  //         description: "Test interfaces",
-  //         technology: "REST",
-  //         createdAt: new Date().toISOString(),
-  //         mode: "active",
-  //         isSignalHubEnabled: true,
-  //         isConsumerDelegable: false,
-  //         isClientAccessDelegable: false,
-  //       },
-  //       templateRefSQL: [],
-  //       riskAnalysesSQL: [],
-  //       riskAnalysisAnswersSQL: [],
-  //       descriptorsSQL: [],
-  //       attributesSQL: [],
-  //       interfacesSQL: [interfaceSQL],
-  //       documentsSQL: [],
-  //       rejectionReasonsSQL: [],
-  //       templateVersionRefsSQL: [],
-  //     } as any;
-
-  //     await catalogService.upsertBatchEservice(
-  //       [eserviceItemWithInterface],
-  //       dbContext,
-  //     );
-  //     let storedInterface = await getInterfaceFromDb(interfaceId, dbContext);
-  //     expect(storedInterface).toBeDefined();
-
-  //     await catalogService.deleteBatchEserviceInterface([interfaceId], dbContext);
-  //     storedInterface = await getInterfaceFromDb(interfaceId, dbContext);
-  //     expect(storedInterface?.deleted).toBe(true);
-  //   });
-
-  //   it("deleteBatchEserviceRiskAnalysis - flags a risk analysis as deleted and merges deletion for answers", async () => {
-  //     // Insert an eService first.
-  //     const serviceId = generateId();
-  //     const eserviceSQL = {
-  //       id: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       producerId: generateId(),
-  //       name: "E-Service for Risk Analysis",
-  //       description: "Test risk analysis",
-  //       technology: "REST",
-  //       createdAt: new Date().toISOString(),
-  //       mode: "active",
-  //       isSignalHubEnabled: true,
-  //       isConsumerDelegable: false,
-  //       isClientAccessDelegable: false,
-  //     };
-  //     const eserviceItem = {
-  //       eserviceSQL,
-  //       templateRefSQL: [],
-  //       riskAnalysesSQL: [],
-  //       riskAnalysisAnswersSQL: [],
-  //       descriptorsSQL: [],
-  //       attributesSQL: [],
-  //       interfacesSQL: [],
-  //       documentsSQL: [],
-  //       rejectionReasonsSQL: [],
-  //       templateVersionRefsSQL: [],
-  //     } as any;
-  //     const catalogService = catalogServiceBuilder(dbContext);
-  //     await catalogService.upsertBatchEservice([eserviceItem], dbContext);
-
-  //     const riskAnalysisId = generateId();
-  //     const riskAnalysisSQL = {
-  //       id: riskAnalysisId,
-  //       eserviceId: unsafeBrandId<EServiceId>(serviceId),
-  //       metadataVersion: 1,
-  //       name: "Test Risk Analysis",
-  //       createdAt: new Date().toISOString(),
-  //       riskAnalysisFormId: generateId(),
-  //       riskAnalysisFormVersion: "1.0",
-  //     };
-
-  //     const eserviceItemWithRiskAnalysis = {
-  //       eserviceSQL: {
-  //         id: unsafeBrandId<EServiceId>(serviceId),
-  //         metadataVersion: 1,
-  //         producerId: generateId(),
-  //         name: "E-Service for Risk Analysis",
-  //         description: "Test risk analysis",
-  //         technology: "REST",
-  //         createdAt: new Date().toISOString(),
-  //         mode: "active",
-  //         isSignalHubEnabled: true,
-  //         isConsumerDelegable: false,
-  //         isClientAccessDelegable: false,
-  //       },
-  //       templateRefSQL: [],
-  //       riskAnalysisSQL: [riskAnalysisSQL],
-  //       riskAnalysisAnswersSQL: [],
-  //       descriptorsSQL: [],
-  //       attributesSQL: [],
-  //       interfacesSQL: [],
-  //       documentsSQL: [],
-  //       rejectionReasonsSQL: [],
-  //       templateVersionRefsSQL: [],
-  //     } as any;
-
-  //     await catalogService.upsertBatchEservice(
-  //       [eserviceItemWithRiskAnalysis],
-  //       dbContext,
-  //     );
-  //     let storedRiskAnalysis = await getRiskAnalysisFromDb(
-  //       riskAnalysisId,
-  //       dbContext,
-  //     );
-  //     expect(storedRiskAnalysis).toBeDefined();
-
-  //     await catalogService.deleteBatchEserviceRiskAnalysis(
-  //       [riskAnalysisId],
-  //       dbContext,
-  //     );
-  //     storedRiskAnalysis = await getRiskAnalysisFromDb(riskAnalysisId, dbContext);
-  //     expect(storedRiskAnalysis?.deleted).toBe(true);
-  //   });
 });

@@ -21,8 +21,8 @@ import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDesc
 import { eserviceTemplateRefRepository } from "../repository/catalog/eserviceTemplateRef.repository.js";
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
 import { CatalogDbTable, DeletingDbTable } from "../model/db.js";
-import { mergeDeletingById } from "../repository/common/mergeDeletingQuery.js";
 import { batchMessages } from "../utils/batchHelper.js";
+import { mergeDeletingById } from "../utils/sqlQueryHelper.js";
 
 export function catalogServiceBuilder(db: DBContext) {
   const eserviceRepo = eserviceRepository(db.conn);

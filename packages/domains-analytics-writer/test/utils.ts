@@ -15,6 +15,12 @@ import {
   DeletingDbTable,
 } from "../src/model/db.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
+import {
+  generateId,
+  unsafeBrandId,
+  EServiceId,
+  DescriptorId,
+} from "pagopa-interop-models";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -167,3 +173,153 @@ export async function getRiskAnalysisFromDb(
     [riskAnalysisId],
   );
 }
+
+export const eserviceId = generateId();
+export const descriptorId = generateId();
+export const interfaceId = generateId();
+export const documentId = generateId();
+export const riskAnalysisId = generateId();
+
+// Main eService record.
+const eserviceSQL = {
+  id: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  producerId: generateId(),
+  name: "Test E-Service Full",
+  description: "Test eService with complete sub-objects",
+  technology: "REST",
+  createdAt: new Date().toISOString(),
+  mode: "active",
+  isSignalHubEnabled: true,
+  isConsumerDelegable: false,
+  isClientAccessDelegable: false,
+};
+
+// Descriptor record.
+const descriptorSQL = {
+  id: unsafeBrandId<DescriptorId>(descriptorId),
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  version: "v1",
+  description: "Full Descriptor",
+  state: "Published",
+  audience: ["IT"],
+  docs: [],
+  attributes: { declared: [], verified: [], certified: [] },
+  voucherLifespan: 3600,
+  dailyCallsPerConsumer: 50,
+  dailyCallsTotal: 500,
+  agreementApprovalPolicy: "Automatic",
+  createdAt: new Date().toISOString(),
+  serverUrls: ["https://api.example.com"],
+  publishedAt: new Date().toISOString(),
+  suspendedAt: null,
+  deprecatedAt: null,
+  archivedAt: null,
+  voucher_lifespan: "123321",
+};
+
+// Interface record.
+const interfaceSQL = {
+  id: interfaceId,
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  descriptorId: descriptorId,
+  name: "Test Interface",
+  contentType: "application/json",
+  prettyName: "interface.json",
+  path: "/interfaces/interface.json",
+  checksum: "chk-interface",
+  uploadDate: new Date().toISOString(),
+};
+
+// Document record.
+const documentSQL = {
+  id: documentId,
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  descriptorId: descriptorId,
+  name: "Test Document",
+  contentType: "application/pdf",
+  prettyName: "document.pdf",
+  path: "/docs/document.pdf",
+  checksum: "chk-document",
+  uploadDate: new Date().toISOString(),
+};
+
+// Risk Analysis record.
+const riskAnalysisFormId = generateId();
+const riskAnalysisSQL = {
+  id: riskAnalysisId,
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  name: "Test Risk Analysis",
+  createdAt: new Date().toISOString(),
+  riskAnalysisFormId,
+  riskAnalysisFormVersion: "1.0",
+};
+
+// Additional child objects.
+export const sampleRiskAnswer = {
+  id: generateId(),
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  riskAnalysisFormId, // same as riskAnalysisSQL
+  kind: "someKind",
+  key: "someKey",
+  value: "someValue",
+  deleted: false,
+};
+
+export const sampleTemplateRef = {
+  eserviceTemplateId: generateId(),
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  instance_label: "Sample Template",
+  deleted: false,
+};
+
+export const sampleAttribute = {
+  attributeId: generateId(),
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  descriptorId: descriptorId,
+  explicitAttributeVerification: true,
+  kind: "sampleAttribute",
+  groupId: 1,
+  deleted: false,
+};
+
+export const sampleRejectionReason = {
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  descriptorId: descriptorId,
+  rejectionReason: "Test rejection",
+  rejectedAt: new Date().toISOString(),
+  deleted: false,
+};
+
+export const sampleTemplateVersionRef = {
+  eserviceTemplateVersionId: generateId(),
+  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+  metadataVersion: 1,
+  descriptorId: descriptorId,
+  contact_name: "John Doe",
+  contact_email: "john@example.com",
+  contact_url: "https://example.com",
+  terms_and_conditions_url: "https://example.com/terms",
+  deleted: false,
+};
+
+export const eserviceItem = {
+  eserviceSQL,
+  templateRefSQL: [sampleTemplateRef],
+  riskAnalysesSQL: [riskAnalysisSQL],
+  riskAnalysisAnswersSQL: [sampleRiskAnswer],
+  descriptorsSQL: [descriptorSQL],
+  attributesSQL: [sampleAttribute],
+  interfacesSQL: [interfaceSQL],
+  documentsSQL: [documentSQL],
+  rejectionReasonsSQL: [sampleRejectionReason],
+  templateVersionRefsSQL: [sampleTemplateVersionRef],
+} as any;

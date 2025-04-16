@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { genericInternalError } from "pagopa-interop-models";
+import { ITask } from "pg-promise";
+import { config } from "../config/config.js";
 /**
  * Generates a MERGE SQL query
  *
@@ -14,7 +17,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  column: keyof T
+  column: keyof T,
 ): string {
   const keys = Object.keys(tableSchema.shape);
 
@@ -55,7 +58,7 @@ export function generateMergeDeleteQuery(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  deletingKey: string
+  deletingKey: string,
 ): string {
   const updateSet = `${deletingKey} = source.id,
    deleted = source.deleted`;
@@ -68,4 +71,27 @@ export function generateMergeDeleteQuery(
     UPDATE SET
       ${updateSet};
 `;
+}
+
+export async function mergeDeletingById(
+  t: ITask<unknown>,
+  id: string,
+  deletingTableNames: string[],
+  targetTableDeleting: string,
+): Promise<void> {
+  try {
+    for (const deletingTableName of deletingTableNames) {
+      const mergeQuery = generateMergeDeleteQuery(
+        config.dbSchemaName,
+        deletingTableName,
+        targetTableDeleting,
+        id,
+      );
+      await t.none(mergeQuery);
+    }
+  } catch (error: unknown) {
+    throw genericInternalError(
+      `Error merging staging tabasdasdle ${targetTableDeleting}: ${error}`,
+    );
+  }
 }

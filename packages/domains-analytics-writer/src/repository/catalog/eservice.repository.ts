@@ -50,7 +50,6 @@ export function eserviceRepository(conn: DBConnection) {
         WHERE a.id = b.id
         AND a.metadata_version < b.metadata_version;
       `);
-        console.log("inserted");
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTable}: ${error}`,
@@ -59,7 +58,6 @@ export function eserviceRepository(conn: DBConnection) {
     },
 
     async merge(t: ITask<unknown>): Promise<void> {
-      console.log("inizio merge");
       try {
         const mergeQuery = generateMergeQuery(
           eserviceSchema,
