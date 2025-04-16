@@ -4407,7 +4407,6 @@ components:
         - ARCHIVED
         - REJECTED
     RiskAnalysisFormSeed:
-      # TODO Improve types
       type: object
       additionalProperties: false
       properties:
