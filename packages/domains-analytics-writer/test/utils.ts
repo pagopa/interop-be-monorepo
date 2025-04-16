@@ -226,7 +226,7 @@ export const descriptorSQL = {
   voucher_lifespan: "123321",
 };
 
-const interfaceSQL = {
+export const interfaceSQL = {
   id: interfaceId,
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
@@ -239,7 +239,7 @@ const interfaceSQL = {
   uploadDate: new Date().toISOString(),
 };
 
-const documentSQL = {
+export const documentSQL = {
   id: documentId,
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,

@@ -21,6 +21,8 @@ import {
   getDescriptorAttributeFromDb,
   resetDb,
   createBaseEserviceItem,
+  interfaceSQL,
+  documentSQL,
 } from "./utils.js";
 
 describe("Catalog Service - Batch Operations", () => {
@@ -143,10 +145,15 @@ describe("Catalog Service - Batch Operations", () => {
 
       it("should insert and merge a descriptor successfully", async () => {
         const catalogService = catalogServiceBuilder(dbContext);
-        await catalogService.upsertBatchEservice([eserviceItem], dbContext);
+
         const eserviceBase = createBaseEserviceItem();
         const descriptorItem = {
-          descriptorData: { ...eserviceBase, descriptorSQL },
+          descriptorData: {
+            ...eserviceBase,
+            descriptorSQL,
+            interfaceSQL,
+            documentsSQL: [documentSQL],
+          },
           eserviceId: descriptorSQL.eserviceId,
           metadataVersion: descriptorSQL.metadataVersion,
         };
@@ -199,7 +206,6 @@ describe("Catalog Service - Batch Operations", () => {
         const baseEserviceItem = createBaseEserviceItem();
         baseEserviceItem.descriptorsSQL.push(descriptorSQL);
         const catalogService = catalogServiceBuilder(dbContext);
-        await catalogService.upsertBatchEservice([baseEserviceItem], dbContext);
 
         const docId = generateId();
         const documentSQL = {
