@@ -22,12 +22,12 @@ import {
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   eserviceTemplateService,
   addOneEServiceTemplate,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("suspendEServiceTemplateVersion", () => {
   const mockEServiceTemplate = getMockEServiceTemplate();

@@ -21,12 +21,12 @@ import {
   draftEServiceTemplateVersionAlreadyExists,
   eServiceTemplateNotFound,
   eserviceTemplateWithoutPublishedVersion,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
   addOneEServiceTemplate,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("createEServiceTemplateVersion", async () => {
   beforeAll(() => {

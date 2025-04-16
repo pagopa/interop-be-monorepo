@@ -26,14 +26,14 @@ import {
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateService,
   addOneEServiceTemplate,
   readLastEserviceTemplateEvent,
   fileManager,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("deleteEServiceTemplateVersion", () => {
   it("should write on event-store for the deletion of a eservice template version (template with multiple versions)", async () => {

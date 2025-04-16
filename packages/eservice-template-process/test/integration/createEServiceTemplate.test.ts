@@ -18,13 +18,13 @@ import {
   eServiceTemplateDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
-  eserviceTemplateToApiEServiceTemplateSeed,
   postgresDB,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { eserviceTemplateToApiEServiceTemplateSeed } from "../mockUtils.js";
 
 describe("create eservice template", () => {
   const mockEServiceTemplate = getMockEServiceTemplate();

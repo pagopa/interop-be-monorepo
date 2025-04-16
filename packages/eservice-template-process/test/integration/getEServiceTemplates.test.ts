@@ -22,7 +22,7 @@ import {
   addOneEServiceTemplate,
   addOneTenant,
   eserviceTemplateService,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("get eservices", () => {
   let organizationId1: TenantId;

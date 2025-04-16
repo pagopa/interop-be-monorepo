@@ -9,25 +9,28 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   operationForbidden,
+  generateId,
+  TenantId,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   EServiceTemplate,
   toEServiceTemplateV2,
-  EServiceTemplateIntendedTargetUpdatedV2,
+  EServiceTemplateNameUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eserviceTemplateWithoutPublishedVersion,
   eServiceTemplateNotFound,
-} from "../src/model/domain/errors.js";
+  eServiceTemplateDuplicate,
+} from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
-describe("updateEServiceTemplateIntendedTarget", () => {
-  it("should write on event-store for the update of the eService template description", async () => {
+describe("updateEServiceTemplateName", () => {
+  it("should write on event-store for the update of the eService template name", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -38,18 +41,18 @@ describe("updateEServiceTemplateIntendedTarget", () => {
       versions: [eserviceTemplateVersion],
     };
     await addOneEServiceTemplate(eserviceTemplate);
-    const updatedTemplateDescription = "eservice template new description";
+    const updatedName = "eservice template new name";
     const returnedEServiceTemplate =
-      await eserviceTemplateService.updateEServiceTemplateIntendedTarget(
+      await eserviceTemplateService.updateEServiceTemplateName(
         eserviceTemplate.id,
-        updatedTemplateDescription,
+        updatedName,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       );
     const updatedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
-      intendedTarget: updatedTemplateDescription,
+      name: updatedName,
     };
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -57,11 +60,11 @@ describe("updateEServiceTemplateIntendedTarget", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eserviceTemplate.id,
       version: "1",
-      type: "EServiceTemplateIntendedTargetUpdated",
+      type: "EServiceTemplateNameUpdated",
       event_version: 2,
     });
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceTemplateIntendedTargetUpdatedV2,
+      messageType: EServiceTemplateNameUpdatedV2,
       payload: writtenEvent.data,
     });
     expect(writtenPayload.eserviceTemplate).toEqual(
@@ -75,9 +78,9 @@ describe("updateEServiceTemplateIntendedTarget", () => {
   it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
     expect(
-      eserviceTemplateService.updateEServiceTemplateIntendedTarget(
+      eserviceTemplateService.updateEServiceTemplateName(
         eserviceTemplate.id,
-        "eservice template new description",
+        "eservice template new name",
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -88,9 +91,9 @@ describe("updateEServiceTemplateIntendedTarget", () => {
     const eserviceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateIntendedTarget(
+      eserviceTemplateService.updateEServiceTemplateName(
         eserviceTemplate.id,
-        "eservice template new description",
+        "eservice template new name",
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
@@ -99,9 +102,9 @@ describe("updateEServiceTemplateIntendedTarget", () => {
     const eserviceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateIntendedTarget(
+      eserviceTemplateService.updateEServiceTemplateName(
         eserviceTemplate.id,
-        "eservice template new description",
+        "eservice template new name",
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -122,9 +125,9 @@ describe("updateEServiceTemplateIntendedTarget", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateIntendedTarget(
+      eserviceTemplateService.updateEServiceTemplateName(
         eserviceTemplate.id,
-        "eservice template new description",
+        "eservice template new name",
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -132,5 +135,41 @@ describe("updateEServiceTemplateIntendedTarget", () => {
     ).rejects.toThrowError(
       eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id)
     );
+  });
+  it("should throw eServiceTemplateDuplicate is there is another eservice template with the same name by the same creator", async () => {
+    const creatorId = generateId<TenantId>();
+
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      creatorId,
+      versions: [eserviceTemplateVersion],
+    };
+
+    const duplicateName = "eservice duplciate name";
+
+    const eserviceTemplateWithSameName: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      creatorId,
+      name: duplicateName,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+    await addOneEServiceTemplate(eserviceTemplateWithSameName);
+
+    const updatedName = duplicateName;
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName(
+        eserviceTemplate.id,
+        updatedName,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(eServiceTemplateDuplicate(duplicateName));
   });
 });

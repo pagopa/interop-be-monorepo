@@ -30,13 +30,13 @@ import {
   eServiceTemplateNotFound,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
   addOneTenant,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("deleteEServiceTemplateRiskAnalysis", () => {
   const mockDate = new Date();
