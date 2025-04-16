@@ -1,4 +1,3 @@
-import { Filter } from "mongodb";
 import { ReadModelFilter, ReadModelRepository } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -7,7 +6,6 @@ import {
   DelegationId,
   delegationKind,
   DelegationKind,
-  DelegationReadModel,
   delegationState,
   DelegationState,
   EService,
