@@ -43,13 +43,13 @@ const supportRouter = (
       );
       return res.status(200).send(bffApi.SessionToken.parse(sessionToken));
     } catch (error) {
-      makeApiProblem(
+      const errorRes = makeApiProblem(
         error,
         emptyErrorMapper,
         ctx,
         "Error creating a session token"
       );
-      return res.status(500).send();
+      return res.status(errorRes.status).send(errorRes);
     }
   });
 
