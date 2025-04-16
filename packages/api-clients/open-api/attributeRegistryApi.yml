@@ -240,6 +240,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Attributes"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+
   "/attributes/name/{name}":
     get:
       summary: Get Attribute by name
@@ -355,6 +362,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Attributes"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
       description: Returns the list of attributes indicated in the request
       parameters:
         - in: query
