@@ -17,7 +17,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  column: keyof T,
+  column: keyof T
 ): string {
   const keys = Object.keys(tableSchema.shape);
 
@@ -58,7 +58,7 @@ export function generateMergeDeleteQuery(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  deletingKey: string,
+  deletingKey: string
 ): string {
   const updateSet = `${deletingKey} = source.id,
    deleted = source.deleted`;
@@ -77,7 +77,7 @@ export async function mergeDeletingById(
   t: ITask<unknown>,
   id: string,
   deletingTableNames: string[],
-  targetTableDeleting: string,
+  targetTableDeleting: string
 ): Promise<void> {
   try {
     for (const deletingTableName of deletingTableNames) {
@@ -85,13 +85,13 @@ export async function mergeDeletingById(
         config.dbSchemaName,
         deletingTableName,
         targetTableDeleting,
-        id,
+        id
       );
       await t.none(mergeQuery);
     }
   } catch (error: unknown) {
     throw genericInternalError(
-      `Error merging staging tabasdasdle ${targetTableDeleting}: ${error}`,
+      `Error merging staging table ${targetTableDeleting}: ${error}`
     );
   }
 }

@@ -10,7 +10,7 @@ import {
   EserviceDescriptorInterfaceMapping,
   eserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
-import { CatalogDbTable } from "../../model/db.js";
+import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
@@ -97,7 +97,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       const cs = buildColumnSet<{ id: string; deleted: boolean }>(
         pgp,
         mapping,
-        CatalogDbTable.deleting_by_id_table
+        DeletingDbTable.catalog_deleting_table
       );
       try {
         await t.none(
@@ -106,7 +106,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${CatalogDbTable.deleting_by_id_table}: ${error}`
+          `Error inserting into staging table ${DeletingDbTable.catalog_deleting_table}: ${error}`
         );
       }
     },

@@ -1,9 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericLogger } from "pagopa-interop-commons";
 import { inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Batch } from "kafkajs";
+import {
+  generateId,
+  unsafeBrandId,
+  EServiceId,
+  DescriptorId,
+} from "pagopa-interop-models";
 import { AttributeSchema } from "../src/model/attribute/attribute.js";
 import { DBContext, DBConnection } from "../src/db/db.js";
 import { config } from "../src/config/config.js";
@@ -15,12 +21,6 @@ import {
   DeletingDbTable,
 } from "../src/model/db.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
-import {
-  generateId,
-  unsafeBrandId,
-  EServiceId,
-  DescriptorId,
-} from "pagopa-interop-models";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -30,7 +30,7 @@ export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("analyticsSQLDbConfig"),
+  inject("analyticsSQLDbConfig")
 );
 const connection = await analyticsPostgresDB.connect();
 
@@ -61,19 +61,18 @@ await retryConnection(
       [
         DeletingDbTable.catalog_deleting_table,
         DeletingDbTable.attribute_deleting_table,
-      ],
+      ]
     );
   },
-  genericLogger,
+  genericLogger
 );
 
 export const attributeService = attributeServiceBuilder(dbContext);
-
 export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[],
+  tables: string[]
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename
@@ -82,13 +81,6 @@ export async function getTablesByName(
         AND tablename IN ($1:csv);
     `;
   return await db.query<Array<{ tablename: string }>>(query, [tables]);
-}
-
-export async function getAttributeFromDb(
-  id: string,
-  db: DBContext,
-): Promise<AttributeSchema[] | null> {
-  return db.conn.any(`SELECT * FROM domains.attribute WHERE id = $1`, [id]);
 }
 
 export const mockAttributeBatch: Batch = {
@@ -106,6 +98,7 @@ export const mockAttributeBatch: Batch = {
   offsetLag: () => "0",
   offsetLagLow: () => "0",
 };
+
 export const mockCatalogBatch: Batch = {
   topic: config.catalogTopic,
   partition: 0,
@@ -127,7 +120,7 @@ export const mockCatalogBatch: Batch = {
 
 export async function getEserviceFromDb(
   serviceId: string,
-  db: DBContext,
+  db: DBContext
 ): Promise<any> {
   return db.conn.one(`SELECT * FROM domains.eservice WHERE id = $1`, [
     serviceId,
@@ -136,41 +129,57 @@ export async function getEserviceFromDb(
 
 export async function getDescriptorFromDb(
   descriptorId: string,
-  db: DBContext,
+  db: DBContext
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor WHERE id = $1`,
-    [descriptorId],
+    [descriptorId]
   );
+}
+
+export async function getAttributeFromDb(
+  id: string,
+  db: DBContext
+): Promise<AttributeSchema[] | null> {
+  return db.conn.any(`SELECT * FROM domains.attribute WHERE id = $1`, [id]);
+}
+
+export async function getDescriptorAttributeFromDb(
+  id: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.any(`SELECT * FROM domains.eservice_descriptor_attribute `, [
+    id,
+  ]);
 }
 
 export async function getDocumentFromDb(
   documentId: string,
-  db: DBContext,
+  db: DBContext
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_document WHERE id = $1`,
-    [documentId],
+    [documentId]
   );
 }
 
 export async function getInterfaceFromDb(
   interfaceId: string,
-  db: DBContext,
+  db: DBContext
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_interface WHERE id = $1`,
-    [interfaceId],
+    [interfaceId]
   );
 }
 
 export async function getRiskAnalysisFromDb(
   riskAnalysisId: string,
-  db: DBContext,
+  db: DBContext
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_risk_analysis WHERE id = $1`,
-    [riskAnalysisId],
+    [riskAnalysisId]
   );
 }
 
@@ -180,8 +189,7 @@ export const interfaceId = generateId();
 export const documentId = generateId();
 export const riskAnalysisId = generateId();
 
-// Main eService record.
-const eserviceSQL = {
+export const eserviceSQL = {
   id: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
   producerId: generateId(),
@@ -195,8 +203,7 @@ const eserviceSQL = {
   isClientAccessDelegable: false,
 };
 
-// Descriptor record.
-const descriptorSQL = {
+export const descriptorSQL = {
   id: unsafeBrandId<DescriptorId>(descriptorId),
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
@@ -219,12 +226,11 @@ const descriptorSQL = {
   voucher_lifespan: "123321",
 };
 
-// Interface record.
 const interfaceSQL = {
   id: interfaceId,
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
-  descriptorId: descriptorId,
+  descriptorId,
   name: "Test Interface",
   contentType: "application/json",
   prettyName: "interface.json",
@@ -233,12 +239,11 @@ const interfaceSQL = {
   uploadDate: new Date().toISOString(),
 };
 
-// Document record.
 const documentSQL = {
   id: documentId,
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
-  descriptorId: descriptorId,
+  descriptorId,
   name: "Test Document",
   contentType: "application/pdf",
   prettyName: "document.pdf",
@@ -247,7 +252,6 @@ const documentSQL = {
   uploadDate: new Date().toISOString(),
 };
 
-// Risk Analysis record.
 const riskAnalysisFormId = generateId();
 const riskAnalysisSQL = {
   id: riskAnalysisId,
@@ -259,16 +263,14 @@ const riskAnalysisSQL = {
   riskAnalysisFormVersion: "1.0",
 };
 
-// Additional child objects.
 export const sampleRiskAnswer = {
   id: generateId(),
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
-  riskAnalysisFormId, // same as riskAnalysisSQL
+  riskAnalysisFormId,
   kind: "someKind",
   key: "someKey",
   value: "someValue",
-  deleted: false,
 };
 
 export const sampleTemplateRef = {
@@ -276,39 +278,35 @@ export const sampleTemplateRef = {
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
   instance_label: "Sample Template",
-  deleted: false,
 };
 
 export const sampleAttribute = {
   attributeId: generateId(),
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
-  descriptorId: descriptorId,
+  descriptorId,
   explicitAttributeVerification: true,
   kind: "sampleAttribute",
   groupId: 1,
-  deleted: false,
 };
 
 export const sampleRejectionReason = {
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
-  descriptorId: descriptorId,
+  descriptorId,
   rejectionReason: "Test rejection",
   rejectedAt: new Date().toISOString(),
-  deleted: false,
 };
 
 export const sampleTemplateVersionRef = {
   eserviceTemplateVersionId: generateId(),
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
   metadataVersion: 1,
-  descriptorId: descriptorId,
+  descriptorId,
   contact_name: "John Doe",
   contact_email: "john@example.com",
   contact_url: "https://example.com",
   terms_and_conditions_url: "https://example.com/terms",
-  deleted: false,
 };
 
 export const eserviceItem = {
@@ -323,3 +321,68 @@ export const eserviceItem = {
   rejectionReasonsSQL: [sampleRejectionReason],
   templateVersionRefsSQL: [sampleTemplateVersionRef],
 } as any;
+
+export async function insertEservice(db: DBContext) {
+  await db.conn.none(
+    `
+    INSERT INTO domains.eservice (
+      id,
+      metadata_version,
+      producer_id,
+      name,
+      description,
+      technology,
+      created_at,
+      mode,
+      is_signal_hub_enabled,
+      is_consumer_delegable,
+      is_client_access_delegable,
+      deleted
+    )
+    VALUES (
+      \${id},
+      \${metadataVersion},
+      \${producerId},
+      \${name},
+      \${description},
+      \${technology},
+      \${createdAt},
+      \${mode},
+      \${isSignalHubEnabled},
+      \${isConsumerDelegable},
+      \${isClientAccessDelegable},
+      false
+    )
+    `,
+    eserviceSQL
+  );
+}
+
+export async function resetDb(dbContext: any): Promise<void> {
+  const tables = [
+    CatalogDbTable.eservice,
+    CatalogDbTable.eservice_descriptor,
+    CatalogDbTable.eservice_template_ref,
+    CatalogDbTable.eservice_descriptor_document,
+    CatalogDbTable.eservice_descriptor_interface,
+    CatalogDbTable.eservice_risk_analysis,
+  ];
+  for (const table of tables) {
+    await dbContext.conn.none(`TRUNCATE TABLE ${table} CASCADE;`);
+  }
+}
+
+export function createBaseEserviceItem(overrides?: any): any {
+  return {
+    eserviceSQL: overrides ? { ...overrides } : eserviceSQL,
+    templateRefSQL: [],
+    riskAnalysesSQL: [],
+    riskAnalysisAnswersSQL: [],
+    descriptorsSQL: [],
+    attributesSQL: [],
+    interfacesSQL: [],
+    documentsSQL: [],
+    rejectionReasonsSQL: [],
+    templateVersionRefsSQL: [],
+  };
+}

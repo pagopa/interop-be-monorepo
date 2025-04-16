@@ -13,13 +13,13 @@ import {
   EserviceRiskAnalysisMapping,
   eserviceRiskAnalysisSchema,
 } from "../../model/catalog/eserviceRiskAnalysis.js";
-import { CatalogDbTable } from "../../model/db.js";
+import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
 export function eserviceRiskAnalysisRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_risk_analysis;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const stagingDeletingTable = CatalogDbTable.deleting_by_id_table;
+  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
     async insert(

@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/immutable-data */
 import { Descriptor } from "pagopa-interop-models";
-// import { splitDescriptorIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { genericLogger } from "pagopa-interop-commons";
 import { EServiceId } from "pagopa-interop-models";
 import {
+  EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
+  EServiceDescriptorInterfaceSQL,
+  EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  EServiceDescriptorTemplateVersionRefSQL,
   EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitDescriptorIntoObjectsSQL } from "pagopa-interop-readmodel";
@@ -29,7 +33,7 @@ export function catalogServiceBuilder(db: DBContext) {
   const templateRefRepo = eserviceTemplateRefRepository(db.conn);
   const descriptorRepo = eserviceDescriptorRepository(db.conn);
   const templateVersionRefRepo = eserviceDescriptorTemplateVersionRefRepository(
-    db.conn,
+    db.conn
   );
   const rejectionRepo = eserviceDescriptorRejectionRepository(db.conn);
   const interfaceRepo = eserviceDescriptorInterfaceRepository(db.conn);
@@ -43,7 +47,7 @@ export function catalogServiceBuilder(db: DBContext) {
     async upsertBatchEservice(
       upsertBatch: EServiceItemsSQL[],
       dbContext: DBContext,
-      batchSize: number = 50,
+      batchSize: number = 50
     ) {
       for (const batch of batchMessages(upsertBatch, batchSize)) {
         const batchItems = {
@@ -72,69 +76,69 @@ export function catalogServiceBuilder(db: DBContext) {
             await descriptorRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.descriptorsSQL,
+              batchItems.descriptorsSQL
             );
           }
           if (batchItems.interfacesSQL.length) {
             await interfaceRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.interfacesSQL,
+              batchItems.interfacesSQL
             );
           }
           if (batchItems.documentsSQL.length) {
             await documentRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.documentsSQL,
+              batchItems.documentsSQL
             );
           }
           if (batchItems.attributesSQL.length) {
             await attributeRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.attributesSQL,
+              batchItems.attributesSQL
             );
           }
           if (batchItems.riskAnalysesSQL.length) {
             await riskAnalysisRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysesSQL,
+              batchItems.riskAnalysesSQL
             );
           }
           if (batchItems.riskAnalysisAnswersSQL.length) {
             await riskAnalysisAnswerRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.riskAnalysisAnswersSQL,
+              batchItems.riskAnalysisAnswersSQL
             );
           }
           if (batchItems.rejectionReasonsSQL.length) {
             await rejectionRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.rejectionReasonsSQL,
+              batchItems.rejectionReasonsSQL
             );
           }
           if (batchItems.templateRefSQL.length) {
             await templateRefRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.templateRefSQL,
+              batchItems.templateRefSQL
             );
           }
           if (batchItems.templateVersionRefsSQL.length) {
             await templateVersionRefRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.templateVersionRefsSQL,
+              batchItems.templateVersionRefsSQL
             );
           }
         });
 
         genericLogger.info(
-          `Staging data inserted for batch of ${batchItems.eserviceSQL.length} eservices`,
+          `Staging data inserted for batch of ${batchItems.eserviceSQL.length} eservices`
         );
       }
 
@@ -152,12 +156,12 @@ export function catalogServiceBuilder(db: DBContext) {
       });
 
       genericLogger.info(
-        `Staging data merged into target tables for all batches`,
+        `Staging data merged into target tables for all batches`
       );
 
       await eserviceRepo.clean();
-      await templateRefRepo.clean();
       await descriptorRepo.clean();
+      await templateRefRepo.clean();
       await interfaceRepo.clean();
       await documentRepo.clean();
       await attributeRepo.clean();
@@ -167,10 +171,160 @@ export function catalogServiceBuilder(db: DBContext) {
       await templateVersionRefRepo.clean();
     },
 
+    // eslint-disable-next-line sonarjs/cognitive-complexity
+    async upsertBatchEServiceDescriptor(
+      items: Array<{
+        descriptorData: EServiceDescriptorSQL;
+        eserviceId: EServiceId;
+        metadataVersion: number;
+      }>,
+      dbContext: DBContext,
+      batchSize: number = 50
+    ): Promise<void> {
+      for (const batch of batchMessages(items, batchSize)) {
+        const batchItems: {
+          descriptorSQLArray: EServiceDescriptorSQL[];
+          attributesSQLArray: EServiceDescriptorAttributeSQL[];
+          interfaceSQLArray: EServiceDescriptorInterfaceSQL[];
+          documentsSQLArray: EServiceDescriptorDocumentSQL[];
+          rejectionReasonsSQLArray: EServiceDescriptorRejectionReasonSQL[];
+          templateVersionRefSQLArray: EServiceDescriptorTemplateVersionRefSQL[];
+        } = {
+          descriptorSQLArray: [],
+          attributesSQLArray: [],
+          interfaceSQLArray: [],
+          documentsSQLArray: [],
+          rejectionReasonsSQLArray: [],
+          templateVersionRefSQLArray: [],
+        };
+
+        for (const item of batch) {
+          const descriptor = Descriptor.parse(item.descriptorData);
+          const {
+            descriptorSQL,
+            attributesSQL,
+            interfaceSQL,
+            documentsSQL,
+            rejectionReasonsSQL,
+            templateVersionRefSQL,
+          } = splitDescriptorIntoObjectsSQL(
+            item.eserviceId,
+            descriptor,
+            item.metadataVersion
+          );
+
+          batchItems.descriptorSQLArray.push(descriptorSQL);
+          batchItems.attributesSQLArray.push(...attributesSQL);
+          if (interfaceSQL) {
+            batchItems.interfaceSQLArray.push(interfaceSQL);
+          }
+          batchItems.documentsSQLArray.push(...documentsSQL);
+          batchItems.rejectionReasonsSQLArray.push(...rejectionReasonsSQL);
+          if (templateVersionRefSQL) {
+            batchItems.templateVersionRefSQLArray.push(templateVersionRefSQL);
+          }
+        }
+
+        await dbContext.conn.tx(async (t) => {
+          if (batchItems.descriptorSQLArray.length) {
+            await descriptorRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.descriptorSQLArray
+            );
+          }
+          if (batchItems.attributesSQLArray.length) {
+            await attributeRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.attributesSQLArray
+            );
+          }
+          if (batchItems.interfaceSQLArray.length) {
+            await interfaceRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.interfaceSQLArray
+            );
+          }
+          if (batchItems.documentsSQLArray.length) {
+            await documentRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.documentsSQLArray
+            );
+          }
+          if (batchItems.rejectionReasonsSQLArray.length) {
+            await rejectionRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.rejectionReasonsSQLArray
+            );
+          }
+          if (batchItems.templateVersionRefSQLArray.length) {
+            await templateVersionRefRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.templateVersionRefSQLArray
+            );
+          }
+        });
+
+        genericLogger.info(
+          `Staging data inserted for batch of descriptors: ${batchItems.descriptorSQLArray
+            .map((d) => d.id)
+            .join(", ")}`
+        );
+      }
+
+      await dbContext.conn.tx(async (t) => {
+        await descriptorRepo.merge(t);
+        await attributeRepo.merge(t);
+        await interfaceRepo.merge(t);
+        await documentRepo.merge(t);
+        await rejectionRepo.merge(t);
+        await templateRefRepo.merge(t);
+      });
+      genericLogger.info(
+        "Staging data merged into target tables for all descriptor batches"
+      );
+
+      await descriptorRepo.clean();
+      await attributeRepo.clean();
+      await interfaceRepo.clean();
+      await documentRepo.clean();
+      await rejectionRepo.clean();
+      await templateRefRepo.clean();
+    },
+
+    async upsertBatchEServiceDocument(
+      documents: EServiceDescriptorDocumentSQL[],
+      dbContext: DBContext,
+      batchSize: number = 50
+    ): Promise<void> {
+      for (const batch of batchMessages(documents, batchSize)) {
+        await dbContext.conn.tx(async (t) => {
+          await documentRepo.insert(t, dbContext.pgp, batch);
+        });
+        genericLogger.info(
+          `Staging data inserted for batch of documents: ${batch
+            .map((doc) => doc.id)
+            .join(", ")}`
+        );
+      }
+      await dbContext.conn.tx(async (t) => {
+        await documentRepo.merge(t);
+      });
+      genericLogger.info(
+        `Staging data merged into target tables for all document batches`
+      );
+      await documentRepo.clean();
+    },
+
     async deleteBatchEService(
       eserviceIds: string[],
       dbContext: DBContext,
-      batchSize: number = 50,
+      batchSize: number = 50
     ): Promise<void> {
       for (const batch of batchMessages(eserviceIds, batchSize)) {
         await dbContext.conn.tx(async (t) => {
@@ -178,7 +332,7 @@ export function catalogServiceBuilder(db: DBContext) {
             await eserviceRepo.insertDeletingByEserviceId(t, dbContext.pgp, id);
           }
           genericLogger.info(
-            `Staging deletion inserted for eserviceIds: ${batch.join(", ")}`,
+            `Staging deletion inserted for eserviceIds: ${batch.join(", ")}`
           );
         });
       }
@@ -197,59 +351,21 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_template_version_ref,
             CatalogDbTable.eservice_risk_analysis,
             CatalogDbTable.eservice_risk_analysis_answer,
+            CatalogDbTable.eservice_template_ref,
           ],
-          DeletingDbTable.catalog_deleting_table,
+          DeletingDbTable.catalog_deleting_table
         );
       });
       genericLogger.info(
-        `Staging deletion merged into target tables for all eserviceIds`,
+        `Staging deletion merged into target tables for all eserviceIds`
       );
       await eserviceRepo.cleanDeleting();
-    },
-
-    async upsertBatchEServiceDescriptor(
-      items: Array<{
-        descriptorData: EServiceDescriptorSQL;
-        eserviceId: EServiceId;
-        metadataVersion: number;
-      }>,
-      dbContext: DBContext,
-      batchSize: number = 50,
-    ): Promise<void> {
-      for (const batch of batchMessages(items, batchSize)) {
-        const combinedDescriptors = batch.map((item) => {
-          const descriptor = Descriptor.parse(item.descriptorData);
-          const { descriptorSQL } = splitDescriptorIntoObjectsSQL(
-            item.eserviceId,
-            descriptor,
-            item.metadataVersion,
-          );
-          return descriptorSQL;
-        });
-        await dbContext.conn.tx(async (t) => {
-          if (combinedDescriptors.length) {
-            await descriptorRepo.insert(t, dbContext.pgp, combinedDescriptors);
-          }
-        });
-        genericLogger.info(
-          `Staging data inserted for batch of descriptors: ${combinedDescriptors
-            .map((d) => d.id)
-            .join(", ")}`,
-        );
-      }
-      await dbContext.conn.tx(async (t) => {
-        await descriptorRepo.merge(t);
-      });
-      genericLogger.info(
-        `Staging data merged into target tables for all descriptor batches`,
-      );
-      await descriptorRepo.clean();
     },
 
     async deleteBatchDescriptor(
       descriptorIds: string[],
       dbContext: DBContext,
-      batchSize: number = 50,
+      batchSize: number = 50
     ): Promise<void> {
       for (const batch of batchMessages(descriptorIds, batchSize)) {
         await dbContext.conn.tx(async (t) => {
@@ -257,11 +373,11 @@ export function catalogServiceBuilder(db: DBContext) {
             await descriptorRepo.insertDeletingByDescriptorId(
               t,
               dbContext.pgp,
-              id,
+              id
             );
           }
           genericLogger.info(
-            `Staging deletion inserted for descriptorIds: ${batch.join(", ")}`,
+            `Staging deletion inserted for descriptorIds: ${batch.join(", ")}`
           );
         });
       }
@@ -277,11 +393,11 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
           ],
-          DeletingDbTable.catalog_deleting_table,
+          DeletingDbTable.catalog_deleting_table
         );
       });
       genericLogger.info(
-        `Staging deletion merged into target tables for all descriptorIds`,
+        `Staging deletion merged into target tables for all descriptorIds`
       );
       await descriptorRepo.cleanDeleting();
     },
@@ -289,7 +405,7 @@ export function catalogServiceBuilder(db: DBContext) {
     async deleteBatchEserviceRiskAnalysis(
       riskAnalysisIds: string[],
       dbContext: DBContext,
-      batchSize: number = 50,
+      batchSize: number = 50
     ): Promise<void> {
       for (const batch of batchMessages(riskAnalysisIds, batchSize)) {
         await dbContext.conn.tx(async (t) => {
@@ -297,59 +413,27 @@ export function catalogServiceBuilder(db: DBContext) {
             await riskAnalysisRepo.insertDeletingRiskAnalysis(
               t,
               dbContext.pgp,
-              id,
+              id
             );
           }
           genericLogger.info(
-            `Staging deletion inserted for riskAnalysisIds: ${batch.join(
-              ", ",
-            )}`,
+            `Staging deletion inserted for riskAnalysisIds: ${batch.join(", ")}`
           );
         });
       }
       await dbContext.conn.tx(async (t) => {
         await riskAnalysisRepo.mergeDeleting(t);
-        await mergeDeletingById(
-          t,
-          "risk_analysis_form_id",
-          [CatalogDbTable.eservice_risk_analysis_answer],
-          CatalogDbTable.deleting_by_id_table,
-        );
       });
       genericLogger.info(
-        `Staging deletion merged into target tables for all riskAnalysisIds`,
+        `Staging deletion merged into target tables for all riskAnalysisIds`
       );
       await riskAnalysisRepo.cleanDeleting();
-    },
-
-    async upsertBatchEServiceDocument(
-      documents: EServiceDescriptorDocumentSQL[],
-      dbContext: DBContext,
-      batchSize: number = 50,
-    ): Promise<void> {
-      for (const batch of batchMessages(documents, batchSize)) {
-        await dbContext.conn.tx(async (t) => {
-          await documentRepo.insert(t, dbContext.pgp, batch);
-        });
-        genericLogger.info(
-          `Staging data inserted for batch of documents: ${batch
-            .map((doc) => doc.id)
-            .join(", ")}`,
-        );
-      }
-      await dbContext.conn.tx(async (t) => {
-        await documentRepo.merge(t);
-      });
-      genericLogger.info(
-        `Staging data merged into target tables for all document batches`,
-      );
-      await documentRepo.clean();
     },
 
     async deleteBatchEServiceDocument(
       documentIds: string[],
       dbContext: DBContext,
-      batchSize: number = 50,
+      batchSize: number = 50
     ): Promise<void> {
       for (const batch of batchMessages(documentIds, batchSize)) {
         await dbContext.conn.tx(async (t) => {
@@ -357,7 +441,7 @@ export function catalogServiceBuilder(db: DBContext) {
             await documentRepo.deleteDocument(t, dbContext.pgp, id);
           }
           genericLogger.info(
-            `Staging deletion inserted for documentIds: ${batch.join(", ")}`,
+            `Staging deletion inserted for documentIds: ${batch.join(", ")}`
           );
         });
       }
@@ -366,11 +450,11 @@ export function catalogServiceBuilder(db: DBContext) {
           t,
           "id",
           [CatalogDbTable.eservice_descriptor_document],
-          DeletingDbTable.catalog_deleting_table,
+          DeletingDbTable.catalog_deleting_table
         );
       });
       genericLogger.info(
-        `Staging deletion merged into target tables for all documentIds`,
+        `Staging deletion merged into target tables for all documentIds`
       );
       await documentRepo.cleanDeleting();
     },
@@ -378,7 +462,7 @@ export function catalogServiceBuilder(db: DBContext) {
     async deleteBatchEserviceInterface(
       descriptorIds: string[],
       dbContext: DBContext,
-      batchSize: number = 50,
+      batchSize: number = 50
     ): Promise<void> {
       for (const batch of batchMessages(descriptorIds, batchSize)) {
         await dbContext.conn.tx(async (t) => {
@@ -387,8 +471,8 @@ export function catalogServiceBuilder(db: DBContext) {
           }
           genericLogger.info(
             `Staging deletion inserted for interface descriptorIds: ${batch.join(
-              ", ",
-            )}`,
+              ", "
+            )}`
           );
         });
       }
@@ -397,11 +481,11 @@ export function catalogServiceBuilder(db: DBContext) {
           t,
           "id",
           [CatalogDbTable.eservice_descriptor_interface],
-          DeletingDbTable.catalog_deleting_table,
+          DeletingDbTable.catalog_deleting_table
         );
       });
       genericLogger.info(
-        `Staging deletion merged into target tables for all interface descriptorIds`,
+        `Staging deletion merged into target tables for all interface descriptorIds`
       );
       await interfaceRepo.clean();
     },

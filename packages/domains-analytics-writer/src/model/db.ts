@@ -11,7 +11,6 @@ export const CatalogDbTable = {
   eservice_risk_analysis: "eservice_risk_analysis",
   eservice_risk_analysis_answer: "eservice_risk_analysis_answer",
   eservice_template_ref: "eservice_template_ref",
-  deleting_by_id_table: "deleting_by_id_table",
 } as const;
 
 export type CatalogDbTable =

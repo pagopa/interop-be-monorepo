@@ -11,13 +11,13 @@ import {
   eserviceDescriptorDocumentDeletingSchema,
   eserviceDescriptorDocumentSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
-import { CatalogDbTable } from "../../model/db.js";
+import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_document;
   const stagingTable = `${tableName}${config.mergeTableSuffix}`;
-  const stagingDeletingTable = CatalogDbTable.deleting_by_id_table;
+  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
     async insert(
