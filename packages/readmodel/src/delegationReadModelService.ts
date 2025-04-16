@@ -1,5 +1,4 @@
-import { eq, SQL } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { and, eq, lte, SQL } from "drizzle-orm";
 import {
   Delegation,
   DelegationId,
@@ -10,6 +9,7 @@ import {
   delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import {
@@ -18,30 +18,24 @@ import {
   toDelegationAggregator,
   toDelegationAggregatorArray,
 } from "./delegation/aggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function delegationReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertDelegation(
       delegation: Delegation,
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion = (
-          await tx
-            .select({
-              metadataVersion: delegationInReadmodelDelegation.metadataVersion,
-            })
-            .from(delegationInReadmodelDelegation)
-            .where(eq(delegationInReadmodelDelegation.id, delegation.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          delegationInReadmodelDelegation,
+          metadataVersion,
+          delegation.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(delegationInReadmodelDelegation)
             .where(eq(delegationInReadmodelDelegation.id, delegation.id));
@@ -152,10 +146,21 @@ export function delegationReadModelServiceBuilder(
 
       return aggregateDelegationArray(toDelegationAggregatorArray(queryResult));
     },
-    async deleteDelegationById(delegationId: DelegationId): Promise<void> {
+    async deleteDelegationById(
+      delegationId: DelegationId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(delegationInReadmodelDelegation)
-        .where(eq(delegationInReadmodelDelegation.id, delegationId));
+        .where(
+          and(
+            eq(delegationInReadmodelDelegation.id, delegationId),
+            lte(
+              delegationInReadmodelDelegation.metadataVersion,
+              metadataVersion
+            )
+          )
+        );
     },
   };
 }

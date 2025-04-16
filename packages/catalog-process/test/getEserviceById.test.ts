@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { AuthData, userRole } from "pagopa-interop-commons";
 import {
   Descriptor,
   descriptorState,
@@ -47,7 +47,7 @@ describe("get eservice by id", () => {
     await addOneEService(eservice1);
     const authData: AuthData = {
       ...getMockAuthData(eservice1.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
 
     const descriptor2: Descriptor = {
@@ -121,7 +121,7 @@ describe("get eservice by id", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(),
-        userRoles: [userRoles.SECURITY_ROLE],
+        userRoles: [userRole.SECURITY_ROLE],
       };
       await addOneEService(mockEService);
       expect(
@@ -153,7 +153,7 @@ describe("get eservice by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.SECURITY_ROLE],
+      userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(mockEService);
     expect(
@@ -181,7 +181,7 @@ describe("get eservice by id", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
+        userRoles: [userRole.ADMIN_ROLE],
       };
       await addOneEService(eservice);
       const result = await catalogService.getEServiceById(
@@ -212,7 +212,7 @@ describe("get eservice by id", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(eservice.producerId),
-        userRoles: [userRoles.SECURITY_ROLE],
+        userRoles: [userRole.SECURITY_ROLE],
       };
       await addOneEService(eservice);
       const result = await catalogService.getEServiceById(
@@ -243,7 +243,7 @@ describe("get eservice by id", () => {
       };
       const authData: AuthData = {
         ...getMockAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
+        userRoles: [userRole.ADMIN_ROLE],
       };
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
@@ -280,7 +280,7 @@ describe("get eservice by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     const result = await catalogService.getEServiceById(
@@ -308,7 +308,7 @@ describe("get eservice by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.SECURITY_ROLE],
+      userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(eservice);
     const result = await catalogService.getEServiceById(
@@ -336,7 +336,7 @@ describe("get eservice by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
