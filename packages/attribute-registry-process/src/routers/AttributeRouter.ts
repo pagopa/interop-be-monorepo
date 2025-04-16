@@ -10,7 +10,7 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
@@ -97,7 +97,8 @@ const attributeRouter = (
             })
           );
         } catch (error) {
-          return res.status(500).send();
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+          return res.status(errorRes.status).send(errorRes);
         }
       }
     )
@@ -229,7 +230,8 @@ const attributeRouter = (
           })
         );
       } catch (error) {
-        return res.status(500).send();
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
     })
     .post("/certifiedAttributes", async (req, res) => {
@@ -261,7 +263,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         const attribute =
           await attributeRegistryService.createDeclaredAttribute(req.body, ctx);
@@ -283,7 +285,7 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, "api"]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         const attribute =
           await attributeRegistryService.createVerifiedAttribute(req.body, ctx);
