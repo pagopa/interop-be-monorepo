@@ -1,8 +1,9 @@
 import {
-  AuthData,
-  hasPermission,
+  hasAtLeastOneUserRole,
+  M2MAuthData,
   ReadModelRepository,
-  userRoles,
+  UIAuthData,
+  userRole,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -102,7 +103,7 @@ export function readModelServiceBuilderSQL({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: AuthData
+      authData: UIAuthData | M2MAuthData
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 
@@ -151,14 +152,11 @@ export function readModelServiceBuilderSQL({
               : undefined,
             // VISIBILITY FILTER
             or(
-              hasPermission(
-                [
-                  userRoles.ADMIN_ROLE,
-                  userRoles.API_ROLE,
-                  userRoles.SUPPORT_ROLE,
-                ],
-                authData
-              )
+              hasAtLeastOneUserRole(authData, [
+                userRole.ADMIN_ROLE,
+                userRole.API_ROLE,
+                userRole.SUPPORT_ROLE,
+              ])
                 ? eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,
                     authData.organizationId
