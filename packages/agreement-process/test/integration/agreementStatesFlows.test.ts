@@ -39,7 +39,7 @@ import {
   agreements,
   eservices,
   tenants,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("Agreeement states flows", () => {
   async function updateAgreementInReadModel(

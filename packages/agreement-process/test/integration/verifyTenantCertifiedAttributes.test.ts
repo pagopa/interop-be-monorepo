@@ -24,13 +24,13 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegateConsumer,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("Verify Tenant Certified Attributes", () => {
   const attribute1: CertifiedTenantAttribute = {

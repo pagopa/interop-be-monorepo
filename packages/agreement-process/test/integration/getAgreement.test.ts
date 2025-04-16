@@ -18,14 +18,14 @@ import { describe, it, expect } from "vitest";
 import {
   agreementNotFound,
   organizationNotAllowed,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("get agreement", () => {
   it(`should succeed when the requester is the consumer,

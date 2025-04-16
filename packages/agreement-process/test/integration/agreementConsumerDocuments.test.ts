@@ -30,7 +30,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
-import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/agreement-validators.js";
+import { agreementConsumerDocumentChangeValidStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
@@ -39,8 +39,8 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegateConsumer,
   organizationNotAllowed,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -48,10 +48,10 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
-  getMockConsumerDocument,
   readLastAgreementEvent,
   uploadDocument,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockConsumerDocument } from "../mockUtils.js";
 
 describe("agreement consumer document", () => {
   describe("get", () => {

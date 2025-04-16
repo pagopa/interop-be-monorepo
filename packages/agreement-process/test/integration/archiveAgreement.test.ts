@@ -22,19 +22,19 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { agreementArchivableStates } from "../src/model/domain/agreement-validators.js";
+import { agreementArchivableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegateConsumer,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
   agreementService,
   readLastAgreementEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("archive agreement", () => {
   it("should succeed when the requester is the consumer and the agreement is in an archivable state", async () => {

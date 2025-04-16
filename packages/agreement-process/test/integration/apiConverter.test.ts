@@ -7,12 +7,12 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { describe, it, expect } from "vitest";
-import { fromApiCompactTenant } from "../src/model/domain/apiConverter.js";
+import { fromApiCompactTenant } from "../../src/model/domain/apiConverter.js";
 import {
   getMockApiTenantCertifiedAttribute,
   getMockApiTenantDeclaredAttribute,
   getMockApiTenantVerifiedAttribute,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 describe("fromApiCompactTenant API converter", () => {
   it("converts an ApiCompactTenant to a CompactTenant", () => {

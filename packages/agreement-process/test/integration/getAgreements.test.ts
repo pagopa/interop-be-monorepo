@@ -30,7 +30,7 @@ import {
   agreementService,
   addOneDelegation,
   expectSinglePageListResult,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("get agreements", () => {
   let tenant1: Tenant;

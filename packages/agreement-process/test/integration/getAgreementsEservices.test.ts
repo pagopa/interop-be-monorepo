@@ -16,7 +16,7 @@ import {
   delegationState,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
-import { CompactEService } from "../src/model/domain/models.js";
+import { CompactEService } from "../../src/model/domain/models.js";
 import {
   addOneTenant,
   addOneEService,
@@ -24,7 +24,7 @@ import {
   agreementService,
   addOneDelegation,
   expectSinglePageListResult,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("get agreements eservices", () => {
   let eservice1: EService;

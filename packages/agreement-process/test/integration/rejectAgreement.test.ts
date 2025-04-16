@@ -35,7 +35,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
-import { agreementRejectableStates } from "../src/model/domain/agreement-validators.js";
+import { agreementRejectableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -44,7 +44,7 @@ import {
   organizationIsNotTheDelegateProducer,
   organizationIsNotTheProducer,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -52,7 +52,7 @@ import {
   addOneTenant,
   agreementService,
   readLastAgreementEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("reject agreement", () => {
   it.each([
