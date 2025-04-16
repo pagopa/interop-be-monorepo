@@ -36,17 +36,18 @@ import {
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const db = makeDrizzleConnection(config);
-const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
+const readModelDB = makeDrizzleConnection(config);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 const readModelRepository = ReadModelRepository.init(config);
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL(
-  db,
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
   attributeReadModelServiceSQL,
-  tenantReadModelServiceSQL
-);
+  tenantReadModelServiceSQL,
+});
 
 const readModelService =
   config.featureFlagSQL &&
