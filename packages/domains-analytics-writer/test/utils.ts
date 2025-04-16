@@ -322,42 +322,6 @@ export const eserviceItem = {
   templateVersionRefsSQL: [sampleTemplateVersionRef],
 } as any;
 
-export async function insertEservice(db: DBContext) {
-  await db.conn.none(
-    `
-    INSERT INTO domains.eservice (
-      id,
-      metadata_version,
-      producer_id,
-      name,
-      description,
-      technology,
-      created_at,
-      mode,
-      is_signal_hub_enabled,
-      is_consumer_delegable,
-      is_client_access_delegable,
-      deleted
-    )
-    VALUES (
-      \${id},
-      \${metadataVersion},
-      \${producerId},
-      \${name},
-      \${description},
-      \${technology},
-      \${createdAt},
-      \${mode},
-      \${isSignalHubEnabled},
-      \${isConsumerDelegable},
-      \${isClientAccessDelegable},
-      false
-    )
-    `,
-    eserviceSQL
-  );
-}
-
 export async function resetDb(dbContext: any): Promise<void> {
   const tables = [
     CatalogDbTable.eservice,
