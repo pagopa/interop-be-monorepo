@@ -1694,7 +1694,7 @@ export function catalogServiceBuilder(
     },
     createEServiceInstanceFromTemplate: async (
       templateId: EServiceTemplateId,
-      seed: bffApi.InstanceEServiceSeed | undefined,
+      seed: bffApi.InstanceEServiceSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedEServiceDescriptor> => {
       logger.info(`Creating EService from template ${templateId}`);

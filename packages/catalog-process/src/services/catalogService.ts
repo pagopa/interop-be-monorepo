@@ -2899,7 +2899,7 @@ export function catalogServiceBuilder(
     },
     async createEServiceInstanceFromTemplate(
       templateId: EServiceTemplateId,
-      seed: catalogApi.InstanceEServiceSeed | undefined,
+      seed: catalogApi.InstanceEServiceSeed,
       ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       ctx.logger.info(`Creating EService from template ${templateId}`);

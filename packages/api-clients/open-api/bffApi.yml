@@ -5841,7 +5841,7 @@ paths:
             format: uuid
       requestBody:
         description: Template instantiation parameters
-        required: false
+        required: true
         content:
           application/json:
             schema:
