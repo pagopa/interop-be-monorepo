@@ -1,9 +1,20 @@
 /* eslint-disable max-classes-per-file */
+import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
+
+const {
+  HTTP_STATUS_UNAUTHORIZED,
+  HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_TOO_MANY_REQUESTS,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+} = constants;
+
+export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -125,14 +136,23 @@ export function makeApiProblemBuilder<T extends string>(
       })),
     });
 
-    const genericProblem = makeProblem(500, genericError("Unexpected error"));
+    const genericProblem = makeProblem(
+      HTTP_STATUS_INTERNAL_SERVER_ERROR,
+      genericError("Unexpected error")
+    );
 
     if (operationalLogMessage) {
       logger.warn(operationalLogMessage);
     }
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
-        const problem = makeProblem(httpMapper(error), error);
+        const mappedCode = httpMapper(error);
+        const code =
+          mappedCode === HTTP_STATUS_INTERNAL_SERVER_ERROR
+            ? defaultCommonErrorMapper(error.code as CommonErrorCodes)
+            : mappedCode;
+
+        const problem = makeProblem(code, error);
         logger.warn(makeProblemLogString(problem, error));
         return problem;
       })
@@ -288,14 +308,26 @@ export function tokenGenerationError(
 export function kafkaMessageProcessError(
   topic: string,
   partition: number,
-  offset: string,
+  {
+    offset,
+    streamId,
+    eventType,
+    eventVersion,
+  }: {
+    offset: string;
+    streamId?: string;
+    eventType?: string;
+    eventVersion?: number;
+  },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}. ${
-      error ? parseErrorMessage(error) : ""
-    }`,
+    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}${
+      streamId ? ` - streamId ${streamId}` : ""
+    }${eventType ? ` - eventType ${eventType}` : ""}${
+      eventVersion ? ` - eventVersion ${eventVersion}` : ""
+    }. ${error ? parseErrorMessage(error) : ""}`,
   });
 }
 
@@ -319,13 +351,21 @@ export function pdfGenerationError(
 
 /* ===== API Error ===== */
 
+const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
+  match(code)
+    .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
+    .with("unauthorizedError", () => HTTP_STATUS_FORBIDDEN)
+    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export function authenticationSaslFailed(
   message: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     code: "authenticationSaslFailed",
     title: "SASL authentication fails",
-    detail: `SALS Authentication fails with this error : ${message}`,
+    detail: `SASL Authentication fails with this error: ${message}`,
   });
 }
 

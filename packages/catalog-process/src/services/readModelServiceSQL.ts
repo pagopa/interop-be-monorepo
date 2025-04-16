@@ -1,4 +1,9 @@
-import { AuthData, hasPermission, userRoles } from "pagopa-interop-commons";
+import {
+  hasAtLeastOneUserRole,
+  M2MAuthData,
+  UIAuthData,
+  userRole,
+} from "pagopa-interop-commons";
 import {
   AttributeId,
   EService,
@@ -81,7 +86,7 @@ export function readModelServiceBuilderSQL(
 ) {
   return {
     async getEServices(
-      authData: AuthData,
+      authData: UIAuthData | M2MAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -99,7 +104,7 @@ export function readModelServiceBuilderSQL(
         templatesIds,
       } = filters;
 
-      const matchingEserviceIds = await readmodelDB
+      const subquery = readmodelDB
         .select({
           id: eserviceInReadmodelCatalog.id,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
@@ -192,14 +197,11 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // visibility filter
-            hasPermission(
-              [
-                userRoles.ADMIN_ROLE,
-                userRoles.API_ROLE,
-                userRoles.SUPPORT_ROLE,
-              ],
-              authData
-            )
+            hasAtLeastOneUserRole(authData, [
+              userRole.ADMIN_ROLE,
+              userRole.API_ROLE,
+              userRole.SUPPORT_ROLE,
+            ])
               ? or(
                   // exist active descriptors for that eservice
                   exists(
@@ -327,7 +329,8 @@ export function readModelServiceBuilderSQL(
         .groupBy(eserviceInReadmodelCatalog.id)
         .limit(limit)
         .offset(offset)
-        .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`);
+        .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`)
+        .as("subquery");
 
       // manually retrieve eservices matching those ids but do manual pagination (example: query the first 10. etc...)
       const queryResult = await readmodelDB
@@ -343,14 +346,10 @@ export function readModelServiceBuilderSQL(
           templateRef: eserviceTemplateRefInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          totalCount: subquery.totalCount,
         })
         .from(eserviceInReadmodelCatalog)
-        .where(
-          inArray(
-            eserviceInReadmodelCatalog.id,
-            matchingEserviceIds.map((row) => row.id)
-          )
-        )
+        .innerJoin(subquery, eq(eserviceInReadmodelCatalog.id, subquery.id))
         .leftJoin(
           // 1
           eserviceDescriptorInReadmodelCatalog,
@@ -431,7 +430,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: eservices.map((eservice) => eservice.data),
-        totalCount: matchingEserviceIds[0]?.totalCount || 0,
+        totalCount: queryResult[0]?.totalCount || 0,
       };
     },
     async getEServiceByNameAndProducerId({

@@ -344,10 +344,7 @@ export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
-  await delegationReadModelServiceSQL.upsertDelegation({
-    data: delegation,
-    metadata: { version: 0 },
-  });
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
 };
 
 export const readLastEserviceEvent = async (

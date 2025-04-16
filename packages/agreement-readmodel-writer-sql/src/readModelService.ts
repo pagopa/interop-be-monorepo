@@ -7,6 +7,7 @@ import {
 import {
   AgreementReadModelService,
   agreementDocumentToAgreementDocumentSQL,
+  checkMetadataVersion,
 } from "pagopa-interop-readmodel";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -84,24 +85,18 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                agreementConsumerDocumentInReadmodelAgreement.metadataVersion,
-            })
-            .from(agreementConsumerDocumentInReadmodelAgreement)
-            .where(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          agreementConsumerDocumentInReadmodelAgreement,
+          metadataVersion,
+          doc.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(agreementConsumerDocumentInReadmodelAgreement)
             .where(
-              and(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id))
+              eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id)
             );
 
           const consumerDocumentSQL = agreementDocumentToAgreementDocumentSQL(
@@ -158,25 +153,17 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                agreementContractInReadmodelAgreement.metadataVersion,
-            })
-            .from(agreementContractInReadmodelAgreement)
-            .where(eq(agreementContractInReadmodelAgreement.id, contract.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          agreementContractInReadmodelAgreement,
+          metadataVersion,
+          contract.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(agreementContractInReadmodelAgreement)
-            .where(
-              and(eq(agreementContractInReadmodelAgreement.id, contract.id))
-            );
+            .where(eq(agreementContractInReadmodelAgreement.id, contract.id));
 
           const contractDocumentSQL = agreementDocumentToAgreementDocumentSQL(
             contract,

@@ -5,6 +5,7 @@ import {
   getMockPurpose,
   decodeProtobufPayload,
   getMockDelegation,
+  getMockContextInternal,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -20,7 +21,6 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   purposeVersionNotFound,
@@ -66,8 +66,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
         versionId: mockPurposeVersion.id,
         delegationId: mockDelegation.id,
       },
-      generateId(),
-      genericLogger
+      getMockContextInternal({})
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -139,8 +138,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
         versionId: mockPurposeVersion1.id,
         delegationId: mockDelegation.id,
       },
-      generateId(),
-      genericLogger
+      getMockContextInternal({})
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -194,8 +192,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
           versionId: generateId(),
           delegationId: mockDelegation.id,
         },
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(purposeNotFound(randomPurposeId));
   });
@@ -225,8 +222,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
           versionId: randomVersionId,
           delegationId: mockDelegation.id,
         },
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -267,8 +263,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
             versionId: mockPurposeVersion.id,
             delegationId: mockDelegation.id,
           },
-          generateId(),
-          genericLogger
+          getMockContextInternal({})
         )
       ).rejects.toThrowError(
         notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
@@ -302,8 +297,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
           versionId: mockPurposeVersion.id,
           delegationId: mockDelegation.id,
         },
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       puroposeDelegationNotFound(mockPurpose.id, mockDelegation.id)

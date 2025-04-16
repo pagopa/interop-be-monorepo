@@ -6,14 +6,12 @@ import {
   zodiosValidationErrorToApiProblem,
   initFileManager,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/errors.js";
 import {
-  emptyErrorMapper,
-  clonePurposeErrorMapper,
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
@@ -170,7 +168,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          clonePurposeErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error cloning purpose ${req.params.purposeId}`
         );
