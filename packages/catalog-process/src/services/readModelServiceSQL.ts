@@ -1,4 +1,9 @@
-import { AuthData, hasPermission, userRoles } from "pagopa-interop-commons";
+import {
+  hasAtLeastOneUserRole,
+  M2MAuthData,
+  UIAuthData,
+  userRole,
+} from "pagopa-interop-commons";
 import {
   AttributeId,
   EService,
@@ -81,7 +86,7 @@ export function readModelServiceBuilderSQL(
 ) {
   return {
     async getEServices(
-      authData: AuthData,
+      authData: UIAuthData | M2MAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -192,14 +197,11 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // visibility filter
-            hasPermission(
-              [
-                userRoles.ADMIN_ROLE,
-                userRoles.API_ROLE,
-                userRoles.SUPPORT_ROLE,
-              ],
-              authData
-            )
+            hasAtLeastOneUserRole(authData, [
+              userRole.ADMIN_ROLE,
+              userRole.API_ROLE,
+              userRole.SUPPORT_ROLE,
+            ])
               ? or(
                   // exist active descriptors for that eservice
                   exists(
