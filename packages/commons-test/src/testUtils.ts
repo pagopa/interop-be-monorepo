@@ -87,14 +87,11 @@ import {
 } from "pagopa-interop-models";
 import {
   AppContext,
-  AuthData,
   dateToSeconds,
   genericLogger,
   InternalAuthData,
-  M2MAdminAuthData,
   M2MAuthData,
   MaintenanceAuthData,
-  SystemRole,
   systemRole,
   UIAuthData,
   UserRole,
@@ -890,41 +887,3 @@ export const getMockContextM2M = ({
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });
-
-export const getSystemOrUserAuthData = (
-  role: SystemRole | UserRole
-): AuthData => {
-  if (Object.values(systemRole).includes(role as SystemRole)) {
-    switch (role) {
-      case systemRole.M2M_ROLE:
-        return {
-          systemRole: "m2m",
-          organizationId: generateId(),
-        } satisfies M2MAuthData;
-
-      case systemRole.M2M_ADMIN_ROLE:
-        return {
-          systemRole: "m2m-admin",
-          organizationId: generateId(),
-          userId: generateId(),
-        } satisfies M2MAdminAuthData;
-
-      case systemRole.INTERNAL_ROLE:
-        return {
-          systemRole: "internal",
-        } satisfies InternalAuthData;
-
-      case systemRole.MAINTENANCE_ROLE:
-        return {
-          systemRole: "maintenance",
-        } satisfies MaintenanceAuthData;
-
-      default:
-        throw new Error(`Unsupported system role: ${role}`);
-    }
-  }
-  return {
-    ...getMockAuthData(),
-    userRoles: [role as UserRole],
-  } satisfies UIAuthData;
-};

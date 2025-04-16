@@ -2,20 +2,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import { Attribute, generateId } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAttribute,
-  getMockAuthData,
-  getSystemOrUserAuthData,
-} from "pagopa-interop-commons-test";
-import {
-  Allrole,
-  AuthData,
-  systemRole,
-  userRole,
-} from "pagopa-interop-commons";
+import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
+import { authRole, AuthRole } from "pagopa-interop-commons";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
@@ -40,8 +29,6 @@ describe("API /attributes/origin/{origin}/code/{code} authorization test", () =>
     data: attribute,
     metadata: { version: 1 },
   });
-  const generateToken = (authData: AuthData) =>
-    jwt.sign(createPayload(authData), "test-secret");
 
   const makeRequest = async (token: string, origin: string, code: string) =>
     request(api)
@@ -50,25 +37,25 @@ describe("API /attributes/origin/{origin}/code/{code} authorization test", () =>
       .set("X-Correlation-Id", generateId())
       .send();
 
-  it.each([userRole.ADMIN_ROLE, systemRole.M2M_ROLE, userRole.SUPPORT_ROLE])(
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ROLE,
+    authRole.SUPPORT_ROLE,
+  ];
+  it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken(getSystemOrUserAuthData(role));
+      const token = generateToken(role);
       const res = await makeRequest(token, attribute.origin!, attribute.code!);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiAttribute);
     }
   );
 
-  it.each([
-    Object.values(Allrole).filter(
-      (role) =>
-        role !== systemRole.M2M_ROLE &&
-        role !== userRole.ADMIN_ROLE &&
-        role !== userRole.SUPPORT_ROLE
-    ),
-  ])("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(getSystemOrUserAuthData(role));
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
     const res = await makeRequest(token, attribute.origin!, attribute.code!);
 
     expect(res.status).toBe(403);
@@ -80,7 +67,7 @@ describe("API /attributes/origin/{origin}/code/{code} authorization test", () =>
       "getAttributeByOriginAndCode"
     ).mockRejectedValue(attributeNotFound(attribute.id));
 
-    const res = await makeRequest(generateToken(getMockAuthData()), "", "");
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
 
     expect(res.status).toBe(404);
   });

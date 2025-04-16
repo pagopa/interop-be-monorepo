@@ -34,11 +34,6 @@ export const SystemRole = z.enum([
 ]);
 export type SystemRole = z.infer<typeof SystemRole>;
 
-export const Allrole = {
-  ...systemRole,
-  ...userRole,
-} as const;
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
   z

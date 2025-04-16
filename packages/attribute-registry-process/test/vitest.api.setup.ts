@@ -20,16 +20,22 @@ vi.mock("pagopa-interop-commons", async () => {
     authenticationMiddleware: vi.fn(
       () =>
         async (
-          req: Request,
+          req: Request & { ctx: AppContext },
           _res: Response,
           next: NextFunction
         ): Promise<unknown> => {
           try {
             const jwtToken = jwtFromAuthHeader(req, genericLogger);
             const decoded = decodeJwtToken(jwtToken, genericLogger);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ctx = (req as any).ctx || {};
-            ctx.authData = readAuthDataFromJwtToken(decoded ? decoded : "");
+            const ctx = req.ctx || {};
+            ctx.authData = readAuthDataFromJwtToken(
+              decoded ??
+                (() => {
+                  throw new Error(
+                    "JWT decoding failed: 'decoded' is null or undefined."
+                  );
+                })()
+            );
             return next();
           } catch (error) {
             next(error);
@@ -45,6 +51,7 @@ import {
   genericLogger,
   readAuthDataFromJwtToken,
   decodeJwtToken,
+  AppContext,
 } from "pagopa-interop-commons";
 import app from "../src/app.js";
 
