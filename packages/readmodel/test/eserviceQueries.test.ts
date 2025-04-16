@@ -12,6 +12,7 @@ import {
   Descriptor,
   EService,
   EServiceId,
+  EServiceTemplateId,
   generateId,
   tenantKind,
   WithMetadata,
@@ -29,7 +30,6 @@ import {
   retrieveEserviceDescriptorAttributesSQLById,
   catalogReadModelService,
   checkCompleteEService,
-  retrieveEServiceTemplateRefSQLById,
   retrieveEServiceTemplateVersionRefsSQLById,
 } from "./eserviceUtils.js";
 import { readModelDB } from "./utils.js";
@@ -77,9 +77,7 @@ describe("E-service queries", () => {
         isSignalHubEnabled: true,
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
-        templateRef: {
-          id: generateId(),
-        },
+        templateId: generateId<EServiceTemplateId>(),
       };
 
       await catalogReadModelService.upsertEService(eservice, 1);
@@ -93,7 +91,6 @@ describe("E-service queries", () => {
         rejectionReasonsSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
-        templateRefSQL,
         templateVersionRefsSQL,
       } = await checkCompleteEService(eservice);
 
@@ -106,7 +103,6 @@ describe("E-service queries", () => {
         rejectionReasonsSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
-        templateRefSQL,
         templateVersionRefsSQL,
       });
 
@@ -156,10 +152,6 @@ describe("E-service queries", () => {
           eservice.id,
           readModelDB
         );
-      const templateRefSQL = await retrieveEServiceTemplateRefSQLById(
-        eservice.id,
-        readModelDB
-      );
       const templateVersionRefsSQL =
         await retrieveEServiceTemplateVersionRefsSQLById(
           eservice.id,
@@ -176,7 +168,7 @@ describe("E-service queries", () => {
       expect(riskAnalysisAnswersSQL).toHaveLength(0);
 
       const retrievedEService = aggregateEservice({
-        eserviceSQL,
+        eserviceSQL: eserviceSQL!,
         descriptorsSQL,
         interfacesSQL,
         documentsSQL,
@@ -184,7 +176,6 @@ describe("E-service queries", () => {
         rejectionReasonsSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
-        templateRefSQL,
         templateVersionRefsSQL,
       });
 
@@ -237,9 +228,7 @@ describe("E-service queries", () => {
         isSignalHubEnabled: true,
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
-        templateRef: {
-          id: generateId(),
-        },
+        templateId: generateId<EServiceTemplateId>(),
       };
 
       await catalogReadModelService.upsertEService(eservice, 1);
@@ -254,7 +243,6 @@ describe("E-service queries", () => {
         rejectionReasonsSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
-        templateRefSQL,
         templateVersionRefsSQL,
       } = await checkCompleteEService(eservice);
 
@@ -267,7 +255,6 @@ describe("E-service queries", () => {
         rejectionReasonsSQL,
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
-        templateRefSQL,
         templateVersionRefsSQL,
       });
 
@@ -317,9 +304,7 @@ describe("E-service queries", () => {
           isSignalHubEnabled: true,
           isConsumerDelegable: true,
           isClientAccessDelegable: true,
-          templateRef: {
-            id: generateId(),
-          },
+          templateId: generateId<EServiceTemplateId>(),
         },
         metadata: {
           version: 1,
@@ -373,9 +358,7 @@ describe("E-service queries", () => {
           },
         ],
         riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
-        templateRef: {
-          id: generateId(),
-        },
+        templateId: generateId<EServiceTemplateId>(),
       };
       await catalogReadModelService.upsertEService(eservice1, 1);
       await checkCompleteEService(eservice1);
@@ -405,9 +388,7 @@ describe("E-service queries", () => {
           },
         ],
         riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
-        templateRef: {
-          id: generateId(),
-        },
+        templateId: generateId<EServiceTemplateId>(),
       };
       await catalogReadModelService.upsertEService(eservice2, 1);
       await checkCompleteEService(eservice2);

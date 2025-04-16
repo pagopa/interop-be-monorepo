@@ -23,7 +23,6 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceTemplateRefSQL,
 } from "pagopa-interop-readmodel-models";
 
 export const splitEserviceIntoObjectsSQL = (
@@ -31,15 +30,6 @@ export const splitEserviceIntoObjectsSQL = (
   version: number
 ): EServiceItemsSQL => {
   const eserviceSQL = eserviceToEserviceSQL(eservice, version);
-
-  const templateRefSQL: EServiceTemplateRefSQL | undefined =
-    eservice.templateRef
-      ? {
-          eserviceTemplateId: eservice.templateRef.id,
-          eserviceId: eservice.id,
-          metadataVersion: version,
-        }
-      : undefined;
 
   const { riskAnalysesSQL, riskAnalysisAnswersSQL } =
     eservice.riskAnalysis.reduce(
@@ -127,7 +117,6 @@ export const splitEserviceIntoObjectsSQL = (
 
   return {
     eserviceSQL,
-    templateRefSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     descriptorsSQL,
@@ -390,6 +379,7 @@ export const eserviceToEserviceSQL = (
   isSignalHubEnabled: eservice.isSignalHubEnabled ?? null,
   isConsumerDelegable: eservice.isConsumerDelegable ?? null,
   isClientAccessDelegable: eservice.isClientAccessDelegable ?? null,
+  templateId: eservice.templateId ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

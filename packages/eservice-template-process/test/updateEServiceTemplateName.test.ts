@@ -199,7 +199,7 @@ describe("updateEServiceTemplateName", () => {
       ...getMockEService(),
       producerId,
       name: eserviceTemplate.name,
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
 
     const tenantEService: EService = {

@@ -194,7 +194,7 @@ const enhanceProducerEService = (
       : undefined;
 
   const eserviceTemplate = eserviceTemplates.find(
-    (t) => t.id === eservice.templateRef?.id
+    (t) => t.id === eservice.templateId
   );
 
   return {
@@ -397,7 +397,7 @@ export function catalogServiceBuilder(
         },
       });
 
-      const eServiceTemplateId = eservice.templateRef?.id;
+      const eServiceTemplateId = eservice.templateId;
 
       const eserviceTemplate = eServiceTemplateId
         ? await eserviceTemplateProcessClient.getEServiceTemplateById({
@@ -798,7 +798,7 @@ export function catalogServiceBuilder(
       const eserviceTemplatesIds = Array.from(
         new Set(
           res.results
-            .map((r) => r.templateRef?.id)
+            .map((r) => r.templateId)
             .filter((id): id is string => !!id)
         )
       );
@@ -1099,7 +1099,7 @@ export function catalogServiceBuilder(
 
       const previousDescriptor = retrieveLatestDescriptor(eService.descriptors);
 
-      if (eService.templateRef) {
+      if (eService.templateId) {
         const { id } =
           await catalogProcessClient.createTemplateInstanceDescriptor(
             {

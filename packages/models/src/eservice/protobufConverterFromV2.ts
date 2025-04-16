@@ -1,4 +1,4 @@
-import { unsafeBrandId } from "../brandedIds.js";
+import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
@@ -12,7 +12,6 @@ import {
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
   EServiceTemplateVersionRefV2,
-  EServiceTemplateRefV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -33,7 +32,6 @@ import {
   EService,
   Document,
   DescriptorRejectionReason,
-  EServiceTemplateRef,
   EServiceTemplateVersionRef,
 } from "./eservice.js";
 
@@ -186,12 +184,6 @@ export const fromRiskAnalysisV2 = (
   riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
 });
 
-export const fromEServiceTemplateRefV2 = (
-  input: EServiceTemplateRefV2
-): EServiceTemplateRef => ({
-  id: unsafeBrandId(input.id),
-});
-
 export const fromEServiceV2 = (input: EServiceV2): EService => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -201,8 +193,8 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   createdAt: bigIntToDate(input.createdAt),
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
   mode: fromEServiceModeV2(input.mode),
-  templateRef:
-    input.templateRef != null
-      ? fromEServiceTemplateRefV2(input.templateRef)
+  templateId:
+    input.templateId != null
+      ? unsafeBrandId<EServiceTemplateId>(input.templateId)
       : undefined,
 });

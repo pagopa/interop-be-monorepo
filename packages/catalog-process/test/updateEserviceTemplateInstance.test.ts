@@ -65,7 +65,7 @@ describe("update eService Instance", () => {
       name: `${template.name}`,
       descriptors: [descriptor],
       isSignalHubEnabled,
-      templateRef: { id: template.id },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -125,7 +125,7 @@ describe("update eService Instance", () => {
       name: `${template.name}`,
       descriptors: [descriptor],
       isSignalHubEnabled,
-      templateRef: { id: template.id },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -174,7 +174,7 @@ describe("update eService Instance", () => {
     const eservice: EService = {
       ...mockEService,
       name: template.name,
-      templateRef: { id: template.id },
+      templateId: template.id,
       isConsumerDelegable: true,
     };
 
@@ -233,7 +233,7 @@ describe("update eService Instance", () => {
     await addOneEService({
       ...mockEService,
       name: template.name,
-      templateRef: { id: template.id },
+      templateId: template.id,
     });
 
     expect(
@@ -257,7 +257,7 @@ describe("update eService Instance", () => {
     await addOneEService({
       ...mockEService,
       name: template.name,
-      templateRef: { id: template.id },
+      templateId: template.id,
     });
     await addOneDelegation(delegation);
 
@@ -289,7 +289,7 @@ describe("update eService Instance", () => {
         ...mockEService,
         descriptors: [descriptor],
         name: `${template.name}`,
-        templateRef: { id: template.id },
+        templateId: template.id,
       };
 
       await addOneEService(eservice);
@@ -312,7 +312,7 @@ describe("update eService Instance", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
-      templateRef: undefined,
+      templateId: undefined,
     };
     await addOneEService(eservice);
 

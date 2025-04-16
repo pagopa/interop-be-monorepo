@@ -2575,9 +2575,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        templateRef:
-          $ref: "#/components/schemas/EServiceTemplateRef"
-          required: false
+        templateId:
+          type: string
+          format: uuid
     EServiceTemplateRef:
       type: object
       additionalProperties: false

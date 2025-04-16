@@ -366,7 +366,7 @@ describe("clone descriptor", () => {
     };
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: templateId },
+      templateId,
       descriptors: [descriptor],
     };
     await addOneEService(eservice);

@@ -3,7 +3,6 @@ import {
   EServiceV2,
   EServiceDescriptorV2,
   EServiceDocumentV2,
-  EServiceTemplateRefV2,
   EServiceTemplateVersionRefV2,
   TemplateInstanceInterfaceMetadataV2,
 } from "pagopa-interop-models";
@@ -12,7 +11,6 @@ import {
   EServiceV2 as OutboundEServiceV2,
   EServiceDescriptorV2 as OutboundEServiceDescriptorV2,
   EServiceDocumentV2 as OutboundEServiceDocumentV2,
-  EServiceTemplateRefV2 as OutboundEServiceTemplateRefV2,
   EServiceTemplateVersionRefV2 as OutboundEServiceTemplateVersionRefV2,
   TemplateInstanceInterfaceMetadataV2 as OutboundTemplateInstanceInterfaceMetadataV2,
 } from "@pagopa/interop-outbound-models";
@@ -25,14 +23,6 @@ function toOutboundEServiceDocumentV2(
   return {
     ...document,
     path: undefined,
-  };
-}
-
-function toOutboundEServiceTemplateRefV2(
-  templateRef: EServiceTemplateRefV2
-): Exact<OutboundEServiceTemplateRefV2, EServiceTemplateRefV2> {
-  return {
-    id: templateRef.id,
   };
 }
 
@@ -85,9 +75,9 @@ function toOutboundEServiceV2(
     ...eservice,
     riskAnalysis: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
-    templateRef:
-      eservice.templateRef &&
-      toOutboundEServiceTemplateRefV2(eservice.templateRef),
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    templateId: eservice.templateId,
   };
 }
 

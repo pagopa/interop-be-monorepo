@@ -61,7 +61,7 @@ describe("create eService from template", () => {
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
-      undefined,
+      {},
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
@@ -106,7 +106,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isConsumerDelegable: false,
       isClientAccessDelegable: false,
-      templateRef: { id: eServiceTemplate.id },
+      templateId: eServiceTemplate.id,
     };
 
     const expectedEServiceWithDescriptor: EService = {
@@ -118,7 +118,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
-      templateRef: { id: eServiceTemplate.id },
+      templateId: eServiceTemplate.id,
       descriptors: [
         {
           ...mockDescriptor,
@@ -205,7 +205,7 @@ describe("create eService from template", () => {
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
-      undefined,
+      {},
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
@@ -290,7 +290,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
-      templateRef: { id: eServiceTemplate.id },
+      templateId: eServiceTemplate.id,
       descriptors: [
         {
           ...mockDescriptor,
@@ -400,7 +400,7 @@ describe("create eService from template", () => {
     await expect(
       catalogService.createEServiceInstanceFromTemplate(
         generateId(),
-        undefined,
+        {},
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({
@@ -418,7 +418,7 @@ describe("create eService from template", () => {
     await expect(
       catalogService.createEServiceInstanceFromTemplate(
         eServiceTemplate.id,
-        undefined,
+        {},
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({

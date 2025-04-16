@@ -474,9 +474,7 @@ describe("update draft descriptor", () => {
       ...mockEService,
       descriptors: [descriptor],
       name: template.name,
-      templateRef: {
-        id: template.id,
-      },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);

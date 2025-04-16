@@ -15,11 +15,7 @@ message EServiceV2 {
   optional bool isSignalHubEnabled = 10;
   optional bool isConsumerDelegable = 11;
   optional bool isClientAccessDelegable = 12;
-  optional EServiceTemplateRefV2 templateRef = 13;
-}
-
-message EServiceTemplateRefV2 {
-  string id = 1;
+  optional string templateId = 13;
 }
 
 message EServiceRiskAnalysisV2 {

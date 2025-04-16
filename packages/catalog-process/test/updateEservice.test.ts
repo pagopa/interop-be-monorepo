@@ -614,9 +614,7 @@ describe("update eService", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
-      templateRef: {
-        id: templateId,
-      },
+      templateId,
     };
     await addOneEService(eservice);
 

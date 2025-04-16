@@ -252,7 +252,7 @@ export function readModelServiceBuilder({
     ): Promise<boolean> => {
       const instanceProducerIds = await eservices
         .find({
-          "data.templateRef.id": eserviceTemplate.id,
+          "data.templateId": eserviceTemplate.id,
         })
         .project({ "data.producerId": true })
         .map(({ data }) => data.producerId)

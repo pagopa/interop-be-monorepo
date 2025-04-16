@@ -81,7 +81,7 @@ describe("updateTemplateInstanceName", () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
-      templateRef: { id: generateId<EServiceTemplateId>() },
+      templateId: generateId<EServiceTemplateId>(),
       name: updatedName,
     };
 

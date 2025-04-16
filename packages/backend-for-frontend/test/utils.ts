@@ -68,7 +68,7 @@ export const toEserviceCatalogProcessMock = (
   mode: "DELIVER" as const,
   technology: "REST" as const,
   riskAnalysis: [],
-  templateRef: eservice.templateRef,
+  templateId: eservice.templateId,
   descriptors: [
     {
       ...descriptor,
