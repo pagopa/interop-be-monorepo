@@ -895,6 +895,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/clients/{clientId}/admin/{adminId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    delete:
+      tags:
+        - client
+      summary: Removes an admin from a client
+      description: Removes an admin from a client
+      operationId: removeClientAdmin
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of Client
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: adminId
+          in: path
+          description: ID of Admin
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Request succeed
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producerKeychains:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

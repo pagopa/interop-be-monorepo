@@ -5,7 +5,7 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { CustomReadModelService } from "./readModelService.js";
 
 export async function handleMessageV2(
@@ -51,19 +51,24 @@ export async function handleMessageV2(
       );
     })
     .with(
-      { type: "ClientAdded" },
-      { type: "ClientUserAdded" },
-      { type: "ClientUserDeleted" },
-      { type: "ClientPurposeAdded" },
-      { type: "ClientPurposeRemoved" },
-      { type: "ProducerKeychainAdded" },
-      { type: "ProducerKeychainDeleted" },
-      { type: "ProducerKeychainKeyAdded" },
-      { type: "ProducerKeychainKeyDeleted" },
-      { type: "ProducerKeychainUserAdded" },
-      { type: "ProducerKeychainUserDeleted" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
+      {
+        type: P.union(
+          "ClientAdded",
+          "ClientUserAdded",
+          "ClientUserDeleted",
+          "ClientAdminRemoved",
+          "ClientPurposeAdded",
+          "ClientPurposeRemoved",
+          "ProducerKeychainAdded",
+          "ProducerKeychainDeleted",
+          "ProducerKeychainKeyAdded",
+          "ProducerKeychainKeyDeleted",
+          "ProducerKeychainUserAdded",
+          "ProducerKeychainUserDeleted",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
+        ),
+      },
       () => Promise.resolve
     )
     .exhaustive();

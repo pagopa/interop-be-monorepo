@@ -3,7 +3,7 @@ import {
   fromKeyV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import {
   AuthorizationEventNotification,
   KeyDeletedNotification,
@@ -45,20 +45,25 @@ export const toAuthorizationEventNotification = (
       };
     })
     .with(
-      { type: "ClientAdded" },
-      { type: "ClientDeleted" },
-      { type: "ClientUserAdded" },
-      { type: "ClientUserDeleted" },
-      { type: "ClientPurposeAdded" },
-      { type: "ClientPurposeRemoved" },
-      { type: "ProducerKeychainAdded" },
-      { type: "ProducerKeychainDeleted" },
-      { type: "ProducerKeychainKeyAdded" },
-      { type: "ProducerKeychainKeyDeleted" },
-      { type: "ProducerKeychainUserAdded" },
-      { type: "ProducerKeychainUserDeleted" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
+      {
+        type: P.union(
+          "ClientAdded",
+          "ClientDeleted",
+          "ClientUserAdded",
+          "ClientUserDeleted",
+          "ClientAdminRemoved",
+          "ClientPurposeAdded",
+          "ClientPurposeRemoved",
+          "ProducerKeychainAdded",
+          "ProducerKeychainDeleted",
+          "ProducerKeychainKeyAdded",
+          "ProducerKeychainKeyDeleted",
+          "ProducerKeychainUserAdded",
+          "ProducerKeychainUserDeleted",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
+        ),
+      },
       () => undefined
     )
     .exhaustive();

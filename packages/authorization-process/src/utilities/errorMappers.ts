@@ -324,3 +324,12 @@ export const removeProducerKeychainEServiceErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalRemoveClientAdminErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientKindNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("clientAdminIdNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -1,6 +1,6 @@
 import { DB } from "pagopa-interop-commons";
 import { AuthorizationEventEnvelopeV2 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
@@ -8,8 +8,9 @@ export async function handleMessageV2(
 ): Promise<void> {
   await match(message)
     .with(
-      { type: "ProducerKeychainKeyDeleted" },
-      { type: "ProducerKeychainKeyAdded" },
+      {
+        type: P.union("ProducerKeychainKeyDeleted", "ProducerKeychainKeyAdded"),
+      },
       async (message) => {
         const kid = message.data.kid;
         const eventType = match(message.type)
@@ -26,20 +27,25 @@ export async function handleMessageV2(
       }
     )
     .with(
-      { type: "ProducerKeychainDeleted" },
-      { type: "ClientAdded" },
-      { type: "ClientDeleted" },
-      { type: "ClientUserAdded" },
-      { type: "ClientUserDeleted" },
-      { type: "ClientKeyAdded" },
-      { type: "ClientKeyDeleted" },
-      { type: "ClientPurposeAdded" },
-      { type: "ClientPurposeRemoved" },
-      { type: "ProducerKeychainAdded" },
-      { type: "ProducerKeychainUserAdded" },
-      { type: "ProducerKeychainUserDeleted" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
+      {
+        type: P.union(
+          "ProducerKeychainDeleted",
+          "ClientAdded",
+          "ClientDeleted",
+          "ClientUserAdded",
+          "ClientUserDeleted",
+          "ClientAdminRemoved",
+          "ClientKeyAdded",
+          "ClientKeyDeleted",
+          "ClientPurposeAdded",
+          "ClientPurposeRemoved",
+          "ProducerKeychainAdded",
+          "ProducerKeychainUserAdded",
+          "ProducerKeychainUserDeleted",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
+        ),
+      },
       () => Promise.resolve
     )
     .exhaustive();

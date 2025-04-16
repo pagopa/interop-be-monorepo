@@ -82,3 +82,8 @@ message ProducerKeychainEServiceRemovedV2 {
   string eserviceId = 1;
   ProducerKeychainV2 producerKeychain = 2;
 }
+
+message ClientAdminRemovedV2 {
+  ClientV2 client = 1;
+  string adminId = 2;
+}

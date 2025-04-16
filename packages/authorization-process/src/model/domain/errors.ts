@@ -45,6 +45,7 @@ export const errorCodes = {
   eserviceNotDelegableForClientAccess: "0030",
   clientKindNotAllowed: "0031",
   securityUserNotMember: "0032",
+  clientAdminIdNotFound: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -78,6 +79,17 @@ export function clientUserIdNotFound(
     detail: `User ${userId} not found in client ${clientId}`,
     code: "clientUserIdNotFound",
     title: "User id not found in client",
+  });
+}
+
+export function clientAdminIdNotFound(
+  clientId: ClientId,
+  adminId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client admin ${adminId} not found in client ${clientId}`,
+    code: "clientAdminIdNotFound",
+    title: "Client admin id not found in client",
   });
 }
 
