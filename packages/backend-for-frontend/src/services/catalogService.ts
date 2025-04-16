@@ -1323,7 +1323,7 @@ export function catalogServiceBuilder(
       documentId: EServiceDocumentId,
       updateEServiceDescriptorDocumentSeed: bffApi.UpdateEServiceDescriptorDocumentSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.EServiceDoc> => {
+    ): Promise<catalogApi.EServiceDoc> => {
       logger.info(
         `Updating document ${documentId} of descriptor ${descriptorId} of EService ${eServiceId}`
       );
