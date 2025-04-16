@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS readmodel_attribute.attribute (
   kind VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   origin VARCHAR,
-  name VARCHAR NOT NULL,
+  name VARCHAR UNIQUE NOT NULL,
   creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id)
 );

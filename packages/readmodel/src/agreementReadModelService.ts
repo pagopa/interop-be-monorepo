@@ -163,7 +163,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
         .from(agreementInReadmodelAgreement)
         .where(filter)
         .leftJoin(
-          // 1
           agreementStampInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -171,7 +170,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           agreementAttributeInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -179,7 +177,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           agreementConsumerDocumentInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -187,7 +184,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           agreementContractInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
