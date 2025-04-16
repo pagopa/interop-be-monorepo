@@ -135,7 +135,7 @@ describe("Catalog Service - Batch Operations", () => {
         const catalogService = catalogServiceBuilder(dbContext);
         await expect(
           catalogService.upsertBatchEServiceDescriptor(
-            [descriptorItem],
+            [descriptorItem] as any,
             dbContext
           )
         ).rejects.toThrow();
@@ -144,9 +144,9 @@ describe("Catalog Service - Batch Operations", () => {
       it("should insert and merge a descriptor successfully", async () => {
         const catalogService = catalogServiceBuilder(dbContext);
         await catalogService.upsertBatchEservice([eserviceItem], dbContext);
-
+        const eserviceBase = createBaseEserviceItem();
         const descriptorItem = {
-          descriptorData: descriptorSQL,
+          descriptorData: { ...eserviceBase, descriptorSQL },
           eserviceId: descriptorSQL.eserviceId,
           metadataVersion: descriptorSQL.metadataVersion,
         };
@@ -368,8 +368,13 @@ describe("Catalog Service - Batch Operations", () => {
           archivedAt: null,
         };
 
+        const eserviceWithDescriptor = {
+          ...baseEserviceItem,
+          descriptorSQL: descriptorData,
+        };
+
         const descriptorItem = {
-          descriptorData,
+          descriptorData: eserviceWithDescriptor,
           eserviceId: baseEserviceSQL.id,
           metadataVersion: 1,
         };

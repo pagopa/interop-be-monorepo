@@ -13,8 +13,12 @@ import // splitDescriptorIntoObjectsSQL,
 // splitEserviceIntoObjectsSQL,
 "pagopa-interop-readmodel";
 import {
+  EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
+  EServiceDescriptorInterfaceSQL,
+  EServiceDescriptorRejectionReasonSQL,
   EServiceDescriptorSQL,
+  EServiceDescriptorTemplateVersionRefSQL,
   EServiceItemsSQL,
   // EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
@@ -40,7 +44,16 @@ export async function handleCatalogMessageV1(
   const deleteEServiceDocumentBatch: string[] = [];
   const deleteRiskAnalysisBatch: string[] = [];
   const upsertDescriptorBatch: Array<{
-    descriptorData: EServiceDescriptorSQL;
+    descriptorData: {
+      descriptorSQL: EServiceDescriptorSQL;
+      attributesSQL: EServiceDescriptorAttributeSQL[];
+      interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
+      documentsSQL: EServiceDescriptorDocumentSQL[];
+      rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+      templateVersionRefSQL:
+        | EServiceDescriptorTemplateVersionRefSQL
+        | undefined;
+    };
     eserviceId: EServiceId;
     metadataVersion: number;
   }> = [];
@@ -93,7 +106,7 @@ export async function handleCatalogMessageV1(
         }
       })
       .with({ type: "EServiceDocumentDeleted" }, (msg) => {
-        deleteEServiceDocumentBatch.push(msg.data.descriptorId);
+        deleteEServiceDocumentBatch.push(msg.data.documentId);
       })
       .with({ type: "EServiceRiskAnalysisDeleted" }, (msg) => {
         deleteRiskAnalysisBatch.push(msg.data.riskAnalysisId);
@@ -111,7 +124,7 @@ export async function handleCatalogMessageV1(
           );
 
           upsertDescriptorBatch.push({
-            descriptorData: splitResult.descriptorSQL,
+            descriptorData: splitResult,
             eserviceId: unsafeBrandId(splitResult.descriptorSQL.eserviceId),
             metadataVersion: splitResult.descriptorSQL.metadataVersion,
           });

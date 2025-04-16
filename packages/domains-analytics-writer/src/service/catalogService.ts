@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import { Descriptor } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { EServiceId } from "pagopa-interop-models";
 import {
@@ -12,7 +11,6 @@ import {
   EServiceDescriptorTemplateVersionRefSQL,
   EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
-import { splitDescriptorIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { DBContext } from "../db/db.js";
 import { eserviceRiskAnalysisAnswerRepository } from "../repository/catalog/eserviceRiskAnalysisAnswer.repository.js";
 import { eserviceRiskAnalysisRepository } from "../repository/catalog/eserviceRiskAnalysis.repository.js";
@@ -172,12 +170,22 @@ export function catalogServiceBuilder(db: DBContext) {
       await riskAnalysisAnswerRepo.clean();
       await rejectionRepo.clean();
       await templateVersionRefRepo.clean();
+      genericLogger.info(`Staging data cleaned`);
     },
 
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async upsertBatchEServiceDescriptor(
       items: Array<{
-        descriptorData: EServiceDescriptorSQL;
+        descriptorData: {
+          descriptorSQL: EServiceDescriptorSQL;
+          attributesSQL: EServiceDescriptorAttributeSQL[];
+          interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
+          documentsSQL: EServiceDescriptorDocumentSQL[];
+          rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+          templateVersionRefSQL:
+            | EServiceDescriptorTemplateVersionRefSQL
+            | undefined;
+        };
         eserviceId: EServiceId;
         metadataVersion: number;
       }>,
@@ -202,9 +210,7 @@ export function catalogServiceBuilder(db: DBContext) {
           rejectionReasonsSQLArray: [],
           templateVersionRefSQLArray: [],
         };
-
         for (const item of batch) {
-          const descriptor = Descriptor.parse(item.descriptorData);
           const {
             descriptorSQL,
             attributesSQL,
@@ -212,19 +218,21 @@ export function catalogServiceBuilder(db: DBContext) {
             documentsSQL,
             rejectionReasonsSQL,
             templateVersionRefSQL,
-          } = splitDescriptorIntoObjectsSQL(
-            item.eserviceId,
-            descriptor,
-            item.metadataVersion
-          );
+          } = item.descriptorData;
 
           batchItems.descriptorSQLArray.push(descriptorSQL);
-          batchItems.attributesSQLArray.push(...attributesSQL);
+          if (attributesSQL) {
+            batchItems.attributesSQLArray.push(...attributesSQL);
+          }
           if (interfaceSQL) {
             batchItems.interfaceSQLArray.push(interfaceSQL);
           }
-          batchItems.documentsSQLArray.push(...documentsSQL);
-          batchItems.rejectionReasonsSQLArray.push(...rejectionReasonsSQL);
+          if (documentsSQL) {
+            batchItems.documentsSQLArray.push(...documentsSQL);
+          }
+          if (rejectionReasonsSQL) {
+            batchItems.rejectionReasonsSQLArray.push(...rejectionReasonsSQL);
+          }
           if (templateVersionRefSQL) {
             batchItems.templateVersionRefSQLArray.push(templateVersionRefSQL);
           }
