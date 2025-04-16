@@ -101,8 +101,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.1.0
-        version: 1.1.0
+        specifier: 1.1.1
+        version: 1.1.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2380,8 +2380,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.1.0
-        version: 1.1.0
+        specifier: 1.1.1
+        version: 1.1.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2706,8 +2706,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.1.0
-        version: 1.1.0
+        specifier: 1.1.1
+        version: 1.1.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -3728,9 +3728,6 @@ packages:
 
   '@pagopa/eslint-config@3.0.0':
     resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
-
-  '@pagopa/interop-outbound-models@1.1.0':
-    resolution: {integrity: sha512-F4MKL5eLOAlpsisVFRxVTe2CpmMHiVN94DOms6f6H63YFc8x4gNUHCFElJUgSQDYJkDAz+oTwZHr0LGUqIL0MA==}
 
   '@pagopa/interop-outbound-models@1.1.1':
     resolution: {integrity: sha512-fzPQBV5gJjpCV9exOEnwF1pyGmgrZfYZmI5STLdo0BprzYs/GO4sMCekkz2yE+5rA7e5Pv1g5EfizzuLgjWBWw==}
@@ -8994,12 +8991,6 @@ snapshots:
       - supports-color
       - tsutils
       - typescript
-
-  '@pagopa/interop-outbound-models@1.1.0':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
 
   '@pagopa/interop-outbound-models@1.1.1':
     dependencies:
