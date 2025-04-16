@@ -13,6 +13,7 @@ import {
   userRole,
   systemRole,
   SystemRole,
+  M2MAdminAuthData,
 } from "./authData.js";
 
 export const authRole = {
@@ -43,6 +44,10 @@ type AllowedAuthData<AdmittedRoles extends NonEmptyArray<AuthRole>> =
   // If "m2m" is in the array, add M2MAuthData
   | ([ContainsAuthRole<AdmittedRoles, "m2m">] extends [true]
       ? M2MAuthData
+      : never)
+  // If "m2m-admin" is in the array, add M2MAdminAuthData
+  | ([ContainsAuthRole<AdmittedRoles, "m2m-admin">] extends [true]
+      ? M2MAdminAuthData
       : never)
   // If "internal" is in the array, add InternalAuthData
   | ([ContainsAuthRole<AdmittedRoles, "internal">] extends [true]
@@ -90,7 +95,8 @@ export function validateAuthorization<
         systemRole: P.union(
           systemRole.M2M_ROLE,
           systemRole.INTERNAL_ROLE,
-          systemRole.MAINTENANCE_ROLE
+          systemRole.MAINTENANCE_ROLE,
+          systemRole.M2M_ADMIN_ROLE
         ),
       },
       ({ systemRole }) => {
@@ -141,7 +147,8 @@ export function isUiAuthData(authData: AuthData): authData is UIAuthData {
         systemRole: P.union(
           systemRole.M2M_ROLE,
           systemRole.INTERNAL_ROLE,
-          systemRole.MAINTENANCE_ROLE
+          systemRole.MAINTENANCE_ROLE,
+          systemRole.M2M_ADMIN_ROLE
         ),
       },
       () => false
@@ -155,6 +162,7 @@ function isSystemRole(role: AuthRole): role is SystemRole {
       authRole.M2M_ROLE,
       authRole.INTERNAL_ROLE,
       authRole.MAINTENANCE_ROLE,
+      authRole.M2M_ADMIN_ROLE,
       () => true
     )
     .with(
@@ -180,6 +188,7 @@ function isUserRole(role: AuthRole): role is UserRole {
       authRole.M2M_ROLE,
       authRole.INTERNAL_ROLE,
       authRole.MAINTENANCE_ROLE,
+      authRole.M2M_ADMIN_ROLE,
       () => false
     )
     .exhaustive();
