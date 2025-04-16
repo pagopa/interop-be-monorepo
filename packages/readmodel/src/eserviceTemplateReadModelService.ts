@@ -19,6 +19,7 @@ import {
   aggregateEServiceTemplate,
   toEServiceTemplateAggregator,
 } from "./eservice-template/aggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -29,25 +30,14 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                eserviceTemplateInReadmodelEserviceTemplate.metadataVersion,
-            })
-            .from(eserviceTemplateInReadmodelEserviceTemplate)
-            .where(
-              eq(
-                eserviceTemplateInReadmodelEserviceTemplate.id,
-                eserviceTemplate.id
-              )
-            )
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          eserviceTemplateInReadmodelEserviceTemplate,
+          metadataVersion,
+          eserviceTemplate.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(eserviceTemplateInReadmodelEserviceTemplate)
             .where(

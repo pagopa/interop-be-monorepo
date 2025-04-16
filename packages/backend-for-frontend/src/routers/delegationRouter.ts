@@ -7,11 +7,11 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
-import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   getDelegationByIdErrorMapper,
   getDelegationsErrorMapper,

@@ -10,20 +10,23 @@ import {
 } from "pagopa-interop-models";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
-  aggregateAttribute,
   aggregateAttributeArray,
   AttributeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
-import { and, count, ilike, inArray } from "drizzle-orm";
+import { and, eq, getTableColumns, ilike, inArray, sql } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilderSQL(
-  readModelDB: ReturnType<typeof drizzle>,
-  attributeReadModelService: AttributeReadModelService,
-  tenantReadModelService: TenantReadModelService
-) {
+export function readModelServiceBuilderSQL({
+  readModelDB,
+  attributeReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+}: {
+  readModelDB: ReturnType<typeof drizzle>;
+  attributeReadModelServiceSQL: AttributeReadModelService;
+  tenantReadModelServiceSQL: TenantReadModelService;
+}) {
   return {
     async getAttributesByIds({
       ids,
@@ -34,28 +37,24 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const condition = inArray(attributeInReadmodelAttribute.id, ids);
-      const res = await readModelDB
-        .select()
+      const queryResult = await readModelDB
+        .select({
+          ...getTableColumns(attributeInReadmodelAttribute),
+          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+        })
         .from(attributeInReadmodelAttribute)
-        .where(condition)
-        .orderBy(attributeInReadmodelAttribute.name) // TODO this was $toLower: ["$data.name"]
+        .where(inArray(attributeInReadmodelAttribute.id, ids))
+        .orderBy(sql`LOWER(${attributeInReadmodelAttribute.name})`)
         .limit(limit)
         .offset(offset);
 
-      const attributes = aggregateAttributeArray(res);
-
-      const totalCount = await readModelDB
-        .select({ count: count() })
-        .from(attributeInReadmodelAttribute)
-        .where(condition);
+      const attributes = aggregateAttributeArray(queryResult);
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: totalCount[0]?.count || 0,
+        totalCount: Number(queryResult[0]?.totalCount || 0),
       };
     },
-
     async getAttributesByKindsNameOrigin({
       kinds,
       name,
@@ -69,63 +68,54 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
-      const condition = and(
-        kinds.length > 0
-          ? inArray(attributeInReadmodelAttribute.kind, kinds)
-          : undefined,
-        name
-          ? ilike(attributeInReadmodelAttribute.name, `%${name}%`)
-          : undefined,
-        origin ? ilike(attributeInReadmodelAttribute.origin, origin) : undefined
-      );
-      const res = await readModelDB
-        .select()
+      const queryResult = await readModelDB
+        .select({
+          ...getTableColumns(attributeInReadmodelAttribute),
+          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+        })
         .from(attributeInReadmodelAttribute)
-        .where(condition)
-        .orderBy(attributeInReadmodelAttribute.name) // TODO this was $toLower: ["$data.name"]
+        .where(
+          and(
+            kinds.length > 0
+              ? inArray(attributeInReadmodelAttribute.kind, kinds)
+              : undefined,
+            name
+              ? ilike(
+                  attributeInReadmodelAttribute.name,
+                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                )
+              : undefined,
+            origin
+              ? eq(attributeInReadmodelAttribute.origin, origin)
+              : undefined
+          )
+        )
+        .orderBy(sql`LOWER(${attributeInReadmodelAttribute.name})`)
         .limit(limit)
         .offset(offset);
 
-      const attributes = aggregateAttributeArray(res);
-
-      const totalCount = await readModelDB
-        .select({ count: count() })
-        .from(attributeInReadmodelAttribute)
-        .where(condition);
+      const attributes = aggregateAttributeArray(queryResult);
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: totalCount[0]?.count || 0,
+        totalCount: Number(queryResult[0]?.totalCount || 0),
       };
     },
-
     async getAttributeById(
       id: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
-      return attributeReadModelService.getAttributeById(id);
+      return attributeReadModelServiceSQL.getAttributeById(id);
     },
-
     async getAttributeByName(
-      // TODO ADD UNIQUE IN DB
       name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
-      const res = await readModelDB
-        .select()
-        .from(attributeInReadmodelAttribute)
-        .where(
-          ilike(
-            attributeInReadmodelAttribute.name,
-            ReadModelRepository.escapeRegExp(name)
-          )
-        );
-
-      if (res.length === 0) {
-        return undefined;
-      }
-
-      return aggregateAttribute(res[0]);
+      return attributeReadModelServiceSQL.getAttributeByFilter(
+        ilike(
+          attributeInReadmodelAttribute.name,
+          ReadModelRepository.escapeRegExp(name)
+        )
+      );
     },
-
     async getAttributeByOriginAndCode({
       origin,
       code,
@@ -133,60 +123,38 @@ export function readModelServiceBuilderSQL(
       origin: string;
       code: string;
     }): Promise<WithMetadata<Attribute> | undefined> {
-      const res = await readModelDB
-        .select()
-        .from(attributeInReadmodelAttribute)
-        .where(
-          and(
-            ilike(
-              attributeInReadmodelAttribute.origin,
-              ReadModelRepository.escapeRegExp(origin)
-            ),
-            ilike(
-              attributeInReadmodelAttribute.code,
-              ReadModelRepository.escapeRegExp(code)
-            )
+      return await attributeReadModelServiceSQL.getAttributeByFilter(
+        and(
+          eq(
+            attributeInReadmodelAttribute.origin,
+            ReadModelRepository.escapeRegExp(origin)
+          ),
+          eq(
+            attributeInReadmodelAttribute.code,
+            ReadModelRepository.escapeRegExp(code)
           )
-        );
-
-      if (res.length === 0) {
-        return undefined;
-      }
-
-      return aggregateAttribute(res[0]);
+        )
+      );
     },
-
     async getAttributeByCodeAndName(
       code: string,
       name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
-      const res = await readModelDB
-        .select()
-        .from(attributeInReadmodelAttribute)
-        .where(
-          and(
-            ilike(
-              attributeInReadmodelAttribute.code,
-              ReadModelRepository.escapeRegExp(code)
-            ),
-            ilike(
-              attributeInReadmodelAttribute.name,
-              ReadModelRepository.escapeRegExp(name)
-            )
+      return await attributeReadModelServiceSQL.getAttributeByFilter(
+        and(
+          ilike(
+            attributeInReadmodelAttribute.code,
+            ReadModelRepository.escapeRegExp(code)
+          ),
+          ilike(
+            attributeInReadmodelAttribute.name,
+            ReadModelRepository.escapeRegExp(name)
           )
-        );
-
-      if (res.length === 0) {
-        return undefined;
-      }
-
-      return aggregateAttribute(res[0]);
+        )
+      );
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
-      const tenantWithMetadata = await tenantReadModelService.getTenantById(
-        tenantId
-      );
-      return tenantWithMetadata?.data;
+      return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
     },
   };
 }

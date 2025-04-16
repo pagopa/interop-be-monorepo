@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, expect, it } from "vitest";
 import { Tenant } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
 import { tenantNotFoundBySelfcareId } from "../src/model/domain/errors.js";
 import { addOneTenant, tenantService } from "./utils.js";
 
@@ -27,14 +26,17 @@ describe("getTenantBySelfcareId", () => {
     await addOneTenant(tenant3);
     const returnedTenant = await tenantService.getTenantBySelfcareId(
       tenant1.selfcareId!,
-      genericLogger
+      getMockContext({})
     );
     expect(returnedTenant).toEqual(tenant1);
   });
   it("should throw tenantNotFoundBySelfcareId if the tenant isn't in DB", async () => {
     await addOneTenant(tenant2);
     expect(
-      tenantService.getTenantBySelfcareId(tenant1.selfcareId!, genericLogger)
+      tenantService.getTenantBySelfcareId(
+        tenant1.selfcareId!,
+        getMockContext({})
+      )
     ).rejects.toThrowError(tenantNotFoundBySelfcareId(tenant1.selfcareId!));
   });
 });

@@ -90,12 +90,17 @@ import {
 } from "pagopa-interop-models";
 import {
   AppContext,
-  AuthData,
   dateToSeconds,
   genericLogger,
   keyToClientJWKKey,
   keyToProducerJWKKey,
-  userRoles,
+  InternalAuthData,
+  M2MAuthData,
+  MaintenanceAuthData,
+  systemRole,
+  UIAuthData,
+  UserRole,
+  userRole,
   WithLogger,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -340,6 +345,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   dailyCallsTotal: 1000,
   createdAt: new Date(),
   serverUrls: ["pagopa.it"],
+  agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
     verified: [],
@@ -436,10 +442,15 @@ export const getMockProducerJWKKey = (
   );
 };
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockAuthData = (
+  organizationId?: TenantId,
+  userId?: UserId,
+  userRoles?: UserRole[]
+): UIAuthData => ({
+  systemRole: undefined,
   organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [userRoles.ADMIN_ROLE],
+  userId: userId || generateId(),
+  userRoles: userRoles || [userRole.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -757,6 +768,7 @@ export const getMockEServiceTemplateVersion = (
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
   version: 1,
+  description: "eService template version description",
   createdAt: new Date(),
   attributes: {
     certified: [],
@@ -791,9 +803,9 @@ export const getMockContext = ({
   authData,
   serviceName,
 }: {
-  authData?: AuthData;
+  authData?: UIAuthData;
   serviceName?: string;
-}): WithLogger<AppContext> => ({
+}): WithLogger<AppContext<UIAuthData>> => ({
   authData: authData || getMockAuthData(),
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -816,6 +828,29 @@ export const sortBy =
     }
     return 0;
   };
+
+export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
+  tenant: T
+): T => {
+  if (tenant === undefined) {
+    return tenant;
+  } else if ("data" in tenant && "metadata" in tenant) {
+    return {
+      ...tenant,
+      data: sortTenant(tenant.data),
+    };
+  } else {
+    return {
+      ...tenant,
+      attributes: [...tenant.attributes].sort(
+        sortBy<TenantAttribute>((att) => att.id)
+      ),
+      features: [...tenant.features].sort(
+        sortBy<TenantFeature>((feature) => feature.type)
+      ),
+    };
+  }
+};
 
 export const sortAgreement = <
   T extends Agreement | WithMetadata<Agreement> | undefined
@@ -847,3 +882,51 @@ export const sortAgreement = <
     };
   }
 };
+
+export const getMockContextInternal = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<InternalAuthData>> => ({
+  authData: {
+    systemRole: systemRole.INTERNAL_ROLE,
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+  spanId: generateId(),
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextMaintenance = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<MaintenanceAuthData>> => ({
+  authData: {
+    systemRole: systemRole.MAINTENANCE_ROLE,
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+  spanId: generateId(),
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextM2M = ({
+  organizationId,
+  serviceName,
+}: {
+  organizationId?: TenantId;
+  serviceName?: string;
+}): WithLogger<AppContext<M2MAuthData>> => ({
+  authData: {
+    systemRole: systemRole.M2M_ROLE,
+    organizationId: organizationId || generateId(),
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
+  requestTimestamp: Date.now(),
+});

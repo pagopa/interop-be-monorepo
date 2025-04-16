@@ -2,10 +2,11 @@ import {
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
-  userRoles,
-  hasPermission,
-  AuthData,
   TenantCollection,
+  M2MAuthData,
+  UIAuthData,
+  hasAtLeastOneUserRole,
+  userRole,
   EServiceTemplateCollection,
 } from "pagopa-interop-commons";
 import {
@@ -136,7 +137,7 @@ export function readModelServiceBuilder(
 
   return {
     async getEServices(
-      authData: AuthData,
+      authData: UIAuthData | M2MAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -241,9 +242,9 @@ export function readModelServiceBuilder(
           ],
         });
 
-      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-        authData
+      const visibilityFilter: ReadModelFilter<EService> = hasAtLeastOneUserRole(
+        authData,
+        [userRole.ADMIN_ROLE, userRole.API_ROLE, userRole.SUPPORT_ROLE]
       )
         ? {
             $nor: [
