@@ -56,9 +56,12 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
 });
 
-export const readModelService = config.featureFlagSQL
-  ? readModelServiceSQL
-  : oldReadModelService;
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 export const attributeRegistryService = attributeRegistryServiceBuilder(
   postgresDB,
