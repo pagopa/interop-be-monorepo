@@ -110,7 +110,7 @@ export function readModelServiceBuilderSQL({
       const subquery = readModelDB
         .select({
           eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
@@ -249,7 +249,7 @@ export function readModelServiceBuilderSQL({
         results: aggregateEServiceTemplateArray(
           toEServiceTemplateAggregatorArray(queryResult)
         ).map((eserviceTemplate) => eserviceTemplate.data),
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async checkNameConflictInstances(
@@ -310,7 +310,7 @@ export function readModelServiceBuilderSQL({
         .select({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
         .innerJoin(
@@ -369,7 +369,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: result.data,
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
   };
