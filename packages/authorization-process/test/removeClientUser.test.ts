@@ -2,7 +2,9 @@
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockClient,
+  getMockContext,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
@@ -12,7 +14,6 @@ import {
   generateId,
   toClientV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
@@ -38,13 +39,13 @@ describe("remove client user", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.removeClientUser({
-      clientId: mockClient.id,
-      userIdToRemove,
-      organizationId: mockConsumer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await authorizationService.removeClientUser(
+      {
+        clientId: mockClient.id,
+        userIdToRemove,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -78,13 +79,13 @@ describe("remove client user", () => {
     await addOneClient(getMockClient());
 
     expect(
-      authorizationService.removeClientUser({
-        clientId: mockClient.id,
-        userIdToRemove,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.removeClientUser(
+        {
+          clientId: mockClient.id,
+          userIdToRemove,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
   it("should throw clientUserNotFound if the user isn't related to that client", async () => {
@@ -101,13 +102,13 @@ describe("remove client user", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.removeClientUser({
-        clientId: mockClient.id,
-        userIdToRemove: notExistingUserId,
-        organizationId: mockConsumer.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.removeClientUser(
+        {
+          clientId: mockClient.id,
+          userIdToRemove: notExistingUserId,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      )
     ).rejects.toThrowError(
       clientUserIdNotFound(notExistingUserId, mockClient.id)
     );
@@ -125,13 +126,13 @@ describe("remove client user", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.removeClientUser({
-        clientId: mockClient.id,
-        userIdToRemove,
-        organizationId: mockConsumer2.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.removeClientUser(
+        {
+          clientId: mockClient.id,
+          userIdToRemove,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer2.id) })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
     );
