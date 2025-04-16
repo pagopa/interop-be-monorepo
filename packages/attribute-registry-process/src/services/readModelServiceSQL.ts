@@ -40,7 +40,7 @@ export function readModelServiceBuilderSQL({
       const queryResult = await readModelDB
         .select({
           ...getTableColumns(attributeInReadmodelAttribute),
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(attributeInReadmodelAttribute)
         .where(inArray(attributeInReadmodelAttribute.id, ids))
@@ -52,7 +52,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: Number(queryResult[0]?.totalCount || 0),
+        totalCount: queryResult[0]?.totalCount || 0,
       };
     },
     async getAttributesByKindsNameOrigin({
@@ -71,7 +71,7 @@ export function readModelServiceBuilderSQL({
       const queryResult = await readModelDB
         .select({
           ...getTableColumns(attributeInReadmodelAttribute),
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(attributeInReadmodelAttribute)
         .where(
@@ -98,7 +98,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: Number(queryResult[0]?.totalCount || 0),
+        totalCount: queryResult[0]?.totalCount || 0,
       };
     },
     async getAttributeById(
