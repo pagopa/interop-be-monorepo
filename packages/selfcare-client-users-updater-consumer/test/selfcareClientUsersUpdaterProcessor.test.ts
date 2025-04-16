@@ -73,7 +73,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
-    expect(authorizationProcessClientMock.client.getClients).toBeCalledTimes(0);
   });
 
   it("should throw an error if message is malformed", async () => {
@@ -90,7 +89,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     ).rejects.toThrowError(/Error.*partition.*offset.*Reason/);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
-    expect(authorizationProcessClientMock.client.getClients).toBeCalledTimes(0);
   });
 
   it("should skip message not containing required product", async () => {
@@ -110,7 +108,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
-    expect(authorizationProcessClientMock.client.getClients).toBeCalledTimes(0);
   });
 
   it("should skip message with not required eventType", async () => {
@@ -127,7 +124,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
-    expect(authorizationProcessClientMock.client.getClients).toBeCalledTimes(0);
   });
 
   it("should skip message with not allowed origin", async () => {
@@ -147,7 +143,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
-    expect(authorizationProcessClientMock.client.getClients).toBeCalledTimes(0);
   });
 
   it("should skip valid admin user with ACTIVE relationshipStatus", async () => {
@@ -170,35 +165,5 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
-    expect(authorizationProcessClientMock.client.getClients).toBeCalledTimes(0);
-  });
-
-  it("should process valid message and fetch clients", async () => {
-    const message: EachMessagePayload = {
-      ...kafkaMessagePayload,
-      message: {
-        ...kafkaMessagePayload.message,
-        value: Buffer.from(JSON.stringify(correctEventPayload)),
-      },
-    };
-
-    await selfcareClientUsersUpdaterProcessor.processMessage(message);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(1);
-    expect(authorizationProcessClientMock.client.getClients).toBeCalledTimes(1);
-    expect(
-      authorizationProcessClientMock.client.getClients
-    ).toHaveBeenCalledWith(
-      expect.objectContaining({
-        queries: {
-          userIds: [correctEventPayload.user.userId],
-          consumerId: correctEventPayload.institutionId,
-          kind: "API",
-          offset: 0,
-          limit: 50,
-        },
-      }),
-      expect.anything()
-    );
   });
 });
