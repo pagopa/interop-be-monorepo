@@ -23,7 +23,7 @@ import { expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
 import {
   eServiceNotFound,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eserviceNotInDraftState,
   eServiceNotAnInstance,
 } from "../src/model/domain/errors.js";
@@ -372,7 +372,12 @@ describe("update eService Instance", () => {
         },
         getMockContext({ authData: getMockAuthData(eservice1.producerId) })
       )
-    ).rejects.toThrowError(eServiceNameDuplicate(`${template.name} test`));
+    ).rejects.toThrowError(
+      eServiceNameDuplicateForProducer(
+        `${template.name} test`,
+        eservice1.producerId
+      )
+    );
   });
 
   it.each([

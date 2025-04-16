@@ -25,7 +25,7 @@ import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
 import {
   eServiceNotFound,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eserviceNotInDraftState,
   templateInstanceNotAllowed,
 } from "../src/model/domain/errors.js";
@@ -473,7 +473,7 @@ describe("update eService", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceNameDuplicate if the updated name is already in use, case insensitive", async () => {
+  it("should throw eServiceNameDuplicateForProducer if the updated name is already in use, case insensitive", async () => {
     const eservice1: EService = {
       ...mockEService,
       id: generateId(),
@@ -500,7 +500,10 @@ describe("update eService", () => {
         getMockContext({ authData: getMockAuthData(eservice1.producerId) })
       )
     ).rejects.toThrowError(
-      eServiceNameDuplicate("ESERVICE NAME ALREADY IN USE")
+      eServiceNameDuplicateForProducer(
+        "ESERVICE NAME ALREADY IN USE",
+        eservice1.producerId
+      )
     );
   });
 

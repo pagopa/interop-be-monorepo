@@ -15,7 +15,7 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
 } from "../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -153,7 +153,7 @@ describe("updateTemplateInstanceName", () => {
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
-  it("should throw eServiceNameDuplicate if there is another eservice with the same name by the same producer", async () => {
+  it("should throw eServiceNameDuplicateForProducer if there is another eservice with the same name by the same producer", async () => {
     const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -183,6 +183,8 @@ describe("updateTemplateInstanceName", () => {
         updatedName,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(eServiceNameDuplicate(duplicateName));
+    ).rejects.toThrowError(
+      eServiceNameDuplicateForProducer(duplicateName, eservice.producerId)
+    );
   });
 });

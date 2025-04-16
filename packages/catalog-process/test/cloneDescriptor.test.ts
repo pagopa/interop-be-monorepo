@@ -24,7 +24,7 @@ import {
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceNotFound,
   eServiceDescriptorNotFound,
   templateInstanceNotAllowed,
@@ -245,7 +245,7 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(FileManagerError);
   });
-  it("should throw eServiceNameDuplicate if an eservice with the same name already exists, case insensitive", async () => {
+  it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists, case insensitive", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
@@ -280,10 +280,11 @@ describe("clone descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice1.producerId) })
       )
     ).rejects.toThrowError(
-      eServiceNameDuplicate(
+      eServiceNameDuplicateForProducer(
         `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
           cloneTimestamp
-        )}`
+        )}`,
+        eservice1.producerId
       )
     );
   });

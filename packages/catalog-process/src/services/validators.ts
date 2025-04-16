@@ -24,7 +24,7 @@ import {
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -256,20 +256,18 @@ export function assertDocumentDeletableDescriptorState(
     .exhaustive();
 }
 
-export async function assertNotDuplicatedEServiceName(
+export async function assertNotDuplicatedEServiceNameForProducer(
   name: string,
-  eservice: EService,
+  producerId: TenantId,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (name !== eservice.name) {
-    const eserviceWithSameName =
-      await readModelService.getEServiceByNameAndProducerId({
-        name,
-        producerId: eservice.producerId,
-      });
-    if (eserviceWithSameName !== undefined) {
-      throw eServiceNameDuplicate(name);
-    }
+  const eserviceWithSameName =
+    await readModelService.getEServiceByNameAndProducerId({
+      name,
+      producerId,
+    });
+  if (eserviceWithSameName !== undefined) {
+    throw eServiceNameDuplicateForProducer(name, producerId);
   }
 }
 
