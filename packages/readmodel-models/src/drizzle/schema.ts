@@ -360,6 +360,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     isSignalHubEnabled: boolean("is_signal_hub_enabled"),
     isConsumerDelegable: boolean("is_consumer_delegable"),
     isClientAccessDelegable: boolean("is_client_access_delegable"),
+    templateId: uuid("template_id"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
