@@ -316,7 +316,11 @@ export const attributeInReadmodelAttribute = readmodelAttribute.table(
       mode: "string",
     }).notNull(),
   },
-  (table) => [unique("attribute_name_key").on(table.name)]
+  (table) => [
+    unique("attribute_code_name_unique").on(table.code, table.name),
+    unique("attribute_origin_code_unique").on(table.code, table.origin),
+    unique("attribute_name_key").on(table.name),
+  ]
 );
 
 export const delegationInReadmodelDelegation = readmodelDelegation.table(

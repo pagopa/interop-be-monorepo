@@ -9,5 +9,7 @@ CREATE TABLE IF NOT EXISTS readmodel_attribute.attribute (
   origin VARCHAR,
   name VARCHAR UNIQUE NOT NULL,
   creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT attribute_code_name_unique UNIQUE (code, name),
+  CONSTRAINT attribute_origin_code_unique UNIQUE (origin, code)
 );
