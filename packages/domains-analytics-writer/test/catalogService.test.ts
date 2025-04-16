@@ -279,11 +279,13 @@ describe("Catalog Service - Batch Operations", () => {
           expect(r.deleted).toBe(true)
         );
 
-        const storedRiskAnswer = await dbContext.conn.any(
-          `SELECT * FROM domains.eservice_risk_analysis_answer WHERE id = $1`,
-          [sampleRiskAnswer.id]
+        const storedRiskAnswer = await getRiskAnalysisFromDb(
+          sampleRiskAnswer.id,
+          dbContext
         );
-        storedRiskAnswer.forEach((r) => expect(r.deleted).toBe(true));
+        storedRiskAnswer.forEach((r: { deleted: boolean }) =>
+          expect(r.deleted).toBe(true)
+        );
 
         const storedTemplateRef = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_template_ref WHERE eservice_template_id = $1`,
@@ -291,11 +293,13 @@ describe("Catalog Service - Batch Operations", () => {
         );
         storedTemplateRef.forEach((t) => expect(t.deleted).toBe(true));
 
-        const storedAttributes = await dbContext.conn.any(
-          `SELECT * FROM domains.eservice_descriptor_attribute WHERE attribute_id = $1`,
-          [sampleAttribute.attributeId]
+        const storedAttributes = await getDescriptorAttributeFromDb(
+          sampleAttribute.attributeId,
+          dbContext
         );
-        storedAttributes.forEach((a) => expect(a.deleted).toBe(true));
+        storedAttributes.forEach((a: { deleted: boolean }) =>
+          expect(a.deleted).toBe(true)
+        );
 
         const storedRejectionReasons = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_rejection_reason WHERE descriptor_id = $1 AND rejection_reason = $2`,
@@ -400,11 +404,13 @@ describe("Catalog Service - Batch Operations", () => {
         );
         expect(storedDescriptors[0].deleted).toBe(true);
 
-        const descriptorAttributes = await dbContext.conn.any(
-          `SELECT * FROM domains.eservice_descriptor_attribute WHERE descriptor_id = $1`,
-          [newDescriptorId]
+        const descriptorAttributes = await getDescriptorAttributeFromDb(
+          newDescriptorId,
+          dbContext
         );
-        descriptorAttributes.forEach((attr) => expect(attr.deleted).toBe(true));
+        descriptorAttributes.forEach((attr: { deleted: boolean }) =>
+          expect(attr.deleted).toBe(true)
+        );
 
         const descriptorDocs = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_document WHERE descriptor_id = $1`,
@@ -412,11 +418,13 @@ describe("Catalog Service - Batch Operations", () => {
         );
         descriptorDocs.forEach((doc) => expect(doc.deleted).toBe(true));
 
-        const descriptorInterfaces = await dbContext.conn.any(
-          `SELECT * FROM domains.eservice_descriptor_interface WHERE descriptor_id = $1`,
-          [newDescriptorId]
+        const descriptorInterfaces = await getInterfaceFromDb(
+          newDescriptorId,
+          dbContext
         );
-        descriptorInterfaces.forEach((intf) => expect(intf.deleted).toBe(true));
+        descriptorInterfaces.forEach((intf: { deleted: boolean }) =>
+          expect(intf.deleted).toBe(true)
+        );
 
         const rejectionReasons = await dbContext.conn.any(
           `SELECT * FROM domains.eservice_descriptor_rejection_reason WHERE descriptor_id = $1`,
