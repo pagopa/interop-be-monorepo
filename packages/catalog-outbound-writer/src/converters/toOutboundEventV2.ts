@@ -94,6 +94,7 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorAdded" },
       { type: "EServiceDraftDescriptorUpdated" },
       { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorArchived" },
       { type: "EServiceDescriptorPublished" },
@@ -149,7 +150,6 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
-      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" }, // TODO: Update outbound models !!!!
       () => undefined
     )
     .exhaustive();
