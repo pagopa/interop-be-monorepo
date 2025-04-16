@@ -557,7 +557,6 @@ export const getMockTokenGenStatesApiClient = (
     ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
 
-  const adminId = generateId<UserId>();
   const consumerId = generateId<TenantId>();
   const kid = `kid ${Math.random()}`;
 
@@ -569,7 +568,6 @@ export const getMockTokenGenStatesApiClient = (
         kid,
       }),
     updatedAt: new Date().toISOString(),
-    adminId,
     consumerId,
     clientKind: clientKindTokenGenStates.api,
     publicKey: "PEM",
