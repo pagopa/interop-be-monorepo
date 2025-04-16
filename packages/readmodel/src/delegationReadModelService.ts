@@ -77,7 +77,7 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
 
       /*
         delegation -> 1 delegation_stamp
-                  -> 2 delegation_contract_document
+                   -> 2 delegation_contract_document
       */
       const queryResult = await db
         .select({
@@ -128,7 +128,6 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
         .from(delegationInReadmodelDelegation)
         .where(filter)
         .leftJoin(
-          // 1
           delegationStampInReadmodelDelegation,
           eq(
             delegationInReadmodelDelegation.id,
@@ -136,7 +135,6 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           delegationContractDocumentInReadmodelDelegation,
           eq(
             delegationInReadmodelDelegation.id,
