@@ -3,6 +3,7 @@ import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
+  getMockContextInternal,
   getMockDelegation,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
@@ -70,8 +71,7 @@ describe("internal delete agreement", () => {
       await agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       );
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -130,8 +130,7 @@ describe("internal delete agreement", () => {
       agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(agreementNotFound(agreement.id));
   });
@@ -160,8 +159,7 @@ describe("internal delete agreement", () => {
       agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
@@ -192,8 +190,7 @@ describe("internal delete agreement", () => {
       agreementService.internalDeleteAgreementAfterDelegationRevocation(
         agreement.id,
         consumerDelegation.id,
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(

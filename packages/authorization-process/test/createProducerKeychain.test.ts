@@ -8,9 +8,10 @@ import {
   toProducerKeychainV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
@@ -35,12 +36,12 @@ describe("createProducerKeychain", () => {
   };
   it("should write on event-store for the creation of a producer keychain", async () => {
     const { producerKeychain } =
-      await authorizationService.createProducerKeychain({
-        producerKeychainSeed,
-        organizationId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      });
+      await authorizationService.createProducerKeychain(
+        {
+          producerKeychainSeed,
+        },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      );
 
     const writtenEvent = await readLastEventByStreamId(
       producerKeychain.id,
