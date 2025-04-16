@@ -84,7 +84,6 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateAttributeArray(queryResult);
     },
-
     async deleteAttributeById(
       attributeId: AttributeId,
       metadataVersion: number

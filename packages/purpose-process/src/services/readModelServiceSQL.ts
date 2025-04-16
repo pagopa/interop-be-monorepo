@@ -170,7 +170,7 @@ export function readModelServiceBuilderSQL({
       const subquery = readModelDB
         .select({
           purposeId: purposeInReadmodelPurpose.id,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
@@ -309,7 +309,7 @@ export function readModelServiceBuilderSQL({
         results: aggregatePurposeArray(
           toPurposeAggregatorArray(queryResult)
         ).map((p) => p.data),
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getActiveAgreement(

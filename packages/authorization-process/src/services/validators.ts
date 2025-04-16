@@ -1,7 +1,14 @@
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import {
+  M2MAuthData,
+  UIAuthData,
+  hasAtLeastOneUserRole,
+  isUiAuthData,
+  userRole,
+} from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
+  clientKind,
   CorrelationId,
   Delegation,
   delegationKind,
@@ -24,6 +31,7 @@ import {
   organizationNotAllowedOnEService,
   keyAlreadyExists,
   securityUserNotMember,
+  clientKindNotAllowed,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -48,7 +56,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
       params: { institutionId: selfcareId },
       queries: {
         userId: userIdToCheck,
-        productRoles: [userRoles.ADMIN_ROLE, userRoles.SECURITY_ROLE].join(","),
+        productRoles: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE].join(","),
       },
       headers: {
         "X-Correlation-Id": correlationId,
@@ -60,25 +68,25 @@ export const assertUserSelfcareSecurityPrivileges = async ({
 };
 
 export const assertOrganizationIsClientConsumer = (
-  organizationId: TenantId,
+  authData: UIAuthData | M2MAuthData,
   client: Client
 ): void => {
-  if (client.consumerId !== organizationId) {
-    throw organizationNotAllowedOnClient(organizationId, client.id);
+  if (client.consumerId !== authData.organizationId) {
+    throw organizationNotAllowedOnClient(authData.organizationId, client.id);
   }
 };
 
 export const assertOrganizationIsPurposeConsumer = (
-  organizationId: TenantId,
+  authData: UIAuthData,
   purpose: Purpose
 ): void => {
-  if (organizationId !== purpose.consumerId) {
-    throw organizationNotAllowedOnPurpose(organizationId, purpose.id);
+  if (authData.organizationId !== purpose.consumerId) {
+    throw organizationNotAllowedOnPurpose(authData.organizationId, purpose.id);
   }
 };
 
 export const assertRequesterIsDelegateConsumer = (
-  authData: AuthData,
+  authData: UIAuthData,
   purpose: Purpose,
   delegation: Delegation
 ): void => {
@@ -98,12 +106,12 @@ export const assertRequesterIsDelegateConsumer = (
 };
 
 export const assertOrganizationIsProducerKeychainProducer = (
-  organizationId: TenantId,
+  authData: UIAuthData | M2MAuthData,
   producerKeychain: ProducerKeychain
 ): void => {
-  if (producerKeychain.producerId !== organizationId) {
+  if (producerKeychain.producerId !== authData.organizationId) {
     throw organizationNotAllowedOnProducerKeychain(
-      organizationId,
+      authData.organizationId,
       producerKeychain.id
     );
   }
@@ -128,11 +136,14 @@ export const assertProducerKeychainKeysCountIsBelowThreshold = (
 };
 
 export const assertOrganizationIsEServiceProducer = (
-  organizationId: TenantId,
+  authData: UIAuthData,
   eservice: EService
 ): void => {
-  if (organizationId !== eservice.producerId) {
-    throw organizationNotAllowedOnEService(organizationId, eservice.id);
+  if (authData.organizationId !== eservice.producerId) {
+    throw organizationNotAllowedOnEService(
+      authData.organizationId,
+      eservice.id
+    );
   }
 };
 
@@ -151,13 +162,20 @@ export const assertKeyDoesNotAlreadyExist = async (
 };
 
 export const assertSecurityRoleIsClientMember = (
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   client: Client
 ): void => {
   if (
-    authData.userRoles.includes(userRoles.SECURITY_ROLE) &&
+    isUiAuthData(authData) &&
+    hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE]) &&
     !client.users.includes(authData.userId)
   ) {
     throw securityUserNotMember(authData.userId);
+  }
+};
+
+export const assertClientIsConsumer = (client: Client): void => {
+  if (client.kind !== clientKind.consumer) {
+    throw clientKindNotAllowed(client.id);
   }
 };

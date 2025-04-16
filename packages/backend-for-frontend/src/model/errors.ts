@@ -1,4 +1,3 @@
-import { constants } from "http2";
 import {
   ApiError,
   AttributeId,
@@ -18,7 +17,6 @@ export const errorCodes = {
   tenantNotFound: "0011",
   agreementNotFound: "0012",
   eserviceDescriptorNotFound: "0013",
-  purposeDraftVersionNotFound: "0014",
   dynamoReadingError: "0015",
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
@@ -66,9 +64,6 @@ export const errorCodes = {
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
-
-export const emptyErrorMapper = (): number =>
-  constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export function selfcareEntityNotFilled(
   className: string,
@@ -192,16 +187,6 @@ export function eserviceDescriptorNotFound(
     detail: `Descriptor ${descriptorId} not found in Eservice ${eserviceId}`,
     code: "eserviceDescriptorNotFound",
     title: "EService descriptor not found",
-  });
-}
-
-export function purposeDraftVersionNotFound(
-  purposeId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
-    code: "purposeDraftVersionNotFound",
-    title: "Purpose draft version not found",
   });
 }
 

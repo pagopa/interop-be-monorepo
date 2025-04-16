@@ -192,7 +192,7 @@ export function readModelServiceBuilderSQL({
       };
     },
     async getConsumerDelegators(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       eserviceIds: EServiceId[];
       limit: number;
@@ -220,7 +220,7 @@ export function readModelServiceBuilderSQL({
               delegationKind.delegatedConsumer
             ),
             eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.requesterId),
+            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
             filters.eserviceIds.length > 0
               ? inArray(
                   delegationInReadmodelDelegation.eserviceId,
@@ -262,7 +262,7 @@ export function readModelServiceBuilderSQL({
       };
     },
     async getConsumerDelegatorsWithAgreements(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       limit: number;
       offset: number;
@@ -303,7 +303,7 @@ export function readModelServiceBuilderSQL({
               delegationKind.delegatedConsumer
             ),
             eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.requesterId),
+            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
             // AGREEMENT FILTERS
             eq(
               agreementInReadmodelAgreement.producerId,
@@ -349,7 +349,7 @@ export function readModelServiceBuilderSQL({
       };
     },
     async getConsumerEservices(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorId: TenantId;
       limit: number;
       offset: number;
@@ -385,7 +385,7 @@ export function readModelServiceBuilderSQL({
               delegationKind.delegatedConsumer
             ),
             eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.requesterId),
+            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
             eq(
               delegationInReadmodelDelegation.delegatorId,
               filters.delegatorId

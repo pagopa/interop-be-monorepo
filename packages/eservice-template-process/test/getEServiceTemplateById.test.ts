@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { userRoles } from "pagopa-interop-commons";
 import {
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
@@ -76,10 +75,7 @@ describe("getEServiceTemplateById", () => {
     const result = await eserviceTemplateService.getEServiceTemplateById(
       eserviceTemplate.id,
       getMockContext({
-        authData: {
-          ...getMockAuthData(eserviceTemplate.creatorId),
-          userRoles: [userRoles.ADMIN_ROLE],
-        },
+        authData: getMockAuthData(eserviceTemplate.creatorId),
       })
     );
     expect(result).toEqual({
@@ -151,12 +147,7 @@ describe("getEServiceTemplateById", () => {
     await addOneEServiceTemplate(eserviceTemplate);
     const result = await eserviceTemplateService.getEServiceTemplateById(
       eserviceTemplate.id,
-      getMockContext({
-        authData: {
-          ...getMockAuthData(),
-          userRoles: [userRoles.ADMIN_ROLE],
-        },
-      })
+      getMockContext({})
     );
     expect(result.versions).toEqual([eserviceTemplateVersion]);
   });

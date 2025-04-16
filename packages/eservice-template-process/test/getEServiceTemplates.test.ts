@@ -1,5 +1,5 @@
 /* eslint-disable functional/no-let */
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { UIAuthData, userRole } from "pagopa-interop-commons";
 import {
   getMockAuthData,
   getMockContext,
@@ -15,6 +15,7 @@ import {
   Tenant,
   EServiceTemplate,
   EServiceTemplateVersion,
+  UserId,
 } from "pagopa-interop-models";
 import { beforeEach, expect, describe, it } from "vitest";
 import {
@@ -286,10 +287,7 @@ describe("get eservices", () => {
       creatorId: organizationId1,
       versions: [],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+    const authData: UIAuthData = getMockAuthData(organizationId1);
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -322,10 +320,7 @@ describe("get eservices", () => {
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+    const authData: UIAuthData = getMockAuthData(organizationId1);
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -358,10 +353,11 @@ describe("get eservices", () => {
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SECURITY_ROLE],
-    };
+    const authData: UIAuthData = getMockAuthData(
+      organizationId1,
+      generateId<UserId>(),
+      [userRole.SECURITY_ROLE]
+    );
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -393,10 +389,11 @@ describe("get eservices", () => {
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      userRoles: [userRoles.SECURITY_ROLE],
-    };
+    const authData: UIAuthData = getMockAuthData(
+      generateId<TenantId>(),
+      generateId<UserId>(),
+      [userRole.SECURITY_ROLE]
+    );
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -435,10 +432,8 @@ describe("get eservices", () => {
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+
+    const authData: UIAuthData = getMockAuthData(organizationId1);
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -483,10 +478,12 @@ describe("get eservices", () => {
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
-      userRoles: [userRoles.SECURITY_ROLE],
-    };
+
+    const authData: UIAuthData = getMockAuthData(
+      organizationId1,
+      generateId<UserId>(),
+      [userRole.SECURITY_ROLE]
+    );
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -526,10 +523,8 @@ describe("get eservices", () => {
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+
+    const authData: UIAuthData = getMockAuthData();
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {

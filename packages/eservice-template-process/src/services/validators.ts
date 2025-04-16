@@ -1,4 +1,4 @@
-import { AuthData } from "pagopa-interop-commons";
+import { UIAuthData } from "pagopa-interop-commons";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
@@ -20,7 +20,7 @@ import {
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
-  authData: AuthData
+  authData: UIAuthData
 ): void {
   if (authData.organizationId !== creatorId) {
     throw operationForbidden;

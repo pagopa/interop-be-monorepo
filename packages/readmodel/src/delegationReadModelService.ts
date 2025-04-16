@@ -18,6 +18,7 @@ import {
   toDelegationAggregator,
   toDelegationAggregatorArray,
 } from "./delegation/aggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
@@ -27,19 +28,14 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion = (
-          await tx
-            .select({
-              metadataVersion: delegationInReadmodelDelegation.metadataVersion,
-            })
-            .from(delegationInReadmodelDelegation)
-            .where(eq(delegationInReadmodelDelegation.id, delegation.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          delegationInReadmodelDelegation,
+          metadataVersion,
+          delegation.id
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
+        if (shouldUpsert) {
           await tx
             .delete(delegationInReadmodelDelegation)
             .where(eq(delegationInReadmodelDelegation.id, delegation.id));
@@ -81,7 +77,7 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
 
       /*
         delegation -> 1 delegation_stamp
-                  -> 2 delegation_contract_document
+                   -> 2 delegation_contract_document
       */
       const queryResult = await db
         .select({
@@ -132,7 +128,6 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
         .from(delegationInReadmodelDelegation)
         .where(filter)
         .leftJoin(
-          // 1
           delegationStampInReadmodelDelegation,
           eq(
             delegationInReadmodelDelegation.id,
@@ -140,7 +135,6 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           delegationContractDocumentInReadmodelDelegation,
           eq(
             delegationInReadmodelDelegation.id,

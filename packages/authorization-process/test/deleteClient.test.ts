@@ -2,16 +2,12 @@
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockClient,
+  getMockContext,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import {
-  Client,
-  ClientDeletedV2,
-  generateId,
-  toClientV2,
-} from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { Client, ClientDeletedV2, toClientV2 } from "pagopa-interop-models";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
@@ -32,12 +28,12 @@ describe("delete client", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.deleteClient({
-      clientId: mockClient.id,
-      organizationId: mockConsumer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await authorizationService.deleteClient(
+      {
+        clientId: mockClient.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -65,12 +61,12 @@ describe("delete client", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.deleteClient({
-        clientId: notExistingClient.id,
-        organizationId: getMockTenant().id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.deleteClient(
+        {
+          clientId: notExistingClient.id,
+        },
+        getMockContext({})
+      )
     ).rejects.toThrowError(clientNotFound(notExistingClient.id));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
@@ -84,12 +80,12 @@ describe("delete client", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.deleteClient({
-        clientId: mockClient.id,
-        organizationId: mockConsumer2.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.deleteClient(
+        {
+          clientId: mockClient.id,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer2.id) })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
     );

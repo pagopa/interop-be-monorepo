@@ -167,7 +167,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
         .from(purposeInReadmodelPurpose)
         .where(filter)
         .leftJoin(
-          // 1
           purposeRiskAnalysisFormInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,
@@ -175,7 +174,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           purposeRiskAnalysisAnswerInReadmodelPurpose,
           eq(
             purposeRiskAnalysisFormInReadmodelPurpose.id,
@@ -183,7 +181,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           purposeVersionInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,
@@ -191,7 +188,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           purposeVersionDocumentInReadmodelPurpose,
           eq(
             purposeVersionInReadmodelPurpose.id,
