@@ -87,7 +87,7 @@ function createM2M_AdminPayload(authData: M2MAdminAuthData) {
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
-    role: "m2m",
+    role: "m2m-admin",
     organizationId: authData.organizationId,
     client_id: generateId(),
     sub: generateId(),

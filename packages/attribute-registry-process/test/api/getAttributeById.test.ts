@@ -50,15 +50,16 @@ describe("API /attributes/{attributeId} authorization test", () => {
     expect(res.body).toEqual(apiAttribute);
   });
 
-  it.each([systemRole.INTERNAL_ROLE, systemRole.MAINTENANCE_ROLE])(
-    "Should return 403 for user with role %s",
-    async (role) => {
-      const token = generateToken(getSystemOrUserAuthData(role));
-      const res = await makeRequest(token, attribute.id);
+  it.each([
+    systemRole.INTERNAL_ROLE,
+    systemRole.MAINTENANCE_ROLE,
+    systemRole.M2M_ADMIN_ROLE,
+  ])("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(getSystemOrUserAuthData(role));
+    const res = await makeRequest(token, attribute.id);
 
-      expect(res.status).toBe(403);
-    }
-  );
+    expect(res.status).toBe(403);
+  });
 
   it("Should return 404 for attributeNotFound", async () => {
     vi.spyOn(attributeRegistryService, "getAttributeById").mockRejectedValue(

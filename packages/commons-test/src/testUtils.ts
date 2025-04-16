@@ -91,6 +91,7 @@ import {
   dateToSeconds,
   genericLogger,
   InternalAuthData,
+  M2MAdminAuthData,
   M2MAuthData,
   MaintenanceAuthData,
   SystemRole,
@@ -900,6 +901,13 @@ export const getSystemOrUserAuthData = (
           systemRole: "m2m",
           organizationId: generateId(),
         } satisfies M2MAuthData;
+
+      case systemRole.M2M_ADMIN_ROLE:
+        return {
+          systemRole: "m2m-admin",
+          organizationId: generateId(),
+          userId: generateId(),
+        } satisfies M2MAdminAuthData;
 
       case systemRole.INTERNAL_ROLE:
         return {

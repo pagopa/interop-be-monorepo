@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import "dotenv-flow/config";
 export default defineConfig({
   test: {
     setupFiles: "./test/vitest.api.setup.ts",
