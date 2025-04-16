@@ -6,6 +6,7 @@ import {
   UIAuthData,
   getUserInfoFromAuthData,
   AuthDataUserInfo,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
@@ -33,6 +34,12 @@ const mockInternalAuthData: InternalAuthData = {
 
 const mockMaintenanceAuthData: MaintenanceAuthData = {
   systemRole: "maintenance",
+};
+
+const mockM2MAdminAuthData: M2MAdminAuthData = {
+  systemRole: "m2m-admin",
+  organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
+  userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
 };
 
 describe("authData", () => {
@@ -75,6 +82,17 @@ describe("authData", () => {
         selfcareId: undefined,
       };
       expect(getUserInfoFromAuthData(mockMaintenanceAuthData)).toEqual(
+        expectedUserInfo
+      );
+    });
+
+    it("should successfully get user info from M2M Admin auth data", async () => {
+      const expectedUserInfo: AuthDataUserInfo = {
+        userId: mockM2MAdminAuthData.userId,
+        organizationId: mockM2MAdminAuthData.organizationId,
+        selfcareId: undefined,
+      };
+      expect(getUserInfoFromAuthData(mockM2MAdminAuthData)).toEqual(
         expectedUserInfo
       );
     });
