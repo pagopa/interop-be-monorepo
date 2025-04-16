@@ -227,7 +227,6 @@ export function tokenServiceBuilder({
           const token = await tokenGenerator.generateInteropApiToken({
             sub: jwt.payload.sub,
             consumerId: key.consumerId,
-            adminId: key.adminId,
           });
 
           logTokenGenerationInfo({

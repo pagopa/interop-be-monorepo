@@ -6,7 +6,6 @@ import {
   PurposeId,
   TenantId,
   ClientAssertionDigest,
-  UserId,
 } from "pagopa-interop-models";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
@@ -141,11 +140,9 @@ export class InteropTokenGenerator {
   public async generateInteropApiToken({
     sub,
     consumerId,
-    adminId,
   }: {
     sub: ClientId;
     consumerId: TenantId;
-    adminId: UserId | undefined;
   }): Promise<InteropApiToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -173,7 +170,6 @@ export class InteropTokenGenerator {
       iss: this.config.generatedInteropTokenIssuer,
       aud: this.toJwtAudience(this.config.generatedInteropTokenM2MAudience),
       client_id: sub,
-      ...(adminId ? { user_id: adminId } : {}),
       sub,
       iat: currentTimestamp,
       nbf: currentTimestamp,
