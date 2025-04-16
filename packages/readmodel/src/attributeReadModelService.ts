@@ -48,7 +48,7 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
     async getAttributeById(
       attributeId: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
-      return this.getAttributeByFilter(
+      return await this.getAttributeByFilter(
         eq(attributeInReadmodelAttribute.id, attributeId)
       );
     },
