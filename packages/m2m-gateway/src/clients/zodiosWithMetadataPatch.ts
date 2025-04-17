@@ -19,7 +19,7 @@ export function zodiosMetadataPlugin(): ZodiosPlugin {
       response: AxiosResponse
     ): Promise<AxiosResponse> => {
       const metadataVersionRaw = response.headers[METADATA_VERSION_HEADER];
-      const metadataVersion = z
+      const metadataVersion = z.coerce
         .number()
         .optional()
         .safeParse(metadataVersionRaw);
