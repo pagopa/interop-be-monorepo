@@ -283,14 +283,14 @@ export function assertEServiceNotTemplateInstance(
 export function assertEServiceIsTemplateInstance(
   eservice: EService
 ): asserts eservice is EService & {
-  templateRef: NonNullable<EService["templateRef"]>;
+  templateId: EServiceTemplateId;
   descriptors: Array<
     Descriptor & {
       templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
     }
   >;
 } {
-  if (eservice.templateRef === undefined) {
+  if (eservice.templateId === undefined) {
     throw eServiceNotAnInstance(eservice.id);
   }
 }

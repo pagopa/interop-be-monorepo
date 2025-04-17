@@ -116,13 +116,11 @@ const initEserviceTemplateInstance = async (
     },
   };
 
-  const mockEService = {
+  const mockEService: EService = {
     ...getMockEService(),
     descriptors: [mockDescriptor],
     technology: technology || "Rest",
-    templateRef: {
-      id: mockEServiceTemplate.id,
-    },
+    templateId: mockEServiceTemplate.id,
   };
 
   await addOneEService(mockEService);
@@ -171,7 +169,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         generateId<TenantId>(),
         [mockEserviceTemplateVersion]
       );
-      const mockEService = getMockEService();
+      const mockEService: EService = getMockEService();
       await addOneEService(mockEService);
       await addOneEServiceTemplate(mockEServiceTemplate);
 
@@ -232,13 +230,11 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
       };
 
-      const mockEService = {
+      const mockEService: EService = {
         ...getMockEService(eserviceId, authData.organizationId, [
           mockDescriptor,
         ]),
-        templateRef: {
-          id: mockEServiceTemplate.id,
-        },
+        templateId: mockEServiceTemplate.id,
       };
 
       const mockDelegation = getMockDelegation({
@@ -273,7 +269,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const eserviceId = generateId<EServiceId>();
       const mockDescriptor = getMockDescriptor();
 
-      const mockEService = getMockEService(
+      const mockEService: EService = getMockEService(
         eserviceId,
         authData.organizationId,
         [mockDescriptor]
@@ -335,13 +331,11 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
       };
 
-      const mockEService = {
+      const mockEService: EService = {
         ...getMockEService(eserviceId, authData.organizationId, [
           mockDescriptor,
         ]),
-        templateRef: {
-          id: mockEServiceTemplate.id,
-        },
+        templateId: mockEServiceTemplate.id,
       };
 
       await addOneEService(mockEService);
@@ -388,13 +382,11 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
       };
 
-      const mockEService = {
+      const mockEService: EService = {
         ...getMockEService(eserviceId, authData.organizationId, [
           mockDescriptor,
         ]),
-        templateRef: {
-          id: mockEServiceTemplate.id,
-        },
+        templateId: mockEServiceTemplate.id,
       };
 
       await addOneEServiceTemplate(mockEServiceTemplate);
@@ -460,13 +452,11 @@ describe("addEServiceTemplateInstanceInterface", () => {
         },
       };
 
-      const mockEService = {
+      const mockEService: EService = {
         ...getMockEService(eserviceId, authData.organizationId, [
           mockDescriptor,
         ]),
-        templateRef: {
-          id: mockEServiceTemplate.id,
-        },
+        templateId: mockEServiceTemplate.id,
       };
 
       await addOneEServiceTemplate(mockEServiceTemplate);

@@ -14,7 +14,6 @@ import {
   DraftEServiceUpdatedV2,
   toEServiceV2,
   operationForbidden,
-  generateId,
   delegationState,
   delegationKind,
   EServiceTemplate,
@@ -23,7 +22,6 @@ import { expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
 import {
   eServiceNotFound,
-  eServiceNameDuplicateForProducer,
   eserviceNotInDraftState,
   eServiceNotAnInstance,
 } from "../src/model/domain/errors.js";
@@ -42,7 +40,8 @@ import {
 describe("update eService Instance", () => {
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
-  it("should write on event-store for the update of an eService (without changing instanceLabel)", async () => {
+
+  it("should write on event-store for the update of an eService", async () => {
     config.featureFlagSignalhubWhitelist = true;
     config.signalhubWhitelistProducer = [mockEService.producerId];
 
@@ -66,10 +65,7 @@ describe("update eService Instance", () => {
       name: `${template.name}`,
       descriptors: [descriptor],
       isSignalHubEnabled,
-      templateRef: {
-        id: template.id,
-        instanceLabel: undefined,
-      },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -129,10 +125,7 @@ describe("update eService Instance", () => {
       name: `${template.name}`,
       descriptors: [descriptor],
       isSignalHubEnabled,
-      templateRef: {
-        id: template.id,
-        instanceLabel: undefined,
-      },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -169,63 +162,6 @@ describe("update eService Instance", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
 
-  it("should write on event-store for the update of an eService (instanceLabel changed)", async () => {
-    config.featureFlagSignalhubWhitelist = true;
-    config.signalhubWhitelistProducer = [mockEService.producerId];
-
-    const template: EServiceTemplate = getMockEServiceTemplate();
-
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.draft,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      name: `${template.name} test`,
-      descriptors: [descriptor],
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test",
-      },
-    };
-    await addOneEServiceTemplate(template);
-    await addOneEService(eservice);
-
-    const returnedEService =
-      await catalogService.updateEServiceTemplateInstance(
-        eservice.id,
-        {
-          instanceLabel: "test 2",
-        },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      );
-
-    const updatedEService: EService = {
-      ...eservice,
-      name: `${template.name} test 2`,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test 2",
-      },
-    };
-
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "DraftEServiceUpdated",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: DraftEServiceUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
-  });
-
   it("should write on event-store for the update of an eService (delegate)", async () => {
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -235,34 +171,34 @@ describe("update eService Instance", () => {
 
     const template: EServiceTemplate = getMockEServiceTemplate();
 
-    await addOneEServiceTemplate(template);
-    await addOneEService({
+    const eservice: EService = {
       ...mockEService,
-      name: `${template.name} test`,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test",
-      },
-    });
+      name: template.name,
+      templateId: template.id,
+      isConsumerDelegable: true,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
     await addOneDelegation(delegation);
 
     const returnedEService =
       await catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {
-          instanceLabel: "test 2",
+          isConsumerDelegable: false,
+          isClientAccessDelegable: false,
+          isSignalHubEnabled: false,
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
 
     const updatedEService: EService = {
-      ...mockEService,
-      name: `${template.name} test 2`,
+      ...eservice,
+      name: template.name,
+      isConsumerDelegable: false,
+      isClientAccessDelegable: false,
       isSignalHubEnabled: false,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test 2",
-      },
     };
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -285,9 +221,7 @@ describe("update eService Instance", () => {
     expect(
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
-        {
-          instanceLabel: "test",
-        },
+        {},
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -298,18 +232,14 @@ describe("update eService Instance", () => {
     await addOneEServiceTemplate(template);
     await addOneEService({
       ...mockEService,
-      name: `${template.name}`,
-      templateRef: {
-        id: template.id,
-      },
+      name: template.name,
+      templateId: template.id,
     });
 
     expect(
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
-        {
-          instanceLabel: "test",
-        },
+        {},
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
@@ -326,58 +256,18 @@ describe("update eService Instance", () => {
     await addOneEServiceTemplate(template);
     await addOneEService({
       ...mockEService,
-      name: `${template.name}`,
-      templateRef: {
-        id: template.id,
-      },
+      name: template.name,
+      templateId: template.id,
     });
     await addOneDelegation(delegation);
 
     expect(
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
-        {
-          instanceLabel: "test",
-        },
+        {},
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(operationForbidden);
-  });
-
-  it("should throw eServiceDuplicate if the updated name is already in use, case insensitive", async () => {
-    const template = getMockEServiceTemplate();
-    await addOneEServiceTemplate(template);
-
-    const eservice1: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: `${template.name}`,
-      templateRef: {
-        id: template.id,
-      },
-    };
-    const eservice2: EService = {
-      ...mockEService,
-      id: generateId(),
-      name: `${template.name} test`,
-    };
-    await addOneEService(eservice1);
-    await addOneEService(eservice2);
-
-    expect(
-      catalogService.updateEServiceTemplateInstance(
-        eservice1.id,
-        {
-          instanceLabel: "test",
-        },
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
-      )
-    ).rejects.toThrowError(
-      eServiceNameDuplicateForProducer(
-        `${template.name} test`,
-        eservice1.producerId
-      )
-    );
   });
 
   it.each([
@@ -399,18 +289,14 @@ describe("update eService Instance", () => {
         ...mockEService,
         descriptors: [descriptor],
         name: `${template.name}`,
-        templateRef: {
-          id: template.id,
-        },
+        templateId: template.id,
       };
 
       await addOneEService(eservice);
       expect(
         catalogService.updateEServiceTemplateInstance(
           eservice.id,
-          {
-            instanceLabel: "test",
-          },
+          {},
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
@@ -426,16 +312,14 @@ describe("update eService Instance", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
-      templateRef: undefined,
+      templateId: undefined,
     };
     await addOneEService(eservice);
 
     expect(
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
-        {
-          instanceLabel: "test",
-        },
+        {},
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));

@@ -93,7 +93,7 @@ describe("upgrade eservice template instance", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: template.id },
+      templateId: template.id,
       descriptors: [
         {
           ...mockDescriptor,
@@ -259,7 +259,7 @@ describe("upgrade eservice template instance", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: template.id },
+      templateId: template.id,
       descriptors: [
         {
           ...mockDescriptor,
@@ -426,7 +426,7 @@ describe("upgrade eservice template instance", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: template.id },
+      templateId: template.id,
       descriptors: [
         {
           ...mockDescriptor,
@@ -487,7 +487,7 @@ describe("upgrade eservice template instance", () => {
     const eservice: EService = {
       ...mockEService,
       descriptors: [mockDescriptor],
-      templateRef: { id: generateId<EServiceTemplateId>() },
+      templateId: generateId<EServiceTemplateId>(),
     };
     await addOneEService(eservice);
     expect(
@@ -496,7 +496,7 @@ describe("upgrade eservice template instance", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      eServiceTemplateNotFound(eservice.templateRef?.id as EServiceTemplateId)
+      eServiceTemplateNotFound(eservice.templateId as EServiceTemplateId)
     );
   });
   it("should throw eServiceAlreadyUpgraded if the eservice instance has already be upgraded", async () => {
@@ -523,7 +523,7 @@ describe("upgrade eservice template instance", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: template.id },
+      templateId: template.id,
       descriptors: [
         {
           ...mockDescriptor,
