@@ -466,7 +466,7 @@ describe("delete Document", () => {
     };
     const eService: EService = {
       ...mockEService,
-      templateRef: { id: templateId },
+      templateId,
       descriptors: [descriptor],
     };
     await addOneEService(eService);
