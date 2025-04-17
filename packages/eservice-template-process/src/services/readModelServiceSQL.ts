@@ -15,7 +15,6 @@ import {
   Tenant,
   TenantId,
   WithMetadata,
-  descriptorState,
   eserviceTemplateVersionState,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -24,10 +23,8 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
-  eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateRefInReadmodelCatalog,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
@@ -43,7 +40,17 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, eq, ilike, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -256,50 +263,38 @@ export function readModelServiceBuilderSQL({
       eserviceTemplate: EServiceTemplate,
       newName: string
     ): Promise<boolean> {
-      const queryResult = await readModelDB
-        .select({
-          eserviceId: eserviceInReadmodelCatalog.id,
-        })
-        .from(eserviceInReadmodelCatalog)
-        .innerJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
-        .innerJoin(
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
-          )
-        )
-        .where(
-          and(
-            ne(
-              eserviceDescriptorInReadmodelCatalog.state,
-              descriptorState.draft
-            ),
-            eq(
-              eserviceTemplateRefInReadmodelCatalog.eserviceTemplateId,
-              eserviceTemplate.id
-            ),
-            or(
+      const queryResult = await readModelDB.transaction(async (tx) => {
+        const instanceProducerIds = (
+          await tx
+            .select({
+              producerId: eserviceInReadmodelCatalog.producerId,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(
               and(
-                isNotNull(eserviceTemplateRefInReadmodelCatalog.instanceLabel),
-                eq(
-                  sql`${eserviceInReadmodelCatalog.name} || ' ' || ${eserviceTemplateRefInReadmodelCatalog.instanceLabel}`,
-                  newName
-                )
-              ),
-              eq(eserviceInReadmodelCatalog.name, newName)
+                eq(eserviceInReadmodelCatalog.templateId, eserviceTemplate.id)
+              )
             )
-          )
-        )
-        .groupBy(eserviceInReadmodelCatalog.id);
+            .groupBy(eserviceInReadmodelCatalog.producerId)
+        ).map((d) => d.producerId);
 
-      return queryResult.length > 0;
+        return await tx
+          .select({
+            count: count(),
+          })
+          .from(eserviceInReadmodelCatalog)
+          .where(
+            and(
+              eq(eserviceInReadmodelCatalog.name, newName),
+              inArray(
+                eserviceInReadmodelCatalog.producerId,
+                instanceProducerIds
+              )
+            )
+          );
+      });
+
+      return queryResult.length > 0 ? queryResult[0].count > 0 : false;
     },
     async getCreators(
       name: string | undefined,
