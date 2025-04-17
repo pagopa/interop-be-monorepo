@@ -186,7 +186,7 @@ export function makeApiProblemBuilder<T extends string>(
       .with(
         /* this case is to allow a passthrough of Problem errors, so that
            services that call other interop services can forward Problem errors
-           as they are, without the need to explicitly handle them. */
+           as they are, without the need to explicitly handle them */
         {
           response: {
             status: P.number,
