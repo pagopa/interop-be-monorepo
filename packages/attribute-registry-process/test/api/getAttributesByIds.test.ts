@@ -26,14 +26,18 @@ describe("API /bulk/attributes authorization test", () => {
     .fn()
     .mockResolvedValue(attributes);
 
-  const makeRequest = async (token: string, ids: string[]) =>
+  const makeRequest = async (
+    token: string,
+    ids: string[],
+    limit: unknown = 5
+  ) =>
     request(api)
       .post(`/bulk/attributes`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query({
         offset: 0,
-        limit: 5,
+        limit,
       })
       .send(ids);
 
@@ -61,5 +65,15 @@ describe("API /bulk/attributes authorization test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token, [attribute1.id]);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed an invalid limit", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      [attribute1.id, attribute2.id],
+      "invalid"
+    );
+    expect(res.status).toBe(400);
   });
 });

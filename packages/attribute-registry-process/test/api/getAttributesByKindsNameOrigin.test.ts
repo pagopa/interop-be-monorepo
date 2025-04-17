@@ -76,4 +76,18 @@ describe("API /attributes authorization test", () => {
     const res = await makeRequest(token, ["DECLARED", "CERTIFIED"]);
     expect(res.status).toBe(403);
   });
+
+  it("Should return 400 if passed an invalid kind", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await request(api)
+      .get(`/attributes`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .query({
+        offset: 0,
+        limit: 5,
+        kinds: ["DECLARED", "invalid"].join(","),
+      });
+    expect(res.status).toBe(400);
+  });
 });
