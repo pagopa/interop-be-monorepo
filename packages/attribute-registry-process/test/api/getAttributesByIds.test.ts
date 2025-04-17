@@ -5,9 +5,8 @@ import { Attribute, generateId, ListResult } from "pagopa-interop-models";
 import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
+import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
-import { attributeRegistryService } from "../../src/routers/AttributeRouter.js";
 
 describe("API /bulk/attributes authorization test", () => {
   const attribute1: Attribute = getMockAttribute();
@@ -23,9 +22,9 @@ describe("API /bulk/attributes authorization test", () => {
     totalCount: attributes.totalCount,
   });
 
-  vi.spyOn(attributeRegistryService, "getAttributesByIds").mockResolvedValue(
-    attributes
-  );
+  attributeRegistryService.getAttributesByIds = vi
+    .fn()
+    .mockResolvedValue(attributes);
 
   const makeRequest = async (token: string, ids: string[]) =>
     request(api)

@@ -5,8 +5,7 @@ import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { attributeRegistryService } from "../../src/routers/AttributeRouter.js";
-import { api } from "../vitest.api.setup.js";
+import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
 import { attributeDuplicateByNameAndCode } from "../../src/model/domain/errors.js";
 
@@ -30,10 +29,9 @@ describe("API /internal/certifiedAttributes authorization test", () => {
     toApiAttribute(mockAttribute)
   );
 
-  vi.spyOn(
-    attributeRegistryService,
-    "internalCreateCertifiedAttribute"
-  ).mockResolvedValue(mockAttribute);
+  attributeRegistryService.internalCreateCertifiedAttribute = vi
+    .fn()
+    .mockResolvedValue(mockAttribute);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -59,15 +57,14 @@ describe("API /internal/certifiedAttributes authorization test", () => {
   });
 
   it("Should return 409 for conflict", async () => {
-    vi.spyOn(
-      attributeRegistryService,
-      "internalCreateCertifiedAttribute"
-    ).mockRejectedValue(
-      attributeDuplicateByNameAndCode(
-        mockInternalCertifiedAttributeSeed.name,
-        mockInternalCertifiedAttributeSeed.code
-      )
-    );
+    attributeRegistryService.internalCreateCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        attributeDuplicateByNameAndCode(
+          mockInternalCertifiedAttributeSeed.name,
+          mockInternalCertifiedAttributeSeed.code
+        )
+      );
 
     const res = await makeRequest(generateToken(authRole.INTERNAL_ROLE));
 

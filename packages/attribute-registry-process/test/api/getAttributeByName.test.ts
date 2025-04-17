@@ -5,9 +5,8 @@ import { Attribute, generateId } from "pagopa-interop-models";
 import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { authRole, AuthRole } from "pagopa-interop-commons";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
+import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
-import { attributeRegistryService } from "../../src/routers/AttributeRouter.js";
 import { attributeNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /attributes/name/{name} authorization test", () => {
@@ -17,7 +16,7 @@ describe("API /attributes/name/{name} authorization test", () => {
     toApiAttribute(attribute)
   );
 
-  vi.spyOn(attributeRegistryService, "getAttributeByName").mockResolvedValue({
+  attributeRegistryService.getAttributeByName = vi.fn().mockResolvedValue({
     data: attribute,
     metadata: { version: 1 },
   });
@@ -57,9 +56,9 @@ describe("API /attributes/name/{name} authorization test", () => {
   });
 
   it("Should return 404 for attributeNotFound", async () => {
-    vi.spyOn(attributeRegistryService, "getAttributeByName").mockRejectedValue(
-      attributeNotFound(attribute.id)
-    );
+    attributeRegistryService.getAttributeByName = vi
+      .fn()
+      .mockRejectedValue(attributeNotFound(attribute.id));
 
     const res = await makeRequest(
       generateToken(authRole.ADMIN_ROLE),

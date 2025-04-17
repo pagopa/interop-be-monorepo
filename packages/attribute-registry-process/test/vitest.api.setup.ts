@@ -53,6 +53,9 @@ import {
   decodeJwtToken,
   AppContext,
 } from "pagopa-interop-commons";
-import app from "../src/app.js";
+import { createApp } from "../src/app.js";
+import { AttributeRegistryService } from "../src/services/attributeRegistryService.js";
 
-export const api = app;
+export const attributeRegistryService = {} as AttributeRegistryService;
+
+export const api = await createApp(attributeRegistryService);
