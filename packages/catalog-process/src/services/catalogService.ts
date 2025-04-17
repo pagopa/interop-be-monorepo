@@ -452,10 +452,10 @@ async function parseAndCheckAttributes(
 
 function isTenantInSignalHubWhitelist(
   organizationId: TenantId,
-  isSignalubEnabled: boolean | undefined
+  isSignalHubEnabled: boolean | undefined
 ): boolean | undefined {
   return config.signalhubWhitelistProducer?.includes(organizationId)
-    ? isSignalubEnabled
+    ? isSignalHubEnabled
     : false;
 }
 
