@@ -161,15 +161,18 @@ export const aggregateDelegationsArray = ({
   delegationsSQL: DelegationSQL[];
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
-}): Array<WithMetadata<Delegation>> =>
-  delegationsSQL.map((delegationSQL) => {
-    const stampsSQLOfCurrentDelegation = stampsSQL.filter(
-      (stampSQL) => stampSQL.delegationId === delegationSQL.id
-    );
+}): Array<WithMetadata<Delegation>> => {
+  const stampsSQLByDelegationId = createDelegationSQLPropertyMap(stampsSQL);
+  const contractDocumentsByDelegationId =
+    createDelegationSQLPropertyMap(contractDocumentsSQL);
 
-    const contractDocumentsSQLOfCurrentDelegation = contractDocumentsSQL.filter(
-      (docSQL) => docSQL.delegationId === delegationSQL.id
-    );
+  return delegationsSQL.map((delegationSQL) => {
+    const delegationId = unsafeBrandId<DelegationId>(delegationSQL.id);
+    const stampsSQLOfCurrentDelegation =
+      stampsSQLByDelegationId.get(delegationId) || [];
+
+    const contractDocumentsSQLOfCurrentDelegation =
+      contractDocumentsByDelegationId.get(delegationId) || [];
 
     return aggregateDelegation({
       delegationSQL,
@@ -177,7 +180,7 @@ export const aggregateDelegationsArray = ({
       contractDocumentsSQL: contractDocumentsSQLOfCurrentDelegation,
     });
   });
-
+};
 const delegationContractDocumentSQLToDelegationContractDocument = (
   contractDocumentSQL: DelegationContractDocumentSQL
 ): DelegationContractDocument => ({

@@ -1,4 +1,5 @@
 import {
+  AttributeId,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   DelegationId,
@@ -206,6 +207,25 @@ const createTenantSQLPropertyMap = <
     return acc;
   }, new Map<TenantId, T[]>());
 
+const createTenantVerifiedAttributeSQLPropertyMap = <
+  T extends
+    | TenantVerifiedAttributeVerifierSQL
+    | TenantVerifiedAttributeRevokerSQL
+>(
+  items: T[]
+): Map<AttributeId, T[]> =>
+  items.reduce((acc, item) => {
+    const attributeId = unsafeBrandId<AttributeId>(
+      item.tenantVerifiedAttributeId
+    );
+    const values = acc.get(attributeId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(attributeId, values);
+
+    return acc;
+  }, new Map<AttributeId, T[]>());
+
 const tenantMailSQLToTenantMail = (mail: TenantMailSQL): TenantMail => ({
   id: mail.id,
   createdAt: stringToDate(mail.createdAt),
@@ -266,68 +286,66 @@ const aggregateTenantAttributes = ({
         : {}),
     }));
 
+  const verifiedAttributeVerifiersSQLByAttributeId =
+    createTenantVerifiedAttributeSQLPropertyMap(verifiedAttributeVerifiersSQL);
+  const verifiedAttributeRevokersSQLByAttributeId =
+    createTenantVerifiedAttributeSQLPropertyMap(verifiedAttributeRevokersSQL);
   const verifiedTenantAttributes: VerifiedTenantAttribute[] =
     verifiedAttributesSQL.map((currentVerifiedAttributeSQL) => {
-      const verifiersOfCurrentAttribute: TenantVerifier[] =
-        verifiedAttributeVerifiersSQL
-          .filter(
-            (attr) =>
-              attr.tenantVerifiedAttributeId ===
-              currentVerifiedAttributeSQL.attributeId
-          )
-          .map((tenantVerifierSQL) => ({
-            id: unsafeBrandId(tenantVerifierSQL.tenantVerifierId),
-            verificationDate: stringToDate(tenantVerifierSQL.verificationDate),
-            ...(tenantVerifierSQL.expirationDate
-              ? {
-                  expirationDate: stringToDate(
-                    tenantVerifierSQL.expirationDate
-                  ),
-                }
-              : {}),
-            ...(tenantVerifierSQL.extensionDate
-              ? {
-                  extensionDate: stringToDate(tenantVerifierSQL.extensionDate),
-                }
-              : {}),
-            ...(tenantVerifierSQL.delegationId
-              ? {
-                  delegationId: unsafeBrandId<DelegationId>(
-                    tenantVerifierSQL.delegationId
-                  ),
-                }
-              : {}),
-          }));
+      const attributeId = unsafeBrandId<AttributeId>(
+        currentVerifiedAttributeSQL.attributeId
+      );
+      const verifiersSQLOfCurrentAttribute =
+        verifiedAttributeVerifiersSQLByAttributeId.get(attributeId) || [];
 
+      const verifiersOfCurrentAttribute: TenantVerifier[] =
+        verifiersSQLOfCurrentAttribute.map((tenantVerifierSQL) => ({
+          id: unsafeBrandId(tenantVerifierSQL.tenantVerifierId),
+          verificationDate: stringToDate(tenantVerifierSQL.verificationDate),
+          ...(tenantVerifierSQL.expirationDate
+            ? {
+                expirationDate: stringToDate(tenantVerifierSQL.expirationDate),
+              }
+            : {}),
+          ...(tenantVerifierSQL.extensionDate
+            ? {
+                extensionDate: stringToDate(tenantVerifierSQL.extensionDate),
+              }
+            : {}),
+          ...(tenantVerifierSQL.delegationId
+            ? {
+                delegationId: unsafeBrandId<DelegationId>(
+                  tenantVerifierSQL.delegationId
+                ),
+              }
+            : {}),
+        }));
+
+      const revokersSQLOfCurrentAttribute =
+        verifiedAttributeRevokersSQLByAttributeId.get(attributeId) || [];
       const revokersOfCurrentAttribute: TenantRevoker[] =
-        verifiedAttributeRevokersSQL
-          .filter(
-            (attr) =>
-              attr.tenantVerifiedAttributeId ===
-              currentVerifiedAttributeSQL.attributeId
-          )
-          .map((tenantRevokerSQL) => ({
-            id: unsafeBrandId(tenantRevokerSQL.tenantRevokerId),
-            verificationDate: stringToDate(tenantRevokerSQL.verificationDate),
-            ...(tenantRevokerSQL.expirationDate
-              ? {
-                  expirationDate: stringToDate(tenantRevokerSQL.expirationDate),
-                }
-              : {}),
-            ...(tenantRevokerSQL.extensionDate
-              ? {
-                  extensionDate: stringToDate(tenantRevokerSQL.extensionDate),
-                }
-              : {}),
-            revocationDate: stringToDate(tenantRevokerSQL.revocationDate),
-            ...(tenantRevokerSQL.delegationId
-              ? {
-                  delegationId: unsafeBrandId<DelegationId>(
-                    tenantRevokerSQL.delegationId
-                  ),
-                }
-              : {}),
-          }));
+        revokersSQLOfCurrentAttribute.map((tenantRevokerSQL) => ({
+          id: unsafeBrandId(tenantRevokerSQL.tenantRevokerId),
+          verificationDate: stringToDate(tenantRevokerSQL.verificationDate),
+          ...(tenantRevokerSQL.expirationDate
+            ? {
+                expirationDate: stringToDate(tenantRevokerSQL.expirationDate),
+              }
+            : {}),
+          ...(tenantRevokerSQL.extensionDate
+            ? {
+                extensionDate: stringToDate(tenantRevokerSQL.extensionDate),
+              }
+            : {}),
+          revocationDate: stringToDate(tenantRevokerSQL.revocationDate),
+          ...(tenantRevokerSQL.delegationId
+            ? {
+                delegationId: unsafeBrandId<DelegationId>(
+                  tenantRevokerSQL.delegationId
+                ),
+              }
+            : {}),
+        }));
 
       return {
         id: unsafeBrandId(currentVerifiedAttributeSQL.attributeId),
