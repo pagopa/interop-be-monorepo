@@ -1,16 +1,16 @@
 import {
-  AuthData,
   EServiceTemplateCollection,
-  hasPermission,
   ReadModelFilter,
   ReadModelRepository,
-  userRoles,
   TenantCollection,
+  UIAuthData,
+  M2MAuthData,
+  hasAtLeastOneUserRole,
+  userRole,
 } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
-  DescriptorState,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersionState,
@@ -19,11 +19,10 @@ import {
   TenantId,
   TenantReadModel,
   WithMetadata,
-  descriptorState,
   eserviceTemplateVersionState,
   genericInternalError,
 } from "pagopa-interop-models";
-import { Document, Filter, WithId } from "mongodb";
+import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 
@@ -88,114 +87,6 @@ async function getTenant(
   return result.data;
 }
 
-function getTemplateInstancesFilter(
-  eserviceTemplateId: EServiceTemplateId,
-  filters: {
-    producerName?: string;
-    states: DescriptorState[];
-  }
-): Document[] {
-  const { producerName, states } = filters;
-
-  const producerNameFilter = producerName
-    ? {
-        "data.producerName": {
-          $regex: ReadModelRepository.escapeRegExp(producerName),
-          $options: "i",
-        },
-      }
-    : {};
-
-  const descriptorsStateFilter =
-    states.length > 0
-      ? {
-          "data.latestVersion.state": { $in: states },
-        }
-      : {};
-
-  return [
-    {
-      $match: {
-        "data.templateId": eserviceTemplateId,
-        $or: [
-          { "data.descriptors.1": { $exists: true } },
-          {
-            "data.descriptors": { $size: 1 },
-            "data.descriptors.0.state": {
-              $ne: descriptorState.draft,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $lookup: {
-        from: "tenants",
-        localField: "data.producerId",
-        foreignField: "data.id",
-        as: "producer",
-      },
-    },
-    {
-      $addFields: {
-        "data.producerName": { $arrayElemAt: ["$producer.data.name", 0] },
-      },
-    },
-    { $match: producerNameFilter },
-    {
-      $addFields: {
-        "data.descriptors": {
-          $filter: {
-            input: "$data.descriptors",
-            as: "descriptor",
-            cond: {
-              $ne: ["$$descriptor.state", descriptorState.draft],
-            },
-          },
-        },
-      },
-    },
-    {
-      $unwind: "$data.descriptors",
-    },
-    {
-      $sort: {
-        "data.descriptors.version": -1,
-      },
-    },
-    {
-      $group: {
-        _id: "$_id",
-        data: { $first: "$data" },
-        latestVersion: { $first: "$data.descriptors" },
-      },
-    },
-    {
-      $addFields: {
-        "data.latestVersion": "$latestVersion",
-      },
-    },
-    { $match: descriptorsStateFilter },
-    {
-      $project: {
-        id: "$data.id",
-        name: "$data.name",
-        instanceLabel: "$data.instanceLabel",
-        producerId: "$data.producerId",
-        producerName: "$data.producerName",
-        state: "$data.latestVersion.state",
-        templateVersionId: "$data.latestVersion.templateVersionId",
-        lowerProducerName: {
-          $toLower: "$data.producerName",
-        },
-      },
-    },
-    {
-      $sort: { lowerProducerName: 1 },
-    },
-  ];
-}
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder({
   eserviceTemplates,
@@ -254,7 +145,7 @@ export function readModelServiceBuilder({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: AuthData
+      authData: UIAuthData | M2MAuthData
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 
@@ -282,33 +173,35 @@ export function readModelServiceBuilder({
           "data.versions.state": { $in: states },
         });
 
-      const visibilityFilter: ReadModelFilter<EServiceTemplate> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-        authData
-      )
-        ? {
-            $or: [
-              { "data.creatorId": authData.organizationId },
-              { "data.versions.1": { $exists: true } },
-              {
-                "data.versions": { $size: 1 },
-                "data.versions.0.state": {
-                  $ne: eserviceTemplateVersionState.draft,
+      const visibilityFilter: ReadModelFilter<EServiceTemplate> =
+        hasAtLeastOneUserRole(authData, [
+          userRole.ADMIN_ROLE,
+          userRole.API_ROLE,
+          userRole.SUPPORT_ROLE,
+        ])
+          ? {
+              $or: [
+                { "data.creatorId": authData.organizationId },
+                { "data.versions.1": { $exists: true } },
+                {
+                  "data.versions": { $size: 1 },
+                  "data.versions.0.state": {
+                    $ne: eserviceTemplateVersionState.draft,
+                  },
                 },
-              },
-            ],
-          }
-        : {
-            $or: [
-              { "data.versions.1": { $exists: true } },
-              {
-                "data.versions": { $size: 1 },
-                "data.versions.0.state": {
-                  $ne: eserviceTemplateVersionState.draft,
+              ],
+            }
+          : {
+              $or: [
+                { "data.versions.1": { $exists: true } },
+                {
+                  "data.versions": { $size: 1 },
+                  "data.versions.0.state": {
+                    $ne: eserviceTemplateVersionState.draft,
+                  },
                 },
-              },
-            ],
-          };
+              ],
+            };
 
       const aggregationPipeline = [
         { $match: nameFilter },
@@ -357,26 +250,17 @@ export function readModelServiceBuilder({
       eserviceTemplate: EServiceTemplate,
       newName: string
     ): Promise<boolean> => {
-      const aggregationPipeline = getTemplateInstancesFilter(
-        eserviceTemplate.id,
-        {
-          states: [],
-        }
-      );
-
-      const instances = await eservices
-        .aggregate(aggregationPipeline, { allowDiskUse: true })
-        .map((data) => ({
-          name: data.instanceLabel
-            ? `${newName} ${data.instanceLabel}`
-            : newName,
-          producerId: data.producerId,
-        }))
+      const instanceProducerIds = await eservices
+        .find({
+          "data.templateId": eserviceTemplate.id,
+        })
+        .project({ "data.producerId": true })
+        .map(({ data }) => data.producerId)
         .toArray();
 
       const data = await eservices.countDocuments({
-        "data.name": { $in: instances.map((i) => i.name) },
-        "data.producerId": { $in: instances.map((i) => i.producerId) },
+        "data.name": newName,
+        "data.producerId": { $in: instanceProducerIds },
       });
 
       return data > 0;

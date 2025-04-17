@@ -137,6 +137,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServices"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -2199,10 +2205,6 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -2573,9 +2575,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        templateRef:
-          $ref: "#/components/schemas/EServiceTemplateRef"
-          required: false
+        templateId:
+          type: string
+          format: uuid
     EServiceTemplateRef:
       type: object
       additionalProperties: false
@@ -2585,8 +2587,6 @@ components:
         id:
           type: string
           format: uuid
-        instanceLabel:
-          type: string
     EServiceTemplateVersionRef:
       type: object
       additionalProperties: false
@@ -3034,10 +3034,6 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:
