@@ -59,7 +59,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateRefInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -136,13 +135,6 @@ export function readModelServiceBuilderSQL(
           eq(
             eserviceInReadmodelCatalog.id,
             delegationInReadmodelDelegation.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         )
         .where(
@@ -319,10 +311,7 @@ export function readModelServiceBuilderSQL(
               : undefined,
             // template filter
             templatesIds.length > 0
-              ? inArray(
-                  eserviceTemplateRefInReadmodelCatalog.eserviceTemplateId,
-                  templatesIds
-                )
+              ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
               : undefined
           )
         )
@@ -343,7 +332,6 @@ export function readModelServiceBuilderSQL(
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateRef: eserviceTemplateRefInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           totalCount: subquery.totalCount,
@@ -351,7 +339,6 @@ export function readModelServiceBuilderSQL(
         .from(eserviceInReadmodelCatalog)
         .innerJoin(subquery, eq(eserviceInReadmodelCatalog.id, subquery.id))
         .leftJoin(
-          // 1
           eserviceDescriptorInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -359,7 +346,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 2
           eserviceDescriptorInterfaceInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -367,7 +353,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           eserviceDescriptorDocumentInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -375,7 +360,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           eserviceDescriptorAttributeInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -383,7 +367,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           eserviceDescriptorRejectionReasonInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -391,7 +374,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -399,7 +381,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -407,19 +388,10 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 9
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         )
         .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`);
