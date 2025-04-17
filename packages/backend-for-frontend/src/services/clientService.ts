@@ -333,18 +333,18 @@ async function enhanceClient(
   client: authorizationApi.Client,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
-  const [consumer, admin, purposes] = await Promise.all([
-    await apiClients.tenantProcessClient.tenant.getTenant({
+  const [consumer, admin, ...purposes] = await Promise.all([
+    apiClients.tenantProcessClient.tenant.getTenant({
       params: { id: client.consumerId },
       headers: ctx.headers,
     }),
     client.adminId
-      ? await apiClients.tenantProcessClient.tenant.getTenant({
+      ? apiClients.tenantProcessClient.tenant.getTenant({
           params: { id: client.adminId },
           headers: ctx.headers,
         })
-      : undefined,
-    Promise.all(client.purposes.map((p) => enhancePurpose(apiClients, p, ctx))),
+      : Promise.resolve(undefined),
+    ...client.purposes.map((p) => enhancePurpose(apiClients, p, ctx)),
   ]);
 
   return {
@@ -358,7 +358,12 @@ async function enhanceClient(
       name: consumer.name,
     },
     purposes,
-    admin,
+    admin: admin
+      ? {
+          id: admin.id,
+          name: admin.name,
+        }
+      : undefined,
   };
 }
 
