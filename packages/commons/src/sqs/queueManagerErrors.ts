@@ -2,7 +2,6 @@ import { InternalError, parseErrorMessage } from "pagopa-interop-models";
 
 type QueueManagerErrorCode =
   | "queueManagerSendError"
-  | "queueManagerConsumerError"
   | "queueManagerReceiveError";
 
 export class QueueManagerError extends InternalError<QueueManagerErrorCode> {
@@ -24,18 +23,6 @@ export function queueManagerSendError(
   return new QueueManagerError({
     code: "queueManagerSendError",
     detail: `Error sending message to queue ${queueUrl}: ${parseErrorMessage(
-      error
-    )}`,
-  });
-}
-
-export function queueManagerConsumerError(
-  queueUrl: string,
-  error: unknown
-): QueueManagerError {
-  return new QueueManagerError({
-    code: "queueManagerConsumerError",
-    detail: `Error consuming message from queue ${queueUrl}: ${parseErrorMessage(
       error
     )}`,
   });
