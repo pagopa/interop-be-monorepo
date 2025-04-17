@@ -353,6 +353,7 @@ async function enhanceClient(
       name: consumer.name,
     },
     purposes,
+    adminId: client.adminId,
   };
 }
 

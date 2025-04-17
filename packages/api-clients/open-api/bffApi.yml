@@ -19213,9 +19213,6 @@ components:
         tenantId:
           type: string
           format: uuid
-        adminId:
-          type: string
-          format: uuid
         name:
           type: string
         familyName:
