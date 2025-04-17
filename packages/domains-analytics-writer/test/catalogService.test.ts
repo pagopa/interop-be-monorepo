@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, beforeEach, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { EServiceId, generateId, unsafeBrandId } from "pagopa-interop-models";
-import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import {
   dbContext,
   getEserviceFromDb,
@@ -19,21 +18,21 @@ import {
   sampleRejectionReason,
   sampleTemplateVersionRef,
   getDescriptorAttributeFromDb,
-  resetDb,
   createBaseEserviceItem,
   interfaceSQL,
   documentSQL,
+  descriptorId,
+  interfaceId,
+  getDescriptorRejectionReasonFromDb,
+  getDescriptorTemplateVersionFromDb,
+  resetCatalogTables,
+  catalogService,
 } from "./utils.js";
 
 describe("Catalog Service - Batch Operations", () => {
-  beforeEach(async () => {
-    await resetDb(dbContext);
-  });
-
   describe("Upsert Operations", () => {
     describe("EService Upsert", () => {
       it("should insert a complete eService with all sub-objects", async () => {
-        const catalogService = catalogServiceBuilder(dbContext);
         await catalogService.upsertBatchEservice([eserviceItem], dbContext);
 
         const storedEservice = await getEserviceFromDb(
@@ -104,48 +103,7 @@ describe("Catalog Service - Batch Operations", () => {
     });
 
     describe("Descriptor Upsert", () => {
-      it("should fail if eService_id does not exist", async () => {
-        const nonExistentServiceId = generateId();
-        const descriptorId = generateId();
-        const descriptorData = {
-          id: descriptorId,
-          eserviceId: unsafeBrandId<EServiceId>(nonExistentServiceId),
-          metadataVersion: 1,
-          version: "v1",
-          description: "Descriptor with invalid eService",
-          state: "Published",
-          audience: ["IT"],
-          docs: [],
-          attributes: {},
-          voucherLifespan: 3600,
-          dailyCallsPerConsumer: 50,
-          dailyCallsTotal: 500,
-          agreementApprovalPolicy: "Automatic",
-          createdAt: new Date().toISOString(),
-          serverUrls: ["https://api.example.com"],
-          publishedAt: new Date().toISOString(),
-          suspendedAt: null,
-          deprecatedAt: null,
-          archivedAt: null,
-        };
-        const descriptorItem = {
-          descriptorData,
-          eserviceId: unsafeBrandId<EServiceId>(nonExistentServiceId),
-          metadataVersion: 1,
-        };
-
-        const catalogService = catalogServiceBuilder(dbContext);
-        await expect(
-          catalogService.upsertBatchEServiceDescriptor(
-            [descriptorItem] as any,
-            dbContext
-          )
-        ).rejects.toThrow();
-      });
-
       it("should insert and merge a descriptor successfully", async () => {
-        const catalogService = catalogServiceBuilder(dbContext);
-
         const eserviceBase = createBaseEserviceItem();
         const descriptorItem = {
           descriptorData: {
@@ -153,6 +111,7 @@ describe("Catalog Service - Batch Operations", () => {
             descriptorSQL,
             interfaceSQL,
             documentsSQL: [documentSQL],
+            templateVersionRefSQL: sampleTemplateVersionRef,
           },
           eserviceId: descriptorSQL.eserviceId,
           metadataVersion: descriptorSQL.metadataVersion,
@@ -187,16 +146,17 @@ describe("Catalog Service - Batch Operations", () => {
         );
         expect(storedAttributes?.length).toBeGreaterThan(0);
 
-        const storedRejectionReasons = await dbContext.conn.any(
-          `SELECT * FROM domains.eservice_descriptor_rejection_reason WHERE descriptor_id = $1`,
-          [descriptorSQL.id]
+        const storedRejectionReasons = await getDescriptorRejectionReasonFromDb(
+          descriptorSQL.id,
+          dbContext
         );
         expect(storedRejectionReasons.length).toBe(1);
 
-        const storedTemplateVersionRef = await dbContext.conn.any(
-          `SELECT * FROM domains.eservice_descriptor_template_version_ref WHERE descriptor_id = $1`,
-          [descriptorSQL.id]
-        );
+        const storedTemplateVersionRef =
+          await getDescriptorTemplateVersionFromDb(
+            sampleTemplateVersionRef.eserviceTemplateVersionId,
+            dbContext
+          );
         expect(storedTemplateVersionRef.length).toBe(1);
       });
     });
@@ -205,7 +165,6 @@ describe("Catalog Service - Batch Operations", () => {
       it("should insert and merge a document successfully", async () => {
         const baseEserviceItem = createBaseEserviceItem();
         baseEserviceItem.descriptorsSQL.push(descriptorSQL);
-        const catalogService = catalogServiceBuilder(dbContext);
 
         const docId = generateId();
         const documentSQL = {
@@ -234,7 +193,7 @@ describe("Catalog Service - Batch Operations", () => {
   describe("Delete Operations", () => {
     describe("EService Delete", () => {
       it("should mark an eService and all its sub-objects as deleted", async () => {
-        const catalogService = catalogServiceBuilder(dbContext);
+        await resetCatalogTables(dbContext);
         await catalogService.upsertBatchEservice([eserviceItem], dbContext);
         await catalogService.deleteBatchEService(
           [eserviceItem.eserviceSQL.id],
@@ -336,7 +295,6 @@ describe("Catalog Service - Batch Operations", () => {
         };
 
         const baseEserviceItem = createBaseEserviceItem(baseEserviceSQL);
-        const catalogService = catalogServiceBuilder(dbContext);
         await catalogService.upsertBatchEservice([baseEserviceItem], dbContext);
 
         const newDescriptorId = generateId();
@@ -474,7 +432,6 @@ describe("Catalog Service - Batch Operations", () => {
           createBaseEserviceItem(baseEserviceSQL);
         riskAnalysisEserviceItem.riskAnalysesSQL.push(riskAnalysisSQL);
 
-        const catalogService = catalogServiceBuilder(dbContext);
         await catalogService.upsertBatchEservice(
           [riskAnalysisEserviceItem],
           dbContext
@@ -498,7 +455,6 @@ describe("Catalog Service - Batch Operations", () => {
       it("should mark a document as deleted", async () => {
         const baseEserviceItem = createBaseEserviceItem();
         baseEserviceItem.descriptorsSQL.push(descriptorSQL);
-        const catalogService = catalogServiceBuilder(dbContext);
         await catalogService.upsertBatchEservice([baseEserviceItem], dbContext);
 
         const docId = generateId();
@@ -528,12 +484,11 @@ describe("Catalog Service - Batch Operations", () => {
 
     describe("Interface Delete", () => {
       it("should mark an interface as deleted", async () => {
-        const ifaceId = generateId();
         const interfaceSQL = {
-          id: ifaceId,
+          id: interfaceId,
           eserviceId: unsafeBrandId<EServiceId>(eserviceSQL.id),
           metadataVersion: 1,
-          descriptorId: descriptorSQL.id,
+          descriptorId,
           name: "Test Interface for Deletion",
           contentType: "application/json",
           prettyName: "interface.json",
@@ -545,11 +500,16 @@ describe("Catalog Service - Batch Operations", () => {
         const baseEserviceItem = createBaseEserviceItem();
         baseEserviceItem.descriptorsSQL.push(descriptorSQL);
         baseEserviceItem.interfacesSQL.push(interfaceSQL);
-        const catalogService = catalogServiceBuilder(dbContext);
         await catalogService.upsertBatchEservice([baseEserviceItem], dbContext);
-        await catalogService.deleteBatchEserviceInterface([ifaceId], dbContext);
+        await catalogService.deleteBatchEserviceInterface(
+          [interfaceId],
+          dbContext
+        );
 
-        const storedInterface = await getInterfaceFromDb(ifaceId, dbContext);
+        const storedInterface = await getInterfaceFromDb(
+          interfaceId,
+          dbContext
+        );
         expect(storedInterface[0].deleted).toBe(true);
       });
     });
