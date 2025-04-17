@@ -65,13 +65,12 @@ export type GenerateTokenReturnType =
   | {
       limitReached: true;
       token: undefined;
-      tenantId: TenantId;
+      rateLimitedTenantId: TenantId;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
     }
   | {
       limitReached: false;
       token: InteropConsumerToken | InteropApiToken;
-      tenantId: TenantId;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
     };
 
@@ -191,7 +190,7 @@ export function tokenServiceBuilder({
         return {
           limitReached: true,
           token: undefined,
-          tenantId: key.consumerId,
+          rateLimitedTenantId: key.consumerId,
           rateLimiterStatus,
         };
       }
@@ -229,7 +228,6 @@ export function tokenServiceBuilder({
             return {
               limitReached: false as const,
               token,
-              tenantId: key.consumerId,
               rateLimiterStatus,
             };
           }
@@ -251,7 +249,6 @@ export function tokenServiceBuilder({
           return {
             limitReached: false as const,
             token,
-            tenantId: key.consumerId,
             rateLimiterStatus,
           };
         })
