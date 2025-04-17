@@ -10,7 +10,7 @@ import {
   agreementApprovalPolicy,
   Descriptor,
   EService,
-  EServiceTemplateRef,
+  EServiceTemplateId,
   EServiceTemplateVersionRef,
   generateId,
   tenantKind,
@@ -34,10 +34,7 @@ describe("E-service aggregator", () => {
     const isSignalHubEnabled = true;
     const isClientAccessDelegable = true;
     const isConsumerDelegable = true;
-    const templateRef: EServiceTemplateRef = {
-      id: generateId(),
-      instanceLabel: "test instance label",
-    };
+    const templateId = generateId<EServiceTemplateId>();
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
       interfaceMetadata: {
@@ -74,7 +71,7 @@ describe("E-service aggregator", () => {
       isSignalHubEnabled,
       isClientAccessDelegable,
       isConsumerDelegable,
-      templateRef,
+      templateId,
     };
 
     const {
@@ -86,7 +83,6 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      templateRefSQL,
       templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
@@ -99,7 +95,6 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      templateRefSQL,
       templateVersionRefsSQL,
     });
 
@@ -121,7 +116,6 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      templateRefSQL,
       templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
@@ -134,7 +128,6 @@ describe("E-service aggregator", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      templateRefSQL,
       templateVersionRefsSQL,
     });
 
