@@ -17,6 +17,7 @@ import {
 } from "../gen/v1/authorization/events.js";
 import {
   ClientAddedV2,
+  ClientAdminSetV2,
   ClientDeletedV2,
   ClientKeyAddedV2,
   ClientKeyDeletedV2,
@@ -92,6 +93,9 @@ export function authorizationEventToBinaryDataV2(
     )
     .with({ type: "ClientUserDeleted" }, ({ data }) =>
       ClientUserDeletedV2.toBinary(data)
+    )
+    .with({ type: "ClientAdminSet" }, ({ data }) =>
+      ClientAdminSetV2.toBinary(data)
     )
     .with({ type: "ClientPurposeAdded" }, ({ data }) =>
       ClientPurposeAddedV2.toBinary(data)
@@ -215,6 +219,11 @@ export const AuthorizationEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("ClientUserDeleted"),
     data: protobufDecoder(ClientUserDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientAdminSet"),
+    data: protobufDecoder(ClientAdminSetV2),
   }),
   z.object({
     event_version: z.literal(2),

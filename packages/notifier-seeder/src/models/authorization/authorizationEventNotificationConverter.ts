@@ -47,6 +47,7 @@ export const toAuthorizationEventNotification = (
     .with(
       { type: "ClientAdded" },
       { type: "ClientDeleted" },
+      { type: "ClientAdminSet" },
       { type: "ClientUserAdded" },
       { type: "ClientUserDeleted" },
       { type: "ClientPurposeAdded" },

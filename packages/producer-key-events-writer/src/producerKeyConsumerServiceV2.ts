@@ -29,6 +29,7 @@ export async function handleMessageV2(
       { type: "ProducerKeychainDeleted" },
       { type: "ClientAdded" },
       { type: "ClientDeleted" },
+      { type: "ClientAdminSet" },
       { type: "ClientUserAdded" },
       { type: "ClientUserDeleted" },
       { type: "ClientKeyAdded" },

@@ -466,6 +466,7 @@ export async function sendAuthorizationAuthUpdate(
       );
     })
     .with(
+      { type: "ClientAdminSet" },
       { type: "ProducerKeychainAdded" },
       { type: "ProducerKeychainDeleted" },
       { type: "ProducerKeychainKeyAdded" },

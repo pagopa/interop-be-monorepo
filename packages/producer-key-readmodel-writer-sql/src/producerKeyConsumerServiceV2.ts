@@ -55,6 +55,7 @@ export async function handleMessageV2(
     .with(
       { type: "ClientAdded" },
       { type: "ClientDeleted" },
+      { type: "ClientAdminSet" },
       { type: "ClientUserAdded" },
       { type: "ClientUserDeleted" },
       { type: "ClientKeyAdded" },
