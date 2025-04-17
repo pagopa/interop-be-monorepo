@@ -40,8 +40,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1197,8 +1197,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2214,8 +2214,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2511,7 +2511,7 @@ importers:
         version: 5.4.5
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)        
+        version: 1.6.0(@types/node@20.14.6)
 
   packages/dtd-catalog-exporter:
     dependencies:
@@ -2681,8 +2681,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -3796,8 +3796,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -4345,8 +4345,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -5924,8 +5924,8 @@ packages:
   '@pagopa/eslint-config@3.0.0':
     resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
 
-  '@pagopa/interop-outbound-models@1.5.4':
-    resolution: {integrity: sha512-d1OyacycQWA6B9hTumig5AH8eJbo9NRu5B3fdjt7RRl+dFGa28FVdaR97nEDDvSJX5SX5LoTALhbp8dcwtZqaw==}
+  '@pagopa/interop-outbound-models@1.6.1':
+    resolution: {integrity: sha512-bNd8hggBqRynW9zzKqx0dMsFvdTTuZyk05JXQJxlc6rkoWQuucypoNkH5ygSvhu0cQwGEDNHWojdbGubJQApMQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -11656,7 +11656,7 @@ snapshots:
       - tsutils
       - typescript
 
-  '@pagopa/interop-outbound-models@1.5.4':
+  '@pagopa/interop-outbound-models@1.6.1':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0

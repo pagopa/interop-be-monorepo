@@ -60,7 +60,6 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateRefInReadmodelCatalog,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
@@ -109,7 +108,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateRef: eserviceTemplateRefInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
         })
@@ -176,14 +174,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 9
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         );
 
