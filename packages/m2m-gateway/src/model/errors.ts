@@ -4,4 +4,7 @@ export const errorCodes = {};
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes, true);
+export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
+  problemErrorsPassthrough: true,
+  hideInternalErrorDetails: true,
+});

@@ -98,12 +98,31 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
+type ProblemBuilderOptions = {
+  /**
+   * If true, allows Problem objects received from downstream services
+   * to be passed through directly. If false, they are treated as internal errors.
+   *
+   * @default true
+   */
+  problemErrorsPassthrough?: boolean;
+  /**
+   * If true, replaces the details of errors that map to HTTP 500, or
+   * the ones that are passed through, with a generic message to avoid leaking internal information.
+   *
+   * @default false
+   */
+  hideInternalErrorDetails?: boolean;
+};
+
 export function makeApiProblemBuilder<T extends string>(
   errors: {
     [K in T]: string;
   },
-  problemErrorsPassthrough: boolean = true
+  options: ProblemBuilderOptions = {}
 ): MakeApiProblemFn<T> {
+  const { problemErrorsPassthrough = true, hideInternalErrorDetails = false } =
+    options;
   const allErrors = { ...errorCodes, ...errors };
 
   function retrieveServiceErrorCode(serviceName: string): string {
@@ -144,22 +163,30 @@ export function makeApiProblemBuilder<T extends string>(
     if (operationalLogMessage) {
       logger.warn(operationalLogMessage);
     }
+
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
         const mappedCode = httpMapper(error);
-        const code =
-          mappedCode === HTTP_STATUS_INTERNAL_SERVER_ERROR
-            ? defaultCommonErrorMapper(error.code as CommonErrorCodes)
-            : mappedCode;
+        const isInternalServerError =
+          mappedCode === HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
+        const code = isInternalServerError
+          ? defaultCommonErrorMapper(error.code as CommonErrorCodes)
+          : mappedCode;
 
         const problem = makeProblem(code, error);
         logger.warn(makeProblemLogString(problem, error));
+
+        if (hideInternalErrorDetails && isInternalServerError) {
+          return genericProblem;
+        }
+
         return problem;
       })
       .with(
         /* this case is to allow a passthrough of Problem errors, so that
            services that call other interop services can forward Problem errors
-           as they are, without the need to explicitly handle them */
+           as they are, without the need to explicitly handle them. */
         {
           response: {
             status: P.number,
@@ -180,6 +207,14 @@ export function makeApiProblemBuilder<T extends string>(
           const receivedProblem: Problem = e.response.data;
           if (problemErrorsPassthrough) {
             logger.warn(makeProblemLogString(receivedProblem, error));
+
+            if (
+              hideInternalErrorDetails &&
+              receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
+            ) {
+              return genericProblem;
+            }
+
             return receivedProblem;
           } else {
             logger.warn(
