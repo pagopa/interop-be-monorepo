@@ -45,40 +45,34 @@ export const aggregateEServiceTemplateVersion = ({
     : undefined;
 
   const {
-    Certified: certifiedAttributesSQL,
-    Verified: declaredAttributesSQL,
-    Declared: verifiedAttributesSQL,
+    certified: certifiedAttributesSQL,
+    verified: verifiedAttributesSQL,
+    declared: declaredAttributesSQL,
   } = attributesSQL.reduce(
-    (
-      acc: { [key in AttributeKind]?: EServiceTemplateVersionAttributeSQL[] },
-      attributeSQL
-    ) =>
+    (acc, attributeSQL) =>
       match(AttributeKind.parse(attributeSQL.kind))
         .with(attributeKind.certified, () => ({
           ...acc,
-          Certified: [...(acc.Certified || []), attributeSQL],
+          certified: [...acc.certified, attributeSQL],
         }))
         .with(attributeKind.declared, () => ({
           ...acc,
-          Declared: [...(acc.Declared || []), attributeSQL],
+          declared: [...acc.declared, attributeSQL],
         }))
         .with(attributeKind.verified, () => ({
           ...acc,
-          Verified: [...(acc.Verified || []), attributeSQL],
+          verified: [...acc.verified, attributeSQL],
         }))
         .exhaustive(),
-    {}
+    {
+      certified: new Array<EServiceTemplateVersionAttributeSQL>(),
+      declared: new Array<EServiceTemplateVersionAttributeSQL>(),
+      verified: new Array<EServiceTemplateVersionAttributeSQL>(),
+    }
   );
-
-  const certifiedAttributes = certifiedAttributesSQL
-    ? attributesSQLtoAttributes(certifiedAttributesSQL)
-    : [];
-  const declaredAttributes = declaredAttributesSQL
-    ? attributesSQLtoAttributes(declaredAttributesSQL)
-    : [];
-  const verifiedAttributes = verifiedAttributesSQL
-    ? attributesSQLtoAttributes(verifiedAttributesSQL)
-    : [];
+  const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
+  const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
+  const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
 
   return {
     id: unsafeBrandId(versionSQL.id),
