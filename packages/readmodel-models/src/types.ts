@@ -24,7 +24,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateRefInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
