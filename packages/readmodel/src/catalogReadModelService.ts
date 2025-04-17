@@ -40,72 +40,74 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           eservice.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(eserviceInReadmodelCatalog)
+          .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
+
+        const {
+          eserviceSQL,
+          riskAnalysesSQL,
+          riskAnalysisAnswersSQL,
+          descriptorsSQL,
+          attributesSQL,
+          interfacesSQL,
+          documentsSQL,
+          rejectionReasonsSQL,
+          templateVersionRefsSQL,
+        } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
+
+        await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
+
+        for (const descriptorSQL of descriptorsSQL) {
           await tx
-            .delete(eserviceInReadmodelCatalog)
-            .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
+            .insert(eserviceDescriptorInReadmodelCatalog)
+            .values(descriptorSQL);
+        }
 
-          const {
-            eserviceSQL,
-            riskAnalysesSQL,
-            riskAnalysisAnswersSQL,
-            descriptorsSQL,
-            attributesSQL,
-            interfacesSQL,
-            documentsSQL,
-            rejectionReasonsSQL,
-            templateVersionRefsSQL,
-          } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
+        for (const interfaceSQL of interfacesSQL) {
+          await tx
+            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .values(interfaceSQL);
+        }
 
-          await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
+        for (const docSQL of documentsSQL) {
+          await tx
+            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+            .values(docSQL);
+        }
 
-          for (const descriptorSQL of descriptorsSQL) {
-            await tx
-              .insert(eserviceDescriptorInReadmodelCatalog)
-              .values(descriptorSQL);
-          }
+        for (const attributeSQL of attributesSQL) {
+          await tx
+            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+            .values(attributeSQL);
+        }
 
-          for (const interfaceSQL of interfacesSQL) {
-            await tx
-              .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-              .values(interfaceSQL);
-          }
+        for (const riskAnalysisSQL of riskAnalysesSQL) {
+          await tx
+            .insert(eserviceRiskAnalysisInReadmodelCatalog)
+            .values(riskAnalysisSQL);
+        }
 
-          for (const docSQL of documentsSQL) {
-            await tx
-              .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-              .values(docSQL);
-          }
+        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+          await tx
+            .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+            .values(riskAnalysisAnswerSQL);
+        }
 
-          for (const attributeSQL of attributesSQL) {
-            await tx
-              .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-              .values(attributeSQL);
-          }
+        for (const rejectionReasonSQL of rejectionReasonsSQL) {
+          await tx
+            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+            .values(rejectionReasonSQL);
+        }
 
-          for (const riskAnalysisSQL of riskAnalysesSQL) {
-            await tx
-              .insert(eserviceRiskAnalysisInReadmodelCatalog)
-              .values(riskAnalysisSQL);
-          }
-
-          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
-            await tx
-              .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
-              .values(riskAnalysisAnswerSQL);
-          }
-
-          for (const rejectionReasonSQL of rejectionReasonsSQL) {
-            await tx
-              .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-              .values(rejectionReasonSQL);
-          }
-
-          for (const templateVersionRefSQL of templateVersionRefsSQL) {
-            await tx
-              .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
-              .values(templateVersionRefSQL);
-          }
+        for (const templateVersionRefSQL of templateVersionRefsSQL) {
+          await tx
+            .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+            .values(templateVersionRefSQL);
         }
       });
     },
