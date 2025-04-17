@@ -922,6 +922,12 @@ paths:
       responses:
         "204":
           description: Request succeed
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
