@@ -82,14 +82,7 @@ describe("internalCliendAdminRemoved", () => {
       kind: clientKind.api,
     };
 
-    const mockClient2: Client = {
-      ...getMockClient(),
-      kind: clientKind.api,
-      adminId: generateId<UserId>(),
-    };
-
     await addOneClient(mockClient1);
-    await addOneClient(mockClient2);
 
     await expect(
       authorizationService.internalRemoveClientAdmin(
@@ -98,6 +91,14 @@ describe("internalCliendAdminRemoved", () => {
         getMockContextInternal({})
       )
     ).rejects.toThrowError(clientAdminIdNotFound(mockClient1.id, adminId));
+
+    const mockClient2: Client = {
+      ...getMockClient(),
+      kind: clientKind.api,
+      adminId: generateId<UserId>(),
+    };
+
+    await addOneClient(mockClient2);
 
     await expect(
       authorizationService.internalRemoveClientAdmin(
