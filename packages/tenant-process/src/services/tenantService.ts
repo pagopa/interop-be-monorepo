@@ -36,7 +36,6 @@ import {
   TenantFeatureCertifier,
   CorrelationId,
   tenantKind,
-  TenantFeatureType,
   AgreementId,
   Agreement,
   AgreementState,
@@ -90,6 +89,7 @@ import {
   operationRestrictedToDelegate,
   verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
+import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -1298,23 +1298,13 @@ export function tenantServiceBuilder(
       });
     },
     async getTenants(
-      {
-        name,
-        features,
-        offset,
-        limit,
-      }: {
-        name: string | undefined;
-        features: TenantFeatureType[];
-        offset: number;
-        limit: number;
-      },
+      query: ApiGetTenantsFilters,
       { logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<Tenant>> {
       logger.info(
-        `Retrieving Tenants with name = ${name}, features = ${features}, limit = ${limit}, offset = ${offset}`
+        `Retrieving Tenants with name = ${query.name}, features = ${query.features}, externalIdOrigin = ${query.externalIdOrigin}, externalIdValue = ${query.externalIdValue}, limit = ${query.limit}, offset = ${query.offset}`
       );
-      return readModelService.getTenants({ name, features, offset, limit });
+      return readModelService.getTenants(query);
     },
     async getTenantById(
       id: TenantId,

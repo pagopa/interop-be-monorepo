@@ -154,11 +154,20 @@ const tenantsRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { name, features, offset, limit } = req.query;
+        const {
+          name,
+          features,
+          externalIdOrigin,
+          externalIdValue,
+          offset,
+          limit,
+        } = req.query;
         const tenants = await tenantService.getTenants(
           {
             name,
             features: features.map(apiTenantFeatureTypeToTenantFeatureType),
+            externalIdOrigin,
+            externalIdValue,
             offset,
             limit,
           },
