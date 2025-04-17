@@ -5,12 +5,16 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  validateAuthorization,
+  authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+
+const { M2M_ADMIN_ROLE } = authRole;
 
 const delegationRouter = (
   ctx: ZodiosContext,
@@ -39,7 +43,10 @@ const delegationRouter = (
     })
     .post("/consumerDelegations", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
         const createdDelegation =
           await delegationService.createConsumerDelegation(req.body, ctx);
 
