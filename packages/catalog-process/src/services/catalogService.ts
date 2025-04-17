@@ -2936,9 +2936,9 @@ export function catalogServiceBuilder(
                 ),
             },
             isSignalHubEnabled:
-              seed?.isSignalHubEnabled ?? template.isSignalHubEnabled,
-            isConsumerDelegable: seed?.isConsumerDelegable ?? false,
-            isClientAccessDelegable: seed?.isClientAccessDelegable ?? false,
+              seed.isSignalHubEnabled ?? template.isSignalHubEnabled,
+            isConsumerDelegable: seed.isConsumerDelegable ?? false,
+            isClientAccessDelegable: seed.isClientAccessDelegable ?? false,
           },
           template: {
             id: template.id,
