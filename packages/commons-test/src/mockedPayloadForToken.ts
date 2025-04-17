@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { AuthRole } from "pagopa-interop-commons";
+import { AuthRole, userRole } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
@@ -97,7 +97,11 @@ const createPayload = (role: AuthRole) =>
     .with("m2m", () => createM2MPayload())
     .with("m2m-admin", () => createM2M_AdminPayload())
     .with("internal", () => createInternalPayload())
-    .otherwise(() => createUserPayload(role));
+    .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
+    .with("api", () => createUserPayload(userRole.API_ROLE))
+    .with("security", () => createUserPayload(userRole.SECURITY_ROLE))
+    .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
+    .exhaustive();
 
 export const generateToken = (role: AuthRole) =>
   jwt.sign(createPayload(role), "test-secret");
