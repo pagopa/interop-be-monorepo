@@ -22,6 +22,7 @@ import {
   DB,
   eventRepository,
   FileManager,
+  M2MAdminAuthData,
   M2MAuthData,
   PDFGenerator,
   UIAuthData,
@@ -124,7 +125,11 @@ export function delegationServiceBuilder(
       eserviceId: EServiceId;
       kind: DelegationKind;
     },
-    { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+    {
+      authData,
+      logger,
+      correlationId,
+    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
   ): Promise<WithMetadata<Delegation>> {
     const delegatorId = authData.organizationId;
 
@@ -513,7 +518,7 @@ export function delegationServiceBuilder(
         delegateId: TenantId;
         eserviceId: EServiceId;
       },
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {

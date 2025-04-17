@@ -37,8 +37,14 @@ import {
 } from "../utilities/errorMappers.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 
-const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } =
-  authRole;
+const {
+  ADMIN_ROLE,
+  API_ROLE,
+  SECURITY_ROLE,
+  M2M_ROLE,
+  SUPPORT_ROLE,
+  M2M_ADMIN_ROLE,
+} = authRole;
 
 const delegationRouter = (
   ctx: ZodiosContext,
@@ -117,6 +123,7 @@ const delegationRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
@@ -299,7 +306,7 @@ const delegationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data, metadata } =
           await delegationService.createConsumerDelegation(
