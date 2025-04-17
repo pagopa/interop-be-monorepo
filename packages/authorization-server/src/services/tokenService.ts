@@ -129,6 +129,9 @@ export function tokenServiceBuilder({
       const kid = jwt.header.kid;
       const purposeId = jwt.payload.purposeId;
 
+      // eslint-disable-next-line functional/immutable-data
+      ctx.clientId = clientId;
+
       logTokenGenerationInfo({
         validatedJwt: jwt,
         clientKind: undefined,
@@ -146,6 +149,8 @@ export function tokenServiceBuilder({
         : makeTokenGenerationStatesClientKidPK({ clientId, kid });
 
       const key = await retrieveKey(dynamoDBClient, pk);
+      // eslint-disable-next-line functional/immutable-data
+      ctx.organizationId = key.consumerId;
 
       logTokenGenerationInfo({
         validatedJwt: jwt,
