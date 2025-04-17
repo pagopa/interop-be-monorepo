@@ -27,26 +27,28 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
         );
 
         if (shouldUpsert) {
-          await tx
-            .delete(clientInReadmodelClient)
-            .where(eq(clientInReadmodelClient.id, client.id));
+          return;
+        }
 
-          const { clientSQL, usersSQL, purposesSQL, keysSQL } =
-            splitClientIntoObjectsSQL(client, metadataVersion);
+        await tx
+          .delete(clientInReadmodelClient)
+          .where(eq(clientInReadmodelClient.id, client.id));
 
-          await tx.insert(clientInReadmodelClient).values(clientSQL);
+        const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+          splitClientIntoObjectsSQL(client, metadataVersion);
 
-          for (const userSQL of usersSQL) {
-            await tx.insert(clientUserInReadmodelClient).values(userSQL);
-          }
+        await tx.insert(clientInReadmodelClient).values(clientSQL);
 
-          for (const purposeSQL of purposesSQL) {
-            await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
-          }
+        for (const userSQL of usersSQL) {
+          await tx.insert(clientUserInReadmodelClient).values(userSQL);
+        }
 
-          for (const keySQL of keysSQL) {
-            await tx.insert(clientKeyInReadmodelClient).values(keySQL);
-          }
+        for (const purposeSQL of purposesSQL) {
+          await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+        }
+
+        for (const keySQL of keysSQL) {
+          await tx.insert(clientKeyInReadmodelClient).values(keySQL);
         }
       });
     },

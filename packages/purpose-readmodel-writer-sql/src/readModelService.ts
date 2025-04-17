@@ -80,30 +80,32 @@ export function customReadModelServiceBuilder(
         );
 
         if (shouldUpsert) {
-          await tx
-            .delete(purposeVersionInReadmodelPurpose)
-            .where(eq(purposeVersionInReadmodelPurpose.id, purposeVersion.id));
+          return;
+        }
 
-          const { versionSQL, versionDocumentSQL } =
-            splitPurposeVersionIntoObjectsSQL(
-              purposeId,
-              purposeVersion,
-              metadataVersion
-            );
+        await tx
+          .delete(purposeVersionInReadmodelPurpose)
+          .where(eq(purposeVersionInReadmodelPurpose.id, purposeVersion.id));
 
-          await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
-          if (versionDocumentSQL) {
-            await tx
-              .insert(purposeVersionDocumentInReadmodelPurpose)
-              .values(versionDocumentSQL);
-          }
-
-          await updateMetadataVersionInPurposeTables(
-            tx,
+        const { versionSQL, versionDocumentSQL } =
+          splitPurposeVersionIntoObjectsSQL(
             purposeId,
+            purposeVersion,
             metadataVersion
           );
+
+        await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
+        if (versionDocumentSQL) {
+          await tx
+            .insert(purposeVersionDocumentInReadmodelPurpose)
+            .values(versionDocumentSQL);
         }
+
+        await updateMetadataVersionInPurposeTables(
+          tx,
+          purposeId,
+          metadataVersion
+        );
       });
     },
 

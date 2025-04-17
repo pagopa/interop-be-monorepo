@@ -34,42 +34,44 @@ export function producerKeychainReadModelServiceBuilder(db: DrizzleReturnType) {
         );
 
         if (shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(producerKeychainInReadmodelProducerKeychain)
+          .where(
+            eq(
+              producerKeychainInReadmodelProducerKeychain.id,
+              producerKeychain.id
+            )
+          );
+
+        const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+          splitProducerKeychainIntoObjectsSQL(
+            producerKeychain,
+            metadataVersion
+          );
+
+        await tx
+          .insert(producerKeychainInReadmodelProducerKeychain)
+          .values(producerKeychainSQL);
+
+        for (const userSQL of usersSQL) {
           await tx
-            .delete(producerKeychainInReadmodelProducerKeychain)
-            .where(
-              eq(
-                producerKeychainInReadmodelProducerKeychain.id,
-                producerKeychain.id
-              )
-            );
+            .insert(producerKeychainUserInReadmodelProducerKeychain)
+            .values(userSQL);
+        }
 
-          const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
-            splitProducerKeychainIntoObjectsSQL(
-              producerKeychain,
-              metadataVersion
-            );
-
+        for (const eserviceSQL of eservicesSQL) {
           await tx
-            .insert(producerKeychainInReadmodelProducerKeychain)
-            .values(producerKeychainSQL);
+            .insert(producerKeychainEserviceInReadmodelProducerKeychain)
+            .values(eserviceSQL);
+        }
 
-          for (const userSQL of usersSQL) {
-            await tx
-              .insert(producerKeychainUserInReadmodelProducerKeychain)
-              .values(userSQL);
-          }
-
-          for (const eserviceSQL of eservicesSQL) {
-            await tx
-              .insert(producerKeychainEserviceInReadmodelProducerKeychain)
-              .values(eserviceSQL);
-          }
-
-          for (const keySQL of keysSQL) {
-            await tx
-              .insert(producerKeychainKeyInReadmodelProducerKeychain)
-              .values(keySQL);
-          }
+        for (const keySQL of keysSQL) {
+          await tx
+            .insert(producerKeychainKeyInReadmodelProducerKeychain)
+            .values(keySQL);
         }
       });
     },

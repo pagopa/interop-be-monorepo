@@ -93,28 +93,28 @@ export function readModelServiceBuilder(
         );
 
         if (shouldUpsert) {
-          await tx
-            .delete(agreementConsumerDocumentInReadmodelAgreement)
-            .where(
-              eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id)
-            );
-
-          const consumerDocumentSQL = agreementDocumentToAgreementDocumentSQL(
-            doc,
-            agreementId,
-            metadataVersion
-          );
-
-          await tx
-            .insert(agreementConsumerDocumentInReadmodelAgreement)
-            .values(consumerDocumentSQL);
-
-          await updateMetadataVersionInAgreementRelatedTables(
-            tx,
-            agreementId,
-            metadataVersion
-          );
+          return;
         }
+
+        await tx
+          .delete(agreementConsumerDocumentInReadmodelAgreement)
+          .where(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id));
+
+        const consumerDocumentSQL = agreementDocumentToAgreementDocumentSQL(
+          doc,
+          agreementId,
+          metadataVersion
+        );
+
+        await tx
+          .insert(agreementConsumerDocumentInReadmodelAgreement)
+          .values(consumerDocumentSQL);
+
+        await updateMetadataVersionInAgreementRelatedTables(
+          tx,
+          agreementId,
+          metadataVersion
+        );
       });
     },
 
@@ -161,26 +161,28 @@ export function readModelServiceBuilder(
         );
 
         if (shouldUpsert) {
-          await tx
-            .delete(agreementContractInReadmodelAgreement)
-            .where(eq(agreementContractInReadmodelAgreement.id, contract.id));
-
-          const contractDocumentSQL = agreementDocumentToAgreementDocumentSQL(
-            contract,
-            agreementId,
-            metadataVersion
-          );
-
-          await tx
-            .insert(agreementContractInReadmodelAgreement)
-            .values(contractDocumentSQL);
-
-          await updateMetadataVersionInAgreementRelatedTables(
-            tx,
-            agreementId,
-            metadataVersion
-          );
+          return;
         }
+
+        await tx
+          .delete(agreementContractInReadmodelAgreement)
+          .where(eq(agreementContractInReadmodelAgreement.id, contract.id));
+
+        const contractDocumentSQL = agreementDocumentToAgreementDocumentSQL(
+          contract,
+          agreementId,
+          metadataVersion
+        );
+
+        await tx
+          .insert(agreementContractInReadmodelAgreement)
+          .values(contractDocumentSQL);
+
+        await updateMetadataVersionInAgreementRelatedTables(
+          tx,
+          agreementId,
+          metadataVersion
+        );
       });
     },
   };

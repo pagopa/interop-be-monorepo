@@ -24,17 +24,19 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
         );
 
         if (shouldUpsert) {
-          await tx
-            .delete(attributeInReadmodelAttribute)
-            .where(eq(attributeInReadmodelAttribute.id, attribute.id));
-
-          const attributeSQL = splitAttributeIntoObjectsSQL(
-            attribute,
-            metadataVersion
-          );
-
-          await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
+          return;
         }
+
+        await tx
+          .delete(attributeInReadmodelAttribute)
+          .where(eq(attributeInReadmodelAttribute.id, attribute.id));
+
+        const attributeSQL = splitAttributeIntoObjectsSQL(
+          attribute,
+          metadataVersion
+        );
+
+        await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
       });
     },
     async getAttributeById(

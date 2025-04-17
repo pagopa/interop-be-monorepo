@@ -40,49 +40,51 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         );
 
         if (shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(tenantInReadmodelTenant)
+          .where(eq(tenantInReadmodelTenant.id, tenant.id));
+
+        await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
+
+        for (const mailSQL of mailsSQL) {
+          await tx.insert(tenantMailInReadmodelTenant).values(mailSQL);
+        }
+
+        for (const certifiedAttributeSQL of certifiedAttributesSQL) {
           await tx
-            .delete(tenantInReadmodelTenant)
-            .where(eq(tenantInReadmodelTenant.id, tenant.id));
+            .insert(tenantCertifiedAttributeInReadmodelTenant)
+            .values(certifiedAttributeSQL);
+        }
 
-          await tx.insert(tenantInReadmodelTenant).values(tenantSQL);
+        for (const declaredAttributeSQL of declaredAttributesSQL) {
+          await tx
+            .insert(tenantDeclaredAttributeInReadmodelTenant)
+            .values(declaredAttributeSQL);
+        }
 
-          for (const mailSQL of mailsSQL) {
-            await tx.insert(tenantMailInReadmodelTenant).values(mailSQL);
-          }
+        for (const verifiedAttributeSQL of verifiedAttributesSQL) {
+          await tx
+            .insert(tenantVerifiedAttributeInReadmodelTenant)
+            .values(verifiedAttributeSQL);
+        }
 
-          for (const certifiedAttributeSQL of certifiedAttributesSQL) {
-            await tx
-              .insert(tenantCertifiedAttributeInReadmodelTenant)
-              .values(certifiedAttributeSQL);
-          }
+        for (const verifierSQL of verifiedAttributeVerifiersSQL) {
+          await tx
+            .insert(tenantVerifiedAttributeVerifierInReadmodelTenant)
+            .values(verifierSQL);
+        }
 
-          for (const declaredAttributeSQL of declaredAttributesSQL) {
-            await tx
-              .insert(tenantDeclaredAttributeInReadmodelTenant)
-              .values(declaredAttributeSQL);
-          }
+        for (const revokerSQL of verifiedAttributeRevokersSQL) {
+          await tx
+            .insert(tenantVerifiedAttributeRevokerInReadmodelTenant)
+            .values(revokerSQL);
+        }
 
-          for (const verifiedAttributeSQL of verifiedAttributesSQL) {
-            await tx
-              .insert(tenantVerifiedAttributeInReadmodelTenant)
-              .values(verifiedAttributeSQL);
-          }
-
-          for (const verifierSQL of verifiedAttributeVerifiersSQL) {
-            await tx
-              .insert(tenantVerifiedAttributeVerifierInReadmodelTenant)
-              .values(verifierSQL);
-          }
-
-          for (const revokerSQL of verifiedAttributeRevokersSQL) {
-            await tx
-              .insert(tenantVerifiedAttributeRevokerInReadmodelTenant)
-              .values(revokerSQL);
-          }
-
-          for (const featureSQL of featuresSQL) {
-            await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
-          }
+        for (const featureSQL of featuresSQL) {
+          await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
         }
       });
     },
