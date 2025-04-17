@@ -11,6 +11,7 @@ import {
   TenantId,
   TokenGenerationStatesClientKidPK,
   TokenGenerationStatesClientKidPurposePK,
+  UserId,
 } from "../brandedIds.js";
 import { ItemState } from "./platform-states-entry.js";
 import { clientKindTokenGenStates } from "./commons.js";
@@ -61,6 +62,7 @@ export const TokenGenerationStatesApiClient =
     PK: TokenGenerationStatesClientKidPK,
     clientKind: z.literal(clientKindTokenGenStates.api),
     consumerId: TenantId,
+    adminId: UserId.optional(),
   });
 export type TokenGenerationStatesApiClient = z.infer<
   typeof TokenGenerationStatesApiClient
