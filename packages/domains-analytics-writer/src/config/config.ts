@@ -79,10 +79,7 @@ export type DomainsAnalyticsWriterConfig = z.infer<
 >;
 
 export const config: DomainsAnalyticsWriterConfig =
-  DomainsAnalyticsWriterConfig.parse({
-    ...process.env,
-    ...readModelSetupEnv,
-  });
+  DomainsAnalyticsWriterConfig.parse(process.env);
 
 export const baseConsumerConfig: KafkaConsumerConfig =
   KafkaConsumerConfig.parse(process.env);
