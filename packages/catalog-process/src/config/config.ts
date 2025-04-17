@@ -6,6 +6,7 @@ import {
   S3Config,
   FeatureFlagsConfig,
   ApplicationAuditProducerConfig,
+  SQSProducerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -39,7 +40,8 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   )
   .and(EServiceTemplateS3Config)
-  .and(ApplicationAuditProducerConfig);
+  .and(ApplicationAuditProducerConfig)
+  .and(SQSProducerConfig);
 
 export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 

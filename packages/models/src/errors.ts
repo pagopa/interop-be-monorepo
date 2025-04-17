@@ -245,6 +245,10 @@ const errorCodes = {
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
   notAllowedMultipleKeysException: "10019",
+  kafkaApplicationAuditingFailed: "10020",
+  fallbackApplicationAuditFailed: "10021",
+  invalidSqsMessage: "10022",
+  decodeSQSMessageError: "10023",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -274,6 +278,44 @@ export function missingKafkaMessageDataError(
   return new InternalError({
     code: "missingKafkaMessageData",
     detail: `"Invalid message: missing data '${dataName}' in ${eventType} event"`,
+  });
+}
+
+export function kafkaApplicationAuditingFailed(): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "kafkaApplicationAuditingFailed",
+    detail: "Kafka application auditing failed",
+  });
+}
+
+export function fallbackApplicationAuditFailed(): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "fallbackApplicationAuditFailed",
+    detail: `Fallback application audit failed`,
+  });
+}
+
+export function invalidSqsMessage(
+  messageId: string | undefined,
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "invalidSqsMessage",
+    detail: `Error while validating SQS message for id ${messageId}: ${parseErrorMessage(
+      error
+    )}`,
+  });
+}
+
+export function decodeSQSMessageError(
+  messageId: string | undefined,
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    detail: `Failed to decode SQS ApplicationAuditEvent message with MessageId: ${messageId}. Error details: ${JSON.stringify(
+      error
+    )}`,
+    code: "decodeSQSMessageError",
   });
 }
 

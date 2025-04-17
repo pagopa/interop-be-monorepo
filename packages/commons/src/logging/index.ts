@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import winston from "winston";
-import { CorrelationId } from "pagopa-interop-models";
+import { CorrelationId, SpanId } from "pagopa-interop-models";
 import { LoggerConfig } from "../config/loggerConfig.js";
 import { bigIntReplacer } from "./utils.js";
 
@@ -9,6 +9,7 @@ export type LoggerMetadata = {
   userId?: string;
   organizationId?: string;
   correlationId?: CorrelationId | null;
+  spanId?: SpanId | null;
   eventType?: string;
   eventVersion?: number;
   streamId?: string;
@@ -31,6 +32,7 @@ const logFormat = (
     userId,
     organizationId,
     correlationId,
+    spanId,
     eventType,
     eventVersion,
     streamId,
@@ -45,6 +47,7 @@ const logFormat = (
   const correlationLogPart = correlationId
     ? `[CID=${correlationId}]`
     : undefined;
+  const spanIdLogPart = spanId ? `[SPNID=${spanId}]` : undefined;
   const eventTypePart = eventType ? `[ET=${eventType}]` : undefined;
   const eventVersionPart = eventVersion ? `[EV=${eventVersion}]` : undefined;
   const streamVersionPart = streamVersion ? `[SV=${streamVersion}]` : undefined;
@@ -58,6 +61,7 @@ const logFormat = (
     userLogPart,
     organizationLogPart,
     correlationLogPart,
+    spanIdLogPart,
     eventTypePart,
     eventVersionPart,
     streamVersionPart,

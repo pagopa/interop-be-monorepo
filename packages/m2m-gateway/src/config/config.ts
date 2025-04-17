@@ -3,6 +3,7 @@ import {
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
   RedisRateLimiterConfig,
+  SQSProducerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -113,7 +114,8 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(DelegationProcessServerConfig)
   .and(EServiceTemplateProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
-  .and(InterfaceVersion);
+  .and(InterfaceVersion)
+  .and(SQSProducerConfig);
 
 export type M2MGatewayConfig = z.infer<typeof M2MGatewayConfig>;
 export const config: M2MGatewayConfig = M2MGatewayConfig.parse(process.env);
