@@ -347,7 +347,7 @@ export function readModelServiceBuilder(
       const templatesIdsFilter =
         templatesIds.length > 0
           ? {
-              "data.templateRef.id": { $in: templatesIds },
+              "data.templateId": { $in: templatesIds },
             }
           : {};
 

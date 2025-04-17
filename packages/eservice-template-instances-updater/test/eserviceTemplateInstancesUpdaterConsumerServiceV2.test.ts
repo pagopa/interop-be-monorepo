@@ -76,15 +76,15 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
   const eserviceTemplate = getMockEServiceTemplate();
   const instanceToUpdate1: EService = {
     ...getMockEService(),
-    templateRef: { id: eserviceTemplate.id },
+    templateId: eserviceTemplate.id,
   };
   const instanceToUpdate2: EService = {
     ...getMockEService(),
-    templateRef: { id: eserviceTemplate.id },
+    templateId: eserviceTemplate.id,
   };
   const instanceToUpdate3: EService = {
     ...getMockEService(),
-    templateRef: { id: eserviceTemplate.id },
+    templateId: eserviceTemplate.id,
   };
 
   const testHeaders = {
@@ -278,17 +278,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
 
     const payload: EServiceTemplateVersionAttributesUpdatedV2 = {
@@ -390,17 +390,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
 
     const payload: EServiceTemplateVersionQuotasUpdatedV2 = {
@@ -518,17 +518,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
 
     const payload: EServiceTemplateVersionDocumentAddedV2 = {
@@ -653,17 +653,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
 
     const payload: EServiceTemplateVersionDocumentUpdatedV2 = {
@@ -779,17 +779,17 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance1],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance2],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       descriptors: [descriptorInstance3],
-      templateRef: { id: eserviceTemplate.id },
+      templateId: eserviceTemplate.id,
     };
 
     const payload: EServiceTemplateVersionDocumentDeletedV2 = {

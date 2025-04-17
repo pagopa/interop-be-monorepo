@@ -16,7 +16,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateRefInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import {
@@ -41,79 +40,74 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           eservice.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(eserviceInReadmodelCatalog)
+          .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
+
+        const {
+          eserviceSQL,
+          riskAnalysesSQL,
+          riskAnalysisAnswersSQL,
+          descriptorsSQL,
+          attributesSQL,
+          interfacesSQL,
+          documentsSQL,
+          rejectionReasonsSQL,
+          templateVersionRefsSQL,
+        } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
+
+        await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
+
+        for (const descriptorSQL of descriptorsSQL) {
           await tx
-            .delete(eserviceInReadmodelCatalog)
-            .where(eq(eserviceInReadmodelCatalog.id, eservice.id));
+            .insert(eserviceDescriptorInReadmodelCatalog)
+            .values(descriptorSQL);
+        }
 
-          const {
-            eserviceSQL,
-            riskAnalysesSQL,
-            riskAnalysisAnswersSQL,
-            descriptorsSQL,
-            attributesSQL,
-            interfacesSQL,
-            documentsSQL,
-            rejectionReasonsSQL,
-            templateRefSQL,
-            templateVersionRefsSQL,
-          } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
+        for (const interfaceSQL of interfacesSQL) {
+          await tx
+            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .values(interfaceSQL);
+        }
 
-          await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
+        for (const docSQL of documentsSQL) {
+          await tx
+            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+            .values(docSQL);
+        }
 
-          for (const descriptorSQL of descriptorsSQL) {
-            await tx
-              .insert(eserviceDescriptorInReadmodelCatalog)
-              .values(descriptorSQL);
-          }
+        for (const attributeSQL of attributesSQL) {
+          await tx
+            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+            .values(attributeSQL);
+        }
 
-          for (const interfaceSQL of interfacesSQL) {
-            await tx
-              .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-              .values(interfaceSQL);
-          }
+        for (const riskAnalysisSQL of riskAnalysesSQL) {
+          await tx
+            .insert(eserviceRiskAnalysisInReadmodelCatalog)
+            .values(riskAnalysisSQL);
+        }
 
-          for (const docSQL of documentsSQL) {
-            await tx
-              .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-              .values(docSQL);
-          }
+        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+          await tx
+            .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+            .values(riskAnalysisAnswerSQL);
+        }
 
-          for (const attributeSQL of attributesSQL) {
-            await tx
-              .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-              .values(attributeSQL);
-          }
+        for (const rejectionReasonSQL of rejectionReasonsSQL) {
+          await tx
+            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+            .values(rejectionReasonSQL);
+        }
 
-          for (const riskAnalysisSQL of riskAnalysesSQL) {
-            await tx
-              .insert(eserviceRiskAnalysisInReadmodelCatalog)
-              .values(riskAnalysisSQL);
-          }
-
-          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
-            await tx
-              .insert(eserviceRiskAnalysisAnswerInReadmodelCatalog)
-              .values(riskAnalysisAnswerSQL);
-          }
-
-          for (const rejectionReasonSQL of rejectionReasonsSQL) {
-            await tx
-              .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-              .values(rejectionReasonSQL);
-          }
-
-          if (templateRefSQL) {
-            await tx
-              .insert(eserviceTemplateRefInReadmodelCatalog)
-              .values(templateRefSQL);
-          }
-
-          for (const templateVersionRefSQL of templateVersionRefsSQL) {
-            await tx
-              .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
-              .values(templateVersionRefSQL);
-          }
+        for (const templateVersionRefSQL of templateVersionRefsSQL) {
+          await tx
+            .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+            .values(templateVersionRefSQL);
         }
       });
     },
@@ -137,7 +131,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
                       descriptor ->5 rejection reason
                       descriptor ->6 template version ref
                   ->7 risk analysis ->8 answers
-                  ->9 template ref
       */
       const queryResult = await db
         .select({
@@ -149,7 +142,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateRef: eserviceTemplateRefInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
         })
@@ -217,14 +209,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 9
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         );
 
