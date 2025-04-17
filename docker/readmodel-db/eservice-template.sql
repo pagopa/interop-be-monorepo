@@ -8,11 +8,13 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template (
   intended_target VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   technology VARCHAR NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  mode VARCHAR NOT NULL,
-  is_signal_hub_enabled BOOLEAN,
-  PRIMARY KEY (id),
-  CONSTRAINT eservice_template_id_metadata_version_unique UNIQUE (id, metadata_version)
+  created_at TIMESTAMP
+  WITH
+    TIME ZONE NOT NULL,
+    mode VARCHAR NOT NULL,
+    is_signal_hub_enabled BOOLEAN,
+    PRIMARY KEY (id),
+    CONSTRAINT eservice_template_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version (
@@ -26,12 +28,20 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   daily_calls_per_consumer INTEGER,
   daily_calls_total INTEGER,
   agreement_approval_policy VARCHAR,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  published_at TIMESTAMP WITH TIME ZONE,
-  suspended_at TIMESTAMP WITH TIME ZONE,
-  deprecated_at TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (id),
-  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version)
+  created_at TIMESTAMP
+  WITH
+    TIME ZONE NOT NULL,
+    published_at TIMESTAMP
+  WITH
+    TIME ZONE,
+    suspended_at TIMESTAMP
+  WITH
+    TIME ZONE,
+    deprecated_at TIMESTAMP
+  WITH
+    TIME ZONE,
+    PRIMARY KEY (id),
+    FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version_interface (
@@ -44,9 +54,11 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   pretty_name VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   checksum VARCHAR NOT NULL,
-  upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version)
+  upload_date TIMESTAMP
+  WITH
+    TIME ZONE NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version_document (
@@ -59,9 +71,11 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   pretty_name VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   checksum VARCHAR NOT NULL,
-  upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version)
+  upload_date TIMESTAMP
+  WITH
+    TIME ZONE NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version_attribute (
@@ -73,7 +87,7 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
   PRIMARY KEY (attribute_id, version_id, group_id),
-  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version)
+  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_analysis (
@@ -81,11 +95,13 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_an
   eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  risk_analysis_form_id UUID UNIQUE NOT NULL,
-  risk_analysis_form_version VARCHAR NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version)
+  created_at TIMESTAMP
+  WITH
+    TIME ZONE NOT NULL,
+    risk_analysis_form_id UUID UNIQUE NOT NULL,
+    risk_analysis_form_version VARCHAR NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_analysis_answer (
@@ -97,5 +113,5 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_an
   key VARCHAR NOT NULL,
   value VARCHAR ARRAY NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version)
+  FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
