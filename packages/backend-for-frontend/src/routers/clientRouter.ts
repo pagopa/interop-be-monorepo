@@ -182,6 +182,27 @@ const clientRouter = (
       }
     })
 
+    .post("/clients/:clientId/admin", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const client = await clientService.addAdminToClient(
+          req.body.adminId,
+          req.params.clientId,
+          ctx
+        );
+
+        return res.status(200).send(bffApi.Client.parse(client));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding admin ${req.body.adminId} to client ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
     .delete("/clients/:clientId/users/:userId", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
