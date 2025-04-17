@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Key management microservice
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/authorization-management/{{version}}"
+  - url: "/authorization-management/v1"
     description: This contains key management routes
 tags:
   - name: key
@@ -24,6 +24,8 @@ tags:
     description: Operations about token generation
   - name: health
     description: Operations about service status
+  - name: purpose
+    description: Purpose
 security:
   - bearerAuth: []
 paths:
@@ -38,7 +40,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 
@@ -71,7 +73,7 @@ paths:
         "404":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -115,7 +117,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients":
@@ -136,13 +138,13 @@ paths:
         "400":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Client already exists
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -168,7 +170,7 @@ paths:
         "400":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Lists Clients
@@ -240,7 +242,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -262,7 +264,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/users":
@@ -291,7 +293,7 @@ paths:
         "404":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -332,7 +334,7 @@ paths:
         "404":
           description: Client or User not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/keys":
@@ -353,13 +355,13 @@ paths:
         "400":
           description: Missing Required Information
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Client id not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -402,7 +404,7 @@ paths:
         "404":
           description: Client id not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/keys/{keyId}":
@@ -438,7 +440,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -467,7 +469,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/purposes":
@@ -503,7 +505,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/purposes/{purposeId}":
@@ -540,7 +542,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -570,7 +572,7 @@ paths:
         "404":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /bulk/eservices/{eserviceId}/state:
@@ -602,7 +604,7 @@ paths:
         "400":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /bulk/agreements/eserviceId/{eserviceId}/consumerId/{consumerId}/state:
@@ -641,7 +643,7 @@ paths:
         "400":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /bulk/agreements/eservices/eserviceId/{eserviceId}/consumerId/{consumerId}/state:
@@ -680,7 +682,7 @@ paths:
         "400":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /bulk/purposes/{purposeId}/state:
@@ -712,7 +714,7 @@ paths:
         "400":
           description: Client not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
