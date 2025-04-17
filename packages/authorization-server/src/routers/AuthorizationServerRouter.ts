@@ -73,7 +73,7 @@ const authorizationServerRouter = (
 
         if (tokenResult.limitReached) {
           const errorRes = makeApiProblem(
-            tooManyRequestsError(tokenResult.tenantId),
+            tooManyRequestsError(tokenResult.rateLimitedTenantId),
             authorizationServerErrorMapper,
             ctx
           );
