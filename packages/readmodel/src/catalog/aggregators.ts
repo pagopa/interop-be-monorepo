@@ -76,8 +76,8 @@ export const aggregateDescriptor = ({
 
   const {
     certified: certifiedAttributesSQL,
-    verified: declaredAttributesSQL,
-    declared: verifiedAttributesSQL,
+    verified: verifiedAttributesSQL,
+    declared: declaredAttributesSQL,
   } = attributesSQL.reduce(
     (acc, attributeSQL) =>
       match(AttributeKind.parse(attributeSQL.kind))
