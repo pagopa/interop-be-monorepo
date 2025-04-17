@@ -42,6 +42,7 @@ import {
 } from "pagopa-interop-api-clients";
 
 import {
+  clientAdminAlreadyAssignedToUser,
   clientKeyNotFound,
   clientNotFound,
   clientUserAlreadyAssigned,
@@ -67,6 +68,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminSet,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -560,6 +562,41 @@ export function authorizationServiceBuilder(
         client: updatedClient,
         showUsers: true,
       };
+    },
+    async addAdminToClient(
+      {
+        clientId,
+        adminId,
+      }: {
+        clientId: ClientId;
+        adminId: UserId;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<Client> {
+      logger.info(`Add or update admin in client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+      assertOrganizationIsClientConsumer(authData, client.data);
+
+      const oldAdminId = client.data.adminId;
+      if (oldAdminId && oldAdminId === adminId) {
+        throw clientAdminAlreadyAssignedToUser(clientId, adminId);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminSet(
+          adminId,
+          updatedClient,
+          client.metadata.version,
+          correlationId,
+          oldAdminId
+        )
+      );
+      return updatedClient;
     },
     async getClientKeys(
       {

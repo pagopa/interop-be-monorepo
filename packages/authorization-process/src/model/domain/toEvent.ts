@@ -133,6 +133,45 @@ export function toCreateEventClientUserAdded(
   };
 }
 
+export function toCreateEventClientAdminSet(
+  adminId: UserId,
+  client: Client,
+  version: number,
+  correlationId: CorrelationId,
+  oldAdminId: UserId | undefined
+): CreateEvent<AuthorizationEventV2> {
+  if (oldAdminId) {
+    return {
+      streamId: client.id,
+      version,
+      event: {
+        type: "ClientAdminSet",
+        event_version: 2,
+        data: {
+          client: toClientV2(client),
+          adminId,
+          oldAdminId,
+        },
+      },
+      correlationId,
+    };
+  }
+
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientAdminSet",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        adminId,
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventClientPurposeAdded(
   purposeId: PurposeId,
   client: Client,

@@ -45,6 +45,7 @@ export const errorCodes = {
   eserviceNotDelegableForClientAccess: "0030",
   clientKindNotAllowed: "0031",
   securityUserNotMember: "0032",
+  clientAdminAlreadyAssignedToUser: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -130,6 +131,17 @@ export function clientUserAlreadyAssigned(
     detail: `User ${userId} is already assigned to the client ${clientId}`,
     code: "clientUserAlreadyAssigned",
     title: "User already assigned to the client",
+  });
+}
+
+export function clientAdminAlreadyAssignedToUser(
+  clientId: ClientId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is already assigned as admin to the client ${clientId}`,
+    code: "clientAdminAlreadyAssignedToUser",
+    title: "User already assigned as admin to the client",
   });
 }
 

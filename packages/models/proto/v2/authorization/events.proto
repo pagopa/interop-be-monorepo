@@ -34,6 +34,12 @@ message ClientUserDeletedV2 {
   ClientV2 client = 2;
 }
 
+message ClientAdminSetV2 {
+  string adminId = 1;
+  ClientV2 client = 2;
+  optional string oldAdminId = 3;
+}
+
 message ClientPurposeAddedV2 {
   string purposeId = 1;
   ClientV2 client = 2;
