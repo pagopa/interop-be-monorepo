@@ -373,6 +373,7 @@ export const getMockClient = (): Client => ({
   purposes: [],
   description: "Client description",
   users: [],
+  adminId: generateId<UserId>(),
   kind: clientKind.consumer,
   createdAt: new Date(),
   keys: [],
