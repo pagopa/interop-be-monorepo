@@ -5,6 +5,8 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  validateAuthorization,
+  authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
@@ -16,18 +18,21 @@ const tenantRouter = (
   ctx: ZodiosContext,
   clients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const { M2M_ROLE } = authRole;
   const tenantRouter = ctx.router(m2mGatewayApi.tenantsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
   const tenantService = tenantServiceBuilder(clients);
-  void tenantService;
 
   tenantRouter
     .get("/tenants", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE]);
+        const tenants = await tenantService.getTenants(ctx, req.query);
+
+        return res.status(200).send(m2mGatewayApi.Tenants.parse(tenants));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
