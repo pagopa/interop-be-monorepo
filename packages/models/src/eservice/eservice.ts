@@ -127,13 +127,6 @@ export const EServiceMode = z.enum([
 ]);
 export type EServiceMode = z.infer<typeof EServiceMode>;
 
-export const EServiceTemplateRef = z.object({
-  id: EServiceTemplateId,
-  instanceLabel: z.string().optional(),
-});
-
-export type EServiceTemplateRef = z.infer<typeof EServiceTemplateRef>;
-
 export const EService = z.object({
   id: EServiceId,
   producerId: TenantId,
@@ -148,7 +141,7 @@ export const EService = z.object({
   isSignalHubEnabled: z.boolean().optional(),
   isConsumerDelegable: z.boolean().optional(),
   isClientAccessDelegable: z.boolean().optional(),
-  templateRef: EServiceTemplateRef.optional(),
+  templateId: EServiceTemplateId.optional(),
 });
 
 export type EService = z.infer<typeof EService>;
