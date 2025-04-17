@@ -9,6 +9,7 @@ import {
   ZodiosContext,
   authRole,
   fromAppContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -124,9 +125,7 @@ const delegationRouter = (
           ctx
         );
 
-        res.set({
-          "X-Metadata-Version": metadata.version,
-        });
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -194,19 +193,20 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const delegation = await delegationService.createProducerDelegation(
-          {
-            delegateId: unsafeBrandId<TenantId>(req.body.delegateId),
-            eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
-          },
-          ctx
-        );
+        const { data, metadata } =
+          await delegationService.createProducerDelegation(
+            {
+              delegateId: unsafeBrandId<TenantId>(req.body.delegateId),
+              eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .json(
-            delegationApi.Delegation.parse(
-              delegationToApiDelegation(delegation)
-            )
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -301,20 +301,20 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const delegation = await delegationService.createConsumerDelegation(
-          {
-            delegateId: unsafeBrandId<TenantId>(req.body.delegateId),
-            eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
-          },
-          ctx
-        );
+        const { data, metadata } =
+          await delegationService.createConsumerDelegation(
+            {
+              delegateId: unsafeBrandId<TenantId>(req.body.delegateId),
+              eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+            },
+            ctx
+          );
 
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .json(
-            delegationApi.Delegation.parse(
-              delegationToApiDelegation(delegation)
-            )
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(

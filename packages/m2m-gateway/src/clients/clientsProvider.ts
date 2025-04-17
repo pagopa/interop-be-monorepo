@@ -9,11 +9,8 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
-import { zodiosMetadataPlugin } from "../utils/zodiosMetadataPlugin.js";
-import {
-  PatchZodiosClient,
-  patchZodiosClient,
-} from "../utils/zodiosMetadataPlugin.js";
+import { createZodiosClientEnhancedWithMetadata } from "./zodiosWithMetadataPatch.js";
+import { ZodiosClientWithMetadata } from "./zodiosWithMetadataPatch.js";
 
 export type TenantProcessClient = {
   tenant: ReturnType<typeof tenantApi.createTenantApiClient>;
@@ -39,10 +36,10 @@ export type PurposeProcessClient = ReturnType<
 
 export type DelegationProcessClient = {
   producer: ReturnType<typeof delegationApi.createProducerApiClient>;
-  consumer: PatchZodiosClient<
+  consumer: ZodiosClientWithMetadata<
     ReturnType<typeof delegationApi.createConsumerApiClient>
   >;
-  delegation: PatchZodiosClient<
+  delegation: ZodiosClientWithMetadata<
     ReturnType<typeof delegationApi.createDelegationApiClient>
   >;
 };
@@ -72,15 +69,6 @@ export type PagoPAInteropBeClients = {
 };
 
 export function getInteropBeClients(): PagoPAInteropBeClients {
-  const consumerDelegationsClient = patchZodiosClient(
-    delegationApi.createConsumerApiClient(config.delegationProcessUrl)
-  );
-  consumerDelegationsClient.use(zodiosMetadataPlugin());
-
-  const delegationClient = patchZodiosClient(
-    delegationApi.createDelegationApiClient(config.delegationProcessUrl)
-  );
-  delegationClient.use(zodiosMetadataPlugin());
   return {
     tenantProcessClient: {
       tenant: tenantApi.createTenantApiClient(config.tenantProcessUrl),
@@ -113,8 +101,14 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       producer: delegationApi.createProducerApiClient(
         config.delegationProcessUrl
       ),
-      consumer: consumerDelegationsClient,
-      delegation: delegationClient,
+      consumer: createZodiosClientEnhancedWithMetadata(
+        delegationApi.createConsumerApiClient,
+        config.delegationProcessUrl
+      ),
+      delegation: createZodiosClientEnhancedWithMetadata(
+        delegationApi.createDelegationApiClient,
+        config.delegationProcessUrl
+      ),
     },
     eserviceTemplateProcessClient: eserviceTemplateApi.createProcessApiClient(
       config.eserviceTemplateProcessUrl

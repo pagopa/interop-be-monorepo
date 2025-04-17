@@ -1,7 +1,10 @@
 /* eslint-disable functional/no-let */
 import { isAxiosError } from "axios";
+import { WithMetadata } from "pagopa-interop-models";
 import { config } from "../config/config.js";
-import { WithMaybeMetadata } from "./zodiosMetadataPlugin.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { resourcePollingTimeout } from "../model/errors.js";
+import { assertMetadataExists } from "./validators/validators.js";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -15,40 +18,35 @@ function delay(ms: number): Promise<void> {
  * @returns Promise that resolves to the created/ready object
  */
 export function pollResource<T>(
-  fetchResource: () => Promise<WithMaybeMetadata<T>>
+  fetchResource: () => Promise<WithMaybeMetadata<NonNullable<T>>>
 ) {
   return async function poll({
     checkFn,
     maxAttempts = config.defaultPollingMaxAttempts,
     intervalMs = config.defaultPollingIntervalMs,
   }: {
-    checkFn: (resource: WithMaybeMetadata<T>) => boolean;
+    checkFn: (resource: WithMetadata<NonNullable<T>>) => boolean;
     maxAttempts?: number;
     intervalMs?: number;
-  }): Promise<WithMaybeMetadata<T>> {
+  }): Promise<WithMetadata<NonNullable<T>>> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      let resource: WithMaybeMetadata<T> | null = null;
-
       try {
-        resource = await fetchResource();
+        const resource = await fetchResource();
+        assertMetadataExists(resource);
+        if (checkFn(resource)) {
+          return resource;
+        }
       } catch (error: unknown) {
         // If the error isn't 404, rethrow it immediately
         if (!isAxiosError(error) || error.response?.status !== 404) {
           throw error;
         }
-        // If it's 404, we'll just let resource be null and continue
       }
 
-      // If resource is valid and meets our check, return it
-      if (resource && checkFn(resource)) {
-        return resource;
-      }
-
-      // If it's not valid or we got 404, wait before trying again
+      // If we got 404 or checkFn failed, wait for the specified interval before retrying
       await delay(intervalMs);
     }
 
-    // If we exhaust all attempts, throw a timeout error.
-    throw new Error(`Polling timed out after ${maxAttempts} attempts`);
+    throw resourcePollingTimeout(maxAttempts);
   };
 }

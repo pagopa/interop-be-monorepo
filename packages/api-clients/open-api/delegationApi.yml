@@ -283,7 +283,7 @@ paths:
       operationId: getDelegation
       responses:
         headers:
-          X-Metadata-Version:
+          x-metadata-version:
             description: The version number of the resource in the read model
             schema:
               type: integer
@@ -374,6 +374,11 @@ paths:
         description: Payload for delegation creation
         required: true
       responses:
+        headers:
+          x-metadata-version:
+            description: The version number of the resource in the read model
+            schema:
+              type: integer
         "200":
           description: Delegation created.
           content:
@@ -575,6 +580,11 @@ paths:
         description: Payload for delegation creation
         required: true
       responses:
+        headers:
+          x-metadata-version:
+            description: The version number of the resource in the read model
+            schema:
+              type: integer
         "200":
           description: Delegation created.
           content:

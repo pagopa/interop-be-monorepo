@@ -125,7 +125,7 @@ export function delegationServiceBuilder(
       kind: DelegationKind;
     },
     { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
-  ): Promise<Delegation> {
+  ): Promise<WithMetadata<Delegation>> {
     const delegatorId = authData.organizationId;
 
     logger.info(
@@ -195,7 +195,12 @@ export function delegationServiceBuilder(
         .exhaustive()
     );
 
-    return delegation;
+    return {
+      data: delegation,
+      metadata: {
+        version: 0,
+      },
+    };
   }
 
   async function approveDelegation(
@@ -490,7 +495,7 @@ export function delegationServiceBuilder(
         eserviceId: EServiceId;
       },
       ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Delegation> {
+    ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
           delegateId,
@@ -509,7 +514,7 @@ export function delegationServiceBuilder(
         eserviceId: EServiceId;
       },
       ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Delegation> {
+    ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
           delegateId,
