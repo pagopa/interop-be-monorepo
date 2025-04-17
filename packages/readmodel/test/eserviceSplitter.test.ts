@@ -11,7 +11,7 @@ import {
   attributeKind,
   Descriptor,
   EService,
-  EServiceTemplateRef,
+  EServiceTemplateId,
   EServiceTemplateVersionRef,
   generateId,
   tenantKind,
@@ -26,7 +26,6 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceTemplateRefSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitEserviceIntoObjectsSQL } from "../src/catalog/splitters.js";
 import { generateEServiceRiskAnalysisAnswersSQL } from "./eserviceUtils.js";
@@ -46,10 +45,8 @@ describe("E-service splitter", () => {
     const isSignalHubEnabled = true;
     const isClientAccessDelegable = true;
     const isConsumerDelegable = true;
-    const templateRef: EServiceTemplateRef = {
-      id: generateId(),
-      instanceLabel: "test instance label",
-    };
+    const templateId: EServiceTemplateId = generateId();
+
     const templateVersionRef: EServiceTemplateVersionRef = {
       id: generateId(),
       interfaceMetadata: {
@@ -86,7 +83,7 @@ describe("E-service splitter", () => {
       isSignalHubEnabled,
       isClientAccessDelegable,
       isConsumerDelegable,
-      templateRef,
+      templateId,
     };
 
     const {
@@ -98,7 +95,6 @@ describe("E-service splitter", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      templateRefSQL,
       templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
@@ -114,6 +110,7 @@ describe("E-service splitter", () => {
       isSignalHubEnabled,
       isClientAccessDelegable,
       isConsumerDelegable,
+      templateId,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -198,13 +195,6 @@ describe("E-service splitter", () => {
       rejectedAt: rejectionReason.rejectedAt.toISOString(),
     };
 
-    const expectedTemplateRefSQL: EServiceTemplateRefSQL = {
-      metadataVersion: 1,
-      eserviceId: eservice.id,
-      eserviceTemplateId: templateRef.id,
-      instanceLabel: templateRef.instanceLabel ?? null,
-    };
-
     const expectedTemplateVersionRef: EServiceDescriptorTemplateVersionRefSQL =
       {
         eserviceTemplateVersionId: templateVersionRef.id,
@@ -236,7 +226,6 @@ describe("E-service splitter", () => {
       expect.arrayContaining([expectedDocumentSQL])
     );
     expect(rejectionReasonsSQL).toStrictEqual([expectedRejectionReasonSQL]);
-    expect(templateRefSQL).toStrictEqual(expectedTemplateRefSQL);
     expect(templateVersionRefsSQL).toStrictEqual([expectedTemplateVersionRef]);
   });
 
@@ -281,7 +270,6 @@ describe("E-service splitter", () => {
       interfacesSQL,
       documentsSQL,
       rejectionReasonsSQL,
-      templateRefSQL,
       templateVersionRefsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
@@ -297,6 +285,7 @@ describe("E-service splitter", () => {
       isSignalHubEnabled: false,
       isClientAccessDelegable: null,
       isConsumerDelegable: null,
+      templateId: null,
     };
 
     const expectedRiskAnalysisSQL1: EServiceRiskAnalysisSQL = {
@@ -371,7 +360,6 @@ describe("E-service splitter", () => {
       expect.arrayContaining([expectedDocumentSQL])
     );
     expect(rejectionReasonsSQL).toHaveLength(0);
-    expect(templateRefSQL).toBeUndefined();
     expect(templateVersionRefsSQL).toHaveLength(0);
   });
 });

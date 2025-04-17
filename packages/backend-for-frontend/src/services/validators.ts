@@ -7,8 +7,8 @@ import {
 import {
   delegationKind,
   delegationState,
-  EService,
   EServiceId,
+  EServiceTemplateId,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -214,9 +214,10 @@ export function assertIsDraftEservice(eservice: catalogApi.EService): void {
 export function assertEServiceNotTemplateInstance(
   eservice: catalogApi.EService
 ): asserts eservice is catalogApi.EService & {
-  templateRef: NonNullable<EService["templateRef"]>;
+  templateId: EServiceTemplateId | undefined;
 } {
-  if (eservice.templateRef !== undefined) {
-    throw templateInstanceNotAllowed(eservice.id, eservice.templateRef.id);
+  const templateId = eservice.templateId;
+  if (templateId !== undefined) {
+    throw templateInstanceNotAllowed(eservice.id, templateId);
   }
 }
