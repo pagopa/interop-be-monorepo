@@ -473,12 +473,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -487,6 +481,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Missing Required Information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "422":
+          description: User already an admin for the client
           content:
             application/json:
               schema:
