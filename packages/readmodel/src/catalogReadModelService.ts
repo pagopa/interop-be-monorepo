@@ -11,7 +11,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateRefInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import {
@@ -50,7 +49,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
             interfacesSQL,
             documentsSQL,
             rejectionReasonsSQL,
-            templateRefSQL,
             templateVersionRefsSQL,
           } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
@@ -98,12 +96,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
               .values(rejectionReasonSQL);
           }
 
-          if (templateRefSQL) {
-            await tx
-              .insert(eserviceTemplateRefInReadmodelCatalog)
-              .values(templateRefSQL);
-          }
-
           for (const templateVersionRefSQL of templateVersionRefsSQL) {
             await tx
               .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
@@ -122,7 +114,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
                       descriptor ->5 rejection reason
                       descriptor ->6 template version ref
                   ->7 risk analysis ->8 answers
-                  ->9 template ref
       */
       const queryResult = await db
         .select({
@@ -134,7 +125,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateRef: eserviceTemplateRefInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
         })
@@ -202,14 +192,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 9
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         );
 

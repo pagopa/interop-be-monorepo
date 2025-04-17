@@ -70,9 +70,7 @@ describe("create descriptor", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [prevDescriptor],
-      templateRef: {
-        id: template.id,
-      },
+      templateId: template.id,
     };
 
     await addOneEServiceTemplate(template);
@@ -164,9 +162,7 @@ describe("create descriptor", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [prevDescriptor],
-      templateRef: {
-        id: template.id,
-      },
+      templateId: template.id,
     };
 
     const delegation = getMockDelegation({
@@ -267,9 +263,7 @@ describe("create descriptor", async () => {
       const eservice: EService = {
         ...getMockEService(),
         descriptors: [prevDescriptor],
-        templateRef: {
-          id: template.id,
-        },
+        templateId: template.id,
       };
 
       await addOneEServiceTemplate(template);
@@ -314,9 +308,7 @@ describe("create descriptor", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [prevDescriptor],
-      templateRef: {
-        id: template.id,
-      },
+      templateId: template.id,
     };
 
     await addOneEServiceTemplate(template);
@@ -359,9 +351,7 @@ describe("create descriptor", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [prevDescriptor],
-      templateRef: {
-        id: template.id,
-      },
+      templateId: template.id,
     };
 
     await addOneEService(eservice);
@@ -398,9 +388,7 @@ describe("create descriptor", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [prevDescriptor],
-      templateRef: {
-        id: template.id,
-      },
+      templateId: template.id,
     };
 
     const delegation = getMockDelegation({
@@ -444,9 +432,7 @@ describe("create descriptor", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [prevDescriptor],
-      templateRef: {
-        id: template.id,
-      },
+      templateId: template.id,
     };
 
     await addOneEService(eservice);

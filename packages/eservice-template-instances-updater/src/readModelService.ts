@@ -16,7 +16,7 @@ export function readModelServiceBuilder(
   ): Promise<EService[]> {
     const data = await eservices
       .find(
-        { "data.templateRef.id": eserviceTemplateId },
+        { "data.templateId": eserviceTemplateId },
         { projection: { data: true } }
       )
       .map((item) => item.data)
