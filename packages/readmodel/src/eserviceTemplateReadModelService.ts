@@ -37,7 +37,7 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           eserviceTemplate.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

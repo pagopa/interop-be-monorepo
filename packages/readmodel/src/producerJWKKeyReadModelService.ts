@@ -27,7 +27,7 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

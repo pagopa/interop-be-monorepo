@@ -79,7 +79,7 @@ export function customReadModelServiceBuilder(
           purposeId
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

@@ -23,7 +23,7 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

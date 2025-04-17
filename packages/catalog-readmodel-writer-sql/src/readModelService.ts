@@ -145,7 +145,7 @@ export function customReadModelServiceBuilder(
           document.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 
@@ -195,7 +195,7 @@ export function customReadModelServiceBuilder(
           descriptorInterface.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 
@@ -313,7 +313,7 @@ export function customReadModelServiceBuilder(
           descriptor.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

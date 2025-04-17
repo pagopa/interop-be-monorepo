@@ -39,7 +39,7 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           tenant.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

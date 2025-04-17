@@ -35,7 +35,7 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           eservice.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

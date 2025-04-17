@@ -28,7 +28,7 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
           delegation.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

@@ -38,7 +38,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           agreement.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

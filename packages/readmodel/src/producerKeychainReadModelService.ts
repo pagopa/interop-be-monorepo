@@ -33,7 +33,7 @@ export function producerKeychainReadModelServiceBuilder(db: DrizzleReturnType) {
           producerKeychain.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

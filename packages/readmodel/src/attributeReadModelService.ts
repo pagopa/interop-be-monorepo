@@ -23,7 +23,7 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
           attribute.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

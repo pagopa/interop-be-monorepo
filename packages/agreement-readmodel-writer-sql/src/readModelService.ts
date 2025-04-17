@@ -92,7 +92,7 @@ export function readModelServiceBuilder(
           doc.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 
@@ -160,7 +160,7 @@ export function readModelServiceBuilder(
           contract.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

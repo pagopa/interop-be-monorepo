@@ -30,7 +30,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           purpose.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 

@@ -26,7 +26,7 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
           client.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
           return;
         }
 
