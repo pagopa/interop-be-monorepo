@@ -1,0 +1,29 @@
+import { logger, Message } from "pagopa-interop-commons";
+import { initProducer } from "kafka-iam-auth";
+import { config } from "../config/config.js";
+import { decodeSQSMessage } from "../models/queue.js";
+
+export function handleMessage(
+  producer: Awaited<ReturnType<typeof initProducer>>
+) {
+  return async function processMessage(message: Message): Promise<void> {
+    const decodedMessage = decodeSQSMessage(message);
+
+    const loggerInstance = logger({
+      serviceName: config.serviceName,
+      spanId: decodedMessage.spanId,
+      correlationId: decodedMessage.correlationId,
+    });
+
+    await producer.send({
+      messages: [
+        {
+          key: decodedMessage.correlationId,
+          value: JSON.stringify(decodedMessage),
+        },
+      ],
+    });
+
+    loggerInstance.info("Application audit sent to Kafka queue successfully");
+  };
+}
