@@ -203,7 +203,6 @@ export const aggregateEServiceTemplateArray = ({
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
-  // templateBindingSQL: EServiceTemplateBindingSQL[];
 }): Array<WithMetadata<EServiceTemplate>> =>
   eserviceTemplatesSQL.map((eserviceTemplateSQL) =>
     aggregateEServiceTemplate({

@@ -40,76 +40,72 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           eserviceTemplate.id
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(eserviceTemplateInReadmodelEserviceTemplate)
-            .where(
-              eq(
-                eserviceTemplateInReadmodelEserviceTemplate.id,
-                eserviceTemplate.id
-              )
-            );
+        if (!shouldUpsert) {
+          return;
+        }
 
-          const {
-            eserviceTemplateSQL,
-            riskAnalysesSQL,
-            riskAnalysisAnswersSQL,
-            versionsSQL,
-            attributesSQL,
-            interfacesSQL,
-            documentsSQL,
-          } = splitEServiceTemplateIntoObjectsSQL(
-            eserviceTemplate,
-            metadataVersion
+        await tx
+          .delete(eserviceTemplateInReadmodelEserviceTemplate)
+          .where(
+            eq(
+              eserviceTemplateInReadmodelEserviceTemplate.id,
+              eserviceTemplate.id
+            )
           );
 
+        const {
+          eserviceTemplateSQL,
+          riskAnalysesSQL,
+          riskAnalysisAnswersSQL,
+          versionsSQL,
+          attributesSQL,
+          interfacesSQL,
+          documentsSQL,
+        } = splitEServiceTemplateIntoObjectsSQL(
+          eserviceTemplate,
+          metadataVersion
+        );
+
+        await tx
+          .insert(eserviceTemplateInReadmodelEserviceTemplate)
+          .values(eserviceTemplateSQL);
+
+        for (const versionSQL of versionsSQL) {
           await tx
-            .insert(eserviceTemplateInReadmodelEserviceTemplate)
-            .values(eserviceTemplateSQL);
+            .insert(eserviceTemplateVersionInReadmodelEserviceTemplate)
+            .values(versionSQL);
+        }
 
-          for (const versionSQL of versionsSQL) {
-            await tx
-              .insert(eserviceTemplateVersionInReadmodelEserviceTemplate)
-              .values(versionSQL);
-          }
+        for (const interfaceSQL of interfacesSQL) {
+          await tx
+            .insert(eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate)
+            .values(interfaceSQL);
+        }
 
-          for (const interfaceSQL of interfacesSQL) {
-            await tx
-              .insert(
-                eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate
-              )
-              .values(interfaceSQL);
-          }
+        for (const docSQL of documentsSQL) {
+          await tx
+            .insert(eserviceTemplateVersionDocumentInReadmodelEserviceTemplate)
+            .values(docSQL);
+        }
 
-          for (const docSQL of documentsSQL) {
-            await tx
-              .insert(
-                eserviceTemplateVersionDocumentInReadmodelEserviceTemplate
-              )
-              .values(docSQL);
-          }
+        for (const attributeSQL of attributesSQL) {
+          await tx
+            .insert(eserviceTemplateVersionAttributeInReadmodelEserviceTemplate)
+            .values(attributeSQL);
+        }
 
-          for (const attributeSQL of attributesSQL) {
-            await tx
-              .insert(
-                eserviceTemplateVersionAttributeInReadmodelEserviceTemplate
-              )
-              .values(attributeSQL);
-          }
+        for (const riskAnalysisSQL of riskAnalysesSQL) {
+          await tx
+            .insert(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate)
+            .values(riskAnalysisSQL);
+        }
 
-          for (const riskAnalysisSQL of riskAnalysesSQL) {
-            await tx
-              .insert(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate)
-              .values(riskAnalysisSQL);
-          }
-
-          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
-            await tx
-              .insert(
-                eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate
-              )
-              .values(riskAnalysisAnswerSQL);
-          }
+        for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+          await tx
+            .insert(
+              eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate
+            )
+            .values(riskAnalysisAnswerSQL);
         }
       });
     },

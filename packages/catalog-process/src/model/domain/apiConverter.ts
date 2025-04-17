@@ -205,5 +205,5 @@ export const eServiceToApiEService = (
   isSignalHubEnabled: eservice.isSignalHubEnabled,
   isConsumerDelegable: eservice.isConsumerDelegable,
   isClientAccessDelegable: eservice.isClientAccessDelegable,
-  templateRef: eservice.templateRef,
+  templateId: eservice.templateId,
 });

@@ -127,7 +127,7 @@ export function readModelServiceBuilderSQL({
       const subquery = readModelDB
         .select({
           delegationId: delegationInReadmodelDelegation.id,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(delegationInReadmodelDelegation)
         .where(
@@ -188,7 +188,7 @@ export function readModelServiceBuilderSQL({
         results: aggregateDelegationArray(
           toDelegationAggregatorArray(queryResult)
         ).map((d) => d.data),
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getConsumerDelegators(filters: {
@@ -202,7 +202,7 @@ export function readModelServiceBuilderSQL({
         .select({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
         .innerJoin(
@@ -258,7 +258,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: result.data,
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getConsumerDelegatorsWithAgreements(filters: {
@@ -271,7 +271,7 @@ export function readModelServiceBuilderSQL({
         .select({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
         .innerJoin(
@@ -345,7 +345,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: result.data,
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getConsumerEservices(filters: {
@@ -360,7 +360,7 @@ export function readModelServiceBuilderSQL({
           id: eserviceInReadmodelCatalog.id,
           name: eserviceInReadmodelCatalog.name,
           producerId: eserviceInReadmodelCatalog.producerId,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
@@ -432,7 +432,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: result.data,
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getDelegationRelatedAgreement(
