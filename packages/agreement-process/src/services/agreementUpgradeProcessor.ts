@@ -2,7 +2,7 @@ import {
   FileManager,
   Logger,
   CreateEvent,
-  AuthData,
+  UIAuthData,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -56,7 +56,7 @@ export async function createUpgradeOrNewDraft({
   readModelService: ReadModelService;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
-  authData: AuthData;
+  authData: UIAuthData;
   activeDelegations: ActiveDelegations;
   contractBuilder: ContractBuilder;
   correlationId: CorrelationId;

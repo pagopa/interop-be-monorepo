@@ -3,10 +3,8 @@ import {
   AgreementEventEnvelopeV1,
   fromAgreementV1,
   genericInternalError,
-  AgreementId,
   unsafeBrandId,
   fromAgreementDocumentV1,
-  AgreementDocumentId,
 } from "pagopa-interop-models";
 import { ReadModelService } from "./readModelService.js";
 
@@ -38,7 +36,7 @@ export async function handleMessageV1(
     )
     .with({ type: "AgreementDeleted" }, async (msg) => {
       await readModelService.deleteAgreementById(
-        unsafeBrandId<AgreementId>(msg.data.agreementId),
+        unsafeBrandId(msg.data.agreementId),
         msg.version
       );
     })
@@ -51,14 +49,14 @@ export async function handleMessageV1(
       }
       await readModelService.upsertConsumerDocument(
         fromAgreementDocumentV1(consumerDocV1),
-        unsafeBrandId<AgreementId>(msg.data.agreementId),
+        unsafeBrandId(msg.data.agreementId),
         msg.version
       );
     })
     .with({ type: "AgreementConsumerDocumentRemoved" }, async (msg) => {
       await readModelService.deleteConsumerDocument(
-        unsafeBrandId<AgreementId>(msg.data.agreementId),
-        unsafeBrandId<AgreementDocumentId>(msg.data.documentId),
+        unsafeBrandId(msg.data.agreementId),
+        unsafeBrandId(msg.data.documentId),
         msg.version
       );
     })
@@ -71,7 +69,7 @@ export async function handleMessageV1(
       }
       await readModelService.upsertContractDocument(
         fromAgreementDocumentV1(contractV1),
-        unsafeBrandId<AgreementId>(msg.data.agreementId),
+        unsafeBrandId(msg.data.agreementId),
         msg.version
       );
     })
