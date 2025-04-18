@@ -62,7 +62,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}${config.mergeTableSuffix}`,
-          "descriptor_id"
+          ["descriptor_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

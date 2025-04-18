@@ -77,7 +77,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

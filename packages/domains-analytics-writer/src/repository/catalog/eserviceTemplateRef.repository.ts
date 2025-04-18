@@ -59,7 +59,7 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}${config.mergeTableSuffix}`,
-          "eservice_template_id"
+          ["eservice_template_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

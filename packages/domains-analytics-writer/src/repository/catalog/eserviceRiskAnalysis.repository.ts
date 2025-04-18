@@ -93,7 +93,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
