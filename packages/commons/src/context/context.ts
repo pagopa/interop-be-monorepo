@@ -24,6 +24,9 @@ export type AppContext<A extends AuthData = AuthData> = {
   correlationId: CorrelationId;
   spanId: SpanId;
   requestTimestamp: number;
+};
+
+export type AuthServerAppContext = AppContext & {
   clientId?: ClientId;
   organizationId?: TenantId;
 };

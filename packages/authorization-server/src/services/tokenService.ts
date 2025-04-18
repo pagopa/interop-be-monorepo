@@ -35,7 +35,7 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
-  AppContext,
+  AuthServerAppContext,
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
@@ -91,7 +91,7 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      ctx: WithLogger<AppContext>
+      ctx: WithLogger<AuthServerAppContext>
     ): Promise<GenerateTokenReturnType> {
       ctx.logger.info(`[CLIENTID=${request.client_id}] Token requested`);
 

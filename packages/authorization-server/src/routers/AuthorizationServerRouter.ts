@@ -1,11 +1,13 @@
 import { constants } from "http2";
 import {
+  AuthServerAppContext,
   ExpressContext,
-  fromAppContext,
   initFileManager,
   initRedisRateLimiter,
   InteropTokenGenerator,
+  logger,
   rateLimiterHeadersFromStatus,
+  WithLogger,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -61,7 +63,10 @@ const authorizationServerRouter = (
   authorizationServerRouter.post(
     "/authorization-server/token.oauth2",
     async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx: WithLogger<AuthServerAppContext> = {
+        ...req.ctx,
+        logger: logger({ ...req.ctx }),
+      };
 
       try {
         const tokenResult = await tokenService.generateToken(req.body, ctx);

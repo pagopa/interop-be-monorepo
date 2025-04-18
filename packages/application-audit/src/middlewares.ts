@@ -9,6 +9,7 @@ import {
   AppContext,
   ApplicationAuditProducerConfig,
   AuthData,
+  AuthServerAppContext,
   decodeJwtToken,
   fromAppContext,
   getUserInfoFromAuthData,
@@ -324,7 +325,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
   const producer = await initProducer(config, config.applicationAuditTopic);
   return async (req, res, next): Promise<void> => {
     res.on("finish", async () => {
-      const context = (req as Request & { ctx?: AppContext }).ctx;
+      const context = (req as Request & { ctx?: AuthServerAppContext }).ctx;
       if (!context) {
         throw genericInternalError("Failed to retrieve context");
       }
