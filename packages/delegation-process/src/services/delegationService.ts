@@ -425,10 +425,17 @@ export function delegationServiceBuilder(
     ): Promise<WithMetadata<Delegation>> {
       logger.info(`Retrieving delegation by id ${delegationId}`);
 
-      return await retrieveDelegationById(
+      const delegation = await retrieveDelegationById(
         { delegationId, kind: undefined },
         readModelService
       );
+
+      return {
+        data: delegation.data,
+        metadata: {
+          version: delegation.metadata.version,
+        },
+      };
     },
     async getDelegations(
       {
