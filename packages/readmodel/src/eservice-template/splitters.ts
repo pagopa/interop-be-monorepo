@@ -218,7 +218,7 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
   };
 };
 
-export const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
+const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
   riskAnalysis: RiskAnalysis,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
