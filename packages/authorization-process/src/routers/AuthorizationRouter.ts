@@ -86,7 +86,6 @@ const authorizationService = authorizationServiceBuilder(
 
 const authorizationRouter = (
   ctx: ZodiosContext
-  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,
