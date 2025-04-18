@@ -1,5 +1,3 @@
-export interface KafkaProducer {
-  send: (params: {
-    messages: Array<{ key: string; value: string }>;
-  }) => Promise<void>;
-}
+import { initProducer } from "kafka-iam-auth";
+
+export type KafkaProducer = Awaited<ReturnType<typeof initProducer>>;

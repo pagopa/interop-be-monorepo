@@ -1,11 +1,9 @@
 import { logger, Message } from "pagopa-interop-commons";
-import { initProducer } from "kafka-iam-auth";
 import { config } from "../config/config.js";
 import { decodeSQSMessage } from "../models/queue.js";
+import { KafkaProducer } from "../models/kafka.js";
 
-export function handleMessage(
-  producer: Awaited<ReturnType<typeof initProducer>>
-) {
+export function handleMessage(producer: KafkaProducer) {
   return async function processMessage(message: Message): Promise<void> {
     const decodedMessage = decodeSQSMessage(message);
 

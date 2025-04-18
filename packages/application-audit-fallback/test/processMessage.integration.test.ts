@@ -2,9 +2,9 @@ import { describe, expect, it, vi, afterAll, beforeEach } from "vitest";
 import { InternalError } from "pagopa-interop-models";
 import { CommonErrorCodes, decodeSQSMessageError } from "pagopa-interop-models";
 import { Message, QueueMessage } from "pagopa-interop-commons";
-import { initProducer } from "kafka-iam-auth";
 import { handleMessage } from "../src/handlers/handleMessage.js";
 import { ApplicationAuditEventMessageSchema } from "../src/models/queue.js";
+import { KafkaProducer } from "../src/models/kafka.js";
 import { getMockBeginRequestAudit } from "./utils.js";
 
 describe("Process message test", () => {
@@ -12,7 +12,7 @@ describe("Process message test", () => {
 
   const mockProducer = {
     send: sendMock,
-  } as unknown as Awaited<ReturnType<typeof initProducer>>;
+  } as unknown as KafkaProducer;
 
   const processMessage = handleMessage(mockProducer);
 
