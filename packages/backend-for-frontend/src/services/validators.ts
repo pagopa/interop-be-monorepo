@@ -224,7 +224,7 @@ export function assertEServiceNotTemplateInstance(
   }
 }
 
-export const assertEndpointIsCallable = (res: Response): void => {
+export const assertAdminClientFeatureEnabled = (res: Response): void => {
   if (!config.featureFlagAdminClient) {
     res.status(501).send({
       title: "Feature not implemented",
