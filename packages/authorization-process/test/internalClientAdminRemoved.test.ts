@@ -22,7 +22,7 @@ import {
   readLastAuthorizationEvent,
 } from "./utils.js";
 
-describe("internalCliendAdminRemoved", () => {
+describe("internalClientAdminRemoved", () => {
   it("should write on event-store for the remove of an admin in a client", async () => {
     const mockClient: Client = {
       ...getMockClient(),
