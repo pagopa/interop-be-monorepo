@@ -948,27 +948,26 @@ paths:
   /clients/{clientId}/admin/{adminId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: clientId
+        in: path
+        description: ID of Client
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adminId
+        in: path
+        description: ID of Admin
+        required: true
+        schema:
+          type: string
+          format: uuid
     delete:
       tags:
         - client
       summary: Removes an admin from a client
       description: Removes an admin from a client
       operationId: removeClientAdmin
-      parameters:
-        - name: clientId
-          in: path
-          description: ID of Client
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: adminId
-          in: path
-          description: ID of Admin
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         "204":
           description: Request succeed
