@@ -225,19 +225,21 @@ export const aggregateEservice = ({
     },
     new Map<string, EServiceDescriptorTemplateVersionRefSQL>()
   );
-  const descriptors = descriptorsSQL.map((descriptorSQL) =>
-    aggregateDescriptor({
-      descriptorSQL,
-      interfaceSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id),
-      documentsSQL: documentsSQLByDescriptorId.get(descriptorSQL.id) || [],
-      attributesSQL: attributesSQLByDescriptorId.get(descriptorSQL.id) || [],
-      rejectionReasonsSQL:
-        rejectionReasonsSQLByDescriptorId.get(descriptorSQL.id) || [],
-      templateVersionRefSQL: templateVersionRefsSQLByDescriptorId.get(
-        descriptorSQL.id
-      ),
-    })
-  );
+  const descriptors = [...descriptorsSQL]
+    .sort((d1, d2) => Number(d1.version) - Number(d2.version))
+    .map((descriptorSQL) =>
+      aggregateDescriptor({
+        descriptorSQL,
+        interfaceSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id),
+        documentsSQL: documentsSQLByDescriptorId.get(descriptorSQL.id) || [],
+        attributesSQL: attributesSQLByDescriptorId.get(descriptorSQL.id) || [],
+        rejectionReasonsSQL:
+          rejectionReasonsSQLByDescriptorId.get(descriptorSQL.id) || [],
+        templateVersionRefSQL: templateVersionRefsSQLByDescriptorId.get(
+          descriptorSQL.id
+        ),
+      })
+    );
 
   const riskAnalysisAnswersSQLByFormId = riskAnalysisAnswersSQL.reduce(
     (acc, answer) => {

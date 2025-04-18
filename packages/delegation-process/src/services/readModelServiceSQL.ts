@@ -150,6 +150,7 @@ export function readModelServiceBuilderSQL({
             kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
           )
         )
+        .orderBy(delegationInReadmodelDelegation.createdAt)
         .groupBy(delegationInReadmodelDelegation.id)
         .limit(limit)
         .offset(offset)
