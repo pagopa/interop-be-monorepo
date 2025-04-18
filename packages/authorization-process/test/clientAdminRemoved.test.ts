@@ -50,17 +50,16 @@ describe("clientAdminRemoved", () => {
     });
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
-    const adminId: UserId = generateId();
     const organizationId: TenantId = generateId();
     const mockClient: Client = {
       ...getMockClient(),
       consumerId: generateId(),
-      adminId,
+      adminId: generateId<UserId>(),
     };
     await addOneClient(mockClient);
     await expect(
       authorizationService.removeClientAdmin(
-        { clientId: mockClient.id, adminId },
+        { clientId: mockClient.id, adminId: mockClient.adminId! },
         getMockContext({ authData: getMockAuthData(organizationId) })
       )
     ).rejects.toThrowError(

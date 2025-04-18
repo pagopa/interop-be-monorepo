@@ -12,6 +12,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { Response } from "express";
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
 import {
   toDelegationKind,
@@ -31,6 +32,7 @@ import {
   catalogApiDescriptorState,
 } from "../model/types.js";
 import { BffAppContext } from "../utilities/context.js";
+import { config } from "../config/config.js";
 import { getAllDelegations } from "./delegationService.js";
 
 export function isValidDescriptor(
@@ -221,3 +223,12 @@ export function assertEServiceNotTemplateInstance(
     throw templateInstanceNotAllowed(eservice.id, templateId);
   }
 }
+
+export const assertEndpointIsCallable = (res: Response): void => {
+  if (!config.featureFlagAdminClient) {
+    res.status(501).send({
+      title: "Feature not implemented",
+      detail: "The client admin removal feature is currently disabled",
+    });
+  }
+};

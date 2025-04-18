@@ -11,7 +11,7 @@ export const FeatureFlagsConfig = z
       .transform((value) => value.split(","))
       .pipe(z.array(z.string().uuid()))
       .optional(),
-    FEATURE_FLAG_REMOVE_CLIENT_ADMIN: z
+    FEATURE_FLAG_ADMIN_CLIENT: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true"),
@@ -19,7 +19,7 @@ export const FeatureFlagsConfig = z
   .transform((c) => ({
     featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST,
     signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
-    featureFlagRemoveClientAdmin: c.FEATURE_FLAG_REMOVE_CLIENT_ADMIN,
+    featureFlagAdminClient: c.FEATURE_FLAG_ADMIN_CLIENT,
   }));
 
 export type FeatureFlagsConfig = z.infer<typeof FeatureFlagsConfig>;
