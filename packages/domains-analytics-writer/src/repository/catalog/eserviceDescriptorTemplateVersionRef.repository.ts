@@ -74,7 +74,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
           schemaName,
           tableName,
           `${tableName}${config.mergeTableSuffix}`,
-          "eservice_template_version_id"
+          ["eservice_template_version_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

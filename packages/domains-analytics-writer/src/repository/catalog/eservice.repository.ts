@@ -64,7 +64,7 @@ export function eserviceRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}${config.mergeTableSuffix}`,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -81,7 +81,7 @@ export function eserviceRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

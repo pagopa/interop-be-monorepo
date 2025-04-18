@@ -63,7 +63,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}${config.mergeTableSuffix}`,
-          "attribute_id"
+          ["attribute_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

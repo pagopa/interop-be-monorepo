@@ -79,7 +79,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -132,7 +132,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

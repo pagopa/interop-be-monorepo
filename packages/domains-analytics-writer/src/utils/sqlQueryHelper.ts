@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask } from "pg-promise";
@@ -9,7 +10,7 @@ import { config } from "../config/config.js";
  * @param schemaName - The target db schema name.
  * @param tableName - The  target table name.
  * @param stagingTableName - The staging table.
- * @param column - The single column key from the schema used in the ON condition of the MERGE.
+ * @param keysOn - The column keys from the schema used in the ON condition of the MERGE.
  * @returns The generated MERGE SQL query as a string.
  */
 export function generateMergeQuery<T extends z.ZodRawShape>(
@@ -17,29 +18,36 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  column: keyof T
+  keysOn: Array<keyof T>
 ): string {
   const keys = Object.keys(tableSchema.shape);
-
+  const quoteColumn = (c: string) => `"${c}"`;
   const updateSet = keys
-    .map((k) => {
-      const col = String(k);
-      return `${col} = source.${col}`;
-    })
+    .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
     .join(",\n      ");
 
-  const columns = keys.join(", ");
-  const values = keys.map((k) => `source.${k}`).join(", ");
+  const colList = keys.map(quoteColumn).join(", ");
+  const valList = keys.map((c) => `source.${quoteColumn(c)}`).join(", ");
+
+  const onCondition = keysOn
+    .map(
+      (k) =>
+        `${schemaName}.${tableName}.${quoteColumn(
+          String(k)
+        )} = source.${quoteColumn(String(k))}`
+    )
+    .join(" AND ");
+
   return `
   MERGE INTO ${schemaName}.${tableName}
   USING ${stagingTableName} AS source
-  ON ${schemaName}.${tableName}.${String(column)} = source.${String(column)}
+  ON ${onCondition}
   WHEN MATCHED THEN
     UPDATE SET
       ${updateSet}
   WHEN NOT MATCHED THEN
-    INSERT (${columns})
-    VALUES (${values});
+    INSERT (${colList})
+    VALUES (${valList});
 `;
 }
 
