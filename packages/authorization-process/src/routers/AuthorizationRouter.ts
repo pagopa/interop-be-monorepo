@@ -63,6 +63,7 @@ import {
   addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
   internalRemoveClientAdminErrorMapper,
+  removeClientAdminErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -85,6 +86,7 @@ const authorizationService = authorizationServiceBuilder(
 
 const authorizationRouter = (
   ctx: ZodiosContext
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,
@@ -552,6 +554,33 @@ const authorizationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     });
+
+  if (config.featureFlagRemoveClientAdmin) {
+    authorizationClientRouter.delete(
+      "/clients/:clientId/admin/:adminId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+          await authorizationService.removeClientAdmin(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              adminId: unsafeBrandId(req.params.adminId),
+            },
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            removeClientAdminErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
+  }
 
   const authorizationUserRouter = ctx.router(authorizationApi.userApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,

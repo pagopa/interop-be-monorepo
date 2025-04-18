@@ -1339,6 +1339,31 @@ export function authorizationServiceBuilder(
         )
       );
     },
+    async removeClientAdmin(
+      { clientId, adminId }: { clientId: ClientId; adminId: UserId },
+      { correlationId, logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRemoved(
+          updatedClient,
+          adminId,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
   };
 }
 

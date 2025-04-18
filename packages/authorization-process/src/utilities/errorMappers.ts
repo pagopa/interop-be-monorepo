@@ -334,3 +334,16 @@ export const internalRemoveClientAdminErrorMapper = (
     .with("clientKindNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("clientAdminIdNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeClientAdminErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "clientKindNotAllowed",
+      "organizationNotAllowedOnClient",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("clientAdminIdNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
