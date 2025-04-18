@@ -166,3 +166,69 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
   FOREIGN KEY (eservice_id)
     REFERENCES domains.eservice (id)
 );
+
+CREATE TABLE domains.agreement (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  eservice_id VARCHAR(36) NOT NULL,
+  descriptor_id VARCHAR(36) NOT NULL,
+  producer_id VARCHAR(36) NOT NULL,
+  consumer_id VARCHAR(36) NOT NULL,
+  state VARCHAR NOT NULL,
+  suspended_by_consumer BOOLEAN,
+  suspended_by_producer BOOLEAN,
+  suspended_by_platform BOOLEAN,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  consumer_notes VARCHAR,
+  rejection_reason VARCHAR,
+  suspended_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE domains.agreement_stamp (
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  who VARCHAR(36) NOT NULL,
+  delegation_id VARCHAR(36),
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (agreement_id, kind)
+);
+
+CREATE TABLE domains.agreement_attribute (
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  attribute_id VARCHAR(36) NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (agreement_id, attribute_id)
+);
+
+CREATE TABLE domains.agreement_consumer_document (
+  id VARCHAR(36),
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE domains.agreement_contract (
+  id VARCHAR(36),
+  agreement_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);

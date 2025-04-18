@@ -20,16 +20,29 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   column: keyof T
 ): string {
   const keys = Object.keys(tableSchema.shape);
-
+  const q = (c: string) => `"${c}"`;
   const updateSet = keys
-    .map((k) => {
-      const col = String(k);
-      return `${col} = source.${col}`;
-    })
+    .map((k) => `${q(k)} = source.${q(k)}`)
     .join(",\n      ");
 
-  const columns = keys.join(", ");
-  const values = keys.map((k) => `source.${k}`).join(", ");
+  const colList = keys.map(q).join(", ");
+  const valList = keys.map((c) => `source.${q(c)}`).join(", ");
+
+  if (tableName === "agreement_stamp") {
+    console.log(`
+    MERGE INTO ${schemaName}.${tableName}
+    USING ${stagingTableName} AS source
+    ON ${schemaName}.${tableName}.${q(String(column))} = source.${q(
+      String(column)
+    )}
+    WHEN MATCHED THEN
+      UPDATE SET
+        ${updateSet}
+    WHEN NOT MATCHED THEN
+      INSERT (${colList})
+      VALUES (${valList});
+  `);
+  }
   return `
   MERGE INTO ${schemaName}.${tableName}
   USING ${stagingTableName} AS source
@@ -38,8 +51,8 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
     UPDATE SET
       ${updateSet}
   WHEN NOT MATCHED THEN
-    INSERT (${columns})
-    VALUES (${values});
+    INSERT (${colList})
+    VALUES (${valList});
 `;
 }
 

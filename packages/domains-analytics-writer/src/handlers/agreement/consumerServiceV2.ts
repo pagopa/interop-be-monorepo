@@ -1,14 +1,43 @@
-import { AgreementEventEnvelopeV2 } from "pagopa-interop-models";
+/* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
+import {
+  Agreement,
+  AgreementEventEnvelopeV2,
+  AgreementId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { splitAgreementIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { AgreementItemsSQL } from "pagopa-interop-readmodel-models";
+import { agreementServiceBuilder } from "../../service/agreementService.js";
 import { DBContext } from "../../db/db.js";
 
 export async function handleAgreementMessageV2(
   messages: AgreementEventEnvelopeV2[],
-  _dbContext: DBContext
+  dbContext: DBContext
 ): Promise<void> {
-  for (const message of messages) {
-    await match(message)
-      .with({ type: "AgreementDeleted" }, async () => Promise.resolve())
+  const agreementService = agreementServiceBuilder(dbContext);
+
+  const upsertAgreements: AgreementItemsSQL[] = [];
+  const deleteAgreements: AgreementId[] = [];
+
+  for (const msg of messages) {
+    await match(msg)
+      .with(
+        {
+          type: P.union(
+            "AgreementDeleted",
+            "AgreementDeletedByRevokedDelegation"
+          ),
+        },
+        ({ data }) => {
+          if (data.agreement?.id) {
+            deleteAgreements.push(
+              unsafeBrandId<AgreementId>(data.agreement.id)
+            );
+          }
+        }
+      )
+
       .with(
         {
           type: P.union(
@@ -21,21 +50,34 @@ export async function handleAgreementMessageV2(
             "AgreementUnsuspendedByConsumer",
             "AgreementUnsuspendedByPlatform",
             "AgreementArchivedByConsumer",
+            "AgreementArchivedByUpgrade",
             "AgreementSuspendedByProducer",
             "AgreementSuspendedByConsumer",
             "AgreementSuspendedByPlatform",
             "AgreementRejected",
             "AgreementConsumerDocumentAdded",
             "AgreementConsumerDocumentRemoved",
-            "AgreementArchivedByUpgrade",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
-            "AgreementDeletedByRevokedDelegation",
             "AgreementArchivedByRevokedDelegation"
           ),
         },
-        async () => Promise.resolve()
+        ({ data, version }) => {
+          upsertAgreements.push(
+            splitAgreementIntoObjectsSQL(
+              Agreement.parse(data.agreement),
+              version
+            )
+          );
+        }
       )
       .exhaustive();
+  }
+
+  if (upsertAgreements.length) {
+    await agreementService.upsertBatchAgreement(upsertAgreements, dbContext);
+  }
+  if (deleteAgreements.length) {
+    await agreementService.deleteBatchAgreement(deleteAgreements, dbContext);
   }
 }

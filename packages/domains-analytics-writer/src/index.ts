@@ -12,6 +12,7 @@ import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import {
+  AgreementDbTable,
   AttributeDbtable,
   CatalogDbTable,
   DeletingDbTable,
@@ -52,10 +53,16 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      AgreementDbTable.agreement,
+      AgreementDbTable.agreement_stamp,
+      AgreementDbTable.agreement_attribute,
+      AgreementDbTable.agreement_consumer_document,
+      AgreementDbTable.agreement_contract,
     ]);
     await setupDbService.setupStagingDeletingByIdTables([
       DeletingDbTable.attribute_deleting_table,
       DeletingDbTable.catalog_deleting_table,
+      DeletingDbTable.agreement_deleting_table,
     ]);
   },
   logger({ serviceName: config.serviceName })

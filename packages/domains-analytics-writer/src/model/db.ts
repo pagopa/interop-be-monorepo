@@ -22,7 +22,19 @@ export const AttributeDbtable = {
 export const DeletingDbTable = {
   attribute_deleting_table: "attribute_deleting_table",
   catalog_deleting_table: "catalog_deleting_table",
+  agreement_deleting_table: "agreement_deleting_table",
 };
+
+export const AgreementDbTable = {
+  agreement: "agreement",
+  agreement_stamp: "agreement_stamp",
+  agreement_attribute: "agreement_attribute",
+  agreement_consumer_document: "agreement_consumer_document",
+  agreement_contract: "agreement_contract",
+} as const;
+
+export type AgreementDbTable =
+  (typeof AgreementDbTable)[keyof typeof AgreementDbTable];
 
 export type AttributeDbtable =
   (typeof AttributeDbtable)[keyof typeof AttributeDbtable];
