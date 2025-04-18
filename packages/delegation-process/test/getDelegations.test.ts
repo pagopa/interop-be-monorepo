@@ -1,7 +1,6 @@
 /* eslint-disable functional/no-let */
-import { getMockDelegation } from "pagopa-interop-commons-test";
+import { getMockContext, getMockDelegation } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import { delegationKind } from "pagopa-interop-models";
 import { addOneDelegation, delegationService } from "./utils.js";
 
@@ -24,7 +23,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res1.results).toEqual([delegation1]);
 
@@ -38,7 +37,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res2.results).toEqual([delegation2]);
 
@@ -52,7 +51,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res3.results).toEqual([]);
 
@@ -66,7 +65,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res4.results).toEqual([delegation1]);
 
@@ -80,7 +79,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res5.results).toEqual([delegation1]);
   });
@@ -103,7 +102,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res1.results).toEqual([delegation1]);
 
@@ -117,7 +116,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res2.results).toEqual([delegation2]);
 
@@ -131,7 +130,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res3.results).toEqual([]);
 
@@ -145,7 +144,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res4.results).toEqual([delegation1]);
 
@@ -159,7 +158,7 @@ describe("get delegations", () => {
         offset: 0,
         limit: 50,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(res5.results).toEqual([delegation1]);
   });

@@ -1,12 +1,14 @@
 import { z } from "zod";
 import {
   AppContext,
-  AuthData,
   CreateEvent,
   DB,
   FileManager,
+  InternalAuthData,
   Logger,
+  M2MAuthData,
   PDFGenerator,
+  UIAuthData,
   WithLogger,
   eventRepository,
 } from "pagopa-interop-commons";
@@ -232,7 +234,7 @@ export function agreementServiceBuilder(
       filters: AgreementQueryFilters,
       limit: number,
       offset: number,
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<ListResult<Agreement>> {
       logger.info(
         `Getting agreements with filters: ${JSON.stringify(
@@ -250,7 +252,7 @@ export function agreementServiceBuilder(
     },
     async getAgreementById(
       agreementId: AgreementId,
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
@@ -272,7 +274,7 @@ export function agreementServiceBuilder(
         descriptorId: DescriptorId;
         delegationId?: DelegationId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(
         `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
@@ -326,7 +328,7 @@ export function agreementServiceBuilder(
       producerName: string | undefined,
       limit: number,
       offset: number,
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
@@ -344,7 +346,7 @@ export function agreementServiceBuilder(
       consumerName: string | undefined,
       limit: number,
       offset: number,
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<CompactOrganization>> {
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
@@ -361,7 +363,7 @@ export function agreementServiceBuilder(
     async updateAgreement(
       agreementId: AgreementId,
       agreement: agreementApi.AgreementUpdatePayload,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(`Updating agreement ${agreementId}`);
 
@@ -404,7 +406,7 @@ export function agreementServiceBuilder(
     },
     async deleteAgreementById(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Deleting agreement ${agreementId}`);
 
@@ -440,8 +442,7 @@ export function agreementServiceBuilder(
     async internalDeleteAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
       delegationId: DelegationId,
-      correlationId: CorrelationId,
-      logger: Logger
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
         `Deleting agreement ${agreementId} due to revocation of delegation ${delegationId}`
@@ -471,7 +472,7 @@ export function agreementServiceBuilder(
     async submitAgreement(
       agreementId: AgreementId,
       payload: agreementApi.AgreementSubmissionPayload,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(`Submitting agreement ${agreementId}`);
 
@@ -649,7 +650,7 @@ export function agreementServiceBuilder(
     },
     async upgradeAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(`Upgrading agreement ${agreementId}`);
 
@@ -767,7 +768,7 @@ export function agreementServiceBuilder(
     },
     async cloneAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(`Cloning agreement ${agreementId}`);
 
@@ -850,7 +851,7 @@ export function agreementServiceBuilder(
     async addConsumerDocument(
       agreementId: AgreementId,
       documentSeed: agreementApi.DocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<AgreementDocument> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
@@ -898,7 +899,7 @@ export function agreementServiceBuilder(
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<AgreementDocument> {
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
@@ -916,7 +917,7 @@ export function agreementServiceBuilder(
     },
     async suspendAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(`Suspending agreement ${agreementId}`);
 
@@ -977,7 +978,7 @@ export function agreementServiceBuilder(
       filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number,
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<CompactEService>> {
       logger.info(
         `Retrieving EServices from agreements with filters: ${JSON.stringify(
@@ -996,7 +997,7 @@ export function agreementServiceBuilder(
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<string> {
       logger.info(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
@@ -1043,7 +1044,7 @@ export function agreementServiceBuilder(
     async rejectAgreement(
       agreementId: AgreementId,
       rejectionReason: string,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(`Rejecting agreement ${agreementId}`);
 
@@ -1117,7 +1118,7 @@ export function agreementServiceBuilder(
     },
     async activateAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
 
@@ -1289,7 +1290,7 @@ export function agreementServiceBuilder(
     },
     async archiveAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Agreement> {
       logger.info(`Archiving agreement ${agreementId}`);
 
@@ -1337,8 +1338,7 @@ export function agreementServiceBuilder(
     async internalArchiveAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
       delegationId: DelegationId,
-      correlationId: CorrelationId,
-      logger: Logger
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
         `Archiving agreement ${agreementId} due to revocation of delegation ${delegationId}`
@@ -1369,7 +1369,7 @@ export function agreementServiceBuilder(
     async internalComputeAgreementsStateByAttribute(
       attributeId: AttributeId,
       consumer: CompactTenant,
-      { logger, correlationId }: WithLogger<AppContext>
+      { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
         `Recalculating agreements state for Attribute ${attributeId} - Consumer Tenant ${consumer.id}`
@@ -1397,7 +1397,7 @@ export function agreementServiceBuilder(
         descriptorId: DescriptorId;
         eserviceId: EServiceId;
       },
-      { logger, authData }: WithLogger<AppContext>
+      { logger, authData }: WithLogger<AppContext<UIAuthData>>
     ): Promise<agreementApi.HasCertifiedAttributes> {
       logger.info(
         `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
@@ -1468,7 +1468,7 @@ export async function createAndCopyDocumentsForClonedAgreement(
 
 export function createAgreementArchivedByUpgradeEvent(
   agreement: WithMetadata<Agreement>,
-  authData: AuthData,
+  authData: UIAuthData,
   activeDelegations: ActiveDelegations,
   correlationId: CorrelationId
 ): CreateEvent<AgreementEvent> {
@@ -1550,7 +1550,7 @@ async function addContractOnFirstActivation(
 async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
-  authData: AuthData,
+  authData: UIAuthData,
   readModelService: ReadModelService
 ): Promise<Tenant> {
   const delegations =

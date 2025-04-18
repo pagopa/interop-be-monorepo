@@ -14,8 +14,12 @@ import {
   EServiceDocumentId,
   EServiceId,
   unsafeBrandId,
+  emptyErrorMapper,
 } from "pagopa-interop-models";
-import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
+import {
+  toBffCatalogApiDescriptorDoc,
+  toEserviceCatalogProcessQueryParams,
+} from "../api/catalogApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/errors.js";
@@ -25,7 +29,6 @@ import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
   createEServiceDocumentErrorMapper,
-  emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
   getEServiceTemplateInstancesErrorMapper,
@@ -531,7 +534,9 @@ const catalogRouter = (
             ctx
           );
 
-          return res.status(200).send(bffApi.EServiceDoc.parse(doc));
+          return res
+            .status(200)
+            .send(bffApi.EServiceDoc.parse(toBffCatalogApiDescriptorDoc(doc)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

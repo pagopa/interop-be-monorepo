@@ -6,7 +6,11 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
-  AuthData,
+  UIAuthData,
+  InternalAuthData,
+  MaintenanceAuthData,
+  M2MAuthData,
+  isUiAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -90,7 +94,6 @@ import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
-  assertResourceAllowed,
   evaluateNewSelfcareId,
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
@@ -187,7 +190,7 @@ export function tenantServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       verifierId: string,
-      { correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
@@ -261,19 +264,18 @@ export function tenantServiceBuilder(
 
     async updateTenantVerifiedAttribute(
       {
-        verifierId,
         tenantId,
         attributeId,
         updateVerifiedTenantAttributeSeed,
       }: {
-        verifierId: string;
         tenantId: TenantId;
         attributeId: AttributeId;
         updateVerifiedTenantAttributeSeed: tenantApi.UpdateVerifiedTenantAttributeSeed;
       },
-      { correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger, authData }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       logger.info(`Update attribute ${attributeId} to tenant ${tenantId}`);
+      const verifierId = authData.organizationId;
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       const expirationDate = updateVerifiedTenantAttributeSeed.expirationDate
@@ -322,7 +324,11 @@ export function tenantServiceBuilder(
 
     async selfcareUpsertTenant(
       tenantSeed: tenantApi.SelfcareTenantSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
     ): Promise<string> {
       logger.info(
         `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
@@ -334,7 +340,13 @@ export function tenantServiceBuilder(
         logger.info(
           `Updating tenant with external id ${tenantSeed.externalId.origin}/${tenantSeed.externalId.value} via SelfCare request"`
         );
-        await assertResourceAllowed(existingTenant.data.id, authData);
+
+        if (isUiAuthData(authData)) {
+          // TODO this check is skipped in case of calls that do not come from the UI,
+          // e.g., internal calls - consider creating a dedicated internal route.
+          // Double check if the non-internal case is actually exposed by BFF/API GW.
+          await assertRequesterAllowed(existingTenant.data.id, authData);
+        }
 
         evaluateNewSelfcareId({
           tenant: existingTenant.data,
@@ -394,22 +406,14 @@ export function tenantServiceBuilder(
     },
 
     async revokeDeclaredAttribute(
-      {
-        attributeId,
-        organizationId,
-        correlationId,
-      }: {
-        attributeId: AttributeId;
-        organizationId: TenantId;
-        correlationId: CorrelationId;
-      },
-      logger: Logger
+      { attributeId }: { attributeId: AttributeId },
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       logger.info(
-        `Revoking declared attribute ${attributeId} to tenant ${organizationId}`
+        `Revoking declared attribute ${attributeId} to tenant ${authData.organizationId}`
       );
       const requesterTenant = await retrieveTenant(
-        organizationId,
+        authData.organizationId,
         readModelService
       );
 
@@ -450,22 +454,22 @@ export function tenantServiceBuilder(
       {
         tenantId,
         tenantAttributeSeed,
-        organizationId,
-        correlationId,
       }: {
         tenantId: TenantId;
         tenantAttributeSeed: tenantApi.CertifiedTenantAttributeSeed;
-        organizationId: TenantId;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
       );
 
       const requesterTenant = await retrieveTenant(
-        organizationId,
+        authData.organizationId,
         readModelService
       );
 
@@ -483,7 +487,7 @@ export function tenantServiceBuilder(
       if (!attribute.origin || attribute.origin !== certifierId) {
         throw attributeDoesNotBelongToCertifier(
           attribute.id,
-          organizationId,
+          authData.organizationId,
           tenantId
         );
       }
@@ -536,24 +540,18 @@ export function tenantServiceBuilder(
     async addDeclaredAttribute(
       {
         tenantAttributeSeed,
-        organizationId,
-        correlationId,
-      }: {
-        tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed;
-        organizationId: TenantId;
-        correlationId: CorrelationId;
-      },
-      logger: Logger
+      }: { tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed },
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       const { tenant, delegationId } = await match(
         tenantAttributeSeed.delegationId
       )
         .with(P.nullish, async () => {
           logger.info(
-            `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${organizationId}`
+            `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${authData.organizationId}`
           );
           const targetTenant = await retrieveTenant(
-            organizationId,
+            authData.organizationId,
             readModelService
           );
 
@@ -572,7 +570,7 @@ export function tenantServiceBuilder(
             `Add declared attribute ${tenantAttributeSeed.id} to delegatator tenant ${delegation.delegatorId}`
           );
 
-          if (delegation.delegateId !== organizationId) {
+          if (delegation.delegateId !== authData.organizationId) {
             throw operationRestrictedToDelegate();
           }
 
@@ -634,7 +632,11 @@ export function tenantServiceBuilder(
         tenantId: TenantId;
         attributeId: AttributeId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<void> {
       logger.info(
         `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
@@ -726,17 +728,13 @@ export function tenantServiceBuilder(
         attributeId,
         agreementId,
         expirationDate,
-        organizationId,
-        correlationId,
       }: {
         tenantId: TenantId;
         attributeId: AttributeId;
         agreementId: AgreementId;
         expirationDate?: string;
-        organizationId: TenantId;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Verifying attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
@@ -762,7 +760,7 @@ export function tenantServiceBuilder(
         );
 
       await assertVerifiedAttributeOperationAllowed({
-        requesterId: organizationId,
+        requesterId: authData.organizationId,
         producerDelegation,
         attributeId,
         agreement,
@@ -831,7 +829,7 @@ export function tenantServiceBuilder(
         attributeId: AttributeId;
         agreementId: AgreementId;
       },
-      { logger, authData, correlationId }: WithLogger<AppContext>
+      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Revoking verified attribute ${attributeId} to tenant ${tenantId}`
@@ -939,15 +937,13 @@ export function tenantServiceBuilder(
         tenantExternalId,
         attributeOrigin,
         attributeExternalId,
-        correlationId,
       }: {
         tenantOrigin: string;
         tenantExternalId: string;
         attributeOrigin: string;
         attributeExternalId: string;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
@@ -1012,15 +1008,13 @@ export function tenantServiceBuilder(
         tenantExternalId,
         attributeOrigin,
         attributeExternalId,
-        correlationId,
       }: {
         tenantOrigin: string;
         tenantExternalId: string;
         attributeOrigin: string;
         attributeExternalId: string;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
         `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`
@@ -1091,16 +1085,23 @@ export function tenantServiceBuilder(
       }
     },
 
-    async getCertifiedAttributes({
-      organizationId,
-      offset,
-      limit,
-    }: {
-      organizationId: TenantId;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
-      const tenant = await retrieveTenant(organizationId, readModelService);
+    async getCertifiedAttributes(
+      {
+        offset,
+        limit,
+      }: {
+        offset: number;
+        limit: number;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<ListResult<tenantApi.CertifiedAttribute>> {
+      logger.info(
+        `Retrieving certified attributes for organization ${authData.organizationId}`
+      );
+      const tenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
 
       const certifierId = retrieveCertifierId(tenant.data);
 
@@ -1115,13 +1116,11 @@ export function tenantServiceBuilder(
       {
         tenantId,
         version,
-        correlationId,
       }: {
         tenantId: TenantId;
         version: number;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
     ): Promise<void> {
       logger.info(`Deleting Tenant ${tenantId}`);
 
@@ -1141,14 +1140,12 @@ export function tenantServiceBuilder(
         tenantId,
         tenantUpdate,
         version,
-        correlationId,
       }: {
         tenantId: TenantId;
         tenantUpdate: tenantApi.MaintenanceTenantUpdate;
         version: number;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
     ): Promise<void> {
       logger.info(`Maintenance update Tenant ${tenantId}`);
 
@@ -1183,19 +1180,15 @@ export function tenantServiceBuilder(
       {
         tenantId,
         mailId,
-        organizationId,
-        correlationId,
       }: {
         tenantId: TenantId;
         mailId: string;
-        organizationId: TenantId;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
 
-      await assertRequesterAllowed(tenantId, organizationId);
+      await assertRequesterAllowed(tenantId, authData);
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
@@ -1223,19 +1216,15 @@ export function tenantServiceBuilder(
       {
         tenantId,
         mailSeed,
-        organizationId,
-        correlationId,
       }: {
         tenantId: TenantId;
         mailSeed: tenantApi.MailSeed;
-        organizationId: TenantId;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
 
-      await assertRequesterAllowed(tenantId, organizationId);
+      await assertRequesterAllowed(tenantId, authData);
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
@@ -1279,7 +1268,7 @@ export function tenantServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Producers with name = ${producerName}, limit = ${limit}, offset = ${offset}`
@@ -1289,23 +1278,21 @@ export function tenantServiceBuilder(
     async getConsumers(
       {
         consumerName,
-        producerId,
         offset,
         limit,
       }: {
         consumerName: string | undefined;
-        producerId: TenantId;
         offset: number;
         limit: number;
       },
-      logger: Logger
+      { logger, authData }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
       );
       return readModelService.getConsumers({
         consumerName,
-        producerId,
+        producerId: authData.organizationId,
         offset,
         limit,
       });
@@ -1322,14 +1309,17 @@ export function tenantServiceBuilder(
         offset: number;
         limit: number;
       },
-      logger: Logger
+      { logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Tenants with name = ${name}, features = ${features}, limit = ${limit}, offset = ${offset}`
       );
       return readModelService.getTenants({ name, features, offset, limit });
     },
-    async getTenantById(id: TenantId, logger: Logger): Promise<Tenant> {
+    async getTenantById(
+      id: TenantId,
+      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
       const tenant = await retrieveTenant(id, readModelService);
 
@@ -1337,7 +1327,7 @@ export function tenantServiceBuilder(
     },
     async getTenantByExternalId(
       externalId: ExternalId,
-      logger: Logger
+      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Retrieving tenant with origin ${externalId.origin} and code ${externalId.value}`
@@ -1352,7 +1342,7 @@ export function tenantServiceBuilder(
     },
     async getTenantBySelfcareId(
       selfcareId: string,
-      logger: Logger
+      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<Tenant> {
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
       const tenant = await readModelService.getTenantBySelfcareId(selfcareId);
@@ -1363,7 +1353,7 @@ export function tenantServiceBuilder(
     },
     async internalUpsertTenant(
       internalTenantSeed: tenantApi.InternalTenantSeed,
-      { correlationId, logger }: WithLogger<AppContext>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Updating tenant with external id ${internalTenantSeed.externalId.origin}/${internalTenantSeed.externalId.value} via internal request`
@@ -1463,7 +1453,7 @@ export function tenantServiceBuilder(
     },
     async m2mUpsertTenant(
       m2mTenantSeed: tenantApi.M2MTenantSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<M2MAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Updating tenant with external id ${m2mTenantSeed.externalId.origin}/${m2mTenantSeed.externalId.value} via m2m request`
@@ -1572,13 +1562,11 @@ export function tenantServiceBuilder(
       {
         tenantId,
         certifierId,
-        correlationId,
       }: {
         tenantId: TenantId;
         certifierId: string;
-        correlationId: CorrelationId;
       },
-      logger: Logger
+      { correlationId, logger }: WithLogger<AppContext<MaintenanceAuthData>>
     ): Promise<Tenant> {
       logger.info(`Adding certifierId to Tenant ${tenantId}`);
 
@@ -1628,26 +1616,23 @@ export function tenantServiceBuilder(
       );
       return updatedTenant;
     },
-    async m2mRevokeCertifiedAttribute({
-      organizationId,
-      tenantOrigin,
-      tenantExternalId,
-      attributeExternalId,
-      correlationId,
-      logger,
-    }: {
-      organizationId: TenantId;
-      tenantOrigin: string;
-      tenantExternalId: string;
-      attributeExternalId: string;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async m2mRevokeCertifiedAttribute(
+      {
+        tenantOrigin,
+        tenantExternalId,
+        attributeExternalId,
+      }: {
+        tenantOrigin: string;
+        tenantExternalId: string;
+        attributeExternalId: string;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext<M2MAuthData>>
+    ): Promise<void> {
       logger.info(
         `Revoking certified attribute ${attributeExternalId} to tenant (${tenantOrigin}/${tenantExternalId}) via m2m request`
       );
       const requesterTenant = await retrieveTenant(
-        organizationId,
+        authData.organizationId,
         readModelService
       );
 
@@ -1722,27 +1707,22 @@ export function tenantServiceBuilder(
         await repository.createEvent(attributeAssignmentEvent);
       }
     },
-    async updateTenantDelegatedFeatures({
-      organizationId,
-      tenantFeatures,
-      correlationId,
-      authData,
-      logger,
-    }: {
-      organizationId: TenantId;
-      tenantFeatures: bffApi.TenantDelegatedFeaturesFlagsUpdateSeed;
-      correlationId: CorrelationId;
-      authData: AuthData;
-      logger: Logger;
-    }): Promise<void> {
+    async updateTenantDelegatedFeatures(
+      {
+        tenantFeatures,
+      }: {
+        tenantFeatures: bffApi.TenantDelegatedFeaturesFlagsUpdateSeed;
+      },
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(
-        `Updating tenant delegated features for tenant ${organizationId}`
+        `Updating tenant delegated features for tenant ${authData.organizationId}`
       );
 
       assertRequesterDelegationsAllowedOrigin(authData);
 
       const requesterTenant = await retrieveTenant(
-        organizationId,
+        authData.organizationId,
         readModelService
       );
 

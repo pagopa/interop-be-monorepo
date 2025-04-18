@@ -1,4 +1,10 @@
-import { AuthData, hasPermission, userRoles } from "pagopa-interop-commons";
+import {
+  hasAtLeastOneUserRole,
+  M2MAuthData,
+  ReadModelRepository,
+  UIAuthData,
+  userRole,
+} from "pagopa-interop-commons";
 import {
   AttributeId,
   EService,
@@ -54,7 +60,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateRefInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -81,7 +86,7 @@ export function readModelServiceBuilderSQL(
 ) {
   return {
     async getEServices(
-      authData: AuthData,
+      authData: UIAuthData | M2MAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -133,18 +138,14 @@ export function readModelServiceBuilderSQL(
             delegationInReadmodelDelegation.eserviceId
           )
         )
-        .leftJoin(
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
-          )
-        )
         .where(
           and(
             // name filter
             name
-              ? ilike(eserviceInReadmodelCatalog.name, `%${name}%`)
+              ? ilike(
+                  eserviceInReadmodelCatalog.name,
+                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                )
               : undefined,
             // ids filter
             eservicesIds.length > 0
@@ -192,14 +193,11 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // visibility filter
-            hasPermission(
-              [
-                userRoles.ADMIN_ROLE,
-                userRoles.API_ROLE,
-                userRoles.SUPPORT_ROLE,
-              ],
-              authData
-            )
+            hasAtLeastOneUserRole(authData, [
+              userRole.ADMIN_ROLE,
+              userRole.API_ROLE,
+              userRole.SUPPORT_ROLE,
+            ])
               ? or(
                   // exist active descriptors for that eservice
                   exists(
@@ -317,10 +315,7 @@ export function readModelServiceBuilderSQL(
               : undefined,
             // template filter
             templatesIds.length > 0
-              ? inArray(
-                  eserviceTemplateRefInReadmodelCatalog.eserviceTemplateId,
-                  templatesIds
-                )
+              ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
               : undefined
           )
         )
@@ -341,7 +336,6 @@ export function readModelServiceBuilderSQL(
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateRef: eserviceTemplateRefInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           totalCount: subquery.totalCount,
@@ -349,7 +343,6 @@ export function readModelServiceBuilderSQL(
         .from(eserviceInReadmodelCatalog)
         .innerJoin(subquery, eq(eserviceInReadmodelCatalog.id, subquery.id))
         .leftJoin(
-          // 1
           eserviceDescriptorInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -357,7 +350,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 2
           eserviceDescriptorInterfaceInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -365,7 +357,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           eserviceDescriptorDocumentInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -373,7 +364,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           eserviceDescriptorAttributeInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -381,7 +371,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           eserviceDescriptorRejectionReasonInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -389,7 +378,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -397,7 +385,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -405,19 +392,10 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 9
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         )
         .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`);
@@ -440,7 +418,10 @@ export function readModelServiceBuilderSQL(
     }): Promise<WithMetadata<EService> | undefined> {
       return await catalogReadModelService.getEServiceByFilter(
         and(
-          ilike(eserviceInReadmodelCatalog.name, name),
+          ilike(
+            eserviceInReadmodelCatalog.name,
+            ReadModelRepository.escapeRegExp(name)
+          ),
           eq(eserviceInReadmodelCatalog.producerId, producerId)
         )
       );

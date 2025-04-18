@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import { ProducerKeychain, TenantId, generateId } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
   getMockProducerKeychain,
   getMockKey,
+  getMockAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   producerKeychainNotFound,
@@ -25,12 +26,13 @@ describe("getProducerKeychainKeyById", async () => {
     };
     await addOneProducerKeychain(mockProducerKeychain);
 
-    const retrievedKey = await authorizationService.getProducerKeychainKeyById({
-      producerKeychainId: mockProducerKeychain.id,
-      kid: mockKey1.kid,
-      organizationId: producerId,
-      logger: genericLogger,
-    });
+    const retrievedKey = await authorizationService.getProducerKeychainKeyById(
+      {
+        producerKeychainId: mockProducerKeychain.id,
+        kid: mockKey1.kid,
+      },
+      getMockContext({ authData: getMockAuthData(producerId) })
+    );
     expect(retrievedKey).toEqual(mockKey1);
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
@@ -44,12 +46,13 @@ describe("getProducerKeychainKeyById", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.getProducerKeychainKeyById({
-        producerKeychainId: mockProducerKeychain.id,
-        kid: mockKey.kid,
-        organizationId,
-        logger: genericLogger,
-      })
+      authorizationService.getProducerKeychainKeyById(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
         organizationId,
@@ -67,12 +70,13 @@ describe("getProducerKeychainKeyById", async () => {
     };
 
     expect(
-      authorizationService.getProducerKeychainKeyById({
-        producerKeychainId: mockProducerKeychain.id,
-        kid: mockKey.kid,
-        organizationId: producerId,
-        logger: genericLogger,
-      })
+      authorizationService.getProducerKeychainKeyById(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({ authData: getMockAuthData(producerId) })
+      )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
   it("should throw producerKeyNotFound if the key doesn't exist", async () => {
@@ -86,12 +90,13 @@ describe("getProducerKeychainKeyById", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.getProducerKeychainKeyById({
-        producerKeychainId: mockProducerKeychain.id,
-        kid: mockKey.kid,
-        organizationId: producerId,
-        logger: genericLogger,
-      })
+      authorizationService.getProducerKeychainKeyById(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          kid: mockKey.kid,
+        },
+        getMockContext({ authData: getMockAuthData(producerId) })
+      )
     ).rejects.toThrowError(
       producerKeyNotFound(mockKey.kid, mockProducerKeychain.id)
     );
