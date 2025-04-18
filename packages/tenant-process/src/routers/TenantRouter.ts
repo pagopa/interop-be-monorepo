@@ -152,6 +152,7 @@ const tenantsRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          M2M_ROLE,
         ]);
 
         const {
