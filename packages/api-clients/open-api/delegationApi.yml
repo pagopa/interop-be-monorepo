@@ -887,9 +887,6 @@ components:
           format: date-time
         rejectionReason:
           type: string
-        revokedAt:
-          type: string
-          format: date-time
         state:
           $ref: "#/components/schemas/DelegationState"
         kind:

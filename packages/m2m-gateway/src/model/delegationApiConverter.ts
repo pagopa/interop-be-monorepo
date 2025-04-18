@@ -13,10 +13,10 @@ export function toM2MGatewayApiConsumerDelegation(
     createdAt: delegation.createdAt,
     updatedAt: delegation.updatedAt,
     rejectionReason: delegation.rejectionReason,
-    revokedAt: delegation.revokedAt,
+    revokedAt: delegation.stamps.revocation?.when,
+    submittedAt: delegation.stamps.submission.when,
+    activatedAt: delegation.stamps.activation?.when,
+    rejectedAt: delegation.stamps.rejection?.when,
     state: delegation.state,
-    activationContract: delegation.activationContract,
-    revocationContract: delegation.revocationContract,
-    stamps: delegation.stamps,
   };
 }

@@ -3817,14 +3817,17 @@ components:
         revokedAt:
           type: string
           format: date-time
+        submittedAt:
+          type: string
+          format: date-time
+        activatedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
         state:
           $ref: "#/components/schemas/DelegationState"
-        activationContract:
-          $ref: "#/components/schemas/DelegationContractDocument"
-        revocationContract:
-          $ref: "#/components/schemas/DelegationContractDocument"
-        stamps:
-          $ref: "#/components/schemas/DelegationStamps"
       required:
         - id
         - delegatorId
@@ -3833,7 +3836,7 @@ components:
         - createdAt
         - state
         - kind
-        - stamps
+        - submittedAt
     ConsumerDelegations:
       type: object
       additionalProperties: false
@@ -3847,58 +3850,6 @@ components:
       required:
         - results
         - pagination
-    DelegationContractDocument:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        prettyName:
-          type: string
-        contentType:
-          type: string
-        path:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - name
-        - prettyName
-        - contentType
-        - path
-        - createdAt
-    DelegationStamp:
-      type: object
-      additionalProperties: false
-      properties:
-        who:
-          type: string
-          format: uuid
-        when:
-          type: string
-          format: date-time
-      required:
-        - who
-        - when
-    DelegationStamps:
-      type: object
-      additionalProperties: false
-      properties:
-        submission:
-          $ref: "#/components/schemas/DelegationStamp"
-        activation:
-          $ref: "#/components/schemas/DelegationStamp"
-        rejection:
-          $ref: "#/components/schemas/DelegationStamp"
-        revocation:
-          $ref: "#/components/schemas/DelegationStamp"
-      required:
-        - submission
     DelegationState:
       type: string
       enum:
@@ -4343,8 +4294,6 @@ components:
           type: integer
           format: int32
           minimum: 0
-        riskAnalysisDocument:
-          $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
           type: string
       required:
@@ -4366,25 +4315,6 @@ components:
       required:
         - results
         - pagination
-    PurposeVersionDocument:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - contentType
-        - path
-        - createdAt
-      properties:
-        id:
-          type: string
-          format: uuid
-        contentType:
-          type: string
-        path:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
     PurposeVersionSeed:
       type: object
       additionalProperties: false
