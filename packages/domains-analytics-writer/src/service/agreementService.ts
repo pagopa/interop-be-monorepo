@@ -28,7 +28,7 @@ export function agreementServiceBuilder(db: DBContext) {
     async upsertBatchAgreement(items: AgreementItemsSQL[], ctx: DBContext) {
       for (const batch of batchMessages(
         items,
-        config.dbMessagesToInsertPerBatch,
+        config.dbMessagesToInsertPerBatch
       )) {
         const batchItems = {
           agreements: batch.map((i) => i.agreementSQL),
@@ -36,10 +36,9 @@ export function agreementServiceBuilder(db: DBContext) {
           attrs: batch.flatMap((i) => i.attributesSQL),
           docs: batch.flatMap((i) => i.consumerDocumentsSQL),
           contracts: batch.flatMap((i) =>
-            i.contractSQL ? [i.contractSQL] : [],
+            i.contractSQL ? [i.contractSQL] : []
           ),
         };
-
         await ctx.conn.tx(async (t) => {
           if (batchItems.agreements.length) {
             await agreementRepository.insert(t, ctx.pgp, batchItems.agreements);
@@ -56,13 +55,10 @@ export function agreementServiceBuilder(db: DBContext) {
           if (batchItems.contracts.length) {
             await contractRepository.insert(t, ctx.pgp, batchItems.contracts);
           }
-          if (batchItems.stamps.length) {
-            await stampRepository.insert(t, ctx.pgp, batchItems.stamps);
-          }
         });
 
         genericLogger.info(
-          `Staging data inserted for batch of ${batchItems.agreements.length} agreements`,
+          `Staging data inserted for batch of ${batchItems.agreements.length} agreements`
         );
       }
 
@@ -76,7 +72,7 @@ export function agreementServiceBuilder(db: DBContext) {
       });
 
       genericLogger.info(
-        `Staging data merged into target tables for all batches`,
+        `Staging data merged into target tables for all batches`
       );
 
       await agreementRepository.clean();
@@ -91,27 +87,37 @@ export function agreementServiceBuilder(db: DBContext) {
 
     async upsertBatchAgreementDocument(
       docs: AgreementConsumerDocumentSQL[],
-      ctx: DBContext,
+      ctx: DBContext
     ) {
       for (const batch of batchMessages(
         docs,
-        config.dbMessagesToInsertPerBatch,
+        config.dbMessagesToInsertPerBatch
       )) {
         await ctx.conn.tx(async (t) => {
           await docRepository.insert(t, ctx.pgp, batch);
         });
       }
+      genericLogger.info(
+        `Staging data inserted for batch of ${docs.length} agreements contracts`
+      );
+
       await ctx.conn.tx(async (t) => docRepository.merge(t));
+
+      genericLogger.info(
+        `Staging data merged into target tables for all batches`
+      );
       await docRepository.clean();
+
+      genericLogger.info(`Staging data cleaned`);
     },
 
     async upsertBatchAgreementContract(
       contracts: AgreementContractSQL[],
-      ctx: DBContext,
+      ctx: DBContext
     ) {
       for (const batch of batchMessages(
         contracts,
-        config.dbMessagesToInsertPerBatch,
+        config.dbMessagesToInsertPerBatch
       )) {
         await ctx.conn.tx(async (t) => {
           await contractRepository.insert(t, ctx.pgp, batch);
@@ -119,13 +125,13 @@ export function agreementServiceBuilder(db: DBContext) {
       }
 
       genericLogger.info(
-        `Staging data inserted for batch of ${contracts.length} agreements contracts`,
+        `Staging data inserted for batch of ${contracts.length} agreements contracts`
       );
 
       await ctx.conn.tx(async (t) => contractRepository.merge(t));
 
       genericLogger.info(
-        `Staging data merged into target tables for all batches`,
+        `Staging data merged into target tables for all batches`
       );
       await contractRepository.clean();
 
@@ -135,19 +141,19 @@ export function agreementServiceBuilder(db: DBContext) {
     async deleteBatchAgreement(agreementIds: string[], ctx: DBContext) {
       for (const batch of batchMessages(
         agreementIds,
-        config.dbMessagesToInsertPerBatch,
+        config.dbMessagesToInsertPerBatch
       )) {
         await ctx.conn.tx(async (t) => {
           for (const id of batch) {
             await agreementRepository.insertDeletingByAgreeementId(
               t,
               ctx.pgp,
-              id,
+              id
             );
           }
         });
         genericLogger.info(
-          `Staging deletion inserted for agreementsId: ${batch.join(", ")}`,
+          `Staging deletion inserted for agreementsId: ${batch.join(", ")}`
         );
       }
 
@@ -162,12 +168,12 @@ export function agreementServiceBuilder(db: DBContext) {
             AgreementDbTable.agreement_consumer_document,
             AgreementDbTable.agreement_contract,
           ],
-          DeletingDbTable.agreement_deleting_table,
+          DeletingDbTable.agreement_deleting_table
         );
       });
 
       genericLogger.info(
-        `Staging deletion merged into target tables for all agreementsIds`,
+        `Staging deletion merged into target tables for all agreementsIds`
       );
 
       await agreementRepository.cleanDeleting();
@@ -176,30 +182,30 @@ export function agreementServiceBuilder(db: DBContext) {
     },
     async deleteBatchAgreementDocument(
       documentIds: string[],
-      dbContext: DBContext,
+      dbContext: DBContext
     ) {
       for (const batch of batchMessages(
         documentIds,
-        config.dbMessagesToInsertPerBatch,
+        config.dbMessagesToInsertPerBatch
       )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
             await docRepository.insertDeletingByAgreementId(
               t,
               dbContext.pgp,
-              id,
+              id
             );
           }
         });
         genericLogger.info(
           `Staging deletion inserted for agreement documentIds: ${batch.join(
-            ", ",
-          )}`,
+            ", "
+          )}`
         );
       }
       await docRepository.mergeDeleting();
       genericLogger.info(
-        `Staging deletion merged into target tables for all agreementsIds`,
+        `Staging deletion merged into target tables for all agreementsIds`
       );
       await docRepository.cleanDeleting();
 

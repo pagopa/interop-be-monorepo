@@ -10,7 +10,7 @@ import { config } from "../config/config.js";
  * @param schemaName - The target db schema name.
  * @param tableName - The  target table name.
  * @param stagingTableName - The staging table.
- * @param column - The single column key from the schema used in the ON condition of the MERGE.
+ * @param keysOn - The column keys from the schema used in the ON condition of the MERGE.
  * @returns The generated MERGE SQL query as a string.
  */
 export function generateMergeQuery<T extends z.ZodRawShape>(
@@ -18,21 +18,30 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  column: keyof T
+  keysOn: Array<keyof T>
 ): string {
   const keys = Object.keys(tableSchema.shape);
-  const q = (c: string) => `"${c}"`;
+  const quoteColumn = (c: string) => `"${c}"`;
   const updateSet = keys
-    .map((k) => `${q(k)} = source.${q(k)}`)
+    .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
     .join(",\n      ");
 
-  const colList = keys.map(q).join(", ");
-  const valList = keys.map((c) => `source.${q(c)}`).join(", ");
+  const colList = keys.map(quoteColumn).join(", ");
+  const valList = keys.map((c) => `source.${quoteColumn(c)}`).join(", ");
+
+  const onCondition = keysOn
+    .map(
+      (k) =>
+        `${schemaName}.${tableName}.${quoteColumn(
+          String(k)
+        )} = source.${quoteColumn(String(k))}`
+    )
+    .join(" AND ");
 
   return `
   MERGE INTO ${schemaName}.${tableName}
   USING ${stagingTableName} AS source
-  ON ${schemaName}.${tableName}.${String(column)} = source.${String(column)}
+  ON ${onCondition}
   WHEN MATCHED THEN
     UPDATE SET
       ${updateSet}

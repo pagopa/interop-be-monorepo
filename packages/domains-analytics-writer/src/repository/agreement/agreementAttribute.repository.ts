@@ -45,13 +45,10 @@ export function agreementAttributeRepo(conn: DBConnection) {
     async merge(t: ITask<unknown>) {
       try {
         await t.none(
-          generateMergeQuery(
-            agreementAttributeSchema,
-            schema,
-            tbl,
-            stage,
-            "agreement_id"
-          )
+          generateMergeQuery(agreementAttributeSchema, schema, tbl, stage, [
+            "agreement_id",
+            "attribute_id",
+          ])
         );
       } catch (e) {
         throw genericInternalError(`merge attrs: ${e}`);

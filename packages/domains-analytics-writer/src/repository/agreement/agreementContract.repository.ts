@@ -48,7 +48,9 @@ export function agreementContractRepo(conn: DBConnection) {
     async merge(t: ITask<unknown>) {
       try {
         await t.none(
-          generateMergeQuery(agreementContractSchema, schema, tbl, stage, "id")
+          generateMergeQuery(agreementContractSchema, schema, tbl, stage, [
+            "id",
+          ])
         );
       } catch (e) {
         throw genericInternalError(`merge contracts: ${e}`);

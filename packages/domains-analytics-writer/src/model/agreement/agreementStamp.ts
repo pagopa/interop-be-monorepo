@@ -6,7 +6,7 @@ export const agreementStampSchema = z.object({
   metadata_version: z.number(),
   who: z.string(),
   delegation_id: z.string().nullable(),
-  when: z.string(), // ISO timestamp string
+  when: z.string(),
   kind: z.string(),
   deleted: z.boolean().default(false).optional(),
 });

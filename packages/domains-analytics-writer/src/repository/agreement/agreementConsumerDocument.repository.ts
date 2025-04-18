@@ -60,7 +60,7 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
             schemaName,
             tableName,
             stagingTable,
-            "id"
+            ["id"]
           )
         );
       } catch (e) {
@@ -102,7 +102,7 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          ["id"]
         );
         await conn.none(mergeQuery);
       } catch (error) {

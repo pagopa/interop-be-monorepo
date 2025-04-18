@@ -21,7 +21,7 @@ import { DBContext } from "../../db/db.js";
 
 export async function handleAgreementMessageV1(
   messages: AgreementEventEnvelopeV1[],
-  dbContext: DBContext
+  dbContext: DBContext,
 ): Promise<void> {
   const agreementService = agreementServiceBuilder(dbContext);
 
@@ -41,17 +41,17 @@ export async function handleAgreementMessageV1(
             "AgreementActivated",
             "AgreementSuspended",
             "AgreementDeactivated",
-            "VerifiedAttributeUpdated"
+            "VerifiedAttributeUpdated",
           ),
         },
         ({ data, version }) => {
           upsertAgreements.push(
             splitAgreementIntoObjectsSQL(
               Agreement.parse(data.agreement),
-              version
-            )
+              version,
+            ),
           );
-        }
+        },
       )
 
       .with({ type: "AgreementConsumerDocumentAdded" }, ({ data, version }) => {
@@ -59,7 +59,7 @@ export async function handleAgreementMessageV1(
           const agreementDocument = agreementDocumentToAgreementDocumentSQL(
             AgreementDocument.parse(data.document),
             unsafeBrandId<AgreementId>(data.agreementId),
-            version
+            version,
           );
           upsertDocs.push(agreementDocument);
         }
@@ -73,7 +73,7 @@ export async function handleAgreementMessageV1(
           const agreementContract = agreementDocumentToAgreementDocumentSQL(
             AgreementDocument.parse(data.contract),
             unsafeBrandId<AgreementId>(data.agreementId),
-            version
+            version,
           );
           upsertContracts.push(agreementContract);
         }
@@ -95,7 +95,7 @@ export async function handleAgreementMessageV1(
   if (upsertContracts.length) {
     await agreementService.upsertBatchAgreementContract(
       upsertContracts,
-      dbContext
+      dbContext,
     );
   }
   if (deleteDocs.length) {

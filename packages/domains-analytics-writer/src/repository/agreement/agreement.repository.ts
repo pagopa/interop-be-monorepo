@@ -63,7 +63,7 @@ export function agreementRepo(conn: DBConnection) {
             schemaName,
             tableName,
             stagingTable,
-            "id"
+            ["id"]
           )
         );
       } catch (e) {
@@ -102,7 +102,7 @@ export function agreementRepo(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error) {

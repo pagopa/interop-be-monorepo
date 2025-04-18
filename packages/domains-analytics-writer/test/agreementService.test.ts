@@ -27,33 +27,33 @@ describe("Agreement Service - Batch Operations", () => {
 
       const storedAgreement = await getAgreementFromDb(
         agreementItem.agreementSQL.id,
-        dbContext,
+        dbContext
       );
       expect(storedAgreement).toBeDefined();
       expect(storedAgreement.metadata_version).toBe(1);
 
       const stamps = await getAgreementStampFromDb(
         agreementItem.stampsSQL[0].agreementId,
-        dbContext,
+        dbContext
       );
       expect(stamps.length).toBeGreaterThan(0);
 
       const attrs = await getAgreementAttributeFromDb(
         agreementItem.attributesSQL[0].attributeId,
-        dbContext,
+        dbContext
       );
       expect(attrs.length).toBeGreaterThan(0);
 
       const docs = await getAgreementConsumerDocumentFromDb(
         agreementItem.consumerDocumentsSQL[0].id,
-        dbContext,
+        dbContext
       );
       expect(docs.length).toBeGreaterThan(0);
 
       if (agreementItem.contractSQL?.id) {
         const contract = await getAgreementContractFromDb(
           agreementItem.contractSQL.id,
-          dbContext,
+          dbContext
         );
         expect(contract.length).toBe(1);
       }
@@ -68,7 +68,7 @@ describe("Agreement Service - Batch Operations", () => {
 
       await agreementService.upsertBatchAgreement(
         [olderItem, newerItem],
-        dbContext,
+        dbContext
       );
 
       const stored = await getAgreementFromDb(base.id, dbContext);
@@ -93,10 +93,10 @@ describe("Agreement Service - Batch Operations", () => {
       const storedA3 = await getAgreementFromDb(a3.id, dbContext);
 
       [storedA1, storedA2, storedA3].forEach((row) =>
-        expect(row).toBeDefined(),
+        expect(row).toBeDefined()
       );
       expect([storedA1.id, storedA2.id, storedA3.id]).toEqual(
-        expect.arrayContaining([a1.id, a2.id, a3.id]),
+        expect.arrayContaining([a1.id, a2.id, a3.id])
       );
     });
   });
@@ -106,45 +106,45 @@ describe("Agreement Service - Batch Operations", () => {
       await agreementService.upsertBatchAgreement([agreementItem], dbContext);
       await agreementService.deleteBatchAgreement(
         [agreementItem.agreementSQL.id as unknown as AgreementId],
-        dbContext,
+        dbContext
       );
 
       const storedAgreement = await getAgreementFromDb(
         agreementItem.agreementSQL.id,
-        dbContext,
+        dbContext
       );
       expect(storedAgreement.deleted).toBe(true);
 
       const storedStamps = await getAgreementStampFromDb(
         agreementItem.agreementSQL.id,
-        dbContext,
+        dbContext
       );
       storedStamps.forEach((s: { deleted: boolean }) =>
-        expect(s.deleted).toBe(true),
+        expect(s.deleted).toBe(true)
       );
 
       const storedAttrs = await getAgreementAttributeFromDb(
         agreementItem.attributesSQL[0].attributeId,
-        dbContext,
+        dbContext
       );
       storedAttrs.forEach((a: { deleted: boolean }) =>
-        expect(a.deleted).toBe(true),
+        expect(a.deleted).toBe(true)
       );
 
       const storedDocs = await getAgreementConsumerDocumentFromDb(
         agreementItem.consumerDocumentsSQL[0].id,
-        dbContext,
+        dbContext
       );
       storedDocs.forEach((d: { deleted: boolean }) =>
-        expect(d.deleted).toBe(true),
+        expect(d.deleted).toBe(true)
       );
       if (agreementItem.contractSQL?.id) {
         const storedContract = await getAgreementContractFromDb(
           agreementItem.contractSQL.id,
-          dbContext,
+          dbContext
         );
         storedContract.forEach((c: { deleted: boolean }) =>
-          expect(c.deleted).toBe(true),
+          expect(c.deleted).toBe(true)
         );
       }
     });

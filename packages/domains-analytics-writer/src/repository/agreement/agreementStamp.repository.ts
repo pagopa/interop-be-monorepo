@@ -43,13 +43,10 @@ export function agreementStampRepo(conn: DBConnection) {
     async merge(t: ITask<unknown>) {
       try {
         await t.none(
-          generateMergeQuery(
-            agreementStampSchema,
-            schema,
-            tbl,
-            stage,
-            "agreement_id"
-          )
+          generateMergeQuery(agreementStampSchema, schema, tbl, stage, [
+            "agreement_id",
+            "kind",
+          ])
         );
       } catch (e) {
         throw genericInternalError(`merge stamps: ${e}`);
