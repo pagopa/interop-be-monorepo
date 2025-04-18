@@ -1,12 +1,25 @@
-import { WithLogger } from "pagopa-interop-commons";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  getAllFromPaginated,
+  WithLogger,
+  isDefined,
+  zipBy,
+} from "pagopa-interop-commons";
+import {
+  attributeRegistryApi,
+  m2mGatewayApi,
+} from "pagopa-interop-api-clients";
+import { TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { toM2MTenant } from "../api/tenantApiConverter.js";
+import {
+  toM2MTenant,
+  toM2MTenantCertifiedAttribute,
+} from "../api/tenantApiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder({
   tenantProcessClient,
+  attributeProcessClient,
 }: PagoPAInteropBeClients) {
   return {
     getTenants: async (
@@ -37,6 +50,53 @@ export function tenantServiceBuilder({
           offset,
           totalCount,
         },
+      };
+    },
+    getCertifiedAttributes: async (
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantCertifiedAttributes> => {
+      logger.info(`Retrieving tenant ${tenantId} certified attributes`);
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const tenantCertifiedAttributes = tenant.attributes
+        .map((v) => v.certified)
+        .filter(isDefined);
+
+      const tenantCertifiedAttributeIds = tenantCertifiedAttributes.map(
+        (att) => att.id
+      );
+
+      const certifiedAttributes =
+        await getAllFromPaginated<attributeRegistryApi.Attribute>(
+          async (offset, limit) =>
+            await attributeProcessClient.getBulkedAttributes(
+              tenantCertifiedAttributeIds,
+              {
+                headers,
+                queries: {
+                  offset,
+                  limit,
+                },
+              }
+            )
+        );
+
+      const combinedAttributes = zipBy(
+        tenantCertifiedAttributes,
+        certifiedAttributes,
+        ({ id }) => id,
+        ({ id }) => id
+      );
+
+      return {
+        results: combinedAttributes.map((args) =>
+          toM2MTenantCertifiedAttribute(...args)
+        ),
       };
     },
   };

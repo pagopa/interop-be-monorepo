@@ -4520,11 +4520,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TenantCertifiedAttribute"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
       required:
         - results
-        - pagination
     TenantCertifiedAttributeSeed:
       type: object
       additionalProperties: false
