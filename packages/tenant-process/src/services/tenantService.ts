@@ -1299,7 +1299,7 @@ export function tenantServiceBuilder(
     },
     async getTenants(
       query: ApiGetTenantsFilters,
-      { logger }: WithLogger<AppContext<UIAuthData>>
+      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
     ): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Tenants with name = ${query.name}, features = ${query.features}, externalIdOrigin = ${query.externalIdOrigin}, externalIdValue = ${query.externalIdValue}, limit = ${query.limit}, offset = ${query.offset}`
