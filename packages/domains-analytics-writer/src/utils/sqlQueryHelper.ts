@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask } from "pg-promise";
@@ -28,21 +29,6 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   const colList = keys.map(q).join(", ");
   const valList = keys.map((c) => `source.${q(c)}`).join(", ");
 
-  if (tableName === "agreement_stamp") {
-    console.log(`
-    MERGE INTO ${schemaName}.${tableName}
-    USING ${stagingTableName} AS source
-    ON ${schemaName}.${tableName}.${q(String(column))} = source.${q(
-      String(column)
-    )}
-    WHEN MATCHED THEN
-      UPDATE SET
-        ${updateSet}
-    WHEN NOT MATCHED THEN
-      INSERT (${colList})
-      VALUES (${valList});
-  `);
-  }
   return `
   MERGE INTO ${schemaName}.${tableName}
   USING ${stagingTableName} AS source

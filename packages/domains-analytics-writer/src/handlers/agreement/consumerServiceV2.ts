@@ -21,7 +21,7 @@ export async function handleAgreementMessageV2(
   const deleteAgreements: AgreementId[] = [];
 
   for (const msg of messages) {
-    await match(msg)
+    match(msg)
       .with(
         {
           type: P.union(

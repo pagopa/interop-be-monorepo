@@ -1,21 +1,22 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
 import { AgreementSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import {
-  generateMergeQuery,
-  generateMergeDeleteQuery,
-} from "../../utils/sqlQueryHelper.js";
+import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { AgreementDbTable, DeletingDbTable } from "../../model/db.js";
 import { config } from "../../config/config.js";
-import { agreementSchema } from "../../model/agreement/agreement.js";
+import {
+  agreementDeletingSchema,
+  agreementSchema,
+} from "../../model/agreement/agreement.js";
 
 export function agreementRepo(conn: DBConnection) {
-  const schema = config.dbSchemaName;
-  const tbl = AgreementDbTable.agreement;
-  const stage = `${tbl}${config.mergeTableSuffix}`;
-  const delStage = DeletingDbTable.agreement_deleting_table;
+  const schemaName = config.dbSchemaName;
+  const tableName = AgreementDbTable.agreement;
+  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.agreement_deleting_table;
 
   return {
     async insert(t: ITask<unknown>, pgp: IMain, records: AgreementSQL[]) {
@@ -39,14 +40,14 @@ export function agreementRepo(conn: DBConnection) {
         rejection_reason: (r: AgreementSQL) => r.rejectionReason,
         suspended_at: (r: AgreementSQL) => r.suspendedAt,
       };
-      const cs = buildColumnSet<AgreementSQL>(pgp, mapping, stage);
+      const cs = buildColumnSet<AgreementSQL>(pgp, mapping, stagingTable);
       try {
         if (records.length) {
           await t.none(pgp.helpers.insert(records, cs));
         }
         await t.none(`
-          DELETE FROM ${stage} a
-          USING ${stage} b
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
           WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
         `);
       } catch (e) {
@@ -57,19 +58,33 @@ export function agreementRepo(conn: DBConnection) {
     async merge(t: ITask<unknown>) {
       try {
         await t.none(
-          generateMergeQuery(agreementSchema, schema, tbl, stage, "id")
+          generateMergeQuery(
+            agreementSchema,
+            schemaName,
+            tableName,
+            stagingTable,
+            "id"
+          )
         );
       } catch (e) {
         throw genericInternalError(`merge agreements: ${e}`);
       }
     },
 
-    async deleteStaged(t: ITask<unknown>, pgp: IMain, id: string) {
+    async insertDeletingByAgreeementId(
+      t: ITask<unknown>,
+      pgp: IMain,
+      id: string
+    ) {
       try {
+        const mapping = {
+          id: () => id,
+          deleted: () => true,
+        };
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
-          { id: () => id, deleted: () => true },
-          delStage
+          mapping,
+          stagingDeletingTable
         );
         await t.none(
           pgp.helpers.insert({ id, deleted: true }, cs) +
@@ -80,26 +95,39 @@ export function agreementRepo(conn: DBConnection) {
       }
     },
 
-    async mergeDeletes(t: ITask<unknown>) {
+    async mergeDeleting(t: ITask<unknown>) {
       try {
-        await t.none(generateMergeDeleteQuery(schema, tbl, delStage, "id"));
-      } catch (e) {
-        throw genericInternalError(`merge del agreements: ${e}`);
+        const mergeQuery = generateMergeQuery(
+          agreementDeletingSchema,
+          schemaName,
+          tableName,
+          stagingDeletingTable,
+          "id"
+        );
+        await t.none(mergeQuery);
+      } catch (error) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
-    async cleanStage() {
+    async clean() {
       try {
-        await conn.none(`TRUNCATE TABLE ${stage};`);
-      } catch (e) {
-        throw genericInternalError(`clean stage: ${e}`);
+        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTable}: ${error}`
+        );
       }
     },
-    async cleanDeleteStage() {
+    async cleanDeleting() {
       try {
-        await conn.none(`TRUNCATE TABLE ${delStage};`);
-      } catch (e) {
-        throw genericInternalError(`clean del stage: ${e}`);
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
+        );
       }
     },
   };

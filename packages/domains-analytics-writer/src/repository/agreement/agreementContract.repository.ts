@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
 import { AgreementContractSQL } from "pagopa-interop-readmodel-models";
@@ -54,7 +55,7 @@ export function agreementContractRepo(conn: DBConnection) {
       }
     },
 
-    async cleanStage() {
+    async clean() {
       try {
         await conn.none(`TRUNCATE TABLE ${stage};`);
       } catch (e) {
