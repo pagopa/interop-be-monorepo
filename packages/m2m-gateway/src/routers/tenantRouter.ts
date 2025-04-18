@@ -46,7 +46,13 @@ const tenantRouter = (
     .get("/tenants/:tenantId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE]);
+        const tenant = await tenantService.getTenant(
+          unsafeBrandId(req.params.tenantId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Tenant.parse(tenant));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

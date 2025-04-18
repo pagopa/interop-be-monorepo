@@ -52,6 +52,19 @@ export function tenantServiceBuilder({
         },
       };
     },
+    getTenant: async (
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Tenant> => {
+      logger.info(`Retrieving tenant with id ${tenantId}`);
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      return toM2MTenant(tenant);
+    },
     getCertifiedAttributes: async (
       tenantId: TenantId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
