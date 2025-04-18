@@ -8,7 +8,6 @@ import {
 import { ReadonlyDeep } from "@zodios/core/lib/utils.types";
 import { AxiosResponse } from "axios";
 import { METADATA_VERSION_HEADER } from "pagopa-interop-commons";
-import { z } from "zod";
 
 export function zodiosMetadataPlugin(): ZodiosPlugin {
   return {
@@ -19,19 +18,15 @@ export function zodiosMetadataPlugin(): ZodiosPlugin {
       response: AxiosResponse
     ): Promise<AxiosResponse> => {
       const metadataVersionRaw = response.headers[METADATA_VERSION_HEADER];
-      const metadataVersion = z.coerce
-        .number()
-        .optional()
-        .safeParse(metadataVersionRaw);
+      const metadataVersion = parseInt(metadataVersionRaw, 10);
 
       const data: WithMaybeMetadata<unknown> = {
         data: response.data,
-        metadata:
-          metadataVersion.success && metadataVersion.data !== undefined
-            ? {
-                version: metadataVersion.data,
-              }
-            : undefined,
+        metadata: !isNaN(metadataVersion)
+          ? {
+              version: metadataVersion,
+            }
+          : undefined,
       };
 
       return Promise.resolve({
