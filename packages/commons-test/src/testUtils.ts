@@ -275,18 +275,11 @@ export const getMockAgreement = (
   consumerId: TenantId = generateId<TenantId>(),
   state: AgreementState = agreementState.draft
 ): Agreement => ({
-  id: generateId(),
+  ...generateMock(Agreement),
   eserviceId,
   consumerId,
   state,
   stamps: getMockAgreementStamps(),
-  createdAt: new Date(),
-  descriptorId: generateId(),
-  producerId: generateId(),
-  verifiedAttributes: [],
-  certifiedAttributes: [],
-  declaredAttributes: [],
-  consumerDocuments: [],
 });
 
 export const getMockAttribute = (
@@ -309,6 +302,7 @@ export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
   description: "Test purpose - description",
   createdAt: new Date(),
   isFreeOfCharge: true,
+  freeOfChargeReason: "test",
 });
 
 export const getMockPurposeVersion = (
