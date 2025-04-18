@@ -4,6 +4,7 @@ import { config } from "../src/config/config.js";
 import {
   AgreementDbTable,
   AttributeDbtable,
+  CatalogDbTable,
   DeletingDbTable,
 } from "../src/model/db.js";
 import { setupStagingTablesError } from "../src/model/errors.js";
@@ -22,7 +23,24 @@ describe("Setup DB Service tests for attribute tables", async () => {
     AgreementDbTable.agreement_stamp,
   ];
 
-  const stagingTables = [...attributeTables, ...agreementTables];
+  const catalogTables = [
+    CatalogDbTable.eservice,
+    CatalogDbTable.eservice_descriptor,
+    CatalogDbTable.eservice_descriptor_attribute,
+    CatalogDbTable.eservice_descriptor_document,
+    CatalogDbTable.eservice_descriptor_interface,
+    CatalogDbTable.eservice_descriptor_rejection_reason,
+    CatalogDbTable.eservice_descriptor_template_version_ref,
+    CatalogDbTable.eservice_risk_analysis,
+    CatalogDbTable.eservice_risk_analysis_answer,
+    CatalogDbTable.eservice_template_ref,
+  ];
+
+  const stagingTables = [
+    ...attributeTables,
+    ...catalogTables,
+    ...agreementTables,
+  ];
 
   const dbService = setupDbServiceBuilder(dbContext.conn, config);
 
@@ -30,7 +48,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(attributeTables);
 
     const expectedTables = attributeTables.map(
-      (t) => `${t}${config.mergeTableSuffix}`,
+      (t) => `${t}${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -45,7 +63,22 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(agreementTables);
 
     const expectedTables = agreementTables.map(
-      (t) => `${t}${config.mergeTableSuffix}`,
+      (t) => `${t}${config.mergeTableSuffix}`
+    );
+    const result = await getTablesByName(dbContext.conn, expectedTables);
+
+    expect(result.length).toBe(expectedTables.length);
+    const createdTableNames = result.map((row) => row.tablename);
+    expectedTables.forEach((table) => {
+      expect(createdTableNames).toContain(table);
+    });
+  });
+
+  it("should create staging tables successfully for catalog tables", async () => {
+    await dbService.setupStagingTables(catalogTables);
+
+    const expectedTables = catalogTables.map(
+      (t) => `${t}${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -76,7 +109,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
         DeletingDbTable.attribute_deleting_table,
         DeletingDbTable.catalog_deleting_table,
         DeletingDbTable.agreement_deleting_table,
-      ].sort(),
+      ].sort()
     );
   });
 
@@ -85,7 +118,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     vi.spyOn(dbContext.conn, "query").mockRejectedValueOnce(mockQueryError);
 
     await expect(
-      dbService.setupStagingTables(stagingTables),
+      dbService.setupStagingTables(stagingTables)
     ).rejects.toThrowError(setupStagingTablesError(mockQueryError));
   });
 });
