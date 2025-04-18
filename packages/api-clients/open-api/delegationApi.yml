@@ -283,10 +283,8 @@ paths:
       operationId: getDelegation
       responses:
         headers:
-          x-metadata-version:
-            description: The version number of the resource in the read model
-            schema:
-              type: integer
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation retrieved
           content:
@@ -375,10 +373,8 @@ paths:
         required: true
       responses:
         headers:
-          x-metadata-version:
-            description: The version number of the resource in the read model
-            schema:
-              type: integer
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation created.
           content:
@@ -581,10 +577,8 @@ paths:
         required: true
       responses:
         headers:
-          x-metadata-version:
-            description: The version number of the resource in the read model
-            schema:
-              type: integer
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation created.
           content:
@@ -785,6 +779,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
   parameters:
     CorrelationIdHeader:
       in: header
