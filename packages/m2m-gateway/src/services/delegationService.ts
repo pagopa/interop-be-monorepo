@@ -4,7 +4,7 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { pollResource } from "../utils/polling.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { assertMetadataExists } from "../utils/validators/validators.js";
-import { toM2MGatewayApiConsumerDelegation } from "../model/delegationApiConverter.js";
+import { toM2MGatewayApiConsumerDelegation } from "../api/delegationApiConverter.js";
 import { assertDelegationKindIs } from "../utils/validators/delegationValidators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
