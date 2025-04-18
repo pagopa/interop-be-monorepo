@@ -187,6 +187,7 @@ const tenantsRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          INTERNAL_ROLE,
         ]);
 
         const tenant = await tenantService.getTenantById(

@@ -1318,7 +1318,9 @@ export function tenantServiceBuilder(
     },
     async getTenantById(
       id: TenantId,
-      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | InternalAuthData>>
     ): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
       const tenant = await retrieveTenant(id, readModelService);
