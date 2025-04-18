@@ -1,6 +1,7 @@
 import {
   hasAtLeastOneUserRole,
   M2MAuthData,
+  ReadModelRepository,
   UIAuthData,
   userRole,
 } from "pagopa-interop-commons";
@@ -141,7 +142,10 @@ export function readModelServiceBuilderSQL(
           and(
             // name filter
             name
-              ? ilike(eserviceInReadmodelCatalog.name, `%${name}%`)
+              ? ilike(
+                  eserviceInReadmodelCatalog.name,
+                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                )
               : undefined,
             // ids filter
             eservicesIds.length > 0
@@ -414,7 +418,10 @@ export function readModelServiceBuilderSQL(
     }): Promise<WithMetadata<EService> | undefined> {
       return await catalogReadModelService.getEServiceByFilter(
         and(
-          ilike(eserviceInReadmodelCatalog.name, name),
+          ilike(
+            eserviceInReadmodelCatalog.name,
+            ReadModelRepository.escapeRegExp(name)
+          ),
           eq(eserviceInReadmodelCatalog.producerId, producerId)
         )
       );
