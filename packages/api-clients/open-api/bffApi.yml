@@ -2672,7 +2672,7 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Update descriptor agreement approval policy
+      summary: Update published descriptor agreement approval policy
       operationId: updateAgreementApprovalPolicy
       parameters:
         - name: eServiceId
