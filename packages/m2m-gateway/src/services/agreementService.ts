@@ -156,5 +156,23 @@ export function agreementServiceBuilder({
 
       return toM2MAgreement(polledResource.data);
     },
+    suspendAgreement: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      agreementId: AgreementId
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Suspending agreement with id ${agreementId}`);
+
+      const response = await agreementProcessClient.suspendAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MAgreement(polledResource.data);
+    },
   };
 }
