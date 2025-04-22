@@ -1,11 +1,14 @@
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { pollResource } from "../utils/polling.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResource,
+} from "../utils/polling.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { assertMetadataExists } from "../utils/validators/validators.js";
 import { toM2MGatewayApiConsumerDelegation } from "../api/delegationApiConverter.js";
 import { assertDelegationKindIs } from "../utils/validators/delegationValidators.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder({
@@ -13,15 +16,17 @@ export function delegationServiceBuilder({
 }: PagoPAInteropBeClients) {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollDelegation = (
-    delegationId: delegationApi.Delegation["id"],
+    response: WithMaybeMetadata<delegationApi.Delegation>,
     headers: M2MGatewayAppContext["headers"]
   ) =>
     pollResource(() =>
       delegationProcessClient.delegation.getDelegation({
-        params: { delegationId },
+        params: { delegationId: response.data.id },
         headers,
       })
-    );
+    )({
+      checkFn: isPolledVersionAtLeastResponseVersion(response),
+    });
 
   return {
     async createConsumerDelegation(
@@ -33,15 +38,7 @@ export function delegationServiceBuilder({
           headers,
         });
 
-      const polledResource = await pollDelegation(
-        response.data.id,
-        headers
-      )({
-        checkFn: (polled) => {
-          assertMetadataExists(response);
-          return polled.metadata.version >= response.metadata.version;
-        },
-      });
+      const polledResource = await pollDelegation(response, headers);
 
       assertDelegationKindIs(
         polledResource.data,

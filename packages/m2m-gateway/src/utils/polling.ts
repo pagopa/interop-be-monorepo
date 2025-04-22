@@ -25,16 +25,16 @@ export function pollResource<T>(
     maxAttempts = config.defaultPollingMaxAttempts,
     intervalMs = config.defaultPollingIntervalMs,
   }: {
-    checkFn: (resource: WithMetadata<NonNullable<T>>) => boolean;
+    checkFn: (polledResource: WithMetadata<NonNullable<T>>) => boolean;
     maxAttempts?: number;
     intervalMs?: number;
   }): Promise<WithMetadata<NonNullable<T>>> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        const resource = await fetchResource();
-        assertMetadataExists(resource);
-        if (checkFn(resource)) {
-          return resource;
+        const polledResource = await fetchResource();
+        assertMetadataExists(polledResource);
+        if (checkFn(polledResource)) {
+          return polledResource;
         }
       } catch (error: unknown) {
         // If the error isn't 404, rethrow it immediately
@@ -49,4 +49,20 @@ export function pollResource<T>(
 
     throw resourcePollingTimeout(maxAttempts);
   };
+}
+
+/**
+ * Default polling check function that checks if the polled resource's version is greater than
+ * the version of the resource of a given response.
+ * Example usage:
+ * - Create or update a resource, obtaining "response" as the result of the operation
+ * - Poll the created/updated resource using the "pollResource" function
+ * - Use this function passing the "response", pass it to the "checkFn" parameter of the "pollResource" function
+ */
+export function isPolledVersionAtLeastResponseVersion<T>(
+  response: WithMaybeMetadata<NonNullable<T>>
+): (polledResource: WithMetadata<NonNullable<T>>) => boolean {
+  assertMetadataExists(response);
+  return (polledResource: WithMetadata<NonNullable<T>>) =>
+    polledResource.metadata.version >= response.metadata.version;
 }
