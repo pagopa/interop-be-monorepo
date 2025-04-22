@@ -1,0 +1,28 @@
+meta {
+  name: Revoke Certified Attribute
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{host-m2m-gw}}/tenants/:tenantId/certifiedAttributes
+  body: json
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}},
+  attributeId: {{attributeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "tenantId" : "5bd41941-cf5f-46e2-a59e-0ed8a5d5cfc8",
+    "attributeId" : "5bd41941-cf5f-46e2-a59e-0ed8a5d5cfc8"
+  }
+}
