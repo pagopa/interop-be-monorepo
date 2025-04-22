@@ -11,11 +11,10 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
- * Generic polling function that waits until an object is created and meets certain criteria
+ * Generic polling function that polls a resource until a condition is met or a timeout occurs.
  *
- * @param fetchResourceFunction - Function that returns a Promise to fetch the object
- * @param options - Additional configuration
- * @returns Promise that resolves to the created/ready object
+ * @param fetchResource - Function that returns a Promise to fetch the resource
+ * @returns A function that takes a check function and returns a Promise of the polled resource
  */
 export function pollResource<T>(
   fetchResource: () => Promise<WithMaybeMetadata<NonNullable<T>>>
@@ -52,12 +51,12 @@ export function pollResource<T>(
 }
 
 /**
- * Default polling check function that checks if the polled resource's version is greater than
- * the version of the resource of a given response.
- * Example usage:
- * - Create or update a resource, obtaining "response" as the result of the operation
- * - Poll the created/updated resource using the "pollResource" function
- * - Use this function passing the "response", pass it to the "checkFn" parameter of the "pollResource" function
+ Default polling check function that checks if the polled resource's version is greater than
+ the version of the resource of a given response.
+ Example usage:
+ - Create or update a resource, obtaining "response" as the result of the operation
+ - Poll the created/updated resource using the "pollResource" function
+ - Pass the "response" to this function to obtain the "checkFn" to be passed to "pollResource"
  */
 export function isPolledVersionAtLeastResponseVersion<T>(
   response: WithMaybeMetadata<NonNullable<T>>
