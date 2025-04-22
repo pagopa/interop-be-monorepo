@@ -198,5 +198,22 @@ export function agreementServiceBuilder({
 
       return toM2MAgreement(polledResource.data);
     },
+    upgradeAgreement: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      agreementId: AgreementId
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Upgrading agreement with id ${agreementId}`);
+
+      const response = await agreementProcessClient.upgradeAgreementById(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MAgreement(polledResource.data);
+    },
   };
 }
