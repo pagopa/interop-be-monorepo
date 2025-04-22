@@ -32,16 +32,17 @@ export function tenantServiceBuilder({
         `Retrieving tenants for externalIdOrigin ${externalIdOrigin} externalIdValue ${externalIdValue} limit ${limit} offset ${offset}`
       );
 
-      const { results, totalCount } =
-        await tenantProcessClient.tenant.getTenants({
-          queries: {
-            externalIdOrigin,
-            externalIdValue,
-            limit,
-            offset,
-          },
-          headers,
-        });
+      const {
+        data: { results, totalCount },
+      } = await tenantProcessClient.tenant.getTenants({
+        queries: {
+          externalIdOrigin,
+          externalIdValue,
+          limit,
+          offset,
+        },
+        headers,
+      });
 
       return {
         results: results.map(toM2MTenant),
