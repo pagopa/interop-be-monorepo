@@ -2340,7 +2340,7 @@ paths:
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/Purposes"
+                $ref: "#/components/schemas/Purposes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4249,12 +4249,16 @@ components:
         dailyCalls:
           type: integer
           format: int32
+        consumerId:
+          type: string
+          format: uuid
       required:
         - eserviceId
         - title
         - description
         - isFreeOfCharge
         - dailyCalls
+        - consumerId
     Purposes:
       type: object
       additionalProperties: false
