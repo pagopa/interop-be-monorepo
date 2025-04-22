@@ -31,7 +31,6 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-  eserviceTemplateRefInReadmodelCatalog,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -79,15 +78,11 @@ export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
   typeof eserviceDescriptorAttributeInReadmodelCatalog
 >;
-export type EServiceTemplateRefSQL = InferSelectModel<
-  typeof eserviceTemplateRefInReadmodelCatalog
->;
 export type EServiceDescriptorTemplateVersionRefSQL = InferSelectModel<
   typeof eserviceDescriptorTemplateVersionRefInReadmodelCatalog
 >;
 export type EServiceItemsSQL = {
   eserviceSQL: EServiceSQL;
-  templateRefSQL: EServiceTemplateRefSQL | undefined;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
   descriptorsSQL: EServiceDescriptorSQL[];
