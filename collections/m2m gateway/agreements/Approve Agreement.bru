@@ -1,0 +1,20 @@
+meta {
+  name: Approve Agreement
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{host-m2m-gw}}/agreements/:agreementId/approve
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  x-correlation-id: {{correlation-id}}
+}
