@@ -21,6 +21,7 @@ export * from "./clientJWKKeyReadModelService.js";
 export * from "./authorization/clientJWKKeySplitters.js";
 
 // E-SERVICE TEMPLATE
+export * from "./eserviceTemplateReadModelService.js";
 export * from "./eservice-template/splitters.js";
 
 // PURPOSE
