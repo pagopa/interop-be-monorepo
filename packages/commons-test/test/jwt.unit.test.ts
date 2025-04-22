@@ -2,6 +2,7 @@
 import jwt from "jsonwebtoken";
 import {
   InternalAuthData,
+  M2MAdminAuthData,
   M2MAuthData,
   MaintenanceAuthData,
   UIAuthData,
@@ -141,6 +142,18 @@ const mockSupportExpectedAuthData: UIAuthData = {
   userRoles: ["support"],
 };
 
+const mockM2MAdminToken = {
+  ...mockM2MToken,
+  role: "m2m-admin",
+  userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+};
+
+const mockM2MAdminExpectedAuthData: M2MAdminAuthData = {
+  systemRole: "m2m-admin",
+  organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
+  userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
+};
+
 const getMockSignedToken = (token: object): string =>
   jwt.sign(token, "test-secret");
 
@@ -218,6 +231,14 @@ describe("JWT tests", () => {
       expect(readAuthDataFromJwtToken(token!)).toEqual(mockM2MExpectedAuthData);
     });
 
+    it("should successfully read auth data from a M2M admin token", async () => {
+      const token = jwt.decode(getMockSignedToken(mockM2MAdminToken));
+
+      expect(readAuthDataFromJwtToken(token!)).toEqual(
+        mockM2MAdminExpectedAuthData
+      );
+    });
+
     it("should fail if some required fields are missing", async () => {
       const mockToken = randomArrayItem([
         mockUiToken,
@@ -283,7 +304,7 @@ describe("JWT tests", () => {
 
       expect(() => readAuthDataFromJwtToken(token!)).toThrowError(
         invalidClaim(
-          "Validation error: Invalid discriminator value. Expected 'm2m' | 'internal' | 'maintenance' |  at \"role\""
+          "Validation error: Invalid discriminator value. Expected 'm2m' | 'm2m-admin' | 'internal' | 'maintenance' |  at \"role\""
         )
       );
     });
