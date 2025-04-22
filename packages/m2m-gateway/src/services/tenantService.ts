@@ -59,7 +59,7 @@ export function tenantServiceBuilder({
     ): Promise<m2mGatewayApi.Tenant> => {
       logger.info(`Retrieving tenant with id ${tenantId}`);
 
-      const tenant = await tenantProcessClient.tenant.getTenant({
+      const { data: tenant } = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,
       });
