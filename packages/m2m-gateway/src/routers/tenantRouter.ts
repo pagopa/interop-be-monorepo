@@ -18,7 +18,7 @@ const tenantRouter = (
   ctx: ZodiosContext,
   clients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { M2M_ROLE } = authRole;
+  const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
   const tenantRouter = ctx.router(m2mGatewayApi.tenantsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
@@ -90,7 +90,14 @@ const tenantRouter = (
     .post("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        await tenantService.addCertifiedAttribute(
+          unsafeBrandId(req.params.tenantId),
+          ctx,
+          req.body
+        );
+
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

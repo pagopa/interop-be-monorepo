@@ -7,6 +7,7 @@ import {
 import {
   attributeRegistryApi,
   m2mGatewayApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -15,12 +16,31 @@ import {
   toM2MTenant,
   toM2MTenantCertifiedAttribute,
 } from "../api/tenantApiConverter.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResource,
+} from "../utils/polling.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder({
   tenantProcessClient,
   attributeProcessClient,
 }: PagoPAInteropBeClients) {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const pollTenant = (
+    response: WithMaybeMetadata<tenantApi.Tenant>,
+    headers: M2MGatewayAppContext["headers"]
+  ) =>
+    pollResource(() =>
+      tenantProcessClient.tenant.getTenant({
+        params: { id: response.data.id },
+        headers,
+      })
+    )({
+      checkFn: isPolledVersionAtLeastResponseVersion(response),
+    });
+
   return {
     getTenants: async (
       { logger, headers }: WithLogger<M2MGatewayAppContext>,
@@ -111,6 +131,23 @@ export function tenantServiceBuilder({
           toM2MTenantCertifiedAttribute(...args)
         ),
       };
+    },
+    addCertifiedAttribute: async (
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      seed: m2mGatewayApi.TenantCertifiedAttributeSeed
+    ): Promise<void> => {
+      logger.info(
+        `Assigning certified attribute ${seed.id} to tenant ${tenantId}`
+      );
+
+      const response =
+        await tenantProcessClient.tenantAttribute.addCertifiedAttribute(seed, {
+          params: { tenantId },
+          headers,
+        });
+
+      await pollTenant(response, headers);
     },
   };
 }
