@@ -10,6 +10,7 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "../brandedIds.js";
 import { ClientKindTokenGenStates } from "./commons.js";
 
@@ -64,6 +65,7 @@ export const PlatformStatesClientEntry = PlatformStatesBaseEntry.extend({
   clientKind: ClientKindTokenGenStates,
   clientConsumerId: TenantId,
   clientPurposesIds: z.array(PurposeId),
+  adminId: UserId.optional(),
 });
 export type PlatformStatesClientEntry = z.infer<
   typeof PlatformStatesClientEntry
