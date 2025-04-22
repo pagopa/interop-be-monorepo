@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import { generateId, Tenant } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAuthData,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
-import { UserRole, userRoles } from "pagopa-interop-commons";
+import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
 import { tenantService } from "../../src/routers/TenantRouter.js";
@@ -40,18 +35,12 @@ describe("API /producers authorization test", () => {
 
   vi.spyOn(tenantService, "getProducers").mockResolvedValue(mockResponse);
 
-  const allowedRoles: UserRole[] = [
-    userRoles.ADMIN_ROLE,
-    userRoles.API_ROLE,
-    userRoles.SECURITY_ROLE,
-    userRoles.SUPPORT_ROLE,
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+    authRole.SUPPORT_ROLE,
   ];
-
-  const generateToken = (userRole: UserRole = allowedRoles[0]) =>
-    jwt.sign(
-      createPayload({ ...getMockAuthData(), userRoles: [userRole] }),
-      "test-secret"
-    );
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -60,7 +49,7 @@ describe("API /producers authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .query({ offset: 0, limit: 10 });
 
-  it.each(allowedRoles)(
+  it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
@@ -71,7 +60,7 @@ describe("API /producers authorization test", () => {
   );
 
   it.each(
-    Object.values(userRoles).filter((role) => !allowedRoles.includes(role))
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);

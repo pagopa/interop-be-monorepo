@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import {
   Tenant,
   attributeKind,
@@ -11,12 +10,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  createPayload,
+  generateToken,
   getMockAttribute,
-  getMockAuthData,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { UserRole, userRoles } from "pagopa-interop-commons";
+import { authRole } from "pagopa-interop-commons";
 import { api } from "../vitest.api.setup.js";
 import { tenantService } from "../../src/routers/TenantRouter.js";
 import {
@@ -49,14 +47,6 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
 
   vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockResolvedValue();
 
-  const allowedRoles: UserRole[] = [userRoles.M2M_ROLE];
-
-  const generateToken = (userRole: UserRole = allowedRoles[0]) =>
-    jwt.sign(
-      createPayload({ ...getMockAuthData(), userRoles: [userRole] }),
-      "test-secret"
-    );
-
   const makeRequest = async (token: string) =>
     request(api)
       .delete(
@@ -66,28 +56,26 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
       .set("X-Correlation-Id", generateId())
       .send();
 
-  it.each(allowedRoles)(
-    "Should return 204 for user with role %s",
+  it("Should return 204 for user with role M2M", async () => {
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(204);
+  });
+
+  it.each(Object.values(authRole).filter((role) => role !== authRole.M2M_ROLE))(
+    "Should return 403 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(403);
     }
   );
-
-  it.each(
-    Object.values(userRoles).filter((role) => !allowedRoles.includes(role))
-  )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
 
   it("Should return 404 for tenantNotFound", async () => {
     vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
       tenantNotFound(targetTenant.id)
     );
-    const token = generateToken();
+    const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -99,7 +87,7 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
         targetTenant.externalId.value
       )
     );
-    const token = generateToken();
+    const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -108,7 +96,7 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
     vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
       attributeNotFound(mockAttribute.code)
     );
-    const token = generateToken();
+    const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });
@@ -120,7 +108,7 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
         targetTenant.id
       )
     );
-    const token = generateToken();
+    const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });
@@ -129,7 +117,7 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
     vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
       tenantIsNotACertifier(targetTenant.id)
     );
-    const token = generateToken();
+    const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });

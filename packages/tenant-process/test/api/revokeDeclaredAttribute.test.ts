@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import { generateId, Tenant } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAuthData,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
-import { UserRole, userRoles } from "pagopa-interop-commons";
+import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
 import { tenantService } from "../../src/routers/TenantRouter.js";
@@ -26,14 +21,6 @@ describe("API /tenants/attributes/declared/{attributeId} authorization test", ()
 
   vi.spyOn(tenantService, "revokeDeclaredAttribute").mockResolvedValue(tenant);
 
-  const allowedRoles: UserRole[] = [userRoles.ADMIN_ROLE];
-
-  const generateToken = (userRole: UserRole = allowedRoles[0]) =>
-    jwt.sign(
-      createPayload({ ...getMockAuthData(), userRoles: [userRole] }),
-      "test-secret"
-    );
-
   const makeRequest = async (token: string) =>
     request(api)
       .delete(`/tenants/attributes/declared/${attributeId}`)
@@ -41,18 +28,15 @@ describe("API /tenants/attributes/declared/{attributeId} authorization test", ()
       .set("X-Correlation-Id", generateId())
       .send({ agreementId: generateId() });
 
-  it.each(allowedRoles)(
-    "Should return 200 for user with role %",
-    async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiResponse);
-    }
-  );
+  it("Should return 200 for user with role Admin", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(apiResponse);
+  });
 
   it.each(
-    Object.values(userRoles).filter((role) => !allowedRoles.includes(role))
+    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -63,7 +47,7 @@ describe("API /tenants/attributes/declared/{attributeId} authorization test", ()
     vi.spyOn(tenantService, "revokeDeclaredAttribute").mockRejectedValue(
       tenantNotFound(tenant.id)
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -72,7 +56,7 @@ describe("API /tenants/attributes/declared/{attributeId} authorization test", ()
     vi.spyOn(tenantService, "revokeDeclaredAttribute").mockRejectedValue(
       attributeNotFound(generateId())
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });

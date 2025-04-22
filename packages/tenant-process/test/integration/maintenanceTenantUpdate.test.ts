@@ -2,13 +2,12 @@
 import {
   MaintenanceTenantUpdatedV2,
   Tenant,
-  generateId,
   protobufDecoder,
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
+  getMockContextMaintenance,
   getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
@@ -39,9 +38,8 @@ describe("maintenanceTenantUpdate", async () => {
         tenantId: mockTenant.id,
         tenantUpdate,
         version: 0,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContextMaintenance({})
     );
     const writtenEvent = await readLastEventByStreamId(
       mockTenant.id,
@@ -80,9 +78,8 @@ describe("maintenanceTenantUpdate", async () => {
           tenantId: mockTenant.id,
           tenantUpdate,
           version: 0,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextMaintenance({})
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });

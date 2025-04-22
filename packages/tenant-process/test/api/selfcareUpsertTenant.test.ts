@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import { generateId, operationForbidden } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAuthData,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
-import { UserRole, userRoles } from "pagopa-interop-commons";
+import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { api } from "../vitest.api.setup.js";
 import { tenantService } from "../../src/routers/TenantRouter.js";
@@ -36,18 +31,12 @@ describe("API /selfcare/tenants authorization test", () => {
 
   vi.spyOn(tenantService, "selfcareUpsertTenant").mockResolvedValue(tenant.id);
 
-  const allowedRoles: UserRole[] = [
-    userRoles.ADMIN_ROLE,
-    userRoles.API_ROLE,
-    userRoles.SECURITY_ROLE,
-    userRoles.INTERNAL_ROLE,
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.SECURITY_ROLE,
+    authRole.INTERNAL_ROLE,
   ];
-
-  const generateToken = (userRole: UserRole = allowedRoles[0]) =>
-    jwt.sign(
-      createPayload({ ...getMockAuthData(), userRoles: [userRole] }),
-      "test-secret"
-    );
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -56,7 +45,7 @@ describe("API /selfcare/tenants authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(tenantSeed);
 
-  it.each(allowedRoles)(
+  it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
@@ -67,7 +56,7 @@ describe("API /selfcare/tenants authorization test", () => {
   );
 
   it.each(
-    Object.values(userRoles).filter((role) => !allowedRoles.includes(role))
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -78,7 +67,7 @@ describe("API /selfcare/tenants authorization test", () => {
     vi.spyOn(tenantService, "selfcareUpsertTenant").mockRejectedValue(
       operationForbidden
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
@@ -91,7 +80,7 @@ describe("API /selfcare/tenants authorization test", () => {
         newSelfcareId: selfcareId,
       })
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
   });

@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import { generateId, Tenant } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAuthData,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
-import { UserRole, userRoles } from "pagopa-interop-commons";
+import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api } from "../vitest.api.setup.js";
 import { tenantService } from "../../src/routers/TenantRouter.js";
 import {
@@ -26,13 +21,7 @@ describe("API /tenants/{tenantId}/attributes/certified/{attributeId} authorizati
 
   vi.spyOn(tenantService, "revokeCertifiedAttributeById").mockResolvedValue();
 
-  const allowedRoles: UserRole[] = [userRoles.ADMIN_ROLE, userRoles.M2M_ROLE];
-
-  const generateToken = (userRole: UserRole = allowedRoles[0]) =>
-    jwt.sign(
-      createPayload({ ...getMockAuthData(), userRoles: [userRole] }),
-      "test-secret"
-    );
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.M2M_ROLE];
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -40,7 +29,7 @@ describe("API /tenants/{tenantId}/attributes/certified/{attributeId} authorizati
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  it.each(allowedRoles)(
+  it.each(authorizedRoles)(
     "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
@@ -50,7 +39,7 @@ describe("API /tenants/{tenantId}/attributes/certified/{attributeId} authorizati
   );
 
   it.each(
-    Object.values(userRoles).filter((role) => !allowedRoles.includes(role))
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -61,7 +50,7 @@ describe("API /tenants/{tenantId}/attributes/certified/{attributeId} authorizati
     vi.spyOn(tenantService, "revokeCertifiedAttributeById").mockRejectedValue(
       tenantNotFound(tenant.id)
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -70,7 +59,7 @@ describe("API /tenants/{tenantId}/attributes/certified/{attributeId} authorizati
     vi.spyOn(tenantService, "revokeCertifiedAttributeById").mockRejectedValue(
       attributeNotFound(generateId())
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -79,7 +68,7 @@ describe("API /tenants/{tenantId}/attributes/certified/{attributeId} authorizati
     vi.spyOn(tenantService, "revokeCertifiedAttributeById").mockRejectedValue(
       attributeDoesNotBelongToCertifier(generateId(), generateId(), tenant.id)
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
@@ -88,7 +77,7 @@ describe("API /tenants/{tenantId}/attributes/certified/{attributeId} authorizati
     vi.spyOn(tenantService, "revokeCertifiedAttributeById").mockRejectedValue(
       tenantIsNotACertifier(generateId())
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
@@ -97,7 +86,7 @@ describe("API /tenants/{tenantId}/attributes/certified/{attributeId} authorizati
     vi.spyOn(tenantService, "revokeCertifiedAttributeById").mockRejectedValue(
       attributeAlreadyRevoked(generateId(), generateId(), generateId())
     );
-    const token = generateToken();
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
   });

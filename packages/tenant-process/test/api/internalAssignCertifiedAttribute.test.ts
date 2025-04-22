@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import {
   Attribute,
   attributeKind,
@@ -9,12 +8,11 @@ import {
   Tenant,
 } from "pagopa-interop-models";
 import {
-  createPayload,
+  generateToken,
   getMockAttribute,
-  getMockAuthData,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { UserRole, userRoles } from "pagopa-interop-commons";
+import { authRole } from "pagopa-interop-commons";
 import { api } from "../vitest.api.setup.js";
 import { tenantService } from "../../src/routers/TenantRouter.js";
 import {
@@ -40,14 +38,6 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
     "internalAssignCertifiedAttribute"
   ).mockResolvedValue();
 
-  const allowedRoles: UserRole[] = [userRoles.INTERNAL_ROLE];
-
-  const generateToken = (userRole: UserRole = allowedRoles[0]) =>
-    jwt.sign(
-      createPayload({ ...getMockAuthData(), userRoles: [userRole] }),
-      "test-secret"
-    );
-
   const makeRequest = async (token: string) =>
     request(api)
       .post(
@@ -56,17 +46,14 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  it.each(allowedRoles)(
-    "Should return 204 for user with role %s",
-    async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token);
-      expect(res.status).toBe(204);
-    }
-  );
+  it("Should return 204 for user with role Internal", async () => {
+    const token = generateToken(authRole.INTERNAL_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(204);
+  });
 
   it.each(
-    Object.values(userRoles).filter((role) => !allowedRoles.includes(role))
+    Object.values(authRole).filter((role) => role !== authRole.INTERNAL_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -78,7 +65,7 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
       tenantService,
       "internalAssignCertifiedAttribute"
     ).mockRejectedValue(tenantNotFound(targetTenant.id));
-    const token = generateToken();
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -88,7 +75,7 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
       tenantService,
       "internalAssignCertifiedAttribute"
     ).mockRejectedValue(attributeNotFound(generateId()));
-    const token = generateToken();
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
@@ -100,7 +87,7 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
     ).mockRejectedValue(
       certifiedAttributeAlreadyAssigned(generateId(), generateId())
     );
-    const token = generateToken();
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
   });
