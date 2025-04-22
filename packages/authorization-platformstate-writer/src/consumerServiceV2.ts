@@ -34,6 +34,7 @@ import {
   deleteEntriesFromTokenGenStatesByClientIdV2,
   deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2,
   deleteEntriesFromTokenGenStatesByClientIdKidV2,
+  removeAdminIdFromTokenGenStatesApiClient,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -360,13 +361,65 @@ export async function handleMessageV2(
         logger
       );
     })
+    .with({ type: "ClientAdminRemoved" }, async (msg) => {
+      const client = parseClient(msg.data.client, msg.type);
+      const pk = makePlatformStatesClientPK(client.id);
+      const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
+
+      if (clientEntry) {
+        if (clientEntry.version > msg.version) {
+          logger.info(
+            `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+          );
+          return Promise.resolve();
+        } else {
+          // platform-states
+          const platformClientEntry: PlatformStatesClientEntry = {
+            PK: pk,
+            state: itemState.active,
+            clientKind: clientKindToTokenGenerationStatesClientKind(
+              client.kind
+            ),
+            clientConsumerId: client.consumerId,
+            clientPurposesIds: clientEntry ? clientEntry.clientPurposesIds : [],
+            version: msg.version,
+            updatedAt: new Date().toISOString(),
+          };
+          await upsertPlatformClientEntry(
+            platformClientEntry,
+            dynamoDBClient,
+            logger
+          );
+
+          // token-generation-states
+          await Promise.all(
+            client.keys.map(async (key) => {
+              const tokenGenPK = makeTokenGenerationStatesClientKidPK({
+                clientId: client.id,
+                kid: key.kid,
+              });
+
+              await removeAdminIdFromTokenGenStatesApiClient(
+                tokenGenPK,
+                dynamoDBClient,
+                logger
+              );
+            })
+          );
+        }
+      } else {
+        logger.info(
+          `Skipping processing of ClientAdminRemoved event: client data not available or invalid format`
+        );
+        return Promise.resolve();
+      }
+    })
     .with(
       {
         type: P.union(
           "ClientAdded",
           "ClientUserAdded",
           "ClientUserDeleted",
-          "ClientAdminRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
           "ProducerKeychainEServiceAdded",
