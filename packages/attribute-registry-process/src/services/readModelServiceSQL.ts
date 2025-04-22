@@ -8,13 +8,15 @@ import {
   AttributeId,
   TenantId,
 } from "pagopa-interop-models";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   aggregateAttributeArray,
   AttributeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
-import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
+import {
+  attributeInReadmodelAttribute,
+  DrizzleReturnType,
+} from "pagopa-interop-readmodel-models";
 import { and, eq, getTableColumns, ilike, inArray, sql } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -23,7 +25,7 @@ export function readModelServiceBuilderSQL({
   attributeReadModelServiceSQL,
   tenantReadModelServiceSQL,
 }: {
-  readModelDB: ReturnType<typeof drizzle>;
+  readModelDB: DrizzleReturnType;
   attributeReadModelServiceSQL: AttributeReadModelService;
   tenantReadModelServiceSQL: TenantReadModelService;
 }) {
