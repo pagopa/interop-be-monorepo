@@ -49,12 +49,14 @@ export function agreementServiceBuilder({
     ): Promise<m2mGatewayApi.Agreement> => {
       ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
 
-      const agreement = await agreementProcessClient.getAgreementById({
-        params: {
-          agreementId,
-        },
-        headers: ctx.headers,
-      });
+      const { data: agreement } = await agreementProcessClient.getAgreementById(
+        {
+          params: {
+            agreementId,
+          },
+          headers: ctx.headers,
+        }
+      );
 
       return toM2MAgreement(agreement);
     },
