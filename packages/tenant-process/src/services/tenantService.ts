@@ -637,7 +637,7 @@ export function tenantServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<void> {
+    ): Promise<Tenant> {
       logger.info(
         `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
       );
@@ -717,8 +717,11 @@ export function tenantServiceBuilder(
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
+
+        return updatedTenant;
       } else {
         await repository.createEvent(tenantCertifiedAttributeRevokedEvent);
+        return tenantWithRevokedAttribute;
       }
     },
 

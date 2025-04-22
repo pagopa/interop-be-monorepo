@@ -781,14 +781,16 @@ const tenantsRouter = (
           validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
 
           const { tenantId, attributeId } = req.params;
-          await tenantService.revokeCertifiedAttributeById(
+          const tenant = await tenantService.revokeCertifiedAttributeById(
             {
               tenantId: unsafeBrandId(tenantId),
               attributeId: unsafeBrandId(attributeId),
             },
             ctx
           );
-          return res.status(204).send();
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
