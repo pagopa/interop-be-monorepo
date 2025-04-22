@@ -46,7 +46,6 @@ import {
   RateLimiter,
   RateLimiterStatus,
   secondsToMilliseconds,
-  WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import { config } from "../config/config.js";
@@ -91,9 +90,10 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      ctx: WithLogger<AuthServerAppContext>
+      ctx: AuthServerAppContext,
+      logger: Logger
     ): Promise<GenerateTokenReturnType> {
-      ctx.logger.info(`[CLIENTID=${request.client_id}] Token requested`);
+      logger.info(`[CLIENTID=${request.client_id}] Token requested`);
 
       const { errors: parametersErrors } = validateRequestParameters({
         client_assertion: request.client_assertion,
@@ -114,7 +114,7 @@ export function tokenServiceBuilder({
           request.client_assertion,
           request.client_id,
           config.clientAssertionAudience,
-          ctx.logger
+          logger
         );
 
       if (clientAssertionErrors) {
@@ -136,7 +136,7 @@ export function tokenServiceBuilder({
         clientKind: undefined,
         tokenJti: undefined,
         message: "Client assertion validated",
-        logger: ctx.logger,
+        logger,
       });
 
       const pk = purposeId
@@ -156,7 +156,7 @@ export function tokenServiceBuilder({
         clientKind: key.clientKind,
         tokenJti: undefined,
         message: "Key retrieved",
-        logger: ctx.logger,
+        logger,
       });
 
       const { errors: clientAssertionSignatureErrors } =
@@ -182,10 +182,7 @@ export function tokenServiceBuilder({
       }
 
       const { limitReached, ...rateLimiterStatus } =
-        await redisRateLimiter.rateLimitByOrganization(
-          key.consumerId,
-          ctx.logger
-        );
+        await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
       if (limitReached) {
         return {
           limitReached: true,
@@ -214,7 +211,7 @@ export function tokenServiceBuilder({
               clientAssertion: jwt,
               correlationId: ctx.correlationId,
               fileManager,
-              logger: ctx.logger,
+              logger,
             });
 
             logTokenGenerationInfo({
@@ -222,7 +219,7 @@ export function tokenServiceBuilder({
               clientKind: key.clientKind,
               tokenJti: token.payload.jti,
               message: "Token generated",
-              logger: ctx.logger,
+              logger,
             });
 
             return {
@@ -243,7 +240,7 @@ export function tokenServiceBuilder({
             clientKind: key.clientKind,
             tokenJti: token.payload.jti,
             message: "Token generated",
-            logger: ctx.logger,
+            logger,
           });
 
           return {

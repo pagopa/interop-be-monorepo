@@ -69,7 +69,11 @@ const authorizationServerRouter = (
       };
 
       try {
-        const tokenResult = await tokenService.generateToken(req.body, ctx);
+        const tokenResult = await tokenService.generateToken(
+          req.body,
+          req.ctx,
+          ctx.logger
+        );
 
         const headers = rateLimiterHeadersFromStatus(
           tokenResult.rateLimiterStatus
