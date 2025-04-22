@@ -13,6 +13,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { approveAgreementErrorMapper } from "../utils/errorMappers.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
@@ -84,11 +85,17 @@ const agreementRouter = (
     .post("/agreements/:agreementId/approve", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const agreement = await agreementService.approveAgreement(
+          ctx,
+          unsafeBrandId(req.params.agreementId)
+        );
+
+        return res.status(200).send(m2mGatewayApi.Agreement.parse(agreement));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          approveAgreementErrorMapper,
           ctx,
           `Error approving agreement with id ${req.params.agreementId}`
         );

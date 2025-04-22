@@ -9,11 +9,23 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResource,
 } from "../utils/polling.js";
+import { assertAgreementIsPending } from "../utils/validators/agreementValidators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder({
   agreementProcessClient,
 }: PagoPAInteropBeClients) {
+  const retrieveAgreementById = async (
+    headers: M2MGatewayAppContext["headers"],
+    agreementId: AgreementId
+  ): Promise<WithMaybeMetadata<agreementApi.Agreement>> =>
+    await agreementProcessClient.getAgreementById({
+      params: {
+        agreementId,
+      },
+      headers,
+    });
+
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollAgreement = (
     response: WithMaybeMetadata<agreementApi.Agreement>,
@@ -69,13 +81,9 @@ export function agreementServiceBuilder({
     ): Promise<m2mGatewayApi.Agreement> => {
       ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
 
-      const { data: agreement } = await agreementProcessClient.getAgreementById(
-        {
-          params: {
-            agreementId,
-          },
-          headers: ctx.headers,
-        }
+      const { data: agreement } = await retrieveAgreementById(
+        ctx.headers,
+        agreementId
       );
 
       return toM2MAgreement(agreement);
@@ -89,6 +97,28 @@ export function agreementServiceBuilder({
       const response = await agreementProcessClient.createAgreement(seed, {
         headers,
       });
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MAgreement(polledResource.data);
+    },
+    approveAgreement: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      agreementId: AgreementId
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Approving pending agreement with id ${agreementId}`);
+
+      const agreement = await retrieveAgreementById(headers, agreementId);
+
+      assertAgreementIsPending(agreement.data);
+
+      const response = await agreementProcessClient.activateAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
 
       const polledResource = await pollAgreement(response, headers);
 

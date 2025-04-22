@@ -5,6 +5,7 @@ export const errorCodes = {
   resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
+  agreementNotInPendingState: "0004",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -36,5 +37,15 @@ export function unexpectedDelegationKind(
     detail: `Unexpected delegation kind "${delegation.kind}" for delegation ${delegation.id}`,
     code: "unexpectedDelegationKind",
     title: "Unexpected Delegation Kind",
+  });
+}
+
+export function agreementNotInPendingState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in pending state`,
+    code: "agreementNotInPendingState",
+    title: "Agreement Not In Pending State",
   });
 }
