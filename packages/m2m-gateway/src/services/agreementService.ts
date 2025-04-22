@@ -124,5 +124,21 @@ export function agreementServiceBuilder({
 
       return toM2MAgreement(polledResource.data);
     },
+    rejectAgreement: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      agreementId: AgreementId,
+      body: m2mGatewayApi.AgreementRejection
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Rejecting pending agreement with id ${agreementId}`);
+
+      const response = await agreementProcessClient.rejectAgreement(body, {
+        params: { agreementId },
+        headers,
+      });
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MAgreement(polledResource.data);
+    },
   };
 }
