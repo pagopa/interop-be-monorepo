@@ -6,7 +6,6 @@ import {
   AttributeEvent,
   AttributeId,
   Tenant,
-  generateId,
   toAttributeV1,
   toReadModelAttribute,
   toReadModelTenant,
@@ -71,16 +70,3 @@ export const readLastAttributeEvent = async (
   attributeId: AttributeId
 ): Promise<ReadEvent<AttributeEvent>> =>
   await readLastEventByStreamId(attributeId, "attribute", postgresDB);
-
-export const getMockTenant = (): Tenant => ({
-  name: "tenant_Name",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "1234",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
-});
