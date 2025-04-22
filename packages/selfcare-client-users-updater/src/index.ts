@@ -18,8 +18,11 @@ const authorizationProcessClient = authorizationProcessClientBuilder(
 const processor = selfcareClientUsersUpdaterProcessorBuilder(
   refreshableToken,
   authorizationProcessClient,
-  config.interopProductId,
-  config.allowedOriginsUuid
+  config.interopProduct
 );
 
-await runConsumer(config, [config.selfcareTopic], processor.processMessage);
+await runConsumer(
+  config,
+  [config.selfcareUsersTopic],
+  processor.processMessage
+);

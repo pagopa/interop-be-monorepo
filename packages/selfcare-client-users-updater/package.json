@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-selfcare-client-users-updater-consumer",
+  "name": "pagopa-interop-selfcare-client-users-updater",
   "private": true,
   "version": "1.0.0",
-  "description": "PagoPA Interoperability Selfcare client users updater consumer: a Kafka consumer that listens to messages from the selfcare client users updater topic and executes the corresponding actions.",
+  "description": "PagoPA Interoperability Selfcare Client Users Updater: a Kafka consumer that listens to messages from the Selfcare 'SC-Users' topic and updates client users based on the received messages",
   "main": "dist",
   "type": "module",
   "scripts": {
