@@ -53,7 +53,7 @@ export function selfcareOnboardingProcessorBuilder(
         // Note: doing this before parsing to avoid errors on messages of other products
         if (jsonPayload.product !== productName) {
           loggerInstance.info(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.product}`
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product with ID: ${jsonPayload.productId}`
           );
           return;
         }
