@@ -8,7 +8,7 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
@@ -49,7 +49,14 @@ const purposeRouter = (
     .get("/purposes/:purposeId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const purpose = await purposeService.getPurpose(
+          ctx,
+          unsafeBrandId(req.params.purposeId)
+        );
+
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
