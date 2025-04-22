@@ -75,7 +75,7 @@ export async function handleMessageV2(
           clientPurposesIds: [],
           version: msg.version,
           updatedAt: new Date().toISOString(),
-          adminId: client.adminId,
+          clientAdminId: client.adminId,
         };
         await upsertPlatformClientEntry(
           platformClientEntry,
@@ -192,7 +192,7 @@ export async function handleMessageV2(
           clientPurposesIds: [],
           version: msg.version,
           updatedAt: new Date().toISOString(),
-          adminId: client.adminId,
+          clientAdminId: client.adminId,
         };
         await upsertPlatformClientEntry(
           platformClientEntry,
@@ -232,7 +232,7 @@ export async function handleMessageV2(
           clientPurposesIds: [],
           version: msg.version,
           updatedAt: new Date().toISOString(),
-          adminId: client.adminId,
+          clientAdminId: client.adminId,
         };
         await upsertPlatformClientEntry(
           platformClientEntry,
