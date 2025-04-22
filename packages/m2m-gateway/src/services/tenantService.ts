@@ -59,7 +59,7 @@ export function tenantServiceBuilder({
     ): Promise<m2mGatewayApi.TenantCertifiedAttributes> => {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
 
-      const tenant = await tenantProcessClient.tenant.getTenant({
+      const { data: tenant } = await tenantProcessClient.tenant.getTenant({
         params: { id: tenantId },
         headers,
       });
@@ -75,16 +75,18 @@ export function tenantServiceBuilder({
       const certifiedAttributes =
         await getAllFromPaginated<attributeRegistryApi.Attribute>(
           async (offset, limit) =>
-            await attributeProcessClient.getBulkedAttributes(
-              tenantCertifiedAttributeIds,
-              {
-                headers,
-                queries: {
-                  offset,
-                  limit,
-                },
-              }
-            )
+            (
+              await attributeProcessClient.getBulkedAttributes(
+                tenantCertifiedAttributeIds,
+                {
+                  headers,
+                  queries: {
+                    offset,
+                    limit,
+                  },
+                }
+              )
+            ).data
         );
 
       const combinedAttributes = zipBy(
