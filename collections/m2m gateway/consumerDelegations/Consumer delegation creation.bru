@@ -5,14 +5,13 @@ meta {
 }
 
 post {
-  url: {{host-delegation}}/consumer/delegations
+  url: {{host-m2m-gw}}/consumerDelegations
   body: json
   auth: none
 }
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
-  X-Correlation-Id: {{correlation-id}}
 }
 
 body:json {
