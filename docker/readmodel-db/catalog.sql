@@ -12,17 +12,9 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   is_signal_hub_enabled BOOLEAN,
   is_consumer_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
+  template_id UUID,
   PRIMARY KEY (id),
   CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
-);
-
-CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_template_ref (
-  eservice_template_id UUID NOT NULL,
-  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
-  metadata_version INTEGER NOT NULL,
-  instance_label VARCHAR,
-  PRIMARY KEY (eservice_template_id, eservice_id),
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (

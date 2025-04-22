@@ -17534,10 +17534,6 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -17781,9 +17777,8 @@ components:
           format: date-time
         consumer:
           $ref: "#/components/schemas/CompactOrganization"
-        adminId:
-          type: string
-          format: uuid
+        admin:
+          $ref: "#/components/schemas/CompactOrganization"
         name:
           type: string
         purposes:
@@ -18102,8 +18097,6 @@ components:
           type: string
           format: uuid
         templateName:
-          type: string
-        instanceLabel:
           type: string
         templateInterface:
           $ref: "#/components/schemas/EServiceDoc"
@@ -19211,9 +19204,6 @@ components:
           type: string
           format: uuid
         tenantId:
-          type: string
-          format: uuid
-        adminId:
           type: string
           format: uuid
         name:
@@ -20518,10 +20508,6 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:
@@ -20581,8 +20567,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
-        instanceLabel:
-          type: string
     EServiceTemplateInstances:
       type: object
       additionalProperties: false
