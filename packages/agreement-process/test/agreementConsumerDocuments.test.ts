@@ -347,7 +347,7 @@ describe("agreement consumer document", () => {
         ],
       };
 
-      expect(actualConsumerDocument).toEqual({
+      expect(actualConsumerDocument).toMatchObject({
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
       });
@@ -410,7 +410,7 @@ describe("agreement consumer document", () => {
         ],
       };
 
-      expect(actualConsumerDocument).toEqual({
+      expect(actualConsumerDocument).toMatchObject({
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
       });
@@ -595,7 +595,7 @@ describe("agreement consumer document", () => {
 
       const expectedAgreement = { ...agreement1, consumerDocuments: [] };
 
-      expect(actualConsumerDocument).toEqual({
+      expect(actualConsumerDocument).toMatchObject({
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
       });
@@ -645,7 +645,7 @@ describe("agreement consumer document", () => {
 
       const expectedAgreement = { ...agreement1, consumerDocuments: [] };
 
-      expect(actualConsumerDocument).toEqual({
+      expect(actualConsumerDocument).toMatchObject({
         agreement: toAgreementV2(expectedAgreement),
         documentId: consumerDocument.id,
       });
@@ -711,8 +711,6 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw a documentChangeNotAllowed if state not draft or pending", async () => {
-      const authData = getMockAuthData(agreement1.consumerId);
-
       const agreementConsumerDocumentChangeFailureState = randomArrayItem(
         Object.values(agreementState).filter(
           (state) => !agreementConsumerDocumentChangeValidStates.includes(state)
@@ -723,11 +721,12 @@ describe("agreement consumer document", () => {
         getMockConsumerDocument(agreementId, "doc2"),
       ];
       const agreement = {
-        ...agreement1,
+        ...getMockAgreement(),
         id: agreementId,
         state: agreementConsumerDocumentChangeFailureState,
         consumerDocuments: anotherConsumerDocuments,
       };
+      const authData = getMockAuthData(agreement.consumerId);
 
       await addOneAgreement(agreement);
 

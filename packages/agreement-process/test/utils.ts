@@ -15,6 +15,7 @@ import {
   getMockAuthData,
   sortAgreements,
   sortBy,
+  getMockVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -48,6 +49,8 @@ import {
   VerifiedAttributeV2,
   CertifiedAttributeV2,
   DeclaredAttributeV2,
+  VerifiedTenantAttribute,
+  AttributeId,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -313,6 +316,14 @@ export const getAMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
   // rejectionReasons: [],
+});
+
+export const getAMockVerifiedTenantAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): VerifiedTenantAttribute => ({
+  ...getMockVerifiedTenantAttribute(),
+  id: attributeId,
+  revokedBy: [],
 });
 
 export function getMockConsumerDocument(
