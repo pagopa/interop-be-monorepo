@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/api-gateway/v1"
+  - url: "/api-gateway/0.0"
     description: Base url of the interoperability API gateway
 tags:
   - name: gateway

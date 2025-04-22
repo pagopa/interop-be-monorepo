@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/0.0/backend-for-frontend"
+  - url: "/backend-for-frontend/0.0"
     description: This service is the Interop BFF
 security:
   - bearerAuth: []
