@@ -54,6 +54,11 @@ export type FeatureFlagKeys = keyof Pick<
     FeatureFlagAgreementApprovalPolicyUpdateConfig)]
 >;
 
+/**
+ * isFeatureFlagEnabled and assertFeatureFlagEnabled check if a feature flag is enabled in the config.
+ * the flags have to start with featureFlag and be exported from the featureFlagsConfig file
+ * i.e. assertFeatureFlagEnabled(config, "notExistentFeatureFlag"); will raise a compile error
+ */
 export const isFeatureFlagEnabled = <
   T extends Record<string, unknown>,
   K extends keyof T & string
