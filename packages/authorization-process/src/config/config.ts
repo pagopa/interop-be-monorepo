@@ -2,14 +2,14 @@ import {
   CommonHTTPServiceConfig,
   ReadModelDbConfig,
   EventStoreConfig,
-  SelfCareConfig,
+  SelfCareClientConfig,
   ApplicationAuditProducerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(EventStoreConfig)
-  .and(SelfCareConfig)
+  .and(SelfCareClientConfig)
   .and(
     z
       .object({
