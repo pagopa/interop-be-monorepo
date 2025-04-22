@@ -65,7 +65,7 @@ export const PlatformStatesClientEntry = PlatformStatesBaseEntry.extend({
   clientKind: ClientKindTokenGenStates,
   clientConsumerId: TenantId,
   clientPurposesIds: z.array(PurposeId),
-  adminId: UserId.optional(),
+  clientAdminId: UserId.optional(),
 });
 export type PlatformStatesClientEntry = z.infer<
   typeof PlatformStatesClientEntry

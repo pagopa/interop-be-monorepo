@@ -778,10 +778,10 @@ export const writePlatformClientEntry = async (
       updatedAt: {
         S: clientEntry.updatedAt,
       },
-      ...(clientEntry.adminId
+      ...(clientEntry.clientAdminId
         ? {
-            adminId: {
-              S: clientEntry.adminId,
+            clientAdminId: {
+              S: clientEntry.clientAdminId,
             },
           }
         : {}),
@@ -1001,10 +1001,10 @@ export const upsertPlatformClientEntry = async (
       updatedAt: {
         S: entry.updatedAt,
       },
-      ...(entry.adminId
+      ...(entry.clientAdminId
         ? {
-            adminId: {
-              S: entry.adminId,
+            clientAdminId: {
+              S: entry.clientAdminId,
             },
           }
         : {}),
