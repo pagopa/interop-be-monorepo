@@ -2323,12 +2323,14 @@ paths:
         - name: offset
           in: query
           description: The offset used for pagination
+          required: true
           schema:
             type: integer
             format: int32
         - name: limit
           in: query
           description: The limit used for pagination
+          required: true
           schema:
             type: integer
             format: int32
@@ -2338,8 +2340,6 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
                   $ref: "#/components/schemas/Purposes"
           headers:
             X-Rate-Limit-Limit:
