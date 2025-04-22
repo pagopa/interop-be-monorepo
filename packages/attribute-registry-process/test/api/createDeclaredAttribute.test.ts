@@ -69,4 +69,16 @@ describe("API /declaredAttributes authorization test", () => {
 
     expect(res.status).toBe(409);
   });
+
+  it("Should return 400 if passed an invalid attribute seed", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await request(api)
+      .post("/declaredAttributes")
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send({
+        name: "Declared Attribute",
+      });
+    expect(res.status).toBe(400);
+  });
 });

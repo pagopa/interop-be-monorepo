@@ -70,4 +70,18 @@ describe("API /internal/certifiedAttributes authorization test", () => {
 
     expect(res.status).toBe(409);
   });
+
+  it("Should return 400 if passed an invalid attribute seed", async () => {
+    const token = generateToken(authRole.INTERNAL_ROLE);
+    const res = await request(api)
+      .post("/internal/certifiedAttributes")
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send({
+        code: "001",
+        name: "Internal certified attribute",
+        origin: "IPA",
+      });
+    expect(res.status).toBe(400);
+  });
 });

@@ -35,7 +35,7 @@ import {
 
 const readModelRepository = ReadModelRepository.init(config);
 const readModelService = readModelServiceBuilder(readModelRepository);
-const attributeRegistryService = attributeRegistryServiceBuilder(
+const defaultAttributeRegistryService = attributeRegistryServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
@@ -50,7 +50,7 @@ const attributeRegistryService = attributeRegistryServiceBuilder(
 
 const attributeRouter = (
   ctx: ZodiosContext,
-  service: AttributeRegistryService = attributeRegistryService
+  attributeRegistryService: AttributeRegistryService = defaultAttributeRegistryService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const attributeRouter = ctx.router(attributeRegistryApi.attributeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -82,16 +82,17 @@ const attributeRouter = (
           ]);
 
           const { limit, offset, kinds, name, origin } = req.query;
-          const attributes = await service.getAttributesByKindsNameOrigin(
-            {
-              kinds: kinds.map(toAttributeKind),
-              name,
-              origin,
-              offset,
-              limit,
-            },
-            ctx
-          );
+          const attributes =
+            await attributeRegistryService.getAttributesByKindsNameOrigin(
+              {
+                kinds: kinds.map(toAttributeKind),
+                name,
+                origin,
+                offset,
+                limit,
+              },
+              ctx
+            );
 
           return res.status(200).send(
             attributeRegistryApi.Attributes.parse({
@@ -117,7 +118,7 @@ const attributeRouter = (
           M2M_ROLE,
         ]);
 
-        const attribute = await service.getAttributeByName(
+        const attribute = await attributeRegistryService.getAttributeByName(
           req.params.name,
           ctx
         );
@@ -144,13 +145,14 @@ const attributeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, M2M_ROLE]);
 
         const { origin, code } = req.params;
-        const attribute = await service.getAttributeByOriginAndCode(
-          {
-            origin,
-            code,
-          },
-          ctx
-        );
+        const attribute =
+          await attributeRegistryService.getAttributeByOriginAndCode(
+            {
+              origin,
+              code,
+            },
+            ctx
+          );
 
         return res
           .status(200)
@@ -182,7 +184,7 @@ const attributeRouter = (
             M2M_ROLE,
           ]);
 
-          const attribute = await service.getAttributeById(
+          const attribute = await attributeRegistryService.getAttributeById(
             unsafeBrandId(req.params.attributeId),
             ctx
           );
@@ -217,7 +219,7 @@ const attributeRouter = (
           M2M_ROLE,
         ]);
 
-        const attributes = await service.getAttributesByIds(
+        const attributes = await attributeRegistryService.getAttributesByIds(
           {
             ids: req.body.map((a) => unsafeBrandId(a)),
             offset,
@@ -242,7 +244,11 @@ const attributeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
 
-        const attribute = await service.createCertifiedAttribute(req.body, ctx);
+        const attribute =
+          await attributeRegistryService.createCertifiedAttribute(
+            req.body,
+            ctx
+          );
         return res
           .status(200)
           .send(
@@ -263,7 +269,8 @@ const attributeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        const attribute = await service.createDeclaredAttribute(req.body, ctx);
+        const attribute =
+          await attributeRegistryService.createDeclaredAttribute(req.body, ctx);
         return res
           .status(200)
           .send(
@@ -284,7 +291,8 @@ const attributeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        const attribute = await service.createVerifiedAttribute(req.body, ctx);
+        const attribute =
+          await attributeRegistryService.createVerifiedAttribute(req.body, ctx);
         return res
           .status(200)
           .send(
@@ -305,10 +313,11 @@ const attributeRouter = (
       try {
         validateAuthorization(ctx, [INTERNAL_ROLE]);
 
-        const attribute = await service.internalCreateCertifiedAttribute(
-          req.body,
-          ctx
-        );
+        const attribute =
+          await attributeRegistryService.internalCreateCertifiedAttribute(
+            req.body,
+            ctx
+          );
         return res
           .status(200)
           .send(

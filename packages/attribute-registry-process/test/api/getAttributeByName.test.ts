@@ -67,4 +67,9 @@ describe("API /attributes/name/{name} authorization test", () => {
 
     expect(res.status).toBe(404);
   });
+
+  it("Should return 400 if passed an empty attribute name", async () => {
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "");
+    expect(res.status).toBe(400);
+  });
 });

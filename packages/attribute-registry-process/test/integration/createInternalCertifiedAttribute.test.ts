@@ -5,6 +5,7 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
   getMockContextInternal,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   Tenant,
@@ -21,7 +22,6 @@ import {
   readLastAttributeEvent,
   addOneAttribute,
 } from "../integrationUtils.js";
-import { getMockTenant } from "../mockUtils.js";
 
 describe("certified attribute internal creation", () => {
   const mockTenant = getMockTenant();

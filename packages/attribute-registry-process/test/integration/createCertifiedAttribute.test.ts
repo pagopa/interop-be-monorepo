@@ -6,6 +6,7 @@ import {
   decodeProtobufPayload,
   getTenantOneCertifierFeature,
   getMockAttribute,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   Tenant,
@@ -26,7 +27,6 @@ import {
   readLastAttributeEvent,
   addOneAttribute,
 } from "../integrationUtils.js";
-import { getMockTenant } from "../mockUtils.js";
 
 describe("certified attribute creation", () => {
   const mockAttribute = getMockAttribute();

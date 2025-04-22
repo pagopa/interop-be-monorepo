@@ -66,4 +66,12 @@ describe("API /attributes/{attributeId} authorization test", () => {
 
     expect(res.status).toBe(404);
   });
+
+  it("Should return 400 if passed an invalid attribute id", async () => {
+    const res = await makeRequest(
+      generateToken(authRole.ADMIN_ROLE),
+      "invalid"
+    );
+    expect(res.status).toBe(400);
+  });
 });

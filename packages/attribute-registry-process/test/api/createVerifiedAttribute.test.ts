@@ -68,4 +68,16 @@ describe("API /verifiedAttributes authorization test", () => {
 
     expect(res.status).toBe(409);
   });
+
+  it("Should return 400 if passed an invalid attribute seed", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await request(api)
+      .post("/verifiedAttributes")
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send({
+        name: "Verified Attribute",
+      });
+    expect(res.status).toBe(400);
+  });
 });
