@@ -15,7 +15,7 @@ import {
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { authorizationService, postgresDB } from "./utils.js";
+import { authorizationService, postgresDB } from "../integrationUtils.js";
 
 describe("createProducerKeychain", () => {
   const organizationId: TenantId = generateId();

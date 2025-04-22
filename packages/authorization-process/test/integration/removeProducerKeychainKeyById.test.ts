@@ -23,12 +23,12 @@ import {
   organizationNotAllowedOnProducerKeychain,
   userNotAllowedOnProducerKeychain,
   userNotAllowedToDeleteProducerKeychainKey,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("remove producer keychain key", () => {
   it("should write on event-store for removing a key from a producer keychain", async () => {

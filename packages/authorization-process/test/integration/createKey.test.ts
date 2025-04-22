@@ -37,14 +37,14 @@ import {
   tooManyKeysPerClient,
   userNotFound,
   userWithoutSecurityPrivileges,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneClient,
   addOneProducerKeychain,
   authorizationService,
   postgresDB,
   selfcareV2Client,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("createKey", () => {
   const consumerId: TenantId = generateId();
