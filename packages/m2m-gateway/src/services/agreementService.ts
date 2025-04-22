@@ -1,14 +1,33 @@
 import { WithLogger } from "pagopa-interop-commons";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { AgreementId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { toM2MAgreement } from "../api/agreementApiConverter.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResource,
+} from "../utils/polling.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder({
   agreementProcessClient,
 }: PagoPAInteropBeClients) {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const pollAgreement = (
+    response: WithMaybeMetadata<agreementApi.Agreement>,
+    headers: M2MGatewayAppContext["headers"]
+  ) =>
+    pollResource(() =>
+      agreementProcessClient.getAgreementById({
+        params: { agreementId: response.data.id },
+        headers,
+      })
+    )({
+      checkFn: isPolledVersionAtLeastResponseVersion(response),
+    });
+
   return {
     getAgreements: async (
       ctx: WithLogger<M2MGatewayAppContext>,
@@ -60,6 +79,20 @@ export function agreementServiceBuilder({
       );
 
       return toM2MAgreement(agreement);
+    },
+    createAgreement: async (
+      seed: agreementApi.AgreementPayload,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Creating agreement`);
+
+      const response = await agreementProcessClient.createAgreement(seed, {
+        headers,
+      });
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MAgreement(polledResource.data);
     },
   };
 }
