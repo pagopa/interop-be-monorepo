@@ -140,5 +140,21 @@ export function agreementServiceBuilder({
 
       return toM2MAgreement(polledResource.data);
     },
+    submitAgreement: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      agreementId: AgreementId,
+      body: m2mGatewayApi.AgreementSubmission
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Submitting agreement with id ${agreementId}`);
+
+      const response = await agreementProcessClient.submitAgreement(body, {
+        params: { agreementId },
+        headers,
+      });
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MAgreement(polledResource.data);
+    },
   };
 }
