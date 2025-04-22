@@ -3,8 +3,10 @@ import {
   ClientId,
   PurposeId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { SystemRole } from "../auth/authData.js";
 
 export const ORGANIZATION = "organization";
 export const UID = "uid";
@@ -18,7 +20,6 @@ export const ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM = "origin";
 export const ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM = "value";
 export const USER_ROLES = "user-roles";
 const PURPOSE_ID_CLAIM = "purposeId";
-export const GENERATED_INTEROP_TOKEN_M2M_ROLE = "m2m";
 export const ROLE_CLAIM = "role";
 
 export interface InteropJwtHeader {
@@ -37,6 +38,9 @@ export type InteropJwtCommonPayload = {
   exp: number;
 };
 
+/* ========================================== 
+    Interop CONSUMER Token 
+  ========================================== */
 export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
   client_id: ClientId;
   sub: ClientId;
@@ -44,13 +48,45 @@ export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
   digest?: ClientAssertionDigest;
 };
 
-export type InteropJwtApiPayload = InteropJwtCommonPayload & {
+export type InteropConsumerToken = {
+  header: InteropJwtHeader;
+  payload: InteropJwtConsumerPayload;
+  serialized: string;
+};
+
+/* ========================================== 
+    Interop API Token 
+  ========================================== */
+export type InteropJwtApiOrganizationClientPayload = InteropJwtCommonPayload & {
   client_id: ClientId;
   sub: ClientId;
   [ORGANIZATION_ID_CLAIM]: TenantId;
-  [ROLE_CLAIM]: string;
 };
 
+export type InteropJwtApiM2MPayload = InteropJwtApiOrganizationClientPayload & {
+  [ROLE_CLAIM]: Extract<SystemRole, "m2m">;
+};
+
+export type InteropJwtApiM2MAdminPayload =
+  InteropJwtApiOrganizationClientPayload & {
+    [ROLE_CLAIM]: Extract<SystemRole, "m2m-admin">;
+    userId: UserId;
+    // ^ ID of the admin user associated with the client
+  };
+
+export type InteropJWTApiPayload =
+  | InteropJwtApiM2MAdminPayload
+  | InteropJwtApiM2MPayload;
+
+export type InteropApiToken = {
+  header: InteropJwtHeader;
+  payload: InteropJWTApiPayload;
+  serialized: string;
+};
+
+/* ================================= ========= 
+    Interop INTERNAL Token 
+  ========================================== */
 export type InteropJwtPayload = InteropJwtCommonPayload & {
   sub: string;
   role: string;
@@ -62,18 +98,9 @@ export type InteropToken = {
   serialized: string;
 };
 
-export type InteropConsumerToken = {
-  header: InteropJwtHeader;
-  payload: InteropJwtConsumerPayload;
-  serialized: string;
-};
-
-export type InteropApiToken = {
-  header: InteropJwtHeader;
-  payload: InteropJwtApiPayload;
-  serialized: string;
-};
-
+/* ========================================== 
+    Interop SESSION Token 
+  ========================================== */
 const Organization = z.object({
   id: z.string(),
   name: z.string(),

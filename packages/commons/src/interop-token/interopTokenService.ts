@@ -1,22 +1,24 @@
-import crypto from "crypto";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
+import crypto from "crypto";
 import {
+  ClientAssertionDigest,
   ClientId,
   generateId,
   PurposeId,
   TenantId,
-  ClientAssertionDigest,
+  UserId,
 } from "pagopa-interop-models";
+import { systemRole } from "../auth/authData.js";
+import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
-import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { dateToSeconds } from "../utils/date.js";
 import {
   CustomClaims,
-  GENERATED_INTEROP_TOKEN_M2M_ROLE,
   InteropApiToken,
   InteropConsumerToken,
-  InteropJwtApiPayload,
+  InteropJwtApiOrganizationClientPayload,
+  InteropJWTApiPayload,
   InteropJwtConsumerPayload,
   InteropJwtHeader,
   InteropJwtPayload,
@@ -140,9 +142,11 @@ export class InteropTokenGenerator {
   public async generateInteropApiToken({
     sub,
     consumerId,
+    clientAdminId,
   }: {
     sub: ClientId;
     consumerId: TenantId;
+    clientAdminId?: UserId;
   }): Promise<InteropApiToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -164,7 +168,7 @@ export class InteropTokenGenerator {
       kid: this.config.generatedInteropTokenKid,
     };
 
-    const payload: InteropJwtApiPayload = {
+    const userDataPayload: InteropJwtApiOrganizationClientPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
       aud: this.toJwtAudience(this.config.generatedInteropTokenM2MAudience),
@@ -175,7 +179,20 @@ export class InteropTokenGenerator {
       exp:
         currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
       [ORGANIZATION_ID_CLAIM]: consumerId,
-      [ROLE_CLAIM]: GENERATED_INTEROP_TOKEN_M2M_ROLE,
+    };
+
+    const systemRolePayload = clientAdminId
+      ? {
+          [ROLE_CLAIM]: systemRole.M2M_ADMIN_ROLE,
+          userId: clientAdminId,
+        }
+      : {
+          [ROLE_CLAIM]: systemRole.M2M_ROLE,
+        };
+
+    const payload: InteropJWTApiPayload = {
+      ...userDataPayload,
+      ...systemRolePayload,
     };
 
     const serializedToken = await this.createAndSignToken({
@@ -259,7 +276,7 @@ export class InteropTokenGenerator {
       | InteropJwtPayload
       | SessionJwtPayload
       | InteropJwtConsumerPayload
-      | InteropJwtApiPayload;
+      | InteropJWTApiPayload;
     keyId: string;
   }): Promise<string> {
     const serializedToken = `${b64UrlEncode(
