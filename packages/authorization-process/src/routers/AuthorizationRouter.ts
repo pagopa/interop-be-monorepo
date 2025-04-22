@@ -62,6 +62,7 @@ import {
   removeProducerKeychainEServiceErrorMapper,
   addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
+  internalRemoveClientAdminErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -529,6 +530,25 @@ const authorizationRouter = (
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/internal/clients/:clientId/admin/:adminId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+        await authorizationService.internalRemoveClientAdmin(
+          unsafeBrandId(req.params.clientId),
+          unsafeBrandId(req.params.adminId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          internalRemoveClientAdminErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     });
