@@ -5,8 +5,7 @@ import { generateId, operationForbidden, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import {
   mailAlreadyExists,
   tenantNotFound,
@@ -20,14 +19,14 @@ describe("API /tenants/{tenantId}/mails authorization test", () => {
     description: "mail description",
   };
 
-  vi.spyOn(tenantService, "addTenantMail").mockResolvedValue();
+  tenantService.addTenantMail = vi.fn().mockResolvedValue(undefined);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (token: string, data: object = mailSeed) =>
     request(api)
       .post(`/tenants/${tenant.id}/mails`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(mailSeed);
+      .send(data);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -44,29 +43,36 @@ describe("API /tenants/{tenantId}/mails authorization test", () => {
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "addTenantMail").mockRejectedValue(
-      tenantNotFound(tenant.id)
-    );
+    tenantService.addTenantMail = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenant.id));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 403 for operationForbidden", async () => {
-    vi.spyOn(tenantService, "addTenantMail").mockRejectedValue(
-      operationForbidden
-    );
+    tenantService.addTenantMail = vi.fn().mockRejectedValue(operationForbidden);
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 
   it("Should return 409 for mailAlreadyExists", async () => {
-    vi.spyOn(tenantService, "addTenantMail").mockRejectedValue(
-      mailAlreadyExists()
-    );
+    tenantService.addTenantMail = vi
+      .fn()
+      .mockRejectedValue(mailAlreadyExists());
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
+  });
+
+  it("Should return 400 if passed an invalid mail seed", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      kind: "CONTACT_EMAIL",
+      description: "mail description",
+    });
+    expect(res.status).toBe(400);
   });
 });

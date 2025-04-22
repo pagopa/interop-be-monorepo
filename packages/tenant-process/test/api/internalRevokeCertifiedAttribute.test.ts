@@ -13,8 +13,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import {
   attributeNotFoundInTenant,
   tenantNotFound,
@@ -32,10 +31,9 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
     attributes: [],
   };
 
-  vi.spyOn(
-    tenantService,
-    "internalRevokeCertifiedAttribute"
-  ).mockResolvedValue();
+  tenantService.internalRevokeCertifiedAttribute = vi
+    .fn()
+    .mockResolvedValue(undefined);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -60,20 +58,18 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(
-      tenantService,
-      "internalRevokeCertifiedAttribute"
-    ).mockRejectedValue(tenantNotFound(targetTenant.id));
+    tenantService.internalRevokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(targetTenant.id));
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 404 for attributeNotFoundInTenant", async () => {
-    vi.spyOn(
-      tenantService,
-      "internalRevokeCertifiedAttribute"
-    ).mockRejectedValue(attributeNotFoundInTenant(generateId(), generateId()));
+    tenantService.internalRevokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(attributeNotFoundInTenant(generateId(), generateId()));
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);

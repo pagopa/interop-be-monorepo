@@ -5,8 +5,7 @@ import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole, AuthRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   attributeDoesNotBelongToCertifier,
@@ -24,16 +23,19 @@ describe("API /tenants/{tenantId}/attributes/certified authorization test", () =
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
-  vi.spyOn(tenantService, "addCertifiedAttribute").mockResolvedValue(tenant);
+  tenantService.addCertifiedAttribute = vi.fn().mockResolvedValue(tenant);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.M2M_ROLE];
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    data: object = tenantAttributeSeed
+  ) =>
     request(api)
       .post(`/tenants/${tenant.id}/attributes/certified`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(tenantAttributeSeed);
+      .send(data);
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -54,47 +56,59 @@ describe("API /tenants/{tenantId}/attributes/certified authorization test", () =
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "addCertifiedAttribute").mockRejectedValue(
-      tenantNotFound(tenant.id)
-    );
+    tenantService.addCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenant.id));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 403 for tenantIsNotACertifier", async () => {
-    vi.spyOn(tenantService, "addCertifiedAttribute").mockRejectedValue(
-      tenantIsNotACertifier(tenant.id)
-    );
+    tenantService.addCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantIsNotACertifier(tenant.id));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 for attributeNotFound", async () => {
-    vi.spyOn(tenantService, "addCertifiedAttribute").mockRejectedValue(
-      attributeNotFound(generateId())
-    );
+    tenantService.addCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(attributeNotFound(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });
 
   it("Should return 403 for attributeDoesNotBelongToCertifier", async () => {
-    vi.spyOn(tenantService, "addCertifiedAttribute").mockRejectedValue(
-      attributeDoesNotBelongToCertifier(generateId(), generateId(), tenant.id)
-    );
+    tenantService.addCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        attributeDoesNotBelongToCertifier(generateId(), generateId(), tenant.id)
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 for certifiedAttributeAlreadyAssigned", async () => {
-    vi.spyOn(tenantService, "addCertifiedAttribute").mockRejectedValue(
-      certifiedAttributeAlreadyAssigned(generateId(), generateId())
-    );
+    tenantService.addCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        certifiedAttributeAlreadyAssigned(generateId(), generateId())
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed an invalid tenant attribute seed", async () => {
+    // Remove the previous mocked error to ensure 400 is not due to it
+    tenantService.addCertifiedAttribute = vi.fn().mockResolvedValue(tenant);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {});
     expect(res.status).toBe(400);
   });
 });

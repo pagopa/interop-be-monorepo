@@ -9,8 +9,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { currentDate, getMockVerifiedBy } from "../mockUtils.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
@@ -44,13 +43,13 @@ describe("API /tenants/{tenantId}/attributes/verified/{attributeId} authorizatio
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
-  vi.spyOn(tenantService, "updateTenantVerifiedAttribute").mockResolvedValue(
-    tenant
-  );
+  tenantService.updateTenantVerifiedAttribute = vi
+    .fn()
+    .mockResolvedValue(tenant);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (token: string, tenantId: string = tenant.id) =>
     request(api)
-      .post(`/tenants/${tenant.id}/attributes/verified/${attributeId}`)
+      .post(`/tenants/${tenantId}/attributes/verified/${attributeId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -70,38 +69,48 @@ describe("API /tenants/{tenantId}/attributes/verified/{attributeId} authorizatio
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "updateTenantVerifiedAttribute").mockRejectedValue(
-      tenantNotFound(tenant.id)
-    );
+    tenantService.updateTenantVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenant.id));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 404 for verifiedAttributeNotFoundInTenant", async () => {
-    vi.spyOn(tenantService, "updateTenantVerifiedAttribute").mockRejectedValue(
-      verifiedAttributeNotFoundInTenant(tenant.id, attributeId)
-    );
+    tenantService.updateTenantVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        verifiedAttributeNotFoundInTenant(tenant.id, attributeId)
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 400 for expirationDateCannotBeInThePast", async () => {
-    vi.spyOn(tenantService, "updateTenantVerifiedAttribute").mockRejectedValue(
-      expirationDateCannotBeInThePast(expirationDate)
-    );
+    tenantService.updateTenantVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(expirationDateCannotBeInThePast(expirationDate));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });
 
   it("Should return 403 for organizationNotFoundInVerifiers", async () => {
-    vi.spyOn(tenantService, "updateTenantVerifiedAttribute").mockRejectedValue(
-      organizationNotFoundInVerifiers("requesterId", tenant.id, attributeId)
-    );
+    tenantService.updateTenantVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        organizationNotFoundInVerifiers("requesterId", tenant.id, attributeId)
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });

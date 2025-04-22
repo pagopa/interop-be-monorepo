@@ -5,8 +5,7 @@ import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
@@ -21,14 +20,16 @@ import {
 
 describe("API /tenants/{tenantId}/attributes/verified/{attributeId} authorization test", () => {
   const tenant: Tenant = getMockTenant();
-  const tenantId = tenant.id;
-  const attributeId = generateId();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
-  vi.spyOn(tenantService, "revokeVerifiedAttribute").mockResolvedValue(tenant);
+  tenantService.revokeVerifiedAttribute = vi.fn().mockResolvedValue(tenant);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    tenantId: string = tenant.id,
+    attributeId: string = generateId()
+  ) =>
     request(api)
       .delete(`/tenants/${tenantId}/attributes/verified/${attributeId}`)
       .set("Authorization", `Bearer ${token}`)
@@ -51,74 +52,86 @@ describe("API /tenants/{tenantId}/attributes/verified/{attributeId} authorizatio
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "revokeVerifiedAttribute").mockRejectedValue(
-      tenantNotFound(tenant.id)
-    );
+    tenantService.revokeVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenant.id));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 400 for attributeNotFound", async () => {
-    vi.spyOn(tenantService, "revokeVerifiedAttribute").mockRejectedValue(
-      attributeNotFound(generateId())
-    );
+    tenantService.revokeVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(attributeNotFound(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });
 
   it("Should return 404 for agreementNotFound", async () => {
-    vi.spyOn(tenantService, "revokeVerifiedAttribute").mockRejectedValue(
-      agreementNotFound(generateId())
-    );
+    tenantService.revokeVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(agreementNotFound(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 404 for eServiceNotFound", async () => {
-    vi.spyOn(tenantService, "revokeVerifiedAttribute").mockRejectedValue(
-      eServiceNotFound(generateId())
-    );
+    tenantService.revokeVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(eServiceNotFound(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 404 for descriptorNotFoundInEservice", async () => {
-    vi.spyOn(tenantService, "revokeVerifiedAttribute").mockRejectedValue(
-      descriptorNotFoundInEservice(generateId(), generateId())
-    );
+    tenantService.revokeVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        descriptorNotFoundInEservice(generateId(), generateId())
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 403 for verifiedAttributeSelfRevocationNotAllowed", async () => {
-    vi.spyOn(tenantService, "revokeVerifiedAttribute").mockRejectedValue(
-      verifiedAttributeSelfRevocationNotAllowed()
-    );
+    tenantService.revokeVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(verifiedAttributeSelfRevocationNotAllowed());
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 
   it("Should return 403 for attributeRevocationNotAllowed", async () => {
-    vi.spyOn(tenantService, "revokeVerifiedAttribute").mockRejectedValue(
-      attributeRevocationNotAllowed(generateId(), generateId())
-    );
+    tenantService.revokeVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        attributeRevocationNotAllowed(generateId(), generateId())
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 
   it("Should return 409 for attributeAlreadyRevoked", async () => {
-    vi.spyOn(tenantService, "revokeVerifiedAttribute").mockRejectedValue(
-      attributeAlreadyRevoked(generateId(), generateId(), generateId())
-    );
+    tenantService.revokeVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        attributeAlreadyRevoked(generateId(), generateId(), generateId())
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
+  });
+
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });

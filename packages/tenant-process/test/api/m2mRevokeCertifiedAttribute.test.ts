@@ -15,8 +15,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import {
   attributeNotFound,
   attributeNotFoundInTenant,
@@ -45,7 +44,9 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
     ],
   };
 
-  vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockResolvedValue();
+  tenantService.m2mRevokeCertifiedAttribute = vi
+    .fn()
+    .mockResolvedValue(undefined);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -53,8 +54,7 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
         `/m2m/origin/${targetTenant.externalId.origin}/externalId/${targetTenant.externalId.value}/attributes/${mockAttribute.code}`
       )
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
+      .set("X-Correlation-Id", generateId());
 
   it("Should return 204 for user with role M2M", async () => {
     const token = generateToken(authRole.M2M_ROLE);
@@ -72,51 +72,55 @@ describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} aut
   );
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
-      tenantNotFound(targetTenant.id)
-    );
+    tenantService.m2mRevokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(targetTenant.id));
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 404 for tenantNotFoundByExternalId", async () => {
-    vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
-      tenantNotFoundByExternalId(
-        targetTenant.externalId.origin,
-        targetTenant.externalId.value
-      )
-    );
+    tenantService.m2mRevokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        tenantNotFoundByExternalId(
+          targetTenant.externalId.origin,
+          targetTenant.externalId.value
+        )
+      );
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 400 for attributeNotFound", async () => {
-    vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
-      attributeNotFound(mockAttribute.code)
-    );
+    tenantService.m2mRevokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(attributeNotFound(mockAttribute.code));
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });
 
   it("Should return 400 for attributeNotFoundInTenant", async () => {
-    vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
-      attributeNotFoundInTenant(
-        unsafeBrandId(mockAttribute.code),
-        targetTenant.id
-      )
-    );
+    tenantService.m2mRevokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        attributeNotFoundInTenant(
+          unsafeBrandId(mockAttribute.code),
+          targetTenant.id
+        )
+      );
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });
 
   it("Should return 403 for tenantIsNotACertifier", async () => {
-    vi.spyOn(tenantService, "m2mRevokeCertifiedAttribute").mockRejectedValue(
-      tenantIsNotACertifier(targetTenant.id)
-    );
+    tenantService.m2mRevokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantIsNotACertifier(targetTenant.id));
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);

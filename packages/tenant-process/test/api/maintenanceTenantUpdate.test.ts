@@ -4,8 +4,7 @@ import request from "supertest";
 import { generateId, TenantId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 import { getMockMaintenanceTenantUpdate } from "../mockUtils.js";
 
@@ -13,14 +12,17 @@ describe("API /maintenance/tenants/{tenantId} authorization test", () => {
   const tenantId = generateId<TenantId>();
   const maintenanceTenantUpdate = getMockMaintenanceTenantUpdate();
 
-  vi.spyOn(tenantService, "maintenanceTenantUpdate").mockResolvedValue();
+  tenantService.maintenanceTenantUpdate = vi.fn().mockResolvedValue(undefined);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    data: object = { currentVersion: 0, tenant: maintenanceTenantUpdate }
+  ) =>
     request(api)
       .post(`/maintenance/tenants/${tenantId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ currentVersion: 0, tenant: maintenanceTenantUpdate });
+      .send(data);
 
   it("Should return 204 for user with role Maintenance", async () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);
@@ -37,11 +39,17 @@ describe("API /maintenance/tenants/{tenantId} authorization test", () => {
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "maintenanceTenantUpdate").mockRejectedValue(
-      tenantNotFound(tenantId)
-    );
+    tenantService.maintenanceTenantUpdate = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenantId));
     const token = generateToken(authRole.MAINTENANCE_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed invalid data", async () => {
+    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const res = await makeRequest(token, { tenant: maintenanceTenantUpdate });
+    expect(res.status).toBe(400);
   });
 });

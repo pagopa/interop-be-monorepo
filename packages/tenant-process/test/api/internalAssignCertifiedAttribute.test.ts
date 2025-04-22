@@ -13,8 +13,7 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
@@ -33,10 +32,9 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
     attributes: [],
   };
 
-  vi.spyOn(
-    tenantService,
-    "internalAssignCertifiedAttribute"
-  ).mockResolvedValue();
+  tenantService.internalAssignCertifiedAttribute = vi
+    .fn()
+    .mockResolvedValue(undefined);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -61,32 +59,29 @@ describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/ori
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(
-      tenantService,
-      "internalAssignCertifiedAttribute"
-    ).mockRejectedValue(tenantNotFound(targetTenant.id));
+    tenantService.internalAssignCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(targetTenant.id));
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 404 for attributeNotFound", async () => {
-    vi.spyOn(
-      tenantService,
-      "internalAssignCertifiedAttribute"
-    ).mockRejectedValue(attributeNotFound(generateId()));
+    tenantService.internalAssignCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(attributeNotFound(generateId()));
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 409 for certifiedAttributeAlreadyAssigned", async () => {
-    vi.spyOn(
-      tenantService,
-      "internalAssignCertifiedAttribute"
-    ).mockRejectedValue(
-      certifiedAttributeAlreadyAssigned(generateId(), generateId())
-    );
+    tenantService.internalAssignCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(
+        certifiedAttributeAlreadyAssigned(generateId(), generateId())
+      );
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);

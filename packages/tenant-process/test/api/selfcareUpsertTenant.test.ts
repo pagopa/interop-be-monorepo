@@ -5,8 +5,7 @@ import { generateId, operationForbidden } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { selfcareIdConflict } from "../../src/model/domain/errors.js";
 
 describe("API /selfcare/tenants authorization test", () => {
@@ -29,7 +28,7 @@ describe("API /selfcare/tenants authorization test", () => {
 
   const apiResponse = tenantApi.ResourceId.parse({ id: tenant.id });
 
-  vi.spyOn(tenantService, "selfcareUpsertTenant").mockResolvedValue(tenant.id);
+  tenantService.selfcareUpsertTenant = vi.fn().mockResolvedValue(tenant.id);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -38,12 +37,12 @@ describe("API /selfcare/tenants authorization test", () => {
     authRole.INTERNAL_ROLE,
   ];
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (token: string, data: object = tenantSeed) =>
     request(api)
       .post("/selfcare/tenants")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(tenantSeed);
+      .send(data);
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -64,16 +63,16 @@ describe("API /selfcare/tenants authorization test", () => {
   });
 
   it("Should return 403 for operationForbidden", async () => {
-    vi.spyOn(tenantService, "selfcareUpsertTenant").mockRejectedValue(
-      operationForbidden
-    );
+    tenantService.selfcareUpsertTenant = vi
+      .fn()
+      .mockRejectedValue(operationForbidden);
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 
   it("Should return 409 for selfcareIdConflict", async () => {
-    vi.spyOn(tenantService, "selfcareUpsertTenant").mockRejectedValue(
+    tenantService.selfcareUpsertTenant = vi.fn().mockRejectedValue(
       selfcareIdConflict({
         tenantId: tenant.id,
         existingSelfcareId: selfcareId,
@@ -83,5 +82,19 @@ describe("API /selfcare/tenants authorization test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
+  });
+
+  it("Should return 400 if passed an invalid tenant seed", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      externalId: {
+        origin: tenant.externalId.origin,
+        value: tenant.externalId.value,
+      },
+      selfcareId,
+      onboardedAt: tenant.onboardedAt.toISOString(),
+      subUnitType: tenant.subUnitType,
+    });
+    expect(res.status).toBe(400);
   });
 });

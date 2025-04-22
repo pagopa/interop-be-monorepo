@@ -45,12 +45,15 @@ import {
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
-import { tenantServiceBuilder } from "../services/tenantService.js";
+import {
+  TenantService,
+  tenantServiceBuilder,
+} from "../services/tenantService.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
-export const tenantService = tenantServiceBuilder(
+const defaultTenantService = tenantServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
@@ -64,7 +67,8 @@ export const tenantService = tenantServiceBuilder(
 );
 
 const tenantsRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  tenantService: TenantService = defaultTenantService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,

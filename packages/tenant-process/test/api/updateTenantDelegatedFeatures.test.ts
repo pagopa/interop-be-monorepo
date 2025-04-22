@@ -4,8 +4,7 @@ import request from "supertest";
 import { generateId, operationForbidden } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /tenants/delegatedFeatures/update authorization test", () => {
@@ -14,14 +13,16 @@ describe("API /tenants/delegatedFeatures/update authorization test", () => {
     isDelegatedProducerFeatureEnabled: false,
   };
 
-  vi.spyOn(tenantService, "updateTenantDelegatedFeatures").mockResolvedValue();
+  tenantService.updateTenantDelegatedFeatures = vi
+    .fn()
+    .mockResolvedValue(undefined);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (token: string, data: object = tenantFeatures) =>
     request(api)
       .post("/tenants/delegatedFeatures/update")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(tenantFeatures);
+      .send(data);
 
   it("Should return 204 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -38,20 +39,28 @@ describe("API /tenants/delegatedFeatures/update authorization test", () => {
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "updateTenantDelegatedFeatures").mockRejectedValue(
-      tenantNotFound(generateId())
-    );
+    tenantService.updateTenantDelegatedFeatures = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 403 for operationForbidden", async () => {
-    vi.spyOn(tenantService, "updateTenantDelegatedFeatures").mockRejectedValue(
-      operationForbidden
-    );
+    tenantService.updateTenantDelegatedFeatures = vi
+      .fn()
+      .mockRejectedValue(operationForbidden);
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed invalid tenant data", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      isDelegatedConsumerFeatureEnabled: true,
+    });
+    expect(res.status).toBe(400);
   });
 });

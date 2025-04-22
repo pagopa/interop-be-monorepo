@@ -5,8 +5,7 @@ import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import { tenantNotFoundBySelfcareId } from "../../src/model/domain/errors.js";
 
@@ -15,7 +14,7 @@ describe("API /tenants/selfcare/{selfcareId} authorization test", () => {
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
-  vi.spyOn(tenantService, "getTenantBySelfcareId").mockResolvedValue(tenant);
+  tenantService.getTenantBySelfcareId = vi.fn().mockResolvedValue(tenant);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -26,9 +25,12 @@ describe("API /tenants/selfcare/{selfcareId} authorization test", () => {
     authRole.M2M_ROLE,
   ];
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    selfcareId: string | undefined = tenant.selfcareId
+  ) =>
     request(api)
-      .get(`/tenants/selfcare/${tenant.selfcareId}`)
+      .get(`/tenants/selfcare/${selfcareId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -51,11 +53,17 @@ describe("API /tenants/selfcare/{selfcareId} authorization test", () => {
   });
 
   it("Should return 404 for tenantNotFoundBySelfcareId", async () => {
-    vi.spyOn(tenantService, "getTenantBySelfcareId").mockRejectedValue(
-      tenantNotFoundBySelfcareId(generateId())
-    );
+    tenantService.getTenantBySelfcareId = vi
+      .fn()
+      .mockRejectedValue(tenantNotFoundBySelfcareId(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an invalid selfcare id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });

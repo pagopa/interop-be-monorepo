@@ -5,8 +5,7 @@ import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import { tenantNotFoundByExternalId } from "../../src/model/domain/errors.js";
 
@@ -15,7 +14,7 @@ describe("API /tenants/origin/{origin}/code/{code} authorization test", () => {
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
-  vi.spyOn(tenantService, "getTenantByExternalId").mockResolvedValue(tenant);
+  tenantService.getTenantByExternalId = vi.fn().mockResolvedValue(tenant);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -52,14 +51,25 @@ describe("API /tenants/origin/{origin}/code/{code} authorization test", () => {
   });
 
   it("Should return 404 for tenantNotFoundByExternalId", async () => {
-    vi.spyOn(tenantService, "getTenantByExternalId").mockRejectedValue(
-      tenantNotFoundByExternalId(
-        tenant.externalId.origin,
-        tenant.externalId.value
-      )
-    );
+    tenantService.getTenantByExternalId = vi
+      .fn()
+      .mockRejectedValue(
+        tenantNotFoundByExternalId(
+          tenant.externalId.origin,
+          tenant.externalId.value
+        )
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an empty origin and no code", async () => {
+    const res = await request(api)
+      .get(`/tenants/origin/`)
+      .set("Authorization", `Bearer ${generateToken(authRole.ADMIN_ROLE)}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
+    expect(res.status).toBe(400);
   });
 });

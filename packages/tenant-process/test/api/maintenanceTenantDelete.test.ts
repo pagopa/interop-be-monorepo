@@ -4,18 +4,17 @@ import request from "supertest";
 import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /maintenance/tenants/{tenantId} authorization test", () => {
   const tenant: Tenant = getMockTenant();
 
-  vi.spyOn(tenantService, "maintenanceTenantDelete").mockResolvedValue();
+  tenantService.maintenanceTenantDelete = vi.fn().mockResolvedValue(undefined);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (token: string, tenantId: string = tenant.id) =>
     request(api)
-      .delete(`/maintenance/tenants/${tenant.id}`)
+      .delete(`/maintenance/tenants/${tenantId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send({ currentVersion: 0 });
@@ -35,11 +34,17 @@ describe("API /maintenance/tenants/{tenantId} authorization test", () => {
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "maintenanceTenantDelete").mockRejectedValue(
-      tenantNotFound(tenant.id)
-    );
+    tenantService.maintenanceTenantDelete = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenant.id));
     const token = generateToken(authRole.MAINTENANCE_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });

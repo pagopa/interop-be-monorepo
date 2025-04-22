@@ -8,15 +8,14 @@ import {
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { mailNotFound, tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /tenants/{tenantId}/mails/{mailId} authorization test", () => {
   const tenantId = generateId<TenantId>();
   const mailId = generateId();
 
-  vi.spyOn(tenantService, "deleteTenantMailById").mockResolvedValue();
+  tenantService.deleteTenantMailById = vi.fn().mockResolvedValue(undefined);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -39,29 +38,38 @@ describe("API /tenants/{tenantId}/mails/{mailId} authorization test", () => {
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "deleteTenantMailById").mockRejectedValue(
-      tenantNotFound(tenantId)
-    );
+    tenantService.deleteTenantMailById = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenantId));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 403 for operationForbidden", async () => {
-    vi.spyOn(tenantService, "deleteTenantMailById").mockRejectedValue(
-      operationForbidden
-    );
+    tenantService.deleteTenantMailById = vi
+      .fn()
+      .mockRejectedValue(operationForbidden);
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 
   it("Should return 404 for mailNotFound", async () => {
-    vi.spyOn(tenantService, "deleteTenantMailById").mockRejectedValue(
-      mailNotFound(mailId)
-    );
+    tenantService.deleteTenantMailById = vi
+      .fn()
+      .mockRejectedValue(mailNotFound(mailId));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await request(api)
+      .delete(`/tenants/invalid-id/mails/${mailId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId());
+    expect(res.status).toBe(400);
   });
 });

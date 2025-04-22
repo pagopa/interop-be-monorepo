@@ -47,6 +47,9 @@ import {
   readAuthDataFromJwtToken,
   decodeJwtToken,
 } from "pagopa-interop-commons";
-import app from "../src/app.js";
+import { createApp } from "../src/app.js";
+import { TenantService } from "../src/services/tenantService.js";
 
-export const api = app;
+export const tenantService = {} as TenantService;
+
+export const api = await createApp(tenantService);

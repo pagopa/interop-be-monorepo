@@ -5,8 +5,7 @@ import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   certifierWithExistingAttributes,
@@ -20,14 +19,14 @@ describe("API /maintenance/tenants/{tenantId}/certifier authorization test", () 
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
-  vi.spyOn(tenantService, "addCertifierId").mockResolvedValue(tenant);
+  tenantService.addCertifierId = vi.fn().mockResolvedValue(tenant);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (token: string, data: object = { certifierId }) =>
     request(api)
       .post(`/maintenance/tenants/${tenant.id}/certifier`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ certifierId });
+      .send(data);
 
   it("Should return 200 for user with role Maintenance", async () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);
@@ -45,29 +44,37 @@ describe("API /maintenance/tenants/{tenantId}/certifier authorization test", () 
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    vi.spyOn(tenantService, "addCertifierId").mockRejectedValue(
-      tenantNotFound(tenant.id)
-    );
+    tenantService.addCertifierId = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(tenant.id));
     const token = generateToken(authRole.MAINTENANCE_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 409 for tenantIsAlreadyACertifier", async () => {
-    vi.spyOn(tenantService, "addCertifierId").mockRejectedValue(
-      tenantIsAlreadyACertifier(tenant.id, certifierId)
-    );
+    tenantService.addCertifierId = vi
+      .fn()
+      .mockRejectedValue(tenantIsAlreadyACertifier(tenant.id, certifierId));
     const token = generateToken(authRole.MAINTENANCE_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
   });
 
   it("Should return 409 for certifierWithExistingAttributes", async () => {
-    vi.spyOn(tenantService, "addCertifierId").mockRejectedValue(
-      certifierWithExistingAttributes(tenant.id, certifierId)
-    );
+    tenantService.addCertifierId = vi
+      .fn()
+      .mockRejectedValue(
+        certifierWithExistingAttributes(tenant.id, certifierId)
+      );
     const token = generateToken(authRole.MAINTENANCE_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
+  });
+
+  it("Should return 400 if passed invalid data", async () => {
+    const token = generateToken(authRole.MAINTENANCE_ROLE);
+    const res = await makeRequest(token, {});
+    expect(res.status).toBe(400);
   });
 });

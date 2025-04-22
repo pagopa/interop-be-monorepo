@@ -5,8 +5,7 @@ import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
-import { tenantService } from "../../src/routers/TenantRouter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 
 describe("API /producers authorization test", () => {
@@ -33,7 +32,7 @@ describe("API /producers authorization test", () => {
     totalCount: mockResponse.totalCount,
   });
 
-  vi.spyOn(tenantService, "getProducers").mockResolvedValue(mockResponse);
+  tenantService.getProducers = vi.fn().mockResolvedValue(mockResponse);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -42,12 +41,12 @@ describe("API /producers authorization test", () => {
     authRole.SUPPORT_ROLE,
   ];
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)
       .get("/producers")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit: 10 });
+      .query({ offset: 0, limit });
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -65,5 +64,11 @@ describe("API /producers authorization test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed an invalid limit", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });
