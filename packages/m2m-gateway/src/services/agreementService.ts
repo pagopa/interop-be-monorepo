@@ -20,18 +20,19 @@ export function agreementServiceBuilder({
         `Retrieving agreements for producerId ${producerIds} consumerId ${consumerIds} eServiceId ${eserviceIds} states ${states} limit ${limit} offset ${offset}`
       );
 
-      const { results, totalCount } =
-        await agreementProcessClient.getAgreements({
-          queries: {
-            consumersIds: consumerIds,
-            producersIds: producerIds,
-            eservicesIds: eserviceIds,
-            states,
-            limit,
-            offset,
-          },
-          headers: ctx.headers,
-        });
+      const {
+        data: { results, totalCount },
+      } = await agreementProcessClient.getAgreements({
+        queries: {
+          consumersIds: consumerIds,
+          producersIds: producerIds,
+          eservicesIds: eserviceIds,
+          states,
+          limit,
+          offset,
+        },
+        headers: ctx.headers,
+      });
 
       return {
         results: results.map(toM2MAgreement),
