@@ -3239,6 +3239,9 @@ importers:
       '@types/qs':
         specifier: 6.9.15
         version: 6.9.15
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
