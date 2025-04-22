@@ -37,7 +37,6 @@ export function delegationServiceBuilder({
         response.data.id,
         headers
       )({
-        // TODO maybe this is general enough and could be moved to the polling function?
         checkFn: (polled) => {
           assertMetadataExists(response);
           return polled.metadata.version >= response.metadata.version;
