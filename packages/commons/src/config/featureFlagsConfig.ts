@@ -1,7 +1,7 @@
 import { notFound } from "pagopa-interop-models";
 import { z } from "zod";
 
-export const FeatureFlagSignalhubConfig = z
+export const FeatureFlagSignalhubWhitelistConfig = z
   .object({
     FEATURE_FLAG_SIGNALHUB_WHITELIST: z
       .enum(["true", "false"])
@@ -19,8 +19,8 @@ export const FeatureFlagSignalhubConfig = z
     signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
   }));
 
-export type FeatureFlagSignalhubConfig = z.infer<
-  typeof FeatureFlagSignalhubConfig
+export type FeatureFlagSignalhubWhitelistConfig = z.infer<
+  typeof FeatureFlagSignalhubWhitelistConfig
 >;
 
 export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
@@ -40,12 +40,26 @@ export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
   typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
 >;
 
+type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
+  FeatureFlagAgreementApprovalPolicyUpdateConfig;
+
+export type FeatureFlagKeys = keyof Pick<
+  FeatureFlags,
+  {
+    [K in keyof (FeatureFlagSignalhubWhitelistConfig &
+      FeatureFlagAgreementApprovalPolicyUpdateConfig)]: K extends `featureFlag${string}`
+      ? K
+      : never;
+  }[keyof (FeatureFlagSignalhubWhitelistConfig &
+    FeatureFlagAgreementApprovalPolicyUpdateConfig)]
+>;
+
 export const isFeatureFlagEnabled = <
   T extends Record<string, unknown>,
   K extends keyof T & string
 >(
   config: T,
-  featureFlagName: K extends `featureFlag${string}` ? K : never
+  featureFlagName: K extends FeatureFlagKeys ? K : never
 ): boolean => {
   const featureFlag = config[featureFlagName];
 
@@ -55,20 +69,14 @@ export const isFeatureFlagEnabled = <
 
   return featureFlag === true;
 };
-export const assertFeatureFlag = <
+export const assertFeatureFlagEnabled = <
   T extends Record<string, unknown>,
   K extends keyof T & string
 >(
   config: T,
-  featureFlagName: K extends `featureFlag${string}` ? K : never
+  featureFlagName: K extends FeatureFlagKeys ? K : never
 ): void => {
-  const featureFlag = config[featureFlagName];
-
-  if (featureFlag === undefined) {
-    throw notFound(); // Flag doesn't exist in the config
-  }
-
-  if (featureFlag !== true) {
-    throw notFound(); // Flag exists but isn't enabled
+  if (!isFeatureFlagEnabled(config, featureFlagName)) {
+    throw notFound();
   }
 };
