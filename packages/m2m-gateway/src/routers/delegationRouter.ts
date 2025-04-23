@@ -16,15 +16,18 @@ import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const { M2M_ADMIN_ROLE } = authRole;
 
+export type DelegationServiceBuilder = typeof delegationServiceBuilder;
+
 const delegationRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  clients: PagoPAInteropBeClients,
+  delegationServiceBuilderFunction: DelegationServiceBuilder = delegationServiceBuilder
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationRouter = ctx.router(m2mGatewayApi.delegationsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const delegationService = delegationServiceBuilder(clients);
+  const delegationService = delegationServiceBuilderFunction(clients);
 
   delegationRouter
     .get("/consumerDelegations", async (req, res) => {

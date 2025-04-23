@@ -1,6 +1,8 @@
+import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { AxiosError, AxiosResponse } from "axios";
-import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
 import { expect } from "vitest";
+import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
 
 export function mockPollingResponse<T>(
   mockResponse: WithMaybeMetadata<T>,
@@ -59,3 +61,6 @@ export function expectApiClientPostToHaveBeenCalledWith({
     },
   });
 }
+
+export const mockInteropBeClients = {} as PagoPAInteropBeClients;
+export const delegationService = delegationServiceBuilder(mockInteropBeClients);

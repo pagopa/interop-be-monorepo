@@ -4,6 +4,6 @@ import { createApp } from "./app.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 
 const clients = getInteropBeClients();
-const app = await createApp(clients);
+const app = await createApp({ clients });
 
 startServer(app, config);

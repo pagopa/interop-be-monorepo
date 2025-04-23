@@ -19,7 +19,9 @@ import attributeRouter from "./routers/attributeRouter.js";
 import eserviceRouter from "./routers/eserviceRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
-import delegationRouter from "./routers/delegationRouter.js";
+import delegationRouter, {
+  DelegationServiceBuilder,
+} from "./routers/delegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 import clientRouter from "./routers/clientRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
@@ -27,7 +29,13 @@ import { appBasePath } from "./config/appBasePath.js";
 const serviceName = modelsServiceName.M2M_GATEWAY;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function createApp(clients: PagoPAInteropBeClients) {
+export async function createApp({
+  clients,
+  delegationServiceBuilderFunction,
+}: {
+  clients: PagoPAInteropBeClients;
+  delegationServiceBuilderFunction?: DelegationServiceBuilder;
+}) {
   const app = zodiosCtx.app();
 
   const redisRateLimiter = await initRedisRateLimiter({
@@ -62,7 +70,7 @@ export async function createApp(clients: PagoPAInteropBeClients) {
     purposeRouter(zodiosCtx, clients),
     agreementRouter(zodiosCtx, clients),
     tenantRouter(zodiosCtx, clients),
-    delegationRouter(zodiosCtx, clients),
+    delegationRouter(zodiosCtx, clients, delegationServiceBuilderFunction),
     eserviceTemplateRouter(zodiosCtx, clients),
     clientRouter(zodiosCtx, clients)
   );

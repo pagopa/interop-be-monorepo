@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
-import "dotenv-flow/config";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
@@ -65,7 +64,11 @@ import {
 } from "pagopa-interop-commons";
 import { createApp } from "../src/app.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import { DelegationServiceBuilder } from "../src/routers/delegationRouter.js";
 
-export const mockInteropBeClients = {} as PagoPAInteropBeClients;
+export const mockDelegationService = {} as ReturnType<DelegationServiceBuilder>;
 
-export const api = await createApp(mockInteropBeClients);
+export const api = await createApp({
+  clients: {} as PagoPAInteropBeClients,
+  delegationServiceBuilderFunction: () => mockDelegationService,
+});
