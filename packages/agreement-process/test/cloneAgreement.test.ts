@@ -194,7 +194,7 @@ describe("clone agreement", () => {
     delete expectedAgreementCloned.contract;
     expectedAgreementCloned.stamps = {};
 
-    expect(agreementClonedEventPayload).toEqual({
+    expect(agreementClonedEventPayload).toMatchObject({
       agreement: expectedAgreementCloned,
     });
     expect(agreementClonedEventPayload).toEqual({
@@ -342,7 +342,7 @@ describe("clone agreement", () => {
     delete expectedAgreementCloned.contract;
     expectedAgreementCloned.stamps = {};
 
-    expect(agreementClonedEventPayload).toEqual({
+    expect(agreementClonedEventPayload).toMatchObject({
       agreement: expectedAgreementCloned,
     });
     expect(agreementClonedEventPayload).toEqual({

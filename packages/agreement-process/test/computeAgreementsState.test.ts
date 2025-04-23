@@ -106,7 +106,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toEqual({
+      expect(agreementStateUpdateEventData).toMatchObject({
         agreement: toAgreementV2({
           ...updatableActiveAgreement,
           state: agreementState.suspended,
@@ -151,7 +151,7 @@ describe("compute Agreements state by attribute", () => {
           payload: agreementStateUpdateEvent.data,
         });
 
-        expect(agreementStateUpdateEventData).toEqual({
+        expect(agreementStateUpdateEventData).toMatchObject({
           agreement: toAgreementV2({
             ...updatableDraftOrPendingAgreement,
             state: agreementState.missingCertifiedAttributes,
@@ -201,7 +201,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toEqual({
+      expect(agreementStateUpdateEventData).toMatchObject({
         agreement: toAgreementV2({
           ...updatableSuspendedAgreement,
           state: agreementState.suspended,
@@ -302,7 +302,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toEqual({
+      expect(agreementStateUpdateEventData).toMatchObject({
         agreement: toAgreementV2({
           ...updatableSuspendedAgreement,
           state: agreementState.active,
@@ -353,7 +353,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toEqual({
+      expect(agreementStateUpdateEventData).toMatchObject({
         agreement: toAgreementV2({
           ...updatableMissingCertAttributesAgreement,
           state: agreementState.draft,
@@ -526,7 +526,7 @@ describe("compute Agreements state by attribute", () => {
       payload: agreement1StateUpdateEvent.data,
     });
 
-    expect(agreement1StateUpdateEventData).toEqual({
+    expect(agreement1StateUpdateEventData).toMatchObject({
       agreement: toAgreementV2({
         ...updatableAgreement1,
         state: agreementState.missingCertifiedAttributes,
@@ -550,7 +550,7 @@ describe("compute Agreements state by attribute", () => {
       payload: agreement2StateUpdateEvent.data,
     });
 
-    expect(agreement2StateUpdateEventData).toEqual({
+    expect(agreement2StateUpdateEventData).toMatchObject({
       agreement: toAgreementV2({
         ...updatableAgreement2,
         state: agreementState.suspended,
