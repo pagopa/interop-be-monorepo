@@ -563,7 +563,7 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async addAdminToClient(
+    async setAdminToClient(
       {
         clientId,
         adminId,

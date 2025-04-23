@@ -10474,7 +10474,7 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "422":
+        "409":
           description: User already an admin for the client
           content:
             application/json:
@@ -10584,9 +10584,9 @@ paths:
     post:
       tags:
         - clients
-      summary: Adds an Admin to a Client
-      description: Adds an Admin to a Client
-      operationId: addAdminToClient
+      summary: Sets an Admin to a Client
+      description: Sets an Admin to a Client
+      operationId: setAdminToClient
       parameters:
         - name: clientId
           in: path
@@ -10706,6 +10706,12 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: UserId is already an admin for the client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /clients/{clientId}/purposes/{purposeId}:
     delete:
       tags:

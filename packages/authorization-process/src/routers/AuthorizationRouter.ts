@@ -371,7 +371,7 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const client = await authorizationService.addAdminToClient(
+        const client = await authorizationService.setAdminToClient(
           {
             clientId: unsafeBrandId(req.params.clientId),
             adminId: unsafeBrandId(req.body.adminId),

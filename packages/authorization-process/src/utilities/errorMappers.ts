@@ -12,7 +12,6 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_CONFLICT,
   HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_UNPROCESSABLE_ENTITY,
 } = constants;
 
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -97,10 +96,7 @@ export const addClientAdminErrorMapper = (
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
-    .with(
-      "clientAdminAlreadyAssignedToUser",
-      () => HTTP_STATUS_UNPROCESSABLE_ENTITY
-    )
+    .with("clientAdminAlreadyAssignedToUser", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientPurposeErrorMapper = (

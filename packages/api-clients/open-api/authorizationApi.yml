@@ -443,11 +443,11 @@ paths:
     post:
       tags:
         - client
-      summary: Add Admin to a Client
-      operationId: addAdminToClient
+      summary: Set Admin to a Client
+      operationId: setAdminToClient
       requestBody:
         required: true
-        description: AdminId to be added to the Client
+        description: AdminId to be set to the Client
         content:
           application/json:
             schema:
@@ -457,18 +457,23 @@ paths:
                 - adminId
               properties:
                 adminId:
-                  description: UserId to be added as admin
                   type: string
                   format: uuid
       responses:
         "200":
-          description: Admin added
+          description: Admin set
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Client"
         "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -485,7 +490,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "422":
+        "409":
           description: User already an admin for the client
           content:
             application/json:

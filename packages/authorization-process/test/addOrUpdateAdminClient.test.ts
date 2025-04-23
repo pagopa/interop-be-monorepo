@@ -25,14 +25,14 @@ import {
   readLastAuthorizationEvent,
 } from "./utils.js";
 
-describe("addAdminToClient", () => {
+describe("setAdminToClient", () => {
   const mockClient: Client = getMockClient();
   const adminId: UserId = generateId<UserId>();
 
   it("should write on event-store when adding admin to a client", async () => {
     await addOneClient(mockClient);
 
-    await authorizationService.addAdminToClient(
+    await authorizationService.setAdminToClient(
       {
         adminId,
         clientId: mockClient.id,
@@ -67,7 +67,7 @@ describe("addAdminToClient", () => {
     const notFoundClientId = generateId<ClientId>();
 
     await expect(
-      authorizationService.addAdminToClient(
+      authorizationService.setAdminToClient(
         {
           adminId,
           clientId: notFoundClientId,
@@ -81,7 +81,7 @@ describe("addAdminToClient", () => {
     const authData = getMockAuthData(generateId<TenantId>());
 
     await expect(
-      authorizationService.addAdminToClient(
+      authorizationService.setAdminToClient(
         {
           adminId,
           clientId: mockClient.id,
@@ -99,7 +99,7 @@ describe("addAdminToClient", () => {
     };
     await addOneClient(mockClientWithAdmin);
     await expect(
-      authorizationService.addAdminToClient(
+      authorizationService.setAdminToClient(
         {
           adminId,
           clientId: mockClientWithAdmin.id,
