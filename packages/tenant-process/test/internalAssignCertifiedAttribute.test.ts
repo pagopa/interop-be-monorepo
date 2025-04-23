@@ -59,8 +59,8 @@ describe("internalAssignCertifiedAttributes", async () => {
       {
         tenantOrigin: targetTenant.externalId.origin,
         tenantExternalId: targetTenant.externalId.value,
-        attributeOrigin: attribute.origin!,
-        attributeExternalId: attribute.code!,
+        attributeOrigin: certifiedAttribute.origin!,
+        attributeExternalId: certifiedAttribute.code!,
       },
       getMockContextInternal({})
     );
@@ -115,8 +115,8 @@ describe("internalAssignCertifiedAttributes", async () => {
       {
         tenantOrigin: tenantWithCertifiedAttribute.externalId.origin,
         tenantExternalId: tenantWithCertifiedAttribute.externalId.value,
-        attributeOrigin: attribute.origin!,
-        attributeExternalId: attribute.code!,
+        attributeOrigin: certifiedAttribute.origin!,
+        attributeExternalId: certifiedAttribute.code!,
       },
       getMockContextInternal({})
     );
@@ -170,8 +170,8 @@ describe("internalAssignCertifiedAttributes", async () => {
         {
           tenantOrigin: tenantAlreadyAssigned.externalId.origin,
           tenantExternalId: tenantAlreadyAssigned.externalId.value,
-          attributeOrigin: attribute.origin!,
-          attributeExternalId: attribute.code!,
+          attributeOrigin: certifiedAttribute.origin!,
+          attributeExternalId: certifiedAttribute.code!,
         },
         getMockContextInternal({})
       )
@@ -190,8 +190,8 @@ describe("internalAssignCertifiedAttributes", async () => {
         {
           tenantOrigin: targetTenant.externalId.origin,
           tenantExternalId: targetTenant.externalId.value,
-          attributeOrigin: attribute.origin!,
-          attributeExternalId: attribute.code!,
+          attributeOrigin: certifiedAttribute.origin!,
+          attributeExternalId: certifiedAttribute.code!,
         },
         getMockContextInternal({})
       )
@@ -211,8 +211,8 @@ describe("internalAssignCertifiedAttributes", async () => {
         {
           tenantOrigin: targetTenant.externalId.origin,
           tenantExternalId: targetTenant.externalId.value,
-          attributeOrigin: attribute.origin!,
-          attributeExternalId: attribute.code!,
+          attributeOrigin: certifiedAttribute.origin!,
+          attributeExternalId: certifiedAttribute.code!,
         },
         getMockContextInternal({})
       )

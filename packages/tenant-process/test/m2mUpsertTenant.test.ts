@@ -319,6 +319,7 @@ describe("m2mUpsertTenant", async () => {
     );
   });
   it("Should throw tenantNotFound if the requester doesn't exist", async () => {
+    const tenant = getMockTenant();
     await addOneAttribute(attribute);
     expect(
       tenantService.m2mUpsertTenant(
