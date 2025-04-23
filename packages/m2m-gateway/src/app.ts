@@ -12,10 +12,7 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { config } from "./config/config.js";
-import {
-  PagoPAInteropBeClients,
-  getInteropBeClients,
-} from "./clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
@@ -25,6 +22,7 @@ import tenantRouter from "./routers/tenantRouter.js";
 import delegationRouter from "./routers/delegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 import clientRouter from "./routers/clientRouter.js";
+import { appBasePath } from "./config/appBasePath.js";
 
 const serviceName = modelsServiceName.M2M_GATEWAY;
 
@@ -51,7 +49,7 @@ export async function createApp(clients: PagoPAInteropBeClients) {
   app.use(loggerMiddleware(serviceName));
 
   app.use(
-    `/m2m-gateway/${config.m2mGatewayInterfaceVersion}`,
+    appBasePath,
     healthRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
@@ -71,8 +69,3 @@ export async function createApp(clients: PagoPAInteropBeClients) {
 
   return app;
 }
-
-const clients = getInteropBeClients();
-const app = await createApp(clients);
-
-export default app;

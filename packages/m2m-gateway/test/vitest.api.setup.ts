@@ -43,6 +43,15 @@ vi.mock("pagopa-interop-commons", async () => {
           return next();
         }
     ),
+    rateLimiterMiddleware: vi.fn(
+      () =>
+        async (
+          _req: Request,
+          _res: Response,
+          next: NextFunction
+        ): Promise<unknown> =>
+          next()
+    ),
   };
 });
 
