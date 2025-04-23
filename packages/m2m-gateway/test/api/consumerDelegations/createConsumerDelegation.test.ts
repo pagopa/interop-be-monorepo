@@ -10,6 +10,7 @@ import { mockInteropBeClients } from "../../vitest.api.setup.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { AxiosError, AxiosResponse } from "axios";
 
 describe("POST /consumerDelegations authorization test", () => {
   const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {
@@ -39,6 +40,25 @@ describe("POST /consumerDelegations authorization test", () => {
       },
     };
 
+  // TODO move into utils
+  const mockPolling = (resp) => {
+    let firstPollingCall = true;
+    return async () => {
+      if (firstPollingCall) {
+        firstPollingCall = false;
+        const notFound: AxiosError = new AxiosError(
+          "Delegation not found",
+          "404",
+          undefined,
+          undefined,
+          { status: 404 } as AxiosResponse
+        );
+        return Promise.reject(notFound);
+      }
+      return Promise.resolve(resp);
+    };
+  };
+
   mockInteropBeClients.delegationProcessClient = {
     consumer: {
       createConsumerDelegation: vi
@@ -46,7 +66,7 @@ describe("POST /consumerDelegations authorization test", () => {
         .mockResolvedValue(mockDelegationProcessResponse),
     },
     delegation: {
-      getDelegation: vi.fn().mockResolvedValue(mockDelegationProcessResponse),
+      getDelegation: vi.fn(mockPolling(mockDelegationProcessResponse)),
     },
   } as unknown as PagoPAInteropBeClients["delegationProcessClient"];
 
@@ -60,10 +80,13 @@ describe("POST /consumerDelegations authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
+      vi.spyOn(
+        mockInteropBeClients.delegationProcessClient.delegation,
+        "getDelegation"
+      );
+
       const token = generateToken(role);
       const res = await makeRequest(token);
-
-      // TODO toHaveBeenCalledWith on the polling
 
       const m2mDelegationResponse: m2mGatewayApi.ConsumerDelegation = {
         id: mockDelegationProcessResponse.data.id,
@@ -82,10 +105,14 @@ describe("POST /consumerDelegations authorization test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(m2mDelegationResponse);
+      // TODO add toHaveBeenCalledWith?
+      expect(
+        mockInteropBeClients.delegationProcessClient.delegation.getDelegation
+      ).toHaveBeenCalledTimes(2);
     }
   );
 
-  it.only.each(
+  it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);

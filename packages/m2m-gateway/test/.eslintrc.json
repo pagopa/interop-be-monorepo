@@ -3,6 +3,7 @@
     "../../../.eslintrc.cjs"
   ],
   "rules": {
-    "functional/immutable-data": "off"
+    "functional/immutable-data": "off",
+    "functional/no-let": "off",
   }
 }
