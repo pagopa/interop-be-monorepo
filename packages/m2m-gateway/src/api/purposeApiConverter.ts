@@ -3,11 +3,29 @@ import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 export function toM2MPurpose(
   purpose: purposeApi.Purpose
 ): m2mGatewayApi.Purpose {
-  const currentVersion = purpose.versions.at(-1);
+  const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
+    m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+    m2mGatewayApi.PurposeVersionState.Values.REJECTED,
+  ];
+  const currentVersion = purpose.versions
+    .filter((v) => !statesToExclude.includes(v.state))
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
+    .at(-1);
 
   if (!currentVersion) {
     throw new Error("Current purpose has no versions");
   }
+
+  const waitingForApprovalVersion = purpose.versions.find(
+    (v) =>
+      v.state === m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
+  );
+  const rejectedVersion = purpose.versions.find(
+    (v) => v.state === m2mGatewayApi.PurposeVersionState.Values.REJECTED
+  );
 
   return {
     id: purpose.id,
@@ -24,11 +42,7 @@ export function toM2MPurpose(
     freeOfChargeReason: purpose.freeOfChargeReason,
     delegationId: purpose.delegationId,
     currentVersion,
-    waitingForApprovalVersion: purpose.versions.findLast(
-      (version) => version.state === "WAITING_FOR_APPROVAL"
-    ),
-    rejectedVersion: purpose.versions.findLast(
-      (version) => version.state === "REJECTED"
-    ),
+    waitingForApprovalVersion,
+    rejectedVersion,
   };
 }
