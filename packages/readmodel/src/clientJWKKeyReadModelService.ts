@@ -50,12 +50,18 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       });
     },
     async getClientJWKKeyByClientIdAndKid(
-      clientId: ClientId
+      clientId: ClientId,
+      kid: string
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
       const queryResult = await db
         .select()
         .from(clientJwkKeyInReadmodelClientJwkKey)
-        .where(eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId));
+        .where(
+          and(
+            eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
+            eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)
+          )
+        );
 
       if (queryResult.length === 0) {
         return undefined;
