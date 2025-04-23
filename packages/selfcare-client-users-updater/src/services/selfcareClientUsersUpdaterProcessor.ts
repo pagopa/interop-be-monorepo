@@ -108,10 +108,32 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           (client) => client.adminId === jsonPayload.user.userId
         );
 
-        // TODO: For each client, call Auth Process to remove the userId from that clientId.
-
         loggerInstance.info(
           `Found ${clients.length} clients with user as admin`
+        );
+
+        await Promise.all(
+          clients.map(async (client) => {
+            try {
+              await authorizationProcessClient.client.internalRemoveClientAdmin(
+                undefined,
+                {
+                  params: {
+                    clientId: client.id,
+                    adminId: jsonPayload.user.userId,
+                  },
+                  headers: getInteropHeaders({
+                    token,
+                    correlationId,
+                  }),
+                }
+              );
+            } catch (error) {
+              loggerInstance.error(
+                `Failed to remove admin for client ID: ${client.id}, User ID: ${jsonPayload.user.userId}. Error: ${error}`
+              );
+            }
+          })
         );
 
         loggerInstance.info(
