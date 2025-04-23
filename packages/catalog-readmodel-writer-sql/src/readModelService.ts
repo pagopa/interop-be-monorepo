@@ -145,30 +145,32 @@ export function customReadModelServiceBuilder(
           document.id
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(eserviceDescriptorDocumentInReadmodelCatalog)
-            .where(
-              eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id)
-            );
-
-          const documentSQL = documentToDocumentSQL(
-            document,
-            descriptorId,
-            eserviceId,
-            metadataVersion
-          );
-
-          await tx
-            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-            .values(documentSQL);
-
-          await updateMetadataVersionInCatalogTables(
-            tx,
-            eserviceId,
-            metadataVersion
-          );
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(eserviceDescriptorDocumentInReadmodelCatalog)
+          .where(
+            eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id)
+          );
+
+        const documentSQL = documentToDocumentSQL(
+          document,
+          descriptorId,
+          eserviceId,
+          metadataVersion
+        );
+
+        await tx
+          .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+          .values(documentSQL);
+
+        await updateMetadataVersionInCatalogTables(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
       });
     },
 
@@ -193,39 +195,41 @@ export function customReadModelServiceBuilder(
           descriptorInterface.id
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .where(
-              eq(
-                eserviceDescriptorInterfaceInReadmodelCatalog.id,
-                descriptorInterface.id
-              )
-            );
-
-          const interfaceSQL = documentToDocumentSQL(
-            descriptorInterface,
-            descriptorId,
-            eserviceId,
-            metadataVersion
-          );
-
-          await tx
-            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .values(interfaceSQL);
-          await setServerUrls({
-            tx,
-            descriptorId,
-            serverUrls,
-            metadataVersion,
-          });
-
-          await updateMetadataVersionInCatalogTables(
-            tx,
-            eserviceId,
-            metadataVersion
-          );
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
+          .where(
+            eq(
+              eserviceDescriptorInterfaceInReadmodelCatalog.id,
+              descriptorInterface.id
+            )
+          );
+
+        const interfaceSQL = documentToDocumentSQL(
+          descriptorInterface,
+          descriptorId,
+          eserviceId,
+          metadataVersion
+        );
+
+        await tx
+          .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+          .values(interfaceSQL);
+        await setServerUrls({
+          tx,
+          descriptorId,
+          serverUrls,
+          metadataVersion,
+        });
+
+        await updateMetadataVersionInCatalogTables(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
       });
     },
 
@@ -309,57 +313,59 @@ export function customReadModelServiceBuilder(
           descriptor.id
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(eserviceDescriptorInReadmodelCatalog)
-            .where(eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id));
-
-          const {
-            descriptorSQL,
-            attributesSQL,
-            interfaceSQL,
-            documentsSQL,
-            rejectionReasonsSQL,
-          } = splitDescriptorIntoObjectsSQL(
-            eserviceId,
-            descriptor,
-            metadataVersion
-          );
-
-          await tx
-            .insert(eserviceDescriptorInReadmodelCatalog)
-            .values(descriptorSQL);
-
-          if (interfaceSQL) {
-            await tx
-              .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-              .values(interfaceSQL);
-          }
-
-          for (const docSQL of documentsSQL) {
-            await tx
-              .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-              .values(docSQL);
-          }
-
-          for (const attributeSQL of attributesSQL) {
-            await tx
-              .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-              .values(attributeSQL);
-          }
-
-          for (const rejectionReasonSQL of rejectionReasonsSQL) {
-            await tx
-              .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-              .values(rejectionReasonSQL);
-          }
-
-          await updateMetadataVersionInCatalogTables(
-            tx,
-            eserviceId,
-            metadataVersion
-          );
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(eserviceDescriptorInReadmodelCatalog)
+          .where(eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id));
+
+        const {
+          descriptorSQL,
+          attributesSQL,
+          interfaceSQL,
+          documentsSQL,
+          rejectionReasonsSQL,
+        } = splitDescriptorIntoObjectsSQL(
+          eserviceId,
+          descriptor,
+          metadataVersion
+        );
+
+        await tx
+          .insert(eserviceDescriptorInReadmodelCatalog)
+          .values(descriptorSQL);
+
+        if (interfaceSQL) {
+          await tx
+            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .values(interfaceSQL);
+        }
+
+        for (const docSQL of documentsSQL) {
+          await tx
+            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+            .values(docSQL);
+        }
+
+        for (const attributeSQL of attributesSQL) {
+          await tx
+            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+            .values(attributeSQL);
+        }
+
+        for (const rejectionReasonSQL of rejectionReasonsSQL) {
+          await tx
+            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+            .values(rejectionReasonSQL);
+        }
+
+        await updateMetadataVersionInCatalogTables(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
       });
     },
   };
