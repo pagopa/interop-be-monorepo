@@ -1313,7 +1313,11 @@ export function tenantServiceBuilder(
       id: TenantId,
       {
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | InternalAuthData>>
+      }: WithLogger<
+        AppContext<
+          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+        >
+      >
     ): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
       const tenant = await retrieveTenant(id, readModelService);
