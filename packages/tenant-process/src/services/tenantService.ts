@@ -11,6 +11,7 @@ import {
   MaintenanceAuthData,
   M2MAuthData,
   isUiAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -1299,7 +1300,9 @@ export function tenantServiceBuilder(
     },
     async getTenants(
       query: ApiGetTenantsFilters,
-      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Tenants with name = ${query.name}, features = ${query.features}, externalIdOrigin = ${query.externalIdOrigin}, externalIdValue = ${query.externalIdValue}, limit = ${query.limit}, offset = ${query.offset}`
@@ -1310,7 +1313,11 @@ export function tenantServiceBuilder(
       id: TenantId,
       {
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | InternalAuthData>>
+      }: WithLogger<
+        AppContext<
+          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+        >
+      >
     ): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
       const tenant = await retrieveTenant(id, readModelService);
