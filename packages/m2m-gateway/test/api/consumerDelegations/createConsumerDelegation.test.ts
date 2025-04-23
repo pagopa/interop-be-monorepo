@@ -40,7 +40,7 @@ describe("POST /consumerDelegations authorization test", () => {
       },
     };
 
-  // TODO move into utils
+  // TODO move into utils and add count param
   const mockPolling = (resp) => {
     let firstPollingCall = true;
     return async () => {
@@ -120,5 +120,5 @@ describe("POST /consumerDelegations authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  // TODO other tests
+  // TODO other tests also polling failure for too many attempts
 });
