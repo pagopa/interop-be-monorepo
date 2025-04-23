@@ -347,7 +347,6 @@ describe("Agreeement states flows", () => {
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
-
     await writeOnlyOneAgreement(createdAgreement);
 
     /* =================================
