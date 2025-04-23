@@ -1,7 +1,10 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeId, PurposeVersionId } from "pagopa-interop-models";
-import { toM2MPurpose } from "../api/purposeApiConverter.js";
+import { PurposeId } from "pagopa-interop-models";
+import {
+  toM2MPurpose,
+  toM2MPurposeVersion,
+} from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -27,6 +30,24 @@ export function purposeServiceBuilder({
       })
     )({
       checkFn: isPolledVersionAtLeastResponseVersion(response),
+    });
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const pollPurposeVersion = (
+    purposeId: PurposeId,
+    newVersion: WithMaybeMetadata<purposeApi.PurposeVersion>,
+    headers: M2MGatewayAppContext["headers"]
+  ) =>
+    pollResource(() =>
+      purposeProcessClient.getPurpose({
+        params: { id: purposeId },
+        headers,
+      })
+    )({
+      checkFn: (polledPurpose) =>
+        polledPurpose.data.versions.some(
+          (version) => version.id === newVersion.data.id
+        ),
     });
 
   return {
@@ -95,7 +116,7 @@ export function purposeServiceBuilder({
     getPurposeVersion: async (
       { logger, headers }: WithLogger<M2MGatewayAppContext>,
       purposeId: PurposeId,
-      versionId: PurposeVersionId
+      versionId: string
     ): Promise<m2mGatewayApi.PurposeVersion> => {
       logger.info(`Retrieving purpose with id ${purposeId}`);
 
@@ -113,6 +134,34 @@ export function purposeServiceBuilder({
       }
 
       return version;
+    },
+    createPurposeVersion: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      purposeId: PurposeId,
+      versionSeed: m2mGatewayApi.PurposeVersionSeed
+    ): Promise<m2mGatewayApi.PurposeVersion> => {
+      logger.info(`Creating purpose `);
+
+      const versionResponse = await purposeProcessClient.createPurposeVersion(
+        versionSeed,
+        { params: { purposeId }, headers }
+      );
+
+      const polledPurpose = await pollPurposeVersion(
+        purposeId,
+        versionResponse,
+        headers
+      );
+
+      const createdVersion = polledPurpose.data.versions.find(
+        (version) => version.id === versionResponse.data.id
+      );
+
+      if (!createdVersion) {
+        throw purposeVersionNotFound(purposeId, versionResponse.data.id);
+      }
+
+      return toM2MPurposeVersion(createdVersion);
     },
   };
 }

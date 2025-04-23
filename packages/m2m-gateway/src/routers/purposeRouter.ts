@@ -126,7 +126,17 @@ const purposeRouter = (
     .post("/purposes/:purposeId/versions", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const version = await purposeService.createPurposeVersion(
+          ctx,
+          unsafeBrandId(req.params.purposeId),
+          req.body
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeVersion.parse(version));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

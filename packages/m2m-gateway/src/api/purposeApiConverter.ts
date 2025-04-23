@@ -32,3 +32,18 @@ export function toM2MPurpose(
     ),
   };
 }
+
+export function toM2MPurposeVersion(
+  version: purposeApi.PurposeVersion
+): m2mGatewayApi.PurposeVersion {
+  return {
+    id: version.id,
+    createdAt: version.createdAt,
+    dailyCalls: version.dailyCalls,
+    state: version.state,
+    firstActivationAt: version.firstActivationAt,
+    rejectionReason: version.rejectionReason,
+    suspendedAt: version.suspendedAt,
+    updatedAt: version.updatedAt,
+  };
+}
