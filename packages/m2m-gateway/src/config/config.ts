@@ -94,15 +94,6 @@ export type EServiceTemplateProcessServerConfig = z.infer<
   typeof EServiceTemplateProcessServerConfig
 >;
 
-export const InterfaceVersion = z
-  .object({
-    M2M_GATEWAY_INTERFACE_VERSION: z.string(),
-  })
-  .transform((c) => ({
-    m2mGatewayInterfaceVersion: c.M2M_GATEWAY_INTERFACE_VERSION,
-  }));
-export type InterfaceVersion = z.infer<typeof InterfaceVersion>;
-
 const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -113,7 +104,19 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(DelegationProcessServerConfig)
   .and(EServiceTemplateProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
-  .and(InterfaceVersion);
+  .and(
+    z
+      .object({
+        M2M_GATEWAY_INTERFACE_VERSION: z.string(),
+        DEFAULT_POLLING_INTERVAL_MS: z.coerce.number().default(1000),
+        DEFAULT_POLLING_MAX_ATTEMPTS: z.coerce.number().default(5),
+      })
+      .transform((c) => ({
+        m2mGatewayInterfaceVersion: c.M2M_GATEWAY_INTERFACE_VERSION,
+        defaultPollingIntervalMs: c.DEFAULT_POLLING_INTERVAL_MS,
+        defaultPollingMaxAttempts: c.DEFAULT_POLLING_MAX_ATTEMPTS,
+      }))
+  );
 
 export type M2MGatewayConfig = z.infer<typeof M2MGatewayConfig>;
 export const config: M2MGatewayConfig = M2MGatewayConfig.parse(process.env);
