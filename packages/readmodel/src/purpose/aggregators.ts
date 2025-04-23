@@ -305,8 +305,8 @@ export const toPurposeAggregatorArray = (
         ])
       : undefined;
     if (purposeRiskAnalysisFormSQL && purposeRiskAnalysisFormPK) {
-      if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormSQL.id)) {
-        purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormSQL.id);
+      if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormPK)) {
+        purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormPK);
         // eslint-disable-next-line functional/immutable-data
         purposeRiskAnalysisFormsSQL.push(purposeRiskAnalysisFormSQL);
       }
@@ -321,9 +321,9 @@ export const toPurposeAggregatorArray = (
       if (
         purposeRiskAnalysisAnswerSQL &&
         purposeRiskAnalysisAnswerPK &&
-        !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerSQL.id)
+        !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerPK)
       ) {
-        purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerSQL.id);
+        purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerPK);
         // eslint-disable-next-line functional/immutable-data
         purposeRiskAnalysisAnswersSQL.push(purposeRiskAnalysisAnswerSQL);
       }
