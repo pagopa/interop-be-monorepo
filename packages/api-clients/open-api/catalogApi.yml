@@ -692,7 +692,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update the selected published descriptor agreementApprovalPolicy.
+      summary: Update agreement approval policy of published descriptor
       operationId: updateAgreementApprovalPolicy
       parameters:
         - name: eServiceId
