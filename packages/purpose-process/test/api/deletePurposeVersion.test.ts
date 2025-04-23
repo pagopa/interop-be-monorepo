@@ -1,0 +1,96 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateId } from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockPurposeVersion,
+} from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
+import request from "supertest";
+import { api, purposeService } from "../vitest.api.setup.js";
+import {
+  organizationIsNotTheConsumer,
+  purposeNotFound,
+  purposeVersionCannotBeDeleted,
+  purposeVersionNotFound,
+} from "../../src/model/domain/errors.js";
+
+describe("API DELETE /purposes/{purposeId}/versions/{versionId} test", () => {
+  const mockPurposeVersion = getMockPurposeVersion();
+  const mockPurpose = { ...getMockPurpose(), versions: [mockPurposeVersion] };
+
+  beforeEach(() => {
+    purposeService.deletePurposeVersion = vi.fn().mockResolvedValue(undefined);
+  });
+
+  const makeRequest = async (
+    token: string,
+    purposeId: string = mockPurpose.id,
+    versionId: string = mockPurposeVersion.id
+  ) =>
+    request(api)
+      .delete(`/purposes/${purposeId}/versions/${versionId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId());
+
+  it("Should return 204 for user with role Admin", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(204);
+  });
+
+  it.each(
+    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 for purposeNotFound", async () => {
+    purposeService.deletePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(purposeNotFound(mockPurpose.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for purposeVersionNotFound", async () => {
+    purposeService.deletePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(
+        purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for organizationIsNotTheConsumer", async () => {
+    purposeService.deletePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 409 for purposeVersionCannotBeDeleted", async () => {
+    purposeService.deletePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(
+        purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(409);
+  });
+
+  it("Should return 400 if passed an invalid purpose id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
+  });
+});

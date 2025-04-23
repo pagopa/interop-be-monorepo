@@ -4,11 +4,7 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  ReadModelRepository,
-  initDB,
-  initFileManager,
   fromAppContext,
-  initPDFGenerator,
   authRole,
   validateAuthorization,
 } from "pagopa-interop-commons";
@@ -26,8 +22,6 @@ import {
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activatePurposeVersionErrorMapper,
@@ -47,31 +41,11 @@ import {
   updateReversePurposeErrorMapper,
   getPurposesErrorMapper,
 } from "../utilities/errorMappers.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
-
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const fileManager = initFileManager(config);
-const pdfGenerator = await initPDFGenerator();
-
-const purposeService = purposeServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  fileManager,
-  pdfGenerator
-);
+import { PurposeService } from "../services/purposeService.js";
 
 const purposeRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  purposeService: PurposeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeRouter = ctx.router(purposeApi.purposeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
