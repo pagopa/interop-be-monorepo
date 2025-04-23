@@ -1,0 +1,20 @@
+meta {
+  name: Upgrade Agreement
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host-m2m-gw}}/agreements/:agreementId/upgrade
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  x-correlation-id: {{correlation-id}}
+}
