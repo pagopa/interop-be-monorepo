@@ -23,17 +23,16 @@ import {
   authorizationProcessClientBuilder,
 } from "../src/clients/authorizationProcessClient.js";
 import {
-  allowedOriginsUuid,
   correctEventPayload,
   generateInternalTokenMock,
   kafkaMessagePayload,
 } from "./utils.js";
 
 describe("selfcareClientUsersUpdaterProcessor", () => {
-  let authorizationProcessClientMock: AuthorizationProcessClient =
+  const authorizationProcessClientMock: AuthorizationProcessClient =
     authorizationProcessClientBuilder(config.authorizationProcessUrl);
-  let tokenGeneratorMock = new InteropTokenGenerator(config);
-  let refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
+  const tokenGeneratorMock = new InteropTokenGenerator(config);
+  const refreshableTokenMock = new RefreshableInteropToken(tokenGeneratorMock);
   let selfcareClientUsersUpdaterProcessor: ReturnType<
     typeof selfcareClientUsersUpdaterProcessorBuilder
   >;
@@ -43,14 +42,11 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
       selfcareClientUsersUpdaterProcessorBuilder(
         refreshableTokenMock,
         authorizationProcessClientMock,
-        config.interopProductId,
-        allowedOriginsUuid
+        config.interopProduct
       );
   });
 
   let refreshableInternalTokenSpy: MockInstance;
-  // todo manca la spy della chiamata verso auth-process
-
   beforeEach(() => {
     vi.spyOn(tokenGeneratorMock, "generateInternalToken").mockImplementation(
       generateInternalTokenMock
@@ -116,7 +112,11 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
       message: {
         ...kafkaMessagePayload.message,
         value: Buffer.from(
-          JSON.stringify({ ...correctEventPayload, eventType: "CREATE" })
+          JSON.stringify({
+            ...correctEventPayload,
+            productId: config.interopProduct,
+            eventType: "ADD",
+          })
         ),
       },
     };

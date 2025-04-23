@@ -8,7 +8,7 @@ export const allowedOriginsUuid = ["b730fbb7-fffe-4090-a3ea-53ee7e07a4b9"];
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
   institutionId: "b730fbb7-fffe-4090-a3ea-53ee7e07a4b9",
-  productId: "test-interop-product-identifierr",
+  productId: "test-interop-product-identifier",
   onboardingTokenClient: undefined,
   eventType: "UPDATE",
   createdAt: "2023-08-04T09:08:09.723118Z",
