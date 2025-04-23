@@ -23,28 +23,30 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(clientJwkKeyInReadmodelClientJwkKey)
-            .where(
-              and(
-                eq(
-                  clientJwkKeyInReadmodelClientJwkKey.clientId,
-                  clientJWKKey.clientId
-                ),
-                eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
-              )
-            );
+        if (!shouldUpsert) {
+          return;
+        }
 
-          const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
-            clientJWKKey,
-            metadataVersion
+        await tx
+          .delete(clientJwkKeyInReadmodelClientJwkKey)
+          .where(
+            and(
+              eq(
+                clientJwkKeyInReadmodelClientJwkKey.clientId,
+                clientJWKKey.clientId
+              ),
+              eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+            )
           );
 
-          await tx
-            .insert(clientJwkKeyInReadmodelClientJwkKey)
-            .values(clientJWKKeySQL);
-        }
+        const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
+          clientJWKKey,
+          metadataVersion
+        );
+
+        await tx
+          .insert(clientJwkKeyInReadmodelClientJwkKey)
+          .values(clientJWKKeySQL);
       });
     },
     async getClientJWKKeyByClientIdAndKid(
