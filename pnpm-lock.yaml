@@ -4208,7 +4208,7 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
 
-  packages/selfcare-client-users-updater-consumer:
+  packages/selfcare-client-users-updater:
     dependencies:
       dotenv-flow:
         specifier: 4.1.0
