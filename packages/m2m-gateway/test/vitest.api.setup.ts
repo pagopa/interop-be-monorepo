@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
+import "dotenv-flow/config";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
