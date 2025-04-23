@@ -18,7 +18,7 @@ const agreementRouter = (
   ctx: ZodiosContext,
   clients: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { M2M_ROLE } = authRole;
+  const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
   const agreementRouter = ctx.router(m2mGatewayApi.agreementsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
@@ -31,7 +31,7 @@ const agreementRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
-        validateAuthorization(ctx, [M2M_ROLE]);
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
         const agreements = await agreementService.getAgreements(ctx, req.query);
 
         return res.status(200).send(m2mGatewayApi.Agreements.parse(agreements));
