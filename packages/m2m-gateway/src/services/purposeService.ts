@@ -97,7 +97,7 @@ export function purposeServiceBuilder({
       purposeId: PurposeId,
       versionId: PurposeVersionId
     ): Promise<m2mGatewayApi.PurposeVersion> => {
-      logger.info(`Retrieving purpose with id ${purposeId}`);
+      logger.info(`Retrieving version ${versionId} of purpose ${purposeId}`);
 
       const { data } = await purposeProcessClient.getPurpose({
         params: {
