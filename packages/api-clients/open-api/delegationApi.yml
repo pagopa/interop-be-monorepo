@@ -282,6 +282,9 @@ paths:
         - delegation
       operationId: getDelegation
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation retrieved
           content:
@@ -369,6 +372,9 @@ paths:
         description: Payload for delegation creation
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation created.
           content:
@@ -570,6 +576,9 @@ paths:
         description: Payload for delegation creation
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation created.
           content:
@@ -770,6 +779,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
   parameters:
     CorrelationIdHeader:
       in: header
@@ -872,9 +886,6 @@ components:
           format: date-time
         rejectionReason:
           type: string
-        revokedAt:
-          type: string
-          format: date-time
         state:
           $ref: "#/components/schemas/DelegationState"
         kind:
