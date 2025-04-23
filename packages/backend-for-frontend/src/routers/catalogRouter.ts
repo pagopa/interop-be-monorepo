@@ -335,7 +335,7 @@ const catalogRouter = (
             updateAgreementApprovalPolicyErrorMapper,
             ctx.logger,
             ctx.correlationId,
-            `Error updating agreementApprovalPolicy descriptor ${
+            `Error updating agreementApprovalPolicy of descriptor ${
               req.params.descriptorId
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
               req.body
