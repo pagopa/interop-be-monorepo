@@ -140,7 +140,7 @@ export function purposeServiceBuilder({
       purposeId: PurposeId,
       versionSeed: m2mGatewayApi.PurposeVersionSeed
     ): Promise<m2mGatewayApi.PurposeVersion> => {
-      logger.info(`Creating purpose `);
+      logger.info(`Creating purpose version`);
 
       const versionResponse = await purposeProcessClient.createPurposeVersion(
         versionSeed,

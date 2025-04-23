@@ -135,7 +135,7 @@ const purposeRouter = (
         );
 
         return res
-          .status(200)
+          .status(201)
           .send(m2mGatewayApi.PurposeVersion.parse(version));
       } catch (error) {
         const errorRes = makeApiProblem(
