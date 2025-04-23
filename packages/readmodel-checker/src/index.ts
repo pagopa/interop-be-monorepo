@@ -1,22 +1,11 @@
-import { z } from "zod";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import {
-  logger,
-  ReadModelDbConfig,
-  ReadModelRepository,
-  ReadModelSQLDbConfig,
-} from "pagopa-interop-commons";
+import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { compare } from "./utils.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-
-const Config = ReadModelDbConfig.and(ReadModelSQLDbConfig);
-
-type Config = z.infer<typeof Config>;
-
-const config: Config = Config.parse(process.env);
+import { config } from "./configs/config.js";
 
 const readModelRepository = ReadModelRepository.init(config);
 
