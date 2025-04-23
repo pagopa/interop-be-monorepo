@@ -125,7 +125,6 @@ describe("Agreeement states flows", () => {
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
-    // await writeInReadmodel(toReadModelAgreement(createdAgreement), agreements);
     await writeOnlyOneAgreement(createdAgreement);
 
     /* =================================
@@ -183,22 +182,6 @@ describe("Agreeement states flows", () => {
       ],
     };
     await updateOneEService(updatedEservice);
-    /*
-    await eservices.updateOne(
-      {
-        "data.id": updatedEservice.id,
-        "metadata.version": 0,
-      },
-      {
-        $set: {
-          data: toReadModelEService(updatedEservice),
-          metadata: {
-            version: 1,
-          },
-        },
-      }
-    );
-    */
 
     /* =================================
       5) Consumer upgrades the Agreement
@@ -212,7 +195,6 @@ describe("Agreeement states flows", () => {
     expect(upgradedAgreement.suspendedByConsumer).toEqual(true);
     expect(upgradedAgreement.suspendedByProducer).toEqual(undefined);
     expect(upgradedAgreement.suspendedByPlatform).toEqual(undefined);
-    // await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
     await writeOnlyOneAgreement(upgradedAgreement);
 
     /* =================================
@@ -365,7 +347,7 @@ describe("Agreeement states flows", () => {
     );
 
     expect(createdAgreement.state).toEqual(agreementState.draft);
-    // await writeInReadmodel(toReadModelAgreement(createdAgreement), agreements);
+
     await writeOnlyOneAgreement(createdAgreement);
 
     /* =================================
@@ -423,7 +405,6 @@ describe("Agreeement states flows", () => {
     expect(upgradedAgreement.suspendedByConsumer).toEqual(undefined);
     expect(upgradedAgreement.suspendedByProducer).toEqual(undefined);
     expect(upgradedAgreement.suspendedByPlatform).toEqual(undefined);
-    // await writeInReadmodel(toReadModelAgreement(upgradedAgreement), agreements);
     await writeOnlyOneAgreement(upgradedAgreement);
 
     /* =================================
