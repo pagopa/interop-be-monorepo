@@ -224,7 +224,6 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .where(filter)
         .leftJoin(
-          // 1
           eserviceTemplateVersionInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
@@ -232,7 +231,6 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateVersionInReadmodelEserviceTemplate.id,
@@ -240,7 +238,6 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateVersionInReadmodelEserviceTemplate.id,
@@ -248,7 +245,6 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateVersionInReadmodelEserviceTemplate.id,
@@ -256,7 +252,6 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 5
           eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
@@ -264,7 +259,6 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 6
           eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
