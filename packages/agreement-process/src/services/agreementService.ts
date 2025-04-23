@@ -483,7 +483,11 @@ export function agreementServiceBuilder(
     async submitAgreement(
       agreementId: AgreementId,
       payload: agreementApi.AgreementSubmissionPayload,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Agreement> {
       logger.info(`Submitting agreement ${agreementId}`);
 
