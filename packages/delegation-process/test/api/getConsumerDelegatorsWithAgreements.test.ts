@@ -5,8 +5,8 @@ import { generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { delegationService } from "../integrationUtils.js";
-import { api } from "../vitest.api.setup.js";
+
+import { api, delegationService } from "../vitest.api.setup.js";
 
 describe("API GET /consumer/delegatorsWithAgreements test", () => {
   const mockDelegator1 = { ...getMockTenant(), name: "Comune di Burione" };
@@ -22,11 +22,6 @@ describe("API GET /consumer/delegatorsWithAgreements test", () => {
     results: delegationApi.CompactTenants.parse(mockDelegators),
     totalCount: mockDelegators.totalCount,
   });
-
-  vi.spyOn(
-    delegationService,
-    "getConsumerDelegatorsWithAgreements"
-  ).mockResolvedValue(mockDelegators);
 
   delegationService.getConsumerDelegatorsWithAgreements = vi
     .fn()

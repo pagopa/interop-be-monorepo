@@ -2,19 +2,20 @@ import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
-  DB,
   ExpressContext,
-  FileManager,
-  PDFGenerator,
+  ReadModelRepository,
   ZodiosContext,
   authRole,
   fromAppContext,
+  initDB,
+  initFileManager,
+  initPDFGenerator,
   setMetadataVersionHeader,
   validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
-import { ReadModelService } from "../services/readModelService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   apiDelegationKindToDelegationKind,
   apiDelegationStateToDelegationState,
@@ -35,7 +36,33 @@ import {
   getConsumerEservicesErrorMapper,
   getConsumerDelegatorsWithAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
-import { delegationServiceBuilder } from "../services/delegationService.js";
+import {
+  DelegationService,
+  delegationServiceBuilder,
+} from "../services/delegationService.js";
+import { config } from "../config/config.js";
+
+const readModelRepository = ReadModelRepository.init(config);
+const readModelService = readModelServiceBuilder(readModelRepository);
+
+const pdfGenerator = await initPDFGenerator();
+const fileManager = initFileManager(config);
+const eventStore = initDB({
+  username: config.eventStoreDbUsername,
+  password: config.eventStoreDbPassword,
+  host: config.eventStoreDbHost,
+  port: config.eventStoreDbPort,
+  database: config.eventStoreDbName,
+  schema: config.eventStoreDbSchema,
+  useSSL: config.eventStoreDbUseSSL,
+});
+
+const defaultDelegationService = delegationServiceBuilder(
+  readModelService,
+  eventStore,
+  pdfGenerator,
+  fileManager
+);
 
 const {
   ADMIN_ROLE,
@@ -48,21 +75,11 @@ const {
 
 const delegationRouter = (
   ctx: ZodiosContext,
-  readModelService: ReadModelService,
-  eventStore: DB,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager
+  delegationService: DelegationService = defaultDelegationService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const delegationService = delegationServiceBuilder(
-    readModelService,
-    eventStore,
-    pdfGenerator,
-    fileManager
-  );
 
   delegationRouter
     .get("/delegations", async (req, res) => {

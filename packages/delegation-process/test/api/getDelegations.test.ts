@@ -6,8 +6,8 @@ import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.js";
-import { delegationService } from "../integrationUtils.js";
-import { api } from "../vitest.api.setup.js";
+
+import { api, delegationService } from "../vitest.api.setup.js";
 
 describe("API GET /delegations test", () => {
   const mockDelegation1: Delegation = getMockDelegation({

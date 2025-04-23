@@ -47,6 +47,9 @@ import {
   readAuthDataFromJwtToken,
   decodeJwtToken,
 } from "pagopa-interop-commons";
-import app from "../src/app.js";
+import { createApp } from "../src/app.js";
+import { DelegationService } from "../src/services/delegationService.js";
 
-export const api = app;
+export const delegationService = {} as DelegationService;
+
+export const api = await createApp(delegationService);

@@ -4,8 +4,7 @@ import { Delegation, delegationKind, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { delegationService } from "../integrationUtils.js";
-import { api } from "../vitest.api.setup.js";
+import { api, delegationService } from "../vitest.api.setup.js";
 import {
   delegationNotFound,
   incorrectState,

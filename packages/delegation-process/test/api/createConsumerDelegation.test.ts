@@ -15,8 +15,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { delegationService } from "../integrationUtils.js";
-import { api } from "../vitest.api.setup.js";
+import { api, delegationService } from "../vitest.api.setup.js";
 import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.js";
 import { delegationAlreadyExists } from "../../src/model/domain/errors.js";
 
