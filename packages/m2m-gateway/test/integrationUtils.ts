@@ -1,15 +1,17 @@
-import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
-import { delegationServiceBuilder } from "../src/services/delegationService.js";
+/* eslint-disable @typescript-eslint/ban-types */
 import { AxiosError, AxiosResponse } from "axios";
 import { expect } from "vitest";
+import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function mockPollingResponse<T>(
   mockResponse: WithMaybeMetadata<T>,
   respondeAfterNCalls = 1
 ) {
   let callCount = 1;
-  return async () => {
+  return async (): Promise<WithMaybeMetadata<T>> => {
     if (callCount < respondeAfterNCalls) {
       callCount++;
       const notFound: AxiosError = new AxiosError(
@@ -31,11 +33,11 @@ export function expectApiClientGetToHaveBeenCalledWith({
   token,
 }: {
   mockGet: Function;
-  params: Object;
+  params: Record<string, unknown>;
   token: string;
-}) {
+}): void {
   expect(mockGet).toHaveBeenCalledWith({
-    params: params,
+    params,
     headers: {
       Authorization: `Bearer ${token}`,
       "X-Correlation-Id": expect.any(String),
@@ -50,9 +52,9 @@ export function expectApiClientPostToHaveBeenCalledWith({
   token,
 }: {
   mockPost: Function;
-  body: Object;
+  body: Record<string, unknown>;
   token: string;
-}) {
+}): void {
   expect(mockPost).toHaveBeenCalledWith(body, {
     headers: {
       Authorization: `Bearer ${token}`,
