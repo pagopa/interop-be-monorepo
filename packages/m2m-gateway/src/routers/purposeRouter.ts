@@ -122,7 +122,7 @@ const purposeRouter = (
 
         const purpose = await purposeService.createPurpose(ctx, req.body);
 
-        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
+        return res.status(201).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
