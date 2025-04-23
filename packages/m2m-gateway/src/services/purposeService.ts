@@ -113,6 +113,28 @@ export function purposeServiceBuilder({
 
       return toM2MPurpose(polledResource.data);
     },
+    getPurposeVersions: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      purposeId: PurposeId,
+      queryParams: m2mGatewayApi.GetPurposeVersionsQueryParams
+    ): Promise<m2mGatewayApi.PurposeVersions> => {
+      logger.info(`Retrieving versions for purpose ${purposeId}`);
+
+      const { state } = queryParams;
+
+      const { data } = await purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const versions = state
+        ? data.versions.filter((version) => version.state === state)
+        : data.versions;
+
+      return { results: versions.map(toM2MPurposeVersion) };
+    },
     getPurposeVersion: async (
       { logger, headers }: WithLogger<M2MGatewayAppContext>,
       purposeId: PurposeId,
