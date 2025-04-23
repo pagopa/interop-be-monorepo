@@ -463,7 +463,7 @@ export function tenantServiceBuilder(
         authData,
         logger,
         correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
