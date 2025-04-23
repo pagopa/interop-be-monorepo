@@ -14,6 +14,7 @@ import { privacyNoticeServiceBuilder } from "../services/privacyNoticeService.js
 import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";
 import { privacyNoticeStorageServiceBuilder } from "../services/privacyNoticeStorage.js";
 import { config } from "../config/config.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const privacyNoticeRouter = (
   ctx: ZodiosContext
@@ -40,7 +41,7 @@ const privacyNoticeRouter = (
 
   privacyNoticeRouter
     .get("/user/consent/:consentType", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const { consentType } = req.params;
@@ -64,7 +65,7 @@ const privacyNoticeRouter = (
     })
 
     .post("/user/consent/:consentType", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
         const { consentType } = req.params;

@@ -2,16 +2,16 @@
 import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
   getMockProducerKeychain,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
-  generateId,
   ProducerKeychain,
   ProducerKeychainDeletedV2,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   organizationNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
@@ -32,12 +32,12 @@ describe("delete producer keychain", () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    await authorizationService.deleteProducerKeychain({
-      producerKeychainId: mockProducerKeychain.id,
-      organizationId: mockProducer.id,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await authorizationService.deleteProducerKeychain(
+      {
+        producerKeychainId: mockProducerKeychain.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockProducer.id) })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(
       mockProducerKeychain.id
@@ -67,12 +67,12 @@ describe("delete producer keychain", () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.deleteProducerKeychain({
-        producerKeychainId: notExistingProducerKeychain.id,
-        organizationId: getMockTenant().id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.deleteProducerKeychain(
+        {
+          producerKeychainId: notExistingProducerKeychain.id,
+        },
+        getMockContext({})
+      )
     ).rejects.toThrowError(
       producerKeychainNotFound(notExistingProducerKeychain.id)
     );
@@ -88,12 +88,12 @@ describe("delete producer keychain", () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.deleteProducerKeychain({
-        producerKeychainId: mockProducerKeychain.id,
-        organizationId: mockProducer2.id,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.deleteProducerKeychain(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer2.id) })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
         mockProducer2.id,

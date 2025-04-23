@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
 import {
-  generateId,
   Tenant,
   protobufDecoder,
   toTenantV2,
@@ -9,10 +8,13 @@ import {
   TenantMailAddedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   mailAlreadyExists,
   notValidMailAddress,
@@ -43,10 +45,10 @@ describe("addTenantMail", async () => {
       {
         tenantId: mockTenant.id,
         mailSeed,
-        organizationId: mockTenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(mockTenant.id),
+      })
     );
     const writtenEvent = await readLastEventByStreamId(
       mockTenant.id,
@@ -89,10 +91,10 @@ describe("addTenantMail", async () => {
       {
         tenantId: mockTenant.id,
         mailSeed: mailSeedWithStrangeCharacters,
-        organizationId: mockTenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(mockTenant.id),
+      })
     );
     const writtenEvent = await readLastEventByStreamId(
       mockTenant.id,
@@ -131,10 +133,10 @@ describe("addTenantMail", async () => {
         {
           tenantId: mockTenant.id,
           mailSeed,
-          organizationId: mockTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(mockTenant.id),
+        })
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
@@ -145,10 +147,8 @@ describe("addTenantMail", async () => {
         {
           tenantId: mockTenant.id,
           mailSeed,
-          organizationId: generateId(),
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -173,10 +173,10 @@ describe("addTenantMail", async () => {
         {
           tenantId: tenant.id,
           mailSeed,
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
       )
     ).rejects.toThrowError(mailAlreadyExists());
   });
@@ -193,10 +193,10 @@ describe("addTenantMail", async () => {
         {
           tenantId: mockTenant.id,
           mailSeed: mailSeedWithStrangeCharacters,
-          organizationId: mockTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(mockTenant.id),
+        })
       )
     ).rejects.toThrowError(
       notValidMailAddress(mailSeedWithStrangeCharacters.address)
