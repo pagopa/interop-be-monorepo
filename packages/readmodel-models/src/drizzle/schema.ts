@@ -360,6 +360,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     isSignalHubEnabled: boolean("is_signal_hub_enabled"),
     isConsumerDelegable: boolean("is_consumer_delegable"),
     isClientAccessDelegable: boolean("is_client_access_delegable"),
+    templateId: uuid("template_id"),
   },
   (table) => [
     unique("eservice_id_metadata_version_unique").on(
@@ -1111,35 +1112,6 @@ export const agreementAttributeInReadmodelAgreement = readmodelAgreement.table(
     primaryKey({
       columns: [table.agreementId, table.attributeId],
       name: "agreement_attribute_pkey",
-    }),
-  ]
-);
-
-export const eserviceTemplateRefInReadmodelCatalog = readmodelCatalog.table(
-  "eservice_template_ref",
-  {
-    eserviceTemplateId: uuid("eservice_template_id").notNull(),
-    eserviceId: uuid("eservice_id").notNull(),
-    metadataVersion: integer("metadata_version").notNull(),
-    instanceLabel: varchar("instance_label"),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.eserviceId],
-      foreignColumns: [eserviceInReadmodelCatalog.id],
-      name: "eservice_template_ref_eservice_id_fkey",
-    }).onDelete("cascade"),
-    foreignKey({
-      columns: [table.eserviceId, table.metadataVersion],
-      foreignColumns: [
-        eserviceInReadmodelCatalog.id,
-        eserviceInReadmodelCatalog.metadataVersion,
-      ],
-      name: "eservice_template_ref_eservice_id_metadata_version_fkey",
-    }),
-    primaryKey({
-      columns: [table.eserviceTemplateId, table.eserviceId],
-      name: "eservice_template_ref_pkey",
     }),
   ]
 );
