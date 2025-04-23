@@ -13,7 +13,7 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API /maintenance/tenants/{tenantId}/certifier authorization test", () => {
+describe("API POST /maintenance/tenants/{tenantId}/certifier test", () => {
   const tenant: Tenant = getMockTenant();
   const certifierId = generateId();
 

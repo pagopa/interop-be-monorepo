@@ -9,7 +9,7 @@ import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import { tenantNotFoundByExternalId } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/origin/{origin}/code/{code} authorization test", () => {
+describe("API GET /tenants/origin/{origin}/code/{code} test", () => {
   const tenant: Tenant = getMockTenant();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));

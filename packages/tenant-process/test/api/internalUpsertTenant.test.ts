@@ -13,7 +13,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 
-describe("API /internal/tenants authorization test", () => {
+describe("API POST /internal/tenants test", () => {
   const tenantSeed: tenantApi.InternalTenantSeed = {
     externalId: {
       origin: "IPA",

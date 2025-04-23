@@ -15,7 +15,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 
-describe("API /m2m/tenants authorization test", () => {
+describe("API POST /m2m/tenants test", () => {
   const tenant: Tenant = getMockTenant();
   const tenantSeed: tenantApi.M2MTenantSeed = {
     externalId: {

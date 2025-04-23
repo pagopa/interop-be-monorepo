@@ -24,7 +24,7 @@ import {
   tenantNotFoundByExternalId,
 } from "../../src/model/domain/errors.js";
 
-describe("API /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} authorization test", () => {
+describe("API DELETE /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} test", () => {
   const certifierId = generateId();
   const mockAttribute = {
     ...getMockAttribute(),

@@ -11,7 +11,7 @@ import { authRole } from "pagopa-interop-commons";
 import { api, tenantService } from "../vitest.api.setup.js";
 import { mailNotFound, tenantNotFound } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/{tenantId}/mails/{mailId} authorization test", () => {
+describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
   const tenantId = generateId<TenantId>();
   const mailId = generateId();
 

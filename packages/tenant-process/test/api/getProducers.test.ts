@@ -8,7 +8,7 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 
-describe("API /producers authorization test", () => {
+describe("API GET /producers test", () => {
   const tenant1: Tenant = {
     ...getMockTenant(),
     name: "Tenant 1",

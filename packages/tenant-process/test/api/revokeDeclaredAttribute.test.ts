@@ -12,7 +12,7 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/attributes/declared/{attributeId} authorization test", () => {
+describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
   const tenant: Tenant = getMockTenant();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));

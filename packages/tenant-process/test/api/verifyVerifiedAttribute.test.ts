@@ -17,7 +17,7 @@ import {
   verifiedAttributeSelfVerificationNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/{tenantId}/attributes/verified authorization test", () => {
+describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
   const tenant: Tenant = getMockTenant();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));

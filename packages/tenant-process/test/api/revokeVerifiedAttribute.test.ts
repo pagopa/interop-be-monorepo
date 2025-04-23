@@ -18,7 +18,7 @@ import {
   verifiedAttributeSelfRevocationNotAllowed,
 } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/{tenantId}/attributes/verified/{attributeId} authorization test", () => {
+describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test", () => {
   const tenant: Tenant = getMockTenant();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));

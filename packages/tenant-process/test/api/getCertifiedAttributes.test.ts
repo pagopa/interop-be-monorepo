@@ -21,7 +21,7 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/attributes/certified authorization test", () => {
+describe("API GET /tenants/attributes/certified test", () => {
   const certifierId = generateId();
   const tenant = getMockTenant();
 

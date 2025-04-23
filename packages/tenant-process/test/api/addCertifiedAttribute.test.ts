@@ -15,7 +15,7 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/{tenantId}/attributes/certified authorization test", () => {
+describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
   const tenantAttributeSeed: tenantApi.CertifiedTenantAttributeSeed = {
     id: generateId(),
   };

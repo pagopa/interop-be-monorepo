@@ -19,7 +19,7 @@ import {
   verifiedAttributeNotFoundInTenant,
 } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/{tenantId}/attributes/verified/{attributeId} authorization test", () => {
+describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId} test", () => {
   const expirationDate = new Date(
     currentDate.setDate(currentDate.getDate() + 1)
   );

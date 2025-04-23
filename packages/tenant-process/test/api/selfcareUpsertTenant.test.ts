@@ -8,7 +8,7 @@ import { tenantApi } from "pagopa-interop-api-clients";
 import { api, tenantService } from "../vitest.api.setup.js";
 import { selfcareIdConflict } from "../../src/model/domain/errors.js";
 
-describe("API /selfcare/tenants authorization test", () => {
+describe("API POST /selfcare/tenants test", () => {
   const tenant = {
     ...getMockTenant(),
     onboardedAt: new Date(),

@@ -14,7 +14,7 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/attributes/declared authorization test", () => {
+describe("API POST /tenants/attributes/declared test", () => {
   const tenant: Tenant = getMockTenant();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));

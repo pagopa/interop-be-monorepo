@@ -11,7 +11,7 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/{tenantId}/mails authorization test", () => {
+describe("API POST /tenants/{tenantId}/mails test", () => {
   const tenant: Tenant = getMockTenant();
   const mailSeed: tenantApi.MailSeed = {
     kind: "CONTACT_EMAIL",

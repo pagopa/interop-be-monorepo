@@ -20,7 +20,7 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId} authorization test", () => {
+describe("API POST /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId} test", () => {
   const attribute: Attribute = {
     ...getMockAttribute(),
     origin: "ORIGIN",

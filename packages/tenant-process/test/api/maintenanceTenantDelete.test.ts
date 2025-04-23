@@ -7,7 +7,7 @@ import { authRole } from "pagopa-interop-commons";
 import { api, tenantService } from "../vitest.api.setup.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 
-describe("API /maintenance/tenants/{tenantId} authorization test", () => {
+describe("API DELETE /maintenance/tenants/{tenantId} test", () => {
   const tenant: Tenant = getMockTenant();
 
   tenantService.maintenanceTenantDelete = vi.fn().mockResolvedValue(undefined);

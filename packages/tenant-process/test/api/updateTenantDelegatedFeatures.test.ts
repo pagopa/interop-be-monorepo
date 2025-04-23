@@ -7,7 +7,7 @@ import { authRole } from "pagopa-interop-commons";
 import { api, tenantService } from "../vitest.api.setup.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 
-describe("API /tenants/delegatedFeatures/update authorization test", () => {
+describe("API POST /tenants/delegatedFeatures/update test", () => {
   const tenantFeatures = {
     isDelegatedConsumerFeatureEnabled: true,
     isDelegatedProducerFeatureEnabled: false,
