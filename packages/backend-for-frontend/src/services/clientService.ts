@@ -149,14 +149,14 @@ export function clientServiceBuilder(
       );
     },
 
-    async addAdminToClient(
+    async setAdminToClient(
       adminId: string,
       clientId: string,
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Client> {
       ctx.logger.info(`Add admin ${adminId} to client ${clientId}`);
 
-      const client = await authorizationClient.client.addAdminToClient(
+      const client = await authorizationClient.client.setAdminToClient(
         { adminId },
         {
           params: { clientId },
@@ -381,7 +381,6 @@ async function enhanceClient(
   return {
     id: client.id,
     name: client.name,
-    adminId: client.adminId,
     description: client.description,
     kind: client.kind,
     createdAt: client.createdAt,

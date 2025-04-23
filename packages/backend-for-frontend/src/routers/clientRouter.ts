@@ -186,7 +186,7 @@ const clientRouter = (
     .post("/clients/:clientId/admin", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        const client = await clientService.addAdminToClient(
+        const client = await clientService.setAdminToClient(
           req.body.adminId,
           req.params.clientId,
           ctx
