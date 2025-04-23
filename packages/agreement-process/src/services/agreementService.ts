@@ -6,6 +6,7 @@ import {
   FileManager,
   InternalAuthData,
   Logger,
+  M2MAdminAuthData,
   M2MAuthData,
   PDFGenerator,
   UIAuthData,
@@ -234,7 +235,10 @@ export function agreementServiceBuilder(
       filters: AgreementQueryFilters,
       limit: number,
       offset: number,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Agreement>> {
       logger.info(
         `Getting agreements with filters: ${JSON.stringify(
@@ -252,7 +256,10 @@ export function agreementServiceBuilder(
     },
     async getAgreementById(
       agreementId: AgreementId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
@@ -274,7 +281,11 @@ export function agreementServiceBuilder(
         descriptorId: DescriptorId;
         delegationId?: DelegationId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Agreement> {
       logger.info(
         `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
@@ -1044,7 +1055,11 @@ export function agreementServiceBuilder(
     async rejectAgreement(
       agreementId: AgreementId,
       rejectionReason: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Agreement> {
       logger.info(`Rejecting agreement ${agreementId}`);
 
@@ -1118,7 +1133,11 @@ export function agreementServiceBuilder(
     },
     async activateAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
 
@@ -1468,7 +1487,7 @@ export async function createAndCopyDocumentsForClonedAgreement(
 
 export function createAgreementArchivedByUpgradeEvent(
   agreement: WithMetadata<Agreement>,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeDelegations: ActiveDelegations,
   correlationId: CorrelationId
 ): CreateEvent<AgreementEvent> {
@@ -1550,7 +1569,7 @@ async function addContractOnFirstActivation(
 async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<Tenant> {
   const delegations =
