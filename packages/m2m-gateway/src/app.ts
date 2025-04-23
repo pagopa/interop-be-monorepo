@@ -12,7 +12,7 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { config } from "./config/config.js";
-import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
+import { getInteropBeClients } from "./clients/clientsProvider.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
@@ -26,16 +26,15 @@ import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 import clientRouter from "./routers/clientRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
 
-const serviceName = modelsServiceName.M2M_GATEWAY;
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp({
-  clients,
   delegationServiceBuilderFunction,
 }: {
-  clients: PagoPAInteropBeClients;
   delegationServiceBuilderFunction?: DelegationServiceBuilder;
-}) {
+} = {}) {
+  const serviceName = modelsServiceName.M2M_GATEWAY;
+  const clients = getInteropBeClients();
+
   const app = zodiosCtx.app();
 
   const redisRateLimiter = await initRedisRateLimiter({

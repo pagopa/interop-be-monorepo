@@ -63,12 +63,10 @@ import {
   AppContext,
 } from "pagopa-interop-commons";
 import { createApp } from "../src/app.js";
-import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { DelegationServiceBuilder } from "../src/routers/delegationRouter.js";
 
 export const mockDelegationService = {} as ReturnType<DelegationServiceBuilder>;
 
 export const api = await createApp({
-  clients: {} as PagoPAInteropBeClients,
   delegationServiceBuilderFunction: () => mockDelegationService,
 });
