@@ -19,8 +19,8 @@ export const UsersEventPayload = z.object({
   institutionId: z.string().trim().min(1), // Selfcare ID
   productId: z.string().trim().min(1),
   onboardingTokenId: z.string().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
   eventType: EventType,
   user: UserEvent,
 });
