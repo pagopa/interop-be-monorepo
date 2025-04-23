@@ -751,7 +751,7 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
 export const purposeRiskAnalysisFormInReadmodelPurpose = readmodelPurpose.table(
   "purpose_risk_analysis_form",
   {
-    id: uuid().primaryKey().notNull(),
+    id: uuid().notNull(),
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     version: varchar().notNull(),
@@ -771,6 +771,10 @@ export const purposeRiskAnalysisFormInReadmodelPurpose = readmodelPurpose.table(
       ],
       name: "purpose_risk_analysis_form_purpose_id_metadata_version_fkey",
     }),
+    primaryKey({
+      columns: [table.id, table.purposeId],
+      name: "purpose_risk_analysis_form_pkey",
+    }),
   ]
 );
 
@@ -778,7 +782,7 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
   readmodelPurpose.table(
     "purpose_risk_analysis_answer",
     {
-      id: uuid().primaryKey().notNull(),
+      id: uuid().notNull(),
       purposeId: uuid("purpose_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
@@ -793,9 +797,12 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
         name: "purpose_risk_analysis_answer_purpose_id_fkey",
       }).onDelete("cascade"),
       foreignKey({
-        columns: [table.riskAnalysisFormId],
-        foreignColumns: [purposeRiskAnalysisFormInReadmodelPurpose.id],
-        name: "purpose_risk_analysis_answer_risk_analysis_form_id_fkey",
+        columns: [table.purposeId, table.riskAnalysisFormId],
+        foreignColumns: [
+          purposeRiskAnalysisFormInReadmodelPurpose.id,
+          purposeRiskAnalysisFormInReadmodelPurpose.purposeId,
+        ],
+        name: "purpose_risk_analysis_answer_risk_analysis_form_id_purpose_fkey",
       }).onDelete("cascade"),
       foreignKey({
         columns: [table.purposeId, table.metadataVersion],
@@ -804,6 +811,10 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
           purposeInReadmodelPurpose.metadataVersion,
         ],
         name: "purpose_risk_analysis_answer_purpose_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.id, table.purposeId],
+        name: "purpose_risk_analysis_answer_pkey",
       }),
     ]
   );

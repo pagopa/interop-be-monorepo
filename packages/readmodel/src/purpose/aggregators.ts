@@ -27,6 +27,7 @@ import {
   PurposeItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregatePurposeArray = ({
   purposesSQL,
@@ -297,8 +298,13 @@ export const toPurposeAggregatorArray = (
     }
 
     const purposeRiskAnalysisFormSQL = row.purposeRiskAnalysisForm;
-
-    if (purposeRiskAnalysisFormSQL) {
+    const purposeRiskAnalysisFormPK = purposeRiskAnalysisFormSQL
+      ? makeUniqueKey([
+          purposeRiskAnalysisFormSQL.id,
+          purposeRiskAnalysisFormSQL.purposeId,
+        ])
+      : undefined;
+    if (purposeRiskAnalysisFormSQL && purposeRiskAnalysisFormPK) {
       if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormSQL.id)) {
         purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormSQL.id);
         // eslint-disable-next-line functional/immutable-data
@@ -306,8 +312,15 @@ export const toPurposeAggregatorArray = (
       }
 
       const purposeRiskAnalysisAnswerSQL = row.purposeRiskAnalysisAnswer;
+      const purposeRiskAnalysisAnswerPK = purposeRiskAnalysisAnswerSQL
+        ? makeUniqueKey([
+            purposeRiskAnalysisAnswerSQL.id,
+            purposeRiskAnalysisAnswerSQL.purposeId,
+          ])
+        : undefined;
       if (
         purposeRiskAnalysisAnswerSQL &&
+        purposeRiskAnalysisAnswerPK &&
         !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerSQL.id)
       ) {
         purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerSQL.id);
