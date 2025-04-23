@@ -75,7 +75,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
-import { activeDescriptorStates } from "./validators.js";
+import { validDescriptorStates } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -199,7 +199,7 @@ export function readModelServiceBuilderSQL(
               userRole.SUPPORT_ROLE,
             ])
               ? or(
-                  // exist active descriptors for that eservice
+                  // exist valid descriptors for that eservice
                   exists(
                     readmodelDB
                       .select()
@@ -212,7 +212,7 @@ export function readModelServiceBuilderSQL(
                           ),
                           inArray(
                             eserviceDescriptorInReadmodelCatalog.state,
-                            activeDescriptorStates
+                            validDescriptorStates
                           )
                         )
                       )
@@ -249,7 +249,7 @@ export function readModelServiceBuilderSQL(
                       )
                   )
                 )
-              : // exist active descriptors for that eservice
+              : // exist valid descriptors for that eservice
                 exists(
                   readmodelDB
                     .select()
@@ -262,7 +262,7 @@ export function readModelServiceBuilderSQL(
                         ),
                         inArray(
                           eserviceDescriptorInReadmodelCatalog.state,
-                          activeDescriptorStates
+                          validDescriptorStates
                         )
                       )
                     )
@@ -325,7 +325,6 @@ export function readModelServiceBuilderSQL(
         .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`)
         .as("subquery");
 
-      // manually retrieve eservices matching those ids but do manual pagination (example: query the first 10. etc...)
       const queryResult = await readmodelDB
         .select({
           eservice: eserviceInReadmodelCatalog,

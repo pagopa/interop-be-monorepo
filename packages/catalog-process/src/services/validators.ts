@@ -63,8 +63,7 @@ export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.waitingForApproval,
 ];
 
-// TODO avoid using "active" which might seem a specific state
-export const activeDescriptorStates: DescriptorState[] = [
+export const validDescriptorStates: DescriptorState[] = [
   descriptorState.published,
   descriptorState.suspended,
   descriptorState.deprecated,
