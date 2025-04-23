@@ -1,5 +1,5 @@
-import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import crypto from "crypto";
+import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import {
   ClientAssertionDigest,
   ClientId,
