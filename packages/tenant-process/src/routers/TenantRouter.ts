@@ -781,7 +781,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
           const { tenantId, attributeId } = req.params;
           const tenant = await tenantService.revokeCertifiedAttributeById(
