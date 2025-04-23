@@ -318,7 +318,7 @@ const catalogRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy",
+      "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {

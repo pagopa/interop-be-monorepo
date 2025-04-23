@@ -684,7 +684,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy:
+  /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
