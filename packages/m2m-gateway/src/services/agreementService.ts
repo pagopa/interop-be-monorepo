@@ -9,7 +9,10 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResource,
 } from "../utils/polling.js";
-import { assertAgreementIsPending } from "../utils/validators/agreementValidators.js";
+import {
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
+} from "../utils/validators/agreementValidators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder({
@@ -170,6 +173,27 @@ export function agreementServiceBuilder({
         }
       );
 
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MAgreement(polledResource.data);
+    },
+    unsuspendAgreement: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      agreementId: AgreementId
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Unsuspending agreement with id ${agreementId}`);
+
+      const agreement = await retrieveAgreementById(headers, agreementId);
+
+      assertAgreementIsSuspended(agreement.data);
+
+      const response = await agreementProcessClient.activateAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
       const polledResource = await pollAgreement(response, headers);
 
       return toM2MAgreement(polledResource.data);
