@@ -66,6 +66,7 @@ import {
   internalRemoveClientAdminErrorMapper,
   removeClientAdminErrorMapper,
 } from "../utilities/errorMappers.js";
+import { assertAdminClientFeatureEnabled } from "../services/featureFlags.middleware.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -367,31 +368,39 @@ const authorizationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/clients/:clientId/admin", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    .post(
+      "/clients/:clientId/admin",
+      assertAdminClientFeatureEnabled,
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
 
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const client = await authorizationService.setAdminToClient(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-            adminId: unsafeBrandId(req.body.adminId),
-          },
-          ctx
-        );
-        return res
-          .status(200)
-          .send(
-            authorizationApi.Client.parse(
-              clientToApiClient(client, { showUsers: false })
-            )
+          const client = await authorizationService.setAdminToClient(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              adminId: unsafeBrandId(req.body.adminId),
+            },
+            ctx
           );
-      } catch (error) {
-        const errorRes = makeApiProblem(error, addClientAdminErrorMapper, ctx);
-        return res.status(errorRes.status).send(errorRes);
+          return res
+            .status(200)
+            .send(
+              authorizationApi.Client.parse(
+                clientToApiClient(client, { showUsers: false })
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addClientAdminErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    })
+    )
     .post("/clients/:clientId/keys", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
