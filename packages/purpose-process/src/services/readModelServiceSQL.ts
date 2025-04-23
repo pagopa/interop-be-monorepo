@@ -337,8 +337,6 @@ export function readModelServiceBuilderSQL({
           and(...getPurposesFilters(readModelDB, filters))
         )
       ).map((d) => d.data);
-
-      // TODO: safeParse?
     },
     async getActiveProducerDelegationByEserviceId(
       eserviceId: EServiceId
