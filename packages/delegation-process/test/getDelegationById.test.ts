@@ -1,12 +1,11 @@
 /* eslint-disable functional/no-let */
-import { getMockDelegation } from "pagopa-interop-commons-test";
+import { getMockContext, getMockDelegation } from "pagopa-interop-commons-test";
 import {
   DelegationId,
   delegationKind,
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import { delegationNotFound } from "../src/model/domain/errors.js";
 import { addOneDelegation, delegationService } from "./utils.js";
 
@@ -17,12 +16,17 @@ describe("get delegation by id", () => {
       const delegation = getMockDelegation({ kind });
       await addOneDelegation(delegation);
 
-      const expectedDelegation = await delegationService.getDelegationById(
+      const response = await delegationService.getDelegationById(
         delegation.id,
-        genericLogger
+        getMockContext({})
       );
 
-      expect(delegation).toEqual(expectedDelegation);
+      expect(response).toEqual({
+        data: delegation,
+        metadata: {
+          version: 0,
+        },
+      });
     }
   );
 
@@ -33,14 +37,12 @@ describe("get delegation by id", () => {
       await addOneDelegation(delegation);
 
       const notFoundId = generateId<DelegationId>();
-      const expectedDelegation = delegationService.getDelegationById(
+      const response = delegationService.getDelegationById(
         notFoundId,
-        genericLogger
+        getMockContext({})
       );
 
-      await expect(expectedDelegation).rejects.toThrow(
-        delegationNotFound(notFoundId)
-      );
+      await expect(response).rejects.toThrow(delegationNotFound(notFoundId));
     }
   );
 });

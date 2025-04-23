@@ -12,7 +12,6 @@ import {
   writeInEventstore,
   writeInReadmodel,
   readLastEventByStreamId,
-  sortPurposes,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -33,6 +32,7 @@ import {
   Agreement,
   Delegation,
   ListResult,
+  PurposeV2,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
@@ -256,10 +256,46 @@ export function expectSinglePageListResult(
 ): void {
   expect({
     totalCount: actual.totalCount,
-    results: sortPurposes(actual.results),
+    results: actual.results,
   }).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(sortPurposes(expected)),
+    results: expect.arrayContaining(expected.map(generateExpectedPurpose)),
   });
   expect(actual.results).toHaveLength(expected.length);
 }
+
+export const generateExpectedPurpose = (purpose: Purpose): Purpose => ({
+  ...purpose,
+  versions: expect.arrayContaining(purpose.versions),
+  ...(purpose.riskAnalysisForm
+    ? {
+        riskAnalysisForm: {
+          ...purpose.riskAnalysisForm,
+          multiAnswers: expect.arrayContaining(
+            purpose.riskAnalysisForm.multiAnswers
+          ),
+          singleAnswers: expect.arrayContaining(
+            purpose.riskAnalysisForm.singleAnswers
+          ),
+        },
+      }
+    : {}),
+});
+
+export const generateExpectedPurposeV2 = (purposeV2: PurposeV2): PurposeV2 => ({
+  ...purposeV2,
+  versions: expect.arrayContaining(purposeV2.versions),
+  ...(purposeV2.riskAnalysisForm
+    ? {
+        riskAnalysisForm: {
+          ...purposeV2.riskAnalysisForm,
+          multiAnswers: expect.arrayContaining(
+            purposeV2.riskAnalysisForm.multiAnswers
+          ),
+          singleAnswers: expect.arrayContaining(
+            purposeV2.riskAnalysisForm.singleAnswers
+          ),
+        },
+      }
+    : {}),
+});

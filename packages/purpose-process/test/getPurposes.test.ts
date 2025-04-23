@@ -14,7 +14,6 @@ import {
   getMockDelegation,
   getMockAuthData,
   getMockContext,
-  sortPurposes,
 } from "pagopa-interop-commons-test";
 import {
   addOneDelegation,
@@ -547,9 +546,12 @@ describe("getPurposes", async () => {
     );
 
     expect(result.totalCount).toBe(4);
-    expect(sortPurposes(result.results)).toEqual(
+    expect(result.results).toEqual(
       expect.arrayContaining(
-        sortPurposes([mockPurpose3, mockDelegatedPurpose1])
+        [mockPurpose3, mockDelegatedPurpose1].map((purpose) => ({
+          ...purpose,
+          versions: expect.arrayContaining(purpose.versions),
+        }))
       )
     );
   });
@@ -568,8 +570,13 @@ describe("getPurposes", async () => {
     );
 
     expect(result.totalCount).toBe(4);
-    expect(sortPurposes(result.results)).toEqual(
-      expect.arrayContaining(sortPurposes([mockPurpose1, mockPurpose2]))
+    expect(result.results).toEqual(
+      expect.arrayContaining(
+        [mockPurpose1, mockPurpose2].map((purpose) => ({
+          ...purpose,
+          versions: expect.arrayContaining(purpose.versions),
+        }))
+      )
     );
   });
 

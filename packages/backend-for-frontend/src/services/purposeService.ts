@@ -29,7 +29,6 @@ import {
   agreementNotFound,
   eserviceDescriptorNotFound,
   eServiceNotFound,
-  purposeDraftVersionNotFound,
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
@@ -439,12 +438,7 @@ export function purposeServiceBuilder(
         headers,
       });
 
-      const draft = cloned.versions.find(
-        (v) => v.state === purposeApi.PurposeVersionState.Values.DRAFT
-      );
-      if (!draft) {
-        throw purposeDraftVersionNotFound(purposeId);
-      }
+      const draft = cloned.versions[0];
 
       return {
         purposeId: cloned.id,

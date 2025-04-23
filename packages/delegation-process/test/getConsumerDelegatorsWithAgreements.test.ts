@@ -1,5 +1,7 @@
 import {
   getMockAgreement,
+  getMockAuthData,
+  getMockContext,
   getMockDelegation,
   getMockEService,
   getMockTenant,
@@ -12,7 +14,6 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -160,11 +161,10 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          requesterId,
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -188,11 +188,10 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          requesterId,
           offset: 1,
           limit: 1,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -208,12 +207,11 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          requesterId,
           offset: 0,
           limit: 50,
           delegatorName: "Comune",
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -232,12 +230,11 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          requesterId,
           offset: 0,
           limit: 50,
           delegatorName: "PagoPA",
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -253,11 +250,10 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          requesterId: generateId<TenantId>(),
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({})
       )
     ).toEqual({
       results: [],
@@ -267,11 +263,10 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          requesterId: delegator3.id, // No active delegation
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(delegator3.id) }) // No active delegation
       )
     ).toEqual({
       results: [],
@@ -281,11 +276,10 @@ describe("getConsumerDelegatorsWithAgreements", () => {
     expect(
       await delegationService.getConsumerDelegatorsWithAgreements(
         {
-          requesterId: delegator4.id, // No active agreements
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(delegator4.id) }) // No active agreements
       )
     ).toEqual({
       results: [],

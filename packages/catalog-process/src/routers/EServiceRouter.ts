@@ -2,13 +2,13 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  authorizationMiddleware,
+  authRole,
   ExpressContext,
   fromAppContext,
   initDB,
   initFileManager,
   ReadModelRepository,
-  userRoles,
+  validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -18,6 +18,7 @@ import {
   EServiceTemplateId,
   TenantId,
   unsafeBrandId,
+  emptyErrorMapper,
 } from "pagopa-interop-models";
 import {
   catalogReadModelServiceBuilder,
@@ -126,6 +127,7 @@ const eservicesRouter = (
   const eservicesRouter = ctx.router(catalogApi.processApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,
@@ -133,288 +135,247 @@ const eservicesRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
-  } = userRoles;
+  } = authRole;
+
   eservicesRouter
-    .get(
-      "/eservices",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const { logger } = fromAppContext(req.ctx);
+    .get("/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const {
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+        ]);
+
+        const {
+          name,
+          eservicesIds,
+          producersIds,
+          attributesIds,
+          states,
+          agreementStates,
+          mode,
+          delegated,
+          isConsumerDelegable,
+          templatesIds,
+          offset,
+          limit,
+        } = req.query;
+
+        const catalogs = await catalogService.getEServices(
+          {
+            eservicesIds: eservicesIds.map<EServiceId>(unsafeBrandId),
+            producersIds: producersIds.map<TenantId>(unsafeBrandId),
+            attributesIds: attributesIds.map<AttributeId>(unsafeBrandId),
+            states: states.map(apiDescriptorStateToDescriptorState),
+            agreementStates: agreementStates.map(
+              apiAgreementStateToAgreementState
+            ),
             name,
-            eservicesIds,
-            producersIds,
-            attributesIds,
-            states,
-            agreementStates,
-            mode,
-            delegated,
+            mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
             isConsumerDelegable,
-            templatesIds,
-            offset,
-            limit,
-          } = req.query;
+            delegated,
+            templatesIds: templatesIds.map<EServiceTemplateId>(unsafeBrandId),
+          },
+          offset,
+          limit,
+          ctx
+        );
 
-          const catalogs = await catalogService.getEServices(
-            req.ctx.authData,
-            {
-              eservicesIds: eservicesIds.map<EServiceId>(unsafeBrandId),
-              producersIds: producersIds.map<TenantId>(unsafeBrandId),
-              attributesIds: attributesIds.map<AttributeId>(unsafeBrandId),
-              states: states.map(apiDescriptorStateToDescriptorState),
-              agreementStates: agreementStates.map(
-                apiAgreementStateToAgreementState
-              ),
-              name,
-              mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
-              isConsumerDelegable,
-              delegated,
-              templatesIds: templatesIds.map<EServiceTemplateId>(unsafeBrandId),
-            },
-            offset,
-            limit,
-            logger
-          );
-
-          return res.status(200).send(
-            catalogApi.EServices.parse({
-              results: catalogs.results.map(eServiceToApiEService),
-              totalCount: catalogs.totalCount,
-            })
-          );
-        } catch (error) {
-          return res.status(500).send();
-        }
+        return res.status(200).send(
+          catalogApi.EServices.parse({
+            results: catalogs.results.map(eServiceToApiEService),
+            totalCount: catalogs.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/eservices",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    })
+    .post("/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const eservice = await catalogService.createEService(req.body, ctx);
-          return res
-            .status(200)
-            .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createEServiceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/templates/:templateId/eservices",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const eService =
-            await catalogService.createEServiceInstanceFromTemplate(
-              unsafeBrandId(req.params.templateId),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createEServiceInstanceFromTemplateErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/eservices/:eServiceId",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-        INTERNAL_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        try {
-          const eservice = await catalogService.getEServiceById(
-            unsafeBrandId(req.params.eServiceId),
+        const eservice = await catalogService.createEService(req.body, ctx);
+        return res
+          .status(200)
+          .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, createEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/templates/:templateId/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const eService =
+          await catalogService.createEServiceInstanceFromTemplate(
+            unsafeBrandId(req.params.templateId),
+            req.body,
             ctx
           );
-          return res
-            .status(200)
-            .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getEServiceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res
+          .status(200)
+          .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createEServiceInstanceFromTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .put(
-      "/eservices/:eServiceId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    })
+    .get("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const updatedEService = await catalogService.updateEService(
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+        ]);
+
+        const eservice = await catalogService.getEServiceById(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res
+          .status(200)
+          .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .put("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const updatedEService = await catalogService.updateEService(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, updateEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/templates/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const updatedEService =
+          await catalogService.updateEServiceTemplateInstance(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updateEServiceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceTemplateInstanceErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/templates/eservices/:eServiceId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    })
+    .delete("/eservices/:eServiceId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const updatedEService =
-            await catalogService.updateEServiceTemplateInstance(
-              unsafeBrandId(req.params.eServiceId),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updateEServiceTemplateInstanceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        await catalogService.deleteEService(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, deleteEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .delete(
-      "/eservices/:eServiceId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    })
+    .get("/eservices/:eServiceId/consumers", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          await catalogService.deleteEService(
-            unsafeBrandId(req.params.eServiceId),
-            ctx
-          );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deleteEServiceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+        ]);
+
+        const consumers = await catalogService.getEServiceConsumers(
+          unsafeBrandId(req.params.eServiceId),
+          req.query.offset,
+          req.query.limit,
+          ctx
+        );
+
+        return res.status(200).send(
+          catalogApi.EServiceConsumers.parse({
+            results: consumers.results.map((c) => ({
+              descriptorVersion: parseInt(c.descriptorVersion, 10),
+              descriptorState: descriptorStateToApiEServiceDescriptorState(
+                c.descriptorState
+              ),
+              agreementState: agreementStateToApiAgreementState(
+                c.agreementState
+              ),
+              consumerName: c.consumerName,
+              consumerExternalId: c.consumerExternalId,
+            })),
+            totalCount: consumers.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .get(
-      "/eservices/:eServiceId/consumers",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const consumers = await catalogService.getEServiceConsumers(
-            unsafeBrandId(req.params.eServiceId),
-            req.query.offset,
-            req.query.limit,
-            ctx.logger
-          );
-
-          return res.status(200).send(
-            catalogApi.EServiceConsumers.parse({
-              results: consumers.results.map((c) => ({
-                descriptorVersion: parseInt(c.descriptorVersion, 10),
-                descriptorState: descriptorStateToApiEServiceDescriptorState(
-                  c.descriptorState
-                ),
-                agreementState: agreementStateToApiAgreementState(
-                  c.agreementState
-                ),
-                consumerName: c.consumerName,
-                consumerExternalId: c.consumerExternalId,
-              })),
-              totalCount: consumers.totalCount,
-            })
-          );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
+    })
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+          ]);
+
           const { eServiceId, descriptorId, documentId } = req.params;
 
           const document = await catalogService.getDocumentById(
@@ -432,23 +393,19 @@ const eservicesRouter = (
               catalogApi.EServiceDoc.parse(documentToApiDocument(document))
             );
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            documentGetErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, documentGetErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -464,8 +421,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentCreateErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -473,11 +429,12 @@ const eservicesRouter = (
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.deleteDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -489,8 +446,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentDeleteErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -498,11 +454,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedDocument = await catalogService.updateDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -521,50 +478,47 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             documentUpdateErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/eservices/:eServiceId/descriptors",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const descriptor = await catalogService.createDescriptor(
-            unsafeBrandId(req.params.eServiceId),
-            req.body,
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              catalogApi.EServiceDescriptor.parse(
-                descriptorToApiDescriptor(descriptor)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
+    .post("/eservices/:eServiceId/descriptors", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const descriptor = await catalogService.createDescriptor(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            catalogApi.EServiceDescriptor.parse(
+              descriptorToApiDescriptor(descriptor)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createDescriptorErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -575,8 +529,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteDraftDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -584,11 +537,12 @@ const eservicesRouter = (
     )
     .put(
       "/eservices/:eServiceId/descriptors/:descriptorId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -604,8 +558,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDraftDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -613,11 +566,12 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService =
             await catalogService.updateDraftDescriptorTemplateInstance(
               unsafeBrandId(req.params.eServiceId),
@@ -634,8 +588,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDraftDescriptorTemplateInstanceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -643,11 +596,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -658,8 +612,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             publishDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -667,11 +620,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -682,8 +636,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             suspendDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -691,11 +644,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -706,8 +660,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             activateDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -715,11 +668,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const clonedEserviceByDescriptor =
             await catalogService.cloneDescriptor(
               unsafeBrandId(req.params.eServiceId),
@@ -737,8 +691,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             cloneEServiceByDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -746,11 +699,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/archive",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -761,8 +715,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             archiveDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -770,11 +723,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService = await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -790,44 +744,41 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/eservices/:eServiceId/riskAnalysis",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          await catalogService.createRiskAnalysis(
-            unsafeBrandId(req.params.eServiceId),
-            req.body,
             ctx
           );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createRiskAnalysisErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
+    .post("/eservices/:eServiceId/riskAnalysis", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        await catalogService.createRiskAnalysis(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createRiskAnalysisErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.updateRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
@@ -839,107 +790,97 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
-    .post(
-      "/eservices/:eServiceId/description/update",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    .post("/eservices/:eServiceId/description/update", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const updatedEService =
-            await catalogService.updateEServiceDescription(
-              unsafeBrandId(req.params.eServiceId),
-              req.body.description,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updateEServiceDescriptionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const updatedEService = await catalogService.updateEServiceDescription(
+          unsafeBrandId(req.params.eServiceId),
+          req.body.description,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceDescriptionErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/eservices/:eServiceId/delegationFlags/update",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    })
+    .post("/eservices/:eServiceId/delegationFlags/update", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const updatedEService =
-            await catalogService.updateEServiceDelegationFlags(
-              unsafeBrandId(req.params.eServiceId),
-              req.body,
-              ctx
-            );
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-          return res
-            .status(200)
-            .send(
-              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updateEServiceFlagsErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/eservices/:eServiceId/name/update",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const updatedEService = await catalogService.updateEServiceName(
+        const updatedEService =
+          await catalogService.updateEServiceDelegationFlags(
             unsafeBrandId(req.params.eServiceId),
-            req.body.name,
+            req.body,
             ctx
           );
 
-          return res
-            .status(200)
-            .send(
-              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updateEServiceNameErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceFlagsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
+    .post("/eservices/:eServiceId/name/update", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const updatedEService = await catalogService.updateEServiceName(
+          unsafeBrandId(req.params.eServiceId),
+          req.body.name,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceNameErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
@@ -950,8 +891,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteRiskAnalysisErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -959,11 +899,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/approve",
-      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
           await catalogService.approveDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -974,8 +915,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             approveDelegatedEServiceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -983,11 +923,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/reject",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           await catalogService.rejectDelegatedEServiceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -999,8 +940,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectDelegatedEServiceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1008,11 +948,12 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/attributes/update",
-      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
           const updatedEService =
             await catalogService.updateDescriptorAttributes(
               unsafeBrandId(req.params.eServiceId),
@@ -1029,49 +970,46 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorAttributesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/templates/eservices/:eServiceId/upgrade",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-
-        try {
-          const descriptor = await catalogService.upgradeEServiceInstance(
-            unsafeBrandId(req.params.eServiceId),
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              catalogApi.EServiceDescriptor.parse(
-                descriptorToApiDescriptor(descriptor)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            upgradeEServiceInstanceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
+    .post("/templates/eservices/:eServiceId/upgrade", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const descriptor = await catalogService.upgradeEServiceInstance(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            catalogApi.EServiceDescriptor.parse(
+              descriptorToApiDescriptor(descriptor)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          upgradeEServiceInstanceErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/internal/templates/eservices/:eServiceId/name/update",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalUpdateTemplateInstanceName(
             unsafeBrandId(req.params.eServiceId),
             req.body.name,
@@ -1082,8 +1020,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceNameErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1091,11 +1028,12 @@ const eservicesRouter = (
     )
     .post(
       "/internal/templates/eservices/:eServiceId/description/update",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalUpdateTemplateInstanceDescription(
             unsafeBrandId(req.params.eServiceId),
             req.body.description,
@@ -1106,8 +1044,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1115,11 +1052,12 @@ const eservicesRouter = (
     )
     .post(
       "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/voucherLifespan/update",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1131,8 +1069,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorVoucherLifespanErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1140,11 +1077,12 @@ const eservicesRouter = (
     )
     .post(
       "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/attributes/update",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1156,8 +1094,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorAttributesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1165,11 +1102,12 @@ const eservicesRouter = (
     )
     .post(
       "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/update",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalCreateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1181,8 +1119,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             createTemplateInstanceDescriptorDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1190,11 +1127,12 @@ const eservicesRouter = (
     )
     .delete(
       "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.internalDeleteTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1206,8 +1144,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             deleteTemplateInstanceDescriptorDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1215,11 +1152,12 @@ const eservicesRouter = (
     )
     .post(
       "/internal/templates/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await catalogService.innerUpdateTemplateInstanceDescriptorDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -1232,8 +1170,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1241,10 +1178,12 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface/soap",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEservice =
             await catalogService.addEServiceTemplateInstanceInterface(
               unsafeBrandId(req.params.eServiceId),
@@ -1257,8 +1196,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             addEServiceTemplateInstanceInterfaceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1266,12 +1204,13 @@ const eservicesRouter = (
     )
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       // eslint-disable-next-line sonarjs/no-identical-functions
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEservice =
             await catalogService.addEServiceTemplateInstanceInterface(
               unsafeBrandId(req.params.eServiceId),
@@ -1284,51 +1223,48 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             addEServiceTemplateInstanceInterfaceErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
-    .post(
-      "/templates/eservices/:eServiceId/descriptors",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    .post("/templates/eservices/:eServiceId/descriptors", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          const descriptor =
-            await catalogService.createTemplateInstanceDescriptor(
-              unsafeBrandId(req.params.eServiceId),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              catalogApi.EServiceDescriptor.parse(
-                descriptorToApiDescriptor(descriptor)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createTemplateInstanceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const descriptor =
+          await catalogService.createTemplateInstanceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res
+          .status(200)
+          .send(
+            catalogApi.EServiceDescriptor.parse(
+              descriptorToApiDescriptor(descriptor)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createTemplateInstanceDescriptorErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post(
       "/templates/eservices/:eServiceId/descriptors/:descriptorId/update",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
           const updatedEService =
             await catalogService.updateTemplateInstanceDescriptor(
               unsafeBrandId(req.params.eServiceId),
@@ -1345,8 +1281,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateTemplateInstanceDescriptorErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }

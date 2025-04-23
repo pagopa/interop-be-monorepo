@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+import { CreateEvent, UIAuthData } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -57,7 +57,7 @@ export function createActivationUpdateAgreementSeed({
   descriptor: Descriptor;
   consumer: Tenant;
   eservice: EService;
-  authData: AuthData;
+  authData: UIAuthData;
   agreement: Agreement;
   suspendedByConsumer: boolean | undefined;
   suspendedByProducer: boolean | undefined;
@@ -119,7 +119,7 @@ export async function createActivationEvent(
   originalSuspendedByPlatform: boolean | undefined,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
-  authData: AuthData,
+  authData: UIAuthData,
   correlationId: CorrelationId,
   activeDelegations: ActiveDelegations
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
@@ -246,7 +246,7 @@ export async function createActivationEvent(
 
 export const archiveRelatedToAgreements = async (
   agreement: Agreement,
-  authData: AuthData,
+  authData: UIAuthData,
   activeDelegations: ActiveDelegations,
   readModelService: ReadModelService,
   correlationId: CorrelationId

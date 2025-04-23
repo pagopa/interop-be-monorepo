@@ -202,7 +202,6 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
-  // rejectionReasons: [],
 });
 
 export const getMockEServiceAttribute = (): EServiceAttribute => ({
@@ -344,10 +343,7 @@ export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
-  await delegationReadModelServiceSQL.upsertDelegation({
-    data: delegation,
-    metadata: { version: 0 },
-  });
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
 };
 
 export const readLastEserviceEvent = async (

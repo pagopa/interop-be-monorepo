@@ -8,9 +8,14 @@ import {
   toTenantV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
   TenantVerifier,
+  TenantId,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
   expirationDateCannotBeInThePast,
@@ -66,12 +71,13 @@ describe("updateTenantVerifiedAttribute", async () => {
     await addOneTenant(tenant);
     const returnedTenant = await tenantService.updateTenantVerifiedAttribute(
       {
-        verifierId,
         tenantId: tenant.id,
         attributeId,
         updateVerifiedTenantAttributeSeed,
       },
-      getMockContext({})
+      getMockContext({
+        authData: getMockAuthData(verifierId),
+      })
     );
     const writtenEvent = await readLastTenantEvent(tenant.id);
     if (!writtenEvent) {
@@ -105,12 +111,13 @@ describe("updateTenantVerifiedAttribute", async () => {
     expect(
       tenantService.updateTenantVerifiedAttribute(
         {
-          verifierId,
           tenantId: tenant.id,
           attributeId,
           updateVerifiedTenantAttributeSeed,
         },
-        getMockContext({})
+        getMockContext({
+          authData: getMockAuthData(verifierId),
+        })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -130,12 +137,13 @@ describe("updateTenantVerifiedAttribute", async () => {
     expect(
       tenantService.updateTenantVerifiedAttribute(
         {
-          verifierId,
           tenantId: tenant.id,
           attributeId,
           updateVerifiedTenantAttributeSeed,
         },
-        getMockContext({})
+        getMockContext({
+          authData: getMockAuthData(verifierId),
+        })
       )
     ).rejects.toThrowError(
       expirationDateCannotBeInThePast(expirationDateinPast)
@@ -154,7 +162,6 @@ describe("updateTenantVerifiedAttribute", async () => {
     expect(
       tenantService.updateTenantVerifiedAttribute(
         {
-          verifierId: generateId(),
           tenantId: updatedCertifiedTenant.id,
           attributeId,
           updateVerifiedTenantAttributeSeed,
@@ -168,16 +175,17 @@ describe("updateTenantVerifiedAttribute", async () => {
   it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
     await addOneTenant(verifier);
     await addOneTenant(tenant);
-    const verifierId = generateId();
+    const verifierId = generateId<TenantId>();
     expect(
       tenantService.updateTenantVerifiedAttribute(
         {
-          verifierId,
           tenantId: tenant.id,
           attributeId,
           updateVerifiedTenantAttributeSeed,
         },
-        getMockContext({})
+        getMockContext({
+          authData: getMockAuthData(verifierId),
+        })
       )
     ).rejects.toThrowError(
       organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
