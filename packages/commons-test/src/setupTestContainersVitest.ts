@@ -270,7 +270,9 @@ export async function setupTestContainersVitest(
       await readModelDB?.execute(
         "TRUNCATE TABLE readmodel_tenant.tenant CASCADE"
       );
-      // TODO: add eservice-template
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_eservice_template.eservice_template CASCADE"
+      );
 
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =
