@@ -78,7 +78,7 @@ export function purposeServiceBuilder({
       { logger, headers }: WithLogger<M2MGatewayAppContext>,
       purposeSeed: m2mGatewayApi.PurposeSeed
     ): Promise<m2mGatewayApi.Purpose> => {
-      logger.info(`Creating purpose `);
+      logger.info(`Creating purpose`);
 
       const purposeResponse = await purposeProcessClient.createPurpose(
         purposeSeed,
