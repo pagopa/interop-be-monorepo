@@ -1055,7 +1055,11 @@ export function agreementServiceBuilder(
     async rejectAgreement(
       agreementId: AgreementId,
       rejectionReason: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Agreement> {
       logger.info(`Rejecting agreement ${agreementId}`);
 
