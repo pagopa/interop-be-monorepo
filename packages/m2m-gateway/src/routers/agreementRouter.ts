@@ -30,7 +30,7 @@ const agreementRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
-        validateAuthorization(ctx, [M2M_ROLE]);
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
         const agreements = await agreementService.getAgreements(ctx, req.query);
 
         return res.status(200).send(m2mGatewayApi.Agreements.parse(agreements));
@@ -47,7 +47,7 @@ const agreementRouter = (
     .get("/agreements/:agreementId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ROLE]);
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
         const agreement = await agreementService.getAgreement(
           ctx,
           unsafeBrandId(req.params.agreementId)
