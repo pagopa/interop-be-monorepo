@@ -187,7 +187,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
           .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
-            `Unable to parse eservice items: results ${JSON.stringify(
+            `Unable to parse tenant items: results ${JSON.stringify(
               results
             )} - data ${JSON.stringify(data)} `
           );

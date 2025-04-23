@@ -16,12 +16,17 @@ describe("get delegation by id", () => {
       const delegation = getMockDelegation({ kind });
       await addOneDelegation(delegation);
 
-      const expectedDelegation = await delegationService.getDelegationById(
+      const response = await delegationService.getDelegationById(
         delegation.id,
         getMockContext({})
       );
 
-      expect(delegation).toEqual(expectedDelegation);
+      expect(response).toEqual({
+        data: delegation,
+        metadata: {
+          version: 0,
+        },
+      });
     }
   );
 
@@ -32,14 +37,12 @@ describe("get delegation by id", () => {
       await addOneDelegation(delegation);
 
       const notFoundId = generateId<DelegationId>();
-      const expectedDelegation = delegationService.getDelegationById(
+      const response = delegationService.getDelegationById(
         notFoundId,
         getMockContext({})
       );
 
-      await expect(expectedDelegation).rejects.toThrow(
-        delegationNotFound(notFoundId)
-      );
+      await expect(response).rejects.toThrow(delegationNotFound(notFoundId));
     }
   );
 });

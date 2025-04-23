@@ -179,7 +179,7 @@ describe("Check catalog readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const eservice1ForSQL: WithMetadata<EService> = {
+    const eservice1InPostgresDb: WithMetadata<EService> = {
       data: {
         ...eservice1.data,
         name: "different name",
@@ -190,8 +190,8 @@ describe("Check catalog readmodels", () => {
     await addOneEService(eservice1);
 
     await eserviceReadModelServiceSQL.upsertEService(
-      eservice1ForSQL.data,
-      eservice1ForSQL.metadata.version
+      eservice1InPostgresDb.data,
+      eservice1InPostgresDb.metadata.version
     );
 
     const collectionEServices =
@@ -224,7 +224,7 @@ describe("Check catalog readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const eservice1ForSQL: WithMetadata<EService> = {
+    const eservice1InPostgresDb: WithMetadata<EService> = {
       data: eservice1.data,
       metadata: {
         version: 3,
@@ -234,8 +234,8 @@ describe("Check catalog readmodels", () => {
     await addOneEService(eservice1);
 
     await eserviceReadModelServiceSQL.upsertEService(
-      eservice1ForSQL.data,
-      eservice1ForSQL.metadata.version
+      eservice1InPostgresDb.data,
+      eservice1InPostgresDb.metadata.version
     );
 
     const collectionEServices =
