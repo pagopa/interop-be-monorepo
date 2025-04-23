@@ -63,6 +63,8 @@ import {
   addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
   addClientAdminErrorMapper,
+  internalRemoveClientAdminErrorMapper,
+  removeClientAdminErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -555,6 +557,47 @@ const authorizationRouter = (
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/internal/clients/:clientId/admin/:adminId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+        await authorizationService.internalRemoveClientAdmin(
+          unsafeBrandId(req.params.clientId),
+          unsafeBrandId(req.params.adminId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          internalRemoveClientAdminErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
+    .delete("/clients/:clientId/admin/:adminId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+        await authorizationService.removeClientAdmin(
+          {
+            clientId: unsafeBrandId(req.params.clientId),
+            adminId: unsafeBrandId(req.params.adminId),
+          },
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          removeClientAdminErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     });

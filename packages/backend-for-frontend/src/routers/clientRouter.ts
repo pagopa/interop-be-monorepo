@@ -14,6 +14,7 @@ import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { getClientUsersErrorMapper } from "../utilities/errorMappers.js";
+import { assertAdminClientFeatureEnabled } from "../services/validators.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
@@ -366,7 +367,30 @@ const clientRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+
+    .delete("/clients/:clientId/admin/:adminId", async (req, res) => {
+      assertAdminClientFeatureEnabled(res);
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await clientService.removeClientAdmin(
+          req.params.clientId,
+          req.params.adminId,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error removing client admin ${req.params.adminId} from client ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
+
   return clientRouter;
 };
 

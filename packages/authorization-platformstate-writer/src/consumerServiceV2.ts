@@ -17,7 +17,7 @@ import {
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
@@ -361,20 +361,25 @@ export async function handleMessageV2(
       );
     })
     .with(
-      { type: "ClientAdded" },
-      { type: "ClientAdminSet" },
-      { type: "ClientUserAdded" },
-      { type: "ClientUserDeleted" },
-      { type: "ProducerKeychainAdded" },
-      { type: "ProducerKeychainDeleted" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
-      { type: "ProducerKeychainKeyAdded" },
-      { type: "ProducerKeychainKeyDeleted" },
-      { type: "ProducerKeychainUserAdded" },
-      { type: "ProducerKeychainUserDeleted" },
+      {
+        type: P.union(
+          "ClientAdded",
+          "ClientAdminSet",
+          "ClientUserAdded",
+          "ClientUserDeleted",
+          "ClientAdminRemoved",
+          "ProducerKeychainAdded",
+          "ProducerKeychainDeleted",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved",
+          "ProducerKeychainKeyAdded",
+          "ProducerKeychainKeyDeleted",
+          "ProducerKeychainUserAdded",
+          "ProducerKeychainUserDeleted"
+        ),
+      },
       () => Promise.resolve()
     )
     .exhaustive();

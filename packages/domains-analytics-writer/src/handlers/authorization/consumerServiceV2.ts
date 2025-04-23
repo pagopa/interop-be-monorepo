@@ -15,6 +15,7 @@ export async function handleAuthorizationEventMessageV2(
           "ClientUserAdded",
           "ClientUserDeleted",
           "ClientAdminSet",
+          "ClientAdminRemoved",
           "ClientPurposeAdded",
           "ClientPurposeRemoved"
         ),

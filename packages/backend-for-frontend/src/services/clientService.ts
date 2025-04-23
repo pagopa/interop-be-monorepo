@@ -341,6 +341,19 @@ export function clientServiceBuilder(
 
       return { id };
     },
+
+    async removeClientAdmin(
+      clientId: string,
+      adminId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+
+      return authorizationClient.client.removeClientAdmin(undefined, {
+        params: { clientId, adminId },
+        headers,
+      });
+    },
   };
 }
 

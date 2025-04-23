@@ -104,8 +104,12 @@ export async function sendCatalogAuthUpdate(
       }
     )
     .with(
-      { type: "EServiceDescriptorQuotasUpdated" },
-      { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      {
+        type: P.union(
+          "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
+        ),
+      },
       async (msg) => {
         const data = getDescriptorFromEvent(msg, decodedMessage.type);
         await authService.updateEServiceState(
@@ -466,15 +470,20 @@ export async function sendAuthorizationAuthUpdate(
       );
     })
     .with(
-      { type: "ClientAdminSet" },
-      { type: "ProducerKeychainAdded" },
-      { type: "ProducerKeychainDeleted" },
-      { type: "ProducerKeychainKeyAdded" },
-      { type: "ProducerKeychainKeyDeleted" },
-      { type: "ProducerKeychainUserAdded" },
-      { type: "ProducerKeychainUserDeleted" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
+      {
+        type: P.union(
+          "ClientAdminSet",
+          "ClientAdminRemoved",
+          "ProducerKeychainAdded",
+          "ProducerKeychainDeleted",
+          "ProducerKeychainKeyAdded",
+          "ProducerKeychainKeyDeleted",
+          "ProducerKeychainUserAdded",
+          "ProducerKeychainUserDeleted",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
+        ),
+      },
       () => Promise.resolve
     )
     .exhaustive();
