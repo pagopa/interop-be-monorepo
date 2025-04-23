@@ -75,6 +75,7 @@ const {
   SECURITY_ROLE,
   API_ROLE,
   M2M_ROLE,
+  M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
   SUPPORT_ROLE,
 } = authRole;
@@ -113,7 +114,7 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const agreement = await agreementService.activateAgreement(
           unsafeBrandId(req.params.agreementId),
@@ -296,7 +297,7 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const agreement = await agreementService.createAgreement(
           {
@@ -328,6 +329,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
@@ -430,6 +432,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
