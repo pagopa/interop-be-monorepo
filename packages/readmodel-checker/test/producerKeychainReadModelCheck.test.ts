@@ -149,7 +149,7 @@ describe("Check producerKeychain readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const producerKeychain1ForSQL: WithMetadata<ProducerKeychain> = {
+    const producerKeychain1InPostgresDb: WithMetadata<ProducerKeychain> = {
       data: {
         ...producerKeychain1.data,
         eservices: [generateId()],
@@ -160,8 +160,8 @@ describe("Check producerKeychain readmodels", () => {
     await addOneProducerKeychain(producerKeychain1);
 
     await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-      producerKeychain1ForSQL.data,
-      producerKeychain1ForSQL.metadata.version
+      producerKeychain1InPostgresDb.data,
+      producerKeychain1InPostgresDb.metadata.version
     );
 
     const collectionProducerKeychains =
@@ -186,7 +186,7 @@ describe("Check producerKeychain readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const producerKeychain1ForSQL: WithMetadata<ProducerKeychain> = {
+    const producerKeychain1InPostgresDb: WithMetadata<ProducerKeychain> = {
       data: producerKeychain1.data,
       metadata: {
         version: 3,
@@ -196,8 +196,8 @@ describe("Check producerKeychain readmodels", () => {
     await addOneProducerKeychain(producerKeychain1);
 
     await producerKeychainReadModelServiceSQL.upsertProducerKeychain(
-      producerKeychain1ForSQL.data,
-      producerKeychain1ForSQL.metadata.version
+      producerKeychain1InPostgresDb.data,
+      producerKeychain1InPostgresDb.metadata.version
     );
 
     const collectionProducerKeychains =

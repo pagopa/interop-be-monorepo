@@ -19,7 +19,7 @@ import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
-  AuthData,
+  UIAuthData,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -98,7 +98,7 @@ export const assertConsistentFreeOfCharge = (
 
 const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
-  authData: Pick<AuthData, "organizationId">
+  authData: Pick<UIAuthData, "organizationId">
 ): void => {
   if (authData.organizationId !== purpose.consumerId) {
     throw organizationIsNotTheConsumer(authData.organizationId);
@@ -268,7 +268,7 @@ export async function isOverQuota(
 export const assertRequesterCanRetrievePurpose = async (
   purpose: Purpose,
   eservice: EService,
-  authData: Pick<AuthData, "organizationId">,
+  authData: Pick<UIAuthData, "organizationId">,
   readModelService: ReadModelService
 ): Promise<void> => {
   // This validator is for retrieval operations that can be performed by all the tenants involved:
@@ -305,7 +305,7 @@ export const assertRequesterCanRetrievePurpose = async (
 
 const assertRequesterIsProducer = (
   eservice: Pick<EService, "producerId">,
-  authData: Pick<AuthData, "organizationId">
+  authData: Pick<UIAuthData, "organizationId">
 ): void => {
   if (authData.organizationId !== eservice.producerId) {
     throw organizationIsNotTheProducer(authData.organizationId);
@@ -314,7 +314,7 @@ const assertRequesterIsProducer = (
 
 const assertRequesterIsDelegateProducer = (
   eservice: Pick<EService, "producerId" | "id">,
-  authData: Pick<AuthData, "organizationId">,
+  authData: Pick<UIAuthData, "organizationId">,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (
@@ -333,7 +333,7 @@ const assertRequesterIsDelegateProducer = (
 
 export const assertRequesterCanActAsProducer = (
   eservice: Pick<EService, "producerId" | "id">,
-  authData: AuthData,
+  authData: UIAuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (!activeProducerDelegation) {
@@ -351,7 +351,7 @@ export const assertRequesterCanActAsProducer = (
 
 export const assertRequesterCanActAsConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
-  authData: AuthData,
+  authData: UIAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {
@@ -369,7 +369,7 @@ export const assertRequesterCanActAsConsumer = (
 
 const assertRequesterIsDelegateConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId" | "delegationId">,
-  authData: Pick<AuthData, "organizationId">,
+  authData: Pick<UIAuthData, "organizationId">,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (
@@ -390,7 +390,7 @@ const assertRequesterIsDelegateConsumer = (
 export const verifyRequesterIsConsumerOrDelegateConsumer = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  authData: AuthData,
+  authData: UIAuthData,
   readModelService: ReadModelService
 ): Promise<DelegationId | undefined> => {
   try {

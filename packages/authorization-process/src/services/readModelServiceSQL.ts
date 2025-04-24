@@ -99,7 +99,7 @@ export function readModelServiceBuilderSQL({
       const subquery = readModelDB
         .select({
           clientId: clientInReadmodelClient.id,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(clientInReadmodelClient)
         .leftJoin(
@@ -176,7 +176,7 @@ export function readModelServiceBuilderSQL({
         results: aggregateClientArray(toClientAggregatorArray(queryResult)).map(
           (c) => c.data
         ),
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getClientsRelatedToPurpose(
@@ -277,7 +277,7 @@ export function readModelServiceBuilderSQL({
       const subquery = readModelDB
         .select({
           producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(producerKeychainInReadmodelProducerKeychain)
         .leftJoin(
@@ -381,7 +381,7 @@ export function readModelServiceBuilderSQL({
         results: aggregateProducerKeychainArray(
           toProducerKeychainAggregatorArray(queryResult)
         ).map((p) => p.data),
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getProducerKeychainById(

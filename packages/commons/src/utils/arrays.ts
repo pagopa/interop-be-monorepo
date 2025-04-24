@@ -1,3 +1,5 @@
+export type NonEmptyArray<T> = [T, ...T[]];
+
 export function isDefined<V>(value: V | null | undefined): value is V {
   return value !== null && value !== undefined;
 }

@@ -1,4 +1,4 @@
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -143,31 +143,19 @@ export function getTenantKind(
 }
 
 export async function assertRequesterAllowed(
-  resourceId: string,
-  requesterId: string
+  tenantId: TenantId,
+  authData: UIAuthData | M2MAuthData
 ): Promise<void> {
-  if (resourceId !== requesterId) {
+  if (tenantId !== authData.organizationId) {
     throw operationForbidden;
   }
 }
 
 export function assertRequesterDelegationsAllowedOrigin(
-  authData: AuthData
+  authData: UIAuthData
 ): void {
   if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
     throw operationForbidden;
-  }
-}
-
-export async function assertResourceAllowed(
-  resourceId: string,
-  authData: AuthData
-): Promise<void> {
-  const roles = authData.userRoles;
-  const organizationId = authData.organizationId;
-
-  if (!roles.includes(userRoles.INTERNAL_ROLE)) {
-    return await assertRequesterAllowed(resourceId, organizationId);
   }
 }
 

@@ -2,20 +2,20 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { apiGatewayApi } from "pagopa-interop-api-clients";
 import {
-  authorizationMiddleware,
   ExpressContext,
   ReadModelRepository,
-  userRoles,
   ZodiosContext,
+  authRole,
+  validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { fromApiGatewayAppContext } from "../utilities/context.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
 import {
   createCertifiedAttributeErrorMapper,
-  emptyErrorMapper,
   getAgreementByPurposeErrorMapper,
   getAgreementErrorMapper,
   getAgreementsErrorMapper,
@@ -52,7 +52,7 @@ const apiGatewayRouter = (
     delegationProcessClient,
   }: PagoPAInteropBeClients
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { M2M_ROLE } = userRoles;
+  const { M2M_ROLE } = authRole;
   const apiGatewayRouter = ctx.router(apiGatewayApi.gatewayApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
@@ -99,185 +99,165 @@ const apiGatewayRouter = (
   );
 
   apiGatewayRouter
-    .get(
-      "/agreements",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+    .get("/agreements", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
-        try {
-          const agreements = await agreementService.getAgreements(
-            ctx,
-            req.query
-          );
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
 
-          return res
-            .status(200)
-            .send(apiGatewayApi.Agreements.parse(agreements));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getAgreementsErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
+        const agreements = await agreementService.getAgreements(ctx, req.query);
+
+        return res.status(200).send(apiGatewayApi.Agreements.parse(agreements));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getAgreementsErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .get(
-      "/agreements/:agreementId",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+    })
+    .get("/agreements/:agreementId", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
-        try {
-          const agreement = await agreementService.getAgreementById(
-            ctx,
-            req.params.agreementId
-          );
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
 
-          return res.status(200).send(apiGatewayApi.Agreement.parse(agreement));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
+        const agreement = await agreementService.getAgreementById(
+          ctx,
+          req.params.agreementId
+        );
+
+        return res.status(200).send(apiGatewayApi.Agreement.parse(agreement));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .get(
-      "/agreements/:agreementId/attributes",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+    })
+    .get("/agreements/:agreementId/attributes", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
-        try {
-          const attributes = await agreementService.getAgreementAttributes(
-            ctx,
-            req.params.agreementId
-          );
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
 
-          return res
-            .status(200)
-            .send(apiGatewayApi.Attributes.parse(attributes));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
+        const attributes = await agreementService.getAgreementAttributes(
+          ctx,
+          req.params.agreementId
+        );
+
+        return res.status(200).send(apiGatewayApi.Attributes.parse(attributes));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .get(
-      "/agreements/:agreementId/purposes",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+    })
+    .get("/agreements/:agreementId/purposes", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
-        try {
-          const purposes = await agreementService.getAgreementPurposes(
-            ctx,
-            req.params.agreementId
-          );
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
 
-          return res.status(200).send(apiGatewayApi.Purposes.parse(purposes));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
+        const purposes = await agreementService.getAgreementPurposes(
+          ctx,
+          req.params.agreementId
+        );
+
+        return res.status(200).send(apiGatewayApi.Purposes.parse(purposes));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getAgreementErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/attributes",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+    })
+    .post("/attributes", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
-        try {
-          const attribute = await attributeService.createCertifiedAttribute(
-            ctx,
-            req.body
-          );
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
 
-          return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createCertifiedAttributeErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/attributes/:attributeId",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+        const attribute = await attributeService.createCertifiedAttribute(
+          ctx,
+          req.body
+        );
 
-        try {
-          const attribute = await attributeService.getAttribute(
-            ctx,
-            req.params.attributeId
-          );
+        return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createCertifiedAttributeErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/attributes/:attributeId", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
-          return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getAttributeErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/clients/:clientId",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
 
-        try {
-          const client = await authorizationService.getClient(
-            ctx,
-            req.params.clientId
-          );
-          return res.status(200).send(apiGatewayApi.Client.parse(client));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getClientErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
+        const attribute = await attributeService.getAttribute(
+          ctx,
+          req.params.attributeId
+        );
+
+        return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getAttributeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .get(
-      "/eservices",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
-        try {
-          const eservices = await catalogService.getEservices(ctx, req.query);
-          return res
-            .status(200)
-            .send(apiGatewayApi.CatalogEServices.parse(eservices));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
+    })
+    .get("/clients/:clientId", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const client = await authorizationService.getClient(
+          ctx,
+          req.params.clientId
+        );
+        return res.status(200).send(apiGatewayApi.Client.parse(client));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getClientErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .get(
-      "/eservices/:eserviceId",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
-        try {
-          const eservice = await catalogService.getEservice(
-            ctx,
-            req.params.eserviceId
-          );
-          return res.status(200).send(apiGatewayApi.EService.parse(eservice));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getEserviceErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
+    })
+    .get("/eservices", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const eservices = await catalogService.getEservices(ctx, req.query);
+        return res
+          .status(200)
+          .send(apiGatewayApi.CatalogEServices.parse(eservices));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
+    .get("/eservices/:eserviceId", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const eservice = await catalogService.getEservice(
+          ctx,
+          req.params.eserviceId
+        );
+        return res.status(200).send(apiGatewayApi.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getEserviceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/eservices/:eserviceId/descriptors",
-      authorizationMiddleware([M2M_ROLE]),
+
       async (req, res) => {
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
         try {
+          validateAuthorization(ctx, [M2M_ROLE]);
+
           const descriptors = await catalogService.getEserviceDescriptors(
             ctx,
             req.params.eserviceId
@@ -293,10 +273,13 @@ const apiGatewayRouter = (
     )
     .get(
       "/eservices/:eserviceId/descriptors/:descriptorId",
-      authorizationMiddleware([M2M_ROLE]),
+
       async (req, res) => {
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
         try {
+          validateAuthorization(ctx, [M2M_ROLE]);
+
           const descriptor = await catalogService.getEserviceDescriptor(
             ctx,
             req.params.eserviceId,
@@ -315,10 +298,12 @@ const apiGatewayRouter = (
         }
       }
     )
-    .get("/events", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
+    .get("/events", async (req, res) => {
       const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
       try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
         const events = await notifierEventsService.getEventsFromId(
           ctx,
           req.query.lastEventId,
@@ -331,107 +316,98 @@ const apiGatewayRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get(
-      "/events/agreements",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          const events = await notifierEventsService.getAgreementsEventsFromId(
-            ctx,
-            req.query.lastEventId,
-            req.query.limit
-          );
-
-          return res.status(200).send(apiGatewayApi.Events.parse(events));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/events/eservices",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          const events = await notifierEventsService.getEservicesEventsFromId(
-            ctx,
-            req.query.lastEventId,
-            req.query.limit
-          );
-
-          return res.status(200).send(apiGatewayApi.Events.parse(events));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/events/keys",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          const events = await notifierEventsService.getKeysEventsFromId(
-            ctx,
-            req.query.lastEventId,
-            req.query.limit
-          );
-
-          return res.status(200).send(apiGatewayApi.Events.parse(events));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/events/producerKeys",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          const events =
-            await notifierEventsService.getProducerKeysEventsFromId(
-              ctx,
-              req.query.lastEventId,
-              req.query.limit
-            );
-
-          return res.status(200).send(apiGatewayApi.Events.parse(events));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/keys/:kid",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          const jwk = await authorizationService.getJWK(ctx, req.params.kid);
-
-          return res.status(200).send(apiGatewayApi.JWK.parse(jwk));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getJWKErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get("/purposes", authorizationMiddleware([M2M_ROLE]), async (req, res) => {
+    .get("/events/agreements", async (req, res) => {
       const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
       try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const events = await notifierEventsService.getAgreementsEventsFromId(
+          ctx,
+          req.query.lastEventId,
+          req.query.limit
+        );
+
+        return res.status(200).send(apiGatewayApi.Events.parse(events));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/events/eservices", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const events = await notifierEventsService.getEservicesEventsFromId(
+          ctx,
+          req.query.lastEventId,
+          req.query.limit
+        );
+
+        return res.status(200).send(apiGatewayApi.Events.parse(events));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/events/keys", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const events = await notifierEventsService.getKeysEventsFromId(
+          ctx,
+          req.query.lastEventId,
+          req.query.limit
+        );
+
+        return res.status(200).send(apiGatewayApi.Events.parse(events));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/events/producerKeys", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const events = await notifierEventsService.getProducerKeysEventsFromId(
+          ctx,
+          req.query.lastEventId,
+          req.query.limit
+        );
+
+        return res.status(200).send(apiGatewayApi.Events.parse(events));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/keys/:kid", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const jwk = await authorizationService.getJWK(ctx, req.params.kid);
+
+        return res.status(200).send(apiGatewayApi.JWK.parse(jwk));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getJWKErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposes", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
         const purposes = await purposeService.getPurposes(ctx, req.query);
 
         return res.status(200).send(apiGatewayApi.Purposes.parse(purposes));
@@ -440,30 +416,32 @@ const apiGatewayRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get(
-      "/purposes/:purposeId",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
-        try {
-          const purpose = await purposeService.getPurpose(
-            ctx,
-            req.params.purposeId
-          );
+    .get("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
-          return res.status(200).send(apiGatewayApi.Purpose.parse(purpose));
-        } catch (error) {
-          const errorRes = makeApiProblem(error, getPurposeErrorMapper, ctx);
-          return res.status(errorRes.status).send(errorRes);
-        }
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
+
+        const purpose = await purposeService.getPurpose(
+          ctx,
+          req.params.purposeId
+        );
+
+        return res.status(200).send(apiGatewayApi.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getPurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .get(
       "/purposes/:purposeId/agreement",
-      authorizationMiddleware([M2M_ROLE]),
+
       async (req, res) => {
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
         try {
+          validateAuthorization(ctx, [M2M_ROLE]);
+
           const agreement = await purposeService.getAgreementByPurpose(
             ctx,
             req.params.purposeId
@@ -479,38 +457,33 @@ const apiGatewayRouter = (
         }
       }
     )
-    .get(
-      "/organizations/:organizationId",
-      authorizationMiddleware([M2M_ROLE]),
-      async (req, res) => {
-        const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+    .get("/organizations/:organizationId", async (req, res) => {
+      const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
-        try {
-          const organization = await tenantService.getOrganization(
-            ctx,
-            req.params.organizationId
-          );
+      try {
+        validateAuthorization(ctx, [M2M_ROLE]);
 
-          return res
-            .status(200)
-            .send(apiGatewayApi.Organization.parse(organization));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getOrganizationErrorMapper,
-            ctx
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        const organization = await tenantService.getOrganization(
+          ctx,
+          req.params.organizationId
+        );
+
+        return res
+          .status(200)
+          .send(apiGatewayApi.Organization.parse(organization));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getOrganizationErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post(
       "/organizations/origin/:origin/externalId/:externalId/attributes/:code",
-      authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
         try {
+          validateAuthorization(ctx, [M2M_ROLE]);
+
           await tenantService.upsertTenant(ctx, {
             origin: req.params.origin,
             externalId: req.params.externalId,
@@ -526,10 +499,12 @@ const apiGatewayRouter = (
     )
     .delete(
       "/organizations/origin/:origin/externalId/:externalId/attributes/:code",
-      authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
+
         try {
+          validateAuthorization(ctx, [M2M_ROLE]);
+
           await tenantService.revokeTenantAttribute(ctx, {
             origin: req.params.origin,
             externalId: req.params.externalId,
@@ -549,11 +524,12 @@ const apiGatewayRouter = (
     )
     .post(
       "/organizations/origin/:origin/externalId/:externalId/eservices",
-      authorizationMiddleware([M2M_ROLE]),
       async (req, res) => {
         const ctx = fromApiGatewayAppContext(req.ctx, req.headers);
 
         try {
+          validateAuthorization(ctx, [M2M_ROLE]);
+
           const eservices = await tenantService.getOrganizationEservices(ctx, {
             origin: req.params.origin,
             externalId: req.params.externalId,

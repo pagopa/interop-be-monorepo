@@ -40,7 +40,7 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
-  AuthData,
+  UIAuthData,
   formatDateyyyyMMddHHmmss,
   genericLogger,
   initPDFGenerator,
@@ -293,7 +293,7 @@ export const authDataAndDelegationsFromRequesterIs = (
   requesterIs: RequesterIs,
   agreement: Agreement
 ): {
-  authData: AuthData;
+  authData: UIAuthData;
   producerDelegation: Delegation | undefined;
   delegateProducer: Tenant | undefined;
   consumerDelegation: Delegation | undefined;

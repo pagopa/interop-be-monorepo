@@ -37,46 +37,46 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           purpose.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(purposeInReadmodelPurpose)
+          .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+
+        const {
+          purposeSQL,
+          riskAnalysisFormSQL,
+          riskAnalysisAnswersSQL,
+          versionsSQL,
+          versionDocumentsSQL,
+        } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
+
+        await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
+
+        if (riskAnalysisFormSQL) {
           await tx
-            .delete(purposeInReadmodelPurpose)
-            .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+            .insert(purposeRiskAnalysisFormInReadmodelPurpose)
+            .values(riskAnalysisFormSQL);
+        }
 
-          const {
-            purposeSQL,
-            riskAnalysisFormSQL,
-            riskAnalysisAnswersSQL,
-            versionsSQL,
-            versionDocumentsSQL,
-          } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
-
-          await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
-
-          if (riskAnalysisFormSQL) {
+        if (riskAnalysisAnswersSQL) {
+          for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
             await tx
-              .insert(purposeRiskAnalysisFormInReadmodelPurpose)
-              .values(riskAnalysisFormSQL);
+              .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
+              .values(riskAnalysisAnswerSQL);
           }
+        }
 
-          if (riskAnalysisAnswersSQL) {
-            for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
-              await tx
-                .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
-                .values(riskAnalysisAnswerSQL);
-            }
-          }
+        for (const versionSQL of versionsSQL) {
+          await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
+        }
 
-          for (const versionSQL of versionsSQL) {
-            await tx
-              .insert(purposeVersionInReadmodelPurpose)
-              .values(versionSQL);
-          }
-
-          for (const versionDocumentSQL of versionDocumentsSQL) {
-            await tx
-              .insert(purposeVersionDocumentInReadmodelPurpose)
-              .values(versionDocumentSQL);
-          }
+        for (const versionDocumentSQL of versionDocumentsSQL) {
+          await tx
+            .insert(purposeVersionDocumentInReadmodelPurpose)
+            .values(versionDocumentSQL);
         }
       });
     },
@@ -167,7 +167,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
         .from(purposeInReadmodelPurpose)
         .where(filter)
         .leftJoin(
-          // 1
           purposeRiskAnalysisFormInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,
@@ -175,7 +174,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           purposeRiskAnalysisAnswerInReadmodelPurpose,
           eq(
             purposeRiskAnalysisFormInReadmodelPurpose.id,
@@ -183,7 +181,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           purposeVersionInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,
@@ -191,7 +188,6 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           purposeVersionDocumentInReadmodelPurpose,
           eq(
             purposeVersionInReadmodelPurpose.id,

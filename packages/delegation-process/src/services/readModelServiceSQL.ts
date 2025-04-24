@@ -127,7 +127,7 @@ export function readModelServiceBuilderSQL({
       const subquery = readModelDB
         .select({
           delegationId: delegationInReadmodelDelegation.id,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(delegationInReadmodelDelegation)
         .where(
@@ -150,6 +150,7 @@ export function readModelServiceBuilderSQL({
             kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
           )
         )
+        .orderBy(delegationInReadmodelDelegation.createdAt)
         .groupBy(delegationInReadmodelDelegation.id)
         .limit(limit)
         .offset(offset)
@@ -188,11 +189,11 @@ export function readModelServiceBuilderSQL({
         results: aggregateDelegationArray(
           toDelegationAggregatorArray(queryResult)
         ).map((d) => d.data),
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getConsumerDelegators(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       eserviceIds: EServiceId[];
       limit: number;
@@ -202,7 +203,7 @@ export function readModelServiceBuilderSQL({
         .select({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
         .innerJoin(
@@ -220,7 +221,7 @@ export function readModelServiceBuilderSQL({
               delegationKind.delegatedConsumer
             ),
             eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.requesterId),
+            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
             filters.eserviceIds.length > 0
               ? inArray(
                   delegationInReadmodelDelegation.eserviceId,
@@ -258,11 +259,11 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: result.data,
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getConsumerDelegatorsWithAgreements(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       limit: number;
       offset: number;
@@ -271,7 +272,7 @@ export function readModelServiceBuilderSQL({
         .select({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
         .innerJoin(
@@ -303,7 +304,7 @@ export function readModelServiceBuilderSQL({
               delegationKind.delegatedConsumer
             ),
             eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.requesterId),
+            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
             // AGREEMENT FILTERS
             eq(
               agreementInReadmodelAgreement.producerId,
@@ -345,11 +346,11 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: result.data,
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getConsumerEservices(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorId: TenantId;
       limit: number;
       offset: number;
@@ -360,7 +361,7 @@ export function readModelServiceBuilderSQL({
           id: eserviceInReadmodelCatalog.id,
           name: eserviceInReadmodelCatalog.name,
           producerId: eserviceInReadmodelCatalog.producerId,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
@@ -385,7 +386,7 @@ export function readModelServiceBuilderSQL({
               delegationKind.delegatedConsumer
             ),
             eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.requesterId),
+            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
             eq(
               delegationInReadmodelDelegation.delegatorId,
               filters.delegatorId
@@ -432,7 +433,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: result.data,
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getDelegationRelatedAgreement(
