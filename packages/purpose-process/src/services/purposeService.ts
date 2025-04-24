@@ -1498,7 +1498,7 @@ const performUpdatePurpose = async (
   readModelService: ReadModelService,
   correlationId: CorrelationId,
   repository: {
-    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
+    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<unknown>;
   }
   // eslint-disable-next-line max-params
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
