@@ -221,20 +221,31 @@ const purposeRouter = (
         }
       }
     )
-    .post("/purposes/:purposeId/suspend", async (req, res) => {
-      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-      try {
-        return res.status(501).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error suspending purpose ${req.params.purposeId} version`
-        );
-        return res.status(errorRes.status).send(errorRes);
+    .post(
+      "/purposes/:purposeId/versions/:versionId/suspend",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE]);
+
+          await purposeService.suspendPurposeVersion(
+            ctx,
+            unsafeBrandId(req.params.purposeId),
+            unsafeBrandId(req.params.versionId)
+          );
+
+          return res.status(204);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error suspending purpose ${req.params.purposeId} version`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    })
+    )
     .post("/purposes/:purposeId/unsuspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {

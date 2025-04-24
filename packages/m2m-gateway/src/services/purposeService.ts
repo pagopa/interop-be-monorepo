@@ -213,5 +213,19 @@ export function purposeServiceBuilder({
 
       await pollPurposeVersion(purposeId, versionResponse, headers);
     },
+    suspendPurposeVersion: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      purposeId: PurposeId,
+      versionId: PurposeVersionId
+    ): Promise<void> => {
+      logger.info(`Suspending version ${versionId} of purpose ${purposeId}`);
+
+      const versionResponse = await purposeProcessClient.suspendPurposeVersion(
+        undefined,
+        { params: { purposeId, versionId }, headers }
+      );
+
+      await pollPurposeVersion(purposeId, versionResponse, headers);
+    },
   };
 }
