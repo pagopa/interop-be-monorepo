@@ -15,14 +15,14 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
-import { CompactOrganization } from "../src/model/domain/models.js";
+import { CompactOrganization } from "../../src/model/domain/models.js";
 import {
   addOneTenant,
   addOneAgreement,
   agreementService,
   addOneDelegation,
   expectSinglePageListResult,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("get agreements consumers / producers", () => {
   let tenant1: Tenant;
