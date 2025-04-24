@@ -1318,7 +1318,9 @@ export function tenantServiceBuilder(
     },
     async getTenantById(
       id: TenantId,
-      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | InternalAuthData>>
     ): Promise<Tenant> {
       logger.info(`Retrieving tenant ${id}`);
       const tenant = await retrieveTenant(id, readModelService);
@@ -1342,7 +1344,9 @@ export function tenantServiceBuilder(
     },
     async getTenantBySelfcareId(
       selfcareId: string,
-      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | InternalAuthData>>
     ): Promise<Tenant> {
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
       const tenant = await readModelService.getTenantBySelfcareId(selfcareId);
