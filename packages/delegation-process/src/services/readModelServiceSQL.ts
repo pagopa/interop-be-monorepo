@@ -192,7 +192,7 @@ export function readModelServiceBuilderSQL({
       };
     },
     async getConsumerDelegators(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       eserviceIds: EServiceId[];
       limit: number;
@@ -220,7 +220,7 @@ export function readModelServiceBuilderSQL({
               delegationKind.delegatedConsumer
             ),
             eq(delegationInReadmodelDelegation.state, delegationState.active),
-            eq(delegationInReadmodelDelegation.delegateId, filters.requesterId),
+            eq(delegationInReadmodelDelegation.delegateId, filters.delegateId),
             filters.eserviceIds.length > 0
               ? inArray(
                   delegationInReadmodelDelegation.eserviceId,
