@@ -4,7 +4,6 @@ import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
-  selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
@@ -17,7 +16,7 @@ import {
   toAuthorizationKeySeed,
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
-import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
+import { getSelfcareCompactUserById } from "./selfcareService.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -241,15 +240,14 @@ export function clientServiceBuilder(
       });
 
       return await Promise.all(
-        clientUsers.map(async (id) => {
-          const user = await getSelfcareUserById(
+        clientUsers.map(async (id) =>
+          getSelfcareCompactUserById(
             selfcareUsersClient,
             id,
             selfcareId,
             correlationId
-          );
-          return toBffApiCompactUser(user, id);
-        })
+          )
+        )
       );
     },
 
@@ -352,10 +350,12 @@ async function enhanceClient(
       headers: ctx.headers,
     }),
     client.adminId
-      ? apiClients.tenantProcessClient.tenant.getTenant({
-          params: { id: client.adminId },
-          headers: ctx.headers,
-        })
+      ? getSelfcareCompactUserById(
+          apiClients.selfcareV2UserClient.user,
+          client.adminId,
+          ctx.authData.selfcareId,
+          ctx.correlationId
+        )
       : Promise.resolve(undefined),
     ...client.purposes.map((p) => enhancePurpose(apiClients, p, ctx)),
   ]);
@@ -371,12 +371,7 @@ async function enhanceClient(
       name: consumer.name,
     },
     purposes,
-    admin: admin
-      ? {
-          id: admin.id,
-          name: admin.name,
-        }
-      : undefined,
+    admin,
   };
 }
 
@@ -419,21 +414,6 @@ async function enhancePurpose(
   };
 }
 
-export async function getSelfcareUserById(
-  selfcareClient: SelfcareV2UsersClient,
-  userId: string,
-  selfcareId: string,
-  correlationId: CorrelationId
-): Promise<selfcareV2ClientApi.UserResponse> {
-  return selfcareClient.getUserInfoUsingGET({
-    params: { id: userId },
-    queries: { institutionId: selfcareId },
-    headers: {
-      "X-Correlation-Id": correlationId,
-    },
-  });
-}
-
 export async function decorateKey(
   selfcareClient: SelfcareV2UsersClient,
   key: authorizationApi.Key,
@@ -441,7 +421,7 @@ export async function decorateKey(
   members: string[],
   correlationId: CorrelationId
 ): Promise<bffApi.PublicKey> {
-  const user = await getSelfcareUserById(
+  const user = await getSelfcareCompactUserById(
     selfcareClient,
     key.userId,
     selfcareId,
@@ -449,11 +429,11 @@ export async function decorateKey(
   );
 
   return {
-    user: toBffApiCompactUser(user, key.userId),
+    user,
     name: key.name,
     keyId: key.kid,
     createdAt: key.createdAt,
-    isOrphan: !members.includes(key.userId) || user.id === undefined,
+    isOrphan: !members.includes(key.userId) || user.userId === undefined,
   };
 }
 
