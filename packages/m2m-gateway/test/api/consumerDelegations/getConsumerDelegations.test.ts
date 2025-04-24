@@ -10,7 +10,7 @@ import { unexpectedDelegationKind } from "../../../src/model/errors.js";
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
 import { getMockedApiDelegation } from "../../mockUtils.js";
 
-describe("GET /consumerDelegations authorization test", () => {
+describe("GET /consumerDelegations router test", () => {
   const mockApiDelegation1 = getMockedApiDelegation({
     kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
   });

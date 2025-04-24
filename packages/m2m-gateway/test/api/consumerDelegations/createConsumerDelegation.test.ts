@@ -15,7 +15,7 @@ import {
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
 import { getMockedApiDelegation } from "../../mockUtils.js";
 
-describe("POST /consumerDelegations authorization test", () => {
+describe("POST /consumerDelegations router test", () => {
   const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {
     eserviceId: generateId(),
     delegateId: generateId(),
