@@ -137,7 +137,7 @@ describe("Check purpose readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const purpose1ForSQL: WithMetadata<Purpose> = {
+    const purpose1InPostgresDb: WithMetadata<Purpose> = {
       data: {
         ...purpose1.data,
         consumerId: generateId(),
@@ -148,8 +148,8 @@ describe("Check purpose readmodels", () => {
     await addOnePurpose(purpose1);
 
     await purposeReadModelServiceSQL.upsertPurpose(
-      purpose1ForSQL.data,
-      purpose1ForSQL.metadata.version
+      purpose1InPostgresDb.data,
+      purpose1InPostgresDb.metadata.version
     );
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();
@@ -172,7 +172,7 @@ describe("Check purpose readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const purpose1ForSQL: WithMetadata<Purpose> = {
+    const purpose1InPostgresDb: WithMetadata<Purpose> = {
       data: purpose1.data,
       metadata: {
         version: 3,
@@ -182,8 +182,8 @@ describe("Check purpose readmodels", () => {
     await addOnePurpose(purpose1);
 
     await purposeReadModelServiceSQL.upsertPurpose(
-      purpose1ForSQL.data,
-      purpose1ForSQL.metadata.version
+      purpose1InPostgresDb.data,
+      purpose1InPostgresDb.metadata.version
     );
 
     const collectionPurposes = await readModelService.getAllReadModelPurposes();

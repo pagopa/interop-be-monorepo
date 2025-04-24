@@ -1,4 +1,10 @@
-import { AuthData, hasPermission, userRoles } from "pagopa-interop-commons";
+import {
+  hasAtLeastOneUserRole,
+  M2MAuthData,
+  ReadModelRepository,
+  UIAuthData,
+  userRole,
+} from "pagopa-interop-commons";
 import {
   AttributeId,
   EService,
@@ -54,7 +60,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateRefInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -70,7 +75,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
-import { activeDescriptorStates } from "./validators.js";
+import { validDescriptorStates } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -81,7 +86,7 @@ export function readModelServiceBuilderSQL(
 ) {
   return {
     async getEServices(
-      authData: AuthData,
+      authData: UIAuthData | M2MAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -99,7 +104,7 @@ export function readModelServiceBuilderSQL(
         templatesIds,
       } = filters;
 
-      const matchingEserviceIds = await readmodelDB
+      const subquery = readmodelDB
         .select({
           id: eserviceInReadmodelCatalog.id,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
@@ -133,18 +138,14 @@ export function readModelServiceBuilderSQL(
             delegationInReadmodelDelegation.eserviceId
           )
         )
-        .leftJoin(
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
-          )
-        )
         .where(
           and(
             // name filter
             name
-              ? ilike(eserviceInReadmodelCatalog.name, `%${name}%`)
+              ? ilike(
+                  eserviceInReadmodelCatalog.name,
+                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                )
               : undefined,
             // ids filter
             eservicesIds.length > 0
@@ -192,16 +193,13 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // visibility filter
-            hasPermission(
-              [
-                userRoles.ADMIN_ROLE,
-                userRoles.API_ROLE,
-                userRoles.SUPPORT_ROLE,
-              ],
-              authData
-            )
+            hasAtLeastOneUserRole(authData, [
+              userRole.ADMIN_ROLE,
+              userRole.API_ROLE,
+              userRole.SUPPORT_ROLE,
+            ])
               ? or(
-                  // exist active descriptors for that eservice
+                  // exist valid descriptors for that eservice
                   exists(
                     readmodelDB
                       .select()
@@ -214,7 +212,7 @@ export function readModelServiceBuilderSQL(
                           ),
                           inArray(
                             eserviceDescriptorInReadmodelCatalog.state,
-                            activeDescriptorStates
+                            validDescriptorStates
                           )
                         )
                       )
@@ -251,7 +249,7 @@ export function readModelServiceBuilderSQL(
                       )
                   )
                 )
-              : // exist active descriptors for that eservice
+              : // exist valid descriptors for that eservice
                 exists(
                   readmodelDB
                     .select()
@@ -264,7 +262,7 @@ export function readModelServiceBuilderSQL(
                         ),
                         inArray(
                           eserviceDescriptorInReadmodelCatalog.state,
-                          activeDescriptorStates
+                          validDescriptorStates
                         )
                       )
                     )
@@ -317,19 +315,16 @@ export function readModelServiceBuilderSQL(
               : undefined,
             // template filter
             templatesIds.length > 0
-              ? inArray(
-                  eserviceTemplateRefInReadmodelCatalog.eserviceTemplateId,
-                  templatesIds
-                )
+              ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
               : undefined
           )
         )
         .groupBy(eserviceInReadmodelCatalog.id)
         .limit(limit)
         .offset(offset)
-        .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`);
+        .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`)
+        .as("subquery");
 
-      // manually retrieve eservices matching those ids but do manual pagination (example: query the first 10. etc...)
       const queryResult = await readmodelDB
         .select({
           eservice: eserviceInReadmodelCatalog,
@@ -340,19 +335,13 @@ export function readModelServiceBuilderSQL(
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateRef: eserviceTemplateRefInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          totalCount: subquery.totalCount,
         })
         .from(eserviceInReadmodelCatalog)
-        .where(
-          inArray(
-            eserviceInReadmodelCatalog.id,
-            matchingEserviceIds.map((row) => row.id)
-          )
-        )
+        .innerJoin(subquery, eq(eserviceInReadmodelCatalog.id, subquery.id))
         .leftJoin(
-          // 1
           eserviceDescriptorInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -360,7 +349,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 2
           eserviceDescriptorInterfaceInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -368,7 +356,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           eserviceDescriptorDocumentInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -376,7 +363,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           eserviceDescriptorAttributeInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -384,7 +370,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           eserviceDescriptorRejectionReasonInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -392,7 +377,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -400,7 +384,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -408,19 +391,10 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 9
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         )
         .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`);
@@ -431,7 +405,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: eservices.map((eservice) => eservice.data),
-        totalCount: matchingEserviceIds[0]?.totalCount || 0,
+        totalCount: queryResult[0]?.totalCount || 0,
       };
     },
     async getEServiceByNameAndProducerId({
@@ -443,7 +417,10 @@ export function readModelServiceBuilderSQL(
     }): Promise<WithMetadata<EService> | undefined> {
       return await catalogReadModelService.getEServiceByFilter(
         and(
-          ilike(eserviceInReadmodelCatalog.name, name),
+          ilike(
+            eserviceInReadmodelCatalog.name,
+            ReadModelRepository.escapeRegExp(name)
+          ),
           eq(eserviceInReadmodelCatalog.producerId, producerId)
         )
       );

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { Logger } from "pagopa-interop-commons";
+import { FileManager, Logger } from "pagopa-interop-commons";
 import { stringify } from "csv-stringify/sync";
 import { config } from "../config/config.js";
 import { toPublicEService, toPublicTenant } from "../models/converters.js";
@@ -77,9 +77,11 @@ export const convertEservicesToCSV = (
 
 export function dtdCatalogExporterServiceBuilder({
   readModelService,
+  fileManager,
   loggerInstance,
 }: {
   readModelService: ReturnType<typeof readModelServiceBuilder>;
+  fileManager: FileManager;
   loggerInstance: Logger;
 }) {
   const getPublicEServices = async (): Promise<PublicEService[]> => {
@@ -137,16 +139,28 @@ export function dtdCatalogExporterServiceBuilder({
       const githubClient = new GithubClient(config.githubAccessToken);
 
       // Eservices
+      loggerInstance.info("\nUploading Eservices JSON result to S3 bucket...");
+      const eservicesJsonContent = JSON.stringify(eservices);
+      await fileManager.storeBytes(
+        {
+          bucket: config.s3Bucket,
+          path: config.dtdCatalogStoragePath,
+          name: config.dtdCatalogJsonFilename,
+          content: Buffer.from(eservicesJsonContent),
+        },
+        loggerInstance
+      );
+
       loggerInstance.info(
         "\nUploading Eservices JSON result to GitHub repo..."
       );
-      const eservicesJsonContent = JSON.stringify(eservices);
       await githubClient.createOrUpdateRepoFile(
         eservicesJsonContent,
         config.githubRepoOwner,
         config.githubRepo,
         `data/${config.dtdCatalogJsonFilename}`
       );
+
       loggerInstance.info("\nUploading Eservices CSV result to GitHub repo...");
       const eservicesCsvContent = convertEservicesToCSV(eservices);
       await githubClient.createOrUpdateRepoFile(
@@ -165,6 +179,7 @@ export function dtdCatalogExporterServiceBuilder({
         config.githubRepo,
         `data/${config.dtdTenantsJsonFilename}`
       );
+
       loggerInstance.info("\nUploading Tenants CSV result to GitHub repo...");
       const tenantsCsvContent = convertTenantsToCSV(tenants);
       await githubClient.createOrUpdateRepoFile(

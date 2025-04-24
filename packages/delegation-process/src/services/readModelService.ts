@@ -231,7 +231,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerDelegators(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       eserviceIds: EServiceId[];
       limit: number;
@@ -242,7 +242,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.requesterId,
+            "data.delegateId": filters.delegateId,
             ...ReadModelRepository.arrayToFilter(filters.eserviceIds, {
               "data.eserviceId": { $in: filters.eserviceIds },
             }),
@@ -321,7 +321,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerDelegatorsWithAgreements(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       limit: number;
       offset: number;
@@ -331,7 +331,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.requesterId,
+            "data.delegateId": filters.delegateId,
           } satisfies ReadModelFilter<Delegation>,
         },
         {
@@ -454,7 +454,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerEservices(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorId: TenantId;
       limit: number;
       offset: number;
@@ -465,7 +465,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.requesterId,
+            "data.delegateId": filters.delegateId,
             "data.delegatorId": filters.delegatorId,
           } satisfies ReadModelFilter<Delegation>,
         },

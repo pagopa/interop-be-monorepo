@@ -9,8 +9,9 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
+  getMockAuthData,
+  getMockContext,
   getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
@@ -53,10 +54,10 @@ describe("deleteTenantMailById", async () => {
       {
         tenantId: tenant.id,
         mailId,
-        organizationId: tenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(tenant.id),
+      })
     );
     const writtenEvent = await readLastEventByStreamId(
       tenant.id,
@@ -97,10 +98,10 @@ describe("deleteTenantMailById", async () => {
         {
           tenantId,
           mailId,
-          organizationId: tenantId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(tenantId),
+        })
       )
     ).rejects.toThrowError(tenantNotFound(tenantId));
   });
@@ -123,10 +124,8 @@ describe("deleteTenantMailById", async () => {
         {
           tenantId: tenant.id,
           mailId,
-          organizationId: generateId(),
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -149,10 +148,10 @@ describe("deleteTenantMailById", async () => {
         {
           tenantId: tenant.id,
           mailId: mailIdNotInTenant,
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
       )
     ).rejects.toThrowError(mailNotFound(mailIdNotInTenant));
   });

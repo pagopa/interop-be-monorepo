@@ -1,4 +1,8 @@
-import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import {
+  initFileManager,
+  logger,
+  ReadModelRepository,
+} from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
@@ -33,7 +37,8 @@ const readModelService =
     : oldReadModelService;
 
 await dtdCatalogExporterServiceBuilder({
-  readModelService,
+  readModelService: readModelServiceBuilder(ReadModelRepository.init(config)),
+  fileManager: initFileManager(config),
   loggerInstance: logger({
     serviceName: "dtd-catalog-exporter",
     correlationId: generateId<CorrelationId>(),

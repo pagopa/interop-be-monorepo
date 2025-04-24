@@ -1,5 +1,6 @@
 import {
   AgreementApprovalPolicy,
+  AttributeKind,
   attributeKind,
   EServiceMode,
   EServiceTemplate,
@@ -20,11 +21,13 @@ import {
   EServiceTemplateVersionInterfaceSQL,
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
+import { match } from "ts-pattern";
 import {
   aggregateRiskAnalysis,
   attributesSQLtoAttributes,
   documentSQLtoDocument,
 } from "../catalog/aggregators.js";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregateEServiceTemplateVersion = ({
   versionSQL,
@@ -41,16 +44,32 @@ export const aggregateEServiceTemplateVersion = ({
     ? documentSQLtoDocument(interfaceSQL)
     : undefined;
 
-  const certifiedAttributesSQL = attributesSQL.filter(
-    (a) => a.kind === attributeKind.certified
+  const {
+    certified: certifiedAttributesSQL,
+    verified: verifiedAttributesSQL,
+    declared: declaredAttributesSQL,
+  } = attributesSQL.reduce(
+    (acc, attributeSQL) =>
+      match(AttributeKind.parse(attributeSQL.kind))
+        .with(attributeKind.certified, () => ({
+          ...acc,
+          certified: [...acc.certified, attributeSQL],
+        }))
+        .with(attributeKind.declared, () => ({
+          ...acc,
+          declared: [...acc.declared, attributeSQL],
+        }))
+        .with(attributeKind.verified, () => ({
+          ...acc,
+          verified: [...acc.verified, attributeSQL],
+        }))
+        .exhaustive(),
+    {
+      certified: new Array<EServiceTemplateVersionAttributeSQL>(),
+      declared: new Array<EServiceTemplateVersionAttributeSQL>(),
+      verified: new Array<EServiceTemplateVersionAttributeSQL>(),
+    }
   );
-  const declaredAttributesSQL = attributesSQL.filter(
-    (a) => a.kind === attributeKind.declared
-  );
-  const verifiedAttributesSQL = attributesSQL.filter(
-    (a) => a.kind === attributeKind.verified
-  );
-
   const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
   const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
   const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
@@ -59,7 +78,7 @@ export const aggregateEServiceTemplateVersion = ({
     id: unsafeBrandId(versionSQL.id),
     version: versionSQL.version,
     docs: documentsSQL.map(documentSQLtoDocument),
-    state: EServiceTemplateVersionState.parse(versionSQL.state), // TODO use safeParse?
+    state: EServiceTemplateVersionState.parse(versionSQL.state),
     voucherLifespan: versionSQL.voucherLifespan,
     ...(versionSQL.dailyCallsPerConsumer
       ? { dailyCallsPerConsumer: versionSQL.dailyCallsPerConsumer }
@@ -79,7 +98,7 @@ export const aggregateEServiceTemplateVersion = ({
       ? {
           agreementApprovalPolicy: AgreementApprovalPolicy.parse(
             versionSQL.agreementApprovalPolicy
-          ), // TODO use safeParse?
+          ),
         }
       : {}),
     ...(versionSQL.publishedAt
@@ -103,21 +122,42 @@ export const aggregateEServiceTemplate = ({
   attributesSQL,
   documentsSQL,
 }: EServiceTemplateItemsSQL): WithMetadata<EServiceTemplate> => {
+  const interfacesSQLByVersionId = interfacesSQL.reduce((acc, i) => {
+    const versionId = i.versionId;
+    acc.set(versionId, i);
+    return acc;
+  }, new Map<string, EServiceTemplateVersionInterfaceSQL>());
+  const documentsSQLByVersionId = documentsSQL.reduce((acc, doc) => {
+    const versionId = doc.versionId;
+    acc.set(versionId, [...(acc.get(versionId) || []), doc]);
+    return acc;
+  }, new Map<string, EServiceTemplateVersionDocumentSQL[]>());
+  const attributesSQLByVersionId = attributesSQL.reduce((acc, attr) => {
+    const versionId = attr.versionId;
+    acc.set(versionId, [...(acc.get(versionId) || []), attr]);
+    return acc;
+  }, new Map<string, EServiceTemplateVersionAttributeSQL[]>());
   const versions = versionsSQL.map((versionSQL) =>
     aggregateEServiceTemplateVersion({
       versionSQL,
-      interfaceSQL: interfacesSQL.find((i) => i.versionId === versionSQL.id),
-      documentsSQL: documentsSQL.filter((d) => d.versionId === versionSQL.id),
-      attributesSQL: attributesSQL.filter((a) => a.versionId === versionSQL.id),
+      interfaceSQL: interfacesSQLByVersionId.get(versionSQL.id),
+      documentsSQL: documentsSQLByVersionId.get(versionSQL.id) || [],
+      attributesSQL: attributesSQLByVersionId.get(versionSQL.id) || [],
     })
   );
 
+  const riskAnalysisAnswersSQLByFormId = riskAnalysisAnswersSQL.reduce(
+    (acc, answer) => {
+      const formId = answer.riskAnalysisFormId;
+      acc.set(formId, [...(acc.get(formId) || []), answer]);
+      return acc;
+    },
+    new Map<string, EServiceTemplateRiskAnalysisAnswerSQL[]>()
+  );
   const riskAnalysis = riskAnalysesSQL.map((ra) =>
     aggregateRiskAnalysis(
       ra,
-      riskAnalysisAnswersSQL.filter(
-        (answer) => answer.riskAnalysisFormId === ra.riskAnalysisFormId
-      )
+      riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
     )
   );
   const eserviceTemplate: EServiceTemplate = {
@@ -127,10 +167,10 @@ export const aggregateEServiceTemplate = ({
     createdAt: stringToDate(eserviceTemplateSQL.createdAt),
     creatorId: unsafeBrandId(eserviceTemplateSQL.creatorId),
     description: eserviceTemplateSQL.description,
-    technology: Technology.parse(eserviceTemplateSQL.technology), // TODO use safeParse?
+    technology: Technology.parse(eserviceTemplateSQL.technology),
     versions,
     riskAnalysis,
-    mode: EServiceMode.parse(eserviceTemplateSQL.mode), // TODO use safeParse?
+    mode: EServiceMode.parse(eserviceTemplateSQL.mode),
     ...(eserviceTemplateSQL.isSignalHubEnabled !== null
       ? { isSignalHubEnabled: eserviceTemplateSQL.isSignalHubEnabled }
       : {}),
@@ -157,7 +197,6 @@ export const aggregateEServiceTemplateArray = ({
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
-  // templateBindingSQL: EServiceTemplateBindingSQL[];
 }): Array<WithMetadata<EServiceTemplate>> =>
   eserviceTemplatesSQL.map((eserviceTemplateSQL) =>
     aggregateEServiceTemplate({
@@ -292,7 +331,7 @@ export const toEServiceTemplateAggregatorArray = (
       if (
         attributeSQL &&
         !attributeIdSet.has(
-          uniqueKey([
+          makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.versionId,
             attributeSQL.groupId.toString(),
@@ -300,7 +339,7 @@ export const toEServiceTemplateAggregatorArray = (
         )
       ) {
         attributeIdSet.add(
-          uniqueKey([
+          makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.versionId,
             attributeSQL.groupId.toString(),
@@ -341,5 +380,3 @@ export const toEServiceTemplateAggregatorArray = (
     riskAnalysisAnswersSQL,
   };
 };
-
-const uniqueKey = (ids: string[]): string => ids.join("#");

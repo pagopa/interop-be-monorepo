@@ -18,6 +18,7 @@ import {
   generateId,
   TenantId,
   toDelegationV2,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -48,22 +49,22 @@ import {
  * and equal, and verifies that the last delegation event matches the expected
  * delegation data.
  *
- * @param actualDelegation - The actual delegation object to be validated,
+ * @param createDelegationResponse - The actual delegation object to be validated,
  * typically a response from an API.
  * @param expectedDelegation - The expected delegation object to compare against.
  * @returns A promise that resolves to void.
  * @throws Will fail if the delegation is not found in the event store.
  */
 const expectedDelegationCreation = async (
-  actualDelegation: Delegation,
+  createDelegationResponse: WithMetadata<Delegation>,
   expectedDelegation: Delegation
 ): Promise<void> => {
-  expect(actualDelegation.id).toBeDefined();
+  expect(createDelegationResponse.data.id).toBeDefined();
   expect(expectedDelegation.id).toBeDefined();
-  expect(actualDelegation.id).toEqual(expectedDelegation.id);
+  expect(createDelegationResponse.data.id).toEqual(expectedDelegation.id);
 
   const lastDelegationEvent = await readLastDelegationEvent(
-    actualDelegation.id
+    createDelegationResponse.data.id
   );
 
   if (!lastDelegationEvent) {
@@ -75,7 +76,12 @@ const expectedDelegationCreation = async (
     payload: lastDelegationEvent.data,
   });
 
-  expect(actualDelegation).toMatchObject(expectedDelegation);
+  expect(createDelegationResponse).toMatchObject({
+    data: expectedDelegation,
+    metadata: {
+      version: 0,
+    },
+  });
   expect(actualDelegationData.delegation).toEqual(
     toDelegationV2(expectedDelegation)
   );
@@ -127,7 +133,7 @@ describe.each([
       await addOneTenant(delegate);
       await addOneEservice(eservice);
 
-      const actualDelegation = await createFn(
+      const response = await createFn(
         {
           delegateId: delegate.id,
           eserviceId: eservice.id,
@@ -136,7 +142,7 @@ describe.each([
       );
 
       const expectedDelegation: Delegation = {
-        id: actualDelegation.id,
+        id: response.data.id,
         delegatorId,
         delegateId: delegate.id,
         eserviceId: eservice.id,
@@ -151,7 +157,7 @@ describe.each([
         },
       };
 
-      await expectedDelegationCreation(actualDelegation, expectedDelegation);
+      await expectedDelegationCreation(response, expectedDelegation);
       vi.useRealTimers();
     }
   );
@@ -203,7 +209,7 @@ describe.each([
       await addOneEservice(eservice);
       await addOneDelegation(existentDelegation);
 
-      const actualDelegation = await createFn(
+      const response = await createFn(
         {
           delegateId: delegate.id,
           eserviceId: eservice.id,
@@ -212,7 +218,7 @@ describe.each([
       );
 
       const expectedDelegation: Delegation = {
-        id: actualDelegation.id,
+        id: response.data.id,
         delegatorId,
         delegateId: delegate.id,
         eserviceId: eservice.id,
@@ -227,8 +233,8 @@ describe.each([
         },
       };
 
-      await expectedDelegationCreation(actualDelegation, expectedDelegation);
-      expect(actualDelegation.id).not.toEqual(existentDelegation.id);
+      await expectedDelegationCreation(response, expectedDelegation);
+      expect(response.data.id).not.toEqual(existentDelegation.id);
 
       vi.useRealTimers();
     }

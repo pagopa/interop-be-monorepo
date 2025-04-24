@@ -3,6 +3,8 @@ import {
   decodeProtobufPayload,
   getMockProducerKeychain,
   getMockEService,
+  getMockAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import {
@@ -14,7 +16,6 @@ import {
   EServiceId,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   eserviceNotFound,
   organizationNotAllowedOnProducerKeychain,
@@ -48,13 +49,13 @@ describe("addProducerKeychainEService", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
     await addOneEService(mockEService);
 
-    await authorizationService.addProducerKeychainEService({
-      producerKeychainId: mockProducerKeychain.id,
-      seed: { eserviceId: mockEService.id },
-      organizationId: mockProducerId,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await authorizationService.addProducerKeychainEService(
+      {
+        producerKeychainId: mockProducerKeychain.id,
+        seed: { eserviceId: mockEService.id },
+      },
+      getMockContext({ authData: getMockAuthData(mockProducerId) })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(
       mockProducerKeychain.id
@@ -93,13 +94,13 @@ describe("addProducerKeychainEService", async () => {
     const mockProducerKeychain = getMockProducerKeychain();
 
     expect(
-      authorizationService.addProducerKeychainEService({
-        producerKeychainId: mockProducerKeychain.id,
-        seed: { eserviceId: mockEService.id },
-        organizationId: mockProducerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.addProducerKeychainEService(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          seed: { eserviceId: mockEService.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockProducerId) })
+      )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer keychain producer", async () => {
@@ -118,13 +119,13 @@ describe("addProducerKeychainEService", async () => {
     await addOneEService(mockEService);
 
     expect(
-      authorizationService.addProducerKeychainEService({
-        producerKeychainId: mockProducerKeychain.id,
-        seed: { eserviceId: mockEService.id },
-        organizationId: mockProducerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.addProducerKeychainEService(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          seed: { eserviceId: mockEService.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockProducerId) })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
         mockProducerId,
@@ -150,13 +151,13 @@ describe("addProducerKeychainEService", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.addProducerKeychainEService({
-        producerKeychainId: mockProducerKeychain.id,
-        seed: { eserviceId: mockEService.id },
-        organizationId: mockProducerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.addProducerKeychainEService(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          seed: { eserviceId: mockEService.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockProducerId) })
+      )
     ).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
   it("should throw organizationNotAllowedOnEService if the requester is not the eservice producer", async () => {
@@ -177,13 +178,13 @@ describe("addProducerKeychainEService", async () => {
     await addOneEService(mockEService);
 
     expect(
-      authorizationService.addProducerKeychainEService({
-        producerKeychainId: mockProducerKeychain.id,
-        seed: { eserviceId: mockEService.id },
-        organizationId: mockProducerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.addProducerKeychainEService(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          seed: { eserviceId: mockEService.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockProducerId) })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnEService(mockProducerId, mockEService.id)
     );
@@ -208,13 +209,13 @@ describe("addProducerKeychainEService", async () => {
     await addOneEService(mockEService);
 
     expect(
-      authorizationService.addProducerKeychainEService({
-        producerKeychainId: mockProducerKeychain.id,
-        seed: { eserviceId: mockEService.id },
-        organizationId: mockProducerId,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.addProducerKeychainEService(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          seed: { eserviceId: mockEService.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockProducerId) })
+      )
     ).rejects.toThrowError(
       eserviceAlreadyLinkedToProducerKeychain(
         mockEService.id,

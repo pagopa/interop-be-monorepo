@@ -26,8 +26,6 @@ export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
-
 export const reversePurposeUpdateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -55,11 +53,6 @@ export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "eserviceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("purposeDraftVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -145,9 +138,6 @@ export const acceptPrivacyNoticeErrorMapper = (
     .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const attributeEmptyErrorMapper = (): number =>
-  HTTP_STATUS_INTERNAL_SERVER_ERROR;
-
 export const getProducerKeychainUsersErrorMapper = (
   error: ApiError<ErrorCodes>
   // eslint-disable-next-line sonarjs/no-identical-functions
@@ -168,7 +158,7 @@ export const createEServiceDocumentErrorMapper = (
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "invalidInterfaceContentTypeDetected",
-      "invalidInterfaceFileDetected",
+      "invalidEserviceInterfaceFileDetected",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -180,7 +170,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
     .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "invalidInterfaceContentTypeDetected",
-      "invalidInterfaceFileDetected",
+      "invalidEserviceInterfaceFileDetected",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -251,7 +241,7 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
       "eserviceTemplateInterfaceNotFound",
       "eserviceTemplateInterfaceDataNotValid",
       "invalidInterfaceContentTypeDetected",
-      "invalidInterfaceFileDetected",
+      "invalidEserviceInterfaceFileDetected",
       "interfaceExtractingInfoError",
       "templateDataNotFound",
       () => HTTP_STATUS_BAD_REQUEST
