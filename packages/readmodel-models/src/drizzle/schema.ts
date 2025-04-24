@@ -586,7 +586,7 @@ export const eserviceDescriptorDocumentInReadmodelCatalog =
 export const eserviceRiskAnalysisInReadmodelCatalog = readmodelCatalog.table(
   "eservice_risk_analysis",
   {
-    id: uuid().primaryKey().notNull(),
+    id: uuid().notNull(),
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar().notNull(),
@@ -611,7 +611,12 @@ export const eserviceRiskAnalysisInReadmodelCatalog = readmodelCatalog.table(
       ],
       name: "eservice_risk_analysis_eservice_id_metadata_version_fkey",
     }),
-    unique("eservice_risk_analysis_risk_analysis_form_id_key").on(
+    primaryKey({
+      columns: [table.id, table.eserviceId],
+      name: "eservice_risk_analysis_pkey",
+    }),
+    unique("eservice_risk_analysis_risk_analysis_form_id_eservice_id_key").on(
+      table.eserviceId,
       table.riskAnalysisFormId
     ),
   ]
@@ -621,7 +626,7 @@ export const eserviceRiskAnalysisAnswerInReadmodelCatalog =
   readmodelCatalog.table(
     "eservice_risk_analysis_answer",
     {
-      id: uuid().primaryKey().notNull(),
+      id: uuid().notNull(),
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
@@ -636,12 +641,27 @@ export const eserviceRiskAnalysisAnswerInReadmodelCatalog =
         name: "eservice_risk_analysis_answer_eservice_id_fkey",
       }).onDelete("cascade"),
       foreignKey({
-        columns: [table.riskAnalysisFormId],
+        columns: [table.eserviceId, table.metadataVersion],
         foreignColumns: [
+          eserviceInReadmodelCatalog.id,
+          eserviceInReadmodelCatalog.metadataVersion,
+        ],
+        name: "eservice_risk_analysis_answer_eservice_id_metadata_version_fkey",
+      }),
+      foreignKey({
+        columns: [table.eserviceId, table.riskAnalysisFormId],
+        foreignColumns: [
+          eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
           eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
         ],
-        name: "eservice_risk_analysis_answer_risk_analysis_form_id_fkey",
+        name: "eservice_risk_analysis_answer_risk_analysis_form_id_eservi_fkey",
       }).onDelete("cascade"),
+      primaryKey({
+        columns: [table.id, table.eserviceId],
+        name: "eservice_risk_analysis_answer_pkey",
+      }),
+    ]
+  );
       foreignKey({
         columns: [table.eserviceId, table.metadataVersion],
         foreignColumns: [
