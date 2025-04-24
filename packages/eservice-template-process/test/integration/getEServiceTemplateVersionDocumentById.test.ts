@@ -17,8 +17,11 @@ import {
   eserviceTemplateDocumentNotFound,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
-} from "../src/model/domain/errors.js";
-import { addOneEServiceTemplate, eserviceTemplateService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import {
+  addOneEServiceTemplate,
+  eserviceTemplateService,
+} from "../integrationUtils.js";
 
 describe("getEServiceTemplateVersionDocumentById", () => {
   const mockDocument = getMockDocument();

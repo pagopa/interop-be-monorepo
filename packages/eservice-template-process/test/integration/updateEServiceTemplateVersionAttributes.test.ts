@@ -29,13 +29,13 @@ import {
   notValidEServiceTemplateVersionState,
   unchangedAttributes,
   versionAttributeGroupSupersetMissingInAttributesSeed,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("updateEServiceTemplateVersionAttributes", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);

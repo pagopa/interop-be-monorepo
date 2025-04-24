@@ -22,19 +22,19 @@ import {
   operationForbidden,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
-import { config } from "../src/config/config.js";
+import { config } from "../../src/config/config.js";
 import {
   eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eserviceTemplateNotInDraftState,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
-  eserviceTemplateToApiUpdateEServiceTemplateSeed,
   fileManager,
   postgresDB,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { eserviceTemplateToApiUpdateEServiceTemplateSeed } from "../mockUtils.js";
 
 describe("update EService template", () => {
   const mockEServiceTemplate = getMockEServiceTemplate();

@@ -25,13 +25,13 @@ import {
   eServiceTemplateNotFound,
   eServiceTemplateDuplicate,
   instanceNameConflict,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("updateEServiceTemplateName", () => {
   it("should write on event-store for the update of the eService template name", async () => {

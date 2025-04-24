@@ -19,12 +19,12 @@ import { expect, describe, it } from "vitest";
 import {
   eserviceTemplateWithoutPublishedVersion,
   eServiceTemplateNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("updateEServiceTemplateDescription", () => {
   it("should write on event-store for the update of the eService template description", async () => {

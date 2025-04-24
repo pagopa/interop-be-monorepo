@@ -39,14 +39,14 @@ import {
   templateNotInReceiveMode,
   tenantKindNotFound,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
-  buildRiskAnalysisSeed,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
   addOneTenant,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
 describe("updateEServiceTemplateRiskAnalysis", () => {
   const mockDate = new Date();

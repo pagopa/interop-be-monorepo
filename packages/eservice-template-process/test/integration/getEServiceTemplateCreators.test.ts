@@ -16,7 +16,7 @@ import {
   addOneEServiceTemplate,
   addOneTenant,
   eserviceTemplateService,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("getEServiceTemplateCreators", () => {
   let tenant1: Tenant;

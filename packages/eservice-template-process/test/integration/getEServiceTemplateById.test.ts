@@ -14,8 +14,11 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
 } from "pagopa-interop-commons-test";
-import { eServiceTemplateNotFound } from "../src/model/domain/errors.js";
-import { addOneEServiceTemplate, eserviceTemplateService } from "./utils.js";
+import { eServiceTemplateNotFound } from "../../src/model/domain/errors.js";
+import {
+  addOneEServiceTemplate,
+  eserviceTemplateService,
+} from "../integrationUtils.js";
 
 describe("getEServiceTemplateById", () => {
   const mockEServiceTemplateVersion = getMockEServiceTemplateVersion();

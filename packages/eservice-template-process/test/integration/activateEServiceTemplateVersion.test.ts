@@ -15,42 +15,40 @@ import {
   EServiceTemplate,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
-  EServiceTemplateVersionQuotasUpdatedV2,
+  EServiceTemplateVersionActivatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
-  inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   eserviceTemplateService,
   addOneEServiceTemplate,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
-describe("updateEServiceTemplateVersionQuotas", () => {
+describe("activateEServiceTemplateVersion", () => {
   const mockEServiceTemplate = getMockEServiceTemplate();
   const mockEServiceTemplateVersion = getMockEServiceTemplateVersion();
   const mockDocument = getMockDocument();
 
-  it("should write on event-store for the update of the eservice template version quotas", async () => {
+  it("should write on event-store for the activation of a eservice template version", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       interface: mockDocument,
-      state: descriptorState.published,
+      state: descriptorState.suspended,
+      suspendedAt: new Date(),
     };
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [eserviceTemplateVersion],
     };
     await addOneEServiceTemplate(eserviceTemplate);
-
-    await eserviceTemplateService.updateEServiceTemplateVersionQuotas(
+    await eserviceTemplateService.activateEServiceTemplateVersion(
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
-      { voucherLifespan: 60 },
       getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
       })
@@ -61,10 +59,10 @@ describe("updateEServiceTemplateVersionQuotas", () => {
     );
     expect(writtenEvent.stream_id).toBe(eserviceTemplate.id);
     expect(writtenEvent.version).toBe("1");
-    expect(writtenEvent.type).toBe("EServiceTemplateVersionQuotasUpdated");
+    expect(writtenEvent.type).toBe("EServiceTemplateVersionActivated");
     expect(writtenEvent.event_version).toBe(2);
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceTemplateVersionQuotasUpdatedV2,
+      messageType: EServiceTemplateVersionActivatedV2,
       payload: writtenEvent.data,
     });
 
@@ -73,7 +71,8 @@ describe("updateEServiceTemplateVersionQuotas", () => {
       versions: [
         {
           ...eserviceTemplateVersion,
-          voucherLifespan: 60,
+          state: descriptorState.published,
+          suspendedAt: undefined,
         },
       ],
     });
@@ -86,10 +85,9 @@ describe("updateEServiceTemplateVersionQuotas", () => {
 
   it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", () => {
     expect(
-      eserviceTemplateService.updateEServiceTemplateVersionQuotas(
+      eserviceTemplateService.activateEServiceTemplateVersion(
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id,
-        { voucherLifespan: 60 },
         getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
@@ -109,10 +107,9 @@ describe("updateEServiceTemplateVersionQuotas", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
     expect(
-      eserviceTemplateService.updateEServiceTemplateVersionQuotas(
+      eserviceTemplateService.activateEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
-        { voucherLifespan: 60 },
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
@@ -126,12 +123,11 @@ describe("updateEServiceTemplateVersionQuotas", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     expect(
-      eserviceTemplateService.updateEServiceTemplateVersionQuotas(
+      eserviceTemplateService.activateEServiceTemplateVersion(
         eserviceTemplate.id,
         mockEServiceTemplateVersion.id,
-        { voucherLifespan: 60 },
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(
@@ -144,6 +140,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
 
   it.each([
     eserviceTemplateVersionState.draft,
+    descriptorState.published,
     eserviceTemplateVersionState.deprecated,
   ])(
     "should throw notValidEServiceTemplateVersionState if the descriptor is in %s state",
@@ -158,10 +155,9 @@ describe("updateEServiceTemplateVersionQuotas", () => {
       };
       await addOneEServiceTemplate(eserviceTemplate);
       expect(
-        eserviceTemplateService.updateEServiceTemplateVersionQuotas(
+        eserviceTemplateService.activateEServiceTemplateVersion(
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
-          { voucherLifespan: 60 },
           getMockContext({
             authData: getMockAuthData(eserviceTemplate.creatorId),
           })
@@ -171,32 +167,4 @@ describe("updateEServiceTemplateVersionQuotas", () => {
       );
     }
   );
-
-  it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...mockEServiceTemplateVersion,
-      interface: mockDocument,
-      state: descriptorState.published,
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      versions: [eserviceTemplateVersion],
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    expect(
-      eserviceTemplateService.updateEServiceTemplateVersionQuotas(
-        eserviceTemplate.id,
-        mockEServiceTemplateVersion.id,
-        {
-          voucherLifespan: 60,
-          dailyCallsPerConsumer: 11,
-          dailyCallsTotal: 10,
-        },
-        getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(inconsistentDailyCalls());
-  });
 });

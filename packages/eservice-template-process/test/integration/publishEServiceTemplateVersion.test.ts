@@ -35,13 +35,13 @@ import {
   riskAnalysisValidationFailed,
   tenantKindNotFound,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   eserviceTemplateService,
   addOneEServiceTemplate,
   readLastEserviceTemplateEvent,
   addOneTenant,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("publishEServiceTemplateVersion", () => {
   const mockDate = new Date();

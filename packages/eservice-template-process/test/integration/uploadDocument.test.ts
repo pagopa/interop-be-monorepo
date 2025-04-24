@@ -25,14 +25,13 @@ import {
   eServiceTemplateVersionNotFound,
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
-  buildDocumentSeed,
-  buildInterfaceSeed,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { buildDocumentSeed, buildInterfaceSeed } from "../mockUtils.js";
 
 describe("upload Document", () => {
   const mockVersion = getMockEServiceTemplateVersion();

@@ -27,14 +27,14 @@ import {
   eServiceTemplateVersionNotFound,
   inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
   addOneEServiceTemplate,
-  buildUpdateVersionSeed,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { buildUpdateVersionSeed } from "../mockUtils.js";
 
 describe("update draft version", () => {
   const mockVersion = getMockEServiceTemplateVersion();

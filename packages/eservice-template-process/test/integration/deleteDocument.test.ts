@@ -18,19 +18,19 @@ import {
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
-import { config } from "../src/config/config.js";
+import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateDocumentNotFound,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
   fileManager,
   readLastEserviceTemplateEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("delete Document", () => {
   const mockEServiceTemplateVersion = getMockEServiceTemplateVersion();
