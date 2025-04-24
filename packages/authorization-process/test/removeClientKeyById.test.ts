@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   decodeProtobufPayload,
   getMockClient,
+  getMockContext,
   getMockKey,
   getMockTenant,
 } from "pagopa-interop-commons-test";
@@ -14,7 +15,7 @@ import {
   generateId,
   toClientV2,
 } from "pagopa-interop-models";
-import { genericLogger, userRoles } from "pagopa-interop-commons";
+import { userRole } from "pagopa-interop-commons";
 import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   clientNotFound,
@@ -34,10 +35,7 @@ describe("remove client key", () => {
     const mockConsumer = getMockTenant();
     const keyToRemove = getMockKey();
     const keyToNotRemove = getMockKey();
-    const mockAuthData = {
-      ...getMockAuthData(mockConsumer.id),
-      userRoles: [userRoles.ADMIN_ROLE],
-    };
+    const mockAuthData = getMockAuthData(mockConsumer.id);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -48,13 +46,13 @@ describe("remove client key", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.deleteClientKeyById({
-      clientId: mockClient.id,
-      keyIdToRemove: keyToRemove.kid,
-      authData: mockAuthData,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await authorizationService.deleteClientKeyById(
+      {
+        clientId: mockClient.id,
+        keyIdToRemove: keyToRemove.kid,
+      },
+      getMockContext({ authData: mockAuthData })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -88,17 +86,13 @@ describe("remove client key", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.deleteClientKeyById({
-      clientId: mockClient.id,
-      keyIdToRemove: keyToRemove.kid,
-      authData: {
-        ...getMockAuthData(mockConsumer.id),
-        userRoles: [userRoles.ADMIN_ROLE],
-        userId: mockUserId,
+    await authorizationService.deleteClientKeyById(
+      {
+        clientId: mockClient.id,
+        keyIdToRemove: keyToRemove.kid,
       },
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+      getMockContext({ authData: getMockAuthData(mockConsumer.id, mockUserId) })
+    );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -132,13 +126,13 @@ describe("remove client key", () => {
     await addOneClient(getMockClient());
 
     expect(
-      authorizationService.deleteClientKeyById({
-        clientId: mockClient.id,
-        keyIdToRemove: keyToRemove.kid,
-        authData: getMockAuthData(mockConsumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.deleteClientKeyById(
+        {
+          clientId: mockClient.id,
+          keyIdToRemove: keyToRemove.kid,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
   it("should throw clientKeyNotFound if the key doesn't exist in that client", async () => {
@@ -155,13 +149,13 @@ describe("remove client key", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.deleteClientKeyById({
-        clientId: mockClient.id,
-        keyIdToRemove: notExistingKeyId,
-        authData: getMockAuthData(mockConsumer.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.deleteClientKeyById(
+        {
+          clientId: mockClient.id,
+          keyIdToRemove: notExistingKeyId,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      )
     ).rejects.toThrowError(clientKeyNotFound(notExistingKeyId, mockClient.id));
   });
   it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
@@ -177,13 +171,13 @@ describe("remove client key", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.deleteClientKeyById({
-        clientId: mockClient.id,
-        keyIdToRemove: keyToRemove.kid,
-        authData: getMockAuthData(mockConsumer2.id),
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      authorizationService.deleteClientKeyById(
+        {
+          clientId: mockClient.id,
+          keyIdToRemove: keyToRemove.kid,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer2.id) })
+      )
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
     );
@@ -202,17 +196,17 @@ describe("remove client key", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.deleteClientKeyById({
-        clientId: mockClient.id,
-        keyIdToRemove: keyToRemove.kid,
-        authData: {
-          ...getMockAuthData(mockConsumer.id),
-          userRoles: [userRoles.SECURITY_ROLE],
-          userId: mockUserId,
+      authorizationService.deleteClientKeyById(
+        {
+          clientId: mockClient.id,
+          keyIdToRemove: keyToRemove.kid,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        getMockContext({
+          authData: getMockAuthData(mockConsumer.id, mockUserId, [
+            userRole.SECURITY_ROLE,
+          ]),
+        })
+      )
     ).rejects.toThrowError(userNotAllowedOnClient(mockUserId, mockClient.id));
   });
   it("should throw userNotAllowedToDeleteClientKey if a security user tries to delete a key not uploaded by himself", async () => {
@@ -229,17 +223,17 @@ describe("remove client key", () => {
     await addOneClient(mockClient);
 
     expect(
-      authorizationService.deleteClientKeyById({
-        clientId: mockClient.id,
-        keyIdToRemove: keyToRemove.kid,
-        authData: {
-          ...getMockAuthData(mockConsumer.id),
-          userRoles: [userRoles.SECURITY_ROLE],
-          userId: mockUserId,
+      authorizationService.deleteClientKeyById(
+        {
+          clientId: mockClient.id,
+          keyIdToRemove: keyToRemove.kid,
         },
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+        getMockContext({
+          authData: getMockAuthData(mockConsumer.id, mockUserId, [
+            userRole.SECURITY_ROLE,
+          ]),
+        })
+      )
     ).rejects.toThrowError(
       userNotAllowedToDeleteClientKey(
         mockUserId,

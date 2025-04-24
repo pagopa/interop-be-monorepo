@@ -8,17 +8,17 @@ import {
   riskAnalysisAnswerKind,
   RiskAnalysisSingleAnswer,
   RiskAnalysisMultiAnswer,
-  RiskAnalysisMultiAnswerId,
   WithMetadata,
   unsafeBrandId,
   Technology,
   EServiceMode,
-  EServiceDocumentId,
   DescriptorState,
   AgreementApprovalPolicy,
   stringToDate,
   EServiceTemplateVersionRef,
-  EServiceTemplateRef,
+  AttributeKind,
+  RiskAnalysisAnswerKind,
+  EServiceTemplateId,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -31,19 +31,20 @@ import {
   EServiceRiskAnalysisAnswerSQL,
   EServiceRiskAnalysisSQL,
   EServiceSQL,
-  EServiceTemplateRefSQL,
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
   EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
+import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const documentSQLtoDocument = (
   documentSQL:
     | EServiceDescriptorDocumentSQL
     | EServiceTemplateVersionDocumentSQL
 ): Document => ({
-  id: unsafeBrandId<EServiceDocumentId>(documentSQL.id),
+  id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
   prettyName: documentSQL.prettyName,
@@ -69,20 +70,36 @@ export const aggregateDescriptor = ({
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
-  const parsedInterface = interfaceSQL
+  const interfaceDoc = interfaceSQL
     ? documentSQLtoDocument(interfaceSQL)
     : undefined;
 
-  const certifiedAttributesSQL = attributesSQL.filter(
-    (a) => a.kind === attributeKind.certified
+  const {
+    certified: certifiedAttributesSQL,
+    verified: verifiedAttributesSQL,
+    declared: declaredAttributesSQL,
+  } = attributesSQL.reduce(
+    (acc, attributeSQL) =>
+      match(AttributeKind.parse(attributeSQL.kind))
+        .with(attributeKind.certified, () => ({
+          ...acc,
+          certified: [...acc.certified, attributeSQL],
+        }))
+        .with(attributeKind.declared, () => ({
+          ...acc,
+          declared: [...acc.declared, attributeSQL],
+        }))
+        .with(attributeKind.verified, () => ({
+          ...acc,
+          verified: [...acc.verified, attributeSQL],
+        }))
+        .exhaustive(),
+    {
+      certified: new Array<EServiceDescriptorAttributeSQL>(),
+      declared: new Array<EServiceDescriptorAttributeSQL>(),
+      verified: new Array<EServiceDescriptorAttributeSQL>(),
+    }
   );
-  const declaredAttributesSQL = attributesSQL.filter(
-    (a) => a.kind === attributeKind.declared
-  );
-  const verifiedAttributesSQL = attributesSQL.filter(
-    (a) => a.kind === attributeKind.verified
-  );
-
   const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
   const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
   const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
@@ -91,7 +108,6 @@ export const aggregateDescriptor = ({
     rejectionReason: rejectionReason.rejectionReason,
     rejectedAt: stringToDate(rejectionReason.rejectedAt),
   }));
-
   const rejectionReasons =
     rejectionReasonsArray.length > 0 ? rejectionReasonsArray : undefined;
 
@@ -132,7 +148,7 @@ export const aggregateDescriptor = ({
     docs: [...documentsSQL]
       .sort((doc1, doc2) => (doc1.name < doc2.name ? -1 : 0))
       .map(documentSQLtoDocument),
-    state: DescriptorState.parse(descriptorSQL.state), // TODO use safeParse?
+    state: DescriptorState.parse(descriptorSQL.state),
     audience: descriptorSQL.audience,
     voucherLifespan: descriptorSQL.voucherLifespan,
     dailyCallsPerConsumer: descriptorSQL.dailyCallsPerConsumer,
@@ -144,7 +160,7 @@ export const aggregateDescriptor = ({
       declared: declaredAttributes,
       verified: verifiedAttributes,
     },
-    ...(parsedInterface ? { interface: parsedInterface } : {}),
+    ...(interfaceDoc ? { interface: interfaceDoc } : {}),
     ...(descriptorSQL.description
       ? { description: descriptorSQL.description }
       : {}),
@@ -152,7 +168,7 @@ export const aggregateDescriptor = ({
       ? {
           agreementApprovalPolicy: AgreementApprovalPolicy.parse(
             descriptorSQL.agreementApprovalPolicy
-          ), // TODO use safeParse?
+          ),
         }
       : {}),
     ...(descriptorSQL.publishedAt
@@ -181,50 +197,64 @@ export const aggregateEservice = ({
   attributesSQL,
   documentsSQL,
   rejectionReasonsSQL,
-  templateRefSQL,
   templateVersionRefsSQL,
 }: EServiceItemsSQL): WithMetadata<EService> => {
+  const interfacesSQLByDescriptorId = interfacesSQL.reduce((acc, i) => {
+    acc.set(i.descriptorId, i);
+    return acc;
+  }, new Map<string, EServiceDescriptorInterfaceSQL>());
+  const documentsSQLByDescriptorId = documentsSQL.reduce((acc, d) => {
+    acc.set(d.descriptorId, [...(acc.get(d.descriptorId) || []), d]);
+    return acc;
+  }, new Map<string, EServiceDescriptorDocumentSQL[]>());
+  const attributesSQLByDescriptorId = attributesSQL.reduce((acc, a) => {
+    acc.set(a.descriptorId, [...(acc.get(a.descriptorId) || []), a]);
+    return acc;
+  }, new Map<string, EServiceDescriptorAttributeSQL[]>());
+  const rejectionReasonsSQLByDescriptorId = rejectionReasonsSQL.reduce(
+    (acc, r) => {
+      acc.set(r.descriptorId, [...(acc.get(r.descriptorId) || []), r]);
+      return acc;
+    },
+    new Map<string, EServiceDescriptorRejectionReasonSQL[]>()
+  );
+  const templateVersionRefsSQLByDescriptorId = templateVersionRefsSQL.reduce(
+    (acc, t) => {
+      acc.set(t.descriptorId, t);
+      return acc;
+    },
+    new Map<string, EServiceDescriptorTemplateVersionRefSQL>()
+  );
   const descriptors = [...descriptorsSQL]
     .sort((d1, d2) => Number(d1.version) - Number(d2.version))
     .map((descriptorSQL) =>
       aggregateDescriptor({
         descriptorSQL,
-        interfaceSQL: interfacesSQL.find(
-          (descriptorInterface) =>
-            descriptorInterface.descriptorId === descriptorSQL.id
-        ),
-        documentsSQL: documentsSQL.filter(
-          (d) => d.descriptorId === descriptorSQL.id
-        ),
-        attributesSQL: attributesSQL.filter(
-          (a) => a.descriptorId === descriptorSQL.id
-        ),
-        rejectionReasonsSQL: rejectionReasonsSQL.filter(
-          (r) => r.descriptorId === descriptorSQL.id
-        ),
-        templateVersionRefSQL: templateVersionRefsSQL.find(
-          (t) => t.descriptorId === descriptorSQL.id
+        interfaceSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id),
+        documentsSQL: documentsSQLByDescriptorId.get(descriptorSQL.id) || [],
+        attributesSQL: attributesSQLByDescriptorId.get(descriptorSQL.id) || [],
+        rejectionReasonsSQL:
+          rejectionReasonsSQLByDescriptorId.get(descriptorSQL.id) || [],
+        templateVersionRefSQL: templateVersionRefsSQLByDescriptorId.get(
+          descriptorSQL.id
         ),
       })
     );
 
+  const riskAnalysisAnswersSQLByFormId = riskAnalysisAnswersSQL.reduce(
+    (acc, answer) => {
+      const formId = answer.riskAnalysisFormId;
+      acc.set(formId, [...(acc.get(formId) || []), answer]);
+      return acc;
+    },
+    new Map<string, EServiceRiskAnalysisAnswerSQL[]>()
+  );
   const riskAnalysis = riskAnalysesSQL.map((ra) =>
     aggregateRiskAnalysis(
       ra,
-      riskAnalysisAnswersSQL.filter(
-        (answer) => answer.riskAnalysisFormId === ra.riskAnalysisFormId
-      )
+      riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
     )
   );
-
-  const templateRef: EServiceTemplateRef | undefined = templateRefSQL
-    ? {
-        id: unsafeBrandId(templateRefSQL.eserviceTemplateId),
-        ...(templateRefSQL.instanceLabel
-          ? { instanceLabel: templateRefSQL.instanceLabel }
-          : {}),
-      }
-    : undefined;
 
   const eservice: EService = {
     id: unsafeBrandId(eserviceSQL.id),
@@ -232,10 +262,10 @@ export const aggregateEservice = ({
     createdAt: stringToDate(eserviceSQL.createdAt),
     producerId: unsafeBrandId(eserviceSQL.producerId),
     description: eserviceSQL.description,
-    technology: Technology.parse(eserviceSQL.technology), // TODO use safeParse?
+    technology: Technology.parse(eserviceSQL.technology),
     descriptors,
     riskAnalysis,
-    mode: EServiceMode.parse(eserviceSQL.mode), // TODO use safeParse?
+    mode: EServiceMode.parse(eserviceSQL.mode),
     ...(eserviceSQL.isClientAccessDelegable !== null
       ? { isClientAccessDelegable: eserviceSQL.isClientAccessDelegable }
       : {}),
@@ -245,7 +275,11 @@ export const aggregateEservice = ({
     ...(eserviceSQL.isSignalHubEnabled !== null
       ? { isSignalHubEnabled: eserviceSQL.isSignalHubEnabled }
       : {}),
-    ...(templateRef ? { templateRef } : {}),
+    ...(eserviceSQL.templateId
+      ? {
+          templateId: unsafeBrandId<EServiceTemplateId>(eserviceSQL.templateId),
+        }
+      : {}),
   };
   return {
     data: eservice,
@@ -262,7 +296,6 @@ export const aggregateEserviceArray = ({
   interfacesSQL,
   documentsSQL,
   rejectionReasonsSQL,
-  templateRefsSQL,
   templateVersionRefsSQL,
 }: {
   eservicesSQL: EServiceSQL[];
@@ -273,7 +306,6 @@ export const aggregateEserviceArray = ({
   interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  templateRefsSQL: EServiceTemplateRefSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
 }): Array<WithMetadata<EService>> =>
   eservicesSQL.map((eserviceSQL) =>
@@ -301,9 +333,6 @@ export const aggregateEserviceArray = ({
       rejectionReasonsSQL: rejectionReasonsSQL.filter(
         (rejectionReason) => rejectionReason.eserviceId === eserviceSQL.id
       ),
-      templateRefSQL: templateRefsSQL.find(
-        (t) => t.eserviceId === eserviceSQL.id
-      ),
       templateVersionRefsSQL: templateVersionRefsSQL.filter(
         (t) => t.eserviceId === eserviceSQL.id
       ),
@@ -316,25 +345,37 @@ export const aggregateRiskAnalysis = (
     | EServiceRiskAnalysisAnswerSQL[]
     | EServiceTemplateRiskAnalysisAnswerSQL[]
 ): RiskAnalysis => {
-  const singleAnswers = answers
-    .filter((a) => a.kind === riskAnalysisAnswerKind.single)
-    .map(
-      (a): RiskAnalysisSingleAnswer => ({
-        id: unsafeBrandId(a.id),
-        key: a.key,
-        value: a.value.length > 0 ? a.value[0] : undefined,
-      })
-    );
-
-  const multiAnswers = answers
-    .filter((a) => a.kind === riskAnalysisAnswerKind.multi)
-    .map(
-      (a): RiskAnalysisMultiAnswer => ({
-        id: a.id as RiskAnalysisMultiAnswerId,
-        key: a.key,
-        values: a.value,
-      })
-    );
+  const { single: singleAnswers, multi: multiAnswers } = answers.reduce(
+    (acc, answer) =>
+      match(RiskAnalysisAnswerKind.parse(answer.kind))
+        .with(riskAnalysisAnswerKind.single, () => ({
+          ...acc,
+          single: [
+            ...acc.single,
+            {
+              id: unsafeBrandId(answer.id),
+              key: answer.key,
+              value: answer.value.length > 0 ? answer.value[0] : undefined,
+            } satisfies RiskAnalysisSingleAnswer,
+          ],
+        }))
+        .with(riskAnalysisAnswerKind.multi, () => ({
+          ...acc,
+          multi: [
+            ...acc.multi,
+            {
+              id: unsafeBrandId(answer.id),
+              key: answer.key,
+              values: answer.value,
+            } satisfies RiskAnalysisMultiAnswer,
+          ],
+        }))
+        .exhaustive(),
+    {
+      single: Array<RiskAnalysisSingleAnswer>(),
+      multi: Array<RiskAnalysisMultiAnswer>(),
+    }
+  );
 
   const riskAnalysis: RiskAnalysis = {
     id: unsafeBrandId(riskAnalysisSQL.id),
@@ -382,7 +423,6 @@ export const toEServiceAggregator = (
     rejection: EServiceDescriptorRejectionReasonSQL | null;
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
-    templateRef: EServiceTemplateRefSQL | null;
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
   }>
 ): EServiceItemsSQL => {
@@ -395,7 +435,6 @@ export const toEServiceAggregator = (
     documentsSQL,
     attributesSQL,
     rejectionReasonsSQL,
-    templateRefsSQL,
     templateVersionRefsSQL,
   } = toEServiceAggregatorArray(queryRes);
 
@@ -408,7 +447,6 @@ export const toEServiceAggregator = (
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
-    templateRefSQL: templateRefsSQL[0],
     templateVersionRefsSQL,
   };
 };
@@ -423,7 +461,6 @@ export const toEServiceAggregatorArray = (
     rejection: EServiceDescriptorRejectionReasonSQL | null;
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
-    templateRef: EServiceTemplateRefSQL | null;
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
   }>
 ): {
@@ -435,7 +472,6 @@ export const toEServiceAggregatorArray = (
   interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-  templateRefsSQL: EServiceTemplateRefSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
 } => {
   const eserviceIdSet = new Set<string>();
@@ -461,9 +497,6 @@ export const toEServiceAggregatorArray = (
 
   const rejectionReasonsSet = new Set<string>();
   const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
-
-  const templateRefIdSet = new Set<string>();
-  const templateRefsSQL: EServiceTemplateRefSQL[] = [];
 
   const templateVersionRefIdSet = new Set<string>();
   const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
@@ -507,7 +540,7 @@ export const toEServiceAggregatorArray = (
       if (
         attributeSQL &&
         !attributeIdSet.has(
-          uniqueKey([
+          makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.descriptorId,
             attributeSQL.groupId.toString(),
@@ -515,7 +548,7 @@ export const toEServiceAggregatorArray = (
         )
       ) {
         attributeIdSet.add(
-          uniqueKey([
+          makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.descriptorId,
             attributeSQL.groupId.toString(),
@@ -529,14 +562,14 @@ export const toEServiceAggregatorArray = (
       if (
         rejectionReasonSQL &&
         !rejectionReasonsSet.has(
-          uniqueKey([
+          makeUniqueKey([
             rejectionReasonSQL.descriptorId,
             rejectionReasonSQL.rejectedAt,
           ])
         )
       ) {
         rejectionReasonsSet.add(
-          uniqueKey([
+          makeUniqueKey([
             rejectionReasonSQL.descriptorId,
             rejectionReasonSQL.rejectedAt,
           ])
@@ -549,14 +582,14 @@ export const toEServiceAggregatorArray = (
       if (
         templateVersionRefSQL &&
         !templateVersionRefIdSet.has(
-          uniqueKey([
+          makeUniqueKey([
             templateVersionRefSQL.eserviceTemplateVersionId,
             templateVersionRefSQL.descriptorId,
           ])
         )
       ) {
         templateVersionRefIdSet.add(
-          uniqueKey([
+          makeUniqueKey([
             templateVersionRefSQL.eserviceTemplateVersionId,
             templateVersionRefSQL.descriptorId,
           ])
@@ -584,26 +617,6 @@ export const toEServiceAggregatorArray = (
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
       }
     }
-
-    const templateRefSQL = row.templateRef;
-    if (
-      templateRefSQL &&
-      !templateRefIdSet.has(
-        uniqueKey([
-          templateRefSQL.eserviceTemplateId,
-          templateRefSQL.eserviceId,
-        ])
-      )
-    ) {
-      templateRefIdSet.add(
-        uniqueKey([
-          templateRefSQL.eserviceTemplateId,
-          templateRefSQL.eserviceId,
-        ])
-      );
-      // eslint-disable-next-line functional/immutable-data
-      templateRefsSQL.push(templateRefSQL);
-    }
   });
 
   return {
@@ -615,9 +628,6 @@ export const toEServiceAggregatorArray = (
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
-    templateRefsSQL,
     templateVersionRefsSQL,
   };
 };
-
-const uniqueKey = (ids: string[]): string => ids.join("#");

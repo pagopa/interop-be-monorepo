@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
 import {
+  getMockAuthData,
+  getMockContext,
   getMockTenant,
   getTenantOneCertifierFeature,
 } from "pagopa-interop-commons-test";
@@ -80,10 +81,10 @@ describe("addCertifiedAttribute", async () => {
       {
         tenantId: targetTenant.id,
         tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(requesterTenant.id),
+      })
     );
     const writtenEvent = await readLastEventByStreamId(
       targetTenant.id,
@@ -129,10 +130,10 @@ describe("addCertifiedAttribute", async () => {
       {
         tenantId: tenantWithRevaluatedKind.id,
         tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(requesterTenant.id),
+      })
     );
     const writtenEventTenantCertifiedAttributeAssigned =
       await readEventByStreamIdAndVersion(
@@ -182,10 +183,10 @@ describe("addCertifiedAttribute", async () => {
       {
         tenantId: tenantWithCertifiedAttribute.id,
         tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(requesterTenant.id),
+      })
     );
     const writtenEvent = await readLastEventByStreamId(
       tenantWithCertifiedAttribute.id,
@@ -237,10 +238,10 @@ describe("addCertifiedAttribute", async () => {
         {
           tenantId: tenantAlreadyAssigned.id,
           tenantAttributeSeed,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(requesterTenant.id),
+        })
       )
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(attribute.id, tenantAlreadyAssigned.id)
@@ -253,10 +254,10 @@ describe("addCertifiedAttribute", async () => {
         {
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(requesterTenant.id),
+        })
       )
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
   });
@@ -269,10 +270,10 @@ describe("addCertifiedAttribute", async () => {
         {
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(requesterTenant.id),
+        })
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
   });
@@ -288,10 +289,10 @@ describe("addCertifiedAttribute", async () => {
         {
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
       )
     ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
   });
@@ -309,10 +310,10 @@ describe("addCertifiedAttribute", async () => {
         {
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(requesterTenant.id),
+        })
       )
     ).rejects.toThrowError(
       attributeDoesNotBelongToCertifier(

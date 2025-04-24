@@ -4,6 +4,7 @@ import {
   getMockAttribute,
   getMockTenant,
   readEventByStreamIdAndVersion,
+  getMockContextInternal,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -18,7 +19,6 @@ import {
   attributeKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   attributeNotFound,
   tenantNotFoundByExternalId,
@@ -82,9 +82,8 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
         tenantExternalId: tenantWithCertifiedAttribute.externalId.value,
         attributeOrigin: mockAttribute.origin!,
         attributeExternalId: mockAttribute.code!,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContextInternal({})
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       tenantWithCertifiedAttribute.id,
@@ -129,9 +128,8 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
           tenantExternalId: targetTenant.externalId.value,
           attributeOrigin: mockAttribute.origin!,
           attributeExternalId: mockAttribute.code!,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
@@ -151,9 +149,8 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
           tenantExternalId: requesterTenant.externalId.value,
           attributeOrigin: mockAttribute.origin!,
           attributeExternalId: mockAttribute.code!,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       attributeNotFound(
@@ -181,9 +178,8 @@ describe("testInternalRevokeCertifiedAttribute", async () => {
           tenantExternalId: targetTenant.externalId.value,
           attributeOrigin: mockAttribute.origin!,
           attributeExternalId: mockAttribute.code!,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       attributeNotFoundInTenant(mockAttribute.id, targetTenant.id)

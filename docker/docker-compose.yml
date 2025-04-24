@@ -2,6 +2,9 @@
 
 version: "3"
 name: pagopa-interop
+volumes:
+  readmodel-volume:
+
 services:
   # Event Store Postgres DB
   event-store:
@@ -74,6 +77,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - readmodel-volume:/data/db
 
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:

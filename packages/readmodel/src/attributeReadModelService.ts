@@ -31,18 +31,20 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
           attribute.id
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(attributeInReadmodelAttribute)
-            .where(eq(attributeInReadmodelAttribute.id, attribute.id));
-
-          const attributeSQL = splitAttributeIntoObjectsSQL(
-            attribute,
-            metadataVersion
-          );
-
-          await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(attributeInReadmodelAttribute)
+          .where(eq(attributeInReadmodelAttribute.id, attribute.id));
+
+        const attributeSQL = splitAttributeIntoObjectsSQL(
+          attribute,
+          metadataVersion
+        );
+
+        await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
       });
     },
     async getAttributeById(
@@ -52,7 +54,6 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
         eq(attributeInReadmodelAttribute.id, attributeId)
       );
     },
-
     async getAttributeByFilter(
       filter: SQL | undefined
     ): Promise<WithMetadata<Attribute> | undefined> {
@@ -71,10 +72,13 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateAttribute(queryResult[0]);
     },
-
     async getAttributesByFilter(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<Attribute>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       const queryResult = await db
         .select()
         .from(attributeInReadmodelAttribute)
@@ -82,7 +86,6 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateAttributeArray(queryResult);
     },
-
     async deleteAttributeById(
       attributeId: AttributeId,
       metadataVersion: number
