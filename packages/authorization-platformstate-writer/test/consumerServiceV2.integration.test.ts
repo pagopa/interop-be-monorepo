@@ -126,6 +126,7 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: client.purposes,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -389,6 +390,7 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
+        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -639,6 +641,7 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [purpose1.id, purpose2.id],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -960,6 +963,7 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [purpose1.id, purpose2.id],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1219,6 +1223,7 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
+        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1269,6 +1274,7 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1373,6 +1379,7 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1495,6 +1502,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1608,6 +1616,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         version: messageVersion,
         updatedAt: new Date().toISOString(),
+        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1656,6 +1665,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1763,6 +1773,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1832,6 +1843,7 @@ describe("integration tests V2 events", async () => {
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
+        clientAdminId: client.adminId,
 
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
@@ -1976,6 +1988,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -2266,6 +2279,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose1.id],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -2569,6 +2583,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose1.id],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -2779,6 +2794,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -2916,6 +2932,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId1, removedPurposeId],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -3095,6 +3112,7 @@ describe("integration tests V2 events", async () => {
       clientConsumerId: client.consumerId,
       updatedAt: new Date().toISOString(),
       clientPurposesIds: [removedPurposeId],
+      clientAdminId: client.adminId,
     };
     await writePlatformClientEntry(
       previousPlatformClientEntry,
@@ -3223,6 +3241,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
+        clientAdminId: client.adminId,
       };
 
       const pk2PlatformStates = makePlatformStatesClientPK(otherClientId);
@@ -3234,6 +3253,7 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
+        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         clientPlatformStateEntry1,
