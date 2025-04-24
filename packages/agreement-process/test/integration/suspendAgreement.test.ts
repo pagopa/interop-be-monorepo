@@ -38,7 +38,7 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
-import { agreementSuspendableStates } from "../src/model/domain/agreement-validators.js";
+import { agreementSuspendableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -46,16 +46,16 @@ import {
   eServiceNotFound,
   organizationNotAllowed,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOneTenant,
   agreementService,
-  getRandomPastStamp,
   readLastAgreementEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getRandomPastStamp } from "../mockUtils.js";
 
 describe("suspend agreement", () => {
   beforeEach(async () => {
