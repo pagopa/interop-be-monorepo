@@ -199,5 +199,19 @@ export function purposeServiceBuilder({
 
       await pollPurposeVersion(purposeId, versionResponse, headers);
     },
+    archivePurposeVersion: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      purposeId: PurposeId,
+      versionId: PurposeVersionId
+    ): Promise<void> => {
+      logger.info(`Archiving version ${versionId} of purpose ${purposeId}`);
+
+      const versionResponse = await purposeProcessClient.archivePurposeVersion(
+        undefined,
+        { params: { purposeId, versionId }, headers }
+      );
+
+      await pollPurposeVersion(purposeId, versionResponse, headers);
+    },
   };
 }
