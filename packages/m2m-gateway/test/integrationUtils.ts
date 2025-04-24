@@ -31,12 +31,15 @@ export function mockPollingResponse<T>(
 export function expectApiClientGetToHaveBeenCalledWith({
   mockGet,
   params,
+  queries,
 }: {
   mockGet: Function;
-  params: Record<string, unknown>;
+  params?: Record<string, unknown>;
+  queries?: Record<string, unknown>;
 }): void {
   expect(mockGet).toHaveBeenCalledWith({
     params,
+    queries,
     headers: {
       Authorization: `Bearer ${m2mTestToken}`,
       "X-Correlation-Id": expect.any(String),
