@@ -54,13 +54,12 @@ export async function handleMessageV1(
         );
       }
 
-      // important: this doesn't handle interface update
-
-      await customReadModeService.upsertDocument({
+      await customReadModeService.updateDocOrInterface({
         eserviceId: unsafeBrandId(msg.data.eserviceId),
         descriptorId: unsafeBrandId(msg.data.descriptorId),
-        document: fromDocumentV1(documentV1),
+        docOrInterface: fromDocumentV1(documentV1),
         metadataVersion: msg.version,
+        serverUrls: msg.data.serverUrls,
       });
     })
     .with(
