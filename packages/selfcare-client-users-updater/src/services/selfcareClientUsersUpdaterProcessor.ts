@@ -113,27 +113,21 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
         );
 
         await Promise.all(
-          clients.map(async (client) => {
-            try {
-              await authorizationProcessClient.client.internalRemoveClientAdmin(
-                undefined,
-                {
-                  params: {
-                    clientId: client.id,
-                    adminId: jsonPayload.user.userId,
-                  },
-                  headers: getInteropHeaders({
-                    token,
-                    correlationId,
-                  }),
-                }
-              );
-            } catch (error) {
-              loggerInstance.error(
-                `Failed to remove admin for client ID: ${client.id}, User ID: ${jsonPayload.user.userId}. Error: ${error}`
-              );
-            }
-          })
+          clients.map(async (client) =>
+            authorizationProcessClient.client.internalRemoveClientAdmin(
+              undefined,
+              {
+                params: {
+                  clientId: client.id,
+                  adminId: jsonPayload.user.userId,
+                },
+                headers: getInteropHeaders({
+                  token,
+                  correlationId,
+                }),
+              }
+            )
+          )
         );
 
         loggerInstance.info(
