@@ -24,13 +24,13 @@ import {
   purposeNotFound,
   purposeCannotBeDeleted,
   puroposeDelegationNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOnePurpose,
   purposeService,
   readLastPurposeEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("internalDeletePurposeAfterDelegationRevocation", () => {
   it("should write on event-store for the deletion of a purpose (no versions)", async () => {
