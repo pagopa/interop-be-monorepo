@@ -203,8 +203,8 @@ export function customReadModelServiceBuilder(
           .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
           .where(
             eq(
-              eserviceDescriptorInterfaceInReadmodelCatalog.id,
-              descriptorInterface.id
+              eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId,
+              descriptorId
             )
           );
 
