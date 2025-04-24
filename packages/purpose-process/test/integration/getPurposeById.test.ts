@@ -35,16 +35,16 @@ import {
   tenantNotFound,
   tenantKindNotFound,
   organizationNotAllowed,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
-  getMockEService,
   addOnePurpose,
   purposeService,
   addOneDelegation,
   addOneAgreement,
   addOneEService,
   addOneTenant,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockEService } from "../mockUtils.js";
 
 describe("getPurposeById", () => {
   it("should get the purpose if the requester is the active e-service producer", async () => {

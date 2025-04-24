@@ -52,20 +52,20 @@ import {
   tenantKindNotFound,
   tenantNotFound,
   unchangedDailyCalls,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
-import { RiskAnalysisDocumentPDFPayload } from "../src/model/domain/models.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import { RiskAnalysisDocumentPDFPayload } from "../../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
+  addOnePurpose,
   addOneTenant,
   fileManager,
   pdfGenerator,
   postgresDB,
   purposeService,
-} from "./utils.js";
-import { addOnePurpose } from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("createPurposeVersion", () => {
   let mockConsumer: Tenant;
@@ -169,7 +169,7 @@ describe("createPurposeVersion", () => {
     expect(pdfGenerator.generate).toBeCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        "../src",
+        "../../src",
         "resources/templates/documents",
         "riskAnalysisTemplate.html"
       ),
@@ -276,7 +276,7 @@ describe("createPurposeVersion", () => {
     expect(pdfGenerator.generate).toBeCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        "../src",
+        "../../src",
         "resources/templates/documents",
         "riskAnalysisTemplate.html"
       ),
@@ -371,7 +371,7 @@ describe("createPurposeVersion", () => {
     expect(pdfGenerator.generate).toBeCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        "../src",
+        "../../src",
         "resources/templates/documents",
         "riskAnalysisTemplate.html"
       ),
@@ -547,7 +547,7 @@ describe("createPurposeVersion", () => {
     expect(pdfGenerator.generate).toBeCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        "../src",
+        "../../src",
         "resources/templates/documents",
         "riskAnalysisTemplate.html"
       ),
@@ -705,7 +705,7 @@ describe("createPurposeVersion", () => {
     expect(pdfGenerator.generate).toBeCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        "../src",
+        "../../src",
         "resources/templates/documents",
         "riskAnalysisTemplate.html"
       ),

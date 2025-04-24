@@ -46,7 +46,7 @@ import {
   agreementNotFound,
   duplicatedPurposeTitle,
   organizationIsNotTheConsumer,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -54,13 +54,12 @@ import {
   addOnePurpose,
   addOneTenant,
   agreements,
-  buildRiskAnalysisFormSeed,
   eservices,
-  getMockEService,
   purposeService,
   readLastPurposeEvent,
   tenants,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { buildRiskAnalysisFormSeed, getMockEService } from "../mockUtils.js";
 
 describe("createPurpose", () => {
   const tenant: Tenant = {

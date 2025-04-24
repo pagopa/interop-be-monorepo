@@ -32,17 +32,17 @@ import {
   purposeVersionNotFound,
   purposeVersionDocumentNotFound,
   organizationNotAllowed,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 
 import {
-  getMockEService,
   addOnePurpose,
   purposeService,
   addOneEService,
   addOneDelegation,
   addOneTenant,
   addOneAgreement,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockEService } from "../mockUtils.js";
 
 describe("getRiskAnalysisDocument", () => {
   it("should get the purpose version document (consumer)", async () => {
