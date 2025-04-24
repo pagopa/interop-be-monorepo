@@ -11,7 +11,7 @@ import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import { eServiceTemplateNotFound } from "../../src/model/domain/errors.js";
 
-describe("API POST /templates/:templateId", () => {
+describe("API GET /templates/:templateId", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
 
   const makeRequest = async (
