@@ -27,28 +27,30 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(producerJwkKeyInReadmodelProducerJwkKey)
-            .where(
-              and(
-                eq(
-                  producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-                  jwkKey.producerKeychainId
-                ),
-                eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
-              )
-            );
+        if (!shouldUpsert) {
+          return;
+        }
 
-          const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
-            jwkKey,
-            metadataVersion
+        await tx
+          .delete(producerJwkKeyInReadmodelProducerJwkKey)
+          .where(
+            and(
+              eq(
+                producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+                jwkKey.producerKeychainId
+              ),
+              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+            )
           );
 
-          await tx
-            .insert(producerJwkKeyInReadmodelProducerJwkKey)
-            .values(producerJWKKeySQL);
-        }
+        const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+          jwkKey,
+          metadataVersion
+        );
+
+        await tx
+          .insert(producerJwkKeyInReadmodelProducerJwkKey)
+          .values(producerJWKKeySQL);
       });
     },
     async getProducerJWKKeyByProducerKeychainIdAndKid(
