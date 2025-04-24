@@ -10,24 +10,18 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { delegationServiceBuilder } from "../services/delegationService.js";
+import { DelegationService } from "../services/delegationService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const { M2M_ADMIN_ROLE } = authRole;
 
-export type DelegationServiceBuilder = typeof delegationServiceBuilder;
-
 const delegationRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients,
-  delegationServiceBuilderFunction: DelegationServiceBuilder = delegationServiceBuilder
+  delegationService: DelegationService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationRouter = ctx.router(m2mGatewayApi.delegationsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const delegationService = delegationServiceBuilderFunction(clients);
 
   delegationRouter
     .get("/consumerDelegations", async (req, res) => {
