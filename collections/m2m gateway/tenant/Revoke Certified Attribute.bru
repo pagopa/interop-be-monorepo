@@ -5,13 +5,13 @@ meta {
 }
 
 delete {
-  url: {{host-m2m-gw}}/tenants/:tenantId/certifiedAttributes
+  url: {{host-m2m-gw}}/tenants/:tenantId/certifiedAttributes/:attributeId
   body: json
   auth: none
 }
 
 params:path {
-  tenantId: {{tenantId}},
+  tenantId: {{tenantId}}
   attributeId: {{attributeId}}
 }
 
@@ -20,9 +20,3 @@ headers {
   X-Correlation-Id: {{correlation-id}}
 }
 
-body:json {
-  {
-    "tenantId" : "5bd41941-cf5f-46e2-a59e-0ed8a5d5cfc8",
-    "attributeId" : "5bd41941-cf5f-46e2-a59e-0ed8a5d5cfc8"
-  }
-}
