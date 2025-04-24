@@ -60,6 +60,7 @@ describe("setAdminToClient", () => {
         adminId,
       }),
       adminId,
+      oldAdminId: mockClient.adminId,
     });
   });
   it("should throw clientNotFound when client is not found", async () => {
