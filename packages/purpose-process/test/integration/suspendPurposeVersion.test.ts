@@ -38,17 +38,17 @@ import {
   purposeVersionNotFound,
   organizationNotAllowed,
   notValidVersionState,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  getMockEService,
   purposeService,
   readLastPurposeEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockEService } from "../mockUtils.js";
 
 describe("suspendPurposeVersion", () => {
   const isSuspendable = [

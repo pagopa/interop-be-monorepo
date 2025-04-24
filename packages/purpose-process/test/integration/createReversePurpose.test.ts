@@ -44,17 +44,17 @@ import {
   organizationIsNotTheConsumer,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  getMockEService,
   purposeService,
   readLastPurposeEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockEService } from "../mockUtils.js";
 
 describe("createReversePurpose", () => {
   it("should write in event-store for the creation of a reverse purpose", async () => {
