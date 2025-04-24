@@ -6,9 +6,9 @@ import {
   getMockAttribute,
   getMockTenant,
   readEventByStreamIdAndVersion,
+  getMockContextInternal,
 } from "pagopa-interop-commons-test";
 import {
-  generateId,
   Tenant,
   Attribute,
   unsafeBrandId,
@@ -18,7 +18,6 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
@@ -62,9 +61,8 @@ describe("internalAssignCertifiedAttributes", async () => {
         tenantExternalId: targetTenant.externalId.value,
         attributeOrigin: certifiedAttribute.origin!,
         attributeExternalId: certifiedAttribute.code!,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContextInternal({})
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       targetTenant.id,
@@ -119,9 +117,8 @@ describe("internalAssignCertifiedAttributes", async () => {
         tenantExternalId: tenantWithCertifiedAttribute.externalId.value,
         attributeOrigin: certifiedAttribute.origin!,
         attributeExternalId: certifiedAttribute.code!,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContextInternal({})
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       tenantWithCertifiedAttribute.id,
@@ -175,9 +172,8 @@ describe("internalAssignCertifiedAttributes", async () => {
           tenantExternalId: tenantAlreadyAssigned.externalId.value,
           attributeOrigin: certifiedAttribute.origin!,
           attributeExternalId: certifiedAttribute.code!,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(
@@ -196,9 +192,8 @@ describe("internalAssignCertifiedAttributes", async () => {
           tenantExternalId: targetTenant.externalId.value,
           attributeOrigin: certifiedAttribute.origin!,
           attributeExternalId: certifiedAttribute.code!,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
@@ -218,9 +213,8 @@ describe("internalAssignCertifiedAttributes", async () => {
           tenantExternalId: targetTenant.externalId.value,
           attributeOrigin: certifiedAttribute.origin!,
           attributeExternalId: certifiedAttribute.code!,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       attributeNotFound(

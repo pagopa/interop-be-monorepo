@@ -6,6 +6,8 @@ import {
   readLastEventByStreamId,
   getMockTenant,
   getMockDelegation,
+  getMockContext,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -19,7 +21,6 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -62,10 +63,10 @@ describe("addDeclaredAttribute", async () => {
     const returnedTenant = await tenantService.addDeclaredAttribute(
       {
         tenantAttributeSeed: { id: declaredAttribute.id },
-        organizationId: tenantWithoutDeclaredAttribute.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(tenantWithoutDeclaredAttribute.id),
+      })
     );
     const writtenEvent = await readLastEventByStreamId(
       tenantWithoutDeclaredAttribute.id,
@@ -115,10 +116,10 @@ describe("addDeclaredAttribute", async () => {
     const returnedTenant = await tenantService.addDeclaredAttribute(
       {
         tenantAttributeSeed: { id: declaredAttribute.id },
-        organizationId: tenantWithAttributeRevoked.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(tenantWithAttributeRevoked.id),
+      })
     );
     const writtenEvent = await readLastEventByStreamId(
       tenantWithAttributeRevoked.id,
@@ -183,10 +184,10 @@ describe("addDeclaredAttribute", async () => {
           id: declaredAttribute.id,
           delegationId,
         },
-        organizationId: delegateWithoutDeclaredAttribute.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(delegateWithoutDeclaredAttribute.id),
+      })
     );
     const writtenEvent = await readLastEventByStreamId(
       delegatorWithoutDeclaredAttribute.id,
@@ -254,10 +255,10 @@ describe("addDeclaredAttribute", async () => {
     const returnedTenant = await tenantService.addDeclaredAttribute(
       {
         tenantAttributeSeed: { id: declaredAttribute.id, delegationId },
-        organizationId: delegateWithoutDeclaredAttribute.id,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContext({
+        authData: getMockAuthData(delegateWithoutDeclaredAttribute.id),
+      })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -298,10 +299,10 @@ describe("addDeclaredAttribute", async () => {
       tenantService.addDeclaredAttribute(
         {
           tenantAttributeSeed: { id: declaredAttribute.id },
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -312,10 +313,10 @@ describe("addDeclaredAttribute", async () => {
       tenantService.addDeclaredAttribute(
         {
           tenantAttributeSeed: { id: declaredAttribute.id },
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
       )
     ).rejects.toThrowError(
       attributeNotFound(unsafeBrandId(declaredAttribute.id))
@@ -332,10 +333,8 @@ describe("addDeclaredAttribute", async () => {
             id: declaredAttribute.id,
             delegationId,
           },
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({})
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
@@ -359,10 +358,8 @@ describe("addDeclaredAttribute", async () => {
             id: declaredAttribute.id,
             delegationId,
           },
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({})
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
@@ -386,10 +383,8 @@ describe("addDeclaredAttribute", async () => {
             id: declaredAttribute.id,
             delegationId,
           },
-          organizationId: tenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({})
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
@@ -413,10 +408,8 @@ describe("addDeclaredAttribute", async () => {
             id: declaredAttribute.id,
             delegationId,
           },
-          organizationId: generateId<TenantId>(),
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({})
       )
     ).rejects.toThrowError(operationRestrictedToDelegate());
   });

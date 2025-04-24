@@ -4,6 +4,7 @@ import {
   decodeProtobufPayload,
   getMockClient,
   getMockAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   Client,
@@ -14,7 +15,7 @@ import {
   toClientV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   clientNotFound,
@@ -67,10 +68,8 @@ describe("addClientUsers", () => {
       {
         clientId: mockClient.id,
         userIds: usersToAdd,
-        authData: getMockAuthData(consumerId),
       },
-      generateId(),
-      genericLogger
+      getMockContext({ authData: getMockAuthData(consumerId) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -112,10 +111,8 @@ describe("addClientUsers", () => {
         {
           clientId: mockClient.id,
           userIds: [userIdToAdd],
-          authData: getMockAuthData(consumerId),
         },
-        generateId(),
-        genericLogger
+        getMockContext({ authData: getMockAuthData(consumerId) })
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
@@ -142,10 +139,8 @@ describe("addClientUsers", () => {
         {
           clientId: mockClient.id,
           userIds: userIdsToAdd,
-          authData: getMockAuthData(consumerId),
         },
-        generateId(),
-        genericLogger
+        getMockContext({ authData: getMockAuthData(consumerId) })
       )
     ).rejects.toThrowError(
       clientUserAlreadyAssigned(mockClient.id, alreadyInClientUserId)
@@ -168,10 +163,8 @@ describe("addClientUsers", () => {
         {
           clientId: mockClient.id,
           userIds: userIdsToAdd,
-          authData: getMockAuthData(organizationId),
         },
-        generateId(),
-        genericLogger
+        getMockContext({ authData: getMockAuthData(organizationId) })
       )
     ).rejects.toThrowError(
       organizationNotAllowedOnClient(organizationId, mockClient.id)
@@ -180,16 +173,7 @@ describe("addClientUsers", () => {
   it("should throw userWithoutSecurityPrivileges if one of the Security user is not found", async () => {
     const consumerId: TenantId = generateId();
 
-    const authData: AuthData = {
-      userId: generateId(),
-      selfcareId: generateId(),
-      organizationId: consumerId,
-      userRoles: [],
-      externalId: {
-        value: "",
-        origin: "",
-      },
-    };
+    const authData: AuthData = getMockAuthData(consumerId);
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -206,10 +190,8 @@ describe("addClientUsers", () => {
         {
           clientId: mockClient.id,
           userIds: [generateId()],
-          authData,
         },
-        generateId(),
-        genericLogger
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       userWithoutSecurityPrivileges(consumerId, authData.userId)

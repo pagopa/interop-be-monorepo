@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   getMockAgreement,
+  getMockAuthData,
+  getMockContext,
   getMockDelegation,
   getMockEService,
   randomArrayItem,
@@ -13,7 +15,6 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -186,11 +187,10 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          requesterId,
           offset: 1,
           limit: 1,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -208,12 +208,11 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          requesterId,
           eserviceName: "servizio",
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -235,12 +234,11 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          requesterId,
           eserviceName: "pippo",
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).toEqual({
       results: [
@@ -258,11 +256,10 @@ describe("getConsumerEservices", () => {
       await delegationService.getConsumerEservices(
         {
           delegatorId: delegatorId1,
-          requesterId: generateId<TenantId>(),
           offset: 0,
           limit: 50,
         },
-        genericLogger
+        getMockContext({})
       )
     ).toEqual({
       results: [],

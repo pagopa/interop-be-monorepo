@@ -6,6 +6,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockAuthData,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   operationForbidden,
@@ -16,14 +17,17 @@ import {
   EServiceTemplate,
   toEServiceTemplateV2,
   EServiceTemplateNameUpdatedV2,
+  EService,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   eserviceTemplateWithoutPublishedVersion,
   eServiceTemplateNotFound,
   eServiceTemplateDuplicate,
+  instanceNameConflict,
 } from "../src/model/domain/errors.js";
 import {
+  addOneEService,
   addOneEServiceTemplate,
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
@@ -87,6 +91,7 @@ describe("updateEServiceTemplateName", () => {
       )
     ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
   });
+
   it("should throw operationForbidden if the requester is not the eservice template creator", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
@@ -98,6 +103,7 @@ describe("updateEServiceTemplateName", () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+
   it("should throw eserviceTemplateWithoutPublishedVersion if the eservice template doesn't have any published versions", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
@@ -113,6 +119,7 @@ describe("updateEServiceTemplateName", () => {
       eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id)
     );
   });
+
   it("should throw eserviceTemplateWithoutPublishedVersion if the eservice template has only draft versions", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -136,6 +143,7 @@ describe("updateEServiceTemplateName", () => {
       eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id)
     );
   });
+
   it("should throw eServiceTemplateDuplicate is there is another eservice template with the same name by the same creator", async () => {
     const creatorId = generateId<TenantId>();
 
@@ -171,5 +179,47 @@ describe("updateEServiceTemplateName", () => {
         })
       )
     ).rejects.toThrowError(eServiceTemplateDuplicate(duplicateName));
+  });
+
+  it("should throw instanceNameConflict if the name is already used by a producer of a template instance", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+
+    const updatedName = "eservice template new name";
+    const producerId = generateId<TenantId>();
+
+    const templateInstance: EService = {
+      ...getMockEService(),
+      producerId,
+      name: eserviceTemplate.name,
+      templateId: eserviceTemplate.id,
+    };
+
+    const tenantEService: EService = {
+      ...getMockEService(),
+      producerId,
+      name: updatedName,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+    await addOneEService(tenantEService);
+    await addOneEService(templateInstance);
+
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName(
+        eserviceTemplate.id,
+        updatedName,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(instanceNameConflict(eserviceTemplate.id));
   });
 });

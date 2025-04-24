@@ -46,6 +46,25 @@ export const agency: Institution[] = [
     kind: "Gestori di Pubblici Servizi",
     classification: "Agency",
   },
+  {
+    id: "03782700276",
+    originId: "05GYSWFH",
+    category: "S01",
+    description: "Fondazione di partecipazione Casa dell'Ospitalità",
+    origin: "IPA",
+    kind: "Societa' in Conto Economico Consolidato",
+    classification: "Agency",
+  },
+  {
+    id: "07926631008",
+    originId: "1VO9PWVQ",
+    category: "S01",
+    description:
+      "RAM Rete Autostrade Mediterranee per la Logistica, le Infrastrutture ed i Trasporti S.p.a.",
+    origin: "IPA",
+    kind: "Societa' in Conto Economico Consolidato",
+    classification: "Agency",
+  },
 ];
 
 export const aoo: Institution[] = [
@@ -268,6 +287,12 @@ export const categories: Category[] = [
     kind: "Enti Nazionali delle Comunicazioni",
     origin: "IPA",
   },
+  {
+    code: "S01",
+    name: "Societa' in Conto Economico Consolidato",
+    kind: "Societa' in Conto Economico Consolidato",
+    origin: "IPA",
+  },
 ];
 
 export const attributes = [
@@ -392,6 +417,12 @@ export const attributes = [
     origin: "IPA",
   },
   {
+    code: "S01",
+    description: "Societa' in Conto Economico Consolidato",
+    name: "Societa' in Conto Economico Consolidato",
+    origin: "IPA",
+  },
+  {
     code: "290d1371af230243db2c12eaaaa465ffd1457f06c91d8a14b7c5bca8d4e29bdf",
     description: "Pubbliche Amministrazioni",
     name: "Agenzie per la Ristrutturazione Urbana",
@@ -425,6 +456,19 @@ export const attributes = [
     code: "Z6789MNO",
     description: "Example Energy Company",
     name: "Example Energy Company",
+    origin: "IPA",
+  },
+  {
+    code: "05GYSWFH",
+    description: "Fondazione di partecipazione Casa dell'Ospitalità",
+    name: "Fondazione di partecipazione Casa dell'Ospitalità",
+    origin: "IPA",
+  },
+  {
+    code: "1VO9PWVQ",
+    description:
+      "RAM Rete Autostrade Mediterranee per la Logistica, le Infrastrutture ed i Trasporti S.p.a.",
+    name: "RAM Rete Autostrade Mediterranee per la Logistica, le Infrastrutture ed i Trasporti S.p.a.",
     origin: "IPA",
   },
 ];

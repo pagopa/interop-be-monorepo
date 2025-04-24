@@ -13,6 +13,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
 import {
   delegationAlreadyExists,
   delegationRelatedAgreementExists,
@@ -121,19 +122,22 @@ export const assertDelegationNotExists = async (
 
 export const assertIsDelegate = (
   delegation: Delegation,
-  requesterId: TenantId
+  authData: UIAuthData
 ): void => {
-  if (delegation.delegateId !== requesterId) {
-    throw operationRestrictedToDelegate(requesterId, delegation.id);
+  if (delegation.delegateId !== authData.organizationId) {
+    throw operationRestrictedToDelegate(authData.organizationId, delegation.id);
   }
 };
 
 export const assertIsDelegator = (
   delegation: Delegation,
-  requesterId: TenantId
+  authData: UIAuthData
 ): void => {
-  if (delegation.delegatorId !== requesterId) {
-    throw operationRestrictedToDelegator(requesterId, delegation.id);
+  if (delegation.delegatorId !== authData.organizationId) {
+    throw operationRestrictedToDelegator(
+      authData.organizationId,
+      delegation.id
+    );
   }
 };
 
@@ -151,11 +155,11 @@ export const assertIsState = (
 
 export const assertRequesterIsDelegateOrDelegator = (
   delegation: Delegation,
-  requesterId: TenantId
+  authData: UIAuthData | M2MAuthData
 ): void => {
   if (
-    delegation.delegateId !== requesterId &&
-    delegation.delegatorId !== requesterId
+    delegation.delegateId !== authData.organizationId &&
+    delegation.delegatorId !== authData.organizationId
   ) {
     throw operationForbidden;
   }

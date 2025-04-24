@@ -138,7 +138,7 @@ describe("Check tenant readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const tenant1ForSQL: WithMetadata<Tenant> = {
+    const tenant1InPostgresDb: WithMetadata<Tenant> = {
       data: {
         ...tenant1.data,
         kind: tenantKind.GSP,
@@ -149,8 +149,8 @@ describe("Check tenant readmodels", () => {
     await addOneTenant(tenant1);
 
     await tenantReadModelServiceSQL.upsertTenant(
-      tenant1ForSQL.data,
-      tenant1ForSQL.metadata.version
+      tenant1InPostgresDb.data,
+      tenant1InPostgresDb.metadata.version
     );
 
     const collectionTenants = await readModelService.getAllReadModelTenants();
@@ -173,7 +173,7 @@ describe("Check tenant readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const tenant1ForSQL: WithMetadata<Tenant> = {
+    const tenant1InPostgresDb: WithMetadata<Tenant> = {
       data: tenant1.data,
       metadata: {
         version: 3,
@@ -183,8 +183,8 @@ describe("Check tenant readmodels", () => {
     await addOneTenant(tenant1);
 
     await tenantReadModelServiceSQL.upsertTenant(
-      tenant1ForSQL.data,
-      tenant1ForSQL.metadata.version
+      tenant1InPostgresDb.data,
+      tenant1InPostgresDb.metadata.version
     );
 
     const collectionTenants = await readModelService.getAllReadModelTenants();

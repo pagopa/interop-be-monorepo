@@ -46,6 +46,7 @@
     "start:eservice-template": "turbo start --filter pagopa-interop-eservice-template-process",
     "start:eservice-template-readmodel-writer": "turbo start --filter pagopa-interop-eservice-template-readmodel-writer",
     "start:notification-email-sender": "turbo start --filter pagopa-interop-notification-email-sender",
+    "start:m2m-gateway": "turbo start --filter pagopa-interop-m2m-gateway",
     "test": "turbo test -- --watch=false",
     "build": "turbo build",
     "check": "turbo check",

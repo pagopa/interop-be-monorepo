@@ -1,5 +1,4 @@
 import { and, eq, lte, SQL } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   genericInternalError,
   Purpose,
@@ -7,6 +6,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
@@ -20,26 +20,38 @@ import {
   toPurposeAggregator,
   toPurposeAggregatorArray,
 } from "./purpose/aggregators.js";
+import { checkMetadataVersion } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
+export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertPurpose(
       purpose: Purpose,
       metadataVersion: number
     ): Promise<void> {
-      const {
-        purposeSQL,
-        riskAnalysisFormSQL,
-        riskAnalysisAnswersSQL,
-        versionsSQL,
-        versionDocumentsSQL,
-      } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
-
       await db.transaction(async (tx) => {
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          purposeInReadmodelPurpose,
+          metadataVersion,
+          purpose.id
+        );
+
+        if (!shouldUpsert) {
+          return;
+        }
+
         await tx
           .delete(purposeInReadmodelPurpose)
           .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+
+        const {
+          purposeSQL,
+          riskAnalysisFormSQL,
+          riskAnalysisAnswersSQL,
+          versionsSQL,
+          versionDocumentsSQL,
+        } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
         await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
 
@@ -155,7 +167,6 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
         .from(purposeInReadmodelPurpose)
         .where(filter)
         .leftJoin(
-          // 1
           purposeRiskAnalysisFormInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,
@@ -163,7 +174,6 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 2
           purposeRiskAnalysisAnswerInReadmodelPurpose,
           eq(
             purposeRiskAnalysisFormInReadmodelPurpose.id,
@@ -171,7 +181,6 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 3
           purposeVersionInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,
@@ -179,7 +188,6 @@ export function purposeReadModelServiceBuilder(db: ReturnType<typeof drizzle>) {
           )
         )
         .leftJoin(
-          // 4
           purposeVersionDocumentInReadmodelPurpose,
           eq(
             purposeVersionInReadmodelPurpose.id,

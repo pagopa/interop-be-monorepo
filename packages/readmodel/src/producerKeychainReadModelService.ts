@@ -1,11 +1,11 @@
 import { and, eq, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   ProducerKeychain,
   ProducerKeychainId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  DrizzleReturnType,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
   producerKeychainKeyInReadmodelProducerKeychain,
@@ -16,21 +16,27 @@ import {
   aggregateProducerKeychain,
   toProducerKeychainAggregator,
 } from "./authorization/producerKeychainAggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function producerKeychainReadModelServiceBuilder(
-  db: ReturnType<typeof drizzle>
-) {
+export function producerKeychainReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
-    // TODO: add metadata version check (lte)
     async upsertProducerKeychain(
       producerKeychain: ProducerKeychain,
       metadataVersion: number
     ): Promise<void> {
-      const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
-        splitProducerKeychainIntoObjectsSQL(producerKeychain, metadataVersion);
-
       await db.transaction(async (tx) => {
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          producerKeychainInReadmodelProducerKeychain,
+          metadataVersion,
+          producerKeychain.id
+        );
+
+        if (!shouldUpsert) {
+          return;
+        }
+
         await tx
           .delete(producerKeychainInReadmodelProducerKeychain)
           .where(
@@ -38,6 +44,12 @@ export function producerKeychainReadModelServiceBuilder(
               producerKeychainInReadmodelProducerKeychain.id,
               producerKeychain.id
             )
+          );
+
+        const { producerKeychainSQL, usersSQL, eservicesSQL, keysSQL } =
+          splitProducerKeychainIntoObjectsSQL(
+            producerKeychain,
+            metadataVersion
           );
 
         await tx

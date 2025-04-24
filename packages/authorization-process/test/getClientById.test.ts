@@ -1,4 +1,3 @@
-import { genericLogger } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
@@ -7,7 +6,11 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { getMockClient } from "pagopa-interop-commons-test";
+import {
+  getMockAuthData,
+  getMockClient,
+  getMockContext,
+} from "pagopa-interop-commons-test";
 import { clientNotFound } from "../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "./utils.js";
 
@@ -25,11 +28,12 @@ describe("getClientById", async () => {
     };
     await addOneClient(expectedClient);
 
-    const { client } = await authorizationService.getClientById({
-      clientId: expectedClient.id,
-      organizationId,
-      logger: genericLogger,
-    });
+    const { client } = await authorizationService.getClientById(
+      {
+        clientId: expectedClient.id,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
     expect(client).toEqual(expectedClient);
   });
   it("should get from the readModel the client with the specified Id without users", async () => {
@@ -41,22 +45,24 @@ describe("getClientById", async () => {
 
     await addOneClient(expectedClientWithoutUser);
 
-    const { client } = await authorizationService.getClientById({
-      clientId: expectedClientWithoutUser.id,
-      organizationId,
-      logger: genericLogger,
-    });
+    const { client } = await authorizationService.getClientById(
+      {
+        clientId: expectedClientWithoutUser.id,
+      },
+      getMockContext({ authData: getMockAuthData(organizationId) })
+    );
     expect(client).toEqual(expectedClientWithoutUser);
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(getMockClient());
     const clientId: ClientId = generateId();
     await expect(
-      authorizationService.getClientById({
-        clientId,
-        organizationId,
-        logger: genericLogger,
-      })
+      authorizationService.getClientById(
+        {
+          clientId,
+        },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
     ).rejects.toThrowError(clientNotFound(clientId));
   });
 });
