@@ -679,10 +679,17 @@ const tenantsRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
         const { tenantId } = req.params;
-        const tenant = await tenantService.addCertifiedAttribute(
-          { tenantId: unsafeBrandId(tenantId), tenantAttributeSeed: req.body },
-          ctx
-        );
+        const { data: tenant, metadata } =
+          await tenantService.addCertifiedAttribute(
+            {
+              tenantId: unsafeBrandId(tenantId),
+              tenantAttributeSeed: req.body,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
