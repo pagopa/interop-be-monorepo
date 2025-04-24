@@ -51,7 +51,7 @@ import {
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { addDays } from "date-fns";
-import { agreementUpgradableStates } from "../src/model/domain/agreement-validators.js";
+import { agreementUpgradableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -65,9 +65,9 @@ import {
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
-import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import { AgreementContractPDFPayload } from "../../src/model/domain/models.js";
 import {
   addDelegationsAndDelegates,
   addOneAgreement,
@@ -76,16 +76,18 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
-  authDataAndDelegationsFromRequesterIs,
   fileManager,
+  pdfGenerator,
+  readAgreementEventByVersion,
+  uploadDocument,
+} from "../integrationUtils.js";
+import {
+  authDataAndDelegationsFromRequesterIs,
   getMockConsumerDocument,
   getMockContract,
   getRandomPastStamp,
-  pdfGenerator,
-  readAgreementEventByVersion,
   requesterIs,
-  uploadDocument,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 describe("upgrade Agreement", () => {
   const currentExecutionTime = new Date();

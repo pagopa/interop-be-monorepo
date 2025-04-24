@@ -62,7 +62,7 @@ import {
   agreementActivableStates,
   agreementActivationAllowedDescriptorStates,
   agreementArchivableStates,
-} from "../src/model/domain/agreement-validators.js";
+} from "../../src/model/domain/agreement-validators.js";
 import {
   agreementActivationFailed,
   agreementNotFound,
@@ -76,11 +76,10 @@ import {
   organizationIsNotTheProducer,
   organizationNotAllowed,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
-import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import { AgreementContractPDFPayload } from "../../src/model/domain/models.js";
 import {
-  RequesterIs,
   addDelegationsAndDelegates,
   addOneAgreement,
   addOneAttribute,
@@ -88,13 +87,16 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
-  authDataAndDelegationsFromRequesterIs,
   fileManager,
   pdfGenerator,
   readAgreementEventByVersion,
   readLastAgreementEvent,
+} from "../integrationUtils.js";
+import {
+  RequesterIs,
+  authDataAndDelegationsFromRequesterIs,
   requesterIs,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 const unsuspensionEventInfoFromRequesterIs = (requesterIs: RequesterIs) =>
   match(requesterIs)
@@ -463,7 +465,7 @@ describe("activate agreement", () => {
         expect(pdfGenerator.generate).toHaveBeenCalledWith(
           path.resolve(
             path.dirname(fileURLToPath(import.meta.url)),
-            "../src",
+            "../../src",
             "resources/templates/documents/",
             "agreementContractTemplate.html"
           ),
