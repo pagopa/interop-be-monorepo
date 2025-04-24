@@ -6,7 +6,10 @@ import {
   pollResource,
 } from "../utils/polling.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { toM2MGatewayApiConsumerDelegation } from "../api/delegationApiConverter.js";
+import {
+  toGetDelegationsApiQueryParams,
+  toM2MGatewayApiConsumerDelegation,
+} from "../api/delegationApiConverter.js";
 import { assertDelegationKindIs } from "../utils/validators/delegationValidators.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
@@ -27,6 +30,33 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
     });
 
   return {
+    async getConsumerDelegations(
+      params: m2mGatewayApi.GetConsumerDelegationsQueryParams,
+      { headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.ConsumerDelegations> {
+      const response =
+        await clients.delegationProcessClient.delegation.getDelegations({
+          queries: toGetDelegationsApiQueryParams(params),
+          headers,
+        });
+
+      const results = response.data.results.map((delegation) => {
+        assertDelegationKindIs(
+          delegation,
+          delegationApi.DelegationKind.Values.DELEGATED_CONSUMER
+        );
+        return toM2MGatewayApiConsumerDelegation(delegation);
+      });
+
+      return {
+        pagination: {
+          limit: params.limit,
+          offset: params.offset,
+          totalCount: response.data.totalCount,
+        },
+        results,
+      };
+    },
     async createConsumerDelegation(
       seed: m2mGatewayApi.DelegationSeed,
       { headers }: WithLogger<M2MGatewayAppContext>

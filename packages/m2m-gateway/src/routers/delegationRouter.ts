@@ -14,7 +14,7 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 
-const { M2M_ADMIN_ROLE } = authRole;
+const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
 export type DelegationServiceBuilder = typeof delegationServiceBuilder;
 
@@ -32,8 +32,16 @@ const delegationRouter = (
   delegationRouter
     .get("/consumerDelegations", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const consumerDelegations =
+          await delegationService.getConsumerDelegations(req.query, ctx);
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.ConsumerDelegations.parse(consumerDelegations));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

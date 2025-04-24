@@ -1,5 +1,19 @@
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 
+export function toGetDelegationsApiQueryParams(
+  params: m2mGatewayApi.GetConsumerDelegationsQueryParams
+): delegationApi.GetDelegationsQueryParams {
+  return {
+    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    delegationStates: params.states,
+    delegatorIds: params.delegatorIds,
+    delegateIds: params.delegateIds,
+    eserviceIds: params.eserviceIds,
+    offset: params.offset,
+    limit: params.limit,
+  };
+}
+
 export function toM2MGatewayApiConsumerDelegation(
   delegation: delegationApi.Delegation & {
     kind: typeof delegationApi.DelegationKind.Values.DELEGATED_CONSUMER;
