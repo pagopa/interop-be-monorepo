@@ -23,7 +23,7 @@ describe("getTenantById", () => {
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
     await addOneTenant(tenant3);
-    const returnedTenant = await tenantService.getTenantById(
+    const { data: returnedTenant } = await tenantService.getTenantById(
       tenant1.id,
       getMockContext({})
     );
