@@ -38,7 +38,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { agreementCreationConflictingStates } from "../src/model/domain/agreement-validators.js";
+import { agreementCreationConflictingStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   delegationNotFound,
@@ -48,7 +48,7 @@ import {
   notLatestEServiceDescriptor,
   organizationIsNotTheDelegateConsumer,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -56,7 +56,7 @@ import {
   addOneTenant,
   agreementService,
   readLastAgreementEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 /**
  * Executes the generic agreement expectation for agreement creation process,

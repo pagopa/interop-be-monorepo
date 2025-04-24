@@ -35,7 +35,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   agreementClonableStates,
   agreementCloningConflictingStates,
-} from "../src/model/domain/agreement-validators.js";
+} from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -46,8 +46,8 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegateConsumer,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneDelegation,
@@ -55,10 +55,10 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
-  getMockConsumerDocument,
   readAgreementEventByVersion,
   uploadDocument,
-} from "./utils.js";
+} from "../integrationUtils.js";
+import { getMockConsumerDocument } from "../mockUtils.js";
 
 describe("clone agreement", () => {
   const TEST_EXECUTION_DATE = new Date();

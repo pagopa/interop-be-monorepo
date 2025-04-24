@@ -63,10 +63,24 @@ import {
   AppContext,
 } from "pagopa-interop-commons";
 import { createApp } from "../src/app.js";
-import { DelegationServiceBuilder } from "../src/routers/delegationRouter.js";
+import { AgreementService } from "../src/services/agreementService.js";
+import { AttributeService } from "../src/services/attributeService.js";
+import { ClientService } from "../src/services/clientService.js";
+import { DelegationService } from "../src/services/delegationService.js";
+import { EserviceService } from "../src/services/eserviceService.js";
+import { EserviceTemplateService } from "../src/services/eserviceTemplateService.js";
+import { PurposeService } from "../src/services/purposeService.js";
+import { TenantService } from "../src/services/tenantService.js";
 
-export const mockDelegationService = {} as ReturnType<DelegationServiceBuilder>;
+export const mockDelegationService = {} as DelegationService;
 
 export const api = await createApp({
-  delegationServiceBuilderFunction: () => mockDelegationService,
+  agreementService: {} as AgreementService,
+  attributeService: {} as AttributeService,
+  clientService: {} as ClientService,
+  delegationService: mockDelegationService,
+  eserviceService: {} as EserviceService,
+  eserviceTemplateService: {} as EserviceTemplateService,
+  purposeService: {} as PurposeService,
+  tenantService: {} as TenantService,
 });

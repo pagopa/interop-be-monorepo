@@ -57,7 +57,7 @@ import {
   toAgreementStateV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { agreementSubmissionConflictingStates } from "../src/model/domain/agreement-validators.js";
+import { agreementSubmissionConflictingStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -69,9 +69,9 @@ import {
   notLatestEServiceDescriptor,
   organizationIsNotTheDelegateConsumer,
   tenantNotFound,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
-import { AgreementContractPDFPayload } from "../src/model/domain/models.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import { AgreementContractPDFPayload } from "../../src/model/domain/models.js";
 import {
   addDelegationsAndDelegates,
   addOneAgreement,
@@ -80,13 +80,15 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
-  authDataAndDelegationsFromRequesterIs,
   fileManager,
-  getRandomPastStamp,
   pdfGenerator,
   readLastAgreementEvent,
+} from "../integrationUtils.js";
+import {
+  authDataAndDelegationsFromRequesterIs,
+  getRandomPastStamp,
   requesterIs,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 const draftAgreementSubmissionSeed = {
   state: agreementState.draft,
@@ -1356,7 +1358,7 @@ describe("submit agreement", () => {
           expect(pdfGenerator.generate).toHaveBeenCalledWith(
             path.resolve(
               path.dirname(fileURLToPath(import.meta.url)),
-              "../src",
+              "../../src",
               "resources/templates/documents/",
               "agreementContractTemplate.html"
             ),
@@ -1791,7 +1793,7 @@ describe("submit agreement", () => {
           expect(pdfGenerator.generate).toHaveBeenCalledWith(
             path.resolve(
               path.dirname(fileURLToPath(import.meta.url)),
-              "../src",
+              "../../src",
               "resources/templates/documents/",
               "agreementContractTemplate.html"
             ),

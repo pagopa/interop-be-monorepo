@@ -13,6 +13,8 @@ import {
 import { assertDelegationKindIs } from "../utils/validators/delegationValidators.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
+export type DelegationService = ReturnType<typeof delegationServiceBuilder>;
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

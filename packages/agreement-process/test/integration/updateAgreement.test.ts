@@ -24,14 +24,14 @@ import {
   agreementNotInExpectedState,
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegateConsumer,
-} from "../src/model/domain/errors.js";
-import { agreementUpdatableStates } from "../src/model/domain/agreement-validators.js";
+} from "../../src/model/domain/errors.js";
+import { agreementUpdatableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   addOneAgreement,
   addOneDelegation,
   agreementService,
   readLastAgreementEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("update agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {

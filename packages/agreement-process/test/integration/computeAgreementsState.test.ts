@@ -37,7 +37,7 @@ import {
   addOneEService,
   agreementService,
   readLastAgreementEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("compute Agreements state by attribute", () => {
   describe("when the given attribute is not satisfied", async () => {
