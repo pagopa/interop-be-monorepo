@@ -39,7 +39,3 @@ export async function createApp(service?: EServiceTemplateService) {
 
   return app;
 }
-
-const app = await createApp();
-
-export default app;
