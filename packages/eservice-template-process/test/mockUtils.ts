@@ -27,10 +27,13 @@ export const eserviceTemplateToApiEServiceTemplateSeed = (
   const apiEserviceTemplate =
     eserviceTemplateToApiEServiceTemplate(eserviceTemplate);
 
-  return {
+  return eserviceTemplateApi.EServiceTemplateSeed.strip().parse({
     ...apiEserviceTemplate,
-    version: apiEserviceTemplate.versions[0],
-  };
+    version:
+      eserviceTemplateApi.VersionSeedForEServiceTemplateCreation.strip().parse(
+        apiEserviceTemplate.versions[0]
+      ),
+  });
 };
 
 export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { EServiceTemplateId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockEServiceTemplate,
@@ -9,6 +9,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
+import { eServiceTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("API GET /templates", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
@@ -18,20 +19,25 @@ describe("API GET /templates", () => {
     totalCount: 1,
   };
 
-  eserviceTemplateService.getEServiceTemplates = vi
-    .fn()
-    .mockResolvedValue(mockEserviceTemplateListResult);
-
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    queryParams: Record<string, unknown> = {
+      limit: 10,
+      offset: 0,
+    }
+  ) =>
     request(api)
       .get("/templates")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        limit: 10,
-        offset: 0,
-      })
+      .query(queryParams)
       .send();
+
+  beforeEach(() => {
+    eserviceTemplateService.getEServiceTemplates = vi
+      .fn()
+      .mockResolvedValue(mockEserviceTemplateListResult);
+  });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -65,12 +71,20 @@ describe("API GET /templates", () => {
 
   it("Should return 400 if passed no query params", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await request(api)
-      .get("/templates")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({})
-      .send();
+    const res = await makeRequest(token, {});
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 404 if no pulished versions for a template are found", async () => {
+    const notFoundEserviceTemplateId = generateId<EServiceTemplateId>();
+    eserviceTemplateService.getEServiceTemplates = vi
+      .fn()
+      .mockRejectedValue(eServiceTemplateNotFound(notFoundEserviceTemplateId));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.body.detail).toBe(
+      `EService Template ${notFoundEserviceTemplateId} not found`
+    );
+    expect(res.status).toBe(404);
   });
 });
