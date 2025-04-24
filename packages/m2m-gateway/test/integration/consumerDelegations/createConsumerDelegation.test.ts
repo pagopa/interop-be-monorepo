@@ -83,13 +83,11 @@ describe("createConsumerDelegation", () => {
         mockInteropBeClients.delegationProcessClient.consumer
           .createConsumerDelegation,
       body: mockDelegationSeed,
-      token: "test-token",
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.delegationProcessClient.delegation.getDelegation,
       params: { delegationId: mockDelegationProcessResponse.data.id },
-      token: "test-token",
     });
     expect(
       mockInteropBeClients.delegationProcessClient.delegation.getDelegation

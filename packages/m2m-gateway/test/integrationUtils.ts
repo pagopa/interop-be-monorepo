@@ -4,6 +4,7 @@ import { expect } from "vitest";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
+import { m2mTestToken } from "./mockUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function mockPollingResponse<T>(
@@ -30,16 +31,14 @@ export function mockPollingResponse<T>(
 export function expectApiClientGetToHaveBeenCalledWith({
   mockGet,
   params,
-  token,
 }: {
   mockGet: Function;
   params: Record<string, unknown>;
-  token: string;
 }): void {
   expect(mockGet).toHaveBeenCalledWith({
     params,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${m2mTestToken}`,
       "X-Correlation-Id": expect.any(String),
       "X-Forwarded-For": undefined,
     },
@@ -49,15 +48,13 @@ export function expectApiClientGetToHaveBeenCalledWith({
 export function expectApiClientPostToHaveBeenCalledWith({
   mockPost,
   body,
-  token,
 }: {
   mockPost: Function;
   body: Record<string, unknown>;
-  token: string;
 }): void {
   expect(mockPost).toHaveBeenCalledWith(body, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${m2mTestToken}`,
       "X-Correlation-Id": expect.any(String),
       "X-Forwarded-For": undefined,
     },

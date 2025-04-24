@@ -39,6 +39,7 @@ export function getMockedApiDelegation({
   };
 }
 
+export const m2mTestToken = "test-token";
 export const getMockM2MAdminAppContext = ({
   organizationId,
   serviceName,
@@ -60,7 +61,7 @@ export const getMockM2MAdminAppContext = ({
     correlationId,
     headers: {
       "X-Correlation-Id": correlationId,
-      Authorization: "Bearer test-token",
+      Authorization: `Bearer ${m2mTestToken}`,
       "X-Forwarded-For": undefined,
     },
   };
