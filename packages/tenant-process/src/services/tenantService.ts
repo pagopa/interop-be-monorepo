@@ -464,7 +464,7 @@ export function tenantServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<Tenant> {
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
       );
@@ -531,11 +531,16 @@ export function tenantServiceBuilder(
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
-      } else {
-        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+        return {
+          data: updatedTenant,
+          metadata: { version: targetTenant.metadata.version + 2 },
+        };
       }
-
-      return updatedTenant;
+      await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
+      return {
+        data: updatedTenant,
+        metadata: { version: targetTenant.metadata.version + 1 },
+      };
     },
 
     async addDeclaredAttribute(
