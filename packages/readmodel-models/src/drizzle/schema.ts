@@ -656,8 +656,6 @@ export const eserviceRiskAnalysisAnswerInReadmodelCatalog =
         columns: [table.id, table.eserviceId],
         name: "eservice_risk_analysis_answer_pkey",
       }),
-    ]
-  );
       foreignKey({
         columns: [table.eserviceId, table.metadataVersion],
         foreignColumns: [
