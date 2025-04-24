@@ -1,6 +1,6 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeId } from "pagopa-interop-models";
+import { PurposeId, PurposeVersionId } from "pagopa-interop-models";
 import {
   toM2MPurpose,
   toM2MPurposeVersion,
@@ -184,6 +184,20 @@ export function purposeServiceBuilder({
       }
 
       return toM2MPurposeVersion(createdVersion);
+    },
+    activatePurposeVersion: async (
+      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+      purposeId: PurposeId,
+      versionId: PurposeVersionId
+    ): Promise<void> => {
+      logger.info(`Activating version ${versionId} of purpose ${purposeId}`);
+
+      const versionResponse = await purposeProcessClient.activatePurposeVersion(
+        undefined,
+        { params: { purposeId, versionId }, headers }
+      );
+
+      await pollPurposeVersion(purposeId, versionResponse, headers);
     },
   };
 }
