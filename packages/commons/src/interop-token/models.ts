@@ -74,17 +74,17 @@ export type InteropJwtApiM2MAdminPayload =
     // ^ ID of the admin user associated with the client
   };
 
-export type InteropJWTApiPayload =
+export type InteropJwtApiPayload =
   | InteropJwtApiM2MAdminPayload
   | InteropJwtApiM2MPayload;
 
 export type InteropApiToken = {
   header: InteropJwtHeader;
-  payload: InteropJWTApiPayload;
+  payload: InteropJwtApiPayload;
   serialized: string;
 };
 
-/* ================================= ========= 
+/* ========================================== 
     Interop INTERNAL Token 
   ========================================== */
 export type InteropJwtPayload = InteropJwtCommonPayload & {

@@ -18,7 +18,7 @@ import {
   InteropApiToken,
   InteropConsumerToken,
   InteropJwtApiOrganizationClientPayload,
-  InteropJWTApiPayload,
+  InteropJwtApiPayload,
   InteropJwtConsumerPayload,
   InteropJwtHeader,
   InteropJwtPayload,
@@ -146,7 +146,7 @@ export class InteropTokenGenerator {
   }: {
     sub: ClientId;
     consumerId: TenantId;
-    clientAdminId?: UserId;
+    clientAdminId: UserId | undefined;
   }): Promise<InteropApiToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -190,7 +190,7 @@ export class InteropTokenGenerator {
           [ROLE_CLAIM]: systemRole.M2M_ROLE,
         };
 
-    const payload: InteropJWTApiPayload = {
+    const payload: InteropJwtApiPayload = {
       ...userDataPayload,
       ...systemRolePayload,
     };
@@ -276,7 +276,7 @@ export class InteropTokenGenerator {
       | InteropJwtPayload
       | SessionJwtPayload
       | InteropJwtConsumerPayload
-      | InteropJWTApiPayload;
+      | InteropJwtApiPayload;
     keyId: string;
   }): Promise<string> {
     const serializedToken = `${b64UrlEncode(
