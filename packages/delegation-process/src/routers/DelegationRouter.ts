@@ -3,19 +3,14 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
-  ReadModelRepository,
   ZodiosContext,
   authRole,
   fromAppContext,
-  initDB,
-  initFileManager,
-  initPDFGenerator,
   setMetadataVersionHeader,
   validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
-import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   apiDelegationKindToDelegationKind,
   apiDelegationStateToDelegationState,
@@ -36,33 +31,7 @@ import {
   getConsumerEservicesErrorMapper,
   getConsumerDelegatorsWithAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
-import {
-  DelegationService,
-  delegationServiceBuilder,
-} from "../services/delegationService.js";
-import { config } from "../config/config.js";
-
-const readModelRepository = ReadModelRepository.init(config);
-const readModelService = readModelServiceBuilder(readModelRepository);
-
-const pdfGenerator = await initPDFGenerator();
-const fileManager = initFileManager(config);
-const eventStore = initDB({
-  username: config.eventStoreDbUsername,
-  password: config.eventStoreDbPassword,
-  host: config.eventStoreDbHost,
-  port: config.eventStoreDbPort,
-  database: config.eventStoreDbName,
-  schema: config.eventStoreDbSchema,
-  useSSL: config.eventStoreDbUseSSL,
-});
-
-const defaultDelegationService = delegationServiceBuilder(
-  readModelService,
-  eventStore,
-  pdfGenerator,
-  fileManager
-);
+import { DelegationService } from "../services/delegationService.js";
 
 const {
   ADMIN_ROLE,
@@ -75,7 +44,7 @@ const {
 
 const delegationRouter = (
   ctx: ZodiosContext,
-  delegationService: DelegationService = defaultDelegationService
+  delegationService: DelegationService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,

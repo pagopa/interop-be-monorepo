@@ -108,8 +108,8 @@ export const retrieveEserviceById = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(
-  readModelService: ReadModelService,
   dbInstance: DB,
+  readModelService: ReadModelService,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager
 ) {
@@ -134,8 +134,7 @@ export function delegationServiceBuilder(
     const delegatorId = authData.organizationId;
 
     logger.info(
-      `Creating a delegation for tenant ${delegateId} by ${
-        kind === delegationKind.delegatedConsumer ? "consumer" : "producer"
+      `Creating a delegation for tenant ${delegateId} by ${kind === delegationKind.delegatedConsumer ? "consumer" : "producer"
       } ${delegatorId}`
     );
 
@@ -343,8 +342,7 @@ export function delegationServiceBuilder(
     { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
   ): Promise<void> {
     logger.info(
-      `Revoking delegation ${delegationId} by ${
-        kind === delegationKind.delegatedProducer ? "producer" : "consumer"
+      `Revoking delegation ${delegationId} by ${kind === delegationKind.delegatedProducer ? "producer" : "consumer"
       } ${authData.organizationId}`
     );
 

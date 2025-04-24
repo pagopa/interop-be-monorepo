@@ -7,6 +7,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 
 import { api, delegationService } from "../vitest.api.setup.js";
+import { tenantToApiCompactTenant } from "../mockUtils.js";
 
 describe("API GET /consumer/delegators test", () => {
   const mockDelegator1 = { ...getMockTenant(), name: "Comune di Burione" };
@@ -18,8 +19,8 @@ describe("API GET /consumer/delegators test", () => {
     totalCount: 3,
   };
 
-  const apiDelegators = delegationApi.Delegation.parse({
-    results: delegationApi.CompactTenants.parse(mockDelegators),
+  const apiDelegators = delegationApi.CompactTenants.parse({
+    results: mockDelegators.results.map(tenantToApiCompactTenant),
     totalCount: mockDelegators.totalCount,
   });
 

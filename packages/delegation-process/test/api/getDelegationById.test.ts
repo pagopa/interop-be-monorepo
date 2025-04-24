@@ -19,9 +19,10 @@ describe("API GET /delegations/:delegationId test", () => {
     delegationToApiDelegation(mockDelegation)
   );
 
-  delegationService.getDelegationById = vi
-    .fn()
-    .mockResolvedValue(apiDelegation);
+  delegationService.getDelegationById = vi.fn().mockResolvedValue({
+    data: mockDelegation,
+    metadata: { version: 0 },
+  });
 
   const makeRequest = async (
     token: string,
@@ -38,6 +39,7 @@ describe("API GET /delegations/:delegationId test", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
   ];
 

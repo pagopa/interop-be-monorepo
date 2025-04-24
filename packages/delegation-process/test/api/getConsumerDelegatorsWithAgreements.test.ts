@@ -7,6 +7,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 
 import { api, delegationService } from "../vitest.api.setup.js";
+import { tenantToApiCompactTenant } from "../mockUtils.js";
 
 describe("API GET /consumer/delegatorsWithAgreements test", () => {
   const mockDelegator1 = { ...getMockTenant(), name: "Comune di Burione" };
@@ -18,8 +19,8 @@ describe("API GET /consumer/delegatorsWithAgreements test", () => {
     totalCount: 3,
   };
 
-  const apiDelegators = delegationApi.Delegation.parse({
-    results: delegationApi.CompactTenants.parse(mockDelegators),
+  const apiDelegators = delegationApi.CompactTenants.parse({
+    results: mockDelegators.results.map(tenantToApiCompactTenant),
     totalCount: mockDelegators.totalCount,
   });
 
@@ -56,7 +57,7 @@ describe("API GET /consumer/delegatorsWithAgreements test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
 

@@ -17,7 +17,10 @@ import request from "supertest";
 import { delegationContractToApiDelegationContract } from "../../src/model/domain/apiConverter.js";
 
 import { api, delegationService } from "../vitest.api.setup.js";
-import { delegationContractNotFound } from "../../src/model/domain/errors.js";
+import {
+  delegationContractNotFound,
+  delegationNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API GET /delegations/:delegationId/contracts/:contractId test", () => {
   const mockDelegation: Delegation = getMockDelegation({
@@ -26,13 +29,13 @@ describe("API GET /delegations/:delegationId/contracts/:contractId test", () => 
   const mockDelegationContract: DelegationContractDocument =
     getMockDelegationDocument();
 
-  const apiDelegationContract = delegationApi.Delegation.parse({
-    results: delegationContractToApiDelegationContract(mockDelegationContract),
-  });
+  const apiDelegationContract = delegationApi.DelegationContractDocument.parse(
+    delegationContractToApiDelegationContract(mockDelegationContract)
+  );
 
   delegationService.getDelegationContract = vi
     .fn()
-    .mockResolvedValue(apiDelegationContract);
+    .mockResolvedValue(mockDelegationContract);
 
   const makeRequest = async (
     token: string,
@@ -83,9 +86,19 @@ describe("API GET /delegations/:delegationId/contracts/:contractId test", () => 
     expect(res.status).toBe(404);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 404 for delegationContractNotFound", async () => {
+    delegationService.getDelegationContract = vi
+      .fn()
+      .mockRejectedValue(delegationNotFound(mockDelegation.id));
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
   });
+
+  // Currently: delegationId and contractId are not uuids as per delegationApi.yml
+  // it.only("Should return 400 if passed an invalid parameter", async () => {
+  //   const token = generateToken(authRole.ADMIN_ROLE);
+  //   const res = await makeRequest(token, "invalid");
+  //   expect(res.status).toBe(400);
+  // });
 });

@@ -4,6 +4,7 @@ import {
   generateToken,
   getMockDelegation,
   getMockEService,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   Delegation,
@@ -21,28 +22,33 @@ import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.j
 import { delegationAlreadyExists } from "../../src/model/domain/errors.js";
 
 describe("API POST /producer/delegations test", () => {
+  const mockDelegator = { ...getMockTenant(), name: "Comune di Burione" };
   const mockDelegation: Delegation = getMockDelegation({
-    kind: delegationKind.delegatedProducer,
+    kind: delegationKind.delegatedConsumer,
   });
   const mockEservice: EService = getMockEService();
 
-  const apiDelegation = delegationApi.Delegation.parse({
-    results: delegationToApiDelegation(mockDelegation),
-  });
+  const apiDelegation = delegationApi.Delegation.parse(
+    delegationToApiDelegation(mockDelegation)
+  );
 
-  delegationService.createConsumerDelegation = vi
-    .fn()
-    .mockResolvedValue(apiDelegation);
+  delegationService.createProducerDelegation = vi.fn().mockResolvedValue({
+    data: mockDelegation,
+    metadata: { version: 0 },
+  });
 
   const makeRequest = async (
     token: string,
-    delegation: object = mockDelegation
+    delegateId: string = mockDelegator.id
   ) =>
     request(api)
       .post("/producer/delegations")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(delegation);
+      .send({
+        delegateId,
+        eserviceId: mockEservice.id,
+      });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
@@ -81,7 +87,7 @@ describe("API POST /producer/delegations test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, { ...mockDelegation, id: "invalid" });
+    const res = await makeRequest(token, "invalid");
     expect(res.status).toBe(400);
   });
 });

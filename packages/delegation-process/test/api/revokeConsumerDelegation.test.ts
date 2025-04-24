@@ -27,8 +27,7 @@ describe("API DELETE /consumer/delegations/:delegationId test", () => {
     request(api)
       .delete(`/consumer/delegations/${delegationId}`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit: 10 });
+      .set("X-Correlation-Id", generateId());
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 

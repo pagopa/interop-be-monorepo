@@ -30,7 +30,7 @@ describe("API GET /delegations test", () => {
     totalCount: mockDelegations.totalCount,
   });
 
-  delegationService.getDelegations = vi.fn().mockResolvedValue(apiDelegations);
+  delegationService.getDelegations = vi.fn().mockResolvedValue(mockDelegations);
 
   const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)

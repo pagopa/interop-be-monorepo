@@ -1,14 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { delegationApi } from "pagopa-interop-api-clients";
-import { generateToken, getMockEService } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockEService,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 
 import { api, delegationService } from "../vitest.api.setup.js";
+import { eserviceToApiCompactEservice } from "../mockUtils.js";
 
 describe("API GET /consumer/eservices test", () => {
+  const mockDelegator = { ...getMockTenant(), name: "Comune di Burione" };
   const mockEservice1 = { ...getMockEService(), name: "Servizio 1" };
   const mockEservice2 = { ...getMockEService(), name: "Servizio 2" };
   const mockEservice3 = { ...getMockEService(), name: "Servizio 3" };
@@ -18,8 +24,8 @@ describe("API GET /consumer/eservices test", () => {
     totalCount: 3,
   };
 
-  const apiEservices = delegationApi.Delegation.parse({
-    results: delegationApi.CompactEServices.parse(mockEservices),
+  const apiEservices = delegationApi.CompactEServices.parse({
+    results: mockEservices.results.map(eserviceToApiCompactEservice),
     totalCount: mockEservices.totalCount,
   });
 
@@ -32,7 +38,7 @@ describe("API GET /consumer/eservices test", () => {
       .get("/consumer/eservices")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit });
+      .query({ delegatorId: mockDelegator.id, offset: 0, limit });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,

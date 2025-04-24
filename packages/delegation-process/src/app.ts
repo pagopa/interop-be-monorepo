@@ -1,6 +1,10 @@
 import {
+  ReadModelRepository,
   authenticationMiddleware,
   contextMiddleware,
+  initDB,
+  initFileManager,
+  initPDFGenerator,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -12,7 +16,35 @@ import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import healthRouter from "./routers/HealthRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
-import { DelegationService } from "./services/delegationService.js";
+import {
+  DelegationService,
+  delegationServiceBuilder,
+} from "./services/delegationService.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const createDefaultDelegationService = async () => {
+  const readModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
+  const fileManager = initFileManager(config);
+  const pdfGenerator = await initPDFGenerator();
+
+  return delegationServiceBuilder(
+    initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    }),
+    readModelService,
+    pdfGenerator,
+    fileManager
+  );
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service?: DelegationService) {
@@ -21,7 +53,7 @@ export async function createApp(service?: DelegationService) {
   const router =
     service != null
       ? delegationRouter(zodiosCtx, service)
-      : delegationRouter(zodiosCtx);
+      : delegationRouter(zodiosCtx, await createDefaultDelegationService());
 
   const app = zodiosCtx.app();
 
@@ -39,7 +71,3 @@ export async function createApp(service?: DelegationService) {
 
   return app;
 }
-
-const app = await createApp();
-
-export default app;

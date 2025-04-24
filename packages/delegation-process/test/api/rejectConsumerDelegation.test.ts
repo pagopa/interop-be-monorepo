@@ -28,7 +28,9 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
       .post(`/consumer/delegations/${delegationId}/reject`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit: 10 });
+      .send({
+        rejectionReason: "reason",
+      });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
