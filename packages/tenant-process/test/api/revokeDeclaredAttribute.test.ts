@@ -65,8 +65,6 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
   });
 
   it("Should return 400 if passed an invalid attribute id", async () => {
-    // Remove the previous mocked error to ensure 400 is not due to it
-    tenantService.revokeDeclaredAttribute = vi.fn().mockResolvedValue(tenant);
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid");
     expect(res.status).toBe(400);
