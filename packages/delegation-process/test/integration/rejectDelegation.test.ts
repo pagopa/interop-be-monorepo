@@ -22,12 +22,12 @@ import {
   delegationNotFound,
   operationRestrictedToDelegate,
   incorrectState,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
   delegationService,
   readLastDelegationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe.each([
   delegationKind.delegatedConsumer,

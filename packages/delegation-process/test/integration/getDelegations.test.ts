@@ -2,7 +2,7 @@
 import { getMockContext, getMockDelegation } from "pagopa-interop-commons-test";
 import { describe, expect, it } from "vitest";
 import { delegationKind } from "pagopa-interop-models";
-import { addOneDelegation, delegationService } from "./utils.js";
+import { addOneDelegation, delegationService } from "../integrationUtils.js";
 
 describe("get delegations", () => {
   it("should get producer's delegations", async () => {

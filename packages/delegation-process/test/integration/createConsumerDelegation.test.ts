@@ -15,14 +15,14 @@ import { describe, expect, it } from "vitest";
 import {
   delegationRelatedAgreementExists,
   eserviceNotConsumerDelegable,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneEservice,
   addOneTenant,
   delegationService,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("create consumer delegation", () => {
   config.delegationsAllowedOrigins = ["IPA", "TEST"];

@@ -6,9 +6,13 @@ import {
 } from "pagopa-interop-commons-test";
 import { generateId, TenantId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { differentEServiceProducer } from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
-import { addOneEservice, addOneTenant, delegationService } from "./utils.js";
+import { differentEServiceProducer } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import {
+  addOneEservice,
+  addOneTenant,
+  delegationService,
+} from "../integrationUtils.js";
 
 describe("create producer delegation", () => {
   config.delegationsAllowedOrigins = ["IPA", "TEST"];

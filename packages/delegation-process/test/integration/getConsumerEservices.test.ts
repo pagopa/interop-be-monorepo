@@ -20,7 +20,7 @@ import {
   addOneDelegation,
   addOneEservice,
   delegationService,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("getConsumerEservices", () => {
   const delegatorId1 = generateId<TenantId>();

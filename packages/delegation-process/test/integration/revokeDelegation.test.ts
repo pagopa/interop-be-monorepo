@@ -34,13 +34,13 @@ import {
   delegationNotFound,
   incorrectState,
   operationRestrictedToDelegator,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   activeDelegationStates,
   inactiveDelegationStates,
-} from "../src/services/validators.js";
-import { DelegationRevocationPDFPayload } from "../src/model/domain/models.js";
+} from "../../src/services/validators.js";
+import { DelegationRevocationPDFPayload } from "../../src/model/domain/models.js";
 import {
   addOneDelegation,
   addOneEservice,
@@ -49,7 +49,7 @@ import {
   fileManager,
   pdfGenerator,
   readLastDelegationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 const TEST_EXECUTION_DATE = new Date();
 
@@ -192,7 +192,7 @@ describe.each([
     expect(pdfGenerator.generate).toHaveBeenCalledWith(
       path.resolve(
         path.dirname(fileURLToPath(import.meta.url)),
-        "../src",
+        "../../src",
         "resources/templates",
         "delegationRevokedTemplate.html"
       ),
