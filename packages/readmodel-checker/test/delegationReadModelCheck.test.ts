@@ -49,7 +49,10 @@ describe("Check delegation readmodels", () => {
 
     await addOneDelegation(delegation);
 
-    await delegationReadModelServiceSQL.upsertDelegation(delegation);
+    await delegationReadModelServiceSQL.upsertDelegation(
+      delegation.data,
+      delegation.metadata.version
+    );
 
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
@@ -80,7 +83,10 @@ describe("Check delegation readmodels", () => {
     await addOneDelegation(delegation1);
     await addOneDelegation(delegation2);
 
-    await delegationReadModelServiceSQL.upsertDelegation(delegation2);
+    await delegationReadModelServiceSQL.upsertDelegation(
+      delegation2.data,
+      delegation2.metadata.version
+    );
 
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
@@ -110,8 +116,14 @@ describe("Check delegation readmodels", () => {
 
     await addOneDelegation(delegation1);
 
-    await delegationReadModelServiceSQL.upsertDelegation(delegation1);
-    await delegationReadModelServiceSQL.upsertDelegation(delegation2);
+    await delegationReadModelServiceSQL.upsertDelegation(
+      delegation1.data,
+      delegation1.metadata.version
+    );
+    await delegationReadModelServiceSQL.upsertDelegation(
+      delegation2.data,
+      delegation2.metadata.version
+    );
 
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
@@ -134,7 +146,7 @@ describe("Check delegation readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const delegation1ForSQL: WithMetadata<Delegation> = {
+    const delegation1InPostgresDb: WithMetadata<Delegation> = {
       data: {
         ...delegation1.data,
         eserviceId: generateId(),
@@ -144,7 +156,10 @@ describe("Check delegation readmodels", () => {
 
     await addOneDelegation(delegation1);
 
-    await delegationReadModelServiceSQL.upsertDelegation(delegation1ForSQL);
+    await delegationReadModelServiceSQL.upsertDelegation(
+      delegation1InPostgresDb.data,
+      delegation1InPostgresDb.metadata.version
+    );
 
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();
@@ -167,7 +182,7 @@ describe("Check delegation readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const delegation1ForSQL: WithMetadata<Delegation> = {
+    const delegation1InPostgresDb: WithMetadata<Delegation> = {
       data: delegation1.data,
       metadata: {
         version: 3,
@@ -176,7 +191,10 @@ describe("Check delegation readmodels", () => {
 
     await addOneDelegation(delegation1);
 
-    await delegationReadModelServiceSQL.upsertDelegation(delegation1ForSQL);
+    await delegationReadModelServiceSQL.upsertDelegation(
+      delegation1InPostgresDb.data,
+      delegation1InPostgresDb.metadata.version
+    );
 
     const collectionDelegations =
       await readModelService.getAllReadModelDelegations();

@@ -20,7 +20,6 @@ import {
   TenantRevoker,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAttribute,
   readLastEventByStreamId,
@@ -28,6 +27,8 @@ import {
   getMockEService,
   getMockTenant,
   getMockDelegation,
+  getMockAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -131,10 +132,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       );
 
       const writtenEvent = await readLastEventByStreamId(
@@ -234,10 +233,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: tenantWithVerifiedAttribute.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
@@ -291,10 +288,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(tenantNotFound(targetTenant.id));
   });
@@ -310,10 +305,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
   });
@@ -356,10 +349,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEserviceWithNotAllowedDescriptor.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(
       attributeVerificationNotAllowed(
@@ -380,10 +371,10 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: agreementEservice1.producerId,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: agreementEservice1.producerId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(agreementEservice1.producerId),
+        })
       )
     ).rejects.toThrowError(verifiedAttributeSelfVerificationNotAllowed());
   });
@@ -434,10 +425,8 @@ describe("verifyVerifiedAttribute", async () => {
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
           expirationDate: yesterday.toISOString(),
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(expirationDateCannotBeInThePast(yesterday));
   });

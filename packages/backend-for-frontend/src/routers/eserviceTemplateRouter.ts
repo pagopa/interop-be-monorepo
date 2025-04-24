@@ -8,13 +8,13 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import {
   toBffCreatedEServiceTemplateVersion,
   toCatalogCreateEServiceTemplateSeed,
 } from "../api/eserviceTemplateApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
@@ -64,8 +64,7 @@ const eserviceTemplateRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error creating eservice template"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -87,8 +86,7 @@ const eserviceTemplateRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving eservice template ${req.params.eServiceTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -108,8 +106,7 @@ const eserviceTemplateRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating eservice template ${req.params.eServiceTemplateId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -133,8 +130,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating draft version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -158,8 +154,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error suspending version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -183,8 +178,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error activating version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -208,8 +202,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error publishing version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -233,8 +226,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error deleting eservice template ${eServiceTemplateId} version ${eServiceTemplateVersionId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -258,8 +250,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating eservice template ${eServiceTemplateId} name`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -283,8 +274,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating eservice template ${eServiceTemplateId} description`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -308,8 +298,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating eservice template ${eServiceTemplateId} e-service description`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -336,8 +325,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             bffGetEServiceTemplateErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving version ${eServiceTemplateVersionId} for eservice template ${eServiceTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -365,8 +353,7 @@ const eserviceTemplateRouter = (
         const errorRes = makeApiProblem(
           error,
           bffGetCatalogEServiceTemplateErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving Catalog eservice templates"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -392,8 +379,7 @@ const eserviceTemplateRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving producer eservice templates"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -417,8 +403,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating eservice template ${eServiceTemplateId} version ${eServiceTemplateVersionId} quotas`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -442,8 +427,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error creating eservice template ${eServiceTemplateId} risk analysis`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -468,8 +452,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating eservice template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -493,8 +476,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error deleting eservice template ${eServiceTemplateId} risk analysis ${riskAnalysisId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -519,8 +501,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating eservice template ${eServiceTemplateId} version ${eServiceTemplateVersionId} attributes`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -544,8 +525,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error creating new eservice template ${eServiceTemplateId} version`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -571,8 +551,7 @@ const eserviceTemplateRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving e-service template creators filtered by creator name ${q}, offset ${offset}, limit ${limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -595,8 +574,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             createEServiceTemplateDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error creating eService template document of kind ${req.body.kind} and name ${req.body.prettyName} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -623,8 +601,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error getting eService template document ${req.params.documentId} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -648,8 +625,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating eService template document ${req.params.documentId} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -672,8 +648,7 @@ const eserviceTemplateRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error deleting eService template document ${req.params.documentId} for eService template ${req.params.eServiceTemplateId} and version ${req.params.eServiceTemplateVersionId}`
           );
           return res.status(errorRes.status).send(errorRes);

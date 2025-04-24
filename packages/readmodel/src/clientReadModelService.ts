@@ -1,31 +1,41 @@
-import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { and, eq, lte } from "drizzle-orm";
 import { Client, ClientId, WithMetadata } from "pagopa-interop-models";
 import {
   clientInReadmodelClient,
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientUserInReadmodelClient,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
   aggregateClient,
   toClientAggregator,
 } from "./authorization/clientAggregators.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function clientReadModelServiceBuilderSQL(
-  db: ReturnType<typeof drizzle>
-) {
+export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
     async upsertClient(client: Client, metadataVersion: number): Promise<void> {
-      const { clientSQL, usersSQL, purposesSQL, keysSQL } =
-        splitClientIntoObjectsSQL(client, metadataVersion);
-
       await db.transaction(async (tx) => {
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          clientInReadmodelClient,
+          metadataVersion,
+          client.id
+        );
+
+        if (!shouldUpsert) {
+          return;
+        }
+
         await tx
           .delete(clientInReadmodelClient)
           .where(eq(clientInReadmodelClient.id, client.id));
+
+        const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+          splitClientIntoObjectsSQL(client, metadataVersion);
 
         await tx.insert(clientInReadmodelClient).values(clientSQL);
 
@@ -84,14 +94,22 @@ export function clientReadModelServiceBuilderSQL(
 
       return aggregateClient(toClientAggregator(queryResult));
     },
-    async deleteClientById(clientId: ClientId): Promise<void> {
+    async deleteClientById(
+      clientId: ClientId,
+      metadataVersion: number
+    ): Promise<void> {
       await db
         .delete(clientInReadmodelClient)
-        .where(eq(clientInReadmodelClient.id, clientId));
+        .where(
+          and(
+            eq(clientInReadmodelClient.id, clientId),
+            lte(clientInReadmodelClient.metadataVersion, metadataVersion)
+          )
+        );
     },
   };
 }
 
 export type ClientReadModelService = ReturnType<
-  typeof clientReadModelServiceBuilderSQL
+  typeof clientReadModelServiceBuilder
 >;

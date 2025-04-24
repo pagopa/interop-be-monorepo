@@ -18,8 +18,8 @@ import {
   decodeProtobufPayload,
   getMockPurposeVersion,
   getMockDelegation,
+  getMockContextInternal,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   purposeCannotBeDeleted,
@@ -53,8 +53,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
     await purposeService.internalDeletePurposeAfterDelegationRevocation(
       mockPurpose.id,
       mockDelegation.id,
-      generateId(),
-      genericLogger
+      getMockContextInternal({})
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -100,8 +99,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
       await purposeService.internalDeletePurposeAfterDelegationRevocation(
         mockPurpose.id,
         mockDelegation.id,
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       );
 
       const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -138,8 +136,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
       purposeService.internalDeletePurposeAfterDelegationRevocation(
         randomId,
         mockDelegation.id,
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
@@ -175,8 +172,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
         purposeService.internalDeletePurposeAfterDelegationRevocation(
           mockPurpose.id,
           mockDelegation.id,
-          generateId(),
-          genericLogger
+          getMockContextInternal({})
         )
       ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
     }
@@ -205,8 +201,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
       purposeService.internalDeletePurposeAfterDelegationRevocation(
         mockPurpose.id,
         mockDelegation.id,
-        generateId(),
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       puroposeDelegationNotFound(mockPurpose.id, mockDelegation.id)

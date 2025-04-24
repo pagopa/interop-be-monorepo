@@ -51,6 +51,7 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
+  generateExpectedPurposeV2,
   getMockEService,
   purposeService,
   readLastPurposeEvent,
@@ -147,8 +148,12 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(writtenPayload.purpose).toEqual(
+      generateExpectedPurposeV2(toPurposeV2(expectedPurpose))
+    );
+    expect(writtenPayload.purpose).toEqual(
+      generateExpectedPurposeV2(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
@@ -256,8 +261,12 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(writtenPayload.purpose).toEqual(
+      generateExpectedPurposeV2(toPurposeV2(expectedPurpose))
+    );
+    expect(writtenPayload.purpose).toEqual(
+      generateExpectedPurposeV2(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
@@ -394,8 +403,12 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(writtenPayload.purpose).toEqual(
+      generateExpectedPurposeV2(toPurposeV2(expectedPurpose))
+    );
+    expect(writtenPayload.purpose).toEqual(
+      generateExpectedPurposeV2(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
