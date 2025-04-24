@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import { generateId, operationForbidden } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
@@ -28,7 +28,9 @@ describe("API POST /selfcare/tenants test", () => {
 
   const apiResponse = tenantApi.ResourceId.parse({ id: tenant.id });
 
-  tenantService.selfcareUpsertTenant = vi.fn().mockResolvedValue(tenant.id);
+  beforeEach(() => {
+    tenantService.selfcareUpsertTenant = vi.fn().mockResolvedValue(tenant.id);
+  });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,

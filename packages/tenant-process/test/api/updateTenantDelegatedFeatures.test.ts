@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import { generateId, operationForbidden } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -13,9 +13,11 @@ describe("API POST /tenants/delegatedFeatures/update test", () => {
     isDelegatedProducerFeatureEnabled: false,
   };
 
-  tenantService.updateTenantDelegatedFeatures = vi
-    .fn()
-    .mockResolvedValue(undefined);
+  beforeEach(() => {
+    tenantService.updateTenantDelegatedFeatures = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const makeRequest = async (token: string, data: object = tenantFeatures) =>
     request(api)

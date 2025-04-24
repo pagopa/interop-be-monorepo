@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import {
   Attribute,
@@ -70,9 +70,11 @@ describe("API GET /tenants/attributes/certified test", () => {
     totalCount: mockResponse.totalCount,
   });
 
-  tenantService.getCertifiedAttributes = vi
-    .fn()
-    .mockResolvedValue(mockResponse);
+  beforeEach(() => {
+    tenantService.getCertifiedAttributes = vi
+      .fn()
+      .mockResolvedValue(mockResponse);
+  });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,

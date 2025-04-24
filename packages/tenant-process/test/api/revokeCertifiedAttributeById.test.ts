@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
@@ -17,9 +17,11 @@ describe("API DELETE /tenants/{tenantId}/attributes/certified/{attributeId} test
   const tenant: Tenant = getMockTenant();
   const attributeId = generateId();
 
-  tenantService.revokeCertifiedAttributeById = vi
-    .fn()
-    .mockResolvedValue(undefined);
+  beforeEach(() => {
+    tenantService.revokeCertifiedAttributeById = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.M2M_ROLE];
 

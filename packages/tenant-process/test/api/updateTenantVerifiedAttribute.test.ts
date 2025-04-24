@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import { generateId, Tenant } from "pagopa-interop-models";
 import {
@@ -43,9 +43,11 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId} test", 
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
-  tenantService.updateTenantVerifiedAttribute = vi
-    .fn()
-    .mockResolvedValue(tenant);
+  beforeEach(() => {
+    tenantService.updateTenantVerifiedAttribute = vi
+      .fn()
+      .mockResolvedValue(tenant);
+  });
 
   const makeRequest = async (token: string, tenantId: string = tenant.id) =>
     request(api)

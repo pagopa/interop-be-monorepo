@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import {
   Tenant,
@@ -44,9 +44,11 @@ describe("API DELETE /m2m/origin/{origin}/externalId/{externalId}/attributes/{co
     ],
   };
 
-  tenantService.m2mRevokeCertifiedAttribute = vi
-    .fn()
-    .mockResolvedValue(undefined);
+  beforeEach(() => {
+    tenantService.m2mRevokeCertifiedAttribute = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const makeRequest = async (token: string) =>
     request(api)

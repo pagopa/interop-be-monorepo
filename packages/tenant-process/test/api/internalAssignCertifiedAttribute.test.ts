@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import {
   Attribute,
@@ -32,9 +32,11 @@ describe("API POST /internal/origin/{tOrigin}/externalId/{tExternalId}/attribute
     attributes: [],
   };
 
-  tenantService.internalAssignCertifiedAttribute = vi
-    .fn()
-    .mockResolvedValue(undefined);
+  beforeEach(() => {
+    tenantService.internalAssignCertifiedAttribute = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const makeRequest = async (token: string) =>
     request(api)

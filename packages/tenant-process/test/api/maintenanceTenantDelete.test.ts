@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import { generateId, Tenant } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
@@ -10,7 +10,11 @@ import { tenantNotFound } from "../../src/model/domain/errors.js";
 describe("API DELETE /maintenance/tenants/{tenantId} test", () => {
   const tenant: Tenant = getMockTenant();
 
-  tenantService.maintenanceTenantDelete = vi.fn().mockResolvedValue(undefined);
+  beforeEach(() => {
+    tenantService.maintenanceTenantDelete = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const makeRequest = async (token: string, tenantId: string = tenant.id) =>
     request(api)
