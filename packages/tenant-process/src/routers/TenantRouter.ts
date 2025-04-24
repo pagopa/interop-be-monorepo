@@ -9,6 +9,7 @@ import {
   ReadModelRepository,
   authRole,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -203,10 +204,13 @@ const tenantsRouter = (
           INTERNAL_ROLE,
         ]);
 
-        const tenant = await tenantService.getTenantById(
+        const { data: tenant, metadata } = await tenantService.getTenantById(
           unsafeBrandId(req.params.id),
           ctx
         );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
