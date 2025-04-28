@@ -245,6 +245,7 @@ const errorCodes = {
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
   notAllowedMultipleKeysException: "10019",
+  notFound: "10020",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -607,5 +608,13 @@ export function invalidInterfaceContentTypeDetected(
     detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
     code: "invalidInterfaceContentTypeDetected",
     title: "Invalid content type detected",
+  });
+}
+
+export function notFound(): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Resource not found`,
+    code: "notFound",
+    title: "Not Found",
   });
 }

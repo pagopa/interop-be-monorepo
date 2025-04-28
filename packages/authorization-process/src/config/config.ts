@@ -4,14 +4,13 @@ import {
   EventStoreConfig,
   SelfCareConfig,
   ApplicationAuditProducerConfig,
-  FeatureFlagsConfig,
+  featureFlagAdminClientConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(EventStoreConfig)
   .and(SelfCareConfig)
-  .and(FeatureFlagsConfig)
   .and(
     z
       .object({
@@ -23,7 +22,8 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
         maxKeysPerProducerKeychain: c.MAX_KEYS_PER_PRODUCER_KEYCHAIN,
       }))
   )
-  .and(ApplicationAuditProducerConfig);
+  .and(ApplicationAuditProducerConfig)
+  .and(featureFlagAdminClientConfig);
 
 export type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;
 
