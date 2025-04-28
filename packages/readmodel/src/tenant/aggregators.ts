@@ -474,9 +474,14 @@ export const toTenantAggregatorArray = (
       const revoker = row.revoker;
       const revokerPK = revoker
         ? makeUniqueKey([
-            revoker.tenantRevokerId,
-            revoker.tenantVerifiedAttributeId,
             revoker.tenantId,
+            revoker.tenantVerifiedAttributeId,
+            revoker.tenantRevokerId,
+            revoker.delegationId || "",
+            revoker.revocationDate,
+            revoker.verificationDate,
+            revoker.expirationDate || "",
+            revoker.extensionDate || "",
           ])
         : undefined;
       if (revoker && revokerPK && !revokersIdSet.has(revokerPK)) {
