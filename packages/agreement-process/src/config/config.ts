@@ -7,7 +7,6 @@ import {
   S3Config,
   SelfCareConfig,
   ApplicationAuditProducerConfig,
-  SQSProducerConfig,
 } from "pagopa-interop-commons";
 
 const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
@@ -26,8 +25,7 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
         agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
       }))
   )
-  .and(ApplicationAuditProducerConfig)
-  .and(SQSProducerConfig);
+  .and(ApplicationAuditProducerConfig);
 
 export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
 export const config: AgreementProcessConfig = AgreementProcessConfig.parse(

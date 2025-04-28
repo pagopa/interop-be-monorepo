@@ -3,7 +3,6 @@ import {
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
   RedisRateLimiterConfig,
-  SQSProducerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -105,7 +104,6 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(DelegationProcessServerConfig)
   .and(EServiceTemplateProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
-  .and(SQSProducerConfig)
   .and(
     z
       .object({
@@ -117,7 +115,7 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
         m2mGatewayInterfaceVersion: c.M2M_GATEWAY_INTERFACE_VERSION,
         defaultPollingIntervalMs: c.DEFAULT_POLLING_INTERVAL_MS,
         defaultPollingMaxAttempts: c.DEFAULT_POLLING_MAX_ATTEMPTS,
-      })),
+      }))
   );
 
 export type M2MGatewayConfig = z.infer<typeof M2MGatewayConfig>;

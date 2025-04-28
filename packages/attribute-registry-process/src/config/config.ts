@@ -3,7 +3,6 @@ import {
   ReadModelDbConfig,
   EventStoreConfig,
   ApplicationAuditProducerConfig,
-  SQSProducerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -16,8 +15,7 @@ const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
         .filter(Boolean),
     }))
   )
-  .and(ApplicationAuditProducerConfig)
-  .and(SQSProducerConfig);
+  .and(ApplicationAuditProducerConfig);
 
 export type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;
 
