@@ -166,7 +166,12 @@ export function readModelServiceBuilder(
 
         await tx
           .delete(agreementContractInReadmodelAgreement)
-          .where(eq(agreementContractInReadmodelAgreement.id, contract.id));
+          .where(
+            and(
+              eq(agreementContractInReadmodelAgreement.id, contract.id),
+              eq(agreementContractInReadmodelAgreement.agreementId, agreementId)
+            )
+          );
 
         const contractDocumentSQL = agreementDocumentToAgreementDocumentSQL(
           contract,
