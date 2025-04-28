@@ -17,6 +17,11 @@ vi.mock("pagopa-interop-commons", async () => {
   );
   return {
     ...actual,
+    initRedisRateLimiter: vi.fn().mockResolvedValue({
+      rateLimiterMiddleware:
+        () => (_req: Request, _res: Response, next: NextFunction) =>
+          next(),
+    }),
     authenticationMiddleware: vi.fn(
       () =>
         async (
