@@ -62,8 +62,19 @@ const delegationRouter = (
     })
     .post("/consumerDelegations/:delegationId/accept", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const acceptedDelegation =
+          await delegationService.acceptConsumerDelegation(
+            req.params.delegationId,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.ConsumerDelegation.parse(acceptedDelegation));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

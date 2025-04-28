@@ -211,7 +211,11 @@ export function delegationServiceBuilder(
   async function approveDelegation(
     delegationId: DelegationId,
     kind: DelegationKind,
-    { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    {
+      logger,
+      correlationId,
+      authData,
+    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
   ): Promise<WithMetadata<Delegation>> {
     logger.info(
       `Approving delegation ${delegationId} by delegate ${authData.organizationId}`
@@ -555,7 +559,7 @@ export function delegationServiceBuilder(
     },
     async approveConsumerDelegation(
       delegationId: DelegationId,
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return approveDelegation(
         delegationId,
