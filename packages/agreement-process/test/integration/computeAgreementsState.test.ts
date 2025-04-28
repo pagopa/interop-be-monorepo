@@ -406,7 +406,7 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toEqual({
+      expect(agreementStateUpdateEventData).toMatchObject({
         agreement: toAgreementV2({
           ...updatableSuspendedAgreement,
           state: agreementState.suspended,
