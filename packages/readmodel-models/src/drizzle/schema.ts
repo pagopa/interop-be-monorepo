@@ -1005,7 +1005,7 @@ export const tenantMailInReadmodelTenant = readmodelTenant.table(
       name: "tenant_mail_tenant_id_metadata_version_fkey",
     }),
     primaryKey({
-      columns: [table.id, table.tenantId],
+      columns: [table.id, table.tenantId, table.createdAt],
       name: "tenant_mail_pkey",
     }),
   ]
