@@ -166,7 +166,7 @@ export const agreementConsumerDocumentInReadmodelAgreement =
 export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
   "agreement_contract",
   {
-    id: uuid().primaryKey().notNull(),
+    id: uuid().notNull(),
     agreementId: uuid("agreement_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar().notNull(),
@@ -191,6 +191,10 @@ export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
         agreementInReadmodelAgreement.metadataVersion,
       ],
       name: "agreement_contract_agreement_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.id, table.agreementId],
+      name: "agreement_contract_pkey",
     }),
     unique("agreement_contract_agreement_id_key").on(table.agreementId),
   ]
