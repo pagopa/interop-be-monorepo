@@ -338,11 +338,18 @@ export const toPurposeAggregatorArray = (
       }
 
       const purposeVersionDocumentSQL = row.purposeVersionDocument;
+      const purposeVersionDocumentPK = purposeVersionDocumentSQL
+        ? makeUniqueKey([
+            purposeVersionDocumentSQL.id,
+            purposeVersionDocumentSQL.purposeVersionId,
+          ])
+        : undefined;
       if (
         purposeVersionDocumentSQL &&
-        !purposeVersionDocumentIdSet.has(purposeVersionDocumentSQL.id)
+        purposeVersionDocumentPK &&
+        !purposeVersionDocumentIdSet.has(purposeVersionDocumentPK)
       ) {
-        purposeVersionDocumentIdSet.add(purposeVersionDocumentSQL.id);
+        purposeVersionDocumentIdSet.add(purposeVersionDocumentPK);
         // eslint-disable-next-line functional/immutable-data
         purposeVersionDocumentsSQL.push(purposeVersionDocumentSQL);
       }

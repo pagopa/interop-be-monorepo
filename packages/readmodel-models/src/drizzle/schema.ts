@@ -910,7 +910,7 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     purposeVersionId: uuid("purpose_version_id").notNull(),
-    id: uuid().primaryKey().notNull(),
+    id: uuid().notNull(),
     contentType: varchar("content_type").notNull(),
     path: varchar().notNull(),
     createdAt: timestamp("created_at", {
@@ -936,6 +936,10 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
         purposeInReadmodelPurpose.metadataVersion,
       ],
       name: "purpose_version_document_purpose_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.purposeVersionId, table.id],
+      name: "purpose_version_document_pkey",
     }),
     unique("purpose_version_document_purpose_version_id_key").on(
       table.purposeVersionId
