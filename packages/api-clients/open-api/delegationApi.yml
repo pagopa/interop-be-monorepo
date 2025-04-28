@@ -511,12 +511,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
   /consumer/delegations/{delegationId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -718,12 +712,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Delegation not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
           content:
             application/json:
               schema:

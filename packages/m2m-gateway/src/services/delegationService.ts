@@ -44,5 +44,25 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiConsumerDelegation(polledResource.data);
     },
+    async rejectConsumerDelegation(
+      delegationId: string,
+      { rejectionReason }: m2mGatewayApi.DelegationRejection,
+      { headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.ConsumerDelegation> {
+      const response =
+        await clients.delegationProcessClient.consumer.rejectConsumerDelegation(
+          { rejectionReason },
+          {
+            params: {
+              delegationId,
+            },
+            headers,
+          }
+        );
+
+      const polledResource = await pollDelegation(response, headers);
+
+      return toM2MGatewayApiConsumerDelegation(polledResource.data);
+    },
   };
 }
