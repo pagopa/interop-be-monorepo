@@ -329,7 +329,7 @@ export function tenantServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
-    ): Promise<string> {
+    ): Promise<TenantId> {
       logger.info(
         `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
       );
@@ -370,7 +370,7 @@ export function tenantServiceBuilder(
         logger.info(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
         );
-        return await repository.createEvent(
+        await repository.createEvent(
           toCreateEventTenantOnboardDetailsUpdated(
             existingTenant.data.id,
             existingTenant.metadata.version,
@@ -378,6 +378,7 @@ export function tenantServiceBuilder(
             correlationId
           )
         );
+        return existingTenant.data.id;
       } else {
         logger.info(
           `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
@@ -399,9 +400,10 @@ export function tenantServiceBuilder(
               ? tenantKind.SCP
               : undefined,
         };
-        return await repository.createEvent(
+        await repository.createEvent(
           toCreateEventTenantOnboarded(newTenant, correlationId)
         );
+        return newTenant.id;
       }
     },
 
