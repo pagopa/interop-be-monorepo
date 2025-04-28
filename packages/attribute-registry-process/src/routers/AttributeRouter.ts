@@ -19,7 +19,10 @@ import {
 } from "../model/domain/apiConverter.js";
 import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
+import {
+  AttributeRegistryService,
+  attributeRegistryServiceBuilder,
+} from "../services/attributeRegistryService.js";
 import {
   createCertifiedAttributesErrorMapper,
   createDeclaredAttributesErrorMapper,
@@ -32,7 +35,7 @@ import {
 
 const readModelRepository = ReadModelRepository.init(config);
 const readModelService = readModelServiceBuilder(readModelRepository);
-const attributeRegistryService = attributeRegistryServiceBuilder(
+const defaultAttributeRegistryService = attributeRegistryServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
@@ -46,7 +49,8 @@ const attributeRegistryService = attributeRegistryServiceBuilder(
 );
 
 const attributeRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  attributeRegistryService: AttributeRegistryService = defaultAttributeRegistryService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const attributeRouter = ctx.router(attributeRegistryApi.attributeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
