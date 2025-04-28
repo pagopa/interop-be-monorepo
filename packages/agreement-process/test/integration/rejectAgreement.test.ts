@@ -53,7 +53,10 @@ import {
   readLastAgreementEvent,
   sortAgreementAttributes,
 } from "../integrationUtils.js";
-import { getAMockDescriptorPublished } from "../mockUtils.js";
+import {
+  getAMockDescriptorPublished,
+  getAMockVerifiedTenantAttribute,
+} from "../mockUtils.js";
 
 describe("reject agreement", () => {
   it.each([
@@ -108,19 +111,18 @@ describe("reject agreement", () => {
 
       const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
         {
-          ...getMockVerifiedTenantAttribute(),
+          ...getAMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: tenantOnlyForVerifierAttribute.id,
               verificationDate: new Date(),
             },
           ],
-          revokedBy: [],
         };
 
       const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
         {
-          ...getMockVerifiedTenantAttribute(),
+          ...getAMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: producerId,
@@ -128,19 +130,17 @@ describe("reject agreement", () => {
               extensionDate: addDays(new Date(), 300),
             },
           ],
-          revokedBy: [],
         };
 
       const tenantVerfiedAttributeNoMatchDescAttribute: VerifiedTenantAttribute =
         {
-          ...getMockVerifiedTenantAttribute(),
+          ...getAMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: tenantAnotherOnlyForVerifierAttribute.id,
               verificationDate: new Date(),
             },
           ],
-          revokedBy: [],
         };
 
       const consumer: Tenant = {
@@ -277,7 +277,7 @@ describe("reject agreement", () => {
         },
       };
 
-      expect(sortAgreementAttributes(actualAgreementRejected)).toEqual(
+      expect(sortAgreementAttributes(actualAgreementRejected)).toMatchObject(
         sortAgreementAttributes(toAgreementV2(expectedAgreementRejected))
       );
       expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));

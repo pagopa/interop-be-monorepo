@@ -87,6 +87,11 @@ import {
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
+  AgreementV2,
+  VerifiedAttributeV2,
+  DeclaredAttributeV2,
+  CertifiedAttributeV2,
+  AgreementDocumentV2,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -884,6 +889,32 @@ export const sortAgreement = <
     };
   }
 };
+
+export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
+  agreement: T
+): T => ({
+  ...agreement,
+  verifiedAttributes: agreement?.verifiedAttributes
+    ? [...agreement.verifiedAttributes].sort(
+        sortBy<VerifiedAttributeV2>((attr) => attr.id)
+      )
+    : [],
+  certifiedAttributes: agreement?.certifiedAttributes
+    ? [...agreement.certifiedAttributes].sort(
+        sortBy<CertifiedAttributeV2>((att) => att.id)
+      )
+    : [],
+  declaredAttributes: agreement?.declaredAttributes
+    ? [...agreement.declaredAttributes].sort(
+        sortBy<DeclaredAttributeV2>((att) => att.id)
+      )
+    : [],
+  consumerDocuments: agreement?.consumerDocuments
+    ? [...agreement.consumerDocuments].sort(
+        sortBy<AgreementDocumentV2>((doc) => doc.id)
+      )
+    : [],
+});
 
 export const sortAgreements = <
   T extends Agreement | WithMetadata<Agreement> | undefined

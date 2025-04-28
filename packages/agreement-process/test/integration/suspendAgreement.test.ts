@@ -179,14 +179,8 @@ describe("suspend agreement", () => {
         : agreement.stamps.suspensionByProducer,
     };
     const expectedSuspensionFlags = {
-      // suspendedByConsumer: isConsumer
-      //   ? true
-      //   : agreement.suspendedByConsumer ?? false,
       ...(isConsumer ? { suspendedByConsumer: true } : {}),
       ...(!isConsumer ? { suspendedByProducer: true } : {}),
-      // suspendedByProducer: !isConsumer
-      //   ? true
-      //   : agreement.suspendedByProducer ?? false,
     };
 
     const expectedAgreementSuspended: Agreement = {
@@ -522,7 +516,7 @@ describe("suspend agreement", () => {
           agreement.id,
           getMockContext({ authData })
         );
-        expect(actualAgreement).toMatchObject(expectedAgreement);
+        expect(actualAgreement).toEqual(expectedAgreement);
       });
     }
   );

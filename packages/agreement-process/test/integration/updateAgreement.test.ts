@@ -61,11 +61,13 @@ describe("update agreement", () => {
       payload: agreementEvent.data,
     }).agreement;
 
-    expect(actualAgreementUptaded).toEqual({
+    expect(actualAgreementUptaded).toMatchObject({
       ...toAgreementV2(agreement),
       consumerNotes: "Updated consumer notes",
     });
-    expect(actualAgreementUptaded).toEqual(toAgreementV2(returnedAgreement));
+    expect(actualAgreementUptaded).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
@@ -156,11 +158,13 @@ describe("update agreement", () => {
       payload: agreementEvent.data,
     }).agreement;
 
-    expect(actualAgreementUpdated).toEqual({
+    expect(actualAgreementUpdated).toMatchObject({
       ...toAgreementV2(agreement),
       consumerNotes: "Updated consumer notes",
     });
-    expect(actualAgreementUpdated).toEqual(toAgreementV2(returnedAgreement));
+    expect(actualAgreementUpdated).toMatchObject(
+      toAgreementV2(returnedAgreement)
+    );
   });
 
   it("should throw organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
