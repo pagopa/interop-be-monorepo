@@ -1701,13 +1701,5 @@ export const tenantVerifiedAttributeRevokerInReadmodelTenant =
         ],
         name: "tenant_verified_attribute_revok_tenant_id_metadata_version_fkey",
       }),
-      primaryKey({
-        columns: [
-          table.tenantId,
-          table.tenantRevokerId,
-          table.tenantVerifiedAttributeId,
-        ],
-        name: "tenant_verified_attribute_revoker_pkey",
-      }),
     ]
   );
