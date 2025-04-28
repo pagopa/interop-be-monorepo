@@ -87,9 +87,9 @@ export function readModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          agreementConsumerDocumentInReadmodelAgreement,
+          agreementInReadmodelAgreement,
           metadataVersion,
-          doc.id
+          agreementId
         );
 
         if (!shouldUpsert) {
@@ -155,9 +155,9 @@ export function readModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          agreementContractInReadmodelAgreement,
+          agreementInReadmodelAgreement,
           metadataVersion,
-          contract.id
+          agreementId
         );
 
         if (!shouldUpsert) {
