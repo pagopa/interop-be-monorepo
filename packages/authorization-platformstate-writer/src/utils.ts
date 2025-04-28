@@ -506,6 +506,13 @@ export const writeTokenGenStatesApiClient = async (
       GSIPK_clientId_kid: {
         S: tokenGenStatesApiClient.GSIPK_clientId_kid,
       },
+      ...(tokenGenStatesApiClient.adminId
+        ? {
+            adminId: {
+              S: tokenGenStatesApiClient.adminId,
+            },
+          }
+        : {}),
     },
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
@@ -771,6 +778,13 @@ export const writePlatformClientEntry = async (
       updatedAt: {
         S: clientEntry.updatedAt,
       },
+      ...(clientEntry.clientAdminId
+        ? {
+            clientAdminId: {
+              S: clientEntry.clientAdminId,
+            },
+          }
+        : {}),
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
@@ -987,6 +1001,13 @@ export const upsertPlatformClientEntry = async (
       updatedAt: {
         S: entry.updatedAt,
       },
+      ...(entry.clientAdminId
+        ? {
+            clientAdminId: {
+              S: entry.clientAdminId,
+            },
+          }
+        : {}),
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
@@ -1023,6 +1044,13 @@ export const upsertTokenGenStatesApiClient = async (
       updatedAt: {
         S: entry.updatedAt,
       },
+      ...(entry.adminId
+        ? {
+            adminId: {
+              S: entry.adminId,
+            },
+          }
+        : {}),
     },
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };

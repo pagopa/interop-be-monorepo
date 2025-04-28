@@ -12,8 +12,8 @@ import {
   toAuthorizationKeySeed,
   toBffApiCompactProducerKeychain,
 } from "../api/authorizationApiConverter.js";
-import { toBffApiCompactUser } from "../api/selfcareApiConverter.js";
-import { decorateKey, getSelfcareUserById } from "./clientService.js";
+import { decorateKey } from "./clientService.js";
+import { getSelfcareCompactUserById } from "./selfcareService.js";
 
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -247,18 +247,16 @@ export function producerKeychainServiceBuilder(
           headers,
         });
 
-      const users = producerKeychainUsers.map(async (id) =>
-        toBffApiCompactUser(
-          await getSelfcareUserById(
+      return await Promise.all(
+        producerKeychainUsers.map((id) =>
+          getSelfcareCompactUserById(
             selfcareUsersClient,
             id,
             selfcareId,
             correlationId
-          ),
-          id
+          )
         )
       );
-      return Promise.all(users);
     },
     async addProducerKeychainUsers(
       userIds: string[],
