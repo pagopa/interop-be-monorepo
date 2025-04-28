@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { TenantId } from "pagopa-interop-models";
+import { CorrelationId, TenantId } from "pagopa-interop-models";
 import {
   bffApi,
   selfcareV2ClientApi,
@@ -15,8 +15,26 @@ import {
   toApiSelfcareInstitution,
   toApiSelfcareProduct,
   toApiSelfcareUser,
+  toBffApiCompactUser,
 } from "../api/selfcareApiConverter.js";
 import { config } from "../config/config.js";
+
+export async function getSelfcareCompactUserById(
+  selfcareClient: SelfcareV2UsersClient,
+  userId: string,
+  selfcareId: string,
+  correlationId: CorrelationId
+): Promise<bffApi.CompactUser> {
+  const user = await selfcareClient.getUserInfoUsingGET({
+    params: { id: userId },
+    queries: { institutionId: selfcareId },
+    headers: {
+      "X-Correlation-Id": correlationId,
+    },
+  });
+
+  return toBffApiCompactUser(user, userId);
+}
 
 export function selfcareServiceBuilder(
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient,
