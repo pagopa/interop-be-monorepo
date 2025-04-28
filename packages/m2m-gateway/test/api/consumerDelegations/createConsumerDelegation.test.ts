@@ -27,11 +27,7 @@ describe("POST /consumerDelegations router test", () => {
     delegateId: mockDelegationSeed.delegateId,
   });
   const mockM2MDelegationResponse: m2mGatewayApi.ConsumerDelegation =
-    toM2MGatewayApiConsumerDelegation(
-      mockApiDelegation.data as delegationApi.Delegation & {
-        kind: typeof delegationApi.DelegationKind.Values.DELEGATED_CONSUMER;
-      }
-    );
+    toM2MGatewayApiConsumerDelegation(mockApiDelegation.data);
 
   const makeRequest = async (token: string, body: Record<string, unknown>) =>
     request(api)

@@ -7,7 +7,6 @@ import {
 } from "../utils/polling.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { toM2MGatewayApiConsumerDelegation } from "../api/delegationApiConverter.js";
-import { assertDelegationKindIs } from "../utils/validators/delegationValidators.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
 export type DelegationService = ReturnType<typeof delegationServiceBuilder>;
@@ -43,10 +42,6 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledResource = await pollDelegation(response, headers);
 
-      assertDelegationKindIs(
-        polledResource.data,
-        delegationApi.DelegationKind.Values.DELEGATED_CONSUMER
-      );
       return toM2MGatewayApiConsumerDelegation(polledResource.data);
     },
   };
