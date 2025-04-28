@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS readmodel_client.client (
   id UUID,
   metadata_version INTEGER NOT NULL,
   consumer_id UUID NOT NULL,
+  admin_id UUID,
   name VARCHAR NOT NULL,
   description VARCHAR,
   kind VARCHAR NOT NULL,
