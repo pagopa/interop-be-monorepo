@@ -23,7 +23,7 @@ export function handleMessage(producer: KafkaProducer) {
     });
 
     loggerInstance.info(
-      "Application audit sent to Kafka topic through fallback path",
+      "Application audit sent to Kafka topic through fallback path"
     );
   };
 }
