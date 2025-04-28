@@ -11,7 +11,7 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
   problemErrorsPassthrough: true,
-  hideInternalErrorDetails: true,
+  forceGenericProblemOn500: true,
 });
 
 export function resourcePollingTimeout(

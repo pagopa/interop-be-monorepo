@@ -101,18 +101,18 @@ const makeProblemLogString = (
 type ProblemBuilderOptions = {
   /**
    * If true, allows Problem objects received from downstream services
-   * to be passed through directly. If false, they are treated as internal errors.
+   * to be passed through directly. If false, they are treated as generic errors.
    *
    * @default true
    */
   problemErrorsPassthrough?: boolean;
   /**
-   * If true, replaces the details of errors that map to HTTP 500, or
-   * the ones that are passed through, with a generic message to avoid leaking internal information.
+   * If true, return a generic problem whenever an error is mapped to HTTP 500, hiding the underlying error info.
+   * This also applies to 500 errors passing through from downstream services.
    *
    * @default false
    */
-  hideInternalErrorDetails?: boolean;
+  forceGenericProblemOn500?: boolean;
 };
 
 export function makeApiProblemBuilder<T extends string>(
@@ -121,7 +121,7 @@ export function makeApiProblemBuilder<T extends string>(
   },
   options: ProblemBuilderOptions = {}
 ): MakeApiProblemFn<T> {
-  const { problemErrorsPassthrough = true, hideInternalErrorDetails = false } =
+  const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
     options;
   const allErrors = { ...errorCodes, ...errors };
 
@@ -167,20 +167,25 @@ export function makeApiProblemBuilder<T extends string>(
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
         const mappedCode = httpMapper(error);
-        const isInternalServerError =
-          mappedCode === HTTP_STATUS_INTERNAL_SERVER_ERROR;
+        const code =
+          mappedCode === HTTP_STATUS_INTERNAL_SERVER_ERROR
+            ? defaultCommonErrorMapper(error.code as CommonErrorCodes)
+            : mappedCode;
 
-        const code = isInternalServerError
-          ? defaultCommonErrorMapper(error.code as CommonErrorCodes)
-          : mappedCode;
+        const isInternalServerError =
+          code === HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
         const problem = makeProblem(code, error);
-        logger.warn(makeProblemLogString(problem, error));
+        const problemLogString = makeProblemLogString(problem, error);
 
-        if (hideInternalErrorDetails && isInternalServerError) {
+        if (forceGenericProblemOn500 && isInternalServerError) {
+          logger.warn(
+            `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
+          );
           return genericProblem;
         }
 
+        logger.warn(problemLogString);
         return problem;
       })
       .with(
@@ -206,15 +211,22 @@ export function makeApiProblemBuilder<T extends string>(
         (e) => {
           const receivedProblem: Problem = e.response.data;
           if (problemErrorsPassthrough) {
-            logger.warn(makeProblemLogString(receivedProblem, error));
+            const problemLogString = makeProblemLogString(
+              receivedProblem,
+              error
+            );
 
             if (
-              hideInternalErrorDetails &&
+              forceGenericProblemOn500 &&
               receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
             ) {
+              logger.warn(
+                `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
+              );
               return genericProblem;
             }
 
+            logger.warn(problemLogString);
             return receivedProblem;
           } else {
             logger.warn(
