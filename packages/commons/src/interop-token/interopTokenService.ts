@@ -17,12 +17,12 @@ import {
   CustomClaims,
   InteropApiToken,
   InteropConsumerToken,
-  InteropJwtApiOrganizationClientPayload,
+  InteropInternalToken,
+  InteropJwtApiCommonPayload,
   InteropJwtApiPayload,
   InteropJwtConsumerPayload,
   InteropJwtHeader,
-  InteropJwtPayload,
-  InteropToken,
+  InteropJwtInternalPayload,
   ORGANIZATION_ID_CLAIM,
   ROLE_CLAIM,
   SessionClaims,
@@ -48,7 +48,7 @@ export class InteropTokenGenerator {
     this.kmsClient = kmsClient || new KMSClient();
   }
 
-  public async generateInternalToken(): Promise<InteropToken> {
+  public async generateInternalToken(): Promise<InteropInternalToken> {
     const currentTimestamp = dateToSeconds(new Date());
 
     if (
@@ -68,7 +68,7 @@ export class InteropTokenGenerator {
       kid: this.config.kid,
     };
 
-    const payload: InteropJwtPayload = {
+    const payload: InteropJwtInternalPayload = {
       jti: crypto.randomUUID(),
       iss: this.config.issuer,
       aud: this.config.audience,
@@ -168,7 +168,7 @@ export class InteropTokenGenerator {
       kid: this.config.generatedInteropTokenKid,
     };
 
-    const userDataPayload: InteropJwtApiOrganizationClientPayload = {
+    const userDataPayload: InteropJwtApiCommonPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
       aud: this.toJwtAudience(this.config.generatedInteropTokenM2MAudience),
@@ -184,7 +184,7 @@ export class InteropTokenGenerator {
     const systemRolePayload = clientAdminId
       ? {
           [ROLE_CLAIM]: systemRole.M2M_ADMIN_ROLE,
-          userId: clientAdminId,
+          adminId: clientAdminId,
         }
       : {
           [ROLE_CLAIM]: systemRole.M2M_ROLE,
@@ -273,7 +273,7 @@ export class InteropTokenGenerator {
   }: {
     header: InteropJwtHeader;
     payload:
-      | InteropJwtPayload
+      | InteropJwtInternalPayload
       | SessionJwtPayload
       | InteropJwtConsumerPayload
       | InteropJwtApiPayload;

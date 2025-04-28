@@ -57,22 +57,21 @@ export type InteropConsumerToken = {
 /* ========================================== 
     Interop API Token 
   ========================================== */
-export type InteropJwtApiOrganizationClientPayload = InteropJwtCommonPayload & {
+export type InteropJwtApiCommonPayload = InteropJwtCommonPayload & {
   client_id: ClientId;
   sub: ClientId;
   [ORGANIZATION_ID_CLAIM]: TenantId;
 };
 
-export type InteropJwtApiM2MPayload = InteropJwtApiOrganizationClientPayload & {
+export type InteropJwtApiM2MPayload = InteropJwtApiCommonPayload & {
   [ROLE_CLAIM]: Extract<SystemRole, "m2m">;
 };
 
-export type InteropJwtApiM2MAdminPayload =
-  InteropJwtApiOrganizationClientPayload & {
-    [ROLE_CLAIM]: Extract<SystemRole, "m2m-admin">;
-    userId: UserId;
-    // ^ ID of the admin user associated with the client
-  };
+export type InteropJwtApiM2MAdminPayload = InteropJwtApiCommonPayload & {
+  [ROLE_CLAIM]: Extract<SystemRole, "m2m-admin">;
+  adminId: UserId;
+  // ^ ID of the admin user associated with the client
+};
 
 export type InteropJwtApiPayload =
   | InteropJwtApiM2MAdminPayload
@@ -87,14 +86,14 @@ export type InteropApiToken = {
 /* ========================================== 
     Interop INTERNAL Token 
   ========================================== */
-export type InteropJwtPayload = InteropJwtCommonPayload & {
+export type InteropJwtInternalPayload = InteropJwtCommonPayload & {
   sub: string;
   role: string;
 };
 
-export type InteropToken = {
+export type InteropInternalToken = {
   header: InteropJwtHeader;
-  payload: InteropJwtPayload;
+  payload: InteropJwtInternalPayload;
   serialized: string;
 };
 
