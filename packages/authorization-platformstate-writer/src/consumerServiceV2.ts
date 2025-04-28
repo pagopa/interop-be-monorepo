@@ -388,7 +388,7 @@ export async function handleMessageV2(
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientPurposesIds: clientEntry.clientPurposesIds ?? [],
+        clientPurposesIds: [],
         version: msg.version,
         updatedAt: new Date().toISOString(),
       };
@@ -432,7 +432,7 @@ export async function handleMessageV2(
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientPurposesIds: clientEntry?.clientPurposesIds ?? [],
+        clientPurposesIds: [],
         version: msg.version,
         updatedAt: new Date().toISOString(),
         clientAdminId: client.adminId,
