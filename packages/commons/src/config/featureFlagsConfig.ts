@@ -23,23 +23,6 @@ export type FeatureFlagSignalhubWhitelistConfig = z.infer<
   typeof FeatureFlagSignalhubWhitelistConfig
 >;
 
-export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
-  .object({
-    FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((value) => value === "true")
-      .optional(),
-  })
-  .transform((c) => ({
-    featureFlagAgreementApprovalPolicyUpdate:
-      c.FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE ?? false,
-  }));
-
-export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
-  typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
->;
-
 export const featureFlagAdminClientConfig = z
   .object({
     FEATURE_FLAG_ADMIN_CLIENT: z
@@ -56,20 +39,16 @@ export type featureFlagAdminClientConfig = z.infer<
 >;
 
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
-  FeatureFlagAgreementApprovalPolicyUpdateConfig &
   featureFlagAdminClientConfig;
 
 export type FeatureFlagKeys = keyof Pick<
   FeatureFlags,
   {
     [K in keyof (FeatureFlagSignalhubWhitelistConfig &
-      FeatureFlagAgreementApprovalPolicyUpdateConfig &
       featureFlagAdminClientConfig)]: K extends `featureFlag${string}`
       ? K
       : never;
-  }[keyof (FeatureFlagSignalhubWhitelistConfig &
-    FeatureFlagAgreementApprovalPolicyUpdateConfig &
-    featureFlagAdminClientConfig)]
+  }[keyof (FeatureFlagSignalhubWhitelistConfig & featureFlagAdminClientConfig)]
 >;
 
 export const isFeatureFlagEnabled = <
