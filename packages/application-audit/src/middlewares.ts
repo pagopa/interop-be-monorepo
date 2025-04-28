@@ -20,10 +20,8 @@ import {
   JWTConfig,
   logger,
   Logger,
-  LoggerConfig,
   QueueManager,
   readAuthDataFromJwtToken,
-  SQSProducerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -51,7 +49,7 @@ export function parseForwardedForHeader(req: Request): string | undefined {
 
 export async function applicationAuditBeginMiddleware(
   serviceName: string,
-  config: ApplicationAuditProducerConfig & SQSProducerConfig & LoggerConfig
+  config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
   const queueManager = initQueueManager({
@@ -122,7 +120,7 @@ export async function applicationAuditBeginMiddleware(
 
 export async function applicationAuditEndMiddleware(
   serviceName: string,
-  config: ApplicationAuditProducerConfig & SQSProducerConfig & LoggerConfig
+  config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
   const queueManager = initQueueManager({
@@ -203,10 +201,7 @@ export async function applicationAuditEndMiddleware(
 
 export async function applicationAuditEndSessionTokenExchangeMiddleware(
   serviceName: string,
-  config: ApplicationAuditProducerConfig &
-    JWTConfig &
-    SQSProducerConfig &
-    LoggerConfig
+  config: ApplicationAuditProducerConfig & JWTConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
   const queueManager = initQueueManager({
