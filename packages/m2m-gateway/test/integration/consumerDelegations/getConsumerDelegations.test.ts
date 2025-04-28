@@ -69,16 +69,8 @@ describe("getConsumerDelegations", () => {
         totalCount: mockDelegationProcessResponse.data.totalCount,
       },
       results: [
-        toM2MGatewayApiConsumerDelegation(
-          mockApiDelegation1.data as delegationApi.Delegation & {
-            kind: typeof delegationApi.DelegationKind.Values.DELEGATED_CONSUMER;
-          }
-        ),
-        toM2MGatewayApiConsumerDelegation(
-          mockApiDelegation2.data as delegationApi.Delegation & {
-            kind: typeof delegationApi.DelegationKind.Values.DELEGATED_CONSUMER;
-          }
-        ),
+        toM2MGatewayApiConsumerDelegation(mockApiDelegation1.data),
+        toM2MGatewayApiConsumerDelegation(mockApiDelegation2.data),
       ],
     };
 

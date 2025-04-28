@@ -21,16 +21,8 @@ describe("GET /consumerDelegations router test", () => {
   const mockM2MDelegationsResponse: m2mGatewayApi.ConsumerDelegations = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiConsumerDelegation(
-        mockApiDelegation1.data as delegationApi.Delegation & {
-          kind: typeof delegationApi.DelegationKind.Values.DELEGATED_CONSUMER;
-        }
-      ),
-      toM2MGatewayApiConsumerDelegation(
-        mockApiDelegation2.data as delegationApi.Delegation & {
-          kind: typeof delegationApi.DelegationKind.Values.DELEGATED_CONSUMER;
-        }
-      ),
+      toM2MGatewayApiConsumerDelegation(mockApiDelegation1.data),
+      toM2MGatewayApiConsumerDelegation(mockApiDelegation2.data),
     ],
   };
 
