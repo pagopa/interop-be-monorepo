@@ -12,10 +12,12 @@ export function getMockedApiDelegation({
   kind,
   eserviceId,
   delegateId,
+  state,
 }: {
   kind?: delegationApi.DelegationKind;
   eserviceId?: string;
   delegateId?: string;
+  state?: delegationApi.DelegationState;
 } = {}): WithMetadata<delegationApi.Delegation> {
   return {
     data: {
@@ -25,7 +27,7 @@ export function getMockedApiDelegation({
       delegateId: delegateId ?? generateId(),
       delegatorId: generateId(),
       createdAt: new Date().toISOString(),
-      state: delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
+      state: state ?? delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
       stamps: {
         submission: {
           who: generateId(),
