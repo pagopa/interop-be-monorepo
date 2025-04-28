@@ -26,6 +26,7 @@ const delegationRouter = (
   delegationRouter
     .get("/consumerDelegations", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
         return res.status(501).send();
       } catch (error) {
