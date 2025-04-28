@@ -1562,14 +1562,6 @@ export const tenantVerifiedAttributeVerifierInReadmodelTenant =
         ],
         name: "tenant_verified_attribute_verif_tenant_id_metadata_version_fkey",
       }),
-      primaryKey({
-        columns: [
-          table.tenantId,
-          table.tenantVerifierId,
-          table.tenantVerifiedAttributeId,
-        ],
-        name: "tenant_verified_attribute_verifier_pkey",
-      }),
     ]
   );
 
