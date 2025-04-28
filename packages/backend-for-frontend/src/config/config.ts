@@ -2,7 +2,7 @@ import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
-  FeatureFlagsConfig,
+  FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareConfig,
@@ -250,7 +250,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ClientAssertionValidationConfig)
   .and(EServiceTemplateS3Config)
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagsConfig);
+  .and(FeatureFlagAgreementApprovalPolicyUpdateConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;
 export const config: BffProcessConfig = BffProcessConfig.parse(process.env);
