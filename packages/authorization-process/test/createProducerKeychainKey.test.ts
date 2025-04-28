@@ -105,23 +105,22 @@ describe("createProducerKeychainKey", () => {
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    const producerKeychain =
-      await authorizationService.createProducerKeychainKey(
-        {
-          producerKeychainId: mockProducerKeychain.id,
-          keySeed,
-        },
-        getMockContext({ authData: mockAuthData })
-      );
+    await authorizationService.createProducerKeychainKey(
+      {
+        producerKeychainId: mockProducerKeychain.id,
+        keySeed,
+      },
+      getMockContext({ authData: mockAuthData })
+    );
 
     const writtenEvent = await readLastEventByStreamId(
-      producerKeychain.id,
+      mockProducerKeychain.id,
       '"authorization"',
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: producerKeychain.id,
+      stream_id: mockProducerKeychain.id,
       version: "1",
       type: "ProducerKeychainKeyAdded",
       event_version: 2,
