@@ -10,7 +10,6 @@ import {
   toGetDelegationsApiQueryParams,
   toM2MGatewayApiConsumerDelegation,
 } from "../api/delegationApiConverter.js";
-import { assertDelegationKindIs } from "../utils/validators/delegationValidators.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
 export type DelegationService = ReturnType<typeof delegationServiceBuilder>;
@@ -42,13 +41,9 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      const results = response.data.results.map((delegation) => {
-        assertDelegationKindIs(
-          delegation,
-          delegationApi.DelegationKind.Values.DELEGATED_CONSUMER
-        );
-        return toM2MGatewayApiConsumerDelegation(delegation);
-      });
+      const results = response.data.results.map(
+        toM2MGatewayApiConsumerDelegation
+      );
 
       return {
         pagination: {
@@ -73,10 +68,6 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledResource = await pollDelegation(response, headers);
 
-      assertDelegationKindIs(
-        polledResource.data,
-        delegationApi.DelegationKind.Values.DELEGATED_CONSUMER
-      );
       return toM2MGatewayApiConsumerDelegation(polledResource.data);
     },
   };

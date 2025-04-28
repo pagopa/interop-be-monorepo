@@ -27,11 +27,7 @@ describe("POST /consumerDelegations router test", () => {
     delegateId: mockDelegationSeed.delegateId,
   });
   const mockM2MDelegationResponse: m2mGatewayApi.ConsumerDelegation =
-    toM2MGatewayApiConsumerDelegation(
-      mockApiDelegation.data as delegationApi.Delegation & {
-        kind: typeof delegationApi.DelegationKind.Values.DELEGATED_CONSUMER;
-      }
-    );
+    toM2MGatewayApiConsumerDelegation(mockApiDelegation.data);
 
   const makeRequest = async (token: string, body: Record<string, unknown>) =>
     request(api)
@@ -92,7 +88,7 @@ describe("POST /consumerDelegations router test", () => {
     expect(res.status).toBe(500);
   });
 
-  it("Should return 500 in case of unexpected error", async () => {
+  it("Should return 500 in case of resourcePollingTimeout error", async () => {
     mockDelegationService.createConsumerDelegation = vi
       .fn()
       .mockRejectedValue(resourcePollingTimeout(3));
