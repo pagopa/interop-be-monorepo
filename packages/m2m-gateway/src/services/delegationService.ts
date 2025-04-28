@@ -62,10 +62,6 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledResource = await pollDelegation(response, headers);
 
-      assertDelegationKindIs(
-        polledResource.data,
-        delegationApi.DelegationKind.Values.DELEGATED_CONSUMER
-      );
       return toM2MGatewayApiConsumerDelegation(polledResource.data);
     },
   };
