@@ -12,7 +12,6 @@ import {
   getMockedApiDelegation,
 } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
-import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
 import { unexpectedDelegationKind } from "../../../src/model/errors.js";
 
 describe("getConsumerDelegations", () => {
@@ -62,16 +61,43 @@ describe("getConsumerDelegations", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    const m2mDelegationResponse1: m2mGatewayApi.ConsumerDelegation = {
+      id: mockApiDelegation1.data.id,
+      delegatorId: mockApiDelegation1.data.delegatorId,
+      delegateId: mockApiDelegation1.data.delegateId,
+      eserviceId: mockApiDelegation1.data.eserviceId,
+      createdAt: mockApiDelegation1.data.createdAt,
+      updatedAt: mockApiDelegation1.data.updatedAt,
+      rejectionReason: mockApiDelegation1.data.rejectionReason,
+      revokedAt: mockApiDelegation1.data.stamps.revocation?.when,
+      submittedAt: mockApiDelegation1.data.stamps.submission.when,
+      activatedAt: mockApiDelegation1.data.stamps.activation?.when,
+      rejectedAt: mockApiDelegation1.data.stamps.rejection?.when,
+      state: mockApiDelegation1.data.state,
+    };
+
+    const m2mDelegationResponse2: m2mGatewayApi.ConsumerDelegation = {
+      id: mockApiDelegation2.data.id,
+      delegatorId: mockApiDelegation2.data.delegatorId,
+      delegateId: mockApiDelegation2.data.delegateId,
+      eserviceId: mockApiDelegation2.data.eserviceId,
+      createdAt: mockApiDelegation2.data.createdAt,
+      updatedAt: mockApiDelegation2.data.updatedAt,
+      rejectionReason: mockApiDelegation2.data.rejectionReason,
+      revokedAt: mockApiDelegation2.data.stamps.revocation?.when,
+      submittedAt: mockApiDelegation2.data.stamps.submission.when,
+      activatedAt: mockApiDelegation2.data.stamps.activation?.when,
+      rejectedAt: mockApiDelegation2.data.stamps.rejection?.when,
+      state: mockApiDelegation2.data.state,
+    };
+
     const m2mDelegationsResponse: m2mGatewayApi.ConsumerDelegations = {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
         totalCount: mockDelegationProcessResponse.data.totalCount,
       },
-      results: [
-        toM2MGatewayApiConsumerDelegation(mockApiDelegation1.data),
-        toM2MGatewayApiConsumerDelegation(mockApiDelegation2.data),
-      ],
+      results: [m2mDelegationResponse1, m2mDelegationResponse2],
     };
 
     const result = await delegationService.getConsumerDelegations(
