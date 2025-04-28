@@ -178,7 +178,7 @@ export const updateOneEService = async (eservice: EService): Promise<void> => {
   await catalogReadModelServiceSQL.upsertEService(eservice, 1);
 };
 
-export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+export const updateOneTenant = async (tenant: Tenant): Promise<void> => {
   await tenants.updateOne(
     {
       "data.id": tenant.id,
@@ -196,7 +196,7 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await tenantReadModelServiceSQL.upsertTenant(tenant, 1);
 };
 
-export const updateOneTenant = async (tenant: Tenant): Promise<void> => {
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
   await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
