@@ -2,9 +2,8 @@ import {
   authenticationMiddleware,
   contextMiddleware,
   loggerMiddleware,
+  rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   zodiosCtx,
-  initRedisRateLimiter,
-  rateLimiterMiddleware,
 } from "pagopa-interop-commons";
 import {
   applicationAuditBeginMiddleware,
@@ -12,7 +11,6 @@ import {
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { config } from "./config/config.js";
-import { getInteropBeClients } from "./clients/clientsProvider.js";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
@@ -23,40 +21,16 @@ import delegationRouter from "./routers/delegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 import clientRouter from "./routers/clientRouter.js";
 import { appBasePath } from "./config/appBasePath.js";
-import {
-  DelegationService,
-  delegationServiceBuilder,
-} from "./services/delegationService.js";
-import {
-  AgreementService,
-  agreementServiceBuilder,
-} from "./services/agreementService.js";
-import {
-  AttributeService,
-  attributeServiceBuilder,
-} from "./services/attributeService.js";
-import {
-  ClientService,
-  clientServiceBuilder,
-} from "./services/clientService.js";
-import {
-  EserviceService,
-  eserviceServiceBuilder,
-} from "./services/eserviceService.js";
-import {
-  EserviceTemplateService,
-  eserviceTemplateServiceBuilder,
-} from "./services/eserviceTemplateService.js";
-import {
-  PurposeService,
-  purposeServiceBuilder,
-} from "./services/purposeService.js";
-import {
-  TenantService,
-  tenantServiceBuilder,
-} from "./services/tenantService.js";
+import { DelegationService } from "./services/delegationService.js";
+import { AgreementService } from "./services/agreementService.js";
+import { AttributeService } from "./services/attributeService.js";
+import { ClientService } from "./services/clientService.js";
+import { EserviceService } from "./services/eserviceService.js";
+import { EserviceTemplateService } from "./services/eserviceTemplateService.js";
+import { PurposeService } from "./services/purposeService.js";
+import { TenantService } from "./services/tenantService.js";
 
-type M2MGatewayServices = {
+export type M2MGatewayServices = {
   agreementService: AgreementService;
   attributeService: AttributeService;
   clientService: ClientService;
@@ -67,23 +41,15 @@ type M2MGatewayServices = {
   tenantService: TenantService;
 };
 
-function createDefaultM2MGatewayServices(): M2MGatewayServices {
-  const clients = getInteropBeClients();
-
-  return {
-    agreementService: agreementServiceBuilder(clients),
-    attributeService: attributeServiceBuilder(clients),
-    clientService: clientServiceBuilder(clients),
-    delegationService: delegationServiceBuilder(clients),
-    eserviceService: eserviceServiceBuilder(clients),
-    eserviceTemplateService: eserviceTemplateServiceBuilder(clients),
-    purposeService: purposeServiceBuilder(clients),
-    tenantService: tenantServiceBuilder(clients),
-  };
-}
+export type RateLimiterMiddleware = ReturnType<
+  typeof rateLimiterMiddlewareBuilder
+>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function createApp(services?: M2MGatewayServices) {
+export async function createApp(
+  services: M2MGatewayServices,
+  rateLimiterMiddleware: RateLimiterMiddleware
+) {
   const serviceName = modelsServiceName.M2M_GATEWAY;
   const {
     agreementService,
@@ -94,19 +60,9 @@ export async function createApp(services?: M2MGatewayServices) {
     eserviceTemplateService,
     purposeService,
     tenantService,
-  } = services ?? createDefaultM2MGatewayServices();
+  } = services;
 
   const app = zodiosCtx.app();
-
-  const redisRateLimiter = await initRedisRateLimiter({
-    limiterGroup: "M2M_GATEWAY",
-    maxRequests: config.rateLimiterMaxRequests,
-    rateInterval: config.rateLimiterRateInterval,
-    burstPercentage: config.rateLimiterBurstPercentage,
-    redisHost: config.rateLimiterRedisHost,
-    redisPort: config.rateLimiterRedisPort,
-    timeout: config.rateLimiterTimeout,
-  });
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
@@ -124,7 +80,7 @@ export async function createApp(services?: M2MGatewayServices) {
     await applicationAuditEndMiddleware(serviceName, config),
     authenticationMiddleware(config),
     // Authenticated routes - rate limiter relies on auth data to work
-    rateLimiterMiddleware(redisRateLimiter),
+    rateLimiterMiddleware,
     eserviceRouter(zodiosCtx, eserviceService),
     attributeRouter(zodiosCtx, attributeService),
     purposeRouter(zodiosCtx, purposeService),

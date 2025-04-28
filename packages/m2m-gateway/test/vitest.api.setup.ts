@@ -43,15 +43,6 @@ vi.mock("pagopa-interop-commons", async () => {
           return next();
         }
     ),
-    rateLimiterMiddleware: vi.fn(
-      () =>
-        async (
-          _req: Request,
-          _res: Response,
-          next: NextFunction
-        ): Promise<unknown> =>
-          next()
-    ),
   };
 });
 
@@ -74,13 +65,16 @@ import { TenantService } from "../src/services/tenantService.js";
 
 export const mockDelegationService = {} as DelegationService;
 
-export const api = await createApp({
-  agreementService: {} as AgreementService,
-  attributeService: {} as AttributeService,
-  clientService: {} as ClientService,
-  delegationService: mockDelegationService,
-  eserviceService: {} as EserviceService,
-  eserviceTemplateService: {} as EserviceTemplateService,
-  purposeService: {} as PurposeService,
-  tenantService: {} as TenantService,
-});
+export const api = await createApp(
+  {
+    agreementService: {} as AgreementService,
+    attributeService: {} as AttributeService,
+    clientService: {} as ClientService,
+    delegationService: mockDelegationService,
+    eserviceService: {} as EserviceService,
+    eserviceTemplateService: {} as EserviceTemplateService,
+    purposeService: {} as PurposeService,
+    tenantService: {} as TenantService,
+  },
+  (_req, _res, next): void => next()
+);
