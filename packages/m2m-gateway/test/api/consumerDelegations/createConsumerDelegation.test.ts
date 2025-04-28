@@ -92,7 +92,7 @@ describe("POST /consumerDelegations router test", () => {
     expect(res.status).toBe(500);
   });
 
-  it("Should return 500 in case of unexpected error", async () => {
+  it("Should return 500 in case of resourcePollingTimeout error", async () => {
     mockDelegationService.createConsumerDelegation = vi
       .fn()
       .mockRejectedValue(resourcePollingTimeout(3));
