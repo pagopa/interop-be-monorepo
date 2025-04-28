@@ -578,6 +578,7 @@ export function authorizationServiceBuilder(
       },
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Client> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
       logger.info(`Add or update admin in client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData, client.data);
