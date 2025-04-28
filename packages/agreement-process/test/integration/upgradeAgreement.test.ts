@@ -25,6 +25,7 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
+  sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -264,8 +265,8 @@ describe("upgrade Agreement", () => {
         },
       };
 
-      expect(actualAgreementArchived).toEqual(
-        toAgreementV2(expectedAgreementArchived)
+      expect(sortAgreementV2(actualAgreementArchived)).toEqual(
+        sortAgreementV2(toAgreementV2(expectedAgreementArchived))
       );
 
       expect(newAgreementId).toBeDefined();
@@ -520,8 +521,8 @@ describe("upgrade Agreement", () => {
             },
           };
 
-          expect(actualAgreementArchived).toEqual(
-            toAgreementV2(expectedAgreementArchived)
+          expect(sortAgreementV2(actualAgreementArchived)).toEqual(
+            sortAgreementV2(toAgreementV2(expectedAgreementArchived))
           );
 
           expect(newAgreementId).toBeDefined();

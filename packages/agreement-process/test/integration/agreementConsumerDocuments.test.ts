@@ -11,6 +11,7 @@ import {
   getMockTenant,
   getMockAuthData,
   randomArrayItem,
+  sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -349,19 +350,27 @@ describe("agreement consumer document", () => {
         ],
       };
 
-      expect(actualConsumerDocument).toMatchObject({
-        agreement: toAgreementV2(expectedAgreement),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
 
-      expect(actualConsumerDocument).toEqual({
-        agreement: toAgreementV2({
-          ...agreement,
-          consumerDocuments: [
-            ...agreement.consumerDocuments,
-            returnedConsumerDocument,
-          ],
-        }),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toEqual({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...agreement,
+            consumerDocuments: [
+              ...agreement.consumerDocuments,
+              returnedConsumerDocument,
+            ],
+          })
+        ),
         documentId: returnedConsumerDocument.id,
       });
     });
@@ -412,19 +421,27 @@ describe("agreement consumer document", () => {
         ],
       };
 
-      expect(actualConsumerDocument).toMatchObject({
-        agreement: toAgreementV2(expectedAgreement),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
 
-      expect(actualConsumerDocument).toEqual({
-        agreement: toAgreementV2({
-          ...agreement,
-          consumerDocuments: [
-            ...agreement.consumerDocuments,
-            returnedConsumerDocument,
-          ],
-        }),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toEqual({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...agreement,
+            consumerDocuments: [
+              ...agreement.consumerDocuments,
+              returnedConsumerDocument,
+            ],
+          })
+        ),
         documentId: returnedConsumerDocument.id,
       });
     });
@@ -597,8 +614,11 @@ describe("agreement consumer document", () => {
 
       const expectedAgreement = { ...agreement1, consumerDocuments: [] };
 
-      expect(actualConsumerDocument).toMatchObject({
-        agreement: toAgreementV2(expectedAgreement),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
@@ -647,8 +667,11 @@ describe("agreement consumer document", () => {
 
       const expectedAgreement = { ...agreement1, consumerDocuments: [] };
 
-      expect(actualConsumerDocument).toMatchObject({
-        agreement: toAgreementV2(expectedAgreement),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);

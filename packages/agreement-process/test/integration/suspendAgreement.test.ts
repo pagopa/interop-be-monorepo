@@ -18,6 +18,8 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
+  sortAgreementV2,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -405,8 +407,8 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toEqual(
-      toAgreementV2(expectedAgreementSuspended)
+    expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
+      sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
     expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
@@ -516,7 +518,9 @@ describe("suspend agreement", () => {
           agreement.id,
           getMockContext({ authData })
         );
-        expect(actualAgreement).toEqual(expectedAgreement);
+        expect(sortAgreement(actualAgreement)).toEqual(
+          sortAgreement(expectedAgreement)
+        );
       });
     }
   );

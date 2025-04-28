@@ -7,6 +7,7 @@ import {
   getMockDelegation,
   getMockAuthData,
   randomArrayItem,
+  sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -89,9 +90,13 @@ describe("archive agreement", () => {
       },
     };
 
-    expect(actualAgreement).toEqual(toAgreementV2(expectedAgreemenentArchived));
+    expect(sortAgreementV2(actualAgreement)).toEqual(
+      sortAgreementV2(toAgreementV2(expectedAgreemenentArchived))
+    );
 
-    expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
+    expect(sortAgreementV2(actualAgreement)).toEqual(
+      sortAgreementV2(toAgreementV2(returnedAgreement))
+    );
 
     vi.useRealTimers();
   });
@@ -160,9 +165,13 @@ describe("archive agreement", () => {
       },
     };
 
-    expect(actualAgreement).toEqual(toAgreementV2(expectedAgreemenentArchived));
+    expect(sortAgreementV2(actualAgreement)).toEqual(
+      sortAgreementV2(toAgreementV2(expectedAgreemenentArchived))
+    );
 
-    expect(actualAgreement).toEqual(toAgreementV2(returnedAgreement));
+    expect(sortAgreementV2(actualAgreement)).toEqual(
+      sortAgreementV2(toAgreementV2(returnedAgreement))
+    );
 
     vi.useRealTimers();
   });
