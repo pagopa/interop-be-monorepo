@@ -386,7 +386,7 @@ export async function handleMessageV2(
         state: itemState.active,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientPurposesIds: clientEntry ? clientEntry.clientPurposesIds : [],
+        clientPurposesIds: [],
         version: msg.version,
         updatedAt: new Date().toISOString(),
       };
