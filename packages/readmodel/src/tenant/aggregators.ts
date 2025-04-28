@@ -403,7 +403,7 @@ export const toTenantAggregatorArray = (
 
     const mailSQL = row.mail;
     const mailPK = mailSQL
-      ? makeUniqueKey([mailSQL.id, mailSQL.tenantId])
+      ? makeUniqueKey([mailSQL.id, mailSQL.tenantId, mailSQL.createdAt])
       : undefined;
     if (mailSQL && mailPK && !mailIdSet.has(mailPK)) {
       mailIdSet.add(mailPK);
