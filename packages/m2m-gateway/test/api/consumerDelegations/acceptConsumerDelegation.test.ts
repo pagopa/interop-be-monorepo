@@ -52,7 +52,7 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid delegation seed", async () => {
+  it("Should return 400 if passed an invalid delegation id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalid-delegation-id");
 
