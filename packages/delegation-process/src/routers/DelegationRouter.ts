@@ -256,13 +256,19 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        await delegationService.rejectProducerDelegation(
-          unsafeBrandId(delegationId),
-          rejectionReason,
-          ctx
-        );
+        const { data, metadata } =
+          await delegationService.rejectProducerDelegation(
+            unsafeBrandId(delegationId),
+            rejectionReason,
+            ctx
+          );
 
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -360,15 +366,21 @@ const delegationRouter = (
       const { rejectionReason } = req.body;
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await delegationService.rejectConsumerDelegation(
-          unsafeBrandId(req.params.delegationId),
-          rejectionReason,
-          ctx
-        );
+        const { data, metadata } =
+          await delegationService.rejectConsumerDelegation(
+            unsafeBrandId(req.params.delegationId),
+            rejectionReason,
+            ctx
+          );
 
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
