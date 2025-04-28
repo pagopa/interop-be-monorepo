@@ -1,4 +1,3 @@
-// index.ts
 import { initQueueManager, logger } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import { config } from "./config/config.js";
