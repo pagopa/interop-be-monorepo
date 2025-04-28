@@ -134,7 +134,8 @@ export function delegationServiceBuilder(
     const delegatorId = authData.organizationId;
 
     logger.info(
-      `Creating a delegation for tenant ${delegateId} by ${kind === delegationKind.delegatedConsumer ? "consumer" : "producer"
+      `Creating a delegation for tenant ${delegateId} by ${
+        kind === delegationKind.delegatedConsumer ? "consumer" : "producer"
       } ${delegatorId}`
     );
 
@@ -342,7 +343,8 @@ export function delegationServiceBuilder(
     { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
   ): Promise<void> {
     logger.info(
-      `Revoking delegation ${delegationId} by ${kind === delegationKind.delegatedProducer ? "producer" : "consumer"
+      `Revoking delegation ${delegationId} by ${
+        kind === delegationKind.delegatedProducer ? "producer" : "consumer"
       } ${authData.organizationId}`
     );
 

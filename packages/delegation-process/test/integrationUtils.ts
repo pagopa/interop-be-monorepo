@@ -60,8 +60,8 @@ vi.spyOn(puppeteer, "launch").mockImplementation(
 export const pdfGenerator = await initPDFGenerator();
 
 export const delegationService = delegationServiceBuilder(
-  readModelService,
   postgresDB,
+  readModelService,
   pdfGenerator,
   fileManager
 );
