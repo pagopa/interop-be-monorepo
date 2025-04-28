@@ -460,9 +460,13 @@ export const toTenantAggregatorArray = (
       const verifier = row.verifier;
       const verifierPK = verifier
         ? makeUniqueKey([
-            verifier.tenantVerifierId,
-            verifier.tenantVerifiedAttributeId,
             verifier.tenantId,
+            verifier.tenantVerifiedAttributeId,
+            verifier.tenantVerifierId,
+            verifier.delegationId || "",
+            verifier.verificationDate,
+            verifier.expirationDate || "",
+            verifier.extensionDate || "",
           ])
         : undefined;
       if (verifier && verifierPK && !verifiersIdSet.has(verifierPK)) {
