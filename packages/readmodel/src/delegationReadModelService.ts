@@ -28,29 +28,29 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
           delegation.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(delegationInReadmodelDelegation)
+          .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+        const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+          splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+
+        await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
+
+        for (const stampSQL of stampsSQL) {
           await tx
-            .delete(delegationInReadmodelDelegation)
-            .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+            .insert(delegationStampInReadmodelDelegation)
+            .values(stampSQL);
+        }
 
-          const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-            splitDelegationIntoObjectsSQL(delegation, metadataVersion);
-
+        for (const docSQL of contractDocumentsSQL) {
           await tx
-            .insert(delegationInReadmodelDelegation)
-            .values(delegationSQL);
-
-          for (const stampSQL of stampsSQL) {
-            await tx
-              .insert(delegationStampInReadmodelDelegation)
-              .values(stampSQL);
-          }
-
-          for (const docSQL of contractDocumentsSQL) {
-            await tx
-              .insert(delegationContractDocumentInReadmodelDelegation)
-              .values(docSQL);
-          }
+            .insert(delegationContractDocumentInReadmodelDelegation)
+            .values(docSQL);
         }
       });
     },
