@@ -33,9 +33,7 @@ describe("getPurposes", () => {
   const mockGetPurposes = vi.fn().mockResolvedValue(mockPurposeProcessResponse);
 
   mockInteropBeClients.purposeProcessClient = {
-    purpose: {
-      getPurposes: mockGetPurposes,
-    },
+    getPurposes: mockGetPurposes,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
