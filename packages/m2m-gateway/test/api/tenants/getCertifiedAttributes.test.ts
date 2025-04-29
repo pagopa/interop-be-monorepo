@@ -8,7 +8,7 @@ import { generateId } from "pagopa-interop-models";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
-describe("GET /tenants route test", () => {
+describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
   const mockResponse: m2mGatewayApi.TenantCertifiedAttributes = {
     results: [
       {
