@@ -12,7 +12,7 @@ export const keyToClientJWKKey = (
   key: Key,
   clientId: ClientId
 ): ClientJWKKey => {
-  const jwk = createJWK(key.encodedPem);
+  const jwk = createJWK(key.encodedPem, false);
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }
