@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
-import { Delegation, delegationKind, generateId, TenantId } from "pagopa-interop-models";
+import {
+  Delegation,
+  delegationKind,
+  generateId,
+  TenantId,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -55,7 +60,9 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
   it("Should return 403 for operationRestrictedToDelegate", async () => {
     delegationService.rejectProducerDelegation = vi
       .fn()
-      .mockRejectedValue(operationRestrictedToDelegate(generateId<TenantId>(), mockDelegation.id));
+      .mockRejectedValue(
+        operationRestrictedToDelegate(generateId<TenantId>(), mockDelegation.id)
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
@@ -64,15 +71,18 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
   it("Should return 404 for delegationNotFound", async () => {
     delegationService.rejectProducerDelegation = vi
       .fn()
-      .mockRejectedValue(delegationNotFound(mockDelegation.id)
-      );
+      .mockRejectedValue(delegationNotFound(mockDelegation.id));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 409 for incorrectState", async () => {
-    delegationService.rejectProducerDelegation = vi.fn().mockRejectedValue(incorrectState(mockDelegation.id, "Rejected", "WaitingForApproval"))
+    delegationService.rejectProducerDelegation = vi
+      .fn()
+      .mockRejectedValue(
+        incorrectState(mockDelegation.id, "Rejected", "WaitingForApproval")
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);

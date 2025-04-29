@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
-import { Delegation, delegationKind, generateId } from "pagopa-interop-models";
+import {
+  Delegation,
+  delegationKind,
+  generateId,
+  TenantId,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -55,7 +60,9 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
   it("Should return 403 for operationRestrictedToDelegate", async () => {
     delegationService.rejectConsumerDelegation = vi
       .fn()
-      .mockRejectedValue(operationRestrictedToDelegate(generateId<TenantId>(), mockDelegation.id));
+      .mockRejectedValue(
+        operationRestrictedToDelegate(generateId<TenantId>(), mockDelegation.id)
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
