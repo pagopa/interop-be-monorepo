@@ -73,7 +73,11 @@ export function readModelServiceBuilder(
           userId,
           metadataVersion,
         };
-        await tx.insert(clientUserInReadmodelClient).values(user);
+
+        await tx
+          .insert(clientUserInReadmodelClient)
+          .values(user)
+          .onConflictDoNothing();
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -164,7 +168,7 @@ export function readModelServiceBuilder(
         const keysSQL: ClientKeySQL[] = keys.map((key) => ({
           metadataVersion,
           clientId,
-          userId: key.userId,
+          userId: key.userId !== "" ? key.userId : null,
           kid: key.kid,
           name: key.name,
           encodedPem: key.encodedPem,
