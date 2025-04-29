@@ -11,7 +11,6 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { toM2MPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("getPurposes", () => {
@@ -26,12 +25,9 @@ describe("getPurposes", () => {
 
   const mockApiPurposes = [mockApiPurpose1.data, mockApiPurpose2.data];
 
-  const mockPurposeProcessResponse: WithMaybeMetadata<purposeApi.Purposes> = {
-    data: {
-      results: mockApiPurposes,
-      totalCount: mockApiPurposes.length,
-    },
-    metadata: undefined,
+  const mockPurposeProcessResponse: purposeApi.Purposes = {
+    results: mockApiPurposes,
+    totalCount: mockApiPurposes.length,
   };
 
   const mockGetPurposes = vi.fn().mockResolvedValue(mockPurposeProcessResponse);
@@ -59,7 +55,7 @@ describe("getPurposes", () => {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
-        totalCount: mockPurposeProcessResponse.data.totalCount,
+        totalCount: mockPurposeProcessResponse.totalCount,
       },
       results: [m2mPurposeResponse1, m2mPurposeResponse2],
     };
