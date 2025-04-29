@@ -501,7 +501,7 @@ export const toEServiceAggregatorArray = (
   const templateVersionRefIdSet = new Set<string>();
   const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
+  // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
   queryRes.forEach((row) => {
     const eserviceSQL = row.eservice;
 
@@ -537,82 +537,78 @@ export const toEServiceAggregatorArray = (
       }
 
       const attributeSQL = row.attribute;
-      if (
-        attributeSQL &&
-        !attributeIdSet.has(
-          makeUniqueKey([
+      const attributePK = attributeSQL
+        ? makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.descriptorId,
             attributeSQL.groupId.toString(),
           ])
-        )
-      ) {
-        attributeIdSet.add(
-          makeUniqueKey([
-            attributeSQL.attributeId,
-            attributeSQL.descriptorId,
-            attributeSQL.groupId.toString(),
-          ])
-        );
+        : undefined;
+      if (attributeSQL && attributePK && !attributeIdSet.has(attributePK)) {
+        attributeIdSet.add(attributePK);
         // eslint-disable-next-line functional/immutable-data
         attributesSQL.push(attributeSQL);
       }
 
       const rejectionReasonSQL = row.rejection;
+      const rejectionReasonPK = rejectionReasonSQL
+        ? makeUniqueKey([
+            rejectionReasonSQL.descriptorId,
+            rejectionReasonSQL.rejectedAt,
+          ])
+        : undefined;
       if (
         rejectionReasonSQL &&
-        !rejectionReasonsSet.has(
-          makeUniqueKey([
-            rejectionReasonSQL.descriptorId,
-            rejectionReasonSQL.rejectedAt,
-          ])
-        )
+        rejectionReasonPK &&
+        !rejectionReasonsSet.has(rejectionReasonPK)
       ) {
-        rejectionReasonsSet.add(
-          makeUniqueKey([
-            rejectionReasonSQL.descriptorId,
-            rejectionReasonSQL.rejectedAt,
-          ])
-        );
+        rejectionReasonsSet.add(rejectionReasonPK);
         // eslint-disable-next-line functional/immutable-data
         rejectionReasonsSQL.push(rejectionReasonSQL);
       }
 
       const templateVersionRefSQL = row.templateVersionRef;
+      const templateVersionRefPK = templateVersionRefSQL
+        ? makeUniqueKey([
+            templateVersionRefSQL.eserviceTemplateVersionId,
+            templateVersionRefSQL.descriptorId,
+          ])
+        : undefined;
       if (
         templateVersionRefSQL &&
-        !templateVersionRefIdSet.has(
-          makeUniqueKey([
-            templateVersionRefSQL.eserviceTemplateVersionId,
-            templateVersionRefSQL.descriptorId,
-          ])
-        )
+        templateVersionRefPK &&
+        !templateVersionRefIdSet.has(templateVersionRefPK)
       ) {
-        templateVersionRefIdSet.add(
-          makeUniqueKey([
-            templateVersionRefSQL.eserviceTemplateVersionId,
-            templateVersionRefSQL.descriptorId,
-          ])
-        );
+        templateVersionRefIdSet.add(templateVersionRefPK);
         // eslint-disable-next-line functional/immutable-data
         templateVersionRefsSQL.push(templateVersionRefSQL);
       }
     }
 
     const riskAnalysisSQL = row.riskAnalysis;
-    if (riskAnalysisSQL) {
-      if (!riskAnalysisIdSet.has(riskAnalysisSQL.id)) {
-        riskAnalysisIdSet.add(riskAnalysisSQL.id);
+    const riskAnalysisPK = riskAnalysisSQL
+      ? makeUniqueKey([riskAnalysisSQL.id, riskAnalysisSQL.eserviceId])
+      : undefined;
+    if (riskAnalysisSQL && riskAnalysisPK) {
+      if (!riskAnalysisIdSet.has(riskAnalysisPK)) {
+        riskAnalysisIdSet.add(riskAnalysisPK);
         // eslint-disable-next-line functional/immutable-data
         riskAnalysesSQL.push(riskAnalysisSQL);
       }
 
       const riskAnalysisAnswerSQL = row.riskAnalysisAnswer;
+      const riskAnalysisAnswerPK = riskAnalysisAnswerSQL
+        ? makeUniqueKey([
+            riskAnalysisAnswerSQL.id,
+            riskAnalysisAnswerSQL.eserviceId,
+          ])
+        : undefined;
       if (
         riskAnalysisAnswerSQL &&
-        !riskAnalysisAnswerIdSet.has(riskAnalysisAnswerSQL.id)
+        riskAnalysisAnswerPK &&
+        !riskAnalysisAnswerIdSet.has(riskAnalysisAnswerPK)
       ) {
-        riskAnalysisAnswerIdSet.add(riskAnalysisAnswerSQL.id);
+        riskAnalysisAnswerIdSet.add(riskAnalysisAnswerPK);
         // eslint-disable-next-line functional/immutable-data
         riskAnalysisAnswersSQL.push(riskAnalysisAnswerSQL);
       }
