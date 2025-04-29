@@ -1262,6 +1262,9 @@ importers:
       qs:
         specifier: 6.12.3
         version: 6.12.3
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
