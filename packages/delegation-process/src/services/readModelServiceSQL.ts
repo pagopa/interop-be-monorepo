@@ -54,7 +54,7 @@ export function readModelServiceBuilderSQL({
   return {
     async getDelegationById(
       id: DelegationId,
-      kind: DelegationKind | undefined = undefined
+      kind?: DelegationKind
     ): Promise<WithMetadata<Delegation> | undefined> {
       return delegationReadModelServiceSQL.getDelegationByFilter(
         and(
