@@ -166,7 +166,7 @@ export const agreementConsumerDocumentInReadmodelAgreement =
 export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
   "agreement_contract",
   {
-    id: uuid().primaryKey().notNull(),
+    id: uuid().notNull(),
     agreementId: uuid("agreement_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     name: varchar().notNull(),
@@ -191,6 +191,10 @@ export const agreementContractInReadmodelAgreement = readmodelAgreement.table(
         agreementInReadmodelAgreement.metadataVersion,
       ],
       name: "agreement_contract_agreement_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.id, table.agreementId],
+      name: "agreement_contract_pkey",
     }),
     unique("agreement_contract_agreement_id_key").on(table.agreementId),
   ]
@@ -769,7 +773,7 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
 export const purposeRiskAnalysisFormInReadmodelPurpose = readmodelPurpose.table(
   "purpose_risk_analysis_form",
   {
-    id: uuid().primaryKey().notNull(),
+    id: uuid().notNull(),
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     version: varchar().notNull(),
@@ -789,6 +793,10 @@ export const purposeRiskAnalysisFormInReadmodelPurpose = readmodelPurpose.table(
       ],
       name: "purpose_risk_analysis_form_purpose_id_metadata_version_fkey",
     }),
+    primaryKey({
+      columns: [table.id, table.purposeId],
+      name: "purpose_risk_analysis_form_pkey",
+    }),
   ]
 );
 
@@ -796,7 +804,7 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
   readmodelPurpose.table(
     "purpose_risk_analysis_answer",
     {
-      id: uuid().primaryKey().notNull(),
+      id: uuid().notNull(),
       purposeId: uuid("purpose_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
@@ -811,9 +819,12 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
         name: "purpose_risk_analysis_answer_purpose_id_fkey",
       }).onDelete("cascade"),
       foreignKey({
-        columns: [table.riskAnalysisFormId],
-        foreignColumns: [purposeRiskAnalysisFormInReadmodelPurpose.id],
-        name: "purpose_risk_analysis_answer_risk_analysis_form_id_fkey",
+        columns: [table.purposeId, table.riskAnalysisFormId],
+        foreignColumns: [
+          purposeRiskAnalysisFormInReadmodelPurpose.id,
+          purposeRiskAnalysisFormInReadmodelPurpose.purposeId,
+        ],
+        name: "purpose_risk_analysis_answer_risk_analysis_form_id_purpose_fkey",
       }).onDelete("cascade"),
       foreignKey({
         columns: [table.purposeId, table.metadataVersion],
@@ -822,6 +833,10 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
           purposeInReadmodelPurpose.metadataVersion,
         ],
         name: "purpose_risk_analysis_answer_purpose_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.id, table.purposeId],
+        name: "purpose_risk_analysis_answer_pkey",
       }),
     ]
   );
@@ -832,6 +847,7 @@ export const clientInReadmodelClient = readmodelClient.table(
     id: uuid().primaryKey().notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     consumerId: uuid("consumer_id").notNull(),
+    adminId: uuid("admin_id"),
     name: varchar().notNull(),
     description: varchar(),
     kind: varchar().notNull(),
@@ -894,7 +910,7 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     purposeVersionId: uuid("purpose_version_id").notNull(),
-    id: uuid().primaryKey().notNull(),
+    id: uuid().notNull(),
     contentType: varchar("content_type").notNull(),
     path: varchar().notNull(),
     createdAt: timestamp("created_at", {
@@ -920,6 +936,10 @@ export const purposeVersionDocumentInReadmodelPurpose = readmodelPurpose.table(
         purposeInReadmodelPurpose.metadataVersion,
       ],
       name: "purpose_version_document_purpose_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.purposeVersionId, table.id],
+      name: "purpose_version_document_pkey",
     }),
     unique("purpose_version_document_purpose_version_id_key").on(
       table.purposeVersionId
@@ -985,7 +1005,7 @@ export const tenantMailInReadmodelTenant = readmodelTenant.table(
       name: "tenant_mail_tenant_id_metadata_version_fkey",
     }),
     primaryKey({
-      columns: [table.id, table.tenantId],
+      columns: [table.id, table.tenantId, table.createdAt],
       name: "tenant_mail_pkey",
     }),
   ]
@@ -1542,14 +1562,6 @@ export const tenantVerifiedAttributeVerifierInReadmodelTenant =
         ],
         name: "tenant_verified_attribute_verif_tenant_id_metadata_version_fkey",
       }),
-      primaryKey({
-        columns: [
-          table.tenantId,
-          table.tenantVerifierId,
-          table.tenantVerifiedAttributeId,
-        ],
-        name: "tenant_verified_attribute_verifier_pkey",
-      }),
     ]
   );
 
@@ -1680,14 +1692,6 @@ export const tenantVerifiedAttributeRevokerInReadmodelTenant =
           tenantInReadmodelTenant.metadataVersion,
         ],
         name: "tenant_verified_attribute_revok_tenant_id_metadata_version_fkey",
-      }),
-      primaryKey({
-        columns: [
-          table.tenantId,
-          table.tenantRevokerId,
-          table.tenantVerifiedAttributeId,
-        ],
-        name: "tenant_verified_attribute_revoker_pkey",
       }),
     ]
   );

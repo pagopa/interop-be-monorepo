@@ -140,9 +140,9 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorDocumentInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          document.id
+          eserviceId
         );
 
         if (!shouldUpsert) {
@@ -190,9 +190,9 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorInterfaceInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          descriptorInterface.id
+          eserviceId
         );
 
         if (!shouldUpsert) {
@@ -378,9 +378,9 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          descriptor.id
+          eserviceId
         );
 
         if (!shouldUpsert) {
