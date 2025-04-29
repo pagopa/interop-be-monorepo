@@ -96,7 +96,7 @@ const purposeRouter = (
     .post("/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const purpose = await purposeService.createPurpose(ctx, req.body);
 
