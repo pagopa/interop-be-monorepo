@@ -578,7 +578,7 @@ describe("update descriptor", () => {
 
     const mockEService: EService = {
       ...getMockEService(),
-      templateRef: { id: templateId },
+      templateId,
       descriptors: [mockDescriptor],
     };
 

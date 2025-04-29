@@ -58,7 +58,7 @@ describe("update descriptor", () => {
       };
       const eservice: EService = {
         ...mockEService,
-        templateRef: { id: mockTemplate.id },
+        templateId: mockTemplate.id,
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
@@ -118,7 +118,7 @@ describe("update descriptor", () => {
       };
       const eservice: EService = {
         ...mockEService,
-        templateRef: { id: mockTemplate.id },
+        templateId: mockTemplate.id,
         descriptors: [descriptor],
       };
       const delegation = getMockDelegation({
@@ -188,7 +188,7 @@ describe("update descriptor", () => {
   it("should throw eServiceDescriptorNotFound if the instance descriptor doesn't exist", async () => {
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: mockTemplate.id },
+      templateId: mockTemplate.id,
       descriptors: [],
     };
     await addOneEService(eservice);
@@ -225,7 +225,7 @@ describe("update descriptor", () => {
       };
       const eservice: EService = {
         ...mockEService,
-        templateRef: { id: mockTemplate.id },
+        templateId: mockTemplate.id,
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
@@ -253,7 +253,7 @@ describe("update descriptor", () => {
     };
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: mockTemplate.id },
+      templateId: mockTemplate.id,
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
@@ -280,7 +280,7 @@ describe("update descriptor", () => {
     };
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: mockTemplate.id },
+      templateId: mockTemplate.id,
       descriptors: [descriptor],
     };
     const delegation = getMockDelegation({
@@ -316,7 +316,7 @@ describe("update descriptor", () => {
     };
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: mockTemplate.id },
+      templateId: mockTemplate.id,
       descriptors: [descriptor],
     };
     await addOneEService(eservice);

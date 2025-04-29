@@ -57,10 +57,7 @@ describe("update draft descriptor instance", () => {
       ...mockEService,
       descriptors: [descriptor],
       name: `${template.name} test`,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test",
-      },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -118,10 +115,7 @@ describe("update draft descriptor instance", () => {
       ...mockEService,
       descriptors: [descriptor],
       name: `${template.name} test`,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test",
-      },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -201,10 +195,7 @@ describe("update draft descriptor instance", () => {
       ...mockEService,
       descriptors: [],
       name: `${template.name} test`,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test",
-      },
+      templateId: template.id,
     };
 
     await addOneEServiceTemplate(template);
@@ -241,10 +232,7 @@ describe("update draft descriptor instance", () => {
         ...mockEService,
         descriptors: [descriptor],
         name: `${template.name} test`,
-        templateRef: {
-          id: template.id,
-          instanceLabel: "test",
-        },
+        templateId: template.id,
       };
       await addOneEServiceTemplate(template);
       await addOneEService(eservice);
@@ -274,10 +262,7 @@ describe("update draft descriptor instance", () => {
       ...mockEService,
       descriptors: [descriptor],
       name: `${template.name} test`,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test",
-      },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -308,10 +293,7 @@ describe("update draft descriptor instance", () => {
       ...mockEService,
       descriptors: [descriptor],
       name: `${template.name} test`,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test",
-      },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);
@@ -350,10 +332,7 @@ describe("update draft descriptor instance", () => {
       ...mockEService,
       descriptors: [descriptor],
       name: `${template.name} test`,
-      templateRef: {
-        id: template.id,
-        instanceLabel: "test",
-      },
+      templateId: template.id,
     };
     await addOneEServiceTemplate(template);
     await addOneEService(eservice);

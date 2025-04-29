@@ -277,7 +277,7 @@ describe("delete risk analysis", () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: templateId },
+      templateId,
       descriptors: [],
       riskAnalysis: [getMockValidRiskAnalysis("PA")],
       mode: "Receive",

@@ -1,4 +1,5 @@
 import {
+  AnalyticsSQLDbConfig,
   EventStoreConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
@@ -11,6 +12,8 @@ export const TEST_MONGO_DB_IMAGE = "mongo:4.0";
 
 export const TEST_POSTGRES_DB_PORT = 5432;
 export const TEST_POSTGRES_DB_IMAGE = "postgres:14";
+
+export const TEST_POSTGRES_ANALYTICS_DB_IMAGE = "postgres:15";
 
 export const TEST_DYNAMODB_PORT = 8000;
 export const TEST_DYNAMODB_IMAGE = "amazon/dynamodb-local:latest";
@@ -163,3 +166,20 @@ export const awsSESContainer = (): GenericContainer =>
       `npm install -g aws-ses-v2-local@${TEST_AWS_SES_VERSION}; aws-ses-v2-local --port=${TEST_AWS_SES_PORT} --host=0.0.0.0`,
     ])
     .withExposedPorts(TEST_AWS_SES_PORT);
+
+export const postgreSQLAnalyticsContainer = (
+  config: AnalyticsSQLDbConfig
+): GenericContainer =>
+  new GenericContainer(TEST_POSTGRES_ANALYTICS_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.dbName,
+      POSTGRES_USER: config.dbUsername,
+      POSTGRES_PASSWORD: config.dbPassword,
+    })
+    .withCopyFilesToContainer([
+      {
+        source: "../../docker/domains-analytics-db/domains-init.sql",
+        target: "/docker-entrypoint-initdb.d/01-init.sql",
+      },
+    ])
+    .withExposedPorts(TEST_POSTGRES_DB_PORT);

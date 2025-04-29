@@ -4,6 +4,7 @@ import {
   decodeProtobufPayload,
   getMockProducerKeychain,
   getMockAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   ProducerKeychain,
@@ -14,7 +15,7 @@ import {
   toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { AuthData, genericLogger } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   userWithoutSecurityPrivileges,
@@ -67,10 +68,8 @@ describe("addProducerKeychainUsers", () => {
       {
         producerKeychainId: mockProducerKeychain.id,
         userIds: userIdsToAdd,
-        authData: getMockAuthData(producerId),
       },
-      generateId(),
-      genericLogger
+      getMockContext({ authData: getMockAuthData(producerId) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(
@@ -116,10 +115,8 @@ describe("addProducerKeychainUsers", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
           userIds: userIdsToAdd,
-          authData: getMockAuthData(producerId),
         },
-        generateId(),
-        genericLogger
+        getMockContext({ authData: getMockAuthData(producerId) })
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
@@ -143,10 +140,8 @@ describe("addProducerKeychainUsers", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
           userIds: [userIdAlreadyAssigned],
-          authData: getMockAuthData(producerId),
         },
-        generateId(),
-        genericLogger
+        getMockContext({ authData: getMockAuthData(producerId) })
       )
     ).rejects.toThrowError(
       producerKeychainUserAlreadyAssigned(
@@ -172,10 +167,8 @@ describe("addProducerKeychainUsers", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
           userIds: [userIdToAdd],
-          authData: getMockAuthData(organizationId),
         },
-        generateId(),
-        genericLogger
+        getMockContext({ authData: getMockAuthData(organizationId) })
       )
     ).rejects.toThrowError(
       organizationNotAllowedOnProducerKeychain(
@@ -187,16 +180,7 @@ describe("addProducerKeychainUsers", () => {
   it("should throw userWithoutSecurityPrivileges if one of the Security users is not found", async () => {
     const producerId: TenantId = generateId();
 
-    const authData: AuthData = {
-      userId: generateId(),
-      selfcareId: generateId(),
-      organizationId: producerId,
-      userRoles: [],
-      externalId: {
-        value: "",
-        origin: "",
-      },
-    };
+    const authData: AuthData = getMockAuthData(producerId);
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -213,10 +197,8 @@ describe("addProducerKeychainUsers", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
           userIds: [generateId()],
-          authData,
         },
-        generateId(),
-        genericLogger
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       userWithoutSecurityPrivileges(producerId, authData.userId)

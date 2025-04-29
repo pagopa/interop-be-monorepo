@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { AuthData, UserRole } from "pagopa-interop-commons";
+import { AuthRole, userRole } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import jwt from "jsonwebtoken";
+import { getMockAuthData } from "./testUtils.js";
 
-function createUserPayload(authData: AuthData) {
+function createUserPayload(role: AuthRole) {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
@@ -11,13 +13,13 @@ function createUserPayload(authData: AuthData) {
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
-    uid: authData.userId,
+    uid: generateId(),
     name: "Mario",
     family_name: "Rossi",
     email: "Mario.rossi@psp.it",
-    ...authData,
+    ...getMockAuthData(),
     organization: {
-      id: authData.selfcareId,
+      id: generateId(),
       name: "PagoPA S.p.A.",
       roles: [
         {
@@ -28,25 +30,24 @@ function createUserPayload(authData: AuthData) {
       fiscal_code: "15376371009",
       ipaCode: "5N2TR557",
     },
-    "user-roles": authData.userRoles.join(","),
+    "user-roles": role,
   };
 }
 
-function createMaintenancePayload(authData: AuthData) {
+function createMaintenancePayload() {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
-    uid: authData.userId,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "maintenance",
-    sub: authData.userId,
+    sub: "interop.testing",
   };
 }
 
-function createM2MPayload(authData: AuthData) {
+function createM2MPayload() {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
@@ -55,46 +56,52 @@ function createM2MPayload(authData: AuthData) {
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "m2m",
-    organizationId: authData.organizationId,
+    organizationId: generateId(),
     client_id: generateId(),
-    sub: authData.userId,
+    sub: generateId(),
   };
 }
 
-function createInternalPayload(authData: AuthData) {
+function createInternalPayload() {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
-    uid: authData.userId,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "internal",
-    sub: authData.userId,
+    sub: "interop.testing",
   };
 }
 
-const uiRoles: UserRole[] = ["admin", "api", "security", "support"];
+function createM2M_AdminPayload() {
+  return {
+    iss: "dev.interop.pagopa.it",
+    aud: "dev.interop.pagopa.it/ui",
+    userId: generateId(),
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    nbf: Math.floor(Date.now() / 1000),
+    iat: Math.floor(Date.now() / 1000),
+    jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
+    role: "m2m-admin",
+    organizationId: generateId(),
+    client_id: generateId(),
+    sub: generateId(),
+  };
+}
 
-export const createPayload = (authData: AuthData) =>
-  match(authData.userRoles)
-    .when(
-      (roles) => roles.includes("maintenance"),
-      () => createMaintenancePayload(authData)
-    )
-    .when(
-      (roles) => roles.includes("m2m"),
-      () => createM2MPayload(authData)
-    )
-    .when(
-      (roles) => roles.includes("internal"),
-      () => createInternalPayload(authData)
-    )
-    .when(
-      (roles) => uiRoles.some((role) => roles.includes(role)),
-      () => createUserPayload(authData)
-    )
-    .otherwise(() => {
-      throw Error("Unexpexted Role");
-    });
+const createPayload = (role: AuthRole) =>
+  match(role)
+    .with("maintenance", () => createMaintenancePayload())
+    .with("m2m", () => createM2MPayload())
+    .with("m2m-admin", () => createM2M_AdminPayload())
+    .with("internal", () => createInternalPayload())
+    .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
+    .with("api", () => createUserPayload(userRole.API_ROLE))
+    .with("security", () => createUserPayload(userRole.SECURITY_ROLE))
+    .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
+    .exhaustive();
+
+export const generateToken = (role: AuthRole) =>
+  jwt.sign(createPayload(role), "test-secret");

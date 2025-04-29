@@ -7,6 +7,7 @@ import {
   Attribute,
   tenantAttributeType,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  PUBLIC_SERVICES_MANAGERS,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -20,10 +21,11 @@ import { ReadModelService } from "./readModelService.js";
 const AGENCY_CLASSIFICATION = "Agency";
 
 // Tipologia Gestori di Pubblici Servizi
-const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
+export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 
-// Categoria Gestori di Pubblici Servizi
-const PUBLIC_SERVICES_MANAGERS_CATEGORY = "L37";
+// Tipologia Società in Conto Economico Consolidato
+export const ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY =
+  "Societa' in Conto Economico Consolidato";
 
 export type TenantSeed = {
   origin: string;
@@ -111,9 +113,20 @@ export function getTenantUpsertData(
       .with(PUBLIC_SERVICES_MANAGERS_TYPOLOGY, () => [
         {
           origin: i.origin,
-          code: PUBLIC_SERVICES_MANAGERS_CATEGORY,
+          code: PUBLIC_SERVICES_MANAGERS,
         },
       ])
+      .with(
+        ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+        () => config.economicAccountCompaniesAllowlist.includes(i.originId),
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        () => [
+          {
+            origin: i.origin,
+            code: PUBLIC_SERVICES_MANAGERS,
+          },
+        ]
+      )
       .otherwise(() => []);
 
     const shouldKindBeIncluded = kindsToInclude.has(i.kind);
@@ -318,8 +331,6 @@ export async function getAttributesToRevoke(
     },
     tenantExternalId: { origin: string; value: string }
   ): boolean => {
-    const externalId = { origin: attribute.origin, code: attribute.code };
-
     if (attribute.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
       return false;
     }
@@ -331,7 +342,9 @@ export async function getAttributesToRevoke(
       return true;
     }
 
-    return !registryAttributes.has(toAttributeKey(externalId));
+    return !registryAttributes.has(
+      toAttributeKey({ origin: attribute.origin, code: attribute.code })
+    );
   };
 
   return platformTenants.flatMap((t) =>

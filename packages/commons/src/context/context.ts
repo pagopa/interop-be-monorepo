@@ -4,7 +4,6 @@ import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
 } from "@zodios/express";
-import { z } from "zod";
 import {
   CorrelationId,
   generateId,
@@ -17,16 +16,15 @@ import { AuthData } from "../auth/authData.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
 
-export const AppContext = z.object({
-  serviceName: z.string(),
-  authData: AuthData,
-  correlationId: CorrelationId,
-  spanId: SpanId,
-  requestTimestamp: z.number(),
-});
-export type AppContext = z.infer<typeof AppContext>;
+export type AppContext<A extends AuthData = AuthData> = {
+  serviceName: string;
+  authData: A;
+  correlationId: CorrelationId;
+  spanId: SpanId;
+  requestTimestamp: number;
+};
 
-export const zodiosCtx = zodiosContext(z.object({ ctx: AppContext }));
+export const zodiosCtx = zodiosContext();
 export type ZodiosContext = NonNullable<typeof zodiosCtx>;
 export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
@@ -60,8 +58,11 @@ export const contextMiddleware =
         const problem = makeApiProblem(
           missingHeader("X-Correlation-Id"),
           () => constants.HTTP_STATUS_BAD_REQUEST,
-          genericLogger,
-          unsafeBrandId("MISSING")
+          {
+            logger: genericLogger,
+            correlationId: unsafeBrandId("MISSING"),
+            serviceName,
+          }
         );
         return res.status(problem.status).send(problem);
       }

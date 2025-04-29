@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { AuthData, userRole } from "pagopa-interop-commons";
 import {
   Descriptor,
   EService,
@@ -47,7 +47,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     const result = await catalogService.getDocumentById(
@@ -75,7 +75,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     const result = await catalogService.getDocumentById(
@@ -110,7 +110,7 @@ describe("get document by id", () => {
 
     const authData: AuthData = {
       ...getMockAuthData(delegation.delegateId),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
 
     await addOneEService(eservice);
@@ -130,7 +130,7 @@ describe("get document by id", () => {
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     expect(
       catalogService.getDocumentById(
@@ -153,7 +153,7 @@ describe("get document by id", () => {
     await addOneEService(eservice);
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     expect(
       catalogService.getDocumentById(
@@ -183,7 +183,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     expect(
@@ -211,7 +211,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     expect(
@@ -237,7 +237,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.SECURITY_ROLE],
+      userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(eservice);
     expect(
@@ -263,7 +263,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     expect(
