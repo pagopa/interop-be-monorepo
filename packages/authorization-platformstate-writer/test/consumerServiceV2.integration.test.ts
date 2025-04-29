@@ -128,7 +128,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: client.purposes,
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -392,7 +391,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -643,7 +641,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [purpose1.id, purpose2.id],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -715,7 +712,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -966,7 +962,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [purpose1.id, purpose2.id],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1090,7 +1085,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1227,7 +1221,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1317,7 +1310,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1384,7 +1376,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1442,7 +1433,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1510,7 +1500,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1624,7 +1613,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1673,7 +1661,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1733,7 +1720,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1782,7 +1768,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1855,7 +1840,6 @@ describe("integration tests V2 events", async () => {
 
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -1888,7 +1872,6 @@ describe("integration tests V2 events", async () => {
         version: messageVersion,
         clientPurposesIds: [],
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -1998,7 +1981,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -2064,7 +2046,6 @@ describe("integration tests V2 events", async () => {
         version: messageVersion,
         clientPurposesIds: [],
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -2290,7 +2271,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose1.id],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -2368,7 +2348,6 @@ describe("integration tests V2 events", async () => {
         version: messageVersion,
         clientPurposesIds: [],
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -2595,7 +2574,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purpose1.id],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -2715,7 +2693,6 @@ describe("integration tests V2 events", async () => {
         version: messageVersion,
         clientPurposesIds: [],
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -2807,7 +2784,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -2945,7 +2921,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [purposeId1, removedPurposeId],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -3070,7 +3045,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -3125,7 +3099,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [removedPurposeId],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -3202,7 +3175,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         version: messageVersion,
         updatedAt: new Date().toISOString(),
-        clientAdminId: client.adminId,
       };
       expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
 
@@ -3515,7 +3487,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
-        clientAdminId: client.adminId,
       };
 
       const pk2PlatformStates = makePlatformStatesClientPK(otherClientId);
@@ -3527,7 +3498,6 @@ describe("integration tests V2 events", async () => {
         clientConsumerId: client.consumerId,
         updatedAt: new Date().toISOString(),
         clientPurposesIds: [],
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         clientPlatformStateEntry1,
@@ -3613,6 +3583,7 @@ describe("integration tests V2 events", async () => {
         ...getMockClient(),
         keys: [key],
         purposes: [generateId<PurposeId>()],
+        kind: "Api",
       };
 
       const adminId: UserId = generateId();
@@ -3660,7 +3631,6 @@ describe("integration tests V2 events", async () => {
           clientId: client.id,
           kid: key.kid,
         }),
-        adminId,
       };
       await writeTokenGenStatesApiClient(
         tokenClientEntry,
@@ -3687,15 +3657,12 @@ describe("integration tests V2 events", async () => {
     it("ApiClient - should update platform-states entry and insert token-generation-states entry", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
-
-      const oldKey = getMockKey();
-      const addedKey = getMockKey();
       const newAdminId = generateId<UserId>();
 
       const client: Client = {
         ...getMockClient(),
         kind: clientKind.api,
-        keys: [oldKey, addedKey],
+        keys: [getMockKey(), getMockKey()],
       };
 
       const updatedClient: Client = {
@@ -3705,7 +3672,6 @@ describe("integration tests V2 events", async () => {
 
       const payload: ClientAdminSetV2 = {
         client: toClientV2(updatedClient),
-        oldAdminId: client.adminId,
         adminId: newAdminId,
       };
 
@@ -3728,7 +3694,6 @@ describe("integration tests V2 events", async () => {
         clientPurposesIds: [],
         clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
         clientConsumerId: client.consumerId,
-        clientAdminId: client.adminId,
       };
       await writePlatformClientEntry(
         previousPlatformClientEntry,
@@ -3738,7 +3703,7 @@ describe("integration tests V2 events", async () => {
 
       const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
         clientId: client.id,
-        kid: oldKey.kid,
+        kid: client.keys[0].kid,
       });
 
       const tokenClientEntry: TokenGenerationStatesApiClient = {
@@ -3747,9 +3712,8 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: client.id,
         GSIPK_clientId_kid: makeGSIPKClientIdKid({
           clientId: client.id,
-          kid: oldKey.kid,
+          kid: client.keys[0].kid,
         }),
-        adminId: client.adminId,
       };
       await writeTokenGenStatesApiClient(
         tokenClientEntry,
@@ -3784,10 +3748,117 @@ describe("integration tests V2 events", async () => {
           expect.objectContaining({
             PK: makeTokenGenerationStatesClientKidPK({
               clientId: client.id,
-              kid: addedKey.kid,
+              kid: client.keys[1].kid,
             }),
             adminId: newAdminId,
-            publicKey: addedKey.encodedPem,
+            publicKey: client.keys[1].encodedPem,
+          }),
+        ])
+      );
+    });
+
+    it("ApiClient - should update platform-states entry and insert token-generation-states entry for a client that already had an adminId", async () => {
+      const previousPlatformEntryVersion = 1;
+      const messageVersion = 2;
+      const oldAdminId = generateId<UserId>();
+      const newAdminId = generateId<UserId>();
+
+      const client: Client = {
+        ...getMockClient(),
+        kind: clientKind.api,
+        keys: [getMockKey(), getMockKey()],
+        adminId: oldAdminId,
+      };
+
+      const updatedClient: Client = {
+        ...client,
+        adminId: newAdminId,
+      };
+
+      const payload: ClientAdminSetV2 = {
+        client: toClientV2(updatedClient),
+        adminId: newAdminId,
+      };
+
+      const message: AuthorizationEventEnvelope = {
+        sequence_num: 1,
+        stream_id: client.id,
+        version: messageVersion,
+        type: "ClientAdminSet",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      const platformClientPK = makePlatformStatesClientPK(client.id);
+      const previousPlatformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        version: previousPlatformEntryVersion,
+        state: itemState.active,
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: [],
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        clientAdminId: oldAdminId,
+      };
+      await writePlatformClientEntry(
+        previousPlatformClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: client.keys[0].kid,
+      });
+
+      const tokenClientEntry: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
+        consumerId: client.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: client.id,
+          kid: client.keys[0].kid,
+        }),
+        adminId: oldAdminId,
+      };
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      // update platform-states
+      const retrievedPlatformClientEntry = await readPlatformClientEntry(
+        platformClientPK,
+        dynamoDBClient
+      );
+      expect(retrievedPlatformClientEntry).toMatchObject({
+        PK: platformClientPK,
+        version: messageVersion,
+        clientAdminId: newAdminId,
+        clientConsumerId: client.consumerId,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+      });
+
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+      expect(retrievedTokenGenStatesEntries).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            PK: tokenClientKidPK,
+            adminId: newAdminId,
+          }),
+          expect.objectContaining({
+            PK: makeTokenGenerationStatesClientKidPK({
+              clientId: client.id,
+              kid: client.keys[1].kid,
+            }),
+            adminId: newAdminId,
+            publicKey: client.keys[1].encodedPem,
           }),
         ])
       );
@@ -3797,14 +3868,12 @@ describe("integration tests V2 events", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
 
-      const oldKey = getMockKey();
-      const addedKey = getMockKey();
       const newAdminId = generateId<UserId>();
 
       const baseClient: Client = {
         ...getMockClient(),
         kind: clientKind.api,
-        keys: [oldKey, addedKey],
+        keys: [getMockKey(), getMockKey()],
       };
 
       const previousAdminId = baseClient.adminId!;
@@ -3853,11 +3922,11 @@ describe("integration tests V2 events", async () => {
       // token-generation-states (with wrong adminId)
       const tokenClientKidPK1 = makeTokenGenerationStatesClientKidPK({
         clientId: updatedClient.id,
-        kid: oldKey.kid,
+        kid: baseClient.keys[0].kid,
       });
       const tokenClientKidPK2 = makeTokenGenerationStatesClientKidPK({
         clientId: updatedClient.id,
-        kid: addedKey.kid,
+        kid: baseClient.keys[1].kid,
       });
 
       const tokenClientEntry1: TokenGenerationStatesApiClient = {
@@ -3866,7 +3935,7 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: updatedClient.id,
         GSIPK_clientId_kid: makeGSIPKClientIdKid({
           clientId: updatedClient.id,
-          kid: oldKey.kid,
+          kid: baseClient.keys[0].kid,
         }),
         adminId: previousAdminId,
       };
@@ -3875,7 +3944,7 @@ describe("integration tests V2 events", async () => {
         GSIPK_clientId: updatedClient.id,
         GSIPK_clientId_kid: makeGSIPKClientIdKid({
           clientId: updatedClient.id,
-          kid: addedKey.kid,
+          kid: baseClient.keys[1].kid,
         }),
         adminId: previousAdminId,
       };

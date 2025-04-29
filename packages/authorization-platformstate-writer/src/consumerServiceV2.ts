@@ -16,7 +16,6 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
-  UserId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
@@ -460,7 +459,7 @@ export async function handleMessageV2(
               kid: key.kid,
             }),
             updatedAt: new Date().toISOString(),
-            adminId: unsafeBrandId<UserId>(msg.data.adminId),
+            adminId: client.adminId,
           };
 
           await upsertTokenGenStatesApiClient(
