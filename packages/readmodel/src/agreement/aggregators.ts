@@ -334,8 +334,11 @@ export const toAgreementAggregatorArray = (
     }
 
     const contractSQL = row.contract;
-    if (contractSQL && !contractIdSet.has(contractSQL.id)) {
-      contractIdSet.add(contractSQL.id);
+    const contractPK = contractSQL
+      ? makeUniqueKey([contractSQL.agreementId, contractSQL.id])
+      : undefined;
+    if (contractSQL && contractPK && !contractIdSet.has(contractPK)) {
+      contractIdSet.add(contractPK);
       // eslint-disable-next-line functional/immutable-data
       contractsSQL.push(contractSQL);
     }
