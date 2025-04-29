@@ -22,8 +22,6 @@ const tenantRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const tenantService = tenantServiceBuilder(clients);
-
   tenantRouter
     .get("/tenants", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
