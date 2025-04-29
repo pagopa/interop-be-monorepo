@@ -10,13 +10,12 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
+import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  purposeService: PurposeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = authRole;
 
@@ -24,7 +23,6 @@ const purposeRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const purposeService = purposeServiceBuilder(clients);
   void purposeService;
 
   purposeRouter
