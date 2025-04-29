@@ -3,6 +3,7 @@ import {
   UserId,
   unsafeBrandId,
   SelfcareId,
+  ClientId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -155,6 +156,7 @@ export type M2MAdminAuthData = {
   systemRole: Extract<SystemRole, "m2m-admin">;
   organizationId: TenantId;
   userId: UserId;
+  clientId: ClientId;
 };
 
 export type InternalAuthData = {
@@ -189,6 +191,7 @@ export const getAuthDataFromToken = (token: AuthToken): AuthData =>
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       userId: unsafeBrandId<UserId>(t.userId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
       systemRole: undefined,
