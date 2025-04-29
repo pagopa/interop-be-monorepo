@@ -5,6 +5,8 @@ import { toM2MPurpose } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 
+export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder({
   purposeProcessClient,

@@ -8,19 +8,17 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { eserviceServiceBuilder } from "../services/eserviceService.js";
+import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const eserviceRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  eserviceService: EserviceService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eserviceRouter = ctx.router(m2mGatewayApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const eserviceService = eserviceServiceBuilder(clients);
   void eserviceService;
 
   eserviceRouter
