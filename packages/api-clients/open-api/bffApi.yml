@@ -17777,6 +17777,8 @@ components:
           format: date-time
         consumer:
           $ref: "#/components/schemas/CompactOrganization"
+        admin:
+          $ref: "#/components/schemas/CompactUser"
         name:
           type: string
         purposes:
