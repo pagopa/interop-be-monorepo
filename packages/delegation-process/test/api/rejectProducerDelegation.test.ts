@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
-import { Delegation, delegationKind, generateId } from "pagopa-interop-models";
+import { Delegation, delegationKind, generateId, TenantId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -9,6 +9,7 @@ import { api, delegationService } from "../vitest.api.setup.js";
 import {
   delegationNotFound,
   incorrectState,
+  operationRestrictedToDelegate,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /producer/delegations/:delegationId/reject test", () => {
@@ -51,19 +52,27 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
     expect(res.status).toBe(403);
   });
 
+  it("Should return 403 for operationRestrictedToDelegate", async () => {
+    delegationService.rejectProducerDelegation = vi
+      .fn()
+      .mockRejectedValue(operationRestrictedToDelegate(generateId<TenantId>(), mockDelegation.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
   it("Should return 404 for delegationNotFound", async () => {
-    vi.spyOn(delegationService, "rejectProducerDelegation").mockRejectedValue(
-      delegationNotFound(mockDelegation.id)
-    );
+    delegationService.rejectProducerDelegation = vi
+      .fn()
+      .mockRejectedValue(delegationNotFound(mockDelegation.id)
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
   it("Should return 409 for incorrectState", async () => {
-    vi.spyOn(delegationService, "rejectProducerDelegation").mockRejectedValue(
-      incorrectState(mockDelegation.id, "Rejected", "WaitingForApproval")
-    );
+    delegationService.rejectProducerDelegation = vi.fn().mockRejectedValue(incorrectState(mockDelegation.id, "Rejected", "WaitingForApproval"))
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);

@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
-import { Delegation, delegationKind, generateId } from "pagopa-interop-models";
+import {
+  Delegation,
+  delegationKind,
+  generateId,
+  TenantId,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -9,6 +14,7 @@ import { api, delegationService } from "../vitest.api.setup.js";
 import {
   delegationNotFound,
   incorrectState,
+  operationRestrictedToDelegator,
 } from "../../src/model/domain/errors.js";
 
 describe("API DELETE /consumer/delegations/:delegationId test", () => {
@@ -55,6 +61,20 @@ describe("API DELETE /consumer/delegations/:delegationId test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for operationRestrictedToDelegator", async () => {
+    delegationService.revokeConsumerDelegation = vi
+      .fn()
+      .mockRejectedValue(
+        operationRestrictedToDelegator(
+          generateId<TenantId>(),
+          mockDelegation.id
+        )
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
   });
 
   it("Should return 409 for incorrectState", async () => {

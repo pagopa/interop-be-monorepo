@@ -71,9 +71,11 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
   });
 
   it("Should return 409 for incorrectState", async () => {
-    vi.spyOn(delegationService, "rejectConsumerDelegation").mockRejectedValue(
-      incorrectState(mockDelegation.id, "Rejected", "WaitingForApproval")
-    );
+    delegationService.rejectConsumerDelegation = vi
+      .fn()
+      .mockRejectedValue(
+        incorrectState(mockDelegation.id, "Rejected", "WaitingForApproval")
+      );
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
