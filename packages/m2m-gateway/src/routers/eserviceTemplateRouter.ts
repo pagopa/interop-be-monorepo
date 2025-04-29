@@ -8,13 +8,12 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
+import { EserviceTemplateService } from "../services/eserviceTemplateService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  eserviceTemplateService: EserviceTemplateService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eserviceTemplateRouter = ctx.router(
     m2mGatewayApi.eserviceTemplatesApi.api,
@@ -23,7 +22,6 @@ const eserviceTemplateRouter = (
     }
   );
 
-  const eserviceTemplateService = eserviceTemplateServiceBuilder(clients);
   void eserviceTemplateService;
 
   eserviceTemplateRouter
