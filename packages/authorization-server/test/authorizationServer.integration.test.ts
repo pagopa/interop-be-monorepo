@@ -822,7 +822,7 @@ describe("authorization server tests", () => {
       role: systemRole.M2M_ROLE,
     });
     expect(response.token?.payload).not.toMatchObject({
-      userId: expect.any(String),
+      adminId: expect.any(String),
     });
     expect(response.rateLimiterStatus).toEqual({
       maxRequests: config.rateLimiterMaxRequests,
@@ -885,7 +885,7 @@ describe("authorization server tests", () => {
     expect(response.token).toBeDefined();
     expect(response.token?.payload).toMatchObject({
       role: systemRole.M2M_ADMIN_ROLE,
-      userId: tokenClientKidEntry.adminId,
+      adminId: tokenClientKidEntry.adminId,
     });
     expect(response.rateLimiterStatus).toEqual({
       maxRequests: config.rateLimiterMaxRequests,
