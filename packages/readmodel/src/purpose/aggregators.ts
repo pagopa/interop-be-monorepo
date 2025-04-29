@@ -27,6 +27,7 @@ import {
   PurposeItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+import { makeUniqueKey } from "../utils.js";
 
 export const aggregatePurposeArray = ({
   purposesSQL,
@@ -297,20 +298,32 @@ export const toPurposeAggregatorArray = (
     }
 
     const purposeRiskAnalysisFormSQL = row.purposeRiskAnalysisForm;
-
-    if (purposeRiskAnalysisFormSQL) {
-      if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormSQL.id)) {
-        purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormSQL.id);
+    const purposeRiskAnalysisFormPK = purposeRiskAnalysisFormSQL
+      ? makeUniqueKey([
+          purposeRiskAnalysisFormSQL.id,
+          purposeRiskAnalysisFormSQL.purposeId,
+        ])
+      : undefined;
+    if (purposeRiskAnalysisFormSQL && purposeRiskAnalysisFormPK) {
+      if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormPK)) {
+        purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormPK);
         // eslint-disable-next-line functional/immutable-data
         purposeRiskAnalysisFormsSQL.push(purposeRiskAnalysisFormSQL);
       }
 
       const purposeRiskAnalysisAnswerSQL = row.purposeRiskAnalysisAnswer;
+      const purposeRiskAnalysisAnswerPK = purposeRiskAnalysisAnswerSQL
+        ? makeUniqueKey([
+            purposeRiskAnalysisAnswerSQL.id,
+            purposeRiskAnalysisAnswerSQL.purposeId,
+          ])
+        : undefined;
       if (
         purposeRiskAnalysisAnswerSQL &&
-        !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerSQL.id)
+        purposeRiskAnalysisAnswerPK &&
+        !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerPK)
       ) {
-        purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerSQL.id);
+        purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerPK);
         // eslint-disable-next-line functional/immutable-data
         purposeRiskAnalysisAnswersSQL.push(purposeRiskAnalysisAnswerSQL);
       }
@@ -325,11 +338,18 @@ export const toPurposeAggregatorArray = (
       }
 
       const purposeVersionDocumentSQL = row.purposeVersionDocument;
+      const purposeVersionDocumentPK = purposeVersionDocumentSQL
+        ? makeUniqueKey([
+            purposeVersionDocumentSQL.id,
+            purposeVersionDocumentSQL.purposeVersionId,
+          ])
+        : undefined;
       if (
         purposeVersionDocumentSQL &&
-        !purposeVersionDocumentIdSet.has(purposeVersionDocumentSQL.id)
+        purposeVersionDocumentPK &&
+        !purposeVersionDocumentIdSet.has(purposeVersionDocumentPK)
       ) {
-        purposeVersionDocumentIdSet.add(purposeVersionDocumentSQL.id);
+        purposeVersionDocumentIdSet.add(purposeVersionDocumentPK);
         // eslint-disable-next-line functional/immutable-data
         purposeVersionDocumentsSQL.push(purposeVersionDocumentSQL);
       }
