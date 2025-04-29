@@ -155,7 +155,6 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset)
         .as("subquery");
-      // TODO: missing orderBy. Mongo not sorting
 
       const queryResult = await readModelDB
         .select({
