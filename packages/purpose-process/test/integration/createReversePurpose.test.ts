@@ -11,6 +11,7 @@ import {
   getMockTenant,
   getMockValidRiskAnalysis,
   getMockAuthData,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -51,7 +52,6 @@ import {
   addOneEService,
   addOnePurpose,
   addOneTenant,
-  generateExpectedPurposeV2,
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
@@ -148,11 +148,8 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(
-      generateExpectedPurposeV2(toPurposeV2(expectedPurpose))
-    );
-    expect(writtenPayload.purpose).toEqual(
-      generateExpectedPurposeV2(toPurposeV2(purpose))
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(isRiskAnalysisValid).toEqual(true);
 
@@ -261,11 +258,8 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(
-      generateExpectedPurposeV2(toPurposeV2(expectedPurpose))
-    );
-    expect(writtenPayload.purpose).toEqual(
-      generateExpectedPurposeV2(toPurposeV2(purpose))
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(isRiskAnalysisValid).toEqual(true);
 
@@ -403,11 +397,8 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(
-      generateExpectedPurposeV2(toPurposeV2(expectedPurpose))
-    );
-    expect(writtenPayload.purpose).toEqual(
-      generateExpectedPurposeV2(toPurposeV2(purpose))
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
     );
     expect(isRiskAnalysisValid).toEqual(true);
 
