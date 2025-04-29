@@ -1,9 +1,28 @@
 import { z } from "zod";
 
-export const EventType = z.enum(["ADD", "UPDATE"]);
-export const RelationshipStatus = z.enum(["ACTIVE", "SUSPENDED", "DELETED"]);
+export const selfcareUserEventType = {
+  add: "ADD",
+  update: "UPDATE",
+} as const;
 
-const UserEvent = z.object({
+export const SelfcareUserEventType = z.enum([
+  Object.values(selfcareUserEventType)[0],
+  ...Object.values(selfcareUserEventType).slice(1),
+]);
+export type SelfcareUserEventType = z.infer<typeof SelfcareUserEventType>;
+
+export const relationshipStatus = {
+  active: "ACTIVE",
+  suspended: "SUSPENDED",
+  deleted: "DELETED",
+} as const;
+export const RelationshipStatus = z.enum([
+  Object.values(relationshipStatus)[0],
+  ...Object.values(relationshipStatus).slice(1),
+]);
+export type RelationshipStatus = z.infer<typeof RelationshipStatus>;
+
+const SCUser = z.object({
   userId: z.string().uuid().optional(),
   name: z.string(),
   familyName: z.string(),
@@ -21,7 +40,7 @@ export const UsersEventPayload = z.object({
   onboardingTokenId: z.string().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
-  eventType: EventType,
-  user: UserEvent,
+  eventType: SelfcareUserEventType,
+  user: SCUser,
 });
 export type UsersEventPayload = z.infer<typeof UsersEventPayload>;

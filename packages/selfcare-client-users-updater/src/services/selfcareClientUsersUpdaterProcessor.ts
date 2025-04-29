@@ -14,9 +14,9 @@ import {
 import { bffApi } from "pagopa-interop-api-clients";
 import { AuthorizationProcessClient } from "../clients/authorizationProcessClient.js";
 import {
-  EventType,
-  RelationshipStatus,
+  selfcareUserEventType,
   UsersEventPayload,
+  relationshipStatus,
 } from "../model/UsersEventPayload.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -61,7 +61,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
 
         const userEventPayload = UsersEventPayload.parse(jsonPayload);
 
-        if (userEventPayload.eventType !== EventType.enum.UPDATE) {
+        if (userEventPayload.eventType !== selfcareUserEventType.update) {
           loggerInstance.info(
             `Skipping message for partition ${partition} with offset ${message.offset} - Not required eventType: ${userEventPayload.eventType}`
           );
@@ -81,8 +81,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
         // Note: we are interested in users who are no longer admins or admins who have lost their tenant relationship.
         if (
           userEventPayload.user.productRole === userRole.ADMIN_ROLE &&
-          userEventPayload.user.relationshipStatus ===
-            RelationshipStatus.enum.ACTIVE
+          userEventPayload.user.relationshipStatus === relationshipStatus.active
         ) {
           loggerInstance.info(
             `Skipping message for partition ${partition} with offset ${message.offset} - User is a valid admin and relationshipStatus is ${jsonPayload.user.relationshipStatus}.`
@@ -94,7 +93,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           async (offset, limit) =>
             await authorizationProcessClient.client.getClients({
               queries: {
-                userIds: [jsonPayload.user.userId],
+                userIds: [],
                 consumerId: jsonPayload.institutionId,
                 kind: bffApi.ClientKind.Values.API,
                 offset,
