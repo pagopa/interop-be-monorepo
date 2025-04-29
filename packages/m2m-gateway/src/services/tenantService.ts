@@ -4,6 +4,8 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { toM2MTenant } from "../api/tenantApiConverter.js";
 
+export type TenantService = ReturnType<typeof tenantServiceBuilder>;
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder({
   tenantProcessClient,
