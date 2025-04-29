@@ -1,6 +1,10 @@
 import {
+  ReadModelRepository,
   authenticationMiddleware,
   contextMiddleware,
+  initDB,
+  initFileManager,
+  initPDFGenerator,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -12,21 +16,57 @@ import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
+import {
+  AgreementService,
+  agreementServiceBuilder,
+} from "./services/agreementService.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 
-const serviceName = modelsServiceName.AGREEMENT_PROCESS;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const createDefaultAgreementService = async () => {
+  const readModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
+  const pdfGenerator = await initPDFGenerator();
 
-const app = zodiosCtx.app();
+  return agreementServiceBuilder(
+    initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    }),
+    readModelService,
+    initFileManager(config),
+    pdfGenerator
+  );
+};
 
-// Disable the "X-Powered-By: Express" HTTP header for security reasons.
-// See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
-app.disable("x-powered-by");
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export async function createApp(service?: AgreementService) {
+  const serviceName = modelsServiceName.AGREEMENT_PROCESS;
 
-app.use(healthRouter);
-app.use(contextMiddleware(serviceName));
-app.use(await applicationAuditBeginMiddleware(serviceName, config));
-app.use(await applicationAuditEndMiddleware(serviceName, config));
-app.use(authenticationMiddleware(config));
-app.use(loggerMiddleware(serviceName));
-app.use(agreementRouter(zodiosCtx));
+  const router =
+    service != null
+      ? agreementRouter(zodiosCtx, service)
+      : agreementRouter(zodiosCtx, await createDefaultAgreementService());
 
-export default app;
+  const app = zodiosCtx.app();
+
+  // Disable the "X-Powered-By: Express" HTTP header for security reasons.
+  // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
+  app.disable("x-powered-by");
+
+  app.use(healthRouter);
+  app.use(contextMiddleware(serviceName));
+  app.use(await applicationAuditBeginMiddleware(serviceName, config));
+  app.use(await applicationAuditEndMiddleware(serviceName, config));
+  app.use(authenticationMiddleware(config));
+  app.use(loggerMiddleware(serviceName));
+  app.use(router);
+
+  return app;
+}

@@ -2,11 +2,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  ReadModelRepository,
   ZodiosContext,
-  initDB,
-  initFileManager,
-  initPDFGenerator,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   authRole,
@@ -27,9 +23,7 @@ import {
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
+import { AgreementService } from "../services/agreementService.js";
 import {
   activateAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
@@ -50,26 +44,6 @@ import {
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const pdfGenerator = await initPDFGenerator();
-
-const agreementService = agreementServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  initFileManager(config),
-  pdfGenerator
-);
-
 const {
   ADMIN_ROLE,
   SECURITY_ROLE,
@@ -80,7 +54,8 @@ const {
 } = authRole;
 
 const agreementRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(agreementApi.agreementApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
