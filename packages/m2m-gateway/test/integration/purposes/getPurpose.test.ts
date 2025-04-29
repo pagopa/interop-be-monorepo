@@ -20,9 +20,7 @@ describe("getPurpose", () => {
   const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurposeResponse);
 
   mockInteropBeClients.purposeProcessClient = {
-    purpose: {
-      getPurpose: mockGetPurpose,
-    },
+    getPurpose: mockGetPurpose,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
