@@ -58,6 +58,8 @@ export async function applicationAuditBeginMiddleware(
   });
 
   return async (req, _, next): Promise<void> => {
+    const requestTimestamp = Date.now();
+
     const context = (req as Request & { ctx?: AppContext }).ctx;
     if (!context) {
       throw genericInternalError("Failed to retrieve context");
@@ -69,7 +71,6 @@ export async function applicationAuditBeginMiddleware(
       spanId: context?.spanId,
     });
 
-    const requestTimestamp = Date.now();
     // eslint-disable-next-line functional/immutable-data
     context.requestTimestamp = requestTimestamp;
 
