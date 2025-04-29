@@ -53,6 +53,7 @@ export function compare<T extends { id: string } | { kid: string }>({
   ]);
 
   const pairsWithDifferences = pairs.filter(([a, b]) => !isEqual(a, b));
+  const itemName = schema.slice(0, -1);
 
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
@@ -60,7 +61,7 @@ export function compare<T extends { id: string } | { kid: string }>({
     if (itemFromCollection && !itemFromSQL) {
       differencesCount++;
       loggerInstance.warn(
-        `Object with id ${getIdentificationKey(
+        `${itemName} with id ${getIdentificationKey(
           itemFromCollection.data
         )} not found in SQL readmodel`
       );
@@ -68,7 +69,7 @@ export function compare<T extends { id: string } | { kid: string }>({
     if (!itemFromCollection && itemFromSQL) {
       differencesCount++;
       loggerInstance.warn(
-        `Object with id ${getIdentificationKey(
+        `${itemName} with id ${getIdentificationKey(
           itemFromSQL.data
         )} not found in collection`
       );
@@ -80,7 +81,7 @@ export function compare<T extends { id: string } | { kid: string }>({
       if (objectsDiff) {
         differencesCount++;
         loggerInstance.warn(
-          `Differences in object with id ${getIdentificationKey(
+          `Differences in ${itemName} with id ${getIdentificationKey(
             itemFromCollection.data
           )}`
         );
