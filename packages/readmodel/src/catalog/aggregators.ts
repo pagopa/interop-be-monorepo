@@ -537,63 +537,49 @@ export const toEServiceAggregatorArray = (
       }
 
       const attributeSQL = row.attribute;
-      if (
-        attributeSQL &&
-        !attributeIdSet.has(
-          makeUniqueKey([
+      const attributePK = attributeSQL
+        ? makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.descriptorId,
             attributeSQL.groupId.toString(),
           ])
-        )
-      ) {
-        attributeIdSet.add(
-          makeUniqueKey([
-            attributeSQL.attributeId,
-            attributeSQL.descriptorId,
-            attributeSQL.groupId.toString(),
-          ])
-        );
+        : undefined;
+      if (attributeSQL && attributePK && !attributeIdSet.has(attributePK)) {
+        attributeIdSet.add(attributePK);
         // eslint-disable-next-line functional/immutable-data
         attributesSQL.push(attributeSQL);
       }
 
       const rejectionReasonSQL = row.rejection;
+      const rejectionReasonPK = rejectionReasonSQL
+        ? makeUniqueKey([
+            rejectionReasonSQL.descriptorId,
+            rejectionReasonSQL.rejectedAt,
+          ])
+        : undefined;
       if (
         rejectionReasonSQL &&
-        !rejectionReasonsSet.has(
-          makeUniqueKey([
-            rejectionReasonSQL.descriptorId,
-            rejectionReasonSQL.rejectedAt,
-          ])
-        )
+        rejectionReasonPK &&
+        !rejectionReasonsSet.has(rejectionReasonPK)
       ) {
-        rejectionReasonsSet.add(
-          makeUniqueKey([
-            rejectionReasonSQL.descriptorId,
-            rejectionReasonSQL.rejectedAt,
-          ])
-        );
+        rejectionReasonsSet.add(rejectionReasonPK);
         // eslint-disable-next-line functional/immutable-data
         rejectionReasonsSQL.push(rejectionReasonSQL);
       }
 
       const templateVersionRefSQL = row.templateVersionRef;
+      const templateVersionRefPK = templateVersionRefSQL
+        ? makeUniqueKey([
+            templateVersionRefSQL.eserviceTemplateVersionId,
+            templateVersionRefSQL.descriptorId,
+          ])
+        : undefined;
       if (
         templateVersionRefSQL &&
-        !templateVersionRefIdSet.has(
-          makeUniqueKey([
-            templateVersionRefSQL.eserviceTemplateVersionId,
-            templateVersionRefSQL.descriptorId,
-          ])
-        )
+        templateVersionRefPK &&
+        !templateVersionRefIdSet.has(templateVersionRefPK)
       ) {
-        templateVersionRefIdSet.add(
-          makeUniqueKey([
-            templateVersionRefSQL.eserviceTemplateVersionId,
-            templateVersionRefSQL.descriptorId,
-          ])
-        );
+        templateVersionRefIdSet.add(templateVersionRefPK);
         // eslint-disable-next-line functional/immutable-data
         templateVersionRefsSQL.push(templateVersionRefSQL);
       }
