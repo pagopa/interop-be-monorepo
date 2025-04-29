@@ -46,7 +46,6 @@ describe("getPurposes", () => {
     const m2mPurposeResponse1: m2mGatewayApi.Purpose = toM2MPurpose(
       mockApiPurpose1.data
     );
-
     const m2mPurposeResponse2: m2mGatewayApi.Purpose = toM2MPurpose(
       mockApiPurpose2.data
     );
