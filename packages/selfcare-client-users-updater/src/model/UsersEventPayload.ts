@@ -26,7 +26,7 @@ const SCUser = z.object({
   userId: z.string().uuid().optional(),
   name: z.string(),
   familyName: z.string(),
-  email: z.string().email(),
+  email: z.string(),
   role: z.string(),
   productRole: z.string(),
   relationshipStatus: RelationshipStatus,
