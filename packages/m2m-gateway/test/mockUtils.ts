@@ -1,4 +1,4 @@
-import { delegationApi } from "pagopa-interop-api-clients";
+import { delegationApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -7,6 +7,37 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
+
+export function getMockedApiPurpose({
+  versions,
+}: {
+  versions?: purposeApi.PurposeVersion[];
+} = {}): WithMetadata<purposeApi.Purpose> {
+  return {
+    data: {
+      id: generateId(),
+      eserviceId: generateId(),
+      consumerId: generateId(),
+      versions: versions ?? [
+        {
+          id: generateId(),
+          createdAt: new Date().toISOString(),
+          dailyCalls: 5000,
+          state: "DRAFT",
+        },
+      ],
+      title: "Purpose 1 - test",
+      description: "Test purpose - description",
+      createdAt: new Date().toISOString(),
+      isFreeOfCharge: true,
+      freeOfChargeReason: "test",
+      isRiskAnalysisValid: true,
+    },
+    metadata: {
+      version: versions ? versions.length - 1 : 0,
+    },
+  };
+}
 
 export function getMockedApiDelegation({
   kind,
