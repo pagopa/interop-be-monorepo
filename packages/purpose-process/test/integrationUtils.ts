@@ -178,7 +178,7 @@ export function expectSinglePageListResult(
     results: actual.results,
   }).toEqual({
     totalCount: expected.length,
-    results: expect.arrayContaining(expected.map(generateExpectedPurpose)),
+    results: expected.map(generateExpectedPurpose),
   });
   expect(actual.results).toHaveLength(expected.length);
 }
