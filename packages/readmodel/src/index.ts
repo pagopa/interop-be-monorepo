@@ -20,6 +20,10 @@ export * from "./authorization/clientSplitters.js";
 export * from "./clientJWKKeyReadModelService.js";
 export * from "./authorization/clientJWKKeySplitters.js";
 
+// E-SERVICE TEMPLATE
+export * from "./eserviceTemplateReadModelService.js";
+export * from "./eservice-template/splitters.js";
+
 // PURPOSE
 export * from "./purposeReadModelService.js";
 export * from "./purpose/splitters.js";
