@@ -105,7 +105,7 @@ describe("API GET /delegations/:delegationId/contracts/:contractId test", () => 
     expect(res.status).toBe(403);
   });
 
-  it.only("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid");
     expect(res.status).toBe(400);
