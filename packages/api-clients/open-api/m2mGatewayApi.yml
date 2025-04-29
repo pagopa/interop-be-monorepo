@@ -3358,6 +3358,22 @@ paths:
         - tenants
       operationId: getCertifiedAttributes
       description: Retrieve certified attributes for a Tenant
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Certified attributes retrieved
@@ -4450,8 +4466,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TenantCertifiedAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
+        - pagination
     TenantCertifiedAttributeSeed:
       type: object
       additionalProperties: false

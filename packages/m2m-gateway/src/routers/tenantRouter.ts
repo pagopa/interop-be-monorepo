@@ -60,6 +60,7 @@ const tenantRouter = (
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
         const certifiedAttributes = await tenantService.getCertifiedAttributes(
           unsafeBrandId(req.params.tenantId),
+          req.query,
           ctx
         );
 
