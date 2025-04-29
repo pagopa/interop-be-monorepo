@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
-import { Delegation, delegationKind, generateId } from "pagopa-interop-models";
+import {
+  Delegation,
+  TenantId,
+  delegationKind,
+  generateId,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -8,6 +13,7 @@ import { api, delegationService } from "../vitest.api.setup.js";
 import {
   delegationNotFound,
   incorrectState,
+  operationRestrictedToDelegate,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /consumer/delegations/:delegationId/approve test", () => {
@@ -44,6 +50,17 @@ describe("API POST /consumer/delegations/:delegationId/approve test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 for operationRestrictedToDelegate", async () => {
+    delegationService.approveConsumerDelegation = vi
+      .fn()
+      .mockRejectedValue(
+        operationRestrictedToDelegate(generateId<TenantId>(), mockDelegation.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });

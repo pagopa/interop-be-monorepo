@@ -9,6 +9,7 @@ import { api, delegationService } from "../vitest.api.setup.js";
 import {
   delegationNotFound,
   incorrectState,
+  operationRestrictedToDelegate,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /consumer/delegations/:delegationId/reject test", () => {
@@ -47,6 +48,15 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 for operationRestrictedToDelegate", async () => {
+    delegationService.rejectConsumerDelegation = vi
+      .fn()
+      .mockRejectedValue(operationRestrictedToDelegate(generateId<TenantId>(), mockDelegation.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });

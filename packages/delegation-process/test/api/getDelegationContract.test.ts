@@ -10,6 +10,7 @@ import {
   DelegationContractDocument,
   delegationKind,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -95,10 +96,18 @@ describe("API GET /delegations/:delegationId/contracts/:contractId test", () => 
     expect(res.status).toBe(404);
   });
 
-  // Currently: delegationId and contractId are not uuids as per delegationApi.yml
-  // it.only("Should return 400 if passed an invalid parameter", async () => {
-  //   const token = generateToken(authRole.ADMIN_ROLE);
-  //   const res = await makeRequest(token, "invalid");
-  //   expect(res.status).toBe(400);
-  // });
+  it("Should return 403 for operationForbidden", async () => {
+    delegationService.getDelegationContract = vi
+      .fn()
+      .mockRejectedValue(operationForbidden);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it.only("Should return 400 if passed an invalid parameter", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
+  });
 });
