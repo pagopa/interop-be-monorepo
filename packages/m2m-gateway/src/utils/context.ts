@@ -18,8 +18,8 @@ export type M2MGatewayAppContext = AppContext<
   M2MAuthData | M2MAdminAuthData
 > & { headers: Headers };
 /* ^ M2M Gateway can be called only with m2m or m2m-admin tokens.
-This is enforced by the audience check during authentication,
-and by the authorization validation in all routes. */
+This is enforced by the audience check during authentication, and by the
+dedicated middleware that asserts that the auth data is one of these two. */
 
 export function fromM2MGatewayAppContext(
   ctx: M2MGatewayAppContext,
@@ -27,11 +27,20 @@ export function fromM2MGatewayAppContext(
 ): WithLogger<M2MGatewayAppContext> {
   return {
     ...ctx,
-    headers: {
-      "X-Correlation-Id": ctx.correlationId,
-      Authorization: headers.authorization,
-      "X-Forwarded-For": headers["x-forwarded-for"],
-    },
+    headers: getInteropHeaders(ctx, headers),
     logger: logger({ ...ctx }),
+  };
+}
+
+// TODO Reuse getInteropHeaders from commons?
+// Same in BFF and API GW?
+export function getInteropHeaders(
+  ctx: AppContext,
+  headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
+): Headers {
+  return {
+    "X-Correlation-Id": ctx.correlationId,
+    Authorization: headers.authorization,
+    "X-Forwarded-For": headers["x-forwarded-for"],
   };
 }
