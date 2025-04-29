@@ -1,4 +1,5 @@
 import {
+  EService,
   EServiceEventEnvelopeV2,
   fromEServiceV2,
   genericInternalError,
@@ -65,8 +66,20 @@ export async function handleMessageV2(
           );
         }
 
+        // TODO improve:
+        // - either avoid doing this for all eservices
+        // - either move the audience parsing elsewhere
+        // - ...
+        const parsedEService = fromEServiceV2(eservice);
+        const fixedEService: EService = {
+          ...parsedEService,
+          descriptors: parsedEService.descriptors.map((d) => ({
+            ...d,
+            audience: d.audience.map((aud) => aud.replaceAll("\u0000", "")),
+          })),
+        };
         return await catalogReadModelService.upsertEService(
-          fromEServiceV2(eservice),
+          fixedEService,
           message.version
         );
       }
