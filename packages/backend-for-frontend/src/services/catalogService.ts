@@ -83,8 +83,6 @@ import {
 } from "./validators.js";
 import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
-export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
-
 export const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
@@ -124,28 +122,28 @@ export const enhanceCatalogEservices = async (
       headers: Headers,
       requesterId: TenantId
     ): ((eservice: catalogApi.EService) => Promise<bffApi.CatalogEService>) =>
-    async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
-      const producerTenant = getCachedTenant(eservice.producerId as TenantId);
+      async (eservice: catalogApi.EService): Promise<bffApi.CatalogEService> => {
+        const producerTenant = getCachedTenant(eservice.producerId as TenantId);
 
-      const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
+        const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
 
-      const latestAgreement = await getLatestAgreement(
-        agreementProcessClient,
-        requesterId,
-        eservice,
-        headers
-      );
+        const latestAgreement = await getLatestAgreement(
+          agreementProcessClient,
+          requesterId,
+          eservice,
+          headers
+        );
 
-      const isRequesterEqProducer = requesterId === eservice.producerId;
+        const isRequesterEqProducer = requesterId === eservice.producerId;
 
-      return toBffCatalogApiEService(
-        eservice,
-        producerTenant,
-        isRequesterEqProducer,
-        latestActiveDescriptor,
-        latestAgreement
-      );
-    };
+        return toBffCatalogApiEService(
+          eservice,
+          producerTenant,
+          isRequesterEqProducer,
+          latestActiveDescriptor,
+          latestAgreement
+        );
+      };
 
   return await Promise.all(
     eservices.map(enhanceEService(agreementProcessClient, headers, requesterId))
@@ -162,12 +160,12 @@ const checkNewTemplateVersionAvailable = (
 
   return Boolean(
     eserviceTemplateVersion &&
-      eserviceTemplate?.versions.some(
-        (v) =>
-          v.version > eserviceTemplateVersion?.version &&
-          v.state ===
-            eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
-      )
+    eserviceTemplate?.versions.some(
+      (v) =>
+        v.version > eserviceTemplateVersion?.version &&
+        v.state ===
+        eserviceTemplateApi.EServiceTemplateVersionState.Values.PUBLISHED
+    )
   );
 };
 
@@ -203,35 +201,35 @@ const enhanceProducerEService = (
     mode: eservice.mode,
     activeDescriptor: activeDescriptor
       ? toCompactProducerDescriptor(
-          activeDescriptor,
-          isRequesterDelegateProducer
-        )
+        activeDescriptor,
+        isRequesterDelegateProducer
+      )
       : undefined,
     draftDescriptor: draftDescriptor
       ? toCompactProducerDescriptor(
-          draftDescriptor,
-          isRequesterDelegateProducer
-        )
+        draftDescriptor,
+        isRequesterDelegateProducer
+      )
       : undefined,
     delegation:
       delegation !== undefined &&
-      delegator !== undefined &&
-      delegate !== undefined
+        delegator !== undefined &&
+        delegate !== undefined
         ? {
-            id: delegation.id,
-            delegator: {
-              id: delegator.id,
-              name: delegator.name,
-              kind: delegator.kind,
-              contactMail: getLatestTenantContactEmail(delegator),
-            },
-            delegate: {
-              id: delegate.id,
-              name: delegate.name,
-              kind: delegate.kind,
-              contactMail: getLatestTenantContactEmail(delegate),
-            },
-          }
+          id: delegation.id,
+          delegator: {
+            id: delegator.id,
+            name: delegator.name,
+            kind: delegator.kind,
+            contactMail: getLatestTenantContactEmail(delegator),
+          },
+          delegate: {
+            id: delegate.id,
+            name: delegate.name,
+            kind: delegate.kind,
+            contactMail: getLatestTenantContactEmail(delegate),
+          },
+        }
         : undefined,
     isTemplateInstance: eserviceTemplate !== undefined,
     isNewTemplateVersionAvailable:
@@ -271,16 +269,16 @@ const retrieveRiskAnalysis = (
 const getAttributeIds = (
   descriptor: catalogApi.EServiceDescriptor
 ): string[] => [
-  ...descriptor.attributes.certified.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-  ...descriptor.attributes.declared.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-  ...descriptor.attributes.verified.flatMap((atts) =>
-    atts.map((att) => att.id)
-  ),
-];
+    ...descriptor.attributes.certified.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+    ...descriptor.attributes.declared.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+    ...descriptor.attributes.verified.flatMap((atts) =>
+      atts.map((att) => att.id)
+    ),
+  ];
 
 export const getAllEserviceConsumers = async (
   catalogProcessClient: CatalogProcessClient,
@@ -401,11 +399,11 @@ export function catalogServiceBuilder(
 
       const eserviceTemplate = eServiceTemplateId
         ? await eserviceTemplateProcessClient.getEServiceTemplateById({
-            headers,
-            params: {
-              templateId: eServiceTemplateId,
-            },
-          })
+          headers,
+          params: {
+            templateId: eServiceTemplateId,
+          },
+        })
         : undefined;
 
       const eserviceTemplateInterface = eserviceTemplate?.versions.find(
@@ -427,11 +425,11 @@ export function catalogServiceBuilder(
 
       const delegate = delegation
         ? await tenantProcessClient.tenant.getTenant({
-            headers,
-            params: {
-              id: delegation.delegateId,
-            },
-          })
+          headers,
+          params: {
+            id: delegation.delegateId,
+          },
+        })
         : undefined;
 
       return {
@@ -474,20 +472,20 @@ export function catalogServiceBuilder(
         delegation:
           delegation !== undefined && delegate !== undefined
             ? {
-                id: delegation.id,
-                delegate: {
-                  id: delegate.id,
-                  name: delegate.name,
-                  kind: delegate.kind,
-                  contactMail: getLatestTenantContactEmail(delegate),
-                },
-                delegator: {
-                  id: producerTenant.id,
-                  name: producerTenant.name,
-                  kind: producerTenant.kind,
-                  contactMail: getLatestTenantContactEmail(producerTenant),
-                },
-              }
+              id: delegation.id,
+              delegate: {
+                id: delegate.id,
+                name: delegate.name,
+                kind: delegate.kind,
+                contactMail: getLatestTenantContactEmail(delegate),
+              },
+              delegator: {
+                id: producerTenant.id,
+                name: producerTenant.name,
+                kind: producerTenant.kind,
+                contactMail: getLatestTenantContactEmail(producerTenant),
+              },
+            }
             : undefined,
       };
     },
@@ -1733,15 +1731,15 @@ export function catalogServiceBuilder(
 
       const tenants = producerName
         ? await getAllFromPaginated((offset, limit) =>
-            tenantProcessClient.tenant.getTenants({
-              queries: {
-                name: producerName,
-                offset,
-                limit,
-              },
-              headers,
-            })
-          )
+          tenantProcessClient.tenant.getTenants({
+            queries: {
+              name: producerName,
+              offset,
+              limit,
+            },
+            headers,
+          })
+        )
         : [];
 
       const tenantsMap = new Map(tenants.map((t) => [t.id, t]));
@@ -1872,3 +1870,5 @@ export function catalogServiceBuilder(
     },
   };
 }
+
+export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

@@ -4,12 +4,10 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  initFileManager,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
+import { PurposeService } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/errors.js";
 import {
   getPurposesErrorMapper,
@@ -17,25 +15,14 @@ import {
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { config } from "../config/config.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  purposeService: PurposeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeRouter = ctx.router(bffApi.purposesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const purposeService = purposeServiceBuilder(
-    clients.purposeProcessClient,
-    clients.catalogProcessClient,
-    clients.tenantProcessClient,
-    clients.agreementProcessClient,
-    clients.delegationProcessClient,
-    clients.authorizationClient,
-    initFileManager(config)
-  );
 
   purposeRouter
     .post("/reverse/purposes", async (req, res) => {

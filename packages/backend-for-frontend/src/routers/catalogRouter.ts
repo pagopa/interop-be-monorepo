@@ -5,7 +5,6 @@ import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
-  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -20,10 +19,8 @@ import {
   toBffCatalogApiDescriptorDoc,
   toEserviceCatalogProcessQueryParams,
 } from "../api/catalogApiConverter.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/errors.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
+import { CatalogService } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   addEServiceInterfaceByTemplateErrorMapper,
@@ -36,30 +33,11 @@ import {
 
 const catalogRouter = (
   ctx: ZodiosContext,
-  {
-    catalogProcessClient,
-    tenantProcessClient,
-    agreementProcessClient,
-    attributeProcessClient,
-    delegationProcessClient,
-    eserviceTemplateProcessClient,
-  }: PagoPAInteropBeClients,
-  fileManager: FileManager
+  catalogService: CatalogService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const catalogRouter = ctx.router(bffApi.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const catalogService = catalogServiceBuilder(
-    catalogProcessClient,
-    tenantProcessClient,
-    agreementProcessClient,
-    attributeProcessClient,
-    delegationProcessClient,
-    eserviceTemplateProcessClient,
-    fileManager,
-    config
-  );
 
   catalogRouter
     .get("/catalog", async (req, res) => {

@@ -5,11 +5,7 @@ import {
   ExpressContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  bffApi,
-  selfcareV2InstitutionClientBuilder,
-  selfcareV2UsersClientBuilder,
-} from "pagopa-interop-api-clients";
+import { bffApi } from "pagopa-interop-api-clients";
 import { TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { z } from "zod";
 import { makeApiProblem } from "../model/errors.js";
@@ -17,21 +13,13 @@ import {
   getSelfcareErrorMapper,
   getSelfcareUserErrorMapper,
 } from "../utilities/errorMappers.js";
-import { selfcareServiceBuilder } from "../services/selfcareService.js";
-import { config } from "../config/config.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { SelfcareService } from "../services/selfcareService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
 const selfcareRouter = (
-  clients: PagoPAInteropBeClients,
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  selfcareService: SelfcareService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const selfcareService = selfcareServiceBuilder(
-    selfcareV2InstitutionClientBuilder(config),
-    selfcareV2UsersClientBuilder(config),
-    clients.tenantProcessClient
-  );
-
   const selfcareRouter = ctx.router(bffApi.selfcareApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
