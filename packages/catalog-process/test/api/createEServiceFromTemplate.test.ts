@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import {
   EService,
   EServiceTemplate,
@@ -10,18 +9,16 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import {
-  createPayload,
-  getMockAuthData,
+  generateToken,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
 } from "pagopa-interop-commons-test";
 
 import { catalogApi } from "pagopa-interop-api-clients";
-import { userRoles, AuthData } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { getMockEService } from "../mockUtils.js";
-import { catalogService } from "../../src/routers/EServiceRouter.js";
 
 describe("API /templates/{templateId}/eservices authorization test", () => {
   const publishedVersion: EServiceTemplateVersion = {
@@ -40,40 +37,28 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
     name: eServiceTemplate.name,
     isConsumerDelegable: false,
     isClientAccessDelegable: false,
-    templateRef: {
-      id: eServiceTemplate.id,
-      instanceLabel: "instance label",
-    },
+    templateId: eServiceTemplate.id,
   };
 
   const mockApiEservice: catalogApi.EService = catalogApi.EService.parse(
     eServiceToApiEService(eService)
   );
 
-  vi.spyOn(
-    catalogService,
-    "createEServiceInstanceFromTemplate"
-  ).mockResolvedValue(eService);
-
-  const generateToken = (authData: AuthData) =>
-    jwt.sign(createPayload(authData), "test-secret");
+  catalogService.createEServiceInstanceFromTemplate = vi
+    .fn()
+    .mockResolvedValue(eService);
 
   const makeRequest = async (token: string, templateId: string) =>
     request(api)
-      .post(`/templates/${templateId}/eservices`) // Fix del path
+      .post(`/templates/${templateId}/eservices`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({
-        instanceLabel: "Test Instance",
-        isSignalHubEnabled: true,
-        isConsumerDelegable: false,
-        isClientAccessDelegable: false,
-      });
-
-  it.each([userRoles.ADMIN_ROLE, userRoles.API_ROLE])(
+      .send(templateId);
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+      const token = generateToken(role);
       const res = await makeRequest(token, eServiceTemplate.id);
 
       expect(res.status).toBe(200);
@@ -82,18 +67,16 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
   );
 
   it.each(
-    Object.values(userRoles).filter(
-      (role) => role !== userRoles.ADMIN_ROLE && role !== userRoles.API_ROLE
-    )
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+    const token = generateToken(role);
     const res = await makeRequest(token, eServiceTemplate.id);
 
     expect(res.status).toBe(403);
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(getMockAuthData()), "");
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "");
     expect(res.status).toBe(404);
   });
 });

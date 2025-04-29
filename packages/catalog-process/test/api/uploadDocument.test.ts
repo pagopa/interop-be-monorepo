@@ -1,24 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import {
   Descriptor,
   descriptorState,
   EService,
   generateId,
 } from "pagopa-interop-models";
-import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
-import { userRoles, AuthData } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 import {
   buildInterfaceSeed,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
 } from "../mockUtils.js";
-import { catalogService } from "../../src/routers/EServiceRouter.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents authorization test", () => {
@@ -37,10 +35,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     eServiceToApiEService(mockEService)
   );
 
-  vi.spyOn(catalogService, "uploadDocument").mockResolvedValue(mockEService);
-
-  const generateToken = (authData: AuthData) =>
-    jwt.sign(createPayload(authData), "test-secret");
+  catalogService.uploadDocument = vi.fn().mockResolvedValue(mockEService);
 
   const makeRequest = async (
     token: string,
@@ -53,10 +48,11 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
       .set("X-Correlation-Id", generateId())
       .send(buildInterfaceSeed());
 
-  it.each([userRoles.ADMIN_ROLE, userRoles.API_ROLE])(
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+      const token = generateToken(role);
       const res = await makeRequest(token, mockEService.id, descriptor.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiEservice);
@@ -64,18 +60,16 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
   );
 
   it.each(
-    Object.values(userRoles).filter(
-      (role) => role !== userRoles.ADMIN_ROLE && role !== userRoles.API_ROLE
-    )
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+    const token = generateToken(role);
     const res = await makeRequest(token, mockEService.id, descriptor.id);
 
     expect(res.status).toBe(403);
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(getMockAuthData()), "", "");
+    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
     expect(res.status).toBe(404);
   });
 });

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import {
   attributeKind,
   Descriptor,
@@ -9,16 +8,11 @@ import {
   EService,
   generateId,
 } from "pagopa-interop-models";
-import {
-  createPayload,
-  getMockAttribute,
-  getMockAuthData,
-} from "pagopa-interop-commons-test";
-import { userRoles, AuthData } from "pagopa-interop-commons";
+import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { api } from "../vitest.api.setup.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
-import { catalogService } from "../../src/routers/EServiceRouter.js";
 
 describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update authorization test", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
@@ -92,13 +86,9 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
     descriptors: [descriptor],
   };
 
-  vi.spyOn(
-    catalogService,
-    "internalUpdateTemplateInstanceDescriptorAttributes"
-  ).mockResolvedValue();
-
-  const generateToken = (authData: AuthData) =>
-    jwt.sign(createPayload(authData), "test-secret");
+  catalogService.internalUpdateTemplateInstanceDescriptorAttributes = vi
+    .fn()
+    .mockResolvedValue({});
 
   const makeRequest = async (
     token: string,
@@ -113,42 +103,27 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
       .set("X-Correlation-Id", generateId())
       .send(validMockDescriptorAttributeSeed);
 
-  it.each([userRoles.INTERNAL_ROLE])(
-    "Should return 204 for user with role %s",
-    async (role) => {
-      const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
-      const res = await makeRequest(token, mockEService.id, descriptor.id);
-      expect(res.status).toBe(204);
-    }
-  );
+  it("Should return 204 for user with role internal", async () => {
+    const token = generateToken(authRole.INTERNAL_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id);
+    expect(res.status).toBe(204);
+  });
 
   it.each(
-    Object.values(userRoles).filter((role) => role !== userRoles.INTERNAL_ROLE)
+    Object.values(authRole).filter((role) => role !== authRole.INTERNAL_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+    const token = generateToken(role);
     const res = await makeRequest(token, mockEService.id, descriptor.id);
 
     expect(res.status).toBe(403);
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(getMockAuthData()), "", "");
+    const res = await makeRequest(
+      generateToken(authRole.INTERNAL_ROLE),
+      "",
+      ""
+    );
     expect(res.status).toBe(404);
   });
-
-  /* what is the error in the service that corresponds to the conflict? 
-  Inside the error mapper there is no conflict mapped, while in the api it is allowed */
-  //   it("Should return 409 Conflict if descriptor update has a conflict", async () => {
-  //     vi.spyOn(catalogService, "updateDescriptorAttributes").mockRejectedValue(
-  //       unchangedAttributes(mockEService.id, descriptor.id)
-  //     );
-
-  //     const res = await makeRequest(
-  //       generateToken(getMockAuthData()),
-  //       mockEService.id,
-  //       descriptor.id
-  //     );
-
-  //     expect(res.status).toBe(409);
-  //   });
 });

@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
-
 import {
   Descriptor,
   descriptorState,
@@ -13,10 +11,9 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
-import { AuthData, userRoles } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
-import { catalogService } from "../../src/routers/EServiceRouter.js";
+import { generateToken } from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockDocument } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
@@ -24,6 +21,8 @@ describe("addEServiceTemplateInstanceInterface", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
+
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
 
   describe("POST /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/rest", () => {
     let mockEserviceREST: EService;
@@ -44,21 +43,15 @@ describe("addEServiceTemplateInstanceInterface", () => {
         description: "Test description for REST",
         technology: "Rest",
         descriptors: [descriptor],
-        templateRef: {
-          id: generateId<EServiceTemplateId>(),
-          instanceLabel: "Mocked REST instance",
-        },
+        templateId: generateId<EServiceTemplateId>(),
         riskAnalysis: [],
         mode: "Deliver",
       };
 
-      vi.spyOn(
-        catalogService,
-        "addEServiceTemplateInstanceInterface"
-      ).mockResolvedValue(mockEserviceREST);
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockResolvedValue(mockEserviceREST);
     });
-    const generateToken = (authData: AuthData) =>
-      jwt.sign(createPayload(authData), "test-secret");
 
     const makeRequest = async (
       token: string,
@@ -79,13 +72,10 @@ describe("addEServiceTemplateInstanceInterface", () => {
           serverUrls: ["https://server1.com", "https://server2.com"],
         });
 
-    it.each([userRoles.ADMIN_ROLE, userRoles.API_ROLE])(
+    it.each(authorizedRoles)(
       "Should return 200 for user with role %s",
       async (role) => {
-        const token = generateToken({
-          ...getMockAuthData(),
-          userRoles: [role],
-        });
+        const token = generateToken(role);
         const res = await makeRequest(
           token,
           mockEserviceREST.id,
@@ -98,11 +88,9 @@ describe("addEServiceTemplateInstanceInterface", () => {
     );
 
     it.each(
-      Object.values(userRoles).filter(
-        (role) => role !== userRoles.ADMIN_ROLE && role !== userRoles.API_ROLE
-      )
+      Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
     )("Should return 403 for user with role %s", async (role) => {
-      const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+      const token = generateToken(role);
       const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
 
       expect(res.status).toBe(403);
@@ -127,22 +115,16 @@ describe("addEServiceTemplateInstanceInterface", () => {
         producerId: generateId<TenantId>(),
         description: "Test description for SOAP",
         technology: "Soap",
+        templateId: generateId<EServiceTemplateId>(),
         descriptors: [descriptor],
-        templateRef: {
-          id: generateId<EServiceTemplateId>(),
-          instanceLabel: "Mocked SOAP instance",
-        },
         riskAnalysis: [],
         mode: "Deliver",
       };
 
-      vi.spyOn(
-        catalogService,
-        "addEServiceTemplateInstanceInterface"
-      ).mockResolvedValue(mockEserviceSOAP);
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockResolvedValue(mockEserviceSOAP);
     });
-    const generateToken = (authData: AuthData) =>
-      jwt.sign(createPayload(authData), "test-secret");
 
     const makeRequest = async (
       token: string,
@@ -159,13 +141,10 @@ describe("addEServiceTemplateInstanceInterface", () => {
           serverUrls: ["https://soap.server1.com", "https://soap.server2.com"],
         });
 
-    it.each([userRoles.ADMIN_ROLE, userRoles.API_ROLE])(
+    it.each(authorizedRoles)(
       "Should return 200 for user with role %s",
       async (role) => {
-        const token = generateToken({
-          ...getMockAuthData(),
-          userRoles: [role],
-        });
+        const token = generateToken(role);
         const res = await makeRequest(
           token,
           mockEserviceSOAP.id,
@@ -178,11 +157,9 @@ describe("addEServiceTemplateInstanceInterface", () => {
     );
 
     it.each(
-      Object.values(userRoles).filter(
-        (role) => role !== userRoles.ADMIN_ROLE && role !== userRoles.API_ROLE
-      )
+      Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
     )("Should return 403 for user with role %s", async (role) => {
-      const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+      const token = generateToken(role);
       const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
 
       expect(res.status).toBe(403);

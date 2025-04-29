@@ -1,23 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import {
   Descriptor,
   descriptorState,
   EService,
   generateId,
 } from "pagopa-interop-models";
-import { createPayload, getMockAuthData } from "pagopa-interop-commons-test";
+import { generateToken } from "pagopa-interop-commons-test";
 
-import { userRoles, AuthData } from "pagopa-interop-commons";
-import { api } from "../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { api, catalogService } from "../vitest.api.setup.js";
 import {
   buildDocumentSeed,
   getMockDescriptor,
   getMockEService,
 } from "../mockUtils.js";
-import { catalogService } from "../../src/routers/EServiceRouter.js";
 
 describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/update authorization test", () => {
   const mockDescriptor: Descriptor = {
@@ -32,13 +30,9 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
 
   const documentSeed = buildDocumentSeed();
 
-  vi.spyOn(
-    catalogService,
-    "internalCreateTemplateInstanceDescriptorDocument"
-  ).mockResolvedValue();
-
-  const generateToken = (authData: AuthData) =>
-    jwt.sign(createPayload(authData), "test-secret");
+  catalogService.internalCreateTemplateInstanceDescriptorDocument = vi
+    .fn()
+    .mockResolvedValue({});
 
   const makeRequest = async (
     token: string,
@@ -54,26 +48,27 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
       .send(documentSeed);
 
   it("Should return 204 for user with role Internal", async () => {
-    const token = generateToken({
-      ...getMockAuthData(),
-      userRoles: [userRoles.INTERNAL_ROLE],
-    });
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token, mockEService.id, mockDescriptor.id);
 
     expect(res.status).toBe(204);
   });
 
   it.each(
-    Object.values(userRoles).filter((role) => role !== userRoles.INTERNAL_ROLE)
+    Object.values(authRole).filter((role) => role !== authRole.INTERNAL_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken({ ...getMockAuthData(), userRoles: [role] });
+    const token = generateToken(role);
     const res = await makeRequest(token, mockEService.id, mockDescriptor.id);
 
     expect(res.status).toBe(403);
   });
 
   it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(getMockAuthData()), "", "");
+    const res = await makeRequest(
+      generateToken(authRole.INTERNAL_ROLE),
+      "",
+      ""
+    );
     expect(res.status).toBe(404);
   });
 });
