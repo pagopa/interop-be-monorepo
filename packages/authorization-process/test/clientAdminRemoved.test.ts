@@ -1,21 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, it, vi } from "vitest";
-
-// Move this mock into the supertest configs when they arrive
-vi.mock("../../commons/src/config/featureFlagsConfig.js", async () => {
-  const actual = await vi.importActual<
-    typeof import("../../commons/src/config/featureFlagsConfig.js")
-  >("../../commons/src/config/featureFlagsConfig.js");
-
-  return {
-    ...actual,
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    isFeatureFlagEnabled: () => true,
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-empty-function
-    assertFeatureFlagEnabled: () => {},
-  };
-});
-
+import { describe, expect, it } from "vitest";
 import {
   getMockAuthData,
   getMockClient,
