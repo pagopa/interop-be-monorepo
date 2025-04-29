@@ -17,7 +17,7 @@ const purposeRouter = (
   ctx: ZodiosContext,
   purposeService: PurposeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { M2M_ROLE } = authRole;
+  const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
   const purposeRouter = ctx.router(m2mGatewayApi.purposesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -29,7 +29,7 @@ const purposeRouter = (
     .get("/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ROLE]);
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
         const purposes = await purposeService.getPurposes(ctx, req.query);
 
@@ -47,7 +47,7 @@ const purposeRouter = (
     .get("/purposes/:purposeId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ROLE]);
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
         const purpose = await purposeService.getPurpose(
           ctx,
@@ -116,7 +116,7 @@ const purposeRouter = (
     .post("/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const purpose = await purposeService.createPurpose(ctx, req.body);
 
