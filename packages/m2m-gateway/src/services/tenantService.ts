@@ -16,6 +16,8 @@ import {
   toM2MTenantCertifiedAttribute,
 } from "../api/tenantApiConverter.js";
 
+export type TenantService = ReturnType<typeof tenantServiceBuilder>;
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder({
   tenantProcessClient,
