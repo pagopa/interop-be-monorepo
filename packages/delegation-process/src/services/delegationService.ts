@@ -22,6 +22,7 @@ import {
   DB,
   eventRepository,
   FileManager,
+  M2MAdminAuthData,
   M2MAuthData,
   PDFGenerator,
   UIAuthData,
@@ -124,8 +125,12 @@ export function delegationServiceBuilder(
       eserviceId: EServiceId;
       kind: DelegationKind;
     },
-    { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
-  ): Promise<Delegation> {
+    {
+      authData,
+      logger,
+      correlationId,
+    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  ): Promise<WithMetadata<Delegation>> {
     const delegatorId = authData.organizationId;
 
     logger.info(
@@ -184,7 +189,7 @@ export function delegationServiceBuilder(
       },
     };
 
-    await repository.createEvent(
+    const event = await repository.createEvent(
       match(kind)
         .with(delegationKind.delegatedProducer, () =>
           toCreateEventProducerDelegationSubmitted(delegation, correlationId)
@@ -195,7 +200,12 @@ export function delegationServiceBuilder(
         .exhaustive()
     );
 
-    return delegation;
+    return {
+      data: delegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
   }
 
   async function approveDelegation(
@@ -412,14 +422,20 @@ export function delegationServiceBuilder(
     async getDelegationById(
       delegationId: DelegationId,
       { logger }: WithLogger<AppContext>
-    ): Promise<Delegation> {
+    ): Promise<WithMetadata<Delegation>> {
       logger.info(`Retrieving delegation by id ${delegationId}`);
 
       const delegation = await retrieveDelegationById(
         { delegationId, kind: undefined },
         readModelService
       );
-      return delegation.data;
+
+      return {
+        data: delegation.data,
+        metadata: {
+          version: delegation.metadata.version,
+        },
+      };
     },
     async getDelegations(
       {
@@ -491,7 +507,7 @@ export function delegationServiceBuilder(
         eserviceId: EServiceId;
       },
       ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Delegation> {
+    ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
           delegateId,
@@ -509,8 +525,8 @@ export function delegationServiceBuilder(
         delegateId: TenantId;
         eserviceId: EServiceId;
       },
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Delegation> {
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
           delegateId,

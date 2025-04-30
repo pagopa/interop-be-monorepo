@@ -5,23 +5,23 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  validateAuthorization,
+  authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { delegationServiceBuilder } from "../services/delegationService.js";
+import { DelegationService } from "../services/delegationService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+
+const { M2M_ADMIN_ROLE } = authRole;
 
 const delegationRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  delegationService: DelegationService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationRouter = ctx.router(m2mGatewayApi.delegationsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const delegationService = delegationServiceBuilder(clients);
-  void delegationService;
 
   delegationRouter
     .get("/consumerDelegations", async (req, res) => {
@@ -40,8 +40,16 @@ const delegationRouter = (
     })
     .post("/consumerDelegations", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const createdDelegation =
+          await delegationService.createConsumerDelegation(req.body, ctx);
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.ConsumerDelegation.parse(createdDelegation));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
