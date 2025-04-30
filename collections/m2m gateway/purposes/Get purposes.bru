@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/purposes
+  url: {{host-m2m-gw}}/purposes?offset=0&limit=10
   body: none
   auth: none
 }
@@ -13,6 +13,7 @@ get {
 params:query {
   offset: 0
   limit: 10
+  ~eserviceIds: ["{{eserviceId}}"]
 }
 
 headers {
