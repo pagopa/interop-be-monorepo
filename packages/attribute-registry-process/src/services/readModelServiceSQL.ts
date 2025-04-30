@@ -1,4 +1,9 @@
-import { escapeRegExp } from "pagopa-interop-commons";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+  withTotalCount,
+} from "pagopa-interop-commons";
 import {
   AttributeKind,
   Attribute,
@@ -17,39 +22,7 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import {
-  and,
-  eq,
-  getTableColumns,
-  ilike,
-  inArray,
-  sql,
-  asc,
-  SQL,
-  Table,
-  Column,
-} from "drizzle-orm";
-
-function createListResult<T>(
-  items: Array<{ data: T }>,
-  totalCount?: number
-): { results: T[]; totalCount: number } {
-  return {
-    results: items.map((item) => item.data),
-    totalCount: totalCount ?? 0,
-  };
-}
-
-// see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const ascLower = <T = string>(column: Column | SQL | SQL.Aliased) =>
-  asc(sql<T>`LOWER(${column})`);
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const withTotalCount = <T extends Table>(tbl: T) => ({
-  ...getTableColumns(tbl),
-  totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-});
+import { and, eq, ilike, inArray } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
