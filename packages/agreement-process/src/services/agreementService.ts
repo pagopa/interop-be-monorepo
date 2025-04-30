@@ -1039,7 +1039,7 @@ export function agreementServiceBuilder(
         ),
       };
 
-      return await repository.createEvent(
+      await repository.createEvent(
         toCreateEventAgreementConsumerDocumentRemoved(
           documentId,
           updatedAgreement,
@@ -1047,6 +1047,7 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
+      return updatedAgreement.id;
     },
     async rejectAgreement(
       agreementId: AgreementId,

@@ -5,6 +5,8 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { toM2MAgreement } from "../api/agreementApiConverter.js";
 
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder({
   agreementProcessClient,
