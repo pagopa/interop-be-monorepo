@@ -24,13 +24,13 @@ import {
   organizationNotAllowedOnEService,
   eserviceAlreadyLinkedToProducerKeychain,
   producerKeychainNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
   authorizationService,
   eservices,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("addProducerKeychainEService", async () => {
   it("should write on event-store for the addition of a eservice into a producer keychain", async () => {

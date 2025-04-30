@@ -14,8 +14,8 @@ import { describe, expect, it } from "vitest";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
-} from "../src/model/domain/errors.js";
-import { addOneClient, authorizationService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import { addOneClient, authorizationService } from "../integrationUtils.js";
 
 describe("getClientUsers", async () => {
   const organizationId: TenantId = generateId();

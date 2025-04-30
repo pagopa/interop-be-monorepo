@@ -11,8 +11,11 @@ import {
   producerKeychainNotFound,
   producerKeyNotFound,
   organizationNotAllowedOnProducerKeychain,
-} from "../src/model/domain/errors.js";
-import { addOneProducerKeychain, authorizationService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import {
+  addOneProducerKeychain,
+  authorizationService,
+} from "../integrationUtils.js";
 
 describe("getProducerKeychainKeyById", async () => {
   it("should get the producer keychain key if it exists", async () => {

@@ -16,10 +16,10 @@ import {
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { authorizationService, postgresDB } from "./utils.js";
+import { authorizationService, postgresDB } from "../integrationUtils.js";
 
 describe("createConsumerClient", () => {
-  const userId: UserId = generateId();
+  const organizationId: TenantId = generateId();
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -33,11 +33,10 @@ describe("createConsumerClient", () => {
   const clientSeed: authorizationApi.ClientSeed = {
     name: "Seed name",
     description: "Description",
-    members: [userId],
+    members: [organizationId],
   };
-  it("should write on event-store for the creation of a api client", async () => {
-    const organizationId: TenantId = generateId();
-    const { client } = await authorizationService.createApiClient(
+  it("should write on event-store for the creation of a consumer client", async () => {
+    const { client } = await authorizationService.createConsumerClient(
       {
         clientSeed,
       },
@@ -68,9 +67,9 @@ describe("createConsumerClient", () => {
       name: clientSeed.name,
       createdAt: new Date(),
       consumerId: organizationId,
-      kind: clientKind.api,
+      kind: clientKind.consumer,
       purposes: [],
-      users: [unsafeBrandId<UserId>(userId)],
+      users: clientSeed.members.map(unsafeBrandId<UserId>),
       description: clientSeed.description,
     };
 

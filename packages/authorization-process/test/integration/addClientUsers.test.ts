@@ -22,13 +22,13 @@ import {
   organizationNotAllowedOnClient,
   userWithoutSecurityPrivileges,
   clientUserAlreadyAssigned,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
   selfcareV2Client,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 function mockSelfcareV2ClientCall(
   value: Awaited<

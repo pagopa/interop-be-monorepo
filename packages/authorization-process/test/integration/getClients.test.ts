@@ -12,7 +12,7 @@ import {
   getMockContext,
 } from "pagopa-interop-commons-test";
 import { userRole } from "pagopa-interop-commons";
-import { addOneClient, authorizationService } from "./utils.js";
+import { addOneClient, authorizationService } from "../integrationUtils.js";
 
 describe("getClients", async () => {
   const consumerId: TenantId = generateId();

@@ -16,8 +16,11 @@ import { describe, expect, it } from "vitest";
 import {
   producerKeychainNotFound,
   organizationNotAllowedOnProducerKeychain,
-} from "../src/model/domain/errors.js";
-import { addOneProducerKeychain, authorizationService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import {
+  addOneProducerKeychain,
+  authorizationService,
+} from "../integrationUtils.js";
 
 describe("getProducerKeychainKeys", async () => {
   const producerId = generateId<TenantId>();

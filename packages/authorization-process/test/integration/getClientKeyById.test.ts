@@ -18,8 +18,8 @@ import {
   clientKeyNotFound,
   organizationNotAllowedOnClient,
   securityUserNotMember,
-} from "../src/model/domain/errors.js";
-import { addOneClient, authorizationService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import { addOneClient, authorizationService } from "../integrationUtils.js";
 
 describe("getClientKeyById", async () => {
   const consumerId: TenantId = generateId();

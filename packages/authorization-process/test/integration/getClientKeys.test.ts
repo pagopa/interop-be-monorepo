@@ -17,8 +17,8 @@ import {
   clientNotFound,
   organizationNotAllowedOnClient,
   securityUserNotMember,
-} from "../src/model/domain/errors.js";
-import { addOneClient, authorizationService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import { addOneClient, authorizationService } from "../integrationUtils.js";
 
 describe("getClientKeys", async () => {
   const consumerId = generateId();
