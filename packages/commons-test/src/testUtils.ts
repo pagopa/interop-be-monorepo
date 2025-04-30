@@ -80,15 +80,20 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
-  DescriptorRejectionReason,
   AgreementDocument,
+  DescriptorRejectionReason,
   AgreementStamp,
+  ClientJWKKey,
+  ProducerJWKKey,
+  ProducerKeychainId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
   AppContext,
   dateToSeconds,
   genericLogger,
+  keyToClientJWKKey,
+  keyToProducerJWKKey,
   InternalAuthData,
   M2MAuthData,
   MaintenanceAuthData,
@@ -398,6 +403,38 @@ export const getMockKey = (): Key => ({
   algorithm: "",
   use: keyUse.sig,
 });
+
+export const getMockClientJWKKey = (clientId?: ClientId): ClientJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToClientJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    clientId || generateId()
+  );
+};
+
+export const getMockProducerJWKKey = (
+  producerKeychainId?: ProducerKeychainId
+): ProducerJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToProducerJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    producerKeychainId || generateId()
+  );
+};
 
 export const getMockAuthData = (
   organizationId?: TenantId,
