@@ -10,6 +10,8 @@ import {
   pollResource,
 } from "../utils/polling.js";
 
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder({
   agreementProcessClient,

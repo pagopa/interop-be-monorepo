@@ -16,13 +16,19 @@ export type CreateEvent<T extends Event> = {
   readonly event: T;
 };
 
+type CreatedEvent = {
+  streamId: string;
+  newVersion: number;
+};
+
 async function internalCreateEvents<T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array,
   createEvents: Array<CreateEvent<T>>
-): Promise<string[]> {
+): Promise<CreatedEvent[]> {
   try {
-    await db.tx(async (t) => {
+    return await db.tx(async (t) => {
+      const createdEvents = [];
       for (const createEvent of createEvents) {
         const dbRecord = await t.oneOrNone(sql.checkEventVersionExists, {
           stream_id: createEvent.streamId,
@@ -65,9 +71,15 @@ async function internalCreateEvents<T extends Event>(
           event_version: createEvent.event.event_version,
           data: Buffer.from(toBinaryData(createEvent.event)),
         });
+
+        // eslint-disable-next-line functional/immutable-data
+        createdEvents.push({
+          streamId: createEvent.streamId,
+          newVersion,
+        });
       }
+      return createdEvents;
     });
-    return createEvents.map((createEvent) => createEvent.streamId);
   } catch (error) {
     throw genericInternalError(`Error creating event: ${error}`);
   }
@@ -77,13 +89,17 @@ export const eventRepository = <T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array
 ): {
-  createEvent: (createEvent: CreateEvent<T>) => Promise<string>;
-  createEvents: (createEvents: Array<CreateEvent<T>>) => Promise<string[]>;
+  createEvent: (createEvent: CreateEvent<T>) => Promise<CreatedEvent>;
+  createEvents: (
+    createEvents: Array<CreateEvent<T>>
+  ) => Promise<CreatedEvent[]>;
 } => ({
-  async createEvent(createEvent: CreateEvent<T>): Promise<string> {
+  async createEvent(createEvent: CreateEvent<T>): Promise<CreatedEvent> {
     return (await internalCreateEvents(db, toBinaryData, [createEvent]))[0];
   },
-  async createEvents(createEvents: Array<CreateEvent<T>>): Promise<string[]> {
+  async createEvents(
+    createEvents: Array<CreateEvent<T>>
+  ): Promise<CreatedEvent[]> {
     return await internalCreateEvents(db, toBinaryData, createEvents);
   },
 });
