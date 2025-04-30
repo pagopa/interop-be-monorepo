@@ -16,12 +16,10 @@ export const SelfcareConsumerConfig = z
   .object({
     SELFCARE_TOPIC: z.string(),
     INTEROP_PRODUCT: z.string(),
-    ALLOWED_ORIGINS: z.string(),
   })
   .transform((c) => ({
     selfcareUsersTopic: c.SELFCARE_TOPIC,
     interopProduct: c.INTEROP_PRODUCT,
-    allowedOrigins: c.ALLOWED_ORIGINS.split(","),
   }));
 
 export type SelfcareConsumerConfig = z.infer<typeof SelfcareConsumerConfig>;
