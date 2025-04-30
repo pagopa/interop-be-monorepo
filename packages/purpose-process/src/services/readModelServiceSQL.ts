@@ -49,6 +49,7 @@ import {
   sql,
   SQL,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export type GetPurposesFilters = {
   title?: string;
@@ -167,6 +168,14 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Purpose>> {
       const { producersIds, consumersIds, ...otherFilters } = filters;
 
+      const activeProducerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeProducerDelegations"
+      );
+      const activeConsumerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeConsumerDelegations"
+      );
       const subquery = readModelDB
         .select({
           purposeId: purposeInReadmodelPurpose.id,
@@ -181,17 +190,50 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          delegationInReadmodelDelegation,
-          eq(
-            purposeInReadmodelPurpose.eserviceId,
-            delegationInReadmodelDelegation.eserviceId
-          )
-        )
-        .leftJoin(
           eserviceInReadmodelCatalog,
           eq(
             purposeInReadmodelPurpose.eserviceId,
             eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          activeProducerDelegations,
+          and(
+            eq(
+              purposeInReadmodelPurpose.eserviceId,
+              activeProducerDelegations.eserviceId
+            ),
+            eq(activeProducerDelegations.state, delegationState.active),
+            eq(
+              activeProducerDelegations.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(
+              activeProducerDelegations.delegatorId,
+              eserviceInReadmodelCatalog.producerId
+            )
+          )
+        )
+        .leftJoin(
+          activeConsumerDelegations,
+          and(
+            eq(
+              purposeInReadmodelPurpose.eserviceId,
+              activeConsumerDelegations.eserviceId
+            ),
+            eq(activeConsumerDelegations.state, delegationState.active),
+            eq(
+              activeConsumerDelegations.kind,
+              delegationKind.delegatedConsumer
+            ),
+            eq(
+              activeConsumerDelegations.delegatorId,
+              purposeInReadmodelPurpose.consumerId
+            ),
+            eq(
+              purposeInReadmodelPurpose.delegationId,
+              activeConsumerDelegations.id
+            )
           )
         )
         .where(
@@ -200,41 +242,22 @@ export function readModelServiceBuilderSQL({
             producersIds.length > 0
               ? or(
                   inArray(eserviceInReadmodelCatalog.producerId, producersIds),
-                  inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    producersIds
-                  )
+                  inArray(activeProducerDelegations.delegateId, producersIds)
                 )
               : undefined,
             // CONSUMER IDS
             consumersIds.length > 0
               ? or(
                   inArray(purposeInReadmodelPurpose.consumerId, consumersIds),
-                  inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    consumersIds
-                  )
+                  inArray(activeConsumerDelegations.delegateId, consumersIds)
                 )
               : undefined,
             // VISIBILITY
             or(
               eq(eserviceInReadmodelCatalog.producerId, requesterId),
               eq(purposeInReadmodelPurpose.consumerId, requesterId),
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                )
-              ),
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  purposeInReadmodelPurpose.delegationId,
-                  delegationInReadmodelDelegation.id
-                ),
-                isNotNull(delegationInReadmodelDelegation.delegateId)
-              )
+              eq(activeProducerDelegations.delegateId, requesterId),
+              eq(activeConsumerDelegations.delegateId, requesterId)
             ),
             // PURPOSE FILTERS
             ...getPurposesFilters(readModelDB, otherFilters)
