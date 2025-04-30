@@ -353,6 +353,9 @@ paths:
       operationId: getPurpose
       description: Retrieve the Purpose
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose requested
           content:
@@ -895,7 +898,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-components:
+components:  
   headers:
     MetadataVersionHeader:
       description: The version number of the resource in the read model

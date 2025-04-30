@@ -225,11 +225,16 @@ const purposeRouter = (
           M2M_ADMIN_ROLE,
         ]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.getPurposeById(
-            unsafeBrandId(req.params.id),
-            ctx
-          );
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.getPurposeById(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(

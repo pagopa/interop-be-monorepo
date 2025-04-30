@@ -268,7 +268,9 @@ export function purposeServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -292,7 +294,10 @@ export function purposeServiceBuilder(
           )
         : true;
 
-      return { purpose: purpose.data, isRiskAnalysisValid };
+      return {
+        data: { purpose: purpose.data, isRiskAnalysisValid },
+        metadata: purpose.metadata,
+      };
     },
     async getRiskAnalysisDocument({
       purposeId,
