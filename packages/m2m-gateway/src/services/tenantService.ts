@@ -1,14 +1,5 @@
-import {
-  getAllFromPaginated,
-  WithLogger,
-  isDefined,
-  zipBy,
-} from "pagopa-interop-commons";
-import {
-  attributeRegistryApi,
-  m2mGatewayApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+import { WithLogger, isDefined, zipBy } from "pagopa-interop-commons";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { AttributeId, TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -21,6 +12,8 @@ import {
   pollResource,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+
+export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder({
@@ -88,6 +81,7 @@ export function tenantServiceBuilder({
     },
     getCertifiedAttributes: async (
       tenantId: TenantId,
+      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantCertifiedAttributes> => {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
@@ -105,22 +99,18 @@ export function tenantServiceBuilder({
         (att) => att.id
       );
 
-      const certifiedAttributes =
-        await getAllFromPaginated<attributeRegistryApi.Attribute>(
-          async (offset, limit) =>
-            (
-              await attributeProcessClient.getBulkedAttributes(
-                tenantCertifiedAttributeIds,
-                {
-                  headers,
-                  queries: {
-                    offset,
-                    limit,
-                  },
-                }
-              )
-            ).data
-        );
+      const {
+        data: { results: certifiedAttributes, totalCount },
+      } = await attributeProcessClient.getBulkedAttributes(
+        tenantCertifiedAttributeIds,
+        {
+          headers,
+          queries: {
+            offset,
+            limit,
+          },
+        }
+      );
 
       const combinedAttributes = zipBy(
         tenantCertifiedAttributes,
@@ -133,6 +123,11 @@ export function tenantServiceBuilder({
         results: combinedAttributes.map((args) =>
           toM2MTenantCertifiedAttribute(...args)
         ),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
       };
     },
     addCertifiedAttribute: async (
