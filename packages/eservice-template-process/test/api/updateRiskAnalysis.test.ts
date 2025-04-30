@@ -21,7 +21,6 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 import {
-  eserviceTemaplateRiskAnalysisNameDuplicate,
   eserviceTemplateNotInDraftState,
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
@@ -29,7 +28,7 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API POST /templates/:templateId/riskAnalysis", () => {
+describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();
 
   const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
@@ -39,16 +38,17 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   const makeRequest = async (
     token: string,
     body: eserviceTemplateApi.EServiceRiskAnalysisSeed = riskAnalysisSeed,
-    templateId: string = eserviceTemplateId
+    templateId: string = eserviceTemplateId,
+    riskAnlysisId: string = mockValidRiskAnalysis.id
   ) =>
     request(api)
-      .post(`/templates/${templateId}/riskAnalysis`)
+      .post(`/templates/${templateId}/riskAnalysis/${riskAnlysisId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
   beforeEach(() => {
-    eserviceTemplateService.createRiskAnalysis = vi
+    eserviceTemplateService.updateRiskAnalysis = vi
       .fn()
       .mockResolvedValue(undefined);
   });
@@ -81,7 +81,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   });
 
   it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.createRiskAnalysis = vi
+    eserviceTemplateService.updateRiskAnalysis = vi
       .fn()
       .mockRejectedValue(operationForbidden);
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -91,7 +91,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   });
 
   it("Should return 400 for eserviceTemplateNotInDraftState", async () => {
-    eserviceTemplateService.createRiskAnalysis = vi
+    eserviceTemplateService.updateRiskAnalysis = vi
       .fn()
       .mockRejectedValue(eserviceTemplateNotInDraftState(eserviceTemplateId));
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -103,7 +103,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   });
 
   it("Should return 400 for eserviceTemplateNotInReceiveMode", async () => {
-    eserviceTemplateService.createRiskAnalysis = vi
+    eserviceTemplateService.updateRiskAnalysis = vi
       .fn()
       .mockRejectedValue(templateNotInReceiveMode(eserviceTemplateId));
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -115,7 +115,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   });
 
   it("Should return 400 for riskAnalysisValidationFailed", async () => {
-    eserviceTemplateService.createRiskAnalysis = vi.fn().mockRejectedValue(
+    eserviceTemplateService.updateRiskAnalysis = vi.fn().mockRejectedValue(
       riskAnalysisValidationFailed([
         new RiskAnalysisValidationIssue({
           code: "noRulesVersionFoundError",
@@ -131,30 +131,20 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 409 for riskAnalysisNameDuplicate", async () => {
-    eserviceTemplateService.createRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(eserviceTemaplateRiskAnalysisNameDuplicate("risk"));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Risk analysis with name risk already exists");
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 500 for tenantNotFound", async () => {
+  it("Should return 404 for tenantNotFound", async () => {
     const tenantId = generateId<TenantId>();
-    eserviceTemplateService.createRiskAnalysis = vi
+    eserviceTemplateService.updateRiskAnalysis = vi
       .fn()
       .mockRejectedValue(tenantNotFound(tenantId));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.body.detail).toBe(`Tenant ${tenantId} not found`);
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(404);
   });
 
-  it("Should return 500 for tenantKindNotFound", async () => {
+  it("Should return 404 for tenantKindNotFound", async () => {
     const tenantId = generateId<TenantId>();
-    eserviceTemplateService.createRiskAnalysis = vi
+    eserviceTemplateService.updateRiskAnalysis = vi
       .fn()
       .mockRejectedValue(tenantKindNotFound(tenantId));
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -162,6 +152,6 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     expect(res.body.detail).toBe(
       `Tenant kind for tenant ${tenantId} not found`
     );
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(404);
   });
 });
