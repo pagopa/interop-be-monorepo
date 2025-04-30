@@ -47,7 +47,6 @@ describe("createPurpose", () => {
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
     mockCreatePurpose.mockClear();
     mockGetPurpose.mockClear();
   });
