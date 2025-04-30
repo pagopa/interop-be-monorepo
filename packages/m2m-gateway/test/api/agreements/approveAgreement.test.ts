@@ -69,7 +69,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
     expect(res.status).toBe(500);
   });
 
-  it("Should return 500 in case of resourcePollingTimeout error", async () => {
+  it("Should return 400 in case of agreementNotInPendingState error", async () => {
     mockAgreementService.approveAgreement = vi
       .fn()
       .mockRejectedValue(agreementNotInPendingState(mockApiAgreement.data.id));
