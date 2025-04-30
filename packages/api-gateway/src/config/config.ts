@@ -114,6 +114,6 @@ const ApiGatewayConfig = CommonHTTPServiceConfig.and(RedisRateLimiterConfig)
   .and(NotifierServerConfig)
   .and(ReadModelDbConfig)
   .and(ApplicationAuditProducerConfig);
-export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 
+export type ApiGatewayConfig = z.infer<typeof ApiGatewayConfig>;
 export const config: ApiGatewayConfig = ApiGatewayConfig.parse(process.env);

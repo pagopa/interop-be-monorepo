@@ -27,3 +27,4 @@ export * from "./utils/job.js";
 export * from "./email-manager/index.js";
 export * from "./rate-limiter/index.js";
 export * from "./eservice-documents/index.js";
+export * from "./sqs/index.js";
