@@ -2,10 +2,15 @@ import { getTableColumns, sql, asc, SQL, Table, Column } from "drizzle-orm";
 import { ListResult } from "pagopa-interop-models";
 
 export const createListResult = <T>(
-  items: Array<{ data: T }>,
+  items: Array<{ data: T } | T>,
   totalCount?: number
 ): ListResult<T> => ({
-  results: items.map((item) => item.data),
+  results: items.map(
+    (item): T =>
+      item !== null && typeof item === "object" && "data" in item
+        ? item.data
+        : item
+  ),
   totalCount: totalCount ?? 0,
 });
 
