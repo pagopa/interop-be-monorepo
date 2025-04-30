@@ -204,11 +204,12 @@ describe("reject agreement", () => {
         await addOneDelegation(delegation);
       }
 
-      const returnedAgreement = await agreementService.rejectAgreement(
-        agreement.id,
-        "Rejected by producer due to test reasons",
-        getMockContext({ authData })
-      );
+      const { data: returnedAgreement } =
+        await agreementService.rejectAgreement(
+          agreement.id,
+          "Rejected by producer due to test reasons",
+          getMockContext({ authData })
+        );
 
       const agreementEvent = await readLastAgreementEvent(agreement.id);
 

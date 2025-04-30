@@ -1061,7 +1061,7 @@ export function agreementServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Rejecting agreement ${agreementId}`);
 
       const agreementToBeRejected = await retrieveAgreement(
@@ -1123,14 +1123,14 @@ export function agreementServiceBuilder(
         },
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementRejected(
           rejectedAgreement,
           agreementToBeRejected.metadata.version,
           correlationId
         )
       );
-      return rejectedAgreement;
+      return { data: rejectedAgreement, metadata: { version: newVersion } };
     },
     async activateAgreement(
       agreementId: AgreementId,
