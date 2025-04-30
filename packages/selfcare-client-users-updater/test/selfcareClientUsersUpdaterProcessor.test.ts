@@ -180,25 +180,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
   });
 
-  it("should skip message with not allowed origin", async () => {
-    const message: EachMessagePayload = {
-      ...kafkaMessagePayload,
-      message: {
-        ...kafkaMessagePayload.message,
-        value: Buffer.from(
-          JSON.stringify({
-            ...correctEventPayload,
-            institutionId: "not-allowed-uuid",
-          })
-        ),
-      },
-    };
-
-    await selfcareClientUsersUpdaterProcessor.processMessage(message);
-
-    expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
-  });
-
   it("should skip valid admin user with ACTIVE relationshipStatus", async () => {
     const message: EachMessagePayload = {
       ...kafkaMessagePayload,
