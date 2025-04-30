@@ -71,7 +71,7 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
-  puroposeDelegationNotFound,
+  purposeDelegationNotFound,
   purposeCannotBeUpdated,
 } from "../model/domain/errors.js";
 import {
@@ -247,7 +247,7 @@ export const retrievePurposeDelegation = async (
       purpose.delegationId
     );
   if (!delegation) {
-    throw puroposeDelegationNotFound(purpose.id, purpose.delegationId);
+    throw purposeDelegationNotFound(purpose.id, purpose.delegationId);
   }
   return delegation;
 };
@@ -506,7 +506,7 @@ export function purposeServiceBuilder(
         !purpose.data.delegationId ||
         purpose.data.delegationId !== delegationId
       ) {
-        throw puroposeDelegationNotFound(purposeId, delegationId);
+        throw purposeDelegationNotFound(purposeId, delegationId);
       }
 
       await repository.createEvent(
@@ -597,7 +597,7 @@ export function purposeServiceBuilder(
         !purpose.data.delegationId ||
         purpose.data.delegationId !== delegationId
       ) {
-        throw puroposeDelegationNotFound(purposeId, delegationId);
+        throw purposeDelegationNotFound(purposeId, delegationId);
       }
 
       const purposeWithoutWaitingForApproval: Purpose = {
