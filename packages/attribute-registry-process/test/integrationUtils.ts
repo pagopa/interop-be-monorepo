@@ -55,7 +55,6 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
 });
 
-console.log(config.featureFlagSQL);
 export const readModelService =
   config.featureFlagSQL &&
   config.readModelSQLDbHost &&
