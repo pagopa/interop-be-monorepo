@@ -31,7 +31,7 @@ export const keyToProducerJWKKey = (
   key: Key,
   producerKeychainId: ProducerKeychainId
 ): ProducerJWKKey => {
-  const jwk = createJWK(key.encodedPem);
+  const jwk = createJWK(key.encodedPem, false);
   if (!jwk.e || !jwk.kty || !jwk.n) {
     throw missingRequiredJWKClaim();
   }
