@@ -30,11 +30,11 @@ vi.mock("pagopa-interop-commons", async () => {
             const ctx = req.ctx || {};
             ctx.authData = readAuthDataFromJwtToken(
               decoded ??
-              (() => {
-                throw new Error(
-                  "JWT decoding failed: 'decoded' is null or undefined."
-                );
-              })()
+                (() => {
+                  throw new Error(
+                    "JWT decoding failed: 'decoded' is null or undefined."
+                  );
+                })()
             );
             return next();
           } catch (error) {
