@@ -9,7 +9,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MAgreement } from "../../../src/api/agreementApiConverter.js";
 import { getMockedApiAgreement } from "../../mockUtils.js";
 
-describe("GET /tenants route test", () => {
+describe("GET /agreements route test", () => {
   const mockResponse: m2mGatewayApi.Agreements = {
     results: [toM2MAgreement(getMockedApiAgreement().data)],
     pagination: {
