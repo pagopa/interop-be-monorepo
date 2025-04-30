@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
-import { InteropToken } from "pagopa-interop-commons";
+import { InteropToken, userRole } from "pagopa-interop-commons";
 import { generateId, UserId } from "pagopa-interop-models";
-
-export const allowedOriginsUuid = ["b730fbb7-fffe-4090-a3ea-53ee7e07a4b9"];
 
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
@@ -19,7 +17,7 @@ export const correctEventPayload = {
     familyName: "Test Family",
     email: "test@test.com",
     role: "Test Role",
-    productRole: "API_ROLE",
+    productRole: userRole.ADMIN_ROLE,
     relationshipStatus: "ACTIVE",
     mobilePhone: "1234567890",
   },
