@@ -1,4 +1,5 @@
 import {
+  createListResult,
   hasAtLeastOneUserRole,
   M2MAuthData,
   ReadModelRepository,
@@ -391,10 +392,7 @@ export function readModelServiceBuilderSQL(
         toEServiceAggregatorArray(queryResult)
       );
 
-      return {
-        results: eservices.map((eservice) => eservice.data),
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      return createListResult(eservices, queryResult[0]?.totalCount);
     },
     async getEServiceByNameAndProducerId({
       name,
@@ -470,10 +468,7 @@ export function readModelServiceBuilderSQL(
         consumerExternalId: row.tenant.externalIdValue,
       }));
 
-      return {
-        results: consumers,
-        totalCount: res[0]?.totalCount ?? 0,
-      };
+      return createListResult(consumers, res[0]?.totalCount);
     },
     async listAgreements({
       eservicesIds,
