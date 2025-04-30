@@ -189,7 +189,7 @@ export function delegationServiceBuilder(
       },
     };
 
-    await repository.createEvent(
+    const event = await repository.createEvent(
       match(kind)
         .with(delegationKind.delegatedProducer, () =>
           toCreateEventProducerDelegationSubmitted(delegation, correlationId)
@@ -203,7 +203,7 @@ export function delegationServiceBuilder(
     return {
       data: delegation,
       metadata: {
-        version: 0,
+        version: event.newVersion,
       },
     };
   }

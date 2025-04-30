@@ -11,6 +11,8 @@ import {
 } from "../utils/polling.js";
 import { assertAgreementIsPending } from "../utils/validators/agreementValidators.js";
 
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder({
   agreementProcessClient,
