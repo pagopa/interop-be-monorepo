@@ -1,5 +1,6 @@
 import {
   ascLower,
+  createCompactListResult,
   createListResult,
   hasAtLeastOneUserRole,
   M2MAuthData,
@@ -478,7 +479,7 @@ export function readModelServiceBuilderSQL(
         consumerExternalId: row.tenant.externalIdValue,
       }));
 
-      return createListResult(consumers, res[0]?.totalCount);
+      return createCompactListResult(consumers, res[0]?.totalCount);
     },
     async listAgreements({
       eservicesIds,
