@@ -43,4 +43,12 @@ describe("GET /tenants/:tenantId route test", () => {
       expect(res.body).toEqual(mockResponse);
     }
   );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
 });
