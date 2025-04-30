@@ -286,7 +286,7 @@ export function agreementServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(
         `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
           delegationId ? ` with delegation ${delegationId}` : ""
@@ -329,11 +329,11 @@ export function agreementServiceBuilder(
         stamps: {},
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementAdded(agreement, correlationId)
       );
 
-      return agreement;
+      return { data: agreement, metadata: { version: newVersion } };
     },
     async getAgreementsProducers(
       producerName: string | undefined,
@@ -1043,7 +1043,7 @@ export function agreementServiceBuilder(
         ),
       };
 
-      return await repository.createEvent(
+      await repository.createEvent(
         toCreateEventAgreementConsumerDocumentRemoved(
           documentId,
           updatedAgreement,
@@ -1051,6 +1051,7 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
+      return updatedAgreement.id;
     },
     async rejectAgreement(
       agreementId: AgreementId,
@@ -1138,7 +1139,7 @@ export function agreementServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Activating agreement ${agreementId}`);
 
       const contractBuilderInstance = contractBuilder(
@@ -1303,9 +1304,20 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      await repository.createEvents([...activationEvents, ...archiveEvents]);
+      const createdEvents = await repository.createEvents([
+        ...activationEvents,
+        ...archiveEvents,
+      ]);
 
-      return updatedAgreement;
+      const latestVersion = createdEvents.reduce(
+        (acc, event) => Math.max(acc, event.newVersion),
+        0
+      );
+
+      return {
+        data: updatedAgreement,
+        metadata: { version: latestVersion },
+      };
     },
     async archiveAgreement(
       agreementId: AgreementId,

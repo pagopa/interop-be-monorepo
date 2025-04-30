@@ -10,21 +10,18 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
+import { AgreementService } from "../services/agreementService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { approveAgreementErrorMapper } from "../utils/errorMappers.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
   const agreementRouter = ctx.router(m2mGatewayApi.agreementsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const agreementService = agreementServiceBuilder(clients);
 
   agreementRouter
     .get("/agreements", async (req, res) => {
