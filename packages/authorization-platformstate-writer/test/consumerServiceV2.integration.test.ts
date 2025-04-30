@@ -1331,7 +1331,6 @@ describe("integration tests V2 events", async () => {
           kid: addedKey.kid,
         }),
         updatedAt: new Date().toISOString(),
-        adminId: client.adminId,
       };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
@@ -1408,7 +1407,6 @@ describe("integration tests V2 events", async () => {
           clientId: client.id,
           kid: addedKey.kid,
         }),
-        adminId: client.adminId,
       };
       await writeTokenGenStatesApiClient(
         tokenClientEntry1,
@@ -1454,7 +1452,6 @@ describe("integration tests V2 events", async () => {
           kid: addedKey.kid,
         }),
         updatedAt: new Date().toISOString(),
-        adminId: client.adminId,
       };
 
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
@@ -3586,11 +3583,9 @@ describe("integration tests V2 events", async () => {
         kind: "Api",
       };
 
-      const adminId: UserId = generateId();
-
       const payload: ClientAdminSetV2 = {
         client: toClientV2(client),
-        adminId,
+        adminId: generateId<UserId>(),
       };
       const message: AuthorizationEventEnvelope = {
         sequence_num: 1,
@@ -3654,7 +3649,7 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenGenStatesEntries).toEqual([tokenClientEntry]);
     });
 
-    it("ApiClient - should update platform-states entry and insert token-generation-states entry", async () => {
+    it("ApiClient - should update platform-states and token-generation-states entries", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
       const newAdminId = generateId<UserId>();
@@ -3663,6 +3658,7 @@ describe("integration tests V2 events", async () => {
         ...getMockClient(),
         kind: clientKind.api,
         keys: [getMockKey(), getMockKey()],
+        adminId: generateId<UserId>(),
       };
 
       const updatedClient: Client = {
@@ -3672,6 +3668,7 @@ describe("integration tests V2 events", async () => {
 
       const payload: ClientAdminSetV2 = {
         client: toClientV2(updatedClient),
+        oldAdminId: client.adminId,
         adminId: newAdminId,
       };
 
@@ -3701,13 +3698,17 @@ describe("integration tests V2 events", async () => {
         genericLogger
       );
 
-      const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
+      // token-generation-states
+      const tokenClientKidPK1 = makeTokenGenerationStatesClientKidPK({
         clientId: client.id,
         kid: client.keys[0].kid,
       });
-
-      const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
+      const tokenClientKidPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: client.keys[1].kid,
+      });
+      const tokenClientEntry1: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK1),
         consumerId: client.consumerId,
         GSIPK_clientId: client.id,
         GSIPK_clientId_kid: makeGSIPKClientIdKid({
@@ -3715,8 +3716,24 @@ describe("integration tests V2 events", async () => {
           kid: client.keys[0].kid,
         }),
       };
+      const tokenClientEntry2: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK2),
+        consumerId: client.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: client.id,
+          kid: client.keys[1].kid,
+        }),
+      };
+
       await writeTokenGenStatesApiClient(
-        tokenClientEntry,
+        tokenClientEntry1,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry2,
         dynamoDBClient,
         genericLogger
       );
@@ -3742,8 +3759,20 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            PK: tokenClientKidPK,
+            PK: tokenClientKidPK1,
             adminId: newAdminId,
+          }),
+          expect.objectContaining({
+            PK: tokenClientKidPK2,
+            adminId: newAdminId,
+          }),
+          expect.objectContaining({
+            PK: makeTokenGenerationStatesClientKidPK({
+              clientId: client.id,
+              kid: client.keys[0].kid,
+            }),
+            adminId: newAdminId,
+            publicKey: client.keys[0].encodedPem,
           }),
           expect.objectContaining({
             PK: makeTokenGenerationStatesClientKidPK({
@@ -3757,7 +3786,7 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("ApiClient - should update platform-states entry and insert token-generation-states entry for a client that already had an adminId", async () => {
+    it("ApiClient - should update platform-states and token-generation-states entries for a client that already had an adminId", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
       const oldAdminId = generateId<UserId>();
@@ -3862,140 +3891,6 @@ describe("integration tests V2 events", async () => {
           }),
         ])
       );
-    });
-
-    it("ApiClient - should update platform-states entry and update token-generation-states entry", async () => {
-      const previousPlatformEntryVersion = 1;
-      const messageVersion = 2;
-
-      const newAdminId = generateId<UserId>();
-
-      const baseClient: Client = {
-        ...getMockClient(),
-        kind: clientKind.api,
-        keys: [getMockKey(), getMockKey()],
-      };
-
-      const previousAdminId = baseClient.adminId!;
-      const updatedClient: Client = {
-        ...baseClient,
-        adminId: newAdminId,
-      };
-
-      const payload: ClientAdminSetV2 = {
-        client: toClientV2(updatedClient),
-        oldAdminId: previousAdminId,
-        adminId: newAdminId,
-      };
-
-      const message: AuthorizationEventEnvelope = {
-        sequence_num: 1,
-        stream_id: updatedClient.id,
-        version: messageVersion,
-        type: "ClientAdminSet",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-
-      // platform-states
-      const platformClientPK = makePlatformStatesClientPK(updatedClient.id);
-      const previousPlatformClientEntry: PlatformStatesClientEntry = {
-        PK: platformClientPK,
-        version: previousPlatformEntryVersion,
-        state: itemState.active,
-        updatedAt: new Date().toISOString(),
-        clientPurposesIds: [],
-        clientKind: clientKindToTokenGenerationStatesClientKind(
-          updatedClient.kind
-        ),
-        clientConsumerId: updatedClient.consumerId,
-        clientAdminId: previousAdminId,
-      };
-
-      await writePlatformClientEntry(
-        previousPlatformClientEntry,
-        dynamoDBClient,
-        genericLogger
-      );
-
-      // token-generation-states (with wrong adminId)
-      const tokenClientKidPK1 = makeTokenGenerationStatesClientKidPK({
-        clientId: updatedClient.id,
-        kid: baseClient.keys[0].kid,
-      });
-      const tokenClientKidPK2 = makeTokenGenerationStatesClientKidPK({
-        clientId: updatedClient.id,
-        kid: baseClient.keys[1].kid,
-      });
-
-      const tokenClientEntry1: TokenGenerationStatesApiClient = {
-        ...getMockTokenGenStatesApiClient(tokenClientKidPK1),
-        consumerId: updatedClient.consumerId,
-        GSIPK_clientId: updatedClient.id,
-        GSIPK_clientId_kid: makeGSIPKClientIdKid({
-          clientId: updatedClient.id,
-          kid: baseClient.keys[0].kid,
-        }),
-        adminId: previousAdminId,
-      };
-      const tokenClientEntry2: TokenGenerationStatesApiClient = {
-        ...getMockTokenGenStatesApiClient(tokenClientKidPK2),
-        GSIPK_clientId: updatedClient.id,
-        GSIPK_clientId_kid: makeGSIPKClientIdKid({
-          clientId: updatedClient.id,
-          kid: baseClient.keys[1].kid,
-        }),
-        adminId: previousAdminId,
-      };
-
-      await writeTokenGenStatesApiClient(
-        tokenClientEntry1,
-        dynamoDBClient,
-        genericLogger
-      );
-      await writeTokenGenStatesApiClient(
-        tokenClientEntry2,
-        dynamoDBClient,
-        genericLogger
-      );
-
-      // handle message
-      await handleMessageV2(message, dynamoDBClient, genericLogger);
-
-      // check platform-states
-      const retrievedPlatformClientEntry = await readPlatformClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
-      const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
-        ...previousPlatformClientEntry,
-        clientPurposesIds: [],
-        version: messageVersion,
-        updatedAt: new Date().toISOString(),
-        clientAdminId: newAdminId,
-      };
-
-      expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
-
-      // check token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
-
-      const apiEntries = retrievedTokenGenStatesEntries.filter(
-        (entry): entry is TokenGenerationStatesApiClient =>
-          entry.clientKind === "API"
-      );
-
-      expect(apiEntries).toHaveLength(2);
-
-      for (const entry of apiEntries) {
-        expect(entry.adminId).toBe(newAdminId);
-        expect(entry.consumerId).toBe(updatedClient.consumerId);
-        expect(entry.publicKey).toBeDefined();
-        expect(entry.updatedAt).toEqual(expect.any(String));
-      }
     });
   });
 });
