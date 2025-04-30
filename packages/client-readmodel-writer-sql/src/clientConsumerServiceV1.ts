@@ -74,7 +74,7 @@ export async function handleMessageV1(
         .map((keyV1) => (keyV1.value ? fromKeyV1(keyV1.value) : undefined))
         .filter((k): k is Key => k !== undefined)
         .filter((k) => {
-          const jwk = createJWK(k.encodedPem);
+          const jwk = createJWK(k.encodedPem, false);
           return jwk.kty !== "EC";
         });
 
