@@ -17,7 +17,32 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, getTableColumns, ilike, inArray, sql } from "drizzle-orm";
+import {
+  and,
+  eq,
+  getTableColumns,
+  ilike,
+  inArray,
+  sql,
+  asc,
+  SQL,
+} from "drizzle-orm";
+import { PgColumn } from "drizzle-orm/pg-core";
+
+function createListResult<T>(
+  items: Array<{ data: T }>,
+  totalCount?: number
+): { results: T[]; totalCount: number } {
+  return {
+    results: items.map((item) => item.data),
+    totalCount: totalCount ?? 0,
+  };
+}
+
+// see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const ascLower = <T = string>(column: PgColumn | SQL | SQL.Aliased) =>
+  asc(sql<T>`LOWER(${column})`);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -46,16 +71,13 @@ export function readModelServiceBuilderSQL({
         })
         .from(attributeInReadmodelAttribute)
         .where(inArray(attributeInReadmodelAttribute.id, ids))
-        .orderBy(sql`LOWER(${attributeInReadmodelAttribute.name})`)
+        .orderBy(ascLower(attributeInReadmodelAttribute.name))
         .limit(limit)
         .offset(offset);
 
       const attributes = aggregateAttributeArray(queryResult);
 
-      return {
-        results: attributes.map((attr) => attr.data),
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      return createListResult(attributes, queryResult[0]?.totalCount);
     },
     async getAttributesByKindsNameOrigin({
       kinds,
@@ -92,16 +114,13 @@ export function readModelServiceBuilderSQL({
               : undefined
           )
         )
-        .orderBy(sql`LOWER(${attributeInReadmodelAttribute.name})`)
+        .orderBy(ascLower(attributeInReadmodelAttribute.name))
         .limit(limit)
         .offset(offset);
 
       const attributes = aggregateAttributeArray(queryResult);
 
-      return {
-        results: attributes.map((attr) => attr.data),
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      return createListResult(attributes, queryResult[0]?.totalCount);
     },
     async getAttributeById(
       id: AttributeId
