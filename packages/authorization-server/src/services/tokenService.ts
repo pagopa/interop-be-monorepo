@@ -35,6 +35,7 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
+  AuthServerAppContext,
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
@@ -89,7 +90,7 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      correlationId: CorrelationId,
+      ctx: AuthServerAppContext,
       logger: Logger
     ): Promise<GenerateTokenReturnType> {
       logger.info(`[CLIENTID=${request.client_id}] Token requested`);
@@ -127,6 +128,9 @@ export function tokenServiceBuilder({
       const kid = jwt.header.kid;
       const purposeId = jwt.payload.purposeId;
 
+      // eslint-disable-next-line functional/immutable-data
+      ctx.clientId = clientId;
+
       logTokenGenerationInfo({
         validatedJwt: jwt,
         clientKind: undefined,
@@ -144,6 +148,8 @@ export function tokenServiceBuilder({
         : makeTokenGenerationStatesClientKidPK({ clientId, kid });
 
       const key = await retrieveKey(dynamoDBClient, pk);
+      // eslint-disable-next-line functional/immutable-data
+      ctx.organizationId = key.consumerId;
 
       logTokenGenerationInfo({
         validatedJwt: jwt,
@@ -203,7 +209,7 @@ export function tokenServiceBuilder({
               generatedToken: token,
               key,
               clientAssertion: jwt,
-              correlationId,
+              correlationId: ctx.correlationId,
               fileManager,
               logger,
             });

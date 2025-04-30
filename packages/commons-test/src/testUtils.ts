@@ -84,6 +84,7 @@ import {
   AgreementDocument,
   AgreementStamp,
   WithMetadata,
+  CorrelationId,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -759,13 +760,15 @@ export const getMockEServiceTemplate = (
 export const getMockContext = ({
   authData,
   serviceName,
+  correlationId,
 }: {
   authData?: UIAuthData;
   serviceName?: string;
+  correlationId?: CorrelationId;
 }): WithLogger<AppContext<UIAuthData>> => ({
   authData: authData || getMockAuthData(),
   serviceName: serviceName || "test",
-  correlationId: generateId(),
+  correlationId: correlationId || generateId(),
   spanId: generateId(),
   logger: genericLogger,
   requestTimestamp: Date.now(),
