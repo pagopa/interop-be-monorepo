@@ -1,0 +1,20 @@
+meta {
+  name: Get Agreement
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host-m2m-gw}}/agreements/:agreementId
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  x-correlation-id: {{correlation-id}}
+}
