@@ -783,7 +783,6 @@ export function authorizationServiceBuilder(
 
       const jwk: JsonWebKey = createJWK({
         pemKeyBase64: key.encodedPem,
-        strictCheck: false,
       });
       const jwkKey = authorizationApi.JWKKey.parse({
         ...jwk,
@@ -1071,7 +1070,7 @@ export function authorizationServiceBuilder(
         correlationId,
       });
 
-      const jwk = createJWK({ pemKeyBase64: keySeed.key, strictCheck: false });
+      const jwk = createJWK({ pemKeyBase64: keySeed.key });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
