@@ -2,9 +2,9 @@ import {
   ascLower,
   createCompactListResult,
   createListResult,
+  escapeRegExp,
   hasAtLeastOneUserRole,
   M2MAuthData,
-  ReadModelRepository,
   UIAuthData,
   userRole,
 } from "pagopa-interop-commons";
@@ -170,7 +170,7 @@ export function readModelServiceBuilderSQL(
             name
               ? ilike(
                   eserviceInReadmodelCatalog.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             // ids filter
@@ -414,10 +414,7 @@ export function readModelServiceBuilderSQL(
     }): Promise<WithMetadata<EService> | undefined> {
       return await catalogReadModelService.getEServiceByFilter(
         and(
-          ilike(
-            eserviceInReadmodelCatalog.name,
-            ReadModelRepository.escapeRegExp(name)
-          ),
+          ilike(eserviceInReadmodelCatalog.name, escapeRegExp(name)),
           eq(eserviceInReadmodelCatalog.producerId, producerId)
         )
       );
