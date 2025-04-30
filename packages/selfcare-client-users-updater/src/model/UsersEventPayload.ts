@@ -1,3 +1,4 @@
+import { UserRole } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const selfcareUserEventType = {
@@ -28,7 +29,7 @@ const SCUser = z.object({
   familyName: z.string(),
   email: z.string(),
   role: z.string(),
-  productRole: z.string(),
+  productRole: UserRole,
   relationshipStatus: RelationshipStatus,
   mobilePhone: z.string().optional(),
 });
