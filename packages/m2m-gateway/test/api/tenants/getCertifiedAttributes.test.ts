@@ -53,6 +53,14 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     }
   );
 
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token, { offset: 0, limit: 10 });
+    expect(res.status).toBe(403);
+  });
+
   it("Should return 400 if passed an invalid query parameter (missing offset and limit)", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, {});
