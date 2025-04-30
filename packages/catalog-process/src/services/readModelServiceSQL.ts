@@ -1,4 +1,5 @@
 import {
+  ascLower,
   createListResult,
   hasAtLeastOneUserRole,
   M2MAuthData,
@@ -320,7 +321,7 @@ export function readModelServiceBuilderSQL(
         .groupBy(eserviceInReadmodelCatalog.id)
         .limit(limit)
         .offset(offset)
-        .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`)
+        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
         .as("subquery");
 
       const queryResult = await readmodelDB
@@ -395,7 +396,7 @@ export function readModelServiceBuilderSQL(
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
           )
         )
-        .orderBy(sql`LOWER(${eserviceInReadmodelCatalog.name})`);
+        .orderBy(ascLower(eserviceInReadmodelCatalog.name));
 
       const eservices = aggregateEserviceArray(
         toEServiceAggregatorArray(queryResult)
