@@ -41,7 +41,7 @@ import {
   purposeAlreadyLinkedToClient,
   purposeNotFound,
   clientKindNotAllowed,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneClient,
@@ -50,7 +50,7 @@ import {
   addOnePurpose,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("addClientPurpose", async () => {
   it("should write on event-store for the addition of a purpose into a client", async () => {

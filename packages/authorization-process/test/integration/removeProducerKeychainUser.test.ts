@@ -8,41 +8,41 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
-  EServiceId,
-  generateId,
   ProducerKeychain,
-  ProducerKeychainEServiceRemovedV2,
+  ProducerKeychainUserDeletedV2,
+  UserId,
+  generateId,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
 import {
   producerKeychainNotFound,
+  producerKeychainUserIdNotFound,
   organizationNotAllowedOnProducerKeychain,
-  eserviceNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
-describe("remove producer keychain e-service", () => {
-  it("should write on event-store for removing an e-service from a producer keychain", async () => {
+describe("remove producer keychain user", () => {
+  it("should write on event-store for removing a user from a producer keychain", async () => {
     const mockProducer = getMockTenant();
-    const eserviceIdToRemove: EServiceId = generateId();
-    const eserviceIdToNotRemove: EServiceId = generateId();
+    const userIdToRemove: UserId = generateId();
+    const userIdToNotRemove: UserId = generateId();
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId: mockProducer.id,
-      eservices: [eserviceIdToRemove, eserviceIdToNotRemove],
+      users: [userIdToRemove, userIdToNotRemove],
     };
 
     await addOneProducerKeychain(mockProducerKeychain);
 
-    await authorizationService.removeProducerKeychainEService(
+    await authorizationService.removeProducerKeychainUser(
       {
         producerKeychainId: mockProducerKeychain.id,
-        eserviceIdToRemove,
+        userIdToRemove,
       },
       getMockContext({ authData: getMockAuthData(mockProducer.id) })
     );
@@ -54,85 +54,89 @@ describe("remove producer keychain e-service", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: mockProducerKeychain.id,
       version: "1",
-      type: "ProducerKeychainEServiceRemoved",
+      type: "ProducerKeychainUserDeleted",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: ProducerKeychainEServiceRemovedV2,
+      messageType: ProducerKeychainUserDeletedV2,
       payload: writtenEvent.data,
     });
 
+    const expectedProducerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      users: [userIdToNotRemove],
+    };
+
     expect(writtenPayload).toEqual({
-      producerKeychain: toProducerKeychainV2({
-        ...mockProducerKeychain,
-        eservices: [eserviceIdToNotRemove],
-      }),
-      eserviceId: eserviceIdToRemove,
+      userId: userIdToRemove,
+      producerKeychain: toProducerKeychainV2(expectedProducerKeychain),
     });
   });
   it("should throw producerKeychainNotFound if the producer keychain doesn't exist", async () => {
     const mockProducer = getMockTenant();
-    const eserviceIdToRemove: EServiceId = generateId();
+    const userIdToRemove: UserId = generateId();
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId: mockProducer.id,
-      eservices: [eserviceIdToRemove],
+      users: [userIdToRemove],
     };
 
     await addOneProducerKeychain(getMockProducerKeychain());
 
     expect(
-      authorizationService.removeProducerKeychainEService(
+      authorizationService.removeProducerKeychainUser(
         {
           producerKeychainId: mockProducerKeychain.id,
-          eserviceIdToRemove,
+          userIdToRemove,
         },
         getMockContext({ authData: getMockAuthData(mockProducer.id) })
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
-  it("should throw eserviceNotFound if that eserviceId is not related to that producer keychain", async () => {
+  it("should throw producerKeychainUserIdNotFound if the user isn't related to that producer keychain", async () => {
     const mockProducer = getMockTenant();
-    const notExistingEServiceId: EServiceId = generateId();
-    const eserviceIdToNotRemove: EServiceId = generateId();
+    const notExistingUserId: UserId = generateId();
+    const userIdToNotRemove: UserId = generateId();
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId: mockProducer.id,
-      eservices: [eserviceIdToNotRemove],
+      users: [userIdToNotRemove],
     };
 
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.removeProducerKeychainEService(
+      authorizationService.removeProducerKeychainUser(
         {
           producerKeychainId: mockProducerKeychain.id,
-          eserviceIdToRemove: notExistingEServiceId,
+          userIdToRemove: notExistingUserId,
         },
         getMockContext({ authData: getMockAuthData(mockProducer.id) })
       )
-    ).rejects.toThrowError(eserviceNotFound(notExistingEServiceId));
+    ).rejects.toThrowError(
+      producerKeychainUserIdNotFound(notExistingUserId, mockProducerKeychain.id)
+    );
   });
   it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const mockProducer1 = getMockTenant();
     const mockProducer2 = getMockTenant();
-    const eserviceIdToRemove: EServiceId = generateId();
+    const userIdToRemove: UserId = generateId();
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId: mockProducer1.id,
-      eservices: [eserviceIdToRemove],
+      users: [userIdToRemove],
     };
 
     await addOneProducerKeychain(mockProducerKeychain);
 
     expect(
-      authorizationService.removeProducerKeychainEService(
+      authorizationService.removeProducerKeychainUser(
         {
           producerKeychainId: mockProducerKeychain.id,
-          eserviceIdToRemove,
+          userIdToRemove,
         },
         getMockContext({ authData: getMockAuthData(mockProducer2.id) })
       )

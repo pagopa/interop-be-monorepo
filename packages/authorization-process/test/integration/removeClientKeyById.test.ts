@@ -23,12 +23,12 @@ import {
   organizationNotAllowedOnClient,
   userNotAllowedOnClient,
   userNotAllowedToDeleteClientKey,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("remove client key", () => {
   it("should write on event-store for removing a key from a client", async () => {
