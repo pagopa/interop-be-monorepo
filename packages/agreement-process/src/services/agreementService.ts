@@ -286,7 +286,7 @@ export function agreementServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(
         `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
           delegationId ? ` with delegation ${delegationId}` : ""
@@ -329,11 +329,11 @@ export function agreementServiceBuilder(
         stamps: {},
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementAdded(agreement, correlationId)
       );
 
-      return agreement;
+      return { data: agreement, metadata: { version: newVersion } };
     },
     async getAgreementsProducers(
       producerName: string | undefined,
