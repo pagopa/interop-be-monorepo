@@ -6,14 +6,16 @@ import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { toM2MAgreement } from "../../../src/api/agreementApiConverter.js";
+import { getMockedApiAgreement } from "../../mockUtils.js";
 
 describe("GET /tenants route test", () => {
   const mockResponse: m2mGatewayApi.Agreements = {
-    results: [],
+    results: [toM2MAgreement(getMockedApiAgreement().data)],
     pagination: {
       limit: 10,
       offset: 0,
-      totalCount: 0,
+      totalCount: 1,
     },
   };
 
