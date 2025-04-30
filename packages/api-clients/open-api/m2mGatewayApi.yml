@@ -2293,7 +2293,7 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "409":
-          description: Conflict
+          description: Name Conflict
           content:
             application/json:
               schema:
