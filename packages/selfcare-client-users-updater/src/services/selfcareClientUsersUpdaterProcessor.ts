@@ -54,34 +54,24 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
 
         if (jsonPayload.productId !== productId) {
           loggerInstance.info(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product with ID: ${jsonPayload.productId}`
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.product}`
           );
           return;
         }
 
         const userEventPayload = UsersEventPayload.parse(jsonPayload);
-
-        if (userEventPayload.eventType !== selfcareUserEventType.update) {
-          loggerInstance.info(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not required eventType: ${userEventPayload.eventType}`
-          );
-          return;
-        }
-
-        const token = (await refreshableToken.get()).serialized;
-        const headers = getInteropHeaders({ token, correlationId });
-
-        if (!userEventPayload.user.userId) {
+        const eventUserId = userEventPayload.user.userId;
+        if (!eventUserId) {
           loggerInstance.warn(
             `Skipping message for partition ${partition} with offset ${message.offset} - Missing userId.`
           );
           return;
         }
 
-        // Note: we are interested in users who are no longer admins or admins who have lost their tenant relationship.
         if (
+          userEventPayload.eventType === selfcareUserEventType.update &&
           userEventPayload.user.productRole === userRole.ADMIN_ROLE &&
-          userEventPayload.user.relationshipStatus === relationshipStatus.active
+          userEventPayload.user.relationshipStatus !== relationshipStatus.active
         ) {
           loggerInstance.info(
             `Skipping message for partition ${partition} with offset ${message.offset} - User is a valid admin and relationshipStatus is ${jsonPayload.user.relationshipStatus}.`
@@ -89,6 +79,8 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           return;
         }
 
+        const token = (await refreshableToken.get()).serialized;
+        const headers = getInteropHeaders({ token, correlationId });
         const response = await getAllFromPaginated(
           async (offset, limit) =>
             await authorizationProcessClient.client.getClients({
@@ -104,7 +96,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
         );
 
         const clients = response.filter(
-          (client) => client.adminId === jsonPayload.user.userId
+          (client) => client.adminId === eventUserId
         );
 
         loggerInstance.info(
@@ -118,7 +110,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
               {
                 params: {
                   clientId: client.id,
-                  adminId: jsonPayload.user.userId,
+                  adminId: eventUserId,
                 },
                 headers: getInteropHeaders({
                   token,
