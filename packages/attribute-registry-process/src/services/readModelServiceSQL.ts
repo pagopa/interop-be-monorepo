@@ -26,8 +26,9 @@ import {
   sql,
   asc,
   SQL,
+  Table,
+  Column,
 } from "drizzle-orm";
-import { PgColumn } from "drizzle-orm/pg-core";
 
 function createListResult<T>(
   items: Array<{ data: T }>,
@@ -41,8 +42,14 @@ function createListResult<T>(
 
 // see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const ascLower = <T = string>(column: PgColumn | SQL | SQL.Aliased) =>
+export const ascLower = <T = string>(column: Column | SQL | SQL.Aliased) =>
   asc(sql<T>`LOWER(${column})`);
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const withTotalCount = <T extends Table>(tbl: T) => ({
+  ...getTableColumns(tbl),
+  totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
+});
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -65,10 +72,7 @@ export function readModelServiceBuilderSQL({
       limit: number;
     }): Promise<ListResult<Attribute>> {
       const queryResult = await readModelDB
-        .select({
-          ...getTableColumns(attributeInReadmodelAttribute),
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(withTotalCount(attributeInReadmodelAttribute))
         .from(attributeInReadmodelAttribute)
         .where(inArray(attributeInReadmodelAttribute.id, ids))
         .orderBy(ascLower(attributeInReadmodelAttribute.name))
@@ -93,10 +97,7 @@ export function readModelServiceBuilderSQL({
       limit: number;
     }): Promise<ListResult<Attribute>> {
       const queryResult = await readModelDB
-        .select({
-          ...getTableColumns(attributeInReadmodelAttribute),
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(withTotalCount(attributeInReadmodelAttribute))
         .from(attributeInReadmodelAttribute)
         .where(
           and(
