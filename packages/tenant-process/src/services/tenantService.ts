@@ -729,21 +729,28 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
 
+        const newVersion = createdEvents.reduce(
+          (acc, event) => Math.max(acc, event.newVersion),
+          0
+        );
+
         return {
           data: updatedTenant,
-          metadata: { version: targetTenant.metadata.version + 2 },
+          metadata: { version: newVersion },
         };
       }
 
-      await repository.createEvent(tenantCertifiedAttributeRevokedEvent);
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedAttributeRevokedEvent
+      );
       return {
         data: tenantWithRevokedAttribute,
-        metadata: { version: targetTenant.metadata.version + 1 },
+        metadata: { version: newVersion },
       };
     },
 
