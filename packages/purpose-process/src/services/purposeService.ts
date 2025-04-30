@@ -1078,7 +1078,11 @@ export function purposeServiceBuilder(
     },
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
         `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
