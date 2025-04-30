@@ -23,7 +23,10 @@ import {
 } from "pagopa-interop-api-clients";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import {
+  AuthorizationService,
+  authorizationServiceBuilder,
+} from "../services/authorizationService.js";
 import {
   apiClientKindToClientKind,
   clientToApiClient,
@@ -68,7 +71,7 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 
-const authorizationService = authorizationServiceBuilder(
+const defaultAuthorizationService = authorizationServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
@@ -83,7 +86,8 @@ const authorizationService = authorizationServiceBuilder(
 );
 
 const authorizationRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  authorizationService: AuthorizationService = defaultAuthorizationService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,
