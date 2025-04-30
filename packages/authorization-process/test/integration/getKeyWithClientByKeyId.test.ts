@@ -13,9 +13,9 @@ import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   clientNotFound,
   clientKeyNotFound,
-} from "../src/model/domain/errors.js";
-import { clientToApiClient } from "../src/model/domain/apiConverter.js";
-import { addOneClient, authorizationService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
+import { addOneClient, authorizationService } from "../integrationUtils.js";
 
 describe("getKeyWithClientByKeyId", async () => {
   it("should get the jwkKey with client by kid if it exists", async () => {

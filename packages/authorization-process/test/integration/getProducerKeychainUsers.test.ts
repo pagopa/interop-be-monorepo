@@ -14,8 +14,11 @@ import { describe, expect, it } from "vitest";
 import {
   organizationNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
-} from "../src/model/domain/errors.js";
-import { addOneProducerKeychain, authorizationService } from "./utils.js";
+} from "../../src/model/domain/errors.js";
+import {
+  addOneProducerKeychain,
+  authorizationService,
+} from "../integrationUtils.js";
 
 describe("getProducerKeychainUsers", async () => {
   it("should get from the readModel the users in the specified producer keychain", async () => {
