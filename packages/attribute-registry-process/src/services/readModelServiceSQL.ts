@@ -54,7 +54,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: queryResult[0]?.totalCount || 0,
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getAttributesByKindsNameOrigin({
@@ -100,7 +100,7 @@ export function readModelServiceBuilderSQL({
 
       return {
         results: attributes.map((attr) => attr.data),
-        totalCount: queryResult[0]?.totalCount || 0,
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getAttributeById(
