@@ -144,7 +144,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(tenant);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId,
         descriptorId,
@@ -201,7 +201,7 @@ describe("create agreement", () => {
     await addOneTenant(consumer);
     await addOneEService(eservice);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
@@ -276,7 +276,7 @@ describe("create agreement", () => {
     await addOneDelegation(delegation);
     await addOneAgreement(existingAgreementForDelegateAsConsumer);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
@@ -313,7 +313,7 @@ describe("create agreement", () => {
 
     const authData = getMockAuthData(consumer.id); // different from eserviceProducer
 
-    const createdAgreement = await agreementService.createAgreement(
+    const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
@@ -357,7 +357,7 @@ describe("create agreement", () => {
 
     const authData = getMockAuthData(tenant.id);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: descriptor0.id,
@@ -398,7 +398,7 @@ describe("create agreement", () => {
 
     const authData = getMockAuthData(tenant.id);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: descriptor.id,

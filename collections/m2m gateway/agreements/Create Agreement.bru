@@ -1,0 +1,27 @@
+meta {
+  name: Create Agreement
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host-m2m-gw}}/agreements
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  x-correlation-id: {{correlation-id}}
+}
+
+body:json {
+  {
+      "eserviceId":"{{eserviceId}}",
+      "descriptorId":"{{descriptorId}}"
+  }
+}
+
+vars:post-response {
+  agreementId: res.body.id
+}

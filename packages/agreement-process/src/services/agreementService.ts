@@ -281,8 +281,12 @@ export function agreementServiceBuilder(
         descriptorId: DescriptorId;
         delegationId?: DelegationId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(
         `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
           delegationId ? ` with delegation ${delegationId}` : ""
@@ -325,11 +329,11 @@ export function agreementServiceBuilder(
         stamps: {},
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementAdded(agreement, correlationId)
       );
 
-      return agreement;
+      return { data: agreement, metadata: { version: newVersion } };
     },
     async getAgreementsProducers(
       producerName: string | undefined,
@@ -1558,7 +1562,7 @@ async function addContractOnFirstActivation(
 async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<Tenant> {
   const delegations =
