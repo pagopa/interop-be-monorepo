@@ -1,4 +1,8 @@
-import { ReadModelRepository } from "pagopa-interop-commons";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+} from "pagopa-interop-commons";
 import {
   EService,
   WithMetadata,
@@ -69,10 +73,7 @@ function getPurposesFilters(
 ): Array<SQL | undefined> {
   const { title, eservicesIds, states, excludeDraft } = filters;
   const titleFilter = title
-    ? ilike(
-        purposeInReadmodelPurpose.title,
-        `%${ReadModelRepository.escapeRegExp(title)}%`
-      )
+    ? ilike(purposeInReadmodelPurpose.title, `%${escapeRegExp(title)}%`)
     : undefined;
 
   const eservicesIdsFilter =
@@ -264,7 +265,7 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(purposeInReadmodelPurpose.id)
-        .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`)
+        .orderBy(ascLower(purposeInReadmodelPurpose.title))
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -326,14 +327,12 @@ export function readModelServiceBuilderSQL({
             eserviceInReadmodelCatalog.id
           )
         )
-        .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`);
+        .orderBy(ascLower(purposeInReadmodelPurpose.title));
 
-      return {
-        results: aggregatePurposeArray(
-          toPurposeAggregatorArray(queryResult)
-        ).map((p) => p.data),
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      return createListResult(
+        aggregatePurposeArray(toPurposeAggregatorArray(queryResult)),
+        queryResult[0]?.totalCount
+      );
     },
     async getActiveAgreement(
       eserviceId: EServiceId,
