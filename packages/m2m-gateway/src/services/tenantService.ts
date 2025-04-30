@@ -1,14 +1,5 @@
-import {
-  getAllFromPaginated,
-  WithLogger,
-  isDefined,
-  zipBy,
-} from "pagopa-interop-commons";
-import {
-  attributeRegistryApi,
-  m2mGatewayApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+import { WithLogger, isDefined, zipBy } from "pagopa-interop-commons";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
