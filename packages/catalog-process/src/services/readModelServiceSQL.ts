@@ -490,7 +490,7 @@ export function readModelServiceBuilderSQL(
       limit?: number;
       descriptorId?: DescriptorId;
     }): Promise<Agreement[]> {
-      const queryResult = await readmodelDB
+      const query = readmodelDB
         .select({
           agreement: agreementInReadmodelAgreement,
           stamp: agreementStampInReadmodelAgreement,
@@ -549,8 +549,9 @@ export function readModelServiceBuilderSQL(
             agreementInReadmodelAgreement.id,
             agreementContractInReadmodelAgreement.agreementId
           )
-        )
-        .limit(limit ?? 0);
+        );
+
+      const queryResult = limit ? await query.limit(limit) : await query;
 
       return aggregateAgreementArray(
         toAgreementAggregatorArray(queryResult)
