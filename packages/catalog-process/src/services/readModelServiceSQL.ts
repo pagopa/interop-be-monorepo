@@ -72,10 +72,32 @@ import {
   isNull,
   notExists,
   or,
+  SQL,
   sql,
 } from "drizzle-orm";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import { validDescriptorStates } from "./validators.js";
+
+const existsValidDescriptor = (
+  readmodelDB: DrizzleReturnType
+): SQL<unknown> | undefined =>
+  exists(
+    readmodelDB
+      .select()
+      .from(eserviceDescriptorInReadmodelCatalog)
+      .where(
+        and(
+          eq(
+            eserviceDescriptorInReadmodelCatalog.eserviceId,
+            eserviceInReadmodelCatalog.id
+          ),
+          inArray(
+            eserviceDescriptorInReadmodelCatalog.state,
+            validDescriptorStates
+          )
+        )
+      )
+  );
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -199,24 +221,7 @@ export function readModelServiceBuilderSQL(
               userRole.SUPPORT_ROLE,
             ])
               ? or(
-                  // exist valid descriptors for that eservice
-                  exists(
-                    readmodelDB
-                      .select()
-                      .from(eserviceDescriptorInReadmodelCatalog)
-                      .where(
-                        and(
-                          eq(
-                            eserviceDescriptorInReadmodelCatalog.eserviceId,
-                            eserviceInReadmodelCatalog.id
-                          ),
-                          inArray(
-                            eserviceDescriptorInReadmodelCatalog.state,
-                            validDescriptorStates
-                          )
-                        )
-                      )
-                  ),
+                  existsValidDescriptor(readmodelDB),
                   // the requester is the producer
                   eq(
                     eserviceInReadmodelCatalog.producerId,
@@ -249,24 +254,7 @@ export function readModelServiceBuilderSQL(
                       )
                   )
                 )
-              : // exist valid descriptors for that eservice
-                exists(
-                  readmodelDB
-                    .select()
-                    .from(eserviceDescriptorInReadmodelCatalog)
-                    .where(
-                      and(
-                        eq(
-                          eserviceDescriptorInReadmodelCatalog.eserviceId,
-                          eserviceInReadmodelCatalog.id
-                        ),
-                        inArray(
-                          eserviceDescriptorInReadmodelCatalog.state,
-                          validDescriptorStates
-                        )
-                      )
-                    )
-                ),
+              : existsValidDescriptor(readmodelDB),
             // mode filter
             mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
             // isConsumerDelegable filter
@@ -405,7 +393,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: eservices.map((eservice) => eservice.data),
-        totalCount: queryResult[0]?.totalCount || 0,
+        totalCount: queryResult[0]?.totalCount ?? 0,
       };
     },
     async getEServiceByNameAndProducerId({
@@ -485,7 +473,7 @@ export function readModelServiceBuilderSQL(
 
       return {
         results: consumers,
-        totalCount: res[0]?.totalCount || 0,
+        totalCount: res[0]?.totalCount ?? 0,
       };
     },
     async listAgreements({
@@ -563,7 +551,7 @@ export function readModelServiceBuilderSQL(
             agreementContractInReadmodelAgreement.agreementId
           )
         )
-        .limit(limit || 0);
+        .limit(limit ?? 0);
 
       return aggregateAgreementArray(
         toAgreementAggregatorArray(queryResult)
@@ -573,14 +561,14 @@ export function readModelServiceBuilderSQL(
     async getAttributesByIds(
       attributesIds: AttributeId[]
     ): Promise<Attribute[]> {
-      const condition = inArray(
+      const attributesInIds = inArray(
         attributeInReadmodelAttribute.id,
         attributesIds
       );
       const res = await readmodelDB
         .select()
         .from(attributeInReadmodelAttribute)
-        .where(condition)
+        .where(attributesInIds)
         .orderBy(attributeInReadmodelAttribute.name);
 
       const attributes = aggregateAttributeArray(res);
