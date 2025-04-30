@@ -700,7 +700,10 @@ export function purposeServiceBuilder(
     async getPurposes(
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Purpose>> {
       logger.info(
         `Getting Purposes with filters: ${JSON.stringify(
