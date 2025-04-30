@@ -11,8 +11,11 @@ import {
   getMockContext,
   getMockProducerKeychain,
 } from "pagopa-interop-commons-test";
-import { producerKeychainNotFound } from "../src/model/domain/errors.js";
-import { addOneProducerKeychain, authorizationService } from "./utils.js";
+import { producerKeychainNotFound } from "../../src/model/domain/errors.js";
+import {
+  addOneProducerKeychain,
+  authorizationService,
+} from "../integrationUtils.js";
 
 describe("getProducerKeychainById", async () => {
   const organizationId: TenantId = generateId();

@@ -11,12 +11,12 @@ import { Client, ClientDeletedV2, toClientV2 } from "pagopa-interop-models";
 import {
   clientNotFound,
   organizationNotAllowedOnClient,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("delete client", () => {
   it("should write on event-store for the deletion of a client", async () => {

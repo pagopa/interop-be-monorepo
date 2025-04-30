@@ -15,12 +15,12 @@ import {
 import {
   organizationNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("delete producer keychain", () => {
   it("should write on event-store for the deletion of a producer keychain", async () => {
