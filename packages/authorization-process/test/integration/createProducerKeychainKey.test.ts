@@ -287,7 +287,7 @@ describe("createProducerKeychainKey", () => {
   it("should throw keyAlreadyExists if the kid already exists in the keys of that producer keychain ", async () => {
     const key: Key = {
       ...getMockKey(),
-      kid: calculateKid(createJWK(keySeed.key)),
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
     };
 
     const producerKeychainWithDuplicateKey: ProducerKeychain = {
@@ -310,7 +310,7 @@ describe("createProducerKeychainKey", () => {
   it("should throw keyAlreadyExists if the kid already exists in the keys of a different producer keychain ", async () => {
     const key: Key = {
       ...getMockKey(),
-      kid: calculateKid(createJWK(keySeed.key)),
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
     };
 
     const producerKeychain: ProducerKeychain = {
@@ -341,7 +341,7 @@ describe("createProducerKeychainKey", () => {
   it("should throw keyAlreadyExists if the kid already exists in a client", async () => {
     const key: Key = {
       ...getMockKey(),
-      kid: calculateKid(createJWK(keySeed.key)),
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
     };
 
     const producerKeychain: ProducerKeychain = {
