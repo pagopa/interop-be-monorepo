@@ -18,6 +18,7 @@ import {
 } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
 import { getMockClient } from "pagopa-interop-commons-test";
+import { clientKind } from "pagopa-interop-models";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import { config } from "../src/config/config.js";
 import { AuthorizationProcessClient } from "../src/clients/authorizationProcessClient.js";
@@ -29,7 +30,11 @@ import {
 
 describe("selfcareClientUsersUpdaterProcessor", () => {
   const userId: UUID = randomUUID();
-  const clientMock = { ...getMockClient(), adminId: userId };
+  const clientMock = {
+    ...getMockClient(),
+    adminId: userId,
+    kind: clientKind.api,
+  };
   const authorizationProcessClientMock = {
     client: {
       getClients: vi.fn().mockResolvedValue({
