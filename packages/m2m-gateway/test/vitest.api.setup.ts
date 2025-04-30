@@ -64,10 +64,11 @@ import { PurposeService } from "../src/services/purposeService.js";
 import { TenantService } from "../src/services/tenantService.js";
 
 export const mockDelegationService = {} as DelegationService;
+export const mockAgreementService = {} as AgreementService;
 
 export const api = await createApp(
   {
-    agreementService: {} as AgreementService,
+    agreementService: mockAgreementService,
     attributeService: {} as AttributeService,
     clientService: {} as ClientService,
     delegationService: mockDelegationService,
