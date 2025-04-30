@@ -54,7 +54,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
 
         if (jsonPayload.productId !== productId) {
           loggerInstance.info(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.product}`
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.productId}`
           );
           return;
         }
@@ -73,57 +73,56 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           userEventPayload.user.productRole === userRole.ADMIN_ROLE &&
           userEventPayload.user.relationshipStatus !== relationshipStatus.active
         ) {
+          const token = (await refreshableToken.get()).serialized;
+          const headers = getInteropHeaders({ token, correlationId });
+          const response = await getAllFromPaginated(
+            async (offset, limit) =>
+              await authorizationProcessClient.client.getClients({
+                queries: {
+                  userIds: [],
+                  consumerId: jsonPayload.institutionId,
+                  kind: bffApi.ClientKind.Values.API,
+                  offset,
+                  limit,
+                },
+                headers,
+              })
+          );
+
+          const clients = response.filter(
+            (client) => client.adminId === eventUserId
+          );
+
+          loggerInstance.info(
+            `Found ${clients.length} clients with user as admin`
+          );
+
+          await Promise.all(
+            clients.map(async (client) =>
+              authorizationProcessClient.client.internalRemoveClientAdmin(
+                undefined,
+                {
+                  params: {
+                    clientId: client.id,
+                    adminId: eventUserId,
+                  },
+                  headers: getInteropHeaders({
+                    token,
+                    correlationId,
+                  }),
+                }
+              )
+            )
+          );
+
+          loggerInstance.info(
+            `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${jsonPayload.institutionId}`
+          );
+        } else {
           loggerInstance.info(
             `Skipping message for partition ${partition} with offset ${message.offset} - User is a valid admin and relationshipStatus is ${jsonPayload.user.relationshipStatus}.`
           );
-          return;
         }
-
-        const token = (await refreshableToken.get()).serialized;
-        const headers = getInteropHeaders({ token, correlationId });
-        const response = await getAllFromPaginated(
-          async (offset, limit) =>
-            await authorizationProcessClient.client.getClients({
-              queries: {
-                userIds: [],
-                consumerId: jsonPayload.institutionId,
-                kind: bffApi.ClientKind.Values.API,
-                offset,
-                limit,
-              },
-              headers,
-            })
-        );
-
-        const clients = response.filter(
-          (client) => client.adminId === eventUserId
-        );
-
-        loggerInstance.info(
-          `Found ${clients.length} clients with user as admin`
-        );
-
-        await Promise.all(
-          clients.map(async (client) =>
-            authorizationProcessClient.client.internalRemoveClientAdmin(
-              undefined,
-              {
-                params: {
-                  clientId: client.id,
-                  adminId: eventUserId,
-                },
-                headers: getInteropHeaders({
-                  token,
-                  correlationId,
-                }),
-              }
-            )
-          )
-        );
-
-        loggerInstance.info(
-          `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${jsonPayload.institutionId}`
-        );
       } catch (err) {
         throw genericInternalError(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
