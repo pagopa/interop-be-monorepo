@@ -53,6 +53,7 @@ export const getMockM2MAdminAppContext = ({
       systemRole: systemRole.M2M_ADMIN_ROLE,
       organizationId: organizationId || generateId(),
       userId: generateId(),
+      clientId: generateId(),
     },
     serviceName: serviceName || "test",
     spanId: generateId(),

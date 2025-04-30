@@ -81,8 +81,7 @@ export async function createApp(
     await applicationAuditEndMiddleware(serviceName, config),
     authenticationMiddleware(config),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
-    m2mAuthDataValidationMiddleware(),
-    // TODO ^ how to pass the client here? Maybe we pass the service directly
+    m2mAuthDataValidationMiddleware(clientService),
     rateLimiterMiddleware,
     eserviceRouter(zodiosCtx, eserviceService),
     attributeRouter(zodiosCtx, attributeService),

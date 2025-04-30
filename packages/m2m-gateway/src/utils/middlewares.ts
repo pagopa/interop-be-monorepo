@@ -10,21 +10,21 @@ import { unauthorizedError } from "pagopa-interop-models";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { P, match } from "ts-pattern";
 import { Request } from "express";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../model/errors.js";
+import { M2MGatewayServices } from "../app.js";
 import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 
 export async function validateM2MAdminUserId(
   authData: M2MAdminAuthData,
   headers: M2MGatewayAppContext["headers"],
-  authorizationProcessClient: PagoPAInteropBeClients["authorizationClient"]
+  clientService: M2MGatewayServices["clientService"]
 ): Promise<void> {
-  const client = await authorizationProcessClient.client.getClient({
-    params: { clientId: authData.clientId },
-    headers,
-  });
+  const clientAdminId = await clientService.getClientAdminId(
+    authData.clientId,
+    headers
+  );
 
-  if (client.data.adminId !== authData.userId) {
+  if (clientAdminId !== authData.userId) {
     throw unauthorizedError(
       `User ${authData.userId} is not the adminId associated to client ${authData.clientId}`
     );
@@ -32,7 +32,7 @@ export async function validateM2MAdminUserId(
 }
 
 export function m2mAuthDataValidationMiddleware(
-  authorizationProcessClient: PagoPAInteropBeClients["authorizationClient"]
+  clientService: M2MGatewayServices["clientService"]
 ): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
     // We assume that:
@@ -46,7 +46,7 @@ export function m2mAuthDataValidationMiddleware(
           validateM2MAdminUserId(
             authData,
             getInteropHeaders(ctx, req.headers),
-            authorizationProcessClient
+            clientService
           )
         )
         .with({ systemRole: systemRole.M2M_ROLE }, () => {

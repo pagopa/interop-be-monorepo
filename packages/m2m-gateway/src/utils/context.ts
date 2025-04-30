@@ -32,8 +32,6 @@ export function fromM2MGatewayAppContext(
   };
 }
 
-// TODO Reuse getInteropHeaders from commons?
-// Same in BFF and API GW?
 export function getInteropHeaders(
   ctx: AppContext,
   headers: IncomingHttpHeaders & { "x-forwarded-for"?: string }
