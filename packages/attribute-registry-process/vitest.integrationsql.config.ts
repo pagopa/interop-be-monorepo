@@ -9,5 +9,6 @@ export default defineConfig({
     fileParallelism: false,
     pool: "forks",
     env: { FEATURE_FLAG_SQL: "true" },
+    watch: false,
   },
 });
