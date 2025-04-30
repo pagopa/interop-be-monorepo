@@ -462,7 +462,6 @@ export function readModelServiceBuilderSQL(
         .limit(limit)
         .offset(offset);
 
-      // TODO: without the aggregators, we have to parse the entries here
       const consumers: Consumer[] = res.map((row) => ({
         descriptorVersion: row.descriptor.version,
         descriptorState: DescriptorState.parse(row.descriptor.state),
@@ -561,14 +560,10 @@ export function readModelServiceBuilderSQL(
     async getAttributesByIds(
       attributesIds: AttributeId[]
     ): Promise<Attribute[]> {
-      const attributesInIds = inArray(
-        attributeInReadmodelAttribute.id,
-        attributesIds
-      );
       const res = await readmodelDB
         .select()
         .from(attributeInReadmodelAttribute)
-        .where(attributesInIds)
+        .where(inArray(attributeInReadmodelAttribute.id, attributesIds))
         .orderBy(attributeInReadmodelAttribute.name);
 
       const attributes = aggregateAttributeArray(res);
