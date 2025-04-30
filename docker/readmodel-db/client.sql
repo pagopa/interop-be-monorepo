@@ -42,3 +42,5 @@ CREATE TABLE IF NOT EXISTS readmodel_client.client_key (
   PRIMARY KEY (client_id, kid),
   FOREIGN KEY (client_id, metadata_version) REFERENCES readmodel_client.client (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
+
+-- TODO
