@@ -76,6 +76,7 @@ import {
   SQL,
   sql,
 } from "drizzle-orm";
+import { match } from "ts-pattern";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import { validDescriptorStates } from "./validators.js";
 
@@ -259,17 +260,22 @@ export function readModelServiceBuilderSQL(
             // mode filter
             mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
             // isConsumerDelegable filter
-            isConsumerDelegable === true
-              ? eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
-              : isConsumerDelegable === false
-              ? or(
+            match(isConsumerDelegable)
+              .with(true, () =>
+                eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
+              )
+              .with(false, () =>
+                or(
                   isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
                   eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
                 )
-              : undefined,
+              )
+              .with(undefined, () => undefined)
+              .exhaustive(),
             // delegated filter
-            delegated === true
-              ? and(
+            match(delegated)
+              .with(true, () =>
+                and(
                   eq(
                     delegationInReadmodelDelegation.kind,
                     delegationKind.delegatedProducer
@@ -279,8 +285,9 @@ export function readModelServiceBuilderSQL(
                     delegationState.waitingForApproval,
                   ])
                 )
-              : delegated === false
-              ? notExists(
+              )
+              .with(false, () =>
+                notExists(
                   readmodelDB
                     .select()
                     .from(delegationInReadmodelDelegation)
@@ -301,7 +308,9 @@ export function readModelServiceBuilderSQL(
                       )
                     )
                 )
-              : undefined,
+              )
+              .with(undefined, () => undefined)
+              .exhaustive(),
             // template filter
             templatesIds.length > 0
               ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
