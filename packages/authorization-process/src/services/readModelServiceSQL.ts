@@ -153,12 +153,10 @@ export function readModelServiceBuilderSQL({
         .from(clientInReadmodelClient)
         .innerJoin(subquery, eq(clientInReadmodelClient.id, subquery.clientId))
         .leftJoin(
-          // 1
           clientUserInReadmodelClient,
           eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
         )
         .leftJoin(
-          // 2
           clientPurposeInReadmodelClient,
           eq(
             clientInReadmodelClient.id,
@@ -166,7 +164,6 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          // 3
           clientKeyInReadmodelClient,
           eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         )
@@ -350,7 +347,6 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          // 1
           producerKeychainUserInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
@@ -358,7 +354,6 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          // 2
           producerKeychainEserviceInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
@@ -366,7 +361,6 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          // 3
           producerKeychainKeyInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
