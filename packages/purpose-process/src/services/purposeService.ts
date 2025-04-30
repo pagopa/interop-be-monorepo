@@ -6,6 +6,7 @@ import {
   FileManager,
   InternalAuthData,
   Logger,
+  M2MAdminAuthData,
   M2MAuthData,
   PDFGenerator,
   RiskAnalysisFormRules,
@@ -263,7 +264,10 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
