@@ -1,4 +1,4 @@
-import { ReadModelRepository } from "pagopa-interop-commons";
+import { escapeRegExp } from "pagopa-interop-commons";
 import {
   AttributeKind,
   Attribute,
@@ -84,7 +84,7 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   attributeInReadmodelAttribute.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             origin
@@ -112,10 +112,7 @@ export function readModelServiceBuilderSQL({
       name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return attributeReadModelServiceSQL.getAttributeByFilter(
-        ilike(
-          attributeInReadmodelAttribute.name,
-          ReadModelRepository.escapeRegExp(name)
-        )
+        ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
       );
     },
     async getAttributeByOriginAndCode({
@@ -127,14 +124,8 @@ export function readModelServiceBuilderSQL({
     }): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
-          eq(
-            attributeInReadmodelAttribute.origin,
-            ReadModelRepository.escapeRegExp(origin)
-          ),
-          eq(
-            attributeInReadmodelAttribute.code,
-            ReadModelRepository.escapeRegExp(code)
-          )
+          eq(attributeInReadmodelAttribute.origin, escapeRegExp(origin)),
+          eq(attributeInReadmodelAttribute.code, escapeRegExp(code))
         )
       );
     },
@@ -144,14 +135,8 @@ export function readModelServiceBuilderSQL({
     ): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
-          ilike(
-            attributeInReadmodelAttribute.code,
-            ReadModelRepository.escapeRegExp(code)
-          ),
-          ilike(
-            attributeInReadmodelAttribute.name,
-            ReadModelRepository.escapeRegExp(name)
-          )
+          ilike(attributeInReadmodelAttribute.code, escapeRegExp(code)),
+          ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
         )
       );
     },
