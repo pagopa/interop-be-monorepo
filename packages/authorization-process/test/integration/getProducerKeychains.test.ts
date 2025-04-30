@@ -12,7 +12,10 @@ import {
   getMockProducerKeychain,
 } from "pagopa-interop-commons-test";
 import { userRole } from "pagopa-interop-commons";
-import { addOneProducerKeychain, authorizationService } from "./utils.js";
+import {
+  addOneProducerKeychain,
+  authorizationService,
+} from "../integrationUtils.js";
 
 describe("getProducerKeychains", async () => {
   const producerId: TenantId = generateId();

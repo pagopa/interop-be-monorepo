@@ -17,7 +17,7 @@ import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 describe("remove client purpose", () => {
   it("should write on event-store for removing a purpose from all clients", async () => {

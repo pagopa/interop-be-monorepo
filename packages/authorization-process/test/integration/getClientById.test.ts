@@ -11,8 +11,8 @@ import {
   getMockClient,
   getMockContext,
 } from "pagopa-interop-commons-test";
-import { clientNotFound } from "../src/model/domain/errors.js";
-import { addOneClient, authorizationService } from "./utils.js";
+import { clientNotFound } from "../../src/model/domain/errors.js";
+import { addOneClient, authorizationService } from "../integrationUtils.js";
 
 describe("getClientById", async () => {
   const organizationId: TenantId = generateId();

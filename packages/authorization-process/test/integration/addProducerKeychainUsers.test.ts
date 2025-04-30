@@ -22,13 +22,13 @@ import {
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
   organizationNotAllowedOnProducerKeychain,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
   authorizationService,
   readLastAuthorizationEvent,
   selfcareV2Client,
-} from "./utils.js";
+} from "../integrationUtils.js";
 
 function mockSelfcareV2ClientCall(
   value: Awaited<
