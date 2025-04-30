@@ -1,4 +1,4 @@
-import { delegationApi } from "pagopa-interop-api-clients";
+import { agreementApi, delegationApi } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -32,6 +32,27 @@ export function getMockedApiDelegation({
           when: new Date().toISOString(),
         },
       },
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiAgreement(): WithMetadata<agreementApi.Agreement> {
+  return {
+    data: {
+      id: generateId(),
+      eserviceId: generateId(),
+      descriptorId: generateId(),
+      producerId: generateId(),
+      consumerId: generateId(),
+      state: agreementApi.AgreementState.Values.ACTIVE,
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      consumerDocuments: [],
+      verifiedAttributes: [],
+      createdAt: new Date().toISOString(),
     },
     metadata: {
       version: 0,
