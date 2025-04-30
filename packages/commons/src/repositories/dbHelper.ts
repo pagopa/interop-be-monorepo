@@ -1,9 +1,10 @@
 import { getTableColumns, sql, asc, SQL, Table, Column } from "drizzle-orm";
+import { ListResult } from "pagopa-interop-models";
 
 export const createListResult = <T>(
   items: Array<{ data: T }>,
   totalCount?: number
-): { results: T[]; totalCount: number } => ({
+): ListResult<T> => ({
   results: items.map((item) => item.data),
   totalCount: totalCount ?? 0,
 });
