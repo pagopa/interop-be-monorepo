@@ -22,6 +22,7 @@ import { clientKind } from "pagopa-interop-models";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import { config } from "../src/config/config.js";
 import { AuthorizationProcessClient } from "../src/clients/authorizationProcessClient.js";
+import { relationshipStatus } from "../src/model/UsersEventPayload.js";
 import {
   correctEventPayload,
   generateInternalTokenMock,
@@ -88,8 +89,8 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
               familyName: "Test FamilyName",
               email: "test@example.com",
               role: "Test Role",
-              productRole: "LIMITED",
-              relationshipStatus: "SUSPENDED",
+              productRole: userRole.ADMIN_ROLE,
+              relationshipStatus: relationshipStatus.suspended,
               mobilePhone: "1234567890",
             },
           })
@@ -190,7 +191,7 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
             ...correctEventPayload,
             user: {
               productRole: userRole.ADMIN_ROLE,
-              relationshipStatus: "ACTIVE",
+              relationshipStatus: relationshipStatus.active,
             },
           })
         ),
