@@ -14,7 +14,7 @@ describe("key import", async () => {
   });
 
   it("succeeds when importing the same PEM with crypto", async () => {
-    const result = createPublicKey(encodedPEM);
+    const result = createPublicKey({ key: encodedPEM });
     expect(result).toBeInstanceOf(KeyObject);
   });
 });
