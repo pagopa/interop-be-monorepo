@@ -8,19 +8,17 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { attributeServiceBuilder } from "../services/attributeService.js";
+import { AttributeService } from "../services/attributeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  attributeService: AttributeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const attributeRouter = ctx.router(m2mGatewayApi.attributesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const attributeService = attributeServiceBuilder(clients);
   void attributeService;
 
   attributeRouter
