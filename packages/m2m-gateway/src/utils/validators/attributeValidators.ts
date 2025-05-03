@@ -12,10 +12,7 @@ export function assertAttributeKindIs<
 >(
   attribute: attributeRegistryApi.Attribute,
   expectedKind: K,
-  error: Extract<
-    ErrorCodes,
-    "unexpectedAttributeKind" | "attributeNotFound"
-  > = "unexpectedAttributeKind"
+  error: Extract<ErrorCodes, "unexpectedAttributeKind" | "attributeNotFound">
 ): asserts attribute is attributeRegistryApi.Attribute & { kind: K } {
   if (attribute.kind !== expectedKind) {
     match(error)

@@ -42,7 +42,10 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      return toM2MGatewayApiCertifiedAttribute(response.data);
+      return toM2MGatewayApiCertifiedAttribute(
+        response.data,
+        "attributeNotFound"
+      );
     },
     async createCertifiedAttribute(
       seed: m2mGatewayApi.CertifiedAttributeSeed,
