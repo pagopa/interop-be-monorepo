@@ -26,7 +26,19 @@ describe("GET /consumerDelegations router test", () => {
     ],
   };
 
-  const makeRequest = async (token: string, query: Record<string, unknown>) =>
+  const mockQueryParams: m2mGatewayApi.GetConsumerDelegationsQueryParams = {
+    states: ["WAITING_FOR_APPROVAL"],
+    eserviceIds: [],
+    delegateIds: [],
+    delegatorIds: [],
+    offset: 0,
+    limit: 10,
+  };
+
+  const makeRequest = async (
+    token: string,
+    query: m2mGatewayApi.GetConsumerDelegationsQueryParams
+  ) =>
     request(api)
       .get(`${appBasePath}/consumerDelegations`)
       .set("Authorization", `Bearer ${token}`)
@@ -45,14 +57,7 @@ describe("GET /consumerDelegations router test", () => {
         .mockResolvedValue(mockM2MDelegationsResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, {
-        state: "WAITING_FOR_APPROVAL",
-        eserviceIds: [],
-        delegateIds: [],
-        delegatorIds: [],
-        offset: 0,
-        limit: 10,
-      });
+      const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MDelegationsResponse);
@@ -63,34 +68,36 @@ describe("GET /consumerDelegations router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, {
-      offset: 0,
-      limit: 10,
-    });
+    const res = await makeRequest(token, mockQueryParams);
     expect(res.status).toBe(403);
   });
-
-  it("Should return 400 if passed an invalid query param", async () => {
+  it.each([
+    {},
+    { ...mockQueryParams, states: ["invalidState"] },
+    { ...mockQueryParams, offset: -2 },
+    { ...mockQueryParams, limit: 100 },
+    { ...mockQueryParams, offset: "invalidOffset" },
+    { ...mockQueryParams, limit: "invalidLimit" },
+  ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      state: "INVALID_STATE",
-      offset: undefined,
-      limit: undefined,
-    });
+    const res = await makeRequest(
+      token,
+      query as unknown as m2mGatewayApi.GetConsumerDelegationsQueryParams
+    );
 
     expect(res.status).toBe(400);
   });
 
-  it("Should return 500 in case of unexpectedDelegationKind error", async () => {
-    mockDelegationService.getConsumerDelegations = vi
-      .fn()
-      .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1.data));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      offset: 0,
-      limit: 10,
-    });
+  it.each([unexpectedDelegationKind(mockApiDelegation1.data)])(
+    "Should return 500 in case of $code error",
+    async () => {
+      mockDelegationService.getConsumerDelegations = vi
+        .fn()
+        .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1.data));
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockQueryParams);
 
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });
