@@ -1,4 +1,7 @@
-import { delegationApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  delegationApi,
+} from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -6,6 +9,8 @@ import {
   WithMetadata,
   generateId,
 } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 
 export function getMockedApiDelegation({
@@ -32,6 +37,27 @@ export function getMockedApiDelegation({
           when: new Date().toISOString(),
         },
       },
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiAttribute({
+  kind,
+}: {
+  kind?: attributeRegistryApi.AttributeKind;
+} = {}): WithMetadata<attributeRegistryApi.Attribute> {
+  return {
+    data: {
+      id: generateId(),
+      name: generateMock(z.string()),
+      description: generateMock(z.string()),
+      creationTime: new Date().toISOString(),
+      code: generateMock(z.string()),
+      origin: generateMock(z.string()),
+      kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
     },
     metadata: {
       version: 0,
