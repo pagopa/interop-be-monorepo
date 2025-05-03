@@ -43,6 +43,7 @@ describe("API /attributes/{attributeId} authorization test", () => {
       const res = await makeRequest(token, attribute.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiAttribute);
+      expect(res.headers["x-metadata-version"]).toBe("1");
     }
   );
 

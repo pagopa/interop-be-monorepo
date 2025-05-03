@@ -326,6 +326,9 @@ paths:
       tags:
         - attribute
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Attribute data
           content:

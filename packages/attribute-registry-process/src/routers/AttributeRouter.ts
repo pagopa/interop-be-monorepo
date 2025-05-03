@@ -187,18 +187,16 @@ const attributeRouter = (
             M2M_ROLE,
           ]);
 
-          const attribute = await attributeRegistryService.getAttributeById(
-            unsafeBrandId(req.params.attributeId),
-            ctx
-          );
+          const { data, metadata } =
+            await attributeRegistryService.getAttributeById(
+              unsafeBrandId(req.params.attributeId),
+              ctx
+            );
 
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
-            .send(
-              attributeRegistryApi.Attribute.parse(
-                toApiAttribute(attribute.data)
-              )
-            );
+            .send(attributeRegistryApi.Attribute.parse(toApiAttribute(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
