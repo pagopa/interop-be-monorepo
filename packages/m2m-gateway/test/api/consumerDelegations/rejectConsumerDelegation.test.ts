@@ -84,6 +84,25 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
   );
 
   it.each([
+    { ...mockApiDelegation.data, kind: "invalidKind" },
+    { ...mockApiDelegation.data, invalidParam: "invalidValue" },
+    { ...mockApiDelegation.data, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockDelegationService.rejectConsumerDelegation = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockApiDelegation.data.id, {
+        rejectionReason: "test reason",
+      });
+
+      expect(res.status).toBe(500);
+    }
+  );
+
+  it.each([
     missingMetadata(),
     unexpectedDelegationKind(mockApiDelegation.data),
     resourcePollingTimeout(3),
