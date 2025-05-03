@@ -84,9 +84,9 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
   );
 
   it.each([
-    { ...mockApiDelegation.data, kind: "invalidKind" },
-    { ...mockApiDelegation.data, invalidParam: "invalidValue" },
-    { ...mockApiDelegation.data, createdAt: undefined },
+    { ...mockM2MDelegationResponse, kind: "invalidKind" },
+    { ...mockM2MDelegationResponse, invalidParam: "invalidValue" },
+    { ...mockM2MDelegationResponse, createdAt: undefined },
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
