@@ -13,7 +13,7 @@ export function toM2MGatewayApiCertifiedAttribute(
   assertAttributeKindIs(
     attribute,
     attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    "certifiedAttributeNotFound"
+    "attributeNotFound"
   );
   assertAttributeOiginAndCodeAreDefined(attribute);
 

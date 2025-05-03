@@ -10,7 +10,7 @@ export const errorCodes = {
   unexpectedDelegationKind: "0003",
   unexpectedAttributeKind: "0004",
   unexpectedUndefinedAttributeOriginOrCode: "0005",
-  certifiedAttributeNotFound: "0006",
+  attributeNotFound: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -68,12 +68,12 @@ export function unexpectedUndefinedAttributeOriginOrCode(
   });
 }
 
-export function certifiedAttributeNotFound(
+export function attributeNotFound(
   attribute: attributeRegistryApi.Attribute
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Certified attribute ${attribute.id} not found`,
-    code: "certifiedAttributeNotFound",
-    title: "Certified Attribute Not Found",
+    detail: `Attribute ${attribute.id} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
   });
 }

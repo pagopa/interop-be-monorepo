@@ -2,7 +2,7 @@ import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   ErrorCodes,
-  certifiedAttributeNotFound,
+  attributeNotFound,
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../model/errors.js";
@@ -14,7 +14,7 @@ export function assertAttributeKindIs<
   expectedKind: K,
   error: Extract<
     ErrorCodes,
-    "unexpectedAttributeKind" | "certifiedAttributeNotFound"
+    "unexpectedAttributeKind" | "attributeNotFound"
   > = "unexpectedAttributeKind"
 ): asserts attribute is attributeRegistryApi.Attribute & { kind: K } {
   if (attribute.kind !== expectedKind) {
@@ -22,8 +22,8 @@ export function assertAttributeKindIs<
       .with("unexpectedAttributeKind", () => {
         throw unexpectedAttributeKind(attribute);
       })
-      .with("certifiedAttributeNotFound", () => {
-        throw certifiedAttributeNotFound(attribute);
+      .with("attributeNotFound", () => {
+        throw attributeNotFound(attribute);
       })
       .exhaustive();
   }
