@@ -88,16 +88,13 @@ describe("GET /consumerDelegations router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([unexpectedDelegationKind(mockApiDelegation1.data)])(
-    "Should return 500 in case of $code error",
-    async () => {
-      mockDelegationService.getConsumerDelegations = vi
-        .fn()
-        .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1.data));
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockQueryParams);
+  it("Should return 500 in case of unexpectedDelegationKind error", async () => {
+    mockDelegationService.getConsumerDelegations = vi
+      .fn()
+      .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1.data));
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockQueryParams);
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 });
