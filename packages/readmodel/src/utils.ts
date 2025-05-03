@@ -2,6 +2,7 @@ import { eq, SQL } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { AnyPgTable, AnyPgColumn } from "drizzle-orm/pg-core";
 import { ReadModelSQLDbConfig } from "pagopa-interop-commons";
+import { genericInternalError } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   DrizzleTransactionType,
@@ -84,8 +85,11 @@ export const checkMetadataVersionByFilter = async (
     metadataVersion: AnyPgColumn<{ data: number }>;
   },
   metadataVersion: number,
-  filter: SQL
+  filter: SQL | undefined
 ): Promise<boolean> => {
+  if (filter === undefined) {
+    throw genericInternalError("Filter cannot be undefined");
+  }
   const [row] = await tx
     .select({
       metadataVersion: table.metadataVersion,

@@ -130,61 +130,52 @@ export const toProducerKeychainAggregatorArray = (
     }
 
     const producerKeychainUserSQL = row.producerKeychainUser;
+    const producerKeychainUserPK = producerKeychainUserSQL
+      ? makeUniqueKey([
+          producerKeychainUserSQL.producerKeychainId,
+          producerKeychainUserSQL.userId,
+        ])
+      : undefined;
     if (
       producerKeychainUserSQL &&
-      !userIdSet.has(
-        makeUniqueKey([
-          producerKeychainUserSQL.producerKeychainId,
-          producerKeychainUserSQL.userId,
-        ])
-      )
+      producerKeychainUserPK &&
+      !userIdSet.has(producerKeychainUserPK)
     ) {
-      userIdSet.add(
-        makeUniqueKey([
-          producerKeychainUserSQL.producerKeychainId,
-          producerKeychainUserSQL.userId,
-        ])
-      );
+      userIdSet.add(producerKeychainUserPK);
       // eslint-disable-next-line functional/immutable-data
       usersSQL.push(producerKeychainUserSQL);
     }
 
     const producerKeychainEserviceSQL = row.producerKeychainEService;
+    const producerKeychainEservicePK = producerKeychainEserviceSQL
+      ? makeUniqueKey([
+          producerKeychainEserviceSQL.producerKeychainId,
+          producerKeychainEserviceSQL.eserviceId,
+        ])
+      : undefined;
     if (
       producerKeychainEserviceSQL &&
-      !eserviceIdSet.has(
-        makeUniqueKey([
-          producerKeychainEserviceSQL.producerKeychainId,
-          producerKeychainEserviceSQL.eserviceId,
-        ])
-      )
+      producerKeychainEservicePK &&
+      !eserviceIdSet.has(producerKeychainEservicePK)
     ) {
-      eserviceIdSet.add(
-        makeUniqueKey([
-          producerKeychainEserviceSQL.producerKeychainId,
-          producerKeychainEserviceSQL.eserviceId,
-        ])
-      );
+      eserviceIdSet.add(producerKeychainEservicePK);
       // eslint-disable-next-line functional/immutable-data
       eservicesSQL.push(producerKeychainEserviceSQL);
     }
 
     const producerKeychainKeySQL = row.producerKeychainKey;
+    const producerKeychainKeyPK = producerKeychainKeySQL
+      ? makeUniqueKey([
+          producerKeychainKeySQL.producerKeychainId,
+          producerKeychainKeySQL.kid,
+        ])
+      : undefined;
     if (
       producerKeychainKeySQL &&
-      !keyIdSet.has(
-        makeUniqueKey([
-          producerKeychainKeySQL.producerKeychainId,
-          producerKeychainKeySQL.kid,
-        ])
-      )
+      producerKeychainKeyPK &&
+      !keyIdSet.has(producerKeychainKeyPK)
     ) {
-      keyIdSet.add(
-        makeUniqueKey([
-          producerKeychainKeySQL.producerKeychainId,
-          producerKeychainKeySQL.kid,
-        ])
-      );
+      keyIdSet.add(producerKeychainKeyPK);
       // eslint-disable-next-line functional/immutable-data
       keysSQL.push(producerKeychainKeySQL);
     }

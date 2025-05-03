@@ -379,7 +379,7 @@ export function delegationServiceBuilder(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      return delegationClients.producer.approveProducerDelegation(undefined, {
+      await delegationClients.producer.approveProducerDelegation(undefined, {
         params: {
           delegationId,
         },
@@ -390,7 +390,7 @@ export function delegationServiceBuilder(
       delegationId: DelegationId,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      return delegationClients.consumer.approveConsumerDelegation(undefined, {
+      await delegationClients.consumer.approveConsumerDelegation(undefined, {
         params: {
           delegationId,
         },
