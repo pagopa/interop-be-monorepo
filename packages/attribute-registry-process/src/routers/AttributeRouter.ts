@@ -9,6 +9,7 @@ import {
   fromAppContext,
   validateAuthorization,
   authRole,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -244,18 +245,18 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const attribute =
+        const { data, metadata } =
           await attributeRegistryService.createCertifiedAttribute(
             req.body,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
-          .send(
-            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
-          );
+          .send(attributeRegistryApi.Attribute.parse(toApiAttribute(data)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
