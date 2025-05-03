@@ -30,7 +30,7 @@ export function attributeDuplicateByName(
   return new ApiError({
     detail: `An attribute with name ${attributeName} already exists`,
     code: "attributeDuplicate",
-    title: "Duplicated attribute name",
+    title: "Duplicate attribute name",
   });
 }
 
@@ -41,7 +41,7 @@ export function attributeDuplicateByNameAndCode(
   return new ApiError({
     detail: `An attribute with name ${attributeName} and code ${attributeCode} already exists`,
     code: "attributeDuplicate",
-    title: "Duplicated attribute name and code",
+    title: "Duplicate attribute name and code",
   });
 }
 
@@ -65,7 +65,7 @@ export function OrganizationIsNotACertifier(
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} is not a Certifier`,
+    detail: `Organization ${tenantId} is not a Certifier`,
     code: "OrganizationIsNotACertifier",
     title: "Organization is not a certifier",
   });
