@@ -12,6 +12,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { AttributeService } from "../services/attributeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { getCertifiedAttributeErrorMapper } from "../utils/errorMappers.js";
 
 const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
@@ -41,7 +42,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getCertifiedAttributeErrorMapper,
           ctx,
           `Error retrieving certified attribute with id ${req.params.attributeId}`
         );

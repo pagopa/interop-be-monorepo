@@ -12,7 +12,8 @@ export function toM2MGatewayApiCertifiedAttribute(
 ): m2mGatewayApi.CertifiedAttribute {
   assertAttributeKindIs(
     attribute,
-    attributeRegistryApi.AttributeKind.Values.CERTIFIED
+    attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+    "certifiedAttributeNotFound"
   );
   assertAttributeOiginAndCodeAreDefined(attribute);
 
