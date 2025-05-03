@@ -69,8 +69,8 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([{ invalidParam: "invalidValue" }, {}, { rejectionReason: 5 }])(
-    "Should return 400 if passed an invalid body",
+  it.each([{ invalidParam: "invalidValue" }, {}, { rejectionReason: 42 }])(
+    "Should return 400 if passed an invalid body: %s",
     async (body) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(

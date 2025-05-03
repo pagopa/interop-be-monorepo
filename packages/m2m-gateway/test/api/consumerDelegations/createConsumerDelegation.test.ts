@@ -68,15 +68,18 @@ describe("POST /consumerDelegations router test", () => {
     { delegateId: mockDelegationSeed.delegateId },
     { eserviceId: "invalidId" },
     { delegateId: "invalidId" },
-  ])("Should return 400 if passed an invalid delegation seed", async (body) => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      body as unknown as m2mGatewayApi.DelegationSeed
-    );
+  ])(
+    "Should return 400 if passed an invalid delegation seed: %s",
+    async (body) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        body as unknown as m2mGatewayApi.DelegationSeed
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([
     missingMetadata(),

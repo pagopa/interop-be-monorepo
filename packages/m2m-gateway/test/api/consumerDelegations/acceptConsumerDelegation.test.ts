@@ -59,30 +59,14 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 500 in case of missingMetadata error", async () => {
+  it.each([
+    missingMetadata(),
+    unexpectedDelegationKind(mockApiDelegation.data),
+    resourcePollingTimeout(3),
+  ])("Should return 500 in case of $code error", async (error) => {
     mockDelegationService.acceptConsumerDelegation = vi
       .fn()
-      .mockRejectedValue(missingMetadata());
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiDelegation.data.id);
-
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of unexpectedDelegationKind error", async () => {
-    mockDelegationService.acceptConsumerDelegation = vi
-      .fn()
-      .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation.data));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiDelegation.data.id);
-
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of resourcePollingTimeout error", async () => {
-    mockDelegationService.acceptConsumerDelegation = vi
-      .fn()
-      .mockRejectedValue(resourcePollingTimeout(3));
+      .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockApiDelegation.data.id);
 
