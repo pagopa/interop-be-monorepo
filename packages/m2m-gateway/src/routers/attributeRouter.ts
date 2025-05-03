@@ -24,6 +24,7 @@ const attributeRouter = (
   attributeRouter
     .get("/certifiedAttributes/:attributeId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
         return res.status(501).send();
       } catch (error) {
