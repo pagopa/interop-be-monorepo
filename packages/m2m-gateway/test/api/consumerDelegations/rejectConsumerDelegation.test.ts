@@ -14,30 +14,36 @@ import {
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
 import { getMockedApiDelegation } from "../../mockUtils.js";
 
-describe("POST /consumerDelegations/:delegationId/accept router test", () => {
+describe("POST /consumerDelegations/:delegationId/reject router test", () => {
   const mockApiDelegation = getMockedApiDelegation({
     kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-    state: delegationApi.DelegationState.Values.ACTIVE,
+    state: delegationApi.DelegationState.Values.REJECTED,
   });
   const mockM2MDelegationResponse: m2mGatewayApi.ConsumerDelegation =
     toM2MGatewayApiConsumerDelegation(mockApiDelegation.data);
 
-  const makeRequest = async (token: string, delegationId: string) =>
+  const makeRequest = async (
+    token: string,
+    delegationId: string,
+    body: m2mGatewayApi.DelegationRejection
+  ) =>
     request(api)
-      .post(`${appBasePath}/consumerDelegations/${delegationId}/accept`)
+      .post(`${appBasePath}/consumerDelegations/${delegationId}/reject`)
       .set("Authorization", `Bearer ${token}`)
-      .send();
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 and perform API clients calls for user with role %s",
     async (role) => {
-      mockDelegationService.acceptConsumerDelegation = vi
+      mockDelegationService.rejectConsumerDelegation = vi
         .fn()
         .mockResolvedValue(mockM2MDelegationResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockApiDelegation.data.id);
+      const res = await makeRequest(token, mockApiDelegation.data.id, {
+        rejectionReason: "test reason",
+      });
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MDelegationResponse);
@@ -48,27 +54,47 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockApiDelegation.data.id);
+    const res = await makeRequest(token, mockApiDelegation.data.id, {
+      rejectionReason: "test reason",
+    });
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 if passed an invalid delegation id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid-delegation-id");
+    const res = await makeRequest(token, "invalid-delegation-id", {
+      rejectionReason: "test reason",
+    });
 
     expect(res.status).toBe(400);
   });
+
+  it.each([{ invalidParam: "invalidValue" }, {}, { rejectionReason: 42 }])(
+    "Should return 400 if passed an invalid body: %s",
+    async (body) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockApiDelegation.data.id,
+        body as unknown as m2mGatewayApi.DelegationRejection
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([
     missingMetadata(),
     unexpectedDelegationKind(mockApiDelegation.data),
     resourcePollingTimeout(3),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockDelegationService.acceptConsumerDelegation = vi
+    mockDelegationService.rejectConsumerDelegation = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiDelegation.data.id);
+    const res = await makeRequest(token, mockApiDelegation.data.id, {
+      rejectionReason: "test reason",
+    });
 
     expect(res.status).toBe(500);
   });

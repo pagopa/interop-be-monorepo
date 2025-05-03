@@ -297,8 +297,12 @@ export function delegationServiceBuilder(
     delegationId: DelegationId,
     rejectionReason: string,
     kind: DelegationKind,
-    { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-  ): Promise<void> {
+    {
+      logger,
+      correlationId,
+      authData,
+    }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  ): Promise<WithMetadata<Delegation>> {
     logger.info(
       `Rejecting delegation ${delegationId} by delegate ${authData.organizationId}`
     );
@@ -330,7 +334,7 @@ export function delegationServiceBuilder(
       },
     };
 
-    await repository.createEvent(
+    const event = await repository.createEvent(
       match(kind)
         .with(delegationKind.delegatedProducer, () =>
           toCreateEventProducerDelegationRejected(
@@ -346,6 +350,13 @@ export function delegationServiceBuilder(
         )
         .exhaustive()
     );
+
+    return {
+      data: rejectedDelegation,
+      metadata: {
+        version: event.newVersion,
+      },
+    };
   }
 
   async function revokeDelegation(
@@ -571,8 +582,8 @@ export function delegationServiceBuilder(
       delegationId: DelegationId,
       rejectionReason: string,
       ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
-      await rejectDelegation(
+    ): Promise<WithMetadata<Delegation>> {
+      return rejectDelegation(
         delegationId,
         rejectionReason,
         delegationKind.delegatedProducer,
@@ -582,9 +593,9 @@ export function delegationServiceBuilder(
     async rejectConsumerDelegation(
       delegationId: DelegationId,
       rejectionReason: string,
-      ctx: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
-      await rejectDelegation(
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Delegation>> {
+      return rejectDelegation(
         delegationId,
         rejectionReason,
         delegationKind.delegatedConsumer,

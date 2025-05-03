@@ -356,7 +356,7 @@ export function delegationServiceBuilder(
       rejectBody: bffApi.RejectDelegationPayload,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      return delegationClients.producer.rejectProducerDelegation(rejectBody, {
+      await delegationClients.producer.rejectProducerDelegation(rejectBody, {
         params: {
           delegationId,
         },
@@ -368,7 +368,7 @@ export function delegationServiceBuilder(
       rejectBody: bffApi.RejectDelegationPayload,
       { headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      return delegationClients.consumer.rejectConsumerDelegation(rejectBody, {
+      await delegationClients.consumer.rejectConsumerDelegation(rejectBody, {
         params: {
           delegationId,
         },
