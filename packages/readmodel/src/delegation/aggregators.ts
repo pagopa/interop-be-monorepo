@@ -222,15 +222,15 @@ export const toDelegationAggregatorArray = (
     }
 
     const delegationStamp = row.delegationStamp;
+    const delegationStampPK = delegationStamp
+      ? makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+      : undefined;
     if (
       delegationStamp &&
-      !delegationStampsIdSet.has(
-        makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
-      )
+      delegationStampPK &&
+      !delegationStampsIdSet.has(delegationStampPK)
     ) {
-      delegationStampsIdSet.add(
-        makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
-      );
+      delegationStampsIdSet.add(delegationStampPK);
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(delegationStamp);
     }

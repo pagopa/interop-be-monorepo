@@ -715,7 +715,7 @@ export function authorizationServiceBuilder(
         correlationId,
       });
 
-      const jwk = createJWK(keySeed.key);
+      const jwk = createJWK({ pemKeyBase64: keySeed.key });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -784,7 +784,9 @@ export function authorizationServiceBuilder(
         throw clientKeyNotFound(kid, clientId);
       }
 
-      const jwk: JsonWebKey = createJWK(key.encodedPem);
+      const jwk: JsonWebKey = createJWK({
+        pemKeyBase64: key.encodedPem,
+      });
       const jwkKey = authorizationApi.JWKKey.parse({
         ...jwk,
         kid: key.kid,
@@ -1071,7 +1073,7 @@ export function authorizationServiceBuilder(
         correlationId,
       });
 
-      const jwk = createJWK(keySeed.key);
+      const jwk = createJWK({ pemKeyBase64: keySeed.key });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
