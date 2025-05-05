@@ -50,7 +50,7 @@ import {
   riskAnalysisValidationFailed,
   duplicatedPurposeTitle,
   organizationIsNotTheDelegatedConsumer,
-  puroposeDelegationNotFound,
+  purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -874,7 +874,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
   });
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updatePurpose, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updatePurpose, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
 
     const delegatePurpose: Purpose = {
@@ -894,13 +894,13 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      puroposeDelegationNotFound(
+      purposeDelegationNotFound(
         delegatePurpose.id,
         delegatePurpose.delegationId!
       )
     );
   });
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
 
     const delegatePurpose: Purpose = {
@@ -920,7 +920,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      puroposeDelegationNotFound(
+      purposeDelegationNotFound(
         delegatePurpose.id,
         delegatePurpose.delegationId!
       )
