@@ -6,6 +6,7 @@ import {
   FileManager,
   InternalAuthData,
   Logger,
+  M2MAdminAuthData,
   M2MAuthData,
   PDFGenerator,
   RiskAnalysisFormRules,
@@ -70,7 +71,7 @@ import {
   tenantKindNotFound,
   unchangedDailyCalls,
   organizationNotAllowed,
-  puroposeDelegationNotFound,
+  purposeDelegationNotFound,
   purposeCannotBeUpdated,
 } from "../model/domain/errors.js";
 import {
@@ -246,7 +247,7 @@ export const retrievePurposeDelegation = async (
       purpose.delegationId
     );
   if (!delegation) {
-    throw puroposeDelegationNotFound(purpose.id, purpose.delegationId);
+    throw purposeDelegationNotFound(purpose.id, purpose.delegationId);
   }
   return delegation;
 };
@@ -263,8 +264,13 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -288,7 +294,10 @@ export function purposeServiceBuilder(
           )
         : true;
 
-      return { purpose: purpose.data, isRiskAnalysisValid };
+      return {
+        data: { purpose: purpose.data, isRiskAnalysisValid },
+        metadata: purpose.metadata,
+      };
     },
     async getRiskAnalysisDocument({
       purposeId,
@@ -505,7 +514,7 @@ export function purposeServiceBuilder(
         !purpose.data.delegationId ||
         purpose.data.delegationId !== delegationId
       ) {
-        throw puroposeDelegationNotFound(purposeId, delegationId);
+        throw purposeDelegationNotFound(purposeId, delegationId);
       }
 
       await repository.createEvent(
@@ -596,7 +605,7 @@ export function purposeServiceBuilder(
         !purpose.data.delegationId ||
         purpose.data.delegationId !== delegationId
       ) {
-        throw puroposeDelegationNotFound(purposeId, delegationId);
+        throw purposeDelegationNotFound(purposeId, delegationId);
       }
 
       const purposeWithoutWaitingForApproval: Purpose = {
@@ -696,7 +705,10 @@ export function purposeServiceBuilder(
     async getPurposes(
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Purpose>> {
       logger.info(
         `Getting Purposes with filters: ${JSON.stringify(
@@ -1074,8 +1086,14 @@ export function purposeServiceBuilder(
     },
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(
         `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
       );
@@ -1130,10 +1148,15 @@ export function purposeServiceBuilder(
         freeOfChargeReason: purposeSeed.freeOfChargeReason,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventPurposeAdded(purpose, correlationId)
       );
-      return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
+      return {
+        data: { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined },
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async createReversePurpose(
       seed: purposeApi.EServicePurposeSeed,
