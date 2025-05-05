@@ -1570,7 +1570,7 @@ export const clientKeyInReadmodelClient = readmodelClient.table(
   {
     metadataVersion: integer("metadata_version").notNull(),
     clientId: uuid("client_id").notNull(),
-    userId: uuid("user_id").notNull(),
+    userId: uuid("user_id"),
     kid: varchar().notNull(),
     name: varchar().notNull(),
     encodedPem: varchar("encoded_pem").notNull(),

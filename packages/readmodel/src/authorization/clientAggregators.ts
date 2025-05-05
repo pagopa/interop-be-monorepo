@@ -1,6 +1,7 @@
 import {
   Client,
   ClientKind,
+  genericInternalError,
   Key,
   KeyUse,
   PurposeId,
@@ -28,15 +29,20 @@ export const aggregateClient = ({
   const purposes: PurposeId[] = purposesSQL.map((p) =>
     unsafeBrandId(p.purposeId)
   );
-  const keys: Key[] = keysSQL.map((keySQL) => ({
-    userId: unsafeBrandId(keySQL.userId),
-    kid: keySQL.kid,
-    name: keySQL.name,
-    encodedPem: keySQL.encodedPem,
-    algorithm: keySQL.algorithm,
-    use: KeyUse.parse(keySQL.use),
-    createdAt: stringToDate(keySQL.createdAt),
-  }));
+  const keys: Key[] = keysSQL.map((keySQL) => {
+    if (keySQL.userId === null) {
+      throw genericInternalError("UserId can't be null in key");
+    }
+    return {
+      userId: unsafeBrandId(keySQL.userId),
+      kid: keySQL.kid,
+      name: keySQL.name,
+      encodedPem: keySQL.encodedPem,
+      algorithm: keySQL.algorithm,
+      use: KeyUse.parse(keySQL.use),
+      createdAt: stringToDate(keySQL.createdAt),
+    };
+  });
 
   return {
     data: {

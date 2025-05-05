@@ -54,7 +54,7 @@ export function readModelServiceBuilderSQL({
   return {
     async getDelegationById(
       id: DelegationId,
-      kind: DelegationKind | undefined = undefined
+      kind?: DelegationKind
     ): Promise<WithMetadata<Delegation> | undefined> {
       return delegationReadModelServiceSQL.getDelegationByFilter(
         and(
@@ -155,7 +155,6 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset)
         .as("subquery");
-      // TODO: missing orderBy. Mongo not sorting
 
       const queryResult = await readModelDB
         .select({

@@ -87,6 +87,7 @@ import {
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
+  PurposeV2,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -839,12 +840,8 @@ export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
   } else {
     return {
       ...tenant,
-      attributes: [...tenant.attributes].sort(
-        sortBy<TenantAttribute>((att) => att.id)
-      ),
-      features: [...tenant.features].sort(
-        sortBy<TenantFeature>((feature) => feature.type)
-      ),
+      attributes: [...tenant.attributes].sort(sortBy((att) => att.id)),
+      features: [...tenant.features].sort(sortBy((feature) => feature.type)),
     };
   }
 };
@@ -865,20 +862,96 @@ export const sortAgreement = <
     return {
       ...agreement,
       verifiedAttributes: [...agreement.verifiedAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
+        sortBy((att) => att.id)
       ),
       certifiedAttributes: [...agreement.certifiedAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
+        sortBy((att) => att.id)
       ),
       declaredAttributes: [...agreement.declaredAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
+        sortBy((att) => att.id)
       ),
       consumerDocuments: [...agreement.consumerDocuments].sort(
-        sortBy<AgreementDocument>((doc) => doc.id)
+        sortBy((doc) => doc.id)
       ),
     };
   }
 };
+
+export const sortPurpose = <
+  T extends Purpose | PurposeV2 | WithMetadata<Purpose> | undefined
+>(
+  purpose: T
+): T => {
+  if (!purpose) {
+    return purpose;
+  } else if ("data" in purpose) {
+    return {
+      ...purpose,
+      data: sortPurpose(purpose.data),
+    };
+  } else {
+    return {
+      ...purpose,
+      versions: [...purpose.versions].sort(sortBy((version) => version.id)),
+      ...(purpose.riskAnalysisForm
+        ? {
+            riskAnalysisForm: {
+              ...purpose.riskAnalysisForm,
+              singleAnswers: [...purpose.riskAnalysisForm.singleAnswers].sort(
+                sortBy((answer) => answer.key)
+              ),
+              multiAnswers: [...purpose.riskAnalysisForm.multiAnswers].sort(
+                sortBy((answer) => answer.key)
+              ),
+            },
+          }
+        : {}),
+    };
+  }
+};
+
+export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
+  ...descriptor,
+  // eslint-disable-next-line functional/immutable-data
+  docs: descriptor.docs.sort(sortBy((doc) => doc.id)),
+  attributes: {
+    certified: descriptor.attributes.certified.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy((attr) => attr.id))
+    ),
+    declared: descriptor.attributes.declared.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy((attr) => attr.id))
+    ),
+    verified: descriptor.attributes.verified.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy((attr) => attr.id))
+    ),
+  },
+});
+
+export const sortEService = <
+  T extends EService | WithMetadata<EService> | undefined
+>(
+  eservice: T
+): T => {
+  if (!eservice) {
+    return eservice;
+  } else if ("data" in eservice) {
+    return {
+      ...eservice,
+      data: sortEService(eservice.data),
+    };
+  } else {
+    return {
+      ...eservice,
+      descriptors: eservice.descriptors.map(sortDescriptor),
+    };
+  }
+};
+
+export const sortEServices = (eservices: EService[]): EService[] =>
+  eservices.map(sortEService);
 
 export const getMockContextInternal = ({
   serviceName,
