@@ -910,6 +910,52 @@ export const sortPurpose = <
   }
 };
 
+export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
+  client: T
+): T => {
+  if (!client) {
+    return client;
+  } else if ("data" in client) {
+    return {
+      ...client,
+      data: sortClient(client.data),
+    };
+  } else {
+    return {
+      ...client,
+      purposes: [...client.purposes].sort(),
+      users: [...client.users].sort(),
+      keys: [...client.keys].sort(
+        sortBy<Key>((k) => k.createdAt.toISOString())
+      ),
+    };
+  }
+};
+
+export const sortProducerKeychain = <
+  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined
+>(
+  producerKeychain: T
+): T => {
+  if (!producerKeychain) {
+    return producerKeychain;
+  } else if ("data" in producerKeychain) {
+    return {
+      ...producerKeychain,
+      data: sortProducerKeychain(producerKeychain.data),
+    };
+  } else {
+    return {
+      ...producerKeychain,
+      eservices: [...producerKeychain.eservices].sort(),
+      users: [...producerKeychain.users].sort(),
+      keys: [...producerKeychain.keys].sort(
+        sortBy<Key>((k) => k.createdAt.toISOString())
+      ),
+    };
+  }
+};
+
 export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
   ...descriptor,
   // eslint-disable-next-line functional/immutable-data
