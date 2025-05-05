@@ -99,7 +99,7 @@ export const interopInternalToken: InteropInternalToken = {
     iat: 0,
     nbf: 0,
     exp: 10,
-    role: "role1",
+    role: "internal",
   },
   serialized: "the-token",
 };

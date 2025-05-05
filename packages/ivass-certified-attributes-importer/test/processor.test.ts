@@ -63,7 +63,7 @@ describe("IVASS Certified Attributes Importer", () => {
       iat: 0,
       nbf: 0,
       exp: 10,
-      role: "role1",
+      role: "internal",
     },
     serialized: "the-token",
   };
