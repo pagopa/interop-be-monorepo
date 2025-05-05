@@ -37,15 +37,15 @@ describe("getProducerKeychainKeys", async () => {
     const keyUserId3: UserId = generateId();
 
     const keyWithUser1: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId3,
     };
     const producerKeychainWithKeyUser: ProducerKeychain = {
@@ -72,15 +72,15 @@ describe("getProducerKeychainKeys", async () => {
     const userId: UserId = generateId();
 
     const keyWithUser1: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId3,
     };
     const producerKeychainWithKeyUser: ProducerKeychain = {
