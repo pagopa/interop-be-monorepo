@@ -3804,6 +3804,7 @@ describe("integration tests V2 events", async () => {
 
       const payload: ClientAdminSetV2 = {
         client: toClientV2(updatedClient),
+        oldAdminId: client.adminId,
         adminId: newAdminId,
       };
 
