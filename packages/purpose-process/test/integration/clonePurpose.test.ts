@@ -670,7 +670,7 @@ describe("clonePurpose", async () => {
       organizationIsNotTheDelegatedConsumer(consumer.id, delegation.id)
     );
   });
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is cloning a purpose created by a delegate in clonePurpose, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is cloning a purpose created by a delegate in clonePurpose, but the delegation cannot be found", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
