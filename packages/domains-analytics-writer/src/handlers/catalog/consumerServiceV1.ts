@@ -9,9 +9,6 @@ import {
   Descriptor,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import // splitDescriptorIntoObjectsSQL,
-// splitEserviceIntoObjectsSQL,
-"pagopa-interop-readmodel";
 import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
@@ -20,7 +17,6 @@ import {
   EServiceDescriptorSQL,
   EServiceDescriptorTemplateVersionRefSQL,
   EServiceItemsSQL,
-  // EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   splitDescriptorIntoObjectsSQL,
@@ -31,7 +27,7 @@ import { DBContext } from "../../db/db.js";
 
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
-  dbContext: DBContext
+  dbContext: DBContext,
 ): Promise<void> {
   const catalogService = catalogServiceBuilder(dbContext);
 
@@ -68,16 +64,16 @@ export async function handleCatalogMessageV1(
             "EServiceUpdated",
             "EServiceRiskAnalysisAdded",
             "MovedAttributesFromEserviceToDescriptors",
-            "EServiceRiskAnalysisUpdated"
+            "EServiceRiskAnalysisUpdated",
           ),
         },
         (msg) => {
           const splitResult: EServiceItemsSQL = splitEserviceIntoObjectsSQL(
             EService.parse(msg.data.eservice),
-            msg.version
+            msg.version,
           );
           upsertEServiceBatch.push(splitResult);
-        }
+        },
       )
       .with({ type: "EServiceDeleted" }, (msg) => {
         deleteEServiceBatch.push(msg.data.eserviceId);
@@ -120,7 +116,7 @@ export async function handleCatalogMessageV1(
           const splitResult = splitDescriptorIntoObjectsSQL(
             unsafeBrandId<EServiceId>(msg.data.eserviceId),
             descriptor,
-            msg.version
+            msg.version,
           );
 
           upsertDescriptorBatch.push({
@@ -128,7 +124,7 @@ export async function handleCatalogMessageV1(
             eserviceId: unsafeBrandId(splitResult.descriptorSQL.eserviceId),
             metadataVersion: splitResult.descriptorSQL.metadataVersion,
           });
-        }
+        },
       )
       .exhaustive();
   }
@@ -142,31 +138,31 @@ export async function handleCatalogMessageV1(
   if (deleteDescriptorBatch.length > 0) {
     await catalogService.deleteBatchDescriptor(
       deleteDescriptorBatch,
-      dbContext
+      dbContext,
     );
   }
   if (upsertEServiceDocumentBatch.length > 0) {
     await catalogService.upsertBatchEServiceDocument(
       upsertEServiceDocumentBatch,
-      dbContext
+      dbContext,
     );
   }
   if (deleteEServiceDocumentBatch.length > 0) {
     await catalogService.deleteBatchEServiceDocument(
       deleteEServiceDocumentBatch,
-      dbContext
+      dbContext,
     );
   }
   if (deleteRiskAnalysisBatch.length > 0) {
     await catalogService.deleteBatchEserviceRiskAnalysis(
       deleteRiskAnalysisBatch,
-      dbContext
+      dbContext,
     );
   }
   if (upsertDescriptorBatch.length > 0) {
     await catalogService.upsertBatchEServiceDescriptor(
       upsertDescriptorBatch,
-      dbContext
+      dbContext,
     );
   }
 }

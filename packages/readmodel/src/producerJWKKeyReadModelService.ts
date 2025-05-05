@@ -24,31 +24,39 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           tx,
           producerJwkKeyInReadmodelProducerJwkKey,
           metadataVersion,
-          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+          and(
+            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid),
+            eq(
+              producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+              jwkKey.producerKeychainId
+            )
+          )
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(producerJwkKeyInReadmodelProducerJwkKey)
-            .where(
-              and(
-                eq(
-                  producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-                  jwkKey.producerKeychainId
-                ),
-                eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
-              )
-            );
+        if (!shouldUpsert) {
+          return;
+        }
 
-          const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
-            jwkKey,
-            metadataVersion
+        await tx
+          .delete(producerJwkKeyInReadmodelProducerJwkKey)
+          .where(
+            and(
+              eq(
+                producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+                jwkKey.producerKeychainId
+              ),
+              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+            )
           );
 
-          await tx
-            .insert(producerJwkKeyInReadmodelProducerJwkKey)
-            .values(producerJWKKeySQL);
-        }
+        const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+          jwkKey,
+          metadataVersion
+        );
+
+        await tx
+          .insert(producerJwkKeyInReadmodelProducerJwkKey)
+          .values(producerJWKKeySQL);
       });
     },
     async getProducerJWKKeyByProducerKeychainIdAndKid(

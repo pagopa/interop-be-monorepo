@@ -11,7 +11,7 @@ COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
 
-COPY ./packages/tenant-readmodel-writer/package.json /app/packages/tenant-readmodel-writer/package.json
+COPY ./packages/tenant-readmodel-writer-sql/package.json /app/packages/tenant-readmodel-writer-sql/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
@@ -22,7 +22,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY tsconfig.json /app/
 COPY turbo.json /app/
-COPY ./packages/tenant-readmodel-writer /app/packages/tenant-readmodel-writer
+COPY ./packages/tenant-readmodel-writer-sql /app/packages/tenant-readmodel-writer-sql
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/readmodel /app/packages/readmodel
@@ -34,21 +34,21 @@ RUN pnpm build && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \
   cp -a --parents -t /out \
-  node_modules packages/tenant-readmodel-writer/node_modules \
-  package*.json packages/tenant-readmodel-writer/package*.json \
+  node_modules packages/tenant-readmodel-writer-sql/node_modules \
+  package*.json packages/tenant-readmodel-writer-sql/package*.json \
   packages/commons \
   packages/models \
   packages/readmodel \
   packages/readmodel-models \
   packages/kafka-iam-auth \
-  packages/tenant-readmodel-writer/dist && \
+  packages/tenant-readmodel-writer-sql/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
 FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
 
 COPY --from=build /out /app
 
-WORKDIR /app/packages/tenant-readmodel-writer
+WORKDIR /app/packages/tenant-readmodel-writer-sql
 EXPOSE 3000
 
 CMD [ "node", "." ]

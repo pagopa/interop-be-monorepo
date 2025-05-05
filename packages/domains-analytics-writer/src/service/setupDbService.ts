@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
-import { DeletingDbTable } from "../model/db.js";
+import { AttributeDbtable, DeletingDbTable } from "../model/db.js";
 import { setupStagingTablesError } from "../model/errors.js";
 
 export interface SetupDbConfig {
@@ -10,20 +10,20 @@ export interface SetupDbConfig {
 
 export function setupDbServiceBuilder(
   conn: DBConnection,
-  config: SetupDbConfig
+  config: SetupDbConfig,
 ) {
   return {
-    async setupStagingTables(tableNames: string[]): Promise<void> {
+    async setupStagingTables(tableNames: AttributeDbtable[]): Promise<void> {
       try {
         await Promise.all(
           tableNames.map((tableName) => {
             const query = `
-              CREATE TEMPORARY TABLE IF NOT EXISTS ${tableName}${config.mergeTableSuffix} (
+              CREATE TEMPORARY TABLE IF NOT EXISTS ${tableName}_${config.mergeTableSuffix} (
                 LIKE ${config.dbSchemaName}.${tableName}
               );
             `;
             return conn.query(query);
-          })
+          }),
         );
       } catch (error: unknown) {
         throw setupStagingTablesError(error);
@@ -31,7 +31,7 @@ export function setupDbServiceBuilder(
     },
 
     async setupStagingDeletingByIdTables(
-      deletingTableName: DeletingDbTable[]
+      deletingTableName: DeletingDbTable[],
     ): Promise<void> {
       try {
         await Promise.all(
@@ -43,7 +43,7 @@ export function setupDbServiceBuilder(
             );
           `;
             return conn.query(query);
-          })
+          }),
         );
       } catch (error: unknown) {
         throw setupStagingTablesError(error);

@@ -80,17 +80,27 @@ import {
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
-  DescriptorRejectionReason,
   AgreementDocument,
+  DescriptorRejectionReason,
   AgreementStamp,
+  ClientJWKKey,
+  ProducerJWKKey,
+  ProducerKeychainId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
   AppContext,
-  AuthData,
   dateToSeconds,
   genericLogger,
-  userRoles,
+  keyToClientJWKKey,
+  keyToProducerJWKKey,
+  InternalAuthData,
+  M2MAuthData,
+  MaintenanceAuthData,
+  systemRole,
+  UIAuthData,
+  UserRole,
+  userRole,
   WithLogger,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -394,10 +404,47 @@ export const getMockKey = (): Key => ({
   use: keyUse.sig,
 });
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockClientJWKKey = (clientId?: ClientId): ClientJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToClientJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    clientId || generateId()
+  );
+};
+
+export const getMockProducerJWKKey = (
+  producerKeychainId?: ProducerKeychainId
+): ProducerJWKKey => {
+  const key = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+
+  const base64Key = Buffer.from(
+    key.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return keyToProducerJWKKey(
+    { ...getMockKey(), encodedPem: base64Key },
+    producerKeychainId || generateId()
+  );
+};
+
+export const getMockAuthData = (
+  organizationId?: TenantId,
+  userId?: UserId,
+  userRoles?: UserRole[]
+): UIAuthData => ({
+  systemRole: undefined,
   organizationId: organizationId || generateId(),
-  userId: generateId(),
-  userRoles: [userRoles.ADMIN_ROLE],
+  userId: userId || generateId(),
+  userRoles: userRoles || [userRole.ADMIN_ROLE],
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -736,7 +783,7 @@ export const getMockEServiceTemplate = (
   id: eserviceTemplateId,
   creatorId,
   name: "eService template name",
-  intendedTarget: "eService template inteded target",
+  intendedTarget: "eService template intended target",
   description: "eService template description",
   createdAt: new Date(),
   technology: technology.rest,
@@ -750,9 +797,9 @@ export const getMockContext = ({
   authData,
   serviceName,
 }: {
-  authData?: AuthData;
+  authData?: UIAuthData;
   serviceName?: string;
-}): WithLogger<AppContext> => ({
+}): WithLogger<AppContext<UIAuthData>> => ({
   authData: authData || getMockAuthData(),
   serviceName: serviceName || "test",
   correlationId: generateId(),
@@ -829,3 +876,51 @@ export const sortAgreement = <
     };
   }
 };
+
+export const getMockContextInternal = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<InternalAuthData>> => ({
+  authData: {
+    systemRole: systemRole.INTERNAL_ROLE,
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+  spanId: generateId(),
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextMaintenance = ({
+  serviceName,
+}: {
+  serviceName?: string;
+}): WithLogger<AppContext<MaintenanceAuthData>> => ({
+  authData: {
+    systemRole: systemRole.MAINTENANCE_ROLE,
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  logger: genericLogger,
+  spanId: generateId(),
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextM2M = ({
+  organizationId,
+  serviceName,
+}: {
+  organizationId?: TenantId;
+  serviceName?: string;
+}): WithLogger<AppContext<M2MAuthData>> => ({
+  authData: {
+    systemRole: systemRole.M2M_ROLE,
+    organizationId: organizationId || generateId(),
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
+  requestTimestamp: Date.now(),
+});
