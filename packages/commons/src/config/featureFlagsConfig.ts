@@ -1,4 +1,4 @@
-import { notFound } from "pagopa-interop-models";
+import { featureFlagNotEnabled } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const FeatureFlagSignalhubWhitelistConfig = z
@@ -46,12 +46,8 @@ type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
 export type FeatureFlagKeys = keyof Pick<
   FeatureFlags,
   {
-    [K in keyof (FeatureFlagSignalhubWhitelistConfig &
-      FeatureFlagAgreementApprovalPolicyUpdateConfig)]: K extends `featureFlag${string}`
-      ? K
-      : never;
-  }[keyof (FeatureFlagSignalhubWhitelistConfig &
-    FeatureFlagAgreementApprovalPolicyUpdateConfig)]
+    [K in keyof FeatureFlags]: K extends `featureFlag${string}` ? K : never;
+  }[keyof FeatureFlags]
 >;
 
 /**
@@ -82,6 +78,6 @@ export const assertFeatureFlagEnabled = <
   featureFlagName: K extends FeatureFlagKeys ? K : never
 ): void => {
   if (!isFeatureFlagEnabled(config, featureFlagName)) {
-    throw notFound();
+    throw featureFlagNotEnabled(featureFlagName);
   }
 };

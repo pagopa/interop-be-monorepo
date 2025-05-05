@@ -192,7 +192,7 @@ const errorCodes = {
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
   notAllowedMultipleKeysException: "10008",
-  notFound: "10009",
+  featureFlagNotEnabled: "10009",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -433,10 +433,12 @@ export function invalidKey(
   });
 }
 
-export function notFound(): ApiError<CommonErrorCodes> {
+export function featureFlagNotEnabled(
+  featureFlag: string
+): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Resource not found`,
-    code: "notFound",
-    title: "Not Found",
+    detail: `Feature flag ${featureFlag} is not enabled`,
+    code: "featureFlagNotEnabled",
+    title: "Feature flag not enabled",
   });
 }
