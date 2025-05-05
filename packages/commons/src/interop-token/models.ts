@@ -88,7 +88,7 @@ export type InteropApiToken = {
   ========================================== */
 export type InteropJwtInternalPayload = InteropJwtCommonPayload & {
   sub: string;
-  role: string;
+  role: Extract<SystemRole, "internal">;
 };
 
 export type InteropInternalToken = {
