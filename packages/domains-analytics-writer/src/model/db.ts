@@ -10,7 +10,6 @@ export const CatalogDbTable = {
     "eservice_descriptor_template_version_ref",
   eservice_risk_analysis: "eservice_risk_analysis",
   eservice_risk_analysis_answer: "eservice_risk_analysis_answer",
-  eservice_template_ref: "eservice_template_ref",
 } as const;
 
 export type CatalogDbTable =

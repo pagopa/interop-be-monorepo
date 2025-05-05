@@ -43,7 +43,6 @@ await retryConnection(
     await setupDbService.setupStagingTables([
       AttributeDbtable.attribute,
       CatalogDbTable.eservice,
-      CatalogDbTable.eservice_template_ref,
       CatalogDbTable.eservice_descriptor,
       CatalogDbTable.eservice_descriptor_template_version_ref,
       CatalogDbTable.eservice_descriptor_rejection_reason,
@@ -58,7 +57,7 @@ await retryConnection(
       DeletingDbTable.catalog_deleting_table,
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -69,7 +68,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -86,5 +85,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
 );

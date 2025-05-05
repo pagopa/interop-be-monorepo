@@ -32,7 +32,7 @@ export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("analyticsSQLDbConfig")
+  inject("analyticsSQLDbConfig"),
 );
 const connection = await analyticsPostgresDB.connect();
 
@@ -49,7 +49,6 @@ await retryConnection(
     await setupDbServiceBuilder(db.conn, config).setupStagingTables([
       AttributeDbtable.attribute,
       CatalogDbTable.eservice,
-      CatalogDbTable.eservice_template_ref,
       CatalogDbTable.eservice_descriptor,
       CatalogDbTable.eservice_descriptor_template_version_ref,
       CatalogDbTable.eservice_descriptor_rejection_reason,
@@ -63,10 +62,10 @@ await retryConnection(
       [
         DeletingDbTable.catalog_deleting_table,
         DeletingDbTable.attribute_deleting_table,
-      ]
+      ],
     );
   },
-  genericLogger
+  genericLogger,
 );
 
 export const attributeService = attributeServiceBuilder(dbContext);
@@ -75,7 +74,7 @@ export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[]
+  tables: string[],
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename
@@ -122,7 +121,7 @@ export const mockCatalogBatch: Batch = {
 
 export async function getEserviceFromDb(
   serviceId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.one(`SELECT * FROM domains.eservice WHERE id = $1`, [
     serviceId,
@@ -131,24 +130,24 @@ export async function getEserviceFromDb(
 
 export async function getDescriptorFromDb(
   descriptorId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor WHERE id = $1`,
-    [descriptorId]
+    [descriptorId],
   );
 }
 
 export async function getAttributeFromDb(
   id: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<AttributeSchema[] | null> {
   return db.conn.any(`SELECT * FROM domains.attribute WHERE id = $1`, [id]);
 }
 
 export async function getDescriptorAttributeFromDb(
   id: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(`SELECT * FROM domains.eservice_descriptor_attribute `, [
     id,
@@ -157,78 +156,70 @@ export async function getDescriptorAttributeFromDb(
 
 export async function getDocumentFromDb(
   documentId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_document WHERE id = $1`,
-    [documentId]
+    [documentId],
   );
 }
 
 export async function getInterfaceFromDb(
   interfaceId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_interface WHERE id = $1`,
-    [interfaceId]
+    [interfaceId],
   );
 }
 
 export async function getRiskAnalysisAnswerFromDb(
   riskAnalysisId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_risk_analysis_answer WHERE id = $1`,
-    [riskAnalysisId]
+    [riskAnalysisId],
   );
 }
 
 export async function getRiskAnalysisFromDb(
   riskAnalysisId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_risk_analysis WHERE id = $1`,
-    [riskAnalysisId]
+    [riskAnalysisId],
   );
 }
 
 export async function getDescriptorRejectionReasonFromDb(
   descriptorId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_rejection_reason WHERE descriptor_id = $1`,
-    [descriptorId]
+    [descriptorId],
   );
 }
 export async function getDescriptorTemplateVersionFromDb(
   eserviceTemplateVersionId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_template_version_ref WHERE eservice_template_version_id = $1`,
-    [eserviceTemplateVersionId]
+    [eserviceTemplateVersionId],
   );
 }
-export async function getEserviceTemplateRefFromDb(
-  eserviceTemplateId: string,
-  db: DBContext
-): Promise<any> {
-  return db.conn.any(
-    `SELECT * FROM domains.eservice_template_ref WHERE eservice_template_id = $1`,
-    [eserviceTemplateId]
-  );
-}
+
 export async function getEserviceDescriptorDocumentFromDb(
   descriptorId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_document WHERE descriptor_id = $1`,
-    [descriptorId]
+    [descriptorId],
   );
 }
 
@@ -322,13 +313,6 @@ export const sampleRiskAnswer = {
   value: "someValue",
 };
 
-export const sampleTemplateRef = {
-  eserviceTemplateId: generateId(),
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  instance_label: "Sample Template",
-};
-
 export const sampleAttribute = {
   attributeId: generateId(),
   eserviceId: unsafeBrandId<EServiceId>(eserviceId),
@@ -360,7 +344,6 @@ export const sampleTemplateVersionRef = {
 
 export const eserviceItem = {
   eserviceSQL,
-  templateRefSQL: [sampleTemplateRef],
   riskAnalysesSQL: [riskAnalysisSQL],
   riskAnalysisAnswersSQL: [sampleRiskAnswer],
   descriptorsSQL: [descriptorSQL],
@@ -375,7 +358,6 @@ export async function resetCatalogTables(dbContext: any): Promise<void> {
   const tables = [
     CatalogDbTable.eservice,
     CatalogDbTable.eservice_descriptor,
-    CatalogDbTable.eservice_template_ref,
     CatalogDbTable.eservice_descriptor_document,
     CatalogDbTable.eservice_descriptor_interface,
     CatalogDbTable.eservice_risk_analysis,
@@ -386,7 +368,6 @@ export async function resetCatalogTables(dbContext: any): Promise<void> {
 export function createBaseEserviceItem(overrides?: any): any {
   return {
     eserviceSQL: overrides ? { ...overrides } : eserviceSQL,
-    templateRefSQL: [],
     riskAnalysesSQL: [],
     riskAnalysisAnswersSQL: [],
     descriptorsSQL: [],
