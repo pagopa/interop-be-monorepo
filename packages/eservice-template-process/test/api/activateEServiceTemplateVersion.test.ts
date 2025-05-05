@@ -111,4 +111,10 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/activate",
     );
     expect(res.status).toBe(400);
   });
+
+  it("Should return 400 if passed a not compliant query params", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "111", "111");
+    expect(res.status).toBe(400);
+  });
 });

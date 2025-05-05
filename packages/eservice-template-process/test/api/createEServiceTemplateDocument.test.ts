@@ -129,4 +129,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents"
     );
     expect(res.status).toBe(409);
   });
+
+  it("Should return 400 if passed a not compliant body", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      {} as eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed
+    );
+    expect(res.status).toBe(400);
+  });
 });
