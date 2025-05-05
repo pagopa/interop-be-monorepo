@@ -5,7 +5,8 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "echo \"No test specified\"",
+    "test:api": "vitest --config vitest.api.config.ts",
+    "test:integration": "vitest --config vitest.integration.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
@@ -24,9 +25,13 @@
     "@types/multer": "1.4.11",
     "@types/node": "20.14.6",
     "@types/qs": "6.9.15",
+    "@types/supertest": "6.0.2",
+    "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
+    "supertest": "7.0.0",
     "tsx": "4.19.1",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "vitest": "1.6.0"
   },
   "dependencies": {
     "@zodios/core": "10.9.6",
