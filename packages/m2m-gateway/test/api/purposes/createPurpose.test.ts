@@ -28,7 +28,7 @@ describe("POST /purposes router test", () => {
 
   const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MPurpose(mockPurpose.data);
 
-  const makeRequest = async (token: string, body: Record<string, unknown>) =>
+  const makeRequest = async (token: string, body: m2mGatewayApi.PurposeSeed) =>
     request(api)
       .post(`${appBasePath}/purposes`)
       .set("Authorization", `Bearer ${token}`)
@@ -60,9 +60,12 @@ describe("POST /purposes router test", () => {
 
   it("Should return 400 if passed an invalid delegation seed", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, {
+
+    const invalidBody = {
       invalidParam: "invalidValue",
-    });
+    } as unknown as m2mGatewayApi.PurposeSeed;
+
+    const res = await makeRequest(token, invalidBody);
 
     expect(res.status).toBe(400);
   });
