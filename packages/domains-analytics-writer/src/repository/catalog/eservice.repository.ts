@@ -4,11 +4,13 @@ import { EServiceSQL } from "pagopa-interop-readmodel-models";
 import { IMain, ITask } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceMapping,
-  eserviceDeletingSchema,
   eserviceSchema,
 } from "../../model/catalog/eservice.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
@@ -76,12 +78,11 @@ export function eserviceRepository(conn: DBConnection) {
 
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        const mergeQuery = generateMergeQuery(
-          eserviceDeletingSchema,
+        const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           stagingDeletingTable,
-          ["id"]
+          "id"
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

@@ -8,7 +8,10 @@ import {
   AttributeMapping,
   attributeSchema,
 } from "../../model/attribute/attribute.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { DeletingDbTable, AttributeDbtable } from "../../model/db.js";
 
 /* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
@@ -105,13 +108,13 @@ export function attributeRepository(conn: DBConnection) {
 
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        await t.none(`
-          MERGE INTO ${schemaName}.${tableName} AS target
-          USING ${deletingTable} AS src
-          ON target.id = src.id
-          WHEN MATCHED THEN
-            UPDATE SET deleted = src.deleted;
-        `);
+        const mergeQuery = generateMergeDeleteQuery(
+          schemaName,
+          tableName,
+          deletingTable,
+          "id"
+        );
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging deletion flag from ${deletingTable} into ${schemaName}.${tableName}: ${error}`

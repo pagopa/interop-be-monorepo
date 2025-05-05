@@ -4,11 +4,13 @@ import { EServiceDescriptorDocumentSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorDocumentMapping,
-  eserviceDescriptorDocumentDeletingSchema,
   eserviceDescriptorDocumentSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
@@ -127,12 +129,11 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
 
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        const mergeQuery = generateMergeQuery(
-          eserviceDescriptorDocumentDeletingSchema,
+        const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           stagingDeletingTable,
-          ["id"]
+          "id"
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
