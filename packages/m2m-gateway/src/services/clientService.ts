@@ -21,6 +21,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         params: { clientId },
         headers,
       });
+
       return client.data.adminId
         ? unsafeBrandId<UserId>(client.data.adminId)
         : undefined;

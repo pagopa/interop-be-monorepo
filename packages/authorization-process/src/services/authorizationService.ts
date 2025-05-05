@@ -31,6 +31,7 @@ import {
   hasAtLeastOneUserRole,
   InternalAuthData,
   isUiAuthData,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   userRole,
@@ -203,7 +204,10 @@ export function authorizationServiceBuilder(
       }: {
         clientId: ClientId;
       },
-      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
