@@ -3,14 +3,15 @@ import {
   attributeRegistryApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../api/attributeApiConverter.js";
+
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResource,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { toM2MGatewayApiCertifiedAttribute } from "../api/attributeApiConverter.js";
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
 
