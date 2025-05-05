@@ -2,19 +2,11 @@ import { getTableColumns, sql, asc, SQL, Table, Column } from "drizzle-orm";
 import { ListResult } from "pagopa-interop-models";
 
 export const createListResult = <T>(
-  items: Array<{ data: T }>,
-  totalCount?: number
-): ListResult<T> => ({
-  results: items.map((item): T => item.data),
-  totalCount: totalCount ?? 0,
-});
-
-export const createCompactListResult = <T>(
   items: T[],
   totalCount?: number
 ): ListResult<T> => ({
   results: items,
-  totalCount: totalCount ?? 0,
+  totalCount: totalCount ?? items.length,
 });
 
 // see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
