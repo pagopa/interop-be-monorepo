@@ -922,6 +922,49 @@ export const sortAgreements = <
   agreements: T[]
 ): T[] => agreements.map(sortAgreement);
 
+export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
+  ...descriptor,
+  // eslint-disable-next-line functional/immutable-data
+  docs: descriptor.docs.sort(sortBy<Document>((doc) => doc.id)),
+  attributes: {
+    certified: descriptor.attributes.certified.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+    ),
+    declared: descriptor.attributes.declared.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+    ),
+    verified: descriptor.attributes.verified.map((array) =>
+      // eslint-disable-next-line functional/immutable-data
+      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+    ),
+  },
+});
+
+export const sortEService = <
+  T extends EService | WithMetadata<EService> | undefined
+>(
+  eservice: T
+): T => {
+  if (!eservice) {
+    return eservice;
+  } else if ("data" in eservice) {
+    return {
+      ...eservice,
+      data: sortEService(eservice.data),
+    };
+  } else {
+    return {
+      ...eservice,
+      descriptors: eservice.descriptors.map(sortDescriptor),
+    };
+  }
+};
+
+export const sortEServices = (eservices: EService[]): EService[] =>
+  eservices.map(sortEService);
+
 export const getMockContextInternal = ({
   serviceName,
 }: {
