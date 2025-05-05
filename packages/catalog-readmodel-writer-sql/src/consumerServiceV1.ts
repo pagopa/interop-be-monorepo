@@ -11,7 +11,7 @@ import { CustomReadModelService } from "./readModelService.js";
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
-  customReadModeService: CustomReadModelService
+  customReadModelService: CustomReadModelService
 ): Promise<void> {
   await match(message)
     .with(
@@ -30,7 +30,7 @@ export async function handleMessageV1(
           );
         }
 
-        return await customReadModeService.upsertEService(
+        return await customReadModelService.upsertEService(
           fromEServiceV1(eserviceV1),
           msg.version
         );
@@ -39,7 +39,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceWithDescriptorsDeleted" },
       async (msg) =>
-        await customReadModeService.deleteDescriptorById({
+        await customReadModelService.deleteDescriptorById({
           eserviceId: unsafeBrandId(msg.stream_id),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           metadataVersion: msg.version,
@@ -54,7 +54,7 @@ export async function handleMessageV1(
         );
       }
 
-      await customReadModeService.updateDocOrInterface({
+      await customReadModelService.updateDocOrInterface({
         eserviceId: unsafeBrandId(msg.data.eserviceId),
         descriptorId: unsafeBrandId(msg.data.descriptorId),
         docOrInterface: fromDocumentV1(documentV1),
@@ -65,7 +65,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceDeleted" },
       async (msg) =>
-        await customReadModeService.deleteEServiceById(
+        await customReadModelService.deleteEServiceById(
           unsafeBrandId(msg.data.eserviceId),
           msg.version
         )
@@ -80,7 +80,7 @@ export async function handleMessageV1(
       }
 
       if (msg.data.isInterface) {
-        await customReadModeService.upsertInterface({
+        await customReadModelService.upsertInterface({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           descriptorInterface: fromDocumentV1(documentV1),
@@ -88,7 +88,7 @@ export async function handleMessageV1(
           serverUrls: msg.data.serverUrls,
         });
       } else {
-        await customReadModeService.upsertDocument({
+        await customReadModelService.upsertDocument({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           document: fromDocumentV1(documentV1),
@@ -97,7 +97,7 @@ export async function handleMessageV1(
       }
     })
     .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
-      await customReadModeService.deleteDocumentOrInterface({
+      await customReadModelService.deleteDocumentOrInterface({
         eserviceId: unsafeBrandId(msg.data.eserviceId),
         descriptorId: unsafeBrandId(msg.data.descriptorId),
         documentId: unsafeBrandId(msg.data.documentId),
@@ -116,7 +116,7 @@ export async function handleMessageV1(
           );
         }
 
-        await customReadModeService.upsertDescriptor({
+        await customReadModelService.upsertDescriptor({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptor: fromDescriptorV1(descriptorV1),
           metadataVersion: msg.version,
