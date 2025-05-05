@@ -3658,7 +3658,6 @@ describe("integration tests V2 events", async () => {
         ...getMockClient(),
         kind: clientKind.api,
         keys: [getMockKey(), getMockKey()],
-        adminId: generateId<UserId>(),
       };
 
       const updatedClient: Client = {
@@ -3668,7 +3667,6 @@ describe("integration tests V2 events", async () => {
 
       const payload: ClientAdminSetV2 = {
         client: toClientV2(updatedClient),
-        oldAdminId: client.adminId,
         adminId: newAdminId,
       };
 
@@ -3836,13 +3834,18 @@ describe("integration tests V2 events", async () => {
         genericLogger
       );
 
-      const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
+      const tokenClientKidPK1 = makeTokenGenerationStatesClientKidPK({
         clientId: client.id,
         kid: client.keys[0].kid,
       });
 
-      const tokenClientEntry: TokenGenerationStatesApiClient = {
-        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
+      const tokenClientKidPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: client.keys[1].kid,
+      });
+
+      const tokenClientEntry1: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK1),
         consumerId: client.consumerId,
         GSIPK_clientId: client.id,
         GSIPK_clientId_kid: makeGSIPKClientIdKid({
@@ -3851,8 +3854,26 @@ describe("integration tests V2 events", async () => {
         }),
         adminId: oldAdminId,
       };
+
+      const tokenClientEntry2: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK2),
+        consumerId: client.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: client.id,
+          kid: client.keys[1].kid,
+        }),
+        adminId: oldAdminId,
+      };
+
       await writeTokenGenStatesApiClient(
-        tokenClientEntry,
+        tokenClientEntry1,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry2,
         dynamoDBClient,
         genericLogger
       );
@@ -3878,8 +3899,20 @@ describe("integration tests V2 events", async () => {
       expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            PK: tokenClientKidPK,
+            PK: tokenClientKidPK1,
             adminId: newAdminId,
+          }),
+          expect.objectContaining({
+            PK: tokenClientKidPK2,
+            adminId: newAdminId,
+          }),
+          expect.objectContaining({
+            PK: makeTokenGenerationStatesClientKidPK({
+              clientId: client.id,
+              kid: client.keys[0].kid,
+            }),
+            adminId: newAdminId,
+            publicKey: client.keys[0].encodedPem,
           }),
           expect.objectContaining({
             PK: makeTokenGenerationStatesClientKidPK({
