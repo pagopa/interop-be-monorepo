@@ -278,7 +278,7 @@ describe("createKey", () => {
   it("should throw keyAlreadyExists if the kid already exists in the keys of that client ", async () => {
     const key: Key = {
       ...getMockKey(),
-      kid: calculateKid(createJWK(keySeed.key)),
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
     };
 
     const clientWithDuplicateKey: Client = {
@@ -301,7 +301,7 @@ describe("createKey", () => {
   it("should throw keyAlreadyExists if the kid already exists in the keys of a different client ", async () => {
     const key: Key = {
       ...getMockKey(),
-      kid: calculateKid(createJWK(keySeed.key)),
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
     };
 
     const client: Client = {
@@ -332,7 +332,7 @@ describe("createKey", () => {
   it("should throw keyAlreadyExists if the kid already exists in a keychain", async () => {
     const key: Key = {
       ...getMockKey(),
-      kid: calculateKid(createJWK(keySeed.key)),
+      kid: calculateKid(createJWK({ pemKeyBase64: keySeed.key })),
     };
 
     const client: Client = {

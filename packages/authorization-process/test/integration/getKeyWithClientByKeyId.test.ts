@@ -29,7 +29,7 @@ describe("getKeyWithClientByKeyId", async () => {
 
     const mockKey1 = { ...getMockKey(), encodedPem: base64Key };
 
-    const jwk: JsonWebKey = createJWK(base64Key);
+    const jwk: JsonWebKey = createJWK({ pemKeyBase64: base64Key });
 
     const mockKey2 = getMockKey();
     const mockClient: Client = {
