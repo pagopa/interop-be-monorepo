@@ -34,7 +34,7 @@ import {
   duplicatedPurposeTitle,
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegatedConsumer,
-  puroposeDelegationNotFound,
+  purposeDelegationNotFound,
   purposeCannotBeCloned,
   purposeNotFound,
   tenantKindNotFound,
@@ -712,7 +712,7 @@ describe("clonePurpose", async () => {
       })
     ).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      puroposeDelegationNotFound(purpose.id, purpose.delegationId!)
+      purposeDelegationNotFound(purpose.id, purpose.delegationId!)
     );
   });
   it("should throw organizationIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
