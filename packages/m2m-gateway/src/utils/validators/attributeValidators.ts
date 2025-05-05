@@ -29,7 +29,7 @@ export function assertAttributeKindIs<
   }
 }
 
-export function assertAttributeOiginAndCodeAreDefined(
+export function assertAttributeOriginAndCodeAreDefined(
   attribute: attributeRegistryApi.Attribute
 ): asserts attribute is attributeRegistryApi.Attribute & {
   origin: string;

@@ -4,7 +4,7 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   assertAttributeKindIs,
-  assertAttributeOiginAndCodeAreDefined,
+  assertAttributeOriginAndCodeAreDefined,
 } from "../utils/validators/attributeValidators.js";
 
 export function toM2MGatewayApiCertifiedAttribute(
@@ -15,7 +15,7 @@ export function toM2MGatewayApiCertifiedAttribute(
     attributeRegistryApi.AttributeKind.Values.CERTIFIED,
     "attributeNotFound"
   );
-  assertAttributeOiginAndCodeAreDefined(attribute);
+  assertAttributeOriginAndCodeAreDefined(attribute);
 
   return {
     id: attribute.id,
