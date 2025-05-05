@@ -1,6 +1,5 @@
 import {
   ascLower,
-  createCompactListResult,
   createListResult,
   escapeRegExp,
   hasAtLeastOneUserRole,
@@ -403,7 +402,10 @@ export function readModelServiceBuilderSQL(
         toEServiceAggregatorArray(queryResult)
       );
 
-      return createListResult(eservices, queryResult[0]?.totalCount);
+      return createListResult(
+        eservices.map((e) => e.data),
+        queryResult[0]?.totalCount
+      );
     },
     async getEServiceByNameAndProducerId({
       name,
@@ -476,7 +478,7 @@ export function readModelServiceBuilderSQL(
         consumerExternalId: row.tenant.externalIdValue,
       }));
 
-      return createCompactListResult(consumers, res[0]?.totalCount);
+      return createListResult(consumers, res[0]?.totalCount);
     },
     async listAgreements({
       eservicesIds,
