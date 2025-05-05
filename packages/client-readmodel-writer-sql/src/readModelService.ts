@@ -6,7 +6,10 @@ import {
   PurposeId,
   UserId,
 } from "pagopa-interop-models";
-import { ClientReadModelService } from "pagopa-interop-readmodel";
+import {
+  checkMetadataVersion,
+  ClientReadModelService,
+} from "pagopa-interop-readmodel";
 import {
   DrizzleTransactionType,
   clientInReadmodelClient,
@@ -68,12 +71,27 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
+        const shouldAdd = await checkMetadataVersion(
+          tx,
+          clientInReadmodelClient,
+          metadataVersion,
+          clientId
+        );
+
+        if (!shouldAdd) {
+          return;
+        }
+
         const user: ClientUserSQL = {
           clientId,
           userId,
           metadataVersion,
         };
-        await tx.insert(clientUserInReadmodelClient).values(user);
+
+        await tx
+          .insert(clientUserInReadmodelClient)
+          .values(user)
+          .onConflictDoNothing();
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -91,7 +109,13 @@ export function readModelServiceBuilder(
       await db.transaction(async (tx) => {
         await tx
           .delete(clientUserInReadmodelClient)
-          .where(eq(clientUserInReadmodelClient.userId, userId));
+          .where(
+            and(
+              eq(clientUserInReadmodelClient.clientId, clientId),
+              eq(clientUserInReadmodelClient.userId, userId),
+              lte(clientUserInReadmodelClient.metadataVersion, metadataVersion)
+            )
+          );
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -107,12 +131,26 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
+        const shouldAdd = await checkMetadataVersion(
+          tx,
+          clientInReadmodelClient,
+          metadataVersion,
+          clientId
+        );
+
+        if (!shouldAdd) {
+          return;
+        }
+
         const purposeSQL: ClientPurposeSQL = {
           clientId,
           purposeId,
           metadataVersion,
         };
-        await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+        await tx
+          .insert(clientPurposeInReadmodelClient)
+          .values(purposeSQL)
+          .onConflictDoNothing();
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -130,7 +168,16 @@ export function readModelServiceBuilder(
       await db.transaction(async (tx) => {
         await tx
           .delete(clientPurposeInReadmodelClient)
-          .where(eq(clientPurposeInReadmodelClient.purposeId, purposeId));
+          .where(
+            and(
+              eq(clientPurposeInReadmodelClient.clientId, clientId),
+              eq(clientPurposeInReadmodelClient.purposeId, purposeId),
+              lte(
+                clientPurposeInReadmodelClient.metadataVersion,
+                metadataVersion
+              )
+            )
+          );
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -145,11 +192,26 @@ export function readModelServiceBuilder(
       keys: Key[],
       metadataVersion: number
     ): Promise<void> {
+      if (keys.length === 0) {
+        return;
+      }
+
       await db.transaction(async (tx) => {
+        const shouldAdd = await checkMetadataVersion(
+          tx,
+          clientInReadmodelClient,
+          metadataVersion,
+          clientId
+        );
+
+        if (!shouldAdd) {
+          return;
+        }
+
         const keysSQL: ClientKeySQL[] = keys.map((key) => ({
           metadataVersion,
           clientId,
-          userId: key.userId,
+          userId: key.userId !== "" ? key.userId : null,
           kid: key.kid,
           name: key.name,
           encodedPem: key.encodedPem,
@@ -157,7 +219,10 @@ export function readModelServiceBuilder(
           use: key.use,
           createdAt: dateToString(key.createdAt),
         }));
-        await tx.insert(clientKeyInReadmodelClient).values(keysSQL);
+        await tx
+          .insert(clientKeyInReadmodelClient)
+          .values(keysSQL)
+          .onConflictDoNothing();
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -175,7 +240,13 @@ export function readModelServiceBuilder(
       await db.transaction(async (tx) => {
         await tx
           .delete(clientKeyInReadmodelClient)
-          .where(eq(clientKeyInReadmodelClient.kid, keyId));
+          .where(
+            and(
+              eq(clientKeyInReadmodelClient.clientId, clientId),
+              eq(clientKeyInReadmodelClient.kid, keyId),
+              lte(clientKeyInReadmodelClient.metadataVersion, metadataVersion)
+            )
+          );
 
         await updateMetadataVersionInClientTables(
           tx,
@@ -197,6 +268,7 @@ export function readModelServiceBuilder(
           .set({ userId })
           .where(
             and(
+              eq(clientKeyInReadmodelClient.clientId, clientId),
               eq(clientKeyInReadmodelClient.kid, keyId),
               lte(clientKeyInReadmodelClient.metadataVersion, metadataVersion)
             )
