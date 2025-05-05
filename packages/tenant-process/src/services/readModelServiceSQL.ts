@@ -51,7 +51,6 @@ import {
   isNull,
   or,
   sql,
-  SQL,
 } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { ascLower, createListResult } from "pagopa-interop-commons";
@@ -122,12 +121,10 @@ export function readModelServiceBuilderSQL(
         .from(tenantInReadmodelTenant)
         .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
-          // 1
           tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
-          // 2
           tenantCertifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -135,7 +132,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           tenantDeclaredAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -143,7 +139,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           tenantVerifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -151,7 +146,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           tenantVerifiedAttributeVerifierInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -159,7 +153,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           tenantVerifiedAttributeRevokerInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -167,7 +160,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -300,12 +292,10 @@ export function readModelServiceBuilderSQL(
         .from(tenantInReadmodelTenant)
         .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
-          // 1
           tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
-          // 2
           tenantCertifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -313,7 +303,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           tenantDeclaredAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -321,7 +310,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           tenantVerifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -329,7 +317,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           tenantVerifiedAttributeVerifierInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -337,7 +324,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           tenantVerifiedAttributeRevokerInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -345,7 +331,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -416,12 +401,10 @@ export function readModelServiceBuilderSQL(
         .from(tenantInReadmodelTenant)
         .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
-          // 1
           tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
-          // 2
           tenantCertifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -429,7 +412,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           tenantDeclaredAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -437,7 +419,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           tenantVerifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -445,7 +426,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           tenantVerifiedAttributeVerifierInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -453,7 +433,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           tenantVerifiedAttributeRevokerInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -461,7 +440,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -622,7 +600,7 @@ export function readModelServiceBuilderSQL(
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedProducer
             )
-          ) as SQL
+          )
         );
 
       return delegationWithMetadata?.data;
@@ -639,7 +617,7 @@ export function readModelServiceBuilderSQL(
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer
             )
-          ) as SQL
+          )
         );
 
       return delegationWithMetadata?.data;
