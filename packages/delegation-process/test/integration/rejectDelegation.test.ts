@@ -15,7 +15,6 @@ import {
   ProducerDelegationRejectedV2,
   TenantId,
   toDelegationV2,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { delegationState } from "pagopa-interop-models";
 import {
@@ -83,8 +82,7 @@ describe.each([
   });
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {
-    const nonExistentDelegationId =
-      unsafeBrandId<DelegationId>("non-existent-id");
+    const nonExistentDelegationId = generateId<DelegationId>();
 
     await expect(
       rejectFn(nonExistentDelegationId, "", getMockContext({}))

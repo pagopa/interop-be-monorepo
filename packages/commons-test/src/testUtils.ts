@@ -87,6 +87,7 @@ import {
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
+  PurposeV2,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -166,6 +167,9 @@ export const getMockDescriptorPublished = (
     verified: verifiedAttributes,
   },
   rejectionReasons: undefined,
+  voucherLifespan: 600,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 10000,
 });
 
 export const getMockEServiceAttribute = (
@@ -836,12 +840,8 @@ export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
   } else {
     return {
       ...tenant,
-      attributes: [...tenant.attributes].sort(
-        sortBy<TenantAttribute>((att) => att.id)
-      ),
-      features: [...tenant.features].sort(
-        sortBy<TenantFeature>((feature) => feature.type)
-      ),
+      attributes: [...tenant.attributes].sort(sortBy((att) => att.id)),
+      features: [...tenant.features].sort(sortBy((feature) => feature.type)),
     };
   }
 };
@@ -862,16 +862,93 @@ export const sortAgreement = <
     return {
       ...agreement,
       verifiedAttributes: [...agreement.verifiedAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
+        sortBy((att) => att.id)
       ),
       certifiedAttributes: [...agreement.certifiedAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
+        sortBy((att) => att.id)
       ),
       declaredAttributes: [...agreement.declaredAttributes].sort(
-        sortBy<AgreementAttribute>((att) => att.id)
+        sortBy((att) => att.id)
       ),
       consumerDocuments: [...agreement.consumerDocuments].sort(
-        sortBy<AgreementDocument>((doc) => doc.id)
+        sortBy((doc) => doc.id)
+      ),
+    };
+  }
+};
+
+export const sortPurpose = <
+  T extends Purpose | PurposeV2 | WithMetadata<Purpose> | undefined
+>(
+  purpose: T
+): T => {
+  if (!purpose) {
+    return purpose;
+  } else if ("data" in purpose) {
+    return {
+      ...purpose,
+      data: sortPurpose(purpose.data),
+    };
+  } else {
+    return {
+      ...purpose,
+      versions: [...purpose.versions].sort(sortBy((version) => version.id)),
+      ...(purpose.riskAnalysisForm
+        ? {
+            riskAnalysisForm: {
+              ...purpose.riskAnalysisForm,
+              singleAnswers: [...purpose.riskAnalysisForm.singleAnswers].sort(
+                sortBy((answer) => answer.key)
+              ),
+              multiAnswers: [...purpose.riskAnalysisForm.multiAnswers].sort(
+                sortBy((answer) => answer.key)
+              ),
+            },
+          }
+        : {}),
+    };
+  }
+};
+
+export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
+  client: T
+): T => {
+  if (!client) {
+    return client;
+  } else if ("data" in client) {
+    return {
+      ...client,
+      data: sortClient(client.data),
+    };
+  } else {
+    return {
+      ...client,
+      purposes: [...client.purposes].sort(),
+      users: [...client.users].sort(),
+      keys: [...client.keys].sort(sortBy((k) => k.createdAt.toISOString())),
+    };
+  }
+};
+
+export const sortProducerKeychain = <
+  T extends ProducerKeychain | WithMetadata<ProducerKeychain> | undefined
+>(
+  producerKeychain: T
+): T => {
+  if (!producerKeychain) {
+    return producerKeychain;
+  } else if ("data" in producerKeychain) {
+    return {
+      ...producerKeychain,
+      data: sortProducerKeychain(producerKeychain.data),
+    };
+  } else {
+    return {
+      ...producerKeychain,
+      eservices: [...producerKeychain.eservices].sort(),
+      users: [...producerKeychain.users].sort(),
+      keys: [...producerKeychain.keys].sort(
+        sortBy((k) => k.createdAt.toISOString())
       ),
     };
   }
@@ -880,19 +957,19 @@ export const sortAgreement = <
 export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
   ...descriptor,
   // eslint-disable-next-line functional/immutable-data
-  docs: descriptor.docs.sort(sortBy<Document>((doc) => doc.id)),
+  docs: descriptor.docs.sort(sortBy((doc) => doc.id)),
   attributes: {
     certified: descriptor.attributes.certified.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id))
     ),
     declared: descriptor.attributes.declared.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id))
     ),
     verified: descriptor.attributes.verified.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id))
     ),
   },
 });
