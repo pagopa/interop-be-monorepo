@@ -332,7 +332,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateAgreementApprovalPolicyErrorMapper,
+            emptyErrorMapper,
             ctx.logger,
             ctx.correlationId,
             `Error updating agreementApprovalPolicy of descriptor ${
