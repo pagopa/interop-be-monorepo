@@ -46,7 +46,7 @@ RUN pnpm build && \
   packages/application-audit \
   packages/kafka-iam-auth \
   packages/readmodel/ \
-  packages/readmodel-models/ \        
+  packages/readmodel-models/ \
   packages/eservice-template-process/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
