@@ -925,9 +925,7 @@ export const sortClient = <T extends Client | WithMetadata<Client> | undefined>(
       ...client,
       purposes: [...client.purposes].sort(),
       users: [...client.users].sort(),
-      keys: [...client.keys].sort(
-        sortBy<Key>((k) => k.createdAt.toISOString())
-      ),
+      keys: [...client.keys].sort(sortBy((k) => k.createdAt.toISOString())),
     };
   }
 };
@@ -950,7 +948,7 @@ export const sortProducerKeychain = <
       eservices: [...producerKeychain.eservices].sort(),
       users: [...producerKeychain.users].sort(),
       keys: [...producerKeychain.keys].sort(
-        sortBy<Key>((k) => k.createdAt.toISOString())
+        sortBy((k) => k.createdAt.toISOString())
       ),
     };
   }
