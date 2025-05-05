@@ -546,7 +546,10 @@ describe("getPurposes", async () => {
       getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
-    expect(result).toEqual({
+    expect({
+      ...result,
+      results: result.results.map(sortPurpose),
+    }).toEqual({
       totalCount: 4,
       results: [mockPurpose3, mockDelegatedPurpose1].map(sortPurpose),
     });
@@ -565,7 +568,10 @@ describe("getPurposes", async () => {
       getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
-    expect(result).toEqual({
+    expect({
+      ...result,
+      results: result.results.map(sortPurpose),
+    }).toEqual({
       totalCount: 4,
       results: [mockPurpose1, mockPurpose2].map(sortPurpose),
     });
