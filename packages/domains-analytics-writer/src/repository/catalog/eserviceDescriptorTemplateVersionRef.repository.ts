@@ -13,21 +13,21 @@ import {
 import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorTemplateVersionRefRepository(
-  conn: DBConnection
+  conn: DBConnection,
 ) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_template_version_ref;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceDescriptorTemplateVersionRefSQL[]
+      records: EServiceDescriptorTemplateVersionRefSQL[],
     ): Promise<void> {
       const mapping: EserviceDescriptorTemplateVersionRefMapping = {
         eservice_template_version_id: (
-          r: EServiceDescriptorTemplateVersionRefSQL
+          r: EServiceDescriptorTemplateVersionRefSQL,
         ) => r.eserviceTemplateVersionId,
         eservice_id: (r: EServiceDescriptorTemplateVersionRefSQL) =>
           r.eserviceId,
@@ -42,13 +42,13 @@ export function eserviceDescriptorTemplateVersionRefRepository(
         contact_url: (r: EServiceDescriptorTemplateVersionRefSQL) =>
           r.contactUrl,
         terms_and_conditions_url: (
-          r: EServiceDescriptorTemplateVersionRefSQL
+          r: EServiceDescriptorTemplateVersionRefSQL,
         ) => r.termsAndConditionsUrl,
       };
       const cs = buildColumnSet<EServiceDescriptorTemplateVersionRefSQL>(
         pgp,
         mapping,
-        stagingTable
+        stagingTable,
       );
       try {
         if (records.length > 0) {
@@ -62,7 +62,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
         }
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTable}: ${error}`,
         );
       }
     },
@@ -73,13 +73,13 @@ export function eserviceDescriptorTemplateVersionRefRepository(
           eserviceDescriptorTemplateVersionRefSchema,
           schemaName,
           tableName,
-          `${tableName}${config.mergeTableSuffix}`,
-          ["eservice_template_version_id"]
+          `${tableName}_${config.mergeTableSuffix}`,
+          ["eservice_template_version_id"],
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`,
         );
       }
     },
@@ -89,7 +89,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTable}: ${error}`,
         );
       }
     },

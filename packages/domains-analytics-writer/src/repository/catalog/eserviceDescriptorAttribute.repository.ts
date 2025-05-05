@@ -15,13 +15,13 @@ import { CatalogDbTable } from "../../model/db.js";
 export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_attribute;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceDescriptorAttributeSQL[]
+      records: EServiceDescriptorAttributeSQL[],
     ): Promise<void> {
       const mapping: EserviceDescriptorAttributeMapping = {
         eservice_id: (r: EServiceDescriptorAttributeSQL) => r.eserviceId,
@@ -37,7 +37,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
       const cs = buildColumnSet<EServiceDescriptorAttributeSQL>(
         pgp,
         mapping,
-        stagingTable
+        stagingTable,
       );
       try {
         if (records.length > 0) {
@@ -51,7 +51,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
         }
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTable}: ${error}`,
         );
       }
     },
@@ -62,13 +62,13 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           eserviceDescriptorAttributeSchema,
           schemaName,
           tableName,
-          `${tableName}${config.mergeTableSuffix}`,
-          ["attribute_id"]
+          `${tableName}_${config.mergeTableSuffix}`,
+          ["attribute_id"],
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`,
         );
       }
     },
@@ -78,7 +78,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTable}: ${error}`,
         );
       }
     },

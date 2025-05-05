@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
-import { AttributeDbtable, DeletingDbTable } from "../model/db.js";
+import { DeletingDbTable } from "../model/db.js";
 import { setupStagingTablesError } from "../model/errors.js";
 
 export interface SetupDbConfig {
@@ -13,7 +13,7 @@ export function setupDbServiceBuilder(
   config: SetupDbConfig,
 ) {
   return {
-    async setupStagingTables(tableNames: AttributeDbtable[]): Promise<void> {
+    async setupStagingTables(tableNames: string[]): Promise<void> {
       try {
         await Promise.all(
           tableNames.map((tableName) => {

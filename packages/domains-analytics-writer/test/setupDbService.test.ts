@@ -36,7 +36,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(attributeTables);
 
     const expectedTables = attributeTables.map(
-      (t) => `${t}${config.mergeTableSuffix}`,
+      (t) => `${t}_${config.mergeTableSuffix}`,
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -51,7 +51,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(catalogTables);
 
     const expectedTables = catalogTables.map(
-      (t) => `${t}${config.mergeTableSuffix}`,
+      (t) => `${t}_${config.mergeTableSuffix}`,
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 

@@ -15,13 +15,13 @@ import { CatalogDbTable } from "../../model/db.js";
 export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_risk_analysis_answer;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceRiskAnalysisAnswerSQL[]
+      records: EServiceRiskAnalysisAnswerSQL[],
     ): Promise<void> {
       const mapping: EserviceRiskAnalysisAnswerMapping = {
         id: (r: EServiceRiskAnalysisAnswerSQL) => r.id,
@@ -37,7 +37,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
       const cs = buildColumnSet<EServiceRiskAnalysisAnswerSQL>(
         pgp,
         mapping,
-        stagingTable
+        stagingTable,
       );
       try {
         if (records.length > 0) {
@@ -51,7 +51,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
         }
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTable}: ${error}`,
         );
       }
     },
@@ -62,13 +62,13 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
           eserviceRiskAnalysisAnswerSchema,
           schemaName,
           tableName,
-          `${tableName}${config.mergeTableSuffix}`,
-          ["id"]
+          `${tableName}_${config.mergeTableSuffix}`,
+          ["id"],
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`,
         );
       }
     },
@@ -78,7 +78,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTable}: ${error}`,
         );
       }
     },
