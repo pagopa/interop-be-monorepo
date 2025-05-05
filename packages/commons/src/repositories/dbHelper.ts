@@ -5,7 +5,7 @@ export const createListResult = <T>(
   items: Array<{ data: T }>,
   totalCount?: number
 ): ListResult<T> => ({
-  results: items.map((item): T => item.data),
+  results: items.map((item) => item.data),
   totalCount: totalCount ?? 0,
 });
 
