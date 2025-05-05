@@ -21,7 +21,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceDescriptorRejectionReasonSQL[],
+      records: EServiceDescriptorRejectionReasonSQL[]
     ): Promise<void> {
       const mapping: EserviceDescriptorRejectionMapping = {
         eservice_id: (r: EServiceDescriptorRejectionReasonSQL) => r.eserviceId,
@@ -36,7 +36,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
       const cs = buildColumnSet<EServiceDescriptorRejectionReasonSQL>(
         pgp,
         mapping,
-        stagingTable,
+        stagingTable
       );
       try {
         if (records.length > 0) {
@@ -50,7 +50,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
         }
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`,
+          `Error inserting into staging table ${stagingTable}: ${error}`
         );
       }
     },
@@ -62,12 +62,12 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,
-          ["descriptor_id"],
+          ["descriptor_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`,
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -77,7 +77,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`,
+          `Error cleaning staging table ${stagingTable}: ${error}`
         );
       }
     },

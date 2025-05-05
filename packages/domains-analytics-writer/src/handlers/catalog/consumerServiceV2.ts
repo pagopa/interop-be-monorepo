@@ -10,7 +10,7 @@ import { DBContext } from "../../db/db.js";
 
 export async function handleCatalogMessageV2(
   messages: EServiceEventEnvelopeV2[],
-  dbContext: DBContext,
+  dbContext: DBContext
 ): Promise<void> {
   const catalogService = catalogServiceBuilder(dbContext);
 
@@ -41,7 +41,7 @@ export async function handleCatalogMessageV2(
         },
         (msg) => {
           deleteEServiceDocumentBatch.push(msg.data.documentId);
-        },
+        }
       )
       .with({ type: P.union("EServiceDescriptorInterfaceDeleted") }, (msg) => {
         deleteEserviceInterfaceBatch.push(msg.data.descriptorId);
@@ -80,16 +80,16 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
             "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-            "EServiceDescriptorDocumentAddedByTemplateUpdate",
+            "EServiceDescriptorDocumentAddedByTemplateUpdate"
           ),
         },
         (msg) => {
           const splitResult: EServiceItemsSQL = splitEserviceIntoObjectsSQL(
             EService.parse(msg.data.eservice),
-            msg.version,
+            msg.version
           );
           upsertBatch.push(splitResult);
-        },
+        }
       )
       .exhaustive();
   }
@@ -102,25 +102,25 @@ export async function handleCatalogMessageV2(
   if (deleteDescriptorBatch.length > 0) {
     await catalogService.deleteBatchDescriptor(
       deleteDescriptorBatch,
-      dbContext,
+      dbContext
     );
   }
   if (deleteEServiceDocumentBatch.length > 0) {
     await catalogService.deleteBatchEServiceDocument(
       deleteEServiceDocumentBatch,
-      dbContext,
+      dbContext
     );
   }
   if (deleteEserviceRiskAnalysisBatch.length > 0) {
     await catalogService.deleteBatchEserviceRiskAnalysis(
       deleteEserviceRiskAnalysisBatch,
-      dbContext,
+      dbContext
     );
   }
   if (deleteEserviceInterfaceBatch.length > 0) {
     await catalogService.deleteBatchEserviceInterface(
       deleteEserviceInterfaceBatch,
-      dbContext,
+      dbContext
     );
   }
 }

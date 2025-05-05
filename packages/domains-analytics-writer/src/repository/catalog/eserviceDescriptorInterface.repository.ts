@@ -21,7 +21,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceDescriptorInterfaceSQL[],
+      records: EServiceDescriptorInterfaceSQL[]
     ): Promise<void> {
       const mapping: EserviceDescriptorInterfaceMapping = {
         id: (r: EServiceDescriptorInterfaceSQL) => r.id,
@@ -39,7 +39,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       const cs = buildColumnSet<EServiceDescriptorInterfaceSQL>(
         pgp,
         mapping,
-        stagingTable,
+        stagingTable
       );
       try {
         if (records.length > 0) {
@@ -53,7 +53,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
         }
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`,
+          `Error inserting into staging table ${stagingTable}: ${error}`
         );
       }
     },
@@ -65,12 +65,12 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,
-          ["id"],
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`,
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -80,7 +80,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`,
+          `Error cleaning staging table ${stagingTable}: ${error}`
         );
       }
     },
@@ -88,7 +88,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     async deleteInterface(
       t: ITask<unknown>,
       pgp: IMain,
-      descriptorId: string,
+      descriptorId: string
     ): Promise<void> {
       const mapping = {
         id: () => descriptorId,
@@ -97,16 +97,16 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       const cs = buildColumnSet<{ id: string; deleted: boolean }>(
         pgp,
         mapping,
-        DeletingDbTable.catalog_deleting_table,
+        DeletingDbTable.catalog_deleting_table
       );
       try {
         await t.none(
           pgp.helpers.insert({ id: descriptorId, deleted: true }, cs) +
-            " ON CONFLICT DO NOTHING",
+            " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${DeletingDbTable.catalog_deleting_table}: ${error}`,
+          `Error inserting into staging table ${DeletingDbTable.catalog_deleting_table}: ${error}`
         );
       }
     },

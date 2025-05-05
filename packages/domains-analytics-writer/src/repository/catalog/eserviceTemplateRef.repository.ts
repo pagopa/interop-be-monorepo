@@ -21,7 +21,7 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: Array<EServiceTemplateRefSQL | undefined>,
+      records: Array<EServiceTemplateRefSQL | undefined>
     ): Promise<void> {
       const mapping: EserviceTemplateRefMapping = {
         eservice_template_id: (r: EServiceTemplateRefSQL) =>
@@ -33,7 +33,7 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
       const cs = buildColumnSet<EServiceTemplateRefSQL>(
         pgp,
         mapping,
-        stagingTable,
+        stagingTable
       );
       try {
         if (records.length > 0) {
@@ -47,7 +47,7 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
         }
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`,
+          `Error inserting into staging table ${stagingTable}: ${error}`
         );
       }
     },
@@ -59,12 +59,12 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,
-          ["eservice_template_id"],
+          ["eservice_template_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`,
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -74,7 +74,7 @@ export function eserviceTemplateRefRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`,
+          `Error cleaning staging table ${stagingTable}: ${error}`
         );
       }
     },
