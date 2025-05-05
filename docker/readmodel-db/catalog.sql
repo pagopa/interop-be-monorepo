@@ -109,9 +109,10 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis (
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  risk_analysis_form_id UUID UNIQUE NOT NULL,
+  risk_analysis_form_id UUID NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id, eservice_id),
+  UNIQUE (risk_analysis_form_id, eservice_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -119,10 +120,11 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer (
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_risk_analysis (risk_analysis_form_id) ON DELETE CASCADE,
+  risk_analysis_form_id UUID NOT NULL,
   kind VARCHAR NOT NULL,
   key VARCHAR NOT NULL,
   value VARCHAR ARRAY NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+  PRIMARY KEY (id, eservice_id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED,
+  FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES readmodel_catalog.eservice_risk_analysis (risk_analysis_form_id, eservice_id) ON DELETE CASCADE
 );
