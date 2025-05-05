@@ -14,6 +14,7 @@ import {
   getMockDelegation,
   getMockAuthData,
   getMockContext,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   addOneDelegation,
@@ -545,15 +546,13 @@ describe("getPurposes", async () => {
       getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
-    expect(result.totalCount).toBe(4);
-    expect(result.results).toEqual(
-      expect.arrayContaining(
-        [mockPurpose3, mockDelegatedPurpose1].map((purpose) => ({
-          ...purpose,
-          versions: expect.arrayContaining(purpose.versions),
-        }))
-      )
-    );
+    expect({
+      ...result,
+      results: result.results.map(sortPurpose),
+    }).toEqual({
+      totalCount: 4,
+      results: [mockPurpose3, mockDelegatedPurpose1].map(sortPurpose),
+    });
   });
 
   it("should get purposes (pagination: limit)", async () => {
@@ -569,15 +568,13 @@ describe("getPurposes", async () => {
       getMockContext({ authData: getMockAuthData(producerId1) })
     );
 
-    expect(result.totalCount).toBe(4);
-    expect(result.results).toEqual(
-      expect.arrayContaining(
-        [mockPurpose1, mockPurpose2].map((purpose) => ({
-          ...purpose,
-          versions: expect.arrayContaining(purpose.versions),
-        }))
-      )
-    );
+    expect({
+      ...result,
+      results: result.results.map(sortPurpose),
+    }).toEqual({
+      totalCount: 4,
+      results: [mockPurpose1, mockPurpose2].map(sortPurpose),
+    });
   });
 
   it("should not get purposes if they don't exist", async () => {
