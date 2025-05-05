@@ -20,7 +20,7 @@ import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "./integrationUtils.js";
 
 describe("internalClientAdminRemoved", () => {
   it("should write on event-store for the remove of an admin in a client", async () => {

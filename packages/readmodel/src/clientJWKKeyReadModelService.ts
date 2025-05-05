@@ -20,31 +20,39 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           tx,
           clientJwkKeyInReadmodelClientJwkKey,
           metadataVersion,
-          eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+          and(
+            eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid),
+            eq(
+              clientJwkKeyInReadmodelClientJwkKey.clientId,
+              clientJWKKey.clientId
+            )
+          )
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(clientJwkKeyInReadmodelClientJwkKey)
-            .where(
-              and(
-                eq(
-                  clientJwkKeyInReadmodelClientJwkKey.clientId,
-                  clientJWKKey.clientId
-                ),
-                eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
-              )
-            );
+        if (!shouldUpsert) {
+          return;
+        }
 
-          const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
-            clientJWKKey,
-            metadataVersion
+        await tx
+          .delete(clientJwkKeyInReadmodelClientJwkKey)
+          .where(
+            and(
+              eq(
+                clientJwkKeyInReadmodelClientJwkKey.clientId,
+                clientJWKKey.clientId
+              ),
+              eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+            )
           );
 
-          await tx
-            .insert(clientJwkKeyInReadmodelClientJwkKey)
-            .values(clientJWKKeySQL);
-        }
+        const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
+          clientJWKKey,
+          metadataVersion
+        );
+
+        await tx
+          .insert(clientJwkKeyInReadmodelClientJwkKey)
+          .values(clientJWKKeySQL);
       });
     },
     async getClientJWKKeyByClientIdAndKid(

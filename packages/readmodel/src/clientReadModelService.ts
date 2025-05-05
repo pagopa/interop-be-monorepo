@@ -26,27 +26,32 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
           client.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(clientInReadmodelClient)
+          .where(eq(clientInReadmodelClient.id, client.id));
+
+        const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+          splitClientIntoObjectsSQL(client, metadataVersion);
+
+        await tx.insert(clientInReadmodelClient).values(clientSQL);
+
+        for (const userSQL of usersSQL) {
           await tx
-            .delete(clientInReadmodelClient)
-            .where(eq(clientInReadmodelClient.id, client.id));
+            .insert(clientUserInReadmodelClient)
+            .values(userSQL)
+            .onConflictDoNothing();
+        }
 
-          const { clientSQL, usersSQL, purposesSQL, keysSQL } =
-            splitClientIntoObjectsSQL(client, metadataVersion);
+        for (const purposeSQL of purposesSQL) {
+          await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+        }
 
-          await tx.insert(clientInReadmodelClient).values(clientSQL);
-
-          for (const userSQL of usersSQL) {
-            await tx.insert(clientUserInReadmodelClient).values(userSQL);
-          }
-
-          for (const purposeSQL of purposesSQL) {
-            await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
-          }
-
-          for (const keySQL of keysSQL) {
-            await tx.insert(clientKeyInReadmodelClient).values(keySQL);
-          }
+        for (const keySQL of keysSQL) {
+          await tx.insert(clientKeyInReadmodelClient).values(keySQL);
         }
       });
     },
