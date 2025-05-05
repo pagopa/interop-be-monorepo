@@ -67,7 +67,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
-  toCreateEventClientAdminRemoved,
+  toCreateEventClientAdminRemovedBySelfcare,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -1333,7 +1333,7 @@ export function authorizationServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventClientAdminRemoved(
+        toCreateEventClientAdminRemovedBySelfcare(
           updatedClient,
           adminId,
           client.metadata.version,
