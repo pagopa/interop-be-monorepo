@@ -24,6 +24,7 @@ import {
   unsafeBrandId,
   KeyUse,
   stringToDate,
+  genericInternalError,
 } from "pagopa-interop-models";
 import {
   aggregateClientArray,
@@ -255,8 +256,13 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
 
+      const userId = queryResult[0].userId;
+      if (userId === null) {
+        throw genericInternalError("UserId can't be null in key");
+      }
+
       return {
-        userId: unsafeBrandId(queryResult[0].userId),
+        userId: unsafeBrandId(userId),
         kid: queryResult[0].kid,
         name: queryResult[0].name,
         encodedPem: queryResult[0].encodedPem,
