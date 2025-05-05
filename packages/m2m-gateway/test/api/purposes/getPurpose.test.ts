@@ -43,13 +43,13 @@ describe("GET /purpose/:purposeId router test", () => {
     }
   );
 
-  it("Should return 400 for non existent purpose", async () => {
+  it("Should return 400 for incorrect value for purpose id", async () => {
     mockPurposeService.getPurpose = vi
       .fn()
       .mockResolvedValue(mockM2MPurposesResponse);
 
     const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token, "NON EXISTENT ID");
+    const res = await makeRequest(token, "INVALID ID");
     expect(res.status).toBe(400);
   });
 
