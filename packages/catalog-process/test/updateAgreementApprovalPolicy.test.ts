@@ -10,7 +10,7 @@ import {
   generateId,
   agreementApprovalPolicy,
   EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
-  notFound,
+  featureFlagNotEnabled,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
@@ -212,7 +212,7 @@ describe("update descriptor agreement approval policy", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw notFound if the feature flag is not enabled", async () => {
+  it("should throw featureFlagNotEnabled if the feature flag is not enabled", async () => {
     config.featureFlagAgreementApprovalPolicyUpdate = false;
     await expect(
       catalogService.updateAgreementApprovalPolicy(
@@ -226,6 +226,8 @@ describe("update descriptor agreement approval policy", () => {
           logger: genericLogger,
         }
       )
-    ).rejects.toThrowError(notFound());
+    ).rejects.toThrowError(
+      featureFlagNotEnabled("featureFlagAgreementApprovalPolicyUpdate")
+    );
   });
 });
