@@ -18,9 +18,7 @@ import { and, eq, lte, SQL } from "drizzle-orm";
 import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
 import {
   aggregateEServiceTemplate,
-  aggregateEServiceTemplateArray,
   toEServiceTemplateAggregator,
-  toEServiceTemplateAggregatorArray,
 } from "./eservice-template/aggregators.js";
 import { checkMetadataVersion } from "./utils.js";
 
@@ -199,75 +197,6 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateEServiceTemplate(
         toEServiceTemplateAggregator(queryResult)
-      );
-    },
-    async getEServiceTemplatesByFilter(
-      filter: SQL | undefined
-    ): Promise<Array<WithMetadata<EServiceTemplate>>> {
-      if (filter === undefined) {
-        throw genericInternalError("Filter cannot be undefined");
-      }
-
-      const queryResult = await db
-        .select({
-          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
-          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-          interface:
-            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          attribute:
-            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          riskAnalysisAnswer:
-            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-        })
-        .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .where(filter)
-        .leftJoin(
-          eserviceTemplateVersionInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
-            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
-          )
-        );
-
-      return aggregateEServiceTemplateArray(
-        toEServiceTemplateAggregatorArray(queryResult)
       );
     },
     async deleteEServiceTemplateById(
