@@ -329,8 +329,11 @@ export function readModelServiceBuilderSQL({
         )
         .orderBy(ascLower(purposeInReadmodelPurpose.title));
 
+      const purposes = aggregatePurposeArray(
+        toPurposeAggregatorArray(queryResult)
+      );
       return createListResult(
-        aggregatePurposeArray(toPurposeAggregatorArray(queryResult)),
+        purposes.map((p) => p.data),
         queryResult[0]?.totalCount
       );
     },
