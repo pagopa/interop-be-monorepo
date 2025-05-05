@@ -145,7 +145,9 @@ export const aggregateDescriptor = ({
   return {
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
-    docs: documentsSQL.map(documentSQLtoDocument),
+    docs: [...documentsSQL]
+      .sort((doc1, doc2) => (doc1.name < doc2.name ? -1 : 0))
+      .map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state),
     audience: descriptorSQL.audience,
     voucherLifespan: descriptorSQL.voucherLifespan,
@@ -223,19 +225,21 @@ export const aggregateEservice = ({
     },
     new Map<string, EServiceDescriptorTemplateVersionRefSQL>()
   );
-  const descriptors = descriptorsSQL.map((descriptorSQL) =>
-    aggregateDescriptor({
-      descriptorSQL,
-      interfaceSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id),
-      documentsSQL: documentsSQLByDescriptorId.get(descriptorSQL.id) || [],
-      attributesSQL: attributesSQLByDescriptorId.get(descriptorSQL.id) || [],
-      rejectionReasonsSQL:
-        rejectionReasonsSQLByDescriptorId.get(descriptorSQL.id) || [],
-      templateVersionRefSQL: templateVersionRefsSQLByDescriptorId.get(
-        descriptorSQL.id
-      ),
-    })
-  );
+  const descriptors = [...descriptorsSQL]
+    .sort((d1, d2) => Number(d1.version) - Number(d2.version))
+    .map((descriptorSQL) =>
+      aggregateDescriptor({
+        descriptorSQL,
+        interfaceSQL: interfacesSQLByDescriptorId.get(descriptorSQL.id),
+        documentsSQL: documentsSQLByDescriptorId.get(descriptorSQL.id) || [],
+        attributesSQL: attributesSQLByDescriptorId.get(descriptorSQL.id) || [],
+        rejectionReasonsSQL:
+          rejectionReasonsSQLByDescriptorId.get(descriptorSQL.id) || [],
+        templateVersionRefSQL: templateVersionRefsSQLByDescriptorId.get(
+          descriptorSQL.id
+        ),
+      })
+    );
 
   const riskAnalysisAnswersSQLByFormId = riskAnalysisAnswersSQL.reduce(
     (acc, answer) => {

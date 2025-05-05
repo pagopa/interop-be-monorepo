@@ -54,7 +54,10 @@ export function readModelServiceBuilderSQL({
 
       const attributes = aggregateAttributeArray(queryResult);
 
-      return createListResult(attributes, queryResult[0]?.totalCount);
+      return createListResult(
+        attributes.map((attr) => attr.data),
+        queryResult[0]?.totalCount
+      );
     },
     async getAttributesByKindsNameOrigin({
       kinds,
@@ -94,7 +97,10 @@ export function readModelServiceBuilderSQL({
 
       const attributes = aggregateAttributeArray(queryResult);
 
-      return createListResult(attributes, queryResult[0]?.totalCount);
+      return createListResult(
+        attributes.map((attr) => attr.data),
+        queryResult[0]?.totalCount
+      );
     },
     async getAttributeById(
       id: AttributeId
