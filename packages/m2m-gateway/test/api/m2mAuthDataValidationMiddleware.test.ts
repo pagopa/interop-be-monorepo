@@ -78,4 +78,17 @@ describe("m2mAuthDataValidationMiddleware", () => {
       expect(mockGetClientAdminId).not.toHaveBeenCalled();
     }
   );
+
+  it("Should return 403 if getClientAdminId fails", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    mockGetClientAdminId.mockRejectedValue(new Error("test error"));
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(403);
+
+    expect(mockGetClientAdminId).toHaveBeenCalledWith(
+      mockM2MAdminClientId,
+      expect.any(Object)
+    );
+  });
 });
