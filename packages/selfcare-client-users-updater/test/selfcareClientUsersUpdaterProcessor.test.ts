@@ -19,6 +19,7 @@ import {
 import { EachMessagePayload } from "kafkajs";
 import { getMockClient } from "pagopa-interop-commons-test";
 import { clientKind } from "pagopa-interop-models";
+import { bffApi } from "pagopa-interop-api-clients";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import { config } from "../src/config/config.js";
 import { AuthorizationProcessClient } from "../src/clients/authorizationProcessClient.js";
@@ -36,11 +37,16 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     adminId: userId,
     kind: clientKind.api,
   };
+  const clientMock2 = {
+    ...getMockClient(),
+    adminId: userId,
+    kind: clientKind.api,
+  };
   const authorizationProcessClientMock = {
     client: {
       getClients: vi.fn().mockResolvedValue({
-        results: [clientMock],
-        totalCount: 1,
+        results: [clientMock, clientMock2],
+        totalCount: 2,
       }),
       internalRemoveClientAdmin: vi.fn().mockResolvedValue(undefined),
     },
@@ -100,7 +106,17 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
 
     await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
-    expect(authorizationProcessClientMock.client.getClients).toHaveBeenCalled();
+    expect(
+      authorizationProcessClientMock.client.getClients
+    ).toHaveBeenCalledWith({
+      queries: {
+        consumerId: correctEventPayload.institutionId,
+        kind: bffApi.ClientKind.Values.API,
+        limit: expect.any(Number),
+        offset: expect.any(Number),
+      },
+      headers: expect.any(Object),
+    });
     expect(
       authorizationProcessClientMock.client.internalRemoveClientAdmin
     ).toHaveBeenCalledWith(
@@ -109,6 +125,18 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
         params: {
           clientId: clientMock.id,
           adminId: clientMock.adminId,
+        },
+        headers: expect.any(Object),
+      })
+    );
+    expect(
+      authorizationProcessClientMock.client.internalRemoveClientAdmin
+    ).toHaveBeenCalledWith(
+      undefined,
+      expect.objectContaining({
+        params: {
+          clientId: clientMock2.id,
+          adminId: clientMock2.adminId,
         },
         headers: expect.any(Object),
       })
