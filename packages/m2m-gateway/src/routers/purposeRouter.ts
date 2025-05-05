@@ -23,8 +23,6 @@ const purposeRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  void purposeService;
-
   purposeRouter
     .get("/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
