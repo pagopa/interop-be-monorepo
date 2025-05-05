@@ -12,13 +12,13 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
+import { match, P } from "ts-pattern";
 import { AuthorizationProcessClient } from "../clients/authorizationProcessClient.js";
 import {
   selfcareUserEventType,
   UsersEventPayload,
   relationshipStatus,
 } from "../model/UsersEventPayload.js";
-import { match, P } from "ts-pattern";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareClientUsersUpdaterProcessorBuilder(
