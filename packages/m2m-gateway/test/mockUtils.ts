@@ -8,6 +8,15 @@ import {
 } from "pagopa-interop-models";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 
+export function getMockedApiPurposeVersion(): purposeApi.PurposeVersion {
+  return {
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    dailyCalls: 5000,
+    state: "DRAFT",
+  };
+}
+
 export function getMockedApiPurpose({
   versions,
 }: {
@@ -18,14 +27,7 @@ export function getMockedApiPurpose({
       id: generateId(),
       eserviceId: generateId(),
       consumerId: generateId(),
-      versions: versions ?? [
-        {
-          id: generateId(),
-          createdAt: new Date().toISOString(),
-          dailyCalls: 5000,
-          state: "DRAFT",
-        },
-      ],
+      versions: versions ?? [getMockedApiPurposeVersion()],
       title: "Purpose 1 - test",
       description: "Test purpose - description",
       createdAt: new Date().toISOString(),
