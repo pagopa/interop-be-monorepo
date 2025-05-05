@@ -24,6 +24,7 @@ import {
   unsafeBrandId,
   KeyUse,
   stringToDate,
+  genericInternalError,
 } from "pagopa-interop-models";
 import {
   aggregateClientArray,
@@ -153,12 +154,10 @@ export function readModelServiceBuilderSQL({
         .from(clientInReadmodelClient)
         .innerJoin(subquery, eq(clientInReadmodelClient.id, subquery.clientId))
         .leftJoin(
-          // 1
           clientUserInReadmodelClient,
           eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
         )
         .leftJoin(
-          // 2
           clientPurposeInReadmodelClient,
           eq(
             clientInReadmodelClient.id,
@@ -166,7 +165,6 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          // 3
           clientKeyInReadmodelClient,
           eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         )
@@ -258,8 +256,13 @@ export function readModelServiceBuilderSQL({
         return undefined;
       }
 
+      const userId = queryResult[0].userId;
+      if (userId === null) {
+        throw genericInternalError("UserId can't be null in key");
+      }
+
       return {
-        userId: unsafeBrandId(queryResult[0].userId),
+        userId: unsafeBrandId(userId),
         kid: queryResult[0].kid,
         name: queryResult[0].name,
         encodedPem: queryResult[0].encodedPem,
@@ -350,7 +353,6 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          // 1
           producerKeychainUserInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
@@ -358,7 +360,6 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          // 2
           producerKeychainEserviceInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
@@ -366,7 +367,6 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          // 3
           producerKeychainKeyInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
