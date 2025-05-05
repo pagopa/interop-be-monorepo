@@ -40,15 +40,15 @@ describe("getClientKeys", async () => {
     const keyUserId3: UserId = generateId();
 
     const keyWithUser1: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId3,
     };
     const clientWithKeyUser: Client = {
@@ -80,15 +80,15 @@ describe("getClientKeys", async () => {
     const userId: UserId = generateId();
 
     const keyWithUser1: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId3,
     };
     const clientWithKeyUser: Client = {
@@ -185,27 +185,27 @@ describe("getClientKeys", async () => {
     const keyUserId6: UserId = generateId();
 
     const keyWithUser1: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId3,
     };
     const keyWithUser4: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId4,
     };
     const keyWithUser5: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId5,
     };
     const keyWithUser6: Key = {
-      ...mockKey,
+      ...getMockKey(),
       userId: keyUserId6,
     };
 

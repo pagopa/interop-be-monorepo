@@ -3,7 +3,6 @@ import {
   decodeProtobufPayload,
   getMockProducerKeychain,
   getMockEService,
-  writeInReadmodel,
   getMockAuthData,
   getMockContext,
 } from "pagopa-interop-commons-test";
@@ -14,7 +13,6 @@ import {
   EService,
   TenantId,
   generateId,
-  toReadModelEService,
   EServiceId,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
@@ -26,9 +24,9 @@ import {
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
 import {
+  addOneEService,
   addOneProducerKeychain,
   authorizationService,
-  eservices,
   readLastAuthorizationEvent,
 } from "../integrationUtils.js";
 
@@ -49,7 +47,7 @@ describe("addProducerKeychainEService", async () => {
     };
 
     await addOneProducerKeychain(mockProducerKeychain);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     await authorizationService.addProducerKeychainEService(
       {
@@ -91,7 +89,7 @@ describe("addProducerKeychainEService", async () => {
       producerId: mockProducerId,
     };
 
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     const mockProducerKeychain = getMockProducerKeychain();
 
@@ -118,7 +116,7 @@ describe("addProducerKeychainEService", async () => {
     const mockProducerKeychain = getMockProducerKeychain();
 
     await addOneProducerKeychain(mockProducerKeychain);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       authorizationService.addProducerKeychainEService(
@@ -177,7 +175,7 @@ describe("addProducerKeychainEService", async () => {
     };
 
     await addOneProducerKeychain(mockProducerKeychain);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       authorizationService.addProducerKeychainEService(
@@ -208,7 +206,7 @@ describe("addProducerKeychainEService", async () => {
     };
 
     await addOneProducerKeychain(mockProducerKeychain);
-    await writeInReadmodel(toReadModelEService(mockEService), eservices);
+    await addOneEService(mockEService);
 
     expect(
       authorizationService.addProducerKeychainEService(
