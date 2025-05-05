@@ -25,7 +25,6 @@ import {
   emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
-  updateAgreementApprovalPolicyErrorMapper,
 } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
