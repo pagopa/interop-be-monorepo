@@ -913,19 +913,19 @@ export const sortPurpose = <
 export const sortDescriptor = (descriptor: Descriptor): Descriptor => ({
   ...descriptor,
   // eslint-disable-next-line functional/immutable-data
-  docs: descriptor.docs.sort(sortBy<Document>((doc) => doc.id)),
+  docs: descriptor.docs.sort(sortBy((doc) => doc.id)),
   attributes: {
     certified: descriptor.attributes.certified.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id))
     ),
     declared: descriptor.attributes.declared.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id))
     ),
     verified: descriptor.attributes.verified.map((array) =>
       // eslint-disable-next-line functional/immutable-data
-      array.sort(sortBy<EServiceAttribute>((attr) => attr.id))
+      array.sort(sortBy((attr) => attr.id))
     ),
   },
 });
