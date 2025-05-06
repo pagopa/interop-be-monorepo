@@ -19,7 +19,7 @@ import {
   ReadModelQueries,
   readModelQueriesBuilder,
 } from "./service/readModelQueriesService.js";
-import { readModelQueriesBuilderSQL } from "./service/readmodelQueriesServiceSQL.js";
+import { readModelQueriesBuilderSQL } from "./service/readModelQueriesServiceSQL.js";
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
