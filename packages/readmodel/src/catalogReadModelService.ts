@@ -1,5 +1,10 @@
-import { and, eq, lte } from "drizzle-orm";
-import { EService, EServiceId, WithMetadata } from "pagopa-interop-models";
+import { and, eq, lte, SQL } from "drizzle-orm";
+import {
+  EService,
+  EServiceId,
+  genericInternalError,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
@@ -109,6 +114,16 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
     async getEServiceById(
       eserviceId: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
+      return await this.getEServiceByFilter(
+        eq(eserviceInReadmodelCatalog.id, eserviceId)
+      );
+    },
+    async getEServiceByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<EService> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
       /*
         eservice ->1 descriptor ->2 interface
                       descriptor ->3 document
@@ -131,7 +146,7 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
-        .where(eq(eserviceInReadmodelCatalog.id, eserviceId))
+        .where(filter)
         .leftJoin(
           // 1
           eserviceDescriptorInReadmodelCatalog,
