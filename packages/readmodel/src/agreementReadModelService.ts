@@ -16,7 +16,9 @@ import {
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import {
   aggregateAgreement,
+  aggregateAgreementArray,
   toAgreementAggregator,
+  toAgreementAggregatorArray,
 } from "./agreement/aggregators.js";
 import { checkMetadataVersion } from "./utils.js";
 
