@@ -62,10 +62,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
 
   it.each(
     Object.values(authRole).filter(
-      (role) =>
-        !([authRole.M2M_ADMIN_ROLE, authRole.M2M_ROLE] as AuthRole[]).includes(
-          role
-        )
+      (role) => role !== authRole.M2M_ADMIN_ROLE && role !== authRole.M2M_ROLE
     )
   )(
     "Should return 403 for user with role %s, no matter the client id",
