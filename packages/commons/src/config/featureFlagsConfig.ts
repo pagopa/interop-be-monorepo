@@ -38,17 +38,27 @@ export type featureFlagAdminClientConfig = z.infer<
   typeof featureFlagAdminClientConfig
 >;
 
+export const FeatureFlagSQLConfig = z
+  .object({
+    FEATURE_FLAG_SQL: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+  })
+  .transform((c) => ({
+    featureFlagSQL: c.FEATURE_FLAG_SQL,
+  }));
+export type FeatureFlagSQLConfig = z.infer<typeof FeatureFlagSQLConfig>;
+
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
-  featureFlagAdminClientConfig;
+  featureFlagAdminClientConfig &
+  FeatureFlagSQLConfig;
 
 export type FeatureFlagKeys = keyof Pick<
   FeatureFlags,
   {
-    [K in keyof (FeatureFlagSignalhubWhitelistConfig &
-      featureFlagAdminClientConfig)]: K extends `featureFlag${string}`
-      ? K
-      : never;
-  }[keyof (FeatureFlagSignalhubWhitelistConfig & featureFlagAdminClientConfig)]
+    [K in keyof FeatureFlags]: K extends `featureFlag${string}` ? K : never;
+  }[keyof FeatureFlags]
 >;
 
 export const isFeatureFlagEnabled = <

@@ -18,6 +18,7 @@ import {
 import {
   ClientAddedV2,
   ClientAdminSetV2,
+  ClientAdminRemovedBySelfcareV2,
   ClientAdminRemovedV2,
   ClientDeletedV2,
   ClientKeyAddedV2,
@@ -82,6 +83,9 @@ export function authorizationEventToBinaryDataV2(
     .with({ type: "ClientAdded" }, ({ data }) => ClientAddedV2.toBinary(data))
     .with({ type: "ClientDeleted" }, ({ data }) =>
       ClientDeletedV2.toBinary(data)
+    )
+    .with({ type: "ClientAdminRemovedBySelfcare" }, ({ data }) =>
+      ClientAdminRemovedBySelfcareV2.toBinary(data)
     )
     .with({ type: "ClientAdminRemoved" }, ({ data }) =>
       ClientAdminRemovedV2.toBinary(data)
@@ -203,6 +207,11 @@ export const AuthorizationEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("ClientDeleted"),
     data: protobufDecoder(ClientDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientAdminRemovedBySelfcare"),
+    data: protobufDecoder(ClientAdminRemovedBySelfcareV2),
   }),
   z.object({
     event_version: z.literal(2),
