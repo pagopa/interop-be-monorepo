@@ -5,6 +5,8 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  authRole,
+  validateAuthorization,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
@@ -15,6 +17,8 @@ const eserviceTemplateRouter = (
   ctx: ZodiosContext,
   eserviceTemplateService: EserviceTemplateService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
+
   const eserviceTemplateRouter = ctx.router(
     m2mGatewayApi.eserviceTemplatesApi.api,
     {
@@ -22,13 +26,20 @@ const eserviceTemplateRouter = (
     }
   );
 
-  void eserviceTemplateService;
-
   eserviceTemplateRouter
     .get("/eserviceTemplates/:templateId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const template = await eserviceTemplateService.getEServiceTemplateById(
+          ctx,
+          req.params.templateId
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.EServiceTemplate.parse(template));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

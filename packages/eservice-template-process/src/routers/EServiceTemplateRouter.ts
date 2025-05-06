@@ -73,8 +73,14 @@ const eserviceTemplateService = eserviceTemplateServiceBuilder(
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } =
-    authRole;
+  const {
+    ADMIN_ROLE,
+    API_ROLE,
+    SECURITY_ROLE,
+    M2M_ROLE,
+    SUPPORT_ROLE,
+    M2M_ADMIN_ROLE,
+  } = authRole;
 
   return ctx
     .router(eserviceTemplateApi.processApi.api, {
@@ -168,6 +174,7 @@ const eserviceTemplatesRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
         const eserviceTemplate =
