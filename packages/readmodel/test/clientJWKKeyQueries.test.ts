@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from "vitest";
 import { ClientId, generateId } from "pagopa-interop-models";
+import { getMockClientJWKKey } from "pagopa-interop-commons-test";
 import { aggregateClientJWKKey } from "../src/authorization/clientJWKKeyAggregators.js";
 import { readModelDB } from "./utils.js";
 import {
   clientJWKKeyReadModelService,
-  getMockClientJWKKey,
   retrieveClientJWKKeySQLByKid,
 } from "./clientJWKKeyUtils.js";
 
@@ -53,13 +53,13 @@ describe("Client JWK key queries", () => {
 
   describe("should get a client JWK key by client id and kid", () => {
     it("client JWK key found", async () => {
-      const clientKeychainId = generateId<ClientId>();
-      const clientJWKKey = getMockClientJWKKey(clientKeychainId);
+      const clientId = generateId<ClientId>();
+      const clientJWKKey = getMockClientJWKKey(clientId);
       await clientJWKKeyReadModelService.upsertClientJWKKey(clientJWKKey, 1);
 
       const retrievedClientJWKKey =
         await clientJWKKeyReadModelService.getClientJWKKeyByClientIdAndKid(
-          clientKeychainId,
+          clientId,
           clientJWKKey.kid
         );
       expect(retrievedClientJWKKey).toStrictEqual({

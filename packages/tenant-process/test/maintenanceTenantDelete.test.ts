@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   MaintenanceTenantDeletedV2,
-  generateId,
   protobufDecoder,
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
+  getMockContextMaintenance,
   getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
@@ -22,9 +21,8 @@ describe("maintenanceTenantDelete", async () => {
       {
         tenantId: mockTenant.id,
         version: 0,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContextMaintenance({})
     );
     const writtenEvent = await readLastEventByStreamId(
       mockTenant.id,
@@ -51,9 +49,8 @@ describe("maintenanceTenantDelete", async () => {
         {
           tenantId: mockTenant.id,
           version: 0,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextMaintenance({})
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });

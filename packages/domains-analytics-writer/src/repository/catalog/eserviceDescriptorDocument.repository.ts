@@ -4,11 +4,13 @@ import { EServiceDescriptorDocumentSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorDocumentMapping,
-  eserviceDescriptorDocumentDeletingSchema,
   eserviceDescriptorDocumentSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
@@ -16,7 +18,7 @@ import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_document;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
   const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
@@ -60,18 +62,6 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       }
     },
 
-    async updateEServiceDocument(
-      t: ITask<unknown>,
-      pgp: IMain,
-      record: Partial<EServiceDescriptorDocumentSQL>
-    ): Promise<void> {
-      const cs = new pgp.helpers.ColumnSet(Object.keys(record), {
-        table: `${config.dbSchemaName}.eservice_descriptor_document${config.mergeTableSuffix}`,
-      });
-      const query = pgp.helpers.insert(record, cs);
-      await t.none(query);
-    },
-
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
@@ -99,7 +89,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       }
     },
 
-    async deleteDocument(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
       documentId: string
@@ -127,12 +117,11 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
 
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        const mergeQuery = generateMergeQuery(
-          eserviceDescriptorDocumentDeletingSchema,
+        const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           stagingDeletingTable,
-          ["id"]
+          "id"
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

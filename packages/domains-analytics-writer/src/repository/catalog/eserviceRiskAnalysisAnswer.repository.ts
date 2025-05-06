@@ -15,7 +15,7 @@ import { CatalogDbTable } from "../../model/db.js";
 export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_risk_analysis_answer;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -62,7 +62,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
           eserviceRiskAnalysisAnswerSchema,
           schemaName,
           tableName,
-          `${tableName}${config.mergeTableSuffix}`,
+          `${tableName}_${config.mergeTableSuffix}`,
           ["id"]
         );
         await t.none(mergeQuery);

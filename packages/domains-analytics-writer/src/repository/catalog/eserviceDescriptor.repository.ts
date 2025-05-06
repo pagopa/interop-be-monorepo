@@ -18,7 +18,7 @@ import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 export function eserviceDescriptorRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
   const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
@@ -97,7 +97,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       }
     },
 
-    async insertDeletingByDescriptorId(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
       id: string

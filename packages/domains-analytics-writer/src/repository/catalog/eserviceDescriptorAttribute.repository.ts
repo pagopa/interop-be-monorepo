@@ -15,7 +15,7 @@ import { CatalogDbTable } from "../../model/db.js";
 export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_attribute;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -62,7 +62,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           eserviceDescriptorAttributeSchema,
           schemaName,
           tableName,
-          `${tableName}${config.mergeTableSuffix}`,
+          `${tableName}_${config.mergeTableSuffix}`,
           ["attribute_id"]
         );
         await t.none(mergeQuery);

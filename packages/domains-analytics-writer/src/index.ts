@@ -44,7 +44,6 @@ await retryConnection(
     await setupDbService.setupStagingTables([
       AttributeDbtable.attribute,
       CatalogDbTable.eservice,
-      CatalogDbTable.eservice_template_ref,
       CatalogDbTable.eservice_descriptor,
       CatalogDbTable.eservice_descriptor_template_version_ref,
       CatalogDbTable.eservice_descriptor_rejection_reason,

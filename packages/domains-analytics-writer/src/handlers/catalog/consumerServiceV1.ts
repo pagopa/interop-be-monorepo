@@ -9,9 +9,6 @@ import {
   Descriptor,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import // splitDescriptorIntoObjectsSQL,
-// splitEserviceIntoObjectsSQL,
-"pagopa-interop-readmodel";
 import {
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
@@ -20,7 +17,6 @@ import {
   EServiceDescriptorSQL,
   EServiceDescriptorTemplateVersionRefSQL,
   EServiceItemsSQL,
-  // EServiceItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import {
   splitDescriptorIntoObjectsSQL,

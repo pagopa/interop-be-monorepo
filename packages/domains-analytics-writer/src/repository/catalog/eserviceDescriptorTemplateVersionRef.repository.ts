@@ -17,7 +17,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
 ) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_template_version_ref;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -73,7 +73,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
           eserviceDescriptorTemplateVersionRefSchema,
           schemaName,
           tableName,
-          `${tableName}${config.mergeTableSuffix}`,
+          `${tableName}_${config.mergeTableSuffix}`,
           ["eservice_template_version_id"]
         );
         await t.none(mergeQuery);

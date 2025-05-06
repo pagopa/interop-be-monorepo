@@ -224,4 +224,73 @@ describe("SQL Attribute Service - Events V1", () => {
     const stored = await getAttributeFromDb(deleteMessage.data.id, dbContext);
     expect(stored?.[0]?.deleted).toBe(true);
   });
+  describe("Merge and check on metadata_version", () => {
+    it("should skip insert/update when incoming metadata_version is lower or equal", async () => {
+      const attr = {
+        ...getMockAttribute(),
+        kind: attributeKind.declared,
+        code: "AAA",
+      };
+      const first: AttributeEventEnvelope = {
+        sequence_num: 1,
+        stream_id: attr.id,
+        version: 5,
+        type: "AttributeAdded",
+        event_version: 1,
+        data: { attribute: { ...attr } as any },
+        log_date: new Date(),
+      };
+      await handleAttributeMessageV1([first], dbContext);
+      let stored = await getAttributeFromDb(attr.id, dbContext);
+      expect(stored?.[0].metadata_version).toBe(5);
+
+      const equal: AttributeEventEnvelope = {
+        ...first,
+        sequence_num: 2,
+        version: 5,
+      };
+      await handleAttributeMessageV1([equal], dbContext);
+      stored = await getAttributeFromDb(attr.id, dbContext);
+      expect(stored?.[0].metadata_version).toBe(5);
+
+      const lower: AttributeEventEnvelope = {
+        ...first,
+        sequence_num: 3,
+        version: 4,
+      };
+      await handleAttributeMessageV1([lower], dbContext);
+      stored = await getAttributeFromDb(attr.id, dbContext);
+      expect(stored?.[0].metadata_version).toBe(5);
+    });
+
+    it("should overwrite when incoming metadata_version is greater", async () => {
+      const attr = {
+        ...getMockAttribute(),
+        kind: attributeKind.verified,
+        code: "code",
+      };
+      const initial: AttributeEventEnvelope = {
+        sequence_num: 1,
+        stream_id: attr.id,
+        version: 1,
+        type: "AttributeAdded",
+        event_version: 1,
+        data: { attribute: { ...attr } as any },
+        log_date: new Date(),
+      };
+      await handleAttributeMessageV1([initial], dbContext);
+
+      const higher: AttributeEventEnvelope = {
+        ...initial,
+        sequence_num: 2,
+        version: 10,
+        data: { attribute: { ...attr, code: "updated code" } as any },
+      };
+      await handleAttributeMessageV1([higher], dbContext);
+
+      const stored = await getAttributeFromDb(attr.id, dbContext);
+      expect(stored?.[0].metadata_version).toBe(10);
+      expect(stored?.[0].code).toBe("updated code");
+    });
+  });
 });

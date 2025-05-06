@@ -29,17 +29,6 @@ CREATE TABLE domains.eservice (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE domains.eservice_template_ref (
-  eservice_template_id VARCHAR(36),
-  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
-  instance_label VARCHAR,
-  deleted BOOLEAN,
-  PRIMARY KEY (eservice_template_id, eservice_id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
-);
-
 CREATE TABLE domains.eservice_descriptor (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),

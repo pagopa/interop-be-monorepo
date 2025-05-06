@@ -4,7 +4,10 @@ import { EServiceDescriptorInterfaceSQL } from "pagopa-interop-readmodel-models"
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorInterfaceMapping,
@@ -15,7 +18,8 @@ import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_interface;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
     async insert(
@@ -64,7 +68,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           eserviceDescriptorInterfaceSchema,
           schemaName,
           tableName,
-          `${tableName}${config.mergeTableSuffix}`,
+          `${tableName}_${config.mergeTableSuffix}`,
           ["id"]
         );
         await t.none(mergeQuery);
@@ -85,7 +89,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       }
     },
 
-    async deleteInterface(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
       descriptorId: string
@@ -97,7 +101,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       const cs = buildColumnSet<{ id: string; deleted: boolean }>(
         pgp,
         mapping,
-        DeletingDbTable.catalog_deleting_table
+        stagingDeletingTable
       );
       try {
         await t.none(
@@ -106,7 +110,33 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${DeletingDbTable.catalog_deleting_table}: ${error}`
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
+      try {
+        const mergeQuery = generateMergeDeleteQuery(
+          schemaName,
+          tableName,
+          stagingDeletingTable,
+          "id"
+        );
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanDeleting(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

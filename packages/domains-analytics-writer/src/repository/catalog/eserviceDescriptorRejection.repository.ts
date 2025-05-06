@@ -15,7 +15,7 @@ import { CatalogDbTable } from "../../model/db.js";
 export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_rejection_reason;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -61,7 +61,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
           eserviceDescriptorRejectionSchema,
           schemaName,
           tableName,
-          `${tableName}${config.mergeTableSuffix}`,
+          `${tableName}_${config.mergeTableSuffix}`,
           ["descriptor_id"]
         );
         await t.none(mergeQuery);

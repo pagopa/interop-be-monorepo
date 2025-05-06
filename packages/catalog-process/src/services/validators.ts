@@ -1,7 +1,8 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  AuthData,
+  M2MAuthData,
   RiskAnalysisValidatedForm,
+  UIAuthData,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -62,6 +63,13 @@ export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.waitingForApproval,
 ];
 
+export const validDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+  descriptorState.archived,
+];
+
 export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
@@ -99,13 +107,9 @@ export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
-
   // Search for active producer delegation
   const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
@@ -129,11 +133,8 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: AuthData
+  authData: UIAuthData | M2MAuthData
 ): void {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
   }
@@ -291,14 +292,14 @@ export function assertEServiceNotTemplateInstance(
 export function assertEServiceIsTemplateInstance(
   eservice: EService
 ): asserts eservice is EService & {
-  templateRef: NonNullable<EService["templateRef"]>;
+  templateId: EServiceTemplateId;
   descriptors: Array<
     Descriptor & {
       templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
     }
   >;
 } {
-  if (eservice.templateRef === undefined) {
+  if (eservice.templateId === undefined) {
     throw eServiceNotAnInstance(eservice.id);
   }
 }
