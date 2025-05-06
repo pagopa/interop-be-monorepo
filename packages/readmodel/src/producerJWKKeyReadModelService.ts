@@ -25,7 +25,13 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           tx,
           producerJwkKeyInReadmodelProducerJwkKey,
           metadataVersion,
-          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+          and(
+            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid),
+            eq(
+              producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+              jwkKey.producerKeychainId
+            )
+          )
         );
 
         if (!shouldUpsert) {

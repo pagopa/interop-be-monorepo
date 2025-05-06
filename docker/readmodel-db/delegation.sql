@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_stamp (
   "when" TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (delegation_id, kind),
-  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation (id, metadata_version)
+  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_contract_document (
@@ -36,6 +36,6 @@ CREATE TABLE IF NOT EXISTS readmodel_delegation.delegation_contract_document (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   kind VARCHAR NOT NULL,
   PRIMARY KEY (id),
-  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation (id, metadata_version),
+  FOREIGN KEY (delegation_id, metadata_version) REFERENCES readmodel_delegation.delegation (id, metadata_version) DEFERRABLE INITIALLY DEFERRED,
   CONSTRAINT delegation_contract_document_delegation_id_kind_unique UNIQUE (delegation_id, kind)
 );

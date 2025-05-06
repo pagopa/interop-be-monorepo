@@ -6,6 +6,7 @@
 import { config as dotenv } from "dotenv-flow";
 import {
   AWSSesConfig,
+  AnalyticsSQLDbConfig,
   EventStoreConfig,
   FileManagerConfig,
   ReadModelDbConfig,
@@ -35,6 +36,7 @@ import {
   postgreSQLReadModelContainer,
   postgreSQLContainer,
   redisContainer,
+  postgreSQLAnalyticsContainer,
 } from "./containerTestUtils.js";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
@@ -56,6 +58,7 @@ declare module "vitest" {
     redisRateLimiterConfig?: RedisRateLimiterConfig;
     emailManagerConfig?: PecEmailManagerConfigTest;
     sesEmailManagerConfig?: AWSSesConfig;
+    analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
   }
 }
 
@@ -72,6 +75,7 @@ export function setupTestContainersVitestGlobal() {
   const eventStoreConfig = EventStoreConfig.safeParse(process.env);
   const readModelConfig = ReadModelDbConfig.safeParse(process.env);
   const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
+  const analyticsSQLDbConfig = AnalyticsSQLDbConfig.safeParse(process.env);
   const fileManagerConfig = FileManagerConfig.safeParse(process.env);
   const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(process.env);
   const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
@@ -84,6 +88,7 @@ export function setupTestContainersVitestGlobal() {
   }: GlobalSetupContext): Promise<() => Promise<void>> {
     let startedPostgreSqlContainer: StartedTestContainer | undefined;
     let startedPostgreSqlReadModelContainer: StartedTestContainer | undefined;
+    let startedPostgreSqlAnalyticsContainer: StartedTestContainer | undefined;
     let startedMongodbContainer: StartedTestContainer | undefined;
     let startedMinioContainer: StartedTestContainer | undefined;
     let startedMailpitContainer: StartedTestContainer | undefined;
@@ -130,6 +135,18 @@ export function setupTestContainersVitestGlobal() {
         );
 
       provide("readModelSQLConfig", readModelSQLConfig.data);
+    }
+
+    if (analyticsSQLDbConfig.success) {
+      startedPostgreSqlAnalyticsContainer = await postgreSQLAnalyticsContainer(
+        analyticsSQLDbConfig.data
+      ).start();
+      analyticsSQLDbConfig.data.dbPort =
+        startedPostgreSqlAnalyticsContainer.getMappedPort(
+          TEST_POSTGRES_DB_PORT
+        );
+
+      provide("analyticsSQLDbConfig", analyticsSQLDbConfig.data);
     }
 
     // Setting up the MongoDB container if the config is provided
@@ -206,6 +223,7 @@ export function setupTestContainersVitestGlobal() {
     return async (): Promise<void> => {
       await startedPostgreSqlContainer?.stop();
       await startedPostgreSqlReadModelContainer?.stop();
+      await startedPostgreSqlAnalyticsContainer?.stop();
       await startedMongodbContainer?.stop();
       await startedMinioContainer?.stop();
       await startedMailpitContainer?.stop();
