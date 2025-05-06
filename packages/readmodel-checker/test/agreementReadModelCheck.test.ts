@@ -139,7 +139,7 @@ describe("Check agreement readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const agreement1ForSQL: WithMetadata<Agreement> = {
+    const agreement1InPostgresDb: WithMetadata<Agreement> = {
       data: {
         ...agreement1.data,
         descriptorId: generateId(),
@@ -150,8 +150,8 @@ describe("Check agreement readmodels", () => {
     await addOneAgreement(agreement1);
 
     await agreementReadModelServiceSQL.upsertAgreement(
-      agreement1ForSQL.data,
-      agreement1ForSQL.metadata.version
+      agreement1InPostgresDb.data,
+      agreement1InPostgresDb.metadata.version
     );
 
     const collectionAgreements =
@@ -175,7 +175,7 @@ describe("Check agreement readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const agreement1ForSQL: WithMetadata<Agreement> = {
+    const agreement1InPostgresDb: WithMetadata<Agreement> = {
       data: agreement1.data,
       metadata: {
         version: 3,
@@ -185,8 +185,8 @@ describe("Check agreement readmodels", () => {
     await addOneAgreement(agreement1);
 
     await agreementReadModelServiceSQL.upsertAgreement(
-      agreement1ForSQL.data,
-      agreement1ForSQL.metadata.version
+      agreement1InPostgresDb.data,
+      agreement1InPostgresDb.metadata.version
     );
 
     const collectionAgreements =

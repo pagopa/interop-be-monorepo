@@ -1,4 +1,3 @@
-import { Filter } from "mongodb";
 import { ReadModelFilter, ReadModelRepository } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -7,7 +6,6 @@ import {
   DelegationId,
   delegationKind,
   DelegationKind,
-  DelegationReadModel,
   delegationState,
   DelegationState,
   EService,
@@ -32,30 +30,27 @@ export function readModelServiceBuilder(
       id: DelegationId,
       kind: DelegationKind | undefined = undefined
     ): Promise<WithMetadata<Delegation> | undefined> {
-      const getDelegation = async (
-        filter: Filter<{ data: DelegationReadModel }>
-      ): Promise<WithMetadata<Delegation> | undefined> => {
-        const data = await delegations.findOne(filter, {
+      const data = await delegations.findOne(
+        {
+          "data.id": id,
+          ...(kind ? { "data.kind": kind } : {}),
+        },
+        {
           projection: { data: true, metadata: true },
-        });
-        if (data) {
-          const result = Delegation.safeParse(data.data);
-          if (!result.success) {
-            throw genericInternalError(
-              `Unable to parse delegation item: result ${JSON.stringify(
-                result
-              )} - data ${JSON.stringify(data)} `
-            );
-          }
-          return data;
         }
-        return undefined;
-      };
-
-      return getDelegation({
-        "data.id": id,
-        ...(kind ? { "data.kind": kind } : {}),
-      });
+      );
+      if (data) {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return data;
+      }
+      return undefined;
     },
     async findDelegations(filters: {
       eserviceId?: EServiceId;
@@ -231,7 +226,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerDelegators(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       eserviceIds: EServiceId[];
       limit: number;
@@ -242,7 +237,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.requesterId,
+            "data.delegateId": filters.delegateId,
             ...ReadModelRepository.arrayToFilter(filters.eserviceIds, {
               "data.eserviceId": { $in: filters.eserviceIds },
             }),
@@ -321,7 +316,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerDelegatorsWithAgreements(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorName?: string;
       limit: number;
       offset: number;
@@ -331,7 +326,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.requesterId,
+            "data.delegateId": filters.delegateId,
           } satisfies ReadModelFilter<Delegation>,
         },
         {
@@ -454,7 +449,7 @@ export function readModelServiceBuilder(
       };
     },
     async getConsumerEservices(filters: {
-      requesterId: TenantId;
+      delegateId: TenantId;
       delegatorId: TenantId;
       limit: number;
       offset: number;
@@ -465,7 +460,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.kind": delegationKind.delegatedConsumer,
             "data.state": delegationState.active,
-            "data.delegateId": filters.requesterId,
+            "data.delegateId": filters.delegateId,
             "data.delegatorId": filters.delegatorId,
           } satisfies ReadModelFilter<Delegation>,
         },

@@ -8,13 +8,13 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import {
   toBffCreatedEServiceTemplateVersion,
   toCatalogCreateEServiceTemplateSeed,
 } from "../api/eserviceTemplateApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
