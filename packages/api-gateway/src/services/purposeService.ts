@@ -1,4 +1,8 @@
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+import {
+  getAllFromPaginated,
+  M2MAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   apiGatewayApi,
   purposeApi,
@@ -103,7 +107,7 @@ export function purposeServiceBuilder(
         logger,
         headers,
         authData: { organizationId },
-      }: WithLogger<ApiGatewayAppContext>,
+      }: WithLogger<ApiGatewayAppContext<M2MAuthData>>,
       purposeId: purposeApi.Purpose["id"]
     ): Promise<apiGatewayApi.Purpose> => {
       logger.info(`Retrieving Purpose ${purposeId}`);

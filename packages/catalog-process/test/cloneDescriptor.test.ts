@@ -366,7 +366,7 @@ describe("clone descriptor", () => {
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
     );
   });
-  it("should throw templateInstanceNotAllowed if teh templateId is defined", async () => {
+  it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -374,7 +374,7 @@ describe("clone descriptor", () => {
     };
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: templateId },
+      templateId,
       descriptors: [descriptor],
     };
     await addOneEService(eservice);

@@ -138,7 +138,7 @@ describe("Check client readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const client1ForSQL: WithMetadata<Client> = {
+    const client1InPostgresDb: WithMetadata<Client> = {
       data: {
         ...client1.data,
         kind: clientKind.api,
@@ -149,8 +149,8 @@ describe("Check client readmodels", () => {
     await addOneClient(client1);
 
     await clientReadModelServiceSQL.upsertClient(
-      client1ForSQL.data,
-      client1ForSQL.metadata.version
+      client1InPostgresDb.data,
+      client1InPostgresDb.metadata.version
     );
 
     const collectionClients = await readModelService.getAllReadModelClients();
@@ -173,7 +173,7 @@ describe("Check client readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const client1ForSQL: WithMetadata<Client> = {
+    const client1InPostgresDb: WithMetadata<Client> = {
       data: client1.data,
       metadata: {
         version: 3,
@@ -183,8 +183,8 @@ describe("Check client readmodels", () => {
     await addOneClient(client1);
 
     await clientReadModelServiceSQL.upsertClient(
-      client1ForSQL.data,
-      client1ForSQL.metadata.version
+      client1InPostgresDb.data,
+      client1InPostgresDb.metadata.version
     );
 
     const collectionClients = await readModelService.getAllReadModelClients();

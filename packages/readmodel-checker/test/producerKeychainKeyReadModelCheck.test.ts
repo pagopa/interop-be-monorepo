@@ -135,7 +135,7 @@ describe("Check producerKeychain key readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const producerKeychainKey1ForSQL: WithMetadata<ProducerJWKKey> = {
+    const producerKeychainKey1InPostgresDb: WithMetadata<ProducerJWKKey> = {
       data: { ...producerKeychainKey1.data, alg: "wrong-alg" },
       metadata: producerKeychainKey1.metadata,
     };
@@ -143,8 +143,8 @@ describe("Check producerKeychain key readmodels", () => {
     await addOneProducerJWKKey(producerKeychainKey1);
 
     await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
-      producerKeychainKey1ForSQL.data,
-      producerKeychainKey1ForSQL.metadata.version
+      producerKeychainKey1InPostgresDb.data,
+      producerKeychainKey1InPostgresDb.metadata.version
     );
 
     const collectionKeys =
@@ -168,7 +168,7 @@ describe("Check producerKeychain key readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const producerKeychainKey1ForSQL: WithMetadata<ProducerJWKKey> = {
+    const producerKeychainKey1InPostgresDb: WithMetadata<ProducerJWKKey> = {
       data: producerKeychainKey1.data,
       metadata: { version: 3 },
     };
@@ -176,8 +176,8 @@ describe("Check producerKeychain key readmodels", () => {
     await addOneProducerJWKKey(producerKeychainKey1);
 
     await producerKeychainKeyReadModelServiceSQL.upsertProducerJWKKey(
-      producerKeychainKey1ForSQL.data,
-      producerKeychainKey1ForSQL.metadata.version
+      producerKeychainKey1InPostgresDb.data,
+      producerKeychainKey1InPostgresDb.metadata.version
     );
 
     const collectionKeys =
