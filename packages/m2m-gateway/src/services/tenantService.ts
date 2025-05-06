@@ -2,7 +2,7 @@ import { WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { toM2MTenant } from "../api/tenantApiConverter.js";
+import { toM2MGatewayApiTenant } from "../api/tenantApiConverter.js";
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
@@ -34,7 +34,7 @@ export function tenantServiceBuilder({
       });
 
       return {
-        results: results.map(toM2MTenant),
+        results: results.map(toM2MGatewayApiTenant),
         pagination: {
           limit,
           offset,

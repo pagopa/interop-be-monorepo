@@ -1,6 +1,8 @@
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 
-export function toM2MTenant(tenant: tenantApi.Tenant): m2mGatewayApi.Tenant {
+export function toM2MGatewayApiTenant(
+  tenant: tenantApi.Tenant
+): m2mGatewayApi.Tenant {
   return {
     id: tenant.id,
     externalId: tenant.externalId,
