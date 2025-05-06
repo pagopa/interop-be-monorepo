@@ -40,7 +40,7 @@ import {
   tenantInReadmodelTenant,
   EServiceDescriptorSQL,
 } from "pagopa-interop-readmodel-models";
-import { ReadModelRepository } from "pagopa-interop-commons";
+import { escapeRegExp, createListResult } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { PgSelect } from "drizzle-orm/pg-core";
 import {
@@ -184,10 +184,7 @@ async function filterAgreementsUpgradeable(
     )
     .slice(offset, offset + limit);
 
-  return {
-    results: upgradableAgreements,
-    totalCount: upgradableAgreements.length,
-  };
+  return createListResult(upgradableAgreements, upgradableAgreements.length);
 }
 
 const toArray = <T>(value: T | T[] | undefined | null): T[] => {
@@ -287,7 +284,7 @@ export function readModelServiceBuilderSQL(
         .select({
           id: agreementInReadmodelAgreement.id,
           eserviceName: eserviceInReadmodelCatalog.name,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(agreementInReadmodelAgreement)
         .leftJoin(
@@ -487,16 +484,15 @@ export function readModelServiceBuilderSQL(
           limit
         );
       }
-      return {
-        results: agreements,
-        totalCount: Number(resultSet[0]?.totalCount ?? 0),
-      };
+      return createListResult(agreements, resultSet[0]?.totalCount);
     },
+
     async getAgreementById(
       agreementId: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> {
       return await agreementReadModelServiceSQL.getAgreementById(agreementId);
     },
+
     async getAllAgreements(
       filters: AgreementQueryFilters
     ): Promise<Array<WithMetadata<Agreement>>> {
@@ -513,7 +509,7 @@ export function readModelServiceBuilderSQL(
         .select({
           id: agreementInReadmodelAgreement.id,
           eserviceName: eserviceInReadmodelCatalog.name,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(agreementInReadmodelAgreement)
         .leftJoin(
@@ -658,10 +654,6 @@ export function readModelServiceBuilderSQL(
         await attributeReadModelServiceSQL.getAttributeById(attributeId);
       return attributeWithMetadata?.data;
     },
-    /**
-     * Retrieving consumers from agreements with consumer name
-     * /agreements/filter/consumers
-     */
 
     async getAgreementsConsumers(
       requesterId: TenantId,
@@ -697,7 +689,7 @@ export function readModelServiceBuilderSQL(
             consumerName
               ? ilike(
                   tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(consumerName)}%`
+                  `%${escapeRegExp(consumerName)}%`
                 )
               : undefined,
             // VISIBILITY
@@ -713,10 +705,10 @@ export function readModelServiceBuilderSQL(
         .orderBy(tenantInReadmodelTenant.name)
         .limit(limit)
         .offset(offset);
-      return {
-        results: resultSet.map(({ id, name }) => ({ id, name })),
-        totalCount: resultSet[0]?.totalCount ?? 0,
-      };
+      return createListResult(
+        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet[0]?.totalCount
+      );
     },
 
     async getAgreementsProducers(
@@ -753,7 +745,7 @@ export function readModelServiceBuilderSQL(
             producerName
               ? ilike(
                   tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(producerName)}%`
+                  `%${escapeRegExp(producerName)}%`
                 )
               : undefined,
             // VISIBILITY
@@ -769,10 +761,10 @@ export function readModelServiceBuilderSQL(
         .orderBy(tenantInReadmodelTenant.name)
         .limit(limit)
         .offset(offset);
-      return {
-        results: resultSet.map(({ id, name }) => ({ id, name })),
-        totalCount: resultSet[0]?.totalCount ?? 0,
-      };
+      return createListResult(
+        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet[0]?.totalCount
+      );
     },
 
     async getAgreementsEServices(
@@ -871,10 +863,10 @@ export function readModelServiceBuilderSQL(
         .orderBy(eserviceInReadmodelCatalog.name)
         .limit(limit)
         .offset(offset);
-      return {
-        results: resultSet.map(({ id, name }) => ({ id, name })),
-        totalCount: resultSet[0]?.totalCount ?? 0,
-      };
+      return createListResult(
+        resultSet.map(({ id, name }) => ({ id, name })),
+        resultSet[0]?.totalCount
+      );
     },
 
     async getActiveProducerDelegationByEserviceId(
