@@ -21,8 +21,14 @@ export const decodeBase64ToPem = (base64String: string): string => {
   }
 };
 
-export const createJWK = (pemKeyBase64: string): JsonWebKey =>
-  createPublicKey(pemKeyBase64).export({ format: "jwk" });
+export const createJWK = ({
+  pemKeyBase64,
+  strictCheck = true,
+}: {
+  pemKeyBase64: string;
+  strictCheck?: boolean;
+}): JsonWebKey =>
+  createPublicKey({ key: pemKeyBase64, strictCheck }).export({ format: "jwk" });
 
 export const calculateKid = (jwk: JsonWebKey): string => {
   const sortedJwk = sortJWK(jwk);
@@ -80,15 +86,23 @@ function tryToCreatePublicKey(key: string): KeyObject {
   }
 }
 
-export function createPublicKey(key: string): KeyObject {
+export function createPublicKey({
+  key,
+  strictCheck = true,
+}: {
+  key: string;
+  strictCheck?: boolean;
+}): KeyObject {
   const pemKey = decodeBase64ToPem(key);
 
   assertSingleKey(pemKey);
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
   const publicKey = tryToCreatePublicKey(pemKey);
-  assertValidRSAKey(publicKey);
-  assertValidRSAKeyLength(publicKey);
+  if (strictCheck) {
+    assertValidRSAKey(publicKey);
+    assertValidRSAKeyLength(publicKey);
+  }
   return publicKey;
 }
 
