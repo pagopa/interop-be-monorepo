@@ -5,6 +5,7 @@ import {
   getMockContext,
   getMockEServiceTemplate,
   getMockTenant,
+  sortEServices,
 } from "pagopa-interop-commons-test";
 import {
   TenantId,
@@ -33,7 +34,6 @@ import {
   getMockEServiceAttributes,
   addOneDelegation,
   addOneEServiceTemplate,
-  sortEServices,
 } from "./utils.js";
 
 describe("get eservices", () => {

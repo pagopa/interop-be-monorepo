@@ -1,4 +1,6 @@
 import {
+  ascLower,
+  createListResult,
   hasAtLeastOneUserRole,
   M2MAuthData,
   ReadModelRepository,
@@ -248,16 +250,15 @@ export function readModelServiceBuilderSQL({
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
           )
         )
-        .orderBy(
-          sql`LOWER(${eserviceTemplateInReadmodelEserviceTemplate.name})`
-        );
+        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name));
 
-      return {
-        results: aggregateEServiceTemplateArray(
-          toEServiceTemplateAggregatorArray(queryResult)
-        ).map((eserviceTemplate) => eserviceTemplate.data),
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      const eserviceTemplates = aggregateEServiceTemplateArray(
+        toEServiceTemplateAggregatorArray(queryResult)
+      );
+      return createListResult(
+        eserviceTemplates.map((eserviceTemplate) => eserviceTemplate.data),
+        queryResult[0]?.totalCount ?? 0
+      );
     },
     async checkNameConflictInstances(
       eserviceTemplate: EServiceTemplate,
@@ -339,7 +340,7 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
 
@@ -362,10 +363,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return {
-        results: result.data,
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
     },
   };
 }

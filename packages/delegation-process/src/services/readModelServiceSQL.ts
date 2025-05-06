@@ -1,4 +1,4 @@
-import { ReadModelRepository } from "pagopa-interop-commons";
+import { createListResult, ReadModelRepository } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -54,7 +54,7 @@ export function readModelServiceBuilderSQL({
   return {
     async getDelegationById(
       id: DelegationId,
-      kind: DelegationKind | undefined = undefined
+      kind?: DelegationKind
     ): Promise<WithMetadata<Delegation> | undefined> {
       return delegationReadModelServiceSQL.getDelegationByFilter(
         and(
@@ -155,7 +155,6 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset)
         .as("subquery");
-      // TODO: missing orderBy. Mongo not sorting
 
       const queryResult = await readModelDB
         .select({
@@ -185,12 +184,13 @@ export function readModelServiceBuilderSQL({
           )
         );
 
-      return {
-        results: aggregateDelegationArray(
-          toDelegationAggregatorArray(queryResult)
-        ).map((d) => d.data),
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      const delegations = aggregateDelegationArray(
+        toDelegationAggregatorArray(queryResult)
+      );
+      return createListResult(
+        delegations.map((d) => d.data),
+        queryResult[0]?.totalCount
+      );
     },
     async getConsumerDelegators(filters: {
       delegateId: TenantId;
@@ -257,10 +257,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return {
-        results: result.data,
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      return createListResult(result.data, queryResult[0]?.totalCount);
     },
     async getConsumerDelegatorsWithAgreements(filters: {
       delegateId: TenantId;
@@ -344,10 +341,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return {
-        results: result.data,
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      return createListResult(result.data, queryResult[0]?.totalCount);
     },
     async getConsumerEservices(filters: {
       delegateId: TenantId;
@@ -431,10 +425,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return {
-        results: result.data,
-        totalCount: queryResult[0]?.totalCount ?? 0,
-      };
+      return createListResult(result.data, queryResult[0]?.totalCount);
     },
     async getDelegationRelatedAgreement(
       eserviceId: EServiceId,

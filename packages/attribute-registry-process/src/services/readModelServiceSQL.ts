@@ -1,4 +1,9 @@
-import { ReadModelRepository } from "pagopa-interop-commons";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+  withTotalCount,
+} from "pagopa-interop-commons";
 import {
   AttributeKind,
   Attribute,
@@ -17,7 +22,7 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, getTableColumns, ilike, inArray, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -40,22 +45,19 @@ export function readModelServiceBuilderSQL({
       limit: number;
     }): Promise<ListResult<Attribute>> {
       const queryResult = await readModelDB
-        .select({
-          ...getTableColumns(attributeInReadmodelAttribute),
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(withTotalCount(attributeInReadmodelAttribute))
         .from(attributeInReadmodelAttribute)
         .where(inArray(attributeInReadmodelAttribute.id, ids))
-        .orderBy(sql`LOWER(${attributeInReadmodelAttribute.name})`)
+        .orderBy(ascLower(attributeInReadmodelAttribute.name))
         .limit(limit)
         .offset(offset);
 
       const attributes = aggregateAttributeArray(queryResult);
 
-      return {
-        results: attributes.map((attr) => attr.data),
-        totalCount: queryResult[0]?.totalCount || 0,
-      };
+      return createListResult(
+        attributes.map((attr) => attr.data),
+        queryResult[0]?.totalCount
+      );
     },
     async getAttributesByKindsNameOrigin({
       kinds,
@@ -71,10 +73,7 @@ export function readModelServiceBuilderSQL({
       limit: number;
     }): Promise<ListResult<Attribute>> {
       const queryResult = await readModelDB
-        .select({
-          ...getTableColumns(attributeInReadmodelAttribute),
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(withTotalCount(attributeInReadmodelAttribute))
         .from(attributeInReadmodelAttribute)
         .where(
           and(
@@ -84,7 +83,7 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   attributeInReadmodelAttribute.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             origin
@@ -92,16 +91,16 @@ export function readModelServiceBuilderSQL({
               : undefined
           )
         )
-        .orderBy(sql`LOWER(${attributeInReadmodelAttribute.name})`)
+        .orderBy(ascLower(attributeInReadmodelAttribute.name))
         .limit(limit)
         .offset(offset);
 
       const attributes = aggregateAttributeArray(queryResult);
 
-      return {
-        results: attributes.map((attr) => attr.data),
-        totalCount: queryResult[0]?.totalCount || 0,
-      };
+      return createListResult(
+        attributes.map((attr) => attr.data),
+        queryResult[0]?.totalCount
+      );
     },
     async getAttributeById(
       id: AttributeId
@@ -112,10 +111,7 @@ export function readModelServiceBuilderSQL({
       name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return attributeReadModelServiceSQL.getAttributeByFilter(
-        ilike(
-          attributeInReadmodelAttribute.name,
-          ReadModelRepository.escapeRegExp(name)
-        )
+        ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
       );
     },
     async getAttributeByOriginAndCode({
@@ -127,14 +123,8 @@ export function readModelServiceBuilderSQL({
     }): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
-          eq(
-            attributeInReadmodelAttribute.origin,
-            ReadModelRepository.escapeRegExp(origin)
-          ),
-          eq(
-            attributeInReadmodelAttribute.code,
-            ReadModelRepository.escapeRegExp(code)
-          )
+          eq(attributeInReadmodelAttribute.origin, escapeRegExp(origin)),
+          eq(attributeInReadmodelAttribute.code, escapeRegExp(code))
         )
       );
     },
@@ -144,14 +134,8 @@ export function readModelServiceBuilderSQL({
     ): Promise<WithMetadata<Attribute> | undefined> {
       return await attributeReadModelServiceSQL.getAttributeByFilter(
         and(
-          ilike(
-            attributeInReadmodelAttribute.code,
-            ReadModelRepository.escapeRegExp(code)
-          ),
-          ilike(
-            attributeInReadmodelAttribute.name,
-            ReadModelRepository.escapeRegExp(name)
-          )
+          ilike(attributeInReadmodelAttribute.code, escapeRegExp(code)),
+          ilike(attributeInReadmodelAttribute.name, escapeRegExp(name))
         )
       );
     },
