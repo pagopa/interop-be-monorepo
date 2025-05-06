@@ -6,7 +6,7 @@ export const createListResult = <T>(
   totalCount?: number
 ): ListResult<T> => ({
   results: items,
-  totalCount: totalCount ?? items.length,
+  totalCount: totalCount ?? 0,
 });
 
 // see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
