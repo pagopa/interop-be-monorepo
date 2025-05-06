@@ -1,5 +1,20 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 
+export function toGetPurposesApiQueryParams(
+  params: m2mGatewayApi.GetPurposesQueryParams
+): purposeApi.GetPurposesQueryParams {
+  return {
+    eservicesIds: params.eserviceIds,
+    limit: params.limit,
+    offset: params.offset,
+    consumersIds: [],
+    producersIds: [],
+    states: [],
+    excludeDraft: false,
+    name: undefined,
+  };
+}
+
 export function toM2MGatewayApiPurpose(
   purpose: purposeApi.Purpose
 ): m2mGatewayApi.Purpose {

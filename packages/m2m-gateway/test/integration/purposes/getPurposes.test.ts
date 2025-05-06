@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -11,7 +10,11 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
-import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
+import {
+  toGetPurposesApiQueryParams,
+  toM2MGatewayApiPurpose,
+} from "../../../src/api/purposeApiConverter.js";
+import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getPurposes", () => {
   const mockParams: m2mGatewayApi.GetPurposesQueryParams = {
@@ -25,9 +28,12 @@ describe("getPurposes", () => {
 
   const mockApiPurposes = [mockApiPurpose1.data, mockApiPurpose2.data];
 
-  const mockPurposeProcessResponse: purposeApi.Purposes = {
-    results: mockApiPurposes,
-    totalCount: mockApiPurposes.length,
+  const mockPurposeProcessResponse: WithMaybeMetadata<purposeApi.Purposes> = {
+    data: {
+      results: mockApiPurposes,
+      totalCount: mockApiPurposes.length,
+    },
+    metadata: undefined,
   };
 
   const mockGetPurposes = vi.fn().mockResolvedValue(mockPurposeProcessResponse);
@@ -52,24 +58,20 @@ describe("getPurposes", () => {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
-        totalCount: mockPurposeProcessResponse.totalCount,
+        totalCount: mockPurposeProcessResponse.data.totalCount,
       },
       results: [m2mPurposeResponse1, m2mPurposeResponse2],
     };
 
     const result = await purposeService.getPurposes(
-      getMockM2MAdminAppContext(),
-      mockParams
+      mockParams,
+      getMockM2MAdminAppContext()
     );
 
     expect(result).toEqual(m2mPurposeResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurposes,
-      params: {
-        eserviceIds: mockParams.eserviceIds,
-        offset: mockParams.offset,
-        limit: mockParams.limit,
-      },
+      queries: toGetPurposesApiQueryParams(mockParams),
     });
   });
 });
