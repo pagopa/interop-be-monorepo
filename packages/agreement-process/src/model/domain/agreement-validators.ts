@@ -155,7 +155,7 @@ const assertRequesterIsProducer = (
 
 export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeDelegations: ActiveDelegations
 ): void => {
   try {
@@ -221,7 +221,7 @@ export const assertRequesterCanRetrieveAgreement = async (
 
 export const assertRequesterCanActAsProducer = (
   agreement: Agreement,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (!activeProducerDelegation) {
@@ -312,7 +312,7 @@ export const assertRequesterIsDelegateConsumer = (
 export const assertRequesterCanActAsConsumer = (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {
