@@ -1,4 +1,4 @@
-import { ilike, inArray, or, SQL, and, eq, sql, asc } from "drizzle-orm";
+import { ilike, inArray, or, SQL, and, eq, sql } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -44,6 +44,7 @@ import {
   escapeRegExp,
   createListResult,
   ascLowerMulti,
+  ascLower,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { PgSelect } from "drizzle-orm/pg-core";
@@ -670,7 +671,7 @@ export function readModelServiceBuilderSQL(
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
       const resultSet = await readmodelDB
-        .selectDistinct({
+        .select({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
@@ -710,7 +711,7 @@ export function readModelServiceBuilderSQL(
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(asc(tenantInReadmodelTenant.name))
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
       return createListResult(
@@ -726,7 +727,7 @@ export function readModelServiceBuilderSQL(
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
       const resultSet = await readmodelDB
-        .selectDistinct({
+        .select({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
@@ -766,7 +767,7 @@ export function readModelServiceBuilderSQL(
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(asc(tenantInReadmodelTenant.name))
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
       return createListResult(
@@ -783,7 +784,7 @@ export function readModelServiceBuilderSQL(
     ): Promise<ListResult<CompactEService>> {
       const { consumerIds, producerIds, eserviceName } = filters;
       const resultSet = await readmodelDB
-        .selectDistinct({
+        .select({
           id: eserviceInReadmodelCatalog.id,
           name: eserviceInReadmodelCatalog.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
@@ -868,7 +869,7 @@ export function readModelServiceBuilderSQL(
           )
         )
         .groupBy(eserviceInReadmodelCatalog.id)
-        .orderBy(asc(eserviceInReadmodelCatalog.name))
+        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
         .limit(limit)
         .offset(offset);
       return createListResult(
