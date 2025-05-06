@@ -8,12 +8,15 @@ import {
 } from "../utils/validators/attributeValidators.js";
 
 export function toM2MGatewayApiCertifiedAttribute(
-  attribute: attributeRegistryApi.Attribute
+  attribute: attributeRegistryApi.Attribute,
+  errorType: Parameters<
+    typeof assertAttributeKindIs
+  >[2] = "unexpectedAttributeKind"
 ): m2mGatewayApi.CertifiedAttribute {
   assertAttributeKindIs(
     attribute,
     attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    "attributeNotFound"
+    errorType
   );
   assertAttributeOriginAndCodeAreDefined(attribute);
 

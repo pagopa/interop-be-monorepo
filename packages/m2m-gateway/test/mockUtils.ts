@@ -46,16 +46,22 @@ export function getMockedApiDelegation({
 
 export function getMockedApiAttribute({
   kind,
+  code,
+  name,
+  description,
 }: {
   kind?: attributeRegistryApi.AttributeKind;
+  code?: string;
+  name?: string;
+  description?: string;
 } = {}): WithMetadata<attributeRegistryApi.Attribute> {
   return {
     data: {
       id: generateId(),
-      name: generateMock(z.string()),
-      description: generateMock(z.string()),
+      name: name ?? generateMock(z.string()),
+      description: description ?? generateMock(z.string()),
       creationTime: new Date().toISOString(),
-      code: generateMock(z.string()),
+      code: code ?? generateMock(z.string()),
       origin: generateMock(z.string()),
       kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
     },
