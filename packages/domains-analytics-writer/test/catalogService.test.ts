@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { EServiceId, generateId, unsafeBrandId } from "pagopa-interop-models";
 import {
   dbContext,
@@ -498,6 +498,57 @@ describe("Catalog Service - Batch Operations", () => {
           dbContext
         );
         expect(storedInterface[0].deleted).toBe(true);
+      });
+    });
+
+    describe("Merge and check on metadata_version", () => {
+      beforeEach(async () => {
+        await resetCatalogTables(dbContext);
+      });
+
+      it("should skip update when incoming metadata_version is lower or equal", async () => {
+        const itemV1 = createBaseEserviceItem({
+          ...eserviceSQL,
+          metadataVersion: 1,
+          name: "Name metadata_version 1",
+        });
+        await catalogService.upsertBatchEservice([itemV1], dbContext);
+        const stored1 = await getEserviceFromDb(eserviceSQL.id, dbContext);
+        expect(stored1.name).toBe("Name metadata_version 1");
+        expect(stored1.metadata_version).toBe(1);
+
+        const itemV1b = createBaseEserviceItem({
+          ...eserviceSQL,
+          metadataVersion: 3,
+          name: "Name metadata_version 3",
+        });
+        await catalogService.upsertBatchEservice([itemV1b], dbContext);
+        const stored2 = await getEserviceFromDb(eserviceSQL.id, dbContext);
+        expect(stored2.name).toBe("Name metadata_version 3");
+        expect(stored2.metadata_version).toBe(3);
+
+        const itemV0 = createBaseEserviceItem({
+          ...eserviceSQL,
+          metadataVersion: 2,
+          name: "Name metadata_version 2",
+        });
+        await catalogService.upsertBatchEservice([itemV0], dbContext);
+        const stored3 = await getEserviceFromDb(eserviceSQL.id, dbContext);
+        // it should still be version 3 because it ignores the insertion of lower metadata_versions
+        expect(stored3.name).toBe("Name metadata_version 3");
+        expect(stored3.metadata_version).toBe(3);
+      });
+
+      it("should apply update when incoming metadata_version is greater", async () => {
+        const itemV2 = createBaseEserviceItem({
+          ...eserviceSQL,
+          metadataVersion: 2,
+          name: "Name metadata_version 2",
+        });
+        await catalogService.upsertBatchEservice([itemV2], dbContext);
+        const stored = await getEserviceFromDb(eserviceSQL.id, dbContext);
+        expect(stored.name).toBe("Name metadata_version 2");
+        expect(stored.metadata_version).toBe(2);
       });
     });
   });
