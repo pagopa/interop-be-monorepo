@@ -43,24 +43,16 @@ export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig;
 
-export type FeatureFlagKeys = keyof Pick<
-  FeatureFlags,
-  {
-    [K in keyof FeatureFlags]: K extends `featureFlag${string}` ? K : never;
-  }[keyof FeatureFlags]
->;
+export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
 /**
  * isFeatureFlagEnabled and assertFeatureFlagEnabled check if a feature flag is enabled in the config.
  * the flags have to start with featureFlag and be exported from the featureFlagsConfig file
  * i.e. assertFeatureFlagEnabled(config, "notExistentFeatureFlag"); will raise a compile error
  */
-export const isFeatureFlagEnabled = <
-  T extends Record<string, unknown>,
-  K extends keyof T & string
->(
-  config: T,
-  featureFlagName: K extends FeatureFlagKeys ? K : never
+export const isFeatureFlagEnabled = <K extends string>(
+  config: Record<K, unknown>,
+  featureFlagName: K & FeatureFlagKeys
 ): boolean => {
   const featureFlag = config[featureFlagName];
 
@@ -70,12 +62,9 @@ export const isFeatureFlagEnabled = <
 
   return featureFlag === true;
 };
-export const assertFeatureFlagEnabled = <
-  T extends Record<string, unknown>,
-  K extends keyof T & string
->(
-  config: T,
-  featureFlagName: K extends FeatureFlagKeys ? K : never
+export const assertFeatureFlagEnabled = <K extends string>(
+  config: Record<K, unknown>,
+  featureFlagName: K & FeatureFlagKeys
 ): void => {
   if (!isFeatureFlagEnabled(config, featureFlagName)) {
     throw featureFlagNotEnabled(featureFlagName);
