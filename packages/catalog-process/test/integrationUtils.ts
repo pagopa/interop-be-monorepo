@@ -1,38 +1,57 @@
 import {
-  Agreement,
-  Attribute,
-  EService,
-  EServiceEvent,
-  EServiceId,
-  Tenant,
-  toEServiceV2,
-  toReadModelAttribute,
-  toReadModelEService,
-  toReadModelTenant,
-  toReadModelAgreement,
-  Delegation,
-  EServiceTemplate,
-  EServiceTemplateEvent,
-  toEServiceTemplateV2,
-} from "pagopa-interop-models";
-import {
   ReadEvent,
   StoredEvent,
   readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
+import {
+  agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
+  EService,
+  EServiceEvent,
+  toEServiceV2,
+  EServiceTemplate,
+  EServiceTemplateEvent,
+  toEServiceTemplateV2,
+  toReadModelEService,
+  Attribute,
+  toReadModelAttribute,
+  Tenant,
+  toReadModelTenant,
+  Agreement,
+  toReadModelAgreement,
+  Delegation,
+  EServiceId,
+} from "pagopa-interop-models";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { config } from "../src/config/config.js";
 
-export const { cleanup, readModelRepository, postgresDB, fileManager } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig")
-  );
+export const {
+  cleanup,
+  readModelRepository,
+  postgresDB,
+  fileManager,
+  readModelDB,
+} = await setupTestContainersVitest(
+  inject("readModelConfig"),
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig")
+);
 
 afterEach(cleanup);
 
@@ -43,14 +62,36 @@ export const attributes = readModelRepository.attributes;
 export const delegations = readModelRepository.delegations;
 export const eserviceTemplates = readModelRepository.eserviceTemplates;
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+const attributeReadModelService = attributeReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  readModelDB,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL
+);
+
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 export const catalogService = catalogServiceBuilder(
   postgresDB,
   readModelService,
   fileManager
 );
-
 export const writeEServiceInEventstore = async (
   eservice: EService
 ): Promise<void> => {
@@ -90,24 +131,29 @@ export const writeEServiceTemplateInEventstore = async (
 export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeEServiceInEventstore(eservice);
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+  await catalogReadModelServiceSQL.upsertEService(eservice, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+  await attributeReadModelService.upsertAttribute(attribute, 0);
 };
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(toReadModelTenant(tenant), tenants);
+  await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
 };
 
 export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
+  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
 };
 
 export const readLastEserviceEvent = async (
@@ -120,4 +166,8 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
   await writeInReadmodel(eServiceTemplate, eserviceTemplates);
+  await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
+    eServiceTemplate,
+    0
+  );
 };
