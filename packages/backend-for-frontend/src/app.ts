@@ -104,9 +104,7 @@ export async function createApp(
     ),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
-    rateLimiterMiddleware
-  );
-  app.use(
+    rateLimiterMiddleware,
     agreementRouter(zodiosCtx, services.agreementService),
     attributeRouter(zodiosCtx, services.attributeService),
     authorizationRouter(zodiosCtx, services.authorizationService),
