@@ -234,7 +234,7 @@ const clientRouter = (
           req.params.clientId,
           ctx.authData.selfcareId,
           ctx,
-          req.query.name ? req.query.name : undefined
+          req.query.name
         );
 
         return res.status(200).send(bffApi.CompactUsers.parse(users));

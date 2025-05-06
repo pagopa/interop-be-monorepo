@@ -251,7 +251,19 @@ export function clientServiceBuilder(
         )
       );
 
-      return name ? users.filter((user) => user.name === name) : users;
+      /*      
+       1) name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') escapes all special regex characters.
+       2) The 'i' flag makes the match case-insensitive.
+       3) .test(user.name) tests whether user.name contains the string name in part.
+      */
+
+      return name
+        ? users.filter((user) =>
+            new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(
+              user.name
+            )
+          )
+        : users;
     },
 
     async getClientKeyById(
