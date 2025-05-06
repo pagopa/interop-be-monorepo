@@ -30,7 +30,7 @@ describe("getConsumerDelegations", () => {
     kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
   });
 
-  const mockApiDeleggations = [
+  const mockApiDelegations = [
     mockApiDelegation1.data,
     mockApiDelegation2.data,
   ];
@@ -38,8 +38,8 @@ describe("getConsumerDelegations", () => {
   const mockDelegationProcessResponse: WithMaybeMetadata<delegationApi.Delegations> =
     {
       data: {
-        results: mockApiDeleggations,
-        totalCount: mockApiDeleggations.length,
+        results: mockApiDelegations,
+        totalCount: mockApiDelegations.length,
       },
       metadata: undefined,
     };
