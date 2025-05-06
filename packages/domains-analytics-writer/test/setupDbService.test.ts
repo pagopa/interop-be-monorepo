@@ -62,7 +62,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(agreementTables);
 
     const expectedTables = agreementTables.map(
-      (t) => `${t}${config.mergeTableSuffix}`
+      (t) => `${t}_${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 

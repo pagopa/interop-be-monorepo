@@ -102,6 +102,9 @@ describe("Agreement Service - Batch Operations", () => {
   });
 
   describe("Delete", () => {
+    beforeEach(async () => {
+      await resetAgreementTables(dbContext);
+    });
     it("marks an Agreement and all its sub-objects as deleted", async () => {
       await agreementService.upsertBatchAgreement([agreementItem], dbContext);
       await agreementService.deleteBatchAgreement(
@@ -156,6 +159,40 @@ describe("Agreement Service - Batch Operations", () => {
 
       const docs = await getAgreementConsumerDocumentFromDb(docId, dbContext);
       docs.forEach((doc) => expect(doc.deleted).toBe(true));
+    });
+  });
+  describe("Merge and check on metadata_version", () => {
+    beforeEach(async () => {
+      await resetAgreementTables(dbContext);
+    });
+
+    it("should skip update when incoming metadata_version is lower or equal", async () => {
+      const base = getMockAgreement();
+      const v1 = { ...base, metadataVersion: 1 };
+      const v5 = { ...base, metadataVersion: 5 };
+      const v3 = { ...base, metadataVersion: 3 };
+
+      const item1 = agreementItemFromDomain(v1);
+      const item5 = agreementItemFromDomain(v5);
+      const item3 = agreementItemFromDomain(v3);
+
+      await agreementService.upsertBatchAgreement([item1], dbContext);
+      await agreementService.upsertBatchAgreement([item5], dbContext);
+      await agreementService.upsertBatchAgreement([item3], dbContext);
+
+      const stored = await getAgreementFromDb(base.id, dbContext);
+      expect(stored.metadata_version).toBe(5);
+    });
+
+    it("should apply update when incoming metadata_version is greater", async () => {
+      const base = getMockAgreement();
+      const v2 = { ...base, metadataVersion: 2 };
+      const item2 = agreementItemFromDomain(v2);
+
+      await agreementService.upsertBatchAgreement([item2], dbContext);
+
+      const stored = await getAgreementFromDb(base.id, dbContext);
+      expect(stored.metadata_version).toBe(2);
     });
   });
 });

@@ -12,7 +12,7 @@ import { agreementContractSchema } from "../../model/agreement/agreementContract
 export function agreementContractRepo(conn: DBConnection) {
   const schema = config.dbSchemaName;
   const tbl = AgreementDbTable.agreement_contract;
-  const stage = `${tbl}${config.mergeTableSuffix}`;
+  const stage = `${tbl}_${config.mergeTableSuffix}`;
 
   return {
     async insert(

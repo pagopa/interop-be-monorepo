@@ -4,18 +4,18 @@ import { genericInternalError } from "pagopa-interop-models";
 import { AgreementSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { AgreementDbTable, DeletingDbTable } from "../../model/db.js";
 import { config } from "../../config/config.js";
-import {
-  agreementDeletingSchema,
-  agreementSchema,
-} from "../../model/agreement/agreement.js";
+import { agreementSchema } from "../../model/agreement/agreement.js";
 
 export function agreementRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AgreementDbTable.agreement;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
   const stagingDeletingTable = DeletingDbTable.agreement_deleting_table;
 
   return {
@@ -71,11 +71,17 @@ export function agreementRepo(conn: DBConnection) {
       }
     },
 
-    async insertDeletingByAgreeementId(
-      t: ITask<unknown>,
-      pgp: IMain,
-      id: string
-    ) {
+    async clean() {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTable}: ${error}`
+        );
+      }
+    },
+
+    async insertDeleting(t: ITask<unknown>, pgp: IMain, id: string) {
       try {
         const mapping = {
           id: () => id,
@@ -97,12 +103,11 @@ export function agreementRepo(conn: DBConnection) {
 
     async mergeDeleting(t: ITask<unknown>) {
       try {
-        const mergeQuery = generateMergeQuery(
-          agreementDeletingSchema,
+        const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           stagingDeletingTable,
-          ["id"]
+          "id"
         );
         await t.none(mergeQuery);
       } catch (error) {
@@ -112,15 +117,6 @@ export function agreementRepo(conn: DBConnection) {
       }
     },
 
-    async clean() {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (error) {
-        throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
-        );
-      }
-    },
     async cleanDeleting() {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);

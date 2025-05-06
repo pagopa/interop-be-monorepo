@@ -145,11 +145,7 @@ export function agreementServiceBuilder(db: DBContext) {
       )) {
         await ctx.conn.tx(async (t) => {
           for (const id of batch) {
-            await agreementRepository.insertDeletingByAgreeementId(
-              t,
-              ctx.pgp,
-              id
-            );
+            await agreementRepository.insertDeleting(t, ctx.pgp, id);
           }
         });
         genericLogger.info(
@@ -190,11 +186,7 @@ export function agreementServiceBuilder(db: DBContext) {
       )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
-            await docRepository.insertDeletingByAgreementId(
-              t,
-              dbContext.pgp,
-              id
-            );
+            await docRepository.insertDeleting(t, dbContext.pgp, id);
           }
         });
         genericLogger.info(

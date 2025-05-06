@@ -12,7 +12,7 @@ import { agreementStampSchema } from "../../model/agreement/agreementStamp.js";
 export function agreementStampRepo(conn: DBConnection) {
   const schema = config.dbSchemaName;
   const tbl = AgreementDbTable.agreement_stamp;
-  const stage = `${tbl}${config.mergeTableSuffix}`;
+  const stage = `${tbl}_${config.mergeTableSuffix}`;
 
   return {
     async insert(t: ITask<unknown>, pgp: IMain, records: AgreementStampSQL[]) {

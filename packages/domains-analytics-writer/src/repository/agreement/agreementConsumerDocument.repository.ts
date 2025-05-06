@@ -4,16 +4,18 @@ import { genericInternalError } from "pagopa-interop-models";
 import { AgreementConsumerDocumentSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementDbTable, DeletingDbTable } from "../../model/db.js";
 import { agreementConsumerDocumentSchema } from "../../model/agreement/agreementConsumerDocument.js";
-import { agreementDeletingSchema } from "../../model/agreement/agreement.js";
 
 export function agreementConsumerDocumentRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AgreementDbTable.agreement_consumer_document;
-  const stagingTable = `${tableName}${config.mergeTableSuffix}`;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
   const stagingDeletingTable = DeletingDbTable.agreement_deleting_table;
 
   return {
@@ -68,7 +70,15 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
       }
     },
 
-    async insertDeletingByAgreementId(
+    async clean() {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+      } catch (e) {
+        throw genericInternalError(`clean doc stage: ${e}`);
+      }
+    },
+
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
       id: string
@@ -97,26 +107,17 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
 
     async mergeDeleting() {
       try {
-        const mergeQuery = generateMergeQuery(
-          agreementDeletingSchema,
+        const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           stagingDeletingTable,
-          ["id"]
+          "id"
         );
         await conn.none(mergeQuery);
       } catch (error) {
         throw genericInternalError(
           `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
         );
-      }
-    },
-
-    async clean() {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (e) {
-        throw genericInternalError(`clean doc stage: ${e}`);
       }
     },
 

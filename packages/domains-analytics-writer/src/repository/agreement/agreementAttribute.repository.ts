@@ -12,7 +12,7 @@ import { agreementAttributeSchema } from "../../model/agreement/agreementAttribu
 export function agreementAttributeRepo(conn: DBConnection) {
   const schema = config.dbSchemaName;
   const tbl = AgreementDbTable.agreement_attribute;
-  const stage = `${tbl}${config.mergeTableSuffix}`;
+  const stage = `${tbl}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
