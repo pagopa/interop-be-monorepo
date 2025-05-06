@@ -39,7 +39,11 @@ export function getMockedApiDelegation({
   };
 }
 
-export function getMockedApiAgreement(): WithMetadata<agreementApi.Agreement> {
+export function getMockedApiAgreement({
+  state,
+}: {
+  state?: agreementApi.AgreementState;
+} = {}): WithMetadata<agreementApi.Agreement> {
   return {
     data: {
       id: generateId(),
@@ -47,7 +51,7 @@ export function getMockedApiAgreement(): WithMetadata<agreementApi.Agreement> {
       descriptorId: generateId(),
       producerId: generateId(),
       consumerId: generateId(),
-      state: agreementApi.AgreementState.Values.ACTIVE,
+      state: state ?? agreementApi.AgreementState.Values.ACTIVE,
       certifiedAttributes: [],
       declaredAttributes: [],
       consumerDocuments: [],
