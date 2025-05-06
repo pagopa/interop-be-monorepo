@@ -6,7 +6,7 @@ import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MPurpose } from "../../../src/api/purposeApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 import { getMockedApiPurpose } from "../../mockUtils.js";
 
 describe("GET /purposes router test", () => {
@@ -31,8 +31,8 @@ describe("GET /purposes router test", () => {
   const mockM2MPurposesResponse: m2mGatewayApi.Purposes = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MPurpose(mockApiPurpose1.data),
-      toM2MPurpose(mockApiPurpose2.data),
+      toM2MGatewayApiPurpose(mockApiPurpose1.data),
+      toM2MGatewayApiPurpose(mockApiPurpose2.data),
     ],
   };
 

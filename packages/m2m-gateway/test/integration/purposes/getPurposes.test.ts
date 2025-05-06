@@ -11,7 +11,7 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
-import { toM2MPurpose } from "../../../src/api/purposeApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("getPurposes", () => {
   const mockParams: m2mGatewayApi.GetPurposesQueryParams = {
@@ -41,10 +41,10 @@ describe("getPurposes", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeResponse1: m2mGatewayApi.Purpose = toM2MPurpose(
+    const m2mPurposeResponse1: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
       mockApiPurpose1.data
     );
-    const m2mPurposeResponse2: m2mGatewayApi.Purpose = toM2MPurpose(
+    const m2mPurposeResponse2: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
       mockApiPurpose2.data
     );
 

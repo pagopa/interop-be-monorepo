@@ -1,6 +1,6 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 
-export function toM2MPurpose(
+export function toM2MGatewayApiPurpose(
   purpose: purposeApi.Purpose
 ): m2mGatewayApi.Purpose {
   const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [

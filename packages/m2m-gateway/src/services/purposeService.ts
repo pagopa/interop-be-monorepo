@@ -1,15 +1,13 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { toM2MPurpose } from "../api/purposeApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeServiceBuilder({
-  purposeProcessClient,
-}: PagoPAInteropBeClients) {
+export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getPurposes: async (
       { logger, headers }: WithLogger<M2MGatewayAppContext>,
@@ -23,7 +21,7 @@ export function purposeServiceBuilder({
 
       const {
         data: { results, totalCount },
-      } = await purposeProcessClient.getPurposes({
+      } = await clients.purposeProcessClient.getPurposes({
         queries: {
           eservicesIds: eserviceIds,
           limit,
@@ -33,7 +31,7 @@ export function purposeServiceBuilder({
       });
 
       return {
-        results: results.map(toM2MPurpose),
+        results: results.map(toM2MGatewayApiPurpose),
         pagination: {
           limit,
           offset,
