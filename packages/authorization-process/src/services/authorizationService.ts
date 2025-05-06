@@ -68,6 +68,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminRemoved,
   toCreateEventClientAdminRemovedBySelfcare,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,

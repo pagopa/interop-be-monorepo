@@ -57,10 +57,8 @@ type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
 export type FeatureFlagKeys = keyof Pick<
   FeatureFlags,
   {
-    [K in keyof (FeatureFlagSignalhubWhitelistConfig &
-      featureFlagAdminClientConfig &
-      FeatureFlagSQLConfig)]: K extends `featureFlag${string}` ? K : never;
-  }[keyof (FeatureFlagSignalhubWhitelistConfig & featureFlagAdminClientConfig)]
+    [K in keyof FeatureFlags]: K extends `featureFlag${string}` ? K : never;
+  }[keyof FeatureFlags]
 >;
 
 export const isFeatureFlagEnabled = <

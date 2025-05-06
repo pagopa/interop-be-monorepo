@@ -25,7 +25,7 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(featureFlagAdminClientConfig);
+  .and(featureFlagAdminClientConfig)
   .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig.optional());
 
