@@ -113,7 +113,7 @@ const withPagination = <T extends PgSelect>(
   offset: number
 ) => qb.limit(limit).offset(offset);
 
-async function filterAgreementsUpdateable(
+async function filterAgreementsUpgradeable(
   agreementEserviceAndDescriptors: Array<{
     agreementId: string;
     agreementDescriptorId: string;
@@ -178,16 +178,15 @@ async function filterAgreementsUpdateable(
     })
     .map((item) => item.agreementId);
 
-  // console.log("agreementsUpgradableIds", agreementsUpgradableIds);
-  const updateableAgreements = agreements
+  const upgradableAgreements = agreements
     .filter((agreement) =>
       agreementsUpgradableIds.some((id) => agreement.id === id)
     )
     .slice(offset, offset + limit);
-  // console.log("agreements updateable", updateableAgreements);
+
   return {
-    results: updateableAgreements,
-    totalCount: updateableAgreements.length,
+    results: upgradableAgreements,
+    totalCount: upgradableAgreements.length,
   };
 }
 
@@ -481,7 +480,7 @@ export function readModelServiceBuilderSQL(
               agreementInReadmodelAgreement.eserviceId
             )
           );
-        return await filterAgreementsUpdateable(
+        return await filterAgreementsUpgradeable(
           agreementEserviceAndDescriptors,
           agreements,
           offset,
