@@ -11,7 +11,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   AttributeId,
-  Document,
   EService,
   Agreement,
   AgreementState,
@@ -23,7 +22,6 @@ import {
   WithMetadata,
   Attribute,
   EServiceId,
-  EServiceDocumentId,
   TenantId,
   Tenant,
   EServiceReadModel,
@@ -528,16 +526,6 @@ export function readModelServiceBuilder(
           aggregationPipeline
         ),
       };
-    },
-    async getDocumentById(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      documentId: EServiceDocumentId
-    ): Promise<Document | undefined> {
-      const eservice = await this.getEServiceById(eserviceId);
-      return eservice?.data.descriptors
-        .find((d) => d.id === descriptorId)
-        ?.docs.find((d) => d.id === documentId);
     },
     async listAgreements({
       eservicesIds,
