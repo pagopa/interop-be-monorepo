@@ -14,7 +14,7 @@ import { getSelfcareCompactUserById } from "./selfcareService.js";
 export function producerKeychainServiceBuilder(
   apiClients: PagoPAInteropBeClients
 ) {
-  const { authorizationClient } = apiClients;
+  const { authorizationClient, selfcareV2UserClient } = apiClients;
 
   return {
     async getProducerKeychains(
@@ -173,13 +173,7 @@ export function producerKeychainServiceBuilder(
 
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
-          decorateKey(
-            apiClients.selfcareV2UserClient,
-            k,
-            selfcareId,
-            users,
-            correlationId
-          )
+          decorateKey(selfcareV2UserClient, k, selfcareId, users, correlationId)
         )
       );
 
@@ -208,7 +202,7 @@ export function producerKeychainServiceBuilder(
       ]);
 
       return decorateKey(
-        apiClients.selfcareV2UserClient,
+        selfcareV2UserClient,
         key,
         selfcareId,
         users,
@@ -251,7 +245,7 @@ export function producerKeychainServiceBuilder(
       return await Promise.all(
         producerKeychainUsers.map((id) =>
           getSelfcareCompactUserById(
-            apiClients.selfcareV2UserClient,
+            selfcareV2UserClient,
             id,
             selfcareId,
             correlationId
