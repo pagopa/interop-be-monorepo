@@ -140,9 +140,9 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorDocumentInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          document.id
+          eserviceId
         );
 
         if (!shouldUpsert) {
@@ -190,9 +190,9 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorInterfaceInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          descriptorInterface.id
+          eserviceId
         );
 
         if (!shouldUpsert) {
@@ -203,8 +203,8 @@ export function customReadModelServiceBuilder(
           .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
           .where(
             eq(
-              eserviceDescriptorInterfaceInReadmodelCatalog.id,
-              descriptorInterface.id
+              eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId,
+              descriptorId
             )
           );
 
@@ -224,6 +224,76 @@ export function customReadModelServiceBuilder(
           serverUrls,
           metadataVersion,
         });
+
+        await updateMetadataVersionInCatalogTables(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
+      });
+    },
+
+    async updateDocOrInterface({
+      eserviceId,
+      descriptorId,
+      docOrInterface,
+      metadataVersion,
+      serverUrls,
+    }: {
+      eserviceId: EServiceId;
+      descriptorId: DescriptorId;
+      docOrInterface: Document;
+      serverUrls: string[];
+      metadataVersion: number;
+    }): Promise<void> {
+      await db.transaction(async (tx) => {
+        const docOrInterfaceSQL = documentToDocumentSQL(
+          docOrInterface,
+          descriptorId,
+          eserviceId,
+          metadataVersion
+        );
+
+        const res = await tx
+          .update(eserviceDescriptorInterfaceInReadmodelCatalog)
+          .set(docOrInterfaceSQL)
+          .where(
+            and(
+              eq(
+                eserviceDescriptorInterfaceInReadmodelCatalog.id,
+                docOrInterface.id
+              ),
+              lte(
+                eserviceDescriptorInterfaceInReadmodelCatalog.metadataVersion,
+                metadataVersion
+              )
+            )
+          );
+
+        if (res.rowCount !== null && res.rowCount > 0) {
+          await setServerUrls({
+            tx,
+            descriptorId,
+            serverUrls,
+            metadataVersion,
+          });
+        }
+
+        await tx
+          .update(eserviceDescriptorDocumentInReadmodelCatalog)
+          .set(docOrInterfaceSQL)
+          .where(
+            and(
+              eq(
+                eserviceDescriptorDocumentInReadmodelCatalog.id,
+                docOrInterface.id
+              ),
+              lte(
+                eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
+                metadataVersion
+              )
+            )
+          );
 
         await updateMetadataVersionInCatalogTables(
           tx,
@@ -308,9 +378,9 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          descriptor.id
+          eserviceId
         );
 
         if (!shouldUpsert) {

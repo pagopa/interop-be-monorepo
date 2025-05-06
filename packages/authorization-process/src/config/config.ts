@@ -5,6 +5,8 @@ import {
   SelfCareConfig,
   ApplicationAuditProducerConfig,
   featureFlagAdminClientConfig,
+  FeatureFlagSQLConfig,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -24,6 +26,8 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   )
   .and(ApplicationAuditProducerConfig)
   .and(featureFlagAdminClientConfig);
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig.optional());
 
 export type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;
 
