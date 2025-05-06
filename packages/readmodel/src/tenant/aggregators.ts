@@ -457,7 +457,7 @@ export const toTenantAggregatorArray = (
 
     const mailSQL = row.mail;
     const mailPK = mailSQL
-      ? makeUniqueKey([mailSQL.id, mailSQL.tenantId])
+      ? makeUniqueKey([mailSQL.id, mailSQL.tenantId, mailSQL.createdAt])
       : undefined;
     if (mailSQL && mailPK && !mailIdSet.has(mailPK)) {
       mailIdSet.add(mailPK);
@@ -514,9 +514,13 @@ export const toTenantAggregatorArray = (
       const verifier = row.verifier;
       const verifierPK = verifier
         ? makeUniqueKey([
-            verifier.tenantVerifierId,
-            verifier.tenantVerifiedAttributeId,
             verifier.tenantId,
+            verifier.tenantVerifiedAttributeId,
+            verifier.tenantVerifierId,
+            verifier.delegationId || "",
+            verifier.verificationDate,
+            verifier.expirationDate || "",
+            verifier.extensionDate || "",
           ])
         : undefined;
       if (verifier && verifierPK && !verifiersIdSet.has(verifierPK)) {
@@ -528,9 +532,14 @@ export const toTenantAggregatorArray = (
       const revoker = row.revoker;
       const revokerPK = revoker
         ? makeUniqueKey([
-            revoker.tenantRevokerId,
-            revoker.tenantVerifiedAttributeId,
             revoker.tenantId,
+            revoker.tenantVerifiedAttributeId,
+            revoker.tenantRevokerId,
+            revoker.delegationId || "",
+            revoker.revocationDate,
+            revoker.verificationDate,
+            revoker.expirationDate || "",
+            revoker.extensionDate || "",
           ])
         : undefined;
       if (revoker && revokerPK && !revokersIdSet.has(revokerPK)) {

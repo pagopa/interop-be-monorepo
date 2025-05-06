@@ -2,6 +2,7 @@ import {
   Client,
   ClientId,
   ClientKind,
+  genericInternalError,
   Key,
   KeyUse,
   PurposeId,
@@ -29,15 +30,20 @@ export const aggregateClient = ({
   const purposes: PurposeId[] = purposesSQL.map((p) =>
     unsafeBrandId(p.purposeId)
   );
-  const keys: Key[] = keysSQL.map((keySQL) => ({
-    userId: unsafeBrandId(keySQL.userId),
-    kid: keySQL.kid,
-    name: keySQL.name,
-    encodedPem: keySQL.encodedPem,
-    algorithm: keySQL.algorithm,
-    use: KeyUse.parse(keySQL.use),
-    createdAt: stringToDate(keySQL.createdAt),
-  }));
+  const keys: Key[] = keysSQL.map((keySQL) => {
+    if (keySQL.userId === null) {
+      throw genericInternalError("UserId can't be null in key");
+    }
+    return {
+      userId: unsafeBrandId(keySQL.userId),
+      kid: keySQL.kid,
+      name: keySQL.name,
+      encodedPem: keySQL.encodedPem,
+      algorithm: keySQL.algorithm,
+      use: KeyUse.parse(keySQL.use),
+      createdAt: stringToDate(keySQL.createdAt),
+    };
+  });
 
   return {
     data: {
@@ -157,32 +163,31 @@ export const toClientAggregatorArray = (
     }
 
     const userSQL = row.clientUser;
-    if (
-      userSQL &&
-      !userIdSet.has(makeUniqueKey([userSQL.clientId, userSQL.userId]))
-    ) {
-      userIdSet.add(makeUniqueKey([userSQL.clientId, userSQL.userId]));
+    const userPK = userSQL
+      ? makeUniqueKey([userSQL.clientId, userSQL.userId])
+      : undefined;
+    if (userSQL && userPK && !userIdSet.has(userPK)) {
+      userIdSet.add(userPK);
       // eslint-disable-next-line functional/immutable-data
       usersSQL.push(userSQL);
     }
 
     const purposeSQL = row.clientPurpose;
-    if (
-      purposeSQL &&
-      !purposeIdSet.has(
-        makeUniqueKey([purposeSQL.clientId, purposeSQL.purposeId])
-      )
-    ) {
-      purposeIdSet.add(
-        makeUniqueKey([purposeSQL.clientId, purposeSQL.purposeId])
-      );
+    const purposePK = purposeSQL
+      ? makeUniqueKey([purposeSQL.clientId, purposeSQL.purposeId])
+      : undefined;
+    if (purposeSQL && purposePK && !purposeIdSet.has(purposePK)) {
+      purposeIdSet.add(purposePK);
       // eslint-disable-next-line functional/immutable-data
       purposesSQL.push(purposeSQL);
     }
 
     const keySQL = row.clientKey;
-    if (keySQL && !keyIdSet.has(makeUniqueKey([keySQL.clientId, keySQL.kid]))) {
-      keyIdSet.add(makeUniqueKey([keySQL.clientId, keySQL.kid]));
+    const keyPK = keySQL
+      ? makeUniqueKey([keySQL.clientId, keySQL.kid])
+      : undefined;
+    if (keySQL && keyPK && !keyIdSet.has(keyPK)) {
+      keyIdSet.add(keyPK);
       // eslint-disable-next-line functional/immutable-data
       keysSQL.push(keySQL);
     }

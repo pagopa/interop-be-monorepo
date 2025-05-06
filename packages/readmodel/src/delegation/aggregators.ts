@@ -22,11 +22,11 @@ import { match } from "ts-pattern";
 import { makeUniqueKey } from "../utils.js";
 
 export const aggregateDelegationArray = ({
-  delegationSQL,
+  delegationsSQL,
   stampsSQL,
   contractDocumentsSQL,
 }: {
-  delegationSQL: DelegationSQL[];
+  delegationsSQL: DelegationSQL[];
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
 }): Array<WithMetadata<Delegation>> => {
@@ -34,7 +34,7 @@ export const aggregateDelegationArray = ({
   const contractDocumentsByDelegationId =
     createDelegationSQLPropertyMap(contractDocumentsSQL);
 
-  return delegationSQL.map((delegationSQL) => {
+  return delegationsSQL.map((delegationSQL) => {
     const delegationId = unsafeBrandId<DelegationId>(delegationSQL.id);
     return aggregateDelegation({
       delegationSQL,
@@ -243,15 +243,15 @@ export const toDelegationAggregatorArray = (
     }
 
     const delegationStamp = row.delegationStamp;
+    const delegationStampPK = delegationStamp
+      ? makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
+      : undefined;
     if (
       delegationStamp &&
-      !delegationStampsIdSet.has(
-        makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
-      )
+      delegationStampPK &&
+      !delegationStampsIdSet.has(delegationStampPK)
     ) {
-      delegationStampsIdSet.add(
-        makeUniqueKey([delegationStamp.delegationId, delegationStamp.kind])
-      );
+      delegationStampsIdSet.add(delegationStampPK);
       // eslint-disable-next-line functional/immutable-data
       stampsSQL.push(delegationStamp);
     }
