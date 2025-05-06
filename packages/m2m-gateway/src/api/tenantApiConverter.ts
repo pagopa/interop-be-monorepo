@@ -14,3 +14,16 @@ export function toM2MGatewayApiTenant(
     subUnitType: tenant.subUnitType,
   };
 }
+
+export function toGetTenantsApiQueryParams(
+  params: m2mGatewayApi.GetTenantsQueryParams
+): tenantApi.GetTenantsQueryParams {
+  return {
+    externalIdOrigin: params.externalIdOrigin,
+    externalIdValue: params.externalIdValue,
+    name: undefined,
+    features: [],
+    offset: params.offset,
+    limit: params.limit,
+  };
+}
