@@ -230,7 +230,8 @@ export function clientServiceBuilder(
     async getClientUsers(
       clientId: string,
       selfcareId: string,
-      { logger, headers, correlationId }: WithLogger<BffAppContext>
+      { logger, headers, correlationId }: WithLogger<BffAppContext>,
+      name?: string
     ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
 
@@ -239,7 +240,7 @@ export function clientServiceBuilder(
         headers,
       });
 
-      return await Promise.all(
+      const users = await Promise.all(
         clientUsers.map(async (id) =>
           getSelfcareCompactUserById(
             selfcareUsersClient,
@@ -249,6 +250,8 @@ export function clientServiceBuilder(
           )
         )
       );
+
+      return name ? users.filter((user) => user.name === name) : users;
     },
 
     async getClientKeyById(
