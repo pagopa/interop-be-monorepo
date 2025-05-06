@@ -7,13 +7,11 @@ import { toM2MGatewayApiTenant } from "../api/tenantApiConverter.js";
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantServiceBuilder({
-  tenantProcessClient,
-}: PagoPAInteropBeClients) {
+export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getTenants: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
-      queryParams: m2mGatewayApi.GetTenantsQueryParams
+      queryParams: m2mGatewayApi.GetTenantsQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Tenants> => {
       const { externalIdOrigin, externalIdValue, limit, offset } = queryParams;
 
@@ -23,7 +21,7 @@ export function tenantServiceBuilder({
 
       const {
         data: { results, totalCount },
-      } = await tenantProcessClient.tenant.getTenants({
+      } = await clients.tenantProcessClient.tenant.getTenants({
         queries: {
           externalIdOrigin,
           externalIdValue,
