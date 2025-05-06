@@ -9,7 +9,7 @@
   "author": "",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "vitest",
+    "test": "echo \"Old readmodel\" && vitest --config vitest.config.ts && echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
