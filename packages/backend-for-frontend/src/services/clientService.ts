@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+import {
+  getAllFromPaginated,
+  ReadModelRepository,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
@@ -251,15 +255,9 @@ export function clientServiceBuilder(
         )
       );
 
-      /*      
-       1) name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') escapes all special regex characters.
-       2) The 'i' flag makes the match case-insensitive.
-       3) .test(user.name) tests whether user.name contains the string name in part.
-      */
-
       return name
         ? users.filter((user) =>
-            new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(
+            new RegExp(ReadModelRepository.escapeRegExp(name), "i").test(
               user.name
             )
           )
